@@ -42,7 +42,7 @@ export type Choosing = {
 };
 
 // lineWait is how long a choice waits for the host to take the model's line
-// before the child's message goes, in milliseconds.
+// before the card's message goes, in milliseconds.
 const lineWait = 500;
 
 // within is promise, waited for no longer than ms.
@@ -60,7 +60,7 @@ function within(ms: number, promise: Promise<void>): Promise<void> {
  * topic the lessons are kept to as the service last said, until the card
  * changes it. A choice is saved to the profile, the model is told of it in
  * the service's words through tell, and only then is the next task asked of
- * the chat in the child's words, through ask, as another task is: a choice not
+ * the chat in the adult's words, through ask, as another task is: a choice not
  * saved asks nothing, and says so. Nothing is chosen while busy says the card is in the
  * middle of something else, nor while a choice is on its way: a press of a
  * choice that looks locked is turned away here. The panel takes
@@ -129,7 +129,7 @@ export function useTopicChoice(
 			}));
 			return;
 		}
-		// The model reads the line with the child's message, so the line goes to
+		// The model reads the line with the card's message, so the line goes to
 		// the host first, and the message once the host has taken it — or a
 		// moment later, since a host that keeps no line, or never says so, still
 		// takes the message.

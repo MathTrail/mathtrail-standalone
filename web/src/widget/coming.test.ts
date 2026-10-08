@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
 	askIn,
 	firstAskIn,
+	heldOn,
 	isSettled,
 	shows,
 	type Wait,
@@ -173,5 +174,67 @@ describe("the first question of a card", () => {
 		}
 		expect(new Set(firsts).size).toBeGreaterThan(25);
 		expect(firstAskIn(ids[0] ?? "")).toBe(firsts[0]);
+	});
+});
+
+describe("what a card's question says it has heard", () => {
+	test.each<[string, Wait, number | undefined]>([
+		["nothing before its first answer", waitStart, undefined],
+		["no try turned down once it hears of the task", told(writing()), 0],
+		["the tries turned down it has heard of", told(writing(), writing(2)), 2],
+		[
+			"nothing once a word says none is coming",
+			told(writing(), over),
+			undefined,
+		],
+		["nothing while it has not heard of the task", told(over), undefined],
+		[
+			"the tries still after one question held for news went unanswered",
+			told(writing(), unknown),
+			0,
+		],
+		[
+			"nothing once two questions held for news in a row went unanswered",
+			told(writing(), unknown, unknown),
+			undefined,
+		],
+		[
+			"nothing for good after that",
+			told(writing(), unknown, unknown, writing()),
+			undefined,
+		],
+		[
+			"the tries again after a question not held went unanswered",
+			told(unknown, writing()),
+			0,
+		],
+	])("says %s", (_, wait, heard) => {
+		expect(heldOn(wait)).toBe(heard);
+	});
+});
+
+describe("the pace of a card's questions", () => {
+	test("runs from the start of each question: one held for news is followed at once, one answered at once waits out the rest", () => {
+		const wait = told(writing());
+
+		expect(askIn(wait, 0, 1_000)).toBe(moments.ask - 1_000);
+		expect(askIn(wait, 0, moments.ask + 500)).toBe(0);
+	});
+
+	test("waits the whole pace when the clock was set back since the question started", () => {
+		expect(askIn(told(writing()), 0, -60_000)).toBe(moments.ask);
+	});
+
+	test("runs the seldom pace of a wait gone long from the start of the question too", () => {
+		const fresh = told(writing());
+		const long = waitAfter(fresh, { type: "slowed", news: fresh.news });
+
+		expect(askIn(long, 700, 1_000)).toBe(moments.askSlowly + 700 - 1_000);
+	});
+
+	test("runs the pause after a question that went unanswered from its end, however long it took to fail", () => {
+		expect(askIn(told(writing(), unknown), 700, 20_000)).toBe(
+			moments.askSlowly + 700,
+		);
 	});
 });

@@ -90,8 +90,11 @@ func (s *Service) reviewText(review *progress.Review, language string) string {
 		}
 		parts = append(parts, "Too early to judge, which is no verdict yet: "+strings.Join(names, ", ")+".")
 	}
-	if steps := s.stepsText(review.Steps, language); steps != "" {
+	if steps, linked := s.stepsText(review.Steps, language); steps != "" {
 		parts = append(parts, "What to do next: "+steps)
+		if linked {
+			parts = append(parts, "Pass a page on only as it is named here, never one of your own making.")
+		}
 	}
 	if len(parts) == 0 {
 		return "Review for the adult: nothing to point out yet."
@@ -133,8 +136,9 @@ func (s *Service) judgedText(topics []progress.Judged) string {
 }
 
 // stepsText is the steps of the review, numbered, each with its advice and the
-// page of its topic in language; a step of a kind with no words is left out.
-func (s *Service) stepsText(steps []progress.Step, language string) string {
+// page of its topic in language, and whether any of them names a page; a step
+// of a kind with no words is left out.
+func (s *Service) stepsText(steps []progress.Step, language string) (words string, linked bool) {
 	said := make([]string, 0, len(steps))
 	for _, step := range steps {
 		advice := s.stepAdvice(step)
@@ -142,23 +146,26 @@ func (s *Service) stepsText(steps []progress.Step, language string) string {
 			continue
 		}
 		if step.Topic != "" {
-			advice = s.stepTopic(step, language) + ": " + advice
+			topic, page := s.stepTopic(step, language)
+			advice = topic + ": " + advice
+			linked = linked || page
 		}
 		said = append(said, fmt.Sprintf("%d. %s", len(said)+1, advice))
 	}
-	return strings.Join(said, " ")
+	return strings.Join(said, " "), linked
 }
 
 // stepTopic is the name of a step's topic, and after it, once the topic's
 // page is published, the address of the part of the page the step is about,
-// in language: the model links the page only as it is given here.
-func (s *Service) stepTopic(step progress.Step, language string) string {
+// in language, with whether there is one: the model links the page only as it
+// is given here.
+func (s *Service) stepTopic(step progress.Step, language string) (words string, linked bool) {
 	name := s.topicName(step.Topic)
 	topic, _ := s.content.Topic(step.Topic)
 	if address := pageAddress(s.site, language, &topic, stepAnchor(step.Kind)); address != "" {
-		return name + " (" + address + ")"
+		return name + " (" + address + ")", true
 	}
-	return name
+	return name, false
 }
 
 // stepAnchor is the part of a topic's page a step leads to: where the

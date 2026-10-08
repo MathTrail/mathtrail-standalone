@@ -210,7 +210,7 @@ The solver program is kept although it is never run again: it is the record that
 
 ### The task kept ready
 
-`ready_task`, absent when none is kept: the next task, written ahead while the child worked on the one on the card, and kept until the child asks for another (R235). Never beside an open request.
+`ready_task`, absent when none is kept: the next task, written ahead while the child worked on the one on the card, and kept until another is asked for (R235). Never beside an open request.
 
 | Field | Where | Why |
 |---|---|---|

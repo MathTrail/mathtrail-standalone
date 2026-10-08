@@ -52,7 +52,7 @@ const said = pseudonym + " says " + answer
 const (
 	projectID           = "a-project"
 	instructionsVersion = "0123456789ab"
-	instructions        = "You coach one child through short maths tasks."
+	instructions        = "An adult runs the lesson; you talk with the adult and write the tasks."
 	// page stands in for the widget every card is drawn by.
 	page = "<!doctype html><title>the widget</title>"
 	// serviceOrigin and siteOrigin stand in for the service's public origin

@@ -30,7 +30,7 @@ const codeStaleTask = "stale_task"
 // says what an answer is without repeating what arrived.
 type submitAnswerIn struct {
 	TaskID   string `json:"task_id" jsonschema:"the id of the task on the child's card"`
-	Answer   string `json:"answer" jsonschema:"the letter of the option the child chose, A to E, or ? when the child says they do not know"`
+	Answer   string `json:"answer" jsonschema:"the letter of the option the child chose, A to E, or ? when the child does not know"`
 	HintUsed bool   `json:"hint_used,omitempty" jsonschema:"whether the child opened the hint before answering; false when left out"`
 }
 
@@ -88,11 +88,10 @@ func (s *Service) submitAnswerTool() Tool {
 	return Define(Spec{
 		Name:  "submit_answer",
 		Title: "Record the child's answer",
-		Description: "Records an answer the child gives in the chat to the task on the card, with the task's id: the " +
-			"letter of the option the child chose, A to E, or ? when the child says they do not know, which counts " +
-			"as a wrong answer. Where cards are shown, an answer given on the card is recorded by the card itself: do " +
-			"not ask for one in the chat. Pass hint_used when the child opened the hint first. " +
-			"Record the answer before you explain anything. " +
+		Description: "Records the child's answer to the task on the card, with the task's id, when the adult gives it " +
+			"in the chat: the letter of the option the child chose, A to E, or ? when the child does not know, which " +
+			"counts as a wrong answer. Where cards are shown, an answer given on the card is recorded by the card " +
+			"itself. Pass hint_used when the child opened the hint first. " +
 			"The result says whether the answer was right, which option is, what went wrong on the way " +
 			"to a wrong one and whether that mistake has come up before, the solution, and how the child's rating in the topic moved — during the trial series, " +
 			"how many of its tasks are done instead. An answer is recorded once: the same task answered again, on " +
@@ -328,10 +327,10 @@ func (s *Service) toldText(task *profile.CurrentTask, recorded *profile.Recorded
 	switch {
 	case recorded.Choice == profile.DontKnow:
 		outcome = fmt.Sprintf("The child did not know, which counts as a wrong answer; the right option is %s. "+
-			"Go through the solution with the child step by step, simply and kindly.", right)
+			"Go through the solution step by step, simply and kindly.", right)
 	case recorded.Correct:
 		outcome = fmt.Sprintf("The child chose %s, and it is right. Praise briefly, and go through the solution if "+
-			"they want it.", right)
+			"the adult asks for it.", right)
 	default:
 		outcome = fmt.Sprintf("The child chose %s) %s, and it is wrong; the right option is %s. %s",
 			recorded.Choice, quoted(task.Options[recorded.Choice]), right, mistakeText(recorded.Trap, repeated))
@@ -391,10 +390,10 @@ func (s *Service) notOnTheCard(p *profile.Profile, taskID string) Reply[answered
 		current = fmt.Sprintf("There is no task on the card yet: request %s is open, and its task is still to be "+
 			"handed in with submit_task.", request.ID)
 	case task == nil:
-		current = "There is no task on the card: ask for a new one with next_task when the child wants another."
+		current = "There is no task on the card: ask for a new one with next_task when another is asked for."
 	case task.Answered != nil:
 		current = fmt.Sprintf("The task on the card, %s, has been answered already: ask for a new task with "+
-			"next_task when the child wants another.", task.ID)
+			"next_task when another is asked for.", task.ID)
 	default:
 		current = fmt.Sprintf("Task %s is on the card: record the child's answer to it with its id.", task.ID)
 	}

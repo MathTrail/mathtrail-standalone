@@ -56,7 +56,8 @@ type Settings struct {
 }
 
 // description is what the server says it is, for a host that lists it.
-const description = "Olympiad-style maths for children in grades 1 to 6. The chat's model writes each task; " +
+const description = "Olympiad-style maths for children in grades 1 to 6, in a lesson a parent or a tutor runs in " +
+	"their own chat. The chat's model writes each task; " +
 	"MathTrail chooses its topic and difficulty, checks it before the child sees it, and keeps the child's " +
 	"progress in the parent's Google Drive."
 

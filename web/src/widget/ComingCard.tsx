@@ -5,6 +5,7 @@ import { CardHeader } from "./CardRoot";
 import {
 	askIn,
 	firstAskIn,
+	heldOn,
 	isSettled,
 	shows,
 	type Wait,
@@ -15,7 +16,7 @@ import type { Coming } from "./payload";
 import { useService } from "./service";
 import { TaskInCard } from "./TaskCard";
 import { TaskWait } from "./TaskWait";
-import { moments, type Phase } from "./waiting";
+import { moments } from "./waiting";
 import { useWords } from "./words";
 
 /**
@@ -23,18 +24,19 @@ import { useWords } from "./words";
  * task is asked for, and waits for it: it asks the service how the task
  * stands, and shows the task being written — and a try the checks turned
  * down, with a new one being written, and the wait gone long — until the task
- * is on the card. It then ticks off the rest of the course, the checks the
- * task passed and the task ready, and turns into the task, in the same frame,
- * the progress opened over it left open. A task that is not coming is said
- * so, in words true whatever ended its request — the tries spent, the request
- * replaced, or the task gone from the card long since, for a card drawn again
- * with an earlier chat: no task is here, and where the next one comes.
+ * is on the card. It then ticks off the rest of the course at once, the checks
+ * the task passed and the task ready, and turns into the task a moment later,
+ * in the same frame, the progress opened over it left open. A task that is not
+ * coming is said so, in words true whatever ended its request — the tries
+ * spent, the request replaced, or the task gone from the card long since, for
+ * a card drawn again with an earlier chat: no task is here, and where the next
+ * one comes.
  */
 export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 	const words = useWords();
 	const wait = useWaitFor(coming.requestId);
 	const finishing = useFinishing(wait);
-	const task = finishing === undefined ? wait.task : undefined;
+	const task = finishing ? undefined : wait.task;
 	// The wait's news is of a task still awaited: a task that has come answers
 	// it.
 	const awaited = wait.task === undefined;
@@ -51,7 +53,7 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 					<article aria-label={words.text("waiting.label")}>
 						<CardHeader grade={whose.grade} wide={wide} />
 						<TaskWait
-							phase={finishing ?? "writing"}
+							phase={finishing ? "ready" : "writing"}
 							rewriting={awaited && wait.refused > 0}
 							slow={awaited && wait.slow}
 							ended={
@@ -77,9 +79,11 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 
 // useWaitFor is the wait for the task of the request given, kept up by asking
 // the service how it stands: first after a moment of the request's own, then
-// each time the question before was answered, as often as the wait says, until
-// it is settled. A page out of sight asks nothing, and asks at once when it is
-// looked at again.
+// each time the question before was answered, as often as the wait says,
+// counted from that question's start, until it is settled. A question says
+// what the card has heard, so that the service may hold it until there is
+// news. A page out of sight asks nothing, and asks at once when it is looked
+// at again.
 function useWaitFor(requestId: string): Wait {
 	const service = useService();
 	const [wait, dispatch] = useReducer(waitAfter, waitStart);
@@ -88,6 +92,8 @@ function useWaitFor(requestId: string): Wait {
 	// and drops no answer already on its way.
 	const latest = useRef(wait);
 	latest.current = wait;
+	// askedAt is when the latest question started, which the pace runs from.
+	const askedAt = useRef(0);
 	const settled = isSettled(wait);
 
 	useEffect(() => {
@@ -100,7 +106,11 @@ function useWaitFor(requestId: string): Wait {
 				document.addEventListener("visibilitychange", whenSeen);
 				return;
 			}
-			const status = await service.taskStatus(requestId);
+			askedAt.current = Date.now();
+			const status = await service.taskStatus(
+				requestId,
+				heldOn(latest.current),
+			);
 			if (!gone) {
 				dispatch({ type: "answered", status });
 			}
@@ -114,7 +124,11 @@ function useWaitFor(requestId: string): Wait {
 		const pause =
 			wait.answers === 0
 				? firstAskIn(requestId)
-				: (askIn(latest.current, firstAskIn(requestId)) ?? moments.askSlowly);
+				: (askIn(
+						latest.current,
+						firstAskIn(requestId),
+						Date.now() - askedAt.current,
+					) ?? moments.askSlowly);
 		const timer = setTimeout(() => void ask(), pause);
 		return () => {
 			gone = true;
@@ -137,34 +151,24 @@ function useWaitFor(requestId: string): Wait {
 	return wait;
 }
 
-// Finish is a step of the course a card ticks off once its task has come.
-type Finish = Extract<Phase, "checked" | "ready">;
-
-// useFinishing is the phase of the course a card shows between its task coming
-// and the task taking the course's place: the checks passed at once, the task
-// ready a beat later, held a moment so that it is seen. It is nothing while the
-// task is awaited and once the course is done, and nothing at all when the
-// card's first answer brought the task — a card drawn again with an earlier
-// chat —, which shows it at once: only a card that has waited has a course to
-// finish.
-function useFinishing(wait: Wait): Finish | undefined {
+// useFinishing says whether a card shows its course done, between its task
+// coming and the task taking the course's place: every step ticked at once —
+// the checks passed and the task ready —, held a moment so that it is seen.
+// It is false while the task is awaited and once the moment has passed, and
+// false all along when the card's first answer brought the task — a card
+// drawn again with an earlier chat —, which shows it at once: only a card
+// that has waited has a course to finish.
+function useFinishing(wait: Wait): boolean {
 	const come = wait.task !== undefined && wait.answers > 1;
-	const [ticked, setTicked] = useState<Finish | "done">("checked");
+	const [done, setDone] = useState(false);
 
 	useEffect(() => {
 		if (!come) {
 			return;
 		}
-		const ready = setTimeout(() => setTicked("ready"), moments.beat);
-		const done = setTimeout(
-			() => setTicked("done"),
-			moments.beat + moments.held,
-		);
-		return () => {
-			clearTimeout(ready);
-			clearTimeout(done);
-		};
+		const timer = setTimeout(() => setDone(true), moments.held);
+		return () => clearTimeout(timer);
 	}, [come]);
 
-	return come && ticked !== "done" ? ticked : undefined;
+	return come && !done;
 }

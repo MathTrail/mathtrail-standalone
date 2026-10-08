@@ -117,7 +117,7 @@ const words = [
 	"  caption: The card.",
 	"  chat:",
 	"    label: An illustration",
-	"    child: The child",
+	"    adult: The adult",
 	"    model: The model",
 	"    question: Why not 6?",
 	"    reply: One post twice.",
@@ -242,7 +242,7 @@ describe("the page Why", () => {
 			[...(chat?.querySelectorAll(".s-message") ?? [])].map((message) =>
 				message.getAttribute("class"),
 			),
-		).toEqual(["s-message s-message-child", "s-message s-message-model"]);
+		).toEqual(["s-message s-message-adult", "s-message s-message-model"]);
 	});
 
 	test("shows a finding for each work the data names, in its order, each linking its work", () => {

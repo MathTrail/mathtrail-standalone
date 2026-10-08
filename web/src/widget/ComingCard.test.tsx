@@ -42,14 +42,21 @@ const first = firstAskIn(coming.request_id);
 // frame that brought the answer to the one before.
 const late = 300;
 
-// finished is how long a card takes, once its task has come, to tick off the
-// rest of the course before the task takes the course's place.
-const finished = moments.beat + moments.held;
+// finished is how long a card holds its course done, every step ticked at
+// once, before the task that has come takes the course's place.
+const finished = moments.held;
+
+// Answer is how a question is answered: at once, when a promise settles, or
+// by a promise made as the question comes — an answer the service holds.
+type Answer =
+	| CallToolResult
+	| Promise<CallToolResult>
+	| (() => Promise<CallToolResult>);
 
 // answering answers the card's questions with the statuses given, one for each
 // question, the last again for every question after it; and the other tools a
 // card calls as the service would.
-function answering(...statuses: (CallToolResult | Promise<CallToolResult>)[]) {
+function answering(...statuses: Answer[]) {
 	let asked = 0;
 	return (call: ToolCall) => {
 		switch (call.name) {
@@ -59,7 +66,7 @@ function answering(...statuses: (CallToolResult | Promise<CallToolResult>)[]) {
 				if (status === undefined) {
 					throw new Error("no status to answer with");
 				}
-				return status;
+				return typeof status === "function" ? status() : status;
 			}
 			case "read_progress":
 				return progress;
@@ -69,6 +76,13 @@ function answering(...statuses: (CallToolResult | Promise<CallToolResult>)[]) {
 				throw new Error(`no ${call.name} here`);
 		}
 	};
+}
+
+// heldFor is an answer the service holds for milliseconds of the card's clock
+// from the moment the question comes, as it holds a question for news.
+function heldFor(milliseconds: number, status: CallToolResult): Answer {
+	return () =>
+		new Promise((resolve) => setTimeout(() => resolve(status), milliseconds));
 }
 
 // drawn is the card a task asked for comes to, drawn on a host that answers
@@ -133,17 +147,10 @@ describe("a card a task asked for comes to", () => {
 		expect(card.asked()).toHaveLength(5);
 	});
 
-	test("ticks off the checks and the task ready once the task is on the card, then turns into it, asks no more, and the task is answered on it", async () => {
+	test("ticks off the checks and the task ready at once when the task is on the card, then turns into it, asks no more, and the task is answered on it", async () => {
 		const card = await drawn(answering(writing(), onTheCard));
 
 		await pass(first + moments.ask);
-		expect(labels()).toEqual([
-			"Done: Picked topic and difficulty",
-			"Done: Writing the task",
-			"Done: Checking every answer",
-			"Waiting: Ready",
-		]);
-		await pass(moments.beat);
 		expect(labels()).toEqual([
 			"Done: Picked topic and difficulty",
 			"Done: Writing the task",
@@ -175,7 +182,7 @@ describe("a card a task asked for comes to", () => {
 			"Done: Picked topic and difficulty",
 			"Done: Writing the task",
 			"Done: Checking every answer",
-			"Waiting: Ready",
+			"Done: Ready",
 		]);
 
 		await pass(finished);
@@ -212,8 +219,12 @@ describe("a card a task asked for comes to", () => {
 	});
 
 	test("says the task is taking long two minutes after its last news, and asks seldom from then on", async () => {
-		const card = await drawn(answering(writing()));
-		await pass(first);
+		// The news comes half a pace after the first question, so that the
+		// wait goes long halfway between two questions at the usual pace.
+		const card = await drawn(
+			answering(heldFor(moments.ask / 2, writing()), writing()),
+		);
+		await pass(first + moments.ask / 2);
 
 		await pass(moments.slow - late);
 		expect(news()).toBe("");
@@ -226,9 +237,11 @@ describe("a card a task asked for comes to", () => {
 		);
 		expect(root.querySelector(".mt-gen")).not.toBeNull();
 
-		// The question set going before the wait went long waits the longer
-		// pause too, counted from then, and so does each one after it.
-		// A seldom question is put off by the card's own moment as well.
+		// The question set going before the wait went long is asked at the
+		// usual pace, half a pace later; each one after it waits the longer
+		// pause, counted from the start of the one before, and put off by the
+		// card's own moment as well.
+		await pass(moments.ask / 2);
 		const slowly = card.asked().length;
 		await pass(moments.askSlowly + first - 2 * late);
 		expect(card.asked()).toHaveLength(slowly);
@@ -322,10 +335,69 @@ describe("a card a task asked for comes to", () => {
 		expect(card.asked()).toHaveLength(before + 1);
 	});
 
+	test("says in each question after it has heard the task is being written how many tries it has heard were turned down, so that the service may hold the question for news", async () => {
+		const card = await drawn(answering(writing(), writing(1), writing(1)));
+
+		await pass(first + 2 * moments.ask + late);
+
+		expect(card.asked().map((call) => call.arguments)).toEqual([
+			{ request_id: coming.request_id },
+			{ request_id: coming.request_id, refused: 0 },
+			{ request_id: coming.request_id, refused: 1 },
+		]);
+	});
+
+	test("asks again at once after a question the service held for news, and after the rest of its pace after one answered sooner", async () => {
+		const card = await drawn(
+			answering(
+				writing(),
+				heldFor(moments.ask, writing()),
+				heldFor(1_000, writing()),
+				writing(),
+			),
+		);
+		await pass(first);
+		expect(card.asked()).toHaveLength(1);
+
+		// The second question starts a pace after the first, and is held for
+		// a pace: the third follows its answer at once.
+		await pass(2 * moments.ask - late);
+		expect(card.asked()).toHaveLength(2);
+		await pass(2 * late);
+		expect(card.asked()).toHaveLength(3);
+
+		// The third is answered a second after it started, and the fourth
+		// waits out the rest of the pace from the third's start.
+		await pass(moments.ask - 3 * late);
+		expect(card.asked()).toHaveLength(3);
+		await pass(2 * late);
+		expect(card.asked()).toHaveLength(4);
+	});
+
+	test("asks as it did before, saying nothing of what it heard, once two questions held for news in a row went unanswered", async () => {
+		const card = await drawn(
+			answering(writing(), failure, failure, writing(), writing()),
+		);
+
+		await pass(
+			first + 2 * moments.ask + 2 * (moments.askSlowly + first) + late,
+		);
+
+		expect(card.asked().map((call) => call.arguments)).toEqual([
+			{ request_id: coming.request_id },
+			{ request_id: coming.request_id, refused: 0 },
+			{ request_id: coming.request_id, refused: 0 },
+			{ request_id: coming.request_id },
+			{ request_id: coming.request_id },
+		]);
+	});
+
 	test("asks one question at a time: a question unanswered holds back the next", async () => {
 		const card = await drawn(answering(new Promise<CallToolResult>(() => {})));
 
-		await pass(first + moments.askSlowly * 4);
+		// Well within the minute the host's library waits for an answer before
+		// it gives the question up.
+		await pass(first + moments.askSlowly * 3);
 
 		expect(card.asked()).toHaveLength(1);
 	});

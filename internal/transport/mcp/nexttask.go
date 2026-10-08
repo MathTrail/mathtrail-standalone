@@ -26,15 +26,15 @@ const (
 )
 
 // nextTaskIn is what next_task takes: the language the task is to be written
-// in, and what the child or the adult asked for instead of what the rule sets,
-// with its reason. The limits are in the words rather than in the schema, and
-// the rule checks them, saying what is wrong without repeating it.
+// in, and what the adult asked for instead of what the rule sets, with its
+// reason. The limits are in the words rather than in the schema, and the rule
+// checks them, saying what is wrong without repeating it.
 type nextTaskIn struct {
 	Language   string `json:"language" jsonschema:"the language of the chat as a BCP 47 tag, such as en, ru or pt-BR: the task is written in it, unless the profile names a language for the lessons"`
-	Topic      string `json:"topic,omitempty" jsonschema:"a topic the child or the adult asked for instead of the rule's, by its id from the list in this tool's description. Needs a reason"`
-	GradeLevel string `json:"grade_level,omitempty" jsonschema:"a level the child or the adult asked for: 1-2, 3-4 or 5-6, the grades a task is written for. Needs a reason"`
-	Difficulty int    `json:"difficulty,omitempty" jsonschema:"a difficulty the child or the adult asked for inside the level, 1 to 5. Needs a reason"`
-	Reason     string `json:"reason,omitempty" jsonschema:"what the child or the adult asked for, in a sentence of at most 300 characters. Required with any of them"`
+	Topic      string `json:"topic,omitempty" jsonschema:"a topic the adult asked for instead of the rule's, by its id from the list in this tool's description. Needs a reason"`
+	GradeLevel string `json:"grade_level,omitempty" jsonschema:"a level the adult asked for: 1-2, 3-4 or 5-6, the grades a task is written for. Needs a reason"`
+	Difficulty int    `json:"difficulty,omitempty" jsonschema:"a difficulty the adult asked for inside the level, 1 to 5. Needs a reason"`
+	Reason     string `json:"reason,omitempty" jsonschema:"what the adult asked for, in a sentence of at most 300 characters. Required with any of them"`
 }
 
 // choice is what was asked for instead of the rule, as it was sent: a topic or
@@ -107,15 +107,14 @@ func (s *Service) nextTaskTool() Tool {
 			"It does not write the task: you do. At once call get_package with its request_id for what to write it " +
 			"from — the brief, reference tasks and the page on how to write and hand in a task — and hand the task " +
 			"in with submit_task. Always pass language, the language of the chat; when the profile names a language " +
-			"for the lessons, the task is written in that one instead, and you talk in it too. " +
+			"for the lessons, the task is written in that one instead. " +
 			"Called again before the task of the open request is handed in, it hands back that request: hand in " +
 			"the task you wrote for it, or write it now, rather than asking again. A task on the child's card with " +
-			"no answer yet is recorded as skipped, so ask for a new one only when the child wants another. When the " +
-			"child or the adult asks for a topic, a level or a difficulty, pass it with a short reason; your own " +
-			"idea of what the child needs goes to prepare_task instead. While the profile keeps the lessons to a " +
-			"topic, lesson_topic, every task is on it once the trial series is over: pass no other topic then. " +
-			"Never put the child's name in a task. It writes to the profile's file in the adult's Google Drive the " +
-			"request it opens, the task it hands out and the unanswered task it records as skipped." +
+			"no answer yet is recorded as skipped. topic, grade_level and difficulty are for what the adult asks " +
+			"for, each with a short reason; your own idea of what the child needs goes to prepare_task instead. " +
+			"While the profile keeps the lessons to a topic, lesson_topic, every task is on it once the trial " +
+			"series is over, and another topic is refused. It writes to the profile's file in the adult's Google " +
+			"Drive the request it opens, the task it hands out and the unanswered task it records as skipped." +
 			"\n\nTopics, by id, with the levels each is taught at:\n" + s.topicList(),
 		Effect:    Adds,
 		DrawsCard: true,
@@ -248,8 +247,8 @@ func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Pro
 	}, nil
 }
 
-// serveReady hands the task kept to the child, who asked for the next one in
-// the chat: it is on the card next_task draws at once, and the model is sent on
+// serveReady hands the task kept to the child, once the next one is asked for
+// in the chat: it is on the card next_task draws at once, and the model is sent on
 // to write the one after it. The hand-out is written after the answer, which
 // does not wait for it. asked says a person asked for where it stands.
 func (s *Service) serveReady(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
@@ -275,7 +274,8 @@ func (s *Service) serveReady(ctx context.Context, account store.Account, p *prof
 	}
 	reply := Reply[requestOut]{
 		Text: joined(lead, fmt.Sprintf("Task %s, written ahead, is on the child's card now. %s Never say which "+
-			"option is right before the child has answered. %s", task.ID, onTheCardText, aheadNextText),
+			"option is right before the child has answered, even when the adult asks. %s", task.ID, onTheCardText,
+			aheadNextText),
 			lessonLanguageText(&p.Student)) + "\n\n" + taskWords(task),
 		Payload: requestOut{
 			Screen: screenTask, Task: cardOf(task), TopicChoice: choice, LastAnswer: lastAnswerOf(p),
@@ -360,15 +360,15 @@ func (s *Service) canPackage(p *profile.Profile, request *profile.OpenRequest) e
 }
 
 // dayIsFull is a call the day has no room for. Nothing is asked for and nothing
-// written, and the model is told what the child is to hear: that the new tasks
-// are over for today, when there will be more, and what the child can do
-// meanwhile. The card says the same. Which ceiling it was stays in the line,
-// since what the child hears is the same either way.
+// written, and the model is told what the adult is to hear: that the new tasks
+// are over for today, when there will be more, and what can be done meanwhile.
+// The card says the same to the child. Which ceiling it was stays in the line,
+// since what the family hears is the same either way.
 func (s *Service) dayIsFull(p *profile.Profile) Reply[requestOut] {
 	return Reply[requestOut]{
-		Text: joined("No task was asked for: there are no more new tasks for the child today. Tell the child so: "+
-			"there are no more new tasks today, and there will be more tomorrow; meanwhile they can look at their "+
-			"progress, or go back over the last task.",
+		Text: joined("No task was asked for: there are no more new tasks for the child today. Tell the adult so: "+
+			"there are no more new tasks today, and there will be more tomorrow; meanwhile the progress can be "+
+			"looked at, or the last task gone over again.",
 			lessonLanguageText(&p.Student), s.lastAnswerText(p)),
 		Payload: requestOut{
 			Screen: screenWaiting, Status: statusLimited, Code: codeLimitReached, LastAnswer: lastAnswerOf(p),

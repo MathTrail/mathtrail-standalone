@@ -339,7 +339,7 @@
       "required": ["attempts", "brief", "id", "language", "opened_at", "tutor_mode"],
       "properties": {
         "ahead": {
-          "description": "True when the task is written ahead, to be kept until the child asks for it; absent for a task the child is waiting for.",
+          "description": "True when the task is written ahead, to be kept until it is asked for; absent for a task the child is waiting for.",
           "type": "boolean"
         },
         "asked": {

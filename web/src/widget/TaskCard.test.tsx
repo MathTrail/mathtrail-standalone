@@ -285,7 +285,7 @@ describe("an answer", () => {
 		);
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		expect(heard.modelLines[0]).toBe(
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
+			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
 		);
 	});
 
@@ -337,7 +337,7 @@ describe("an answer", () => {
 		expect(text(".mt-note-plain p")).toBe("1502 → 1488");
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		expect(heard.modelLines[0]).toBe(
-			'Task task_fence has its answer recorded: "I don\'t know", which counts as a wrong answer; the right option is C. The card shows the solution. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.',
+			"Task task_fence has its answer recorded: \"I don't know\", which counts as a wrong answer; the right option is C. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
 		);
 	});
 
@@ -390,7 +390,7 @@ describe("an answer", () => {
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 6.");
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		expect(heard.modelLines[0]).toBe(
-			"Task task_fence has its answer recorded: D, which is wrong; the right option is C. The card shows the trap and the solution. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
+			"Task task_fence has its answer recorded: D, which is wrong; the right option is C. The card shows the trap and the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
 		);
 	});
 

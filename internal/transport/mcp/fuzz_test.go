@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -124,6 +125,9 @@ func FuzzTaskArguments(f *testing.F) {
 		{2, `{"request_id":"req_\u0000","extra":true}`},
 		{3, `{"request_id":"` + request.ID + `"}`},
 		{3, `{"request_id":["req_fuzz"]}`},
+		{3, `{"request_id":"` + request.ID + `","refused":0}`},
+		{3, `{"request_id":"` + request.ID + `","refused":"0"}`},
+		{3, `{"request_id":"` + request.ID + `","refused":-1}`},
 		{4, `{"language":"en"}`},
 		{4, `{"language":"en","topic":"logic.ordering","grade_level":"1-2","difficulty":2,"reason":"a race"}`},
 		{4, `{"language":"ru","difficulty":0,"reason":""}`},
@@ -162,6 +166,9 @@ func callOn(t *testing.T, p *profile.Profile, tool, arguments string) map[string
 	if err != nil {
 		t.Fatalf("NewService() error = %v", err)
 	}
+	// A question that would only hear what the card knows waits for news no
+	// longer than a fuzzing run can spend on it.
+	mcpserver.HoldForNews(service, time.Millisecond)
 	endpoint, err := mcpserver.NewHandler(&mcpserver.Settings{
 		Instructions:        instructions,
 		InstructionsVersion: instructionsVersion,

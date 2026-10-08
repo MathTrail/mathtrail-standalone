@@ -305,12 +305,12 @@ func Behind(p *profile.Profile, topic string, ahead bool) (answers, topicTasks i
 
 // writtenAhead is what the rationale of a task written ahead opens with: that
 // it was written before the answer to the task on the card, while that answer
-// is awaited, or else before the child asked for it.
+// is awaited, or else before it was asked for.
 func writtenAhead(awaited bool) string {
 	if awaited {
 		return "Written ahead, before the answer to the task on the card. "
 	}
-	return "Written ahead, before the child asks for it. "
+	return "Written ahead, before it is asked for. "
 }
 
 // ChosenTopic is the topic the child or the adult chose to keep the lessons

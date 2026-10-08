@@ -61,17 +61,17 @@ lesson:
     progress:
       title: Прогресс, который можно прочитать
       text: "Общий ранг и ранг по каждой теме, повторяющиеся ошибки и что будет дальше, а для вас ещё и разбор: что получается и что стоит развивать."
-  log: "Важно знать: журнал вызовов инструментов в чате показывает каждую задачу вместе с ответом, поэтому, пока ребёнок решает, держите журнал закрытым."
   # The name of the child the cards show, an invented one.
   child: Комета
-  # Two messages of the chat beneath a card answered wrong: the child's
-  # question and the model's reply. They are the site's words, never the card's.
+  # Two messages of the chat beneath a card answered wrong: the adult's
+  # question and the model's reply, about the step and to nobody, for the adult
+  # to read out to the child. They are the site's words, never the card's.
   chat:
     label: Иллюстрация чата
-    child: Ребёнок
+    adult: Взрослый
     model: Модель
     question: А почему столбов на один больше?
-    reply: Пройди вдоль забора слева. Каждый промежуток заканчивается столбом, так что 4 промежутка дают 4 столба, а первый столб стоит перед ними всеми. 4 + 1 = 5.
+    reply: Если идти вдоль забора слева, каждый промежуток заканчивается столбом, так что 4 промежутка дают 4 столба, а первый столб стоит перед ними всеми. 4 + 1 = 5.
 
 # The task of the lesson: a variant of a reference task, never one word for
 # word.
@@ -113,5 +113,5 @@ connect:
 
 ask:
   title: Начните с одной задачи.
-  lead: Добавьте MathTrail в Claude и решите первую задачу вместе с ребёнком.
+  lead: Чтобы добавить MathTrail в Claude, хватит пары минут.
   code: Код на GitHub

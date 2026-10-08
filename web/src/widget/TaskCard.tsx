@@ -160,7 +160,7 @@ export function TaskInCard({
 	function askForAnother() {
 		// Not while an answer is on its way: the ask would race the answer to a
 		// task the model is about to set aside. The label of the button, in the
-		// card's language, goes to the chat as the child's message: only the
+		// card's language, goes to the chat as the adult's message: only the
 		// model can write a task, and those are the words it takes as the ask.
 		if (answering.current || choosing.busy()) {
 			return;

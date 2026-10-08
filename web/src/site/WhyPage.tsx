@@ -3,10 +3,11 @@ import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
 import { address } from "./addresses";
 import { sourceURL } from "./brand";
-import { ChildAsks } from "./Chat";
+import { AdultAsks } from "./Chat";
 import { connectAddress } from "./home";
 import type { PageProps } from "./pages";
 import type { Fill, PageReader } from "./reader";
+import { SourceChip } from "./SourceChip";
 import { StaticAnswer } from "./StaticCard";
 import { TableFrame } from "./TableFrame";
 import { gradesOfAll } from "./topics";
@@ -67,8 +68,8 @@ function Hero({
 				<p class="s-lead">{page.text("hero.lead", { last: grades[1] })}</p>
 				<p class="s-chips">
 					<span class="s-chip">{gradesText(words, grades)}</span>
-					<span class="s-chip">{page.text("hero.free")}</span>
-					<span class="s-chip">{page.text("hero.open")}</span>
+					<span class="s-chip s-chip-free">{page.text("hero.free")}</span>
+					<SourceChip label={page.text("hero.open")} />
 				</p>
 			</div>
 			<figure class="s-panel s-contrast">
@@ -314,7 +315,7 @@ function Thinking({ page, why }: { page: PageReader; why: Why }) {
 						/>
 						<figcaption>{page.text("thinking.caption")}</figcaption>
 					</figure>
-					<ChildAsks page={page} at="thinking.chat" />
+					<AdultAsks page={page} at="thinking.chat" />
 				</div>
 			</div>
 		</section>

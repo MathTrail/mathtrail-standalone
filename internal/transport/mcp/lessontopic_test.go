@@ -78,7 +78,7 @@ func TestTheCardKeepsTheLessonsToATopicAndGivesItBack(t *testing.T) {
 	}
 	words := textOf(t, chosen)
 	wantSaid(t, words, "On the card, the child or the adult chose the topic of the lessons.",
-		"keeps the lessons to Clocks", "Do not explain the choice", "ask for it with next_task when the child does")
+		"keeps the lessons to Clocks", "Do not explain the choice", "call next_task when the next task is asked for")
 	if strings.Contains(words, "with the form") {
 		t.Errorf("the words %q tell of the form, want the choice on the card of a task", words)
 	}

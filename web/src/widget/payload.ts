@@ -274,7 +274,7 @@ export function readWaiting(payload: unknown): Waiting | undefined {
 	}
 	// A task asked for with arguments no request could be opened from had no
 	// try to fail, and a task written ahead and kept comes on the card next_task
-	// draws when the child asks for it: no task comes to this card, as to one
+	// draws when the next task is asked for: no task comes to this card, as to one
 	// whose request is over.
 	if (
 		status === "stale" ||

@@ -12,7 +12,7 @@ import {
 	connectorURL,
 	sourceURL,
 } from "./brand";
-import { ChatFrame, ChildAsks } from "./Chat";
+import { AdultAsks, ChatFrame } from "./Chat";
 import { frontPage } from "./content";
 import { progressOf } from "./data";
 import {
@@ -28,6 +28,7 @@ import {
 } from "./home";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
+import { GitHubMark, SourceChip } from "./SourceChip";
 import {
 	StaticAnswer,
 	StaticComing,
@@ -156,8 +157,8 @@ function Hero({
 		<section class="s-wrap s-hero">
 			<div class="s-hero-copy">
 				<p class="s-chips">
-					<span class="s-chip">{page.text("hero.free")}</span>
-					<span class="s-chip">{page.text("hero.open")}</span>
+					<span class="s-chip s-chip-free">{page.text("hero.free")}</span>
+					<SourceChip label={page.text("hero.open")} />
 					<span class="s-chip">{gradesText(words, grades)}</span>
 				</p>
 				<h1>{page.text("hero.title")}</h1>
@@ -316,7 +317,7 @@ function Steps({
 							result={answered.result}
 							locale={locale}
 						/>
-						<ChildAsks page={page} at="lesson.chat" />
+						<AdultAsks page={page} at="lesson.chat" />
 					</Chat>
 				</Step>
 				<Step page={page} name="progress" number={4}>
@@ -329,9 +330,6 @@ function Steps({
 					</Chat>
 				</Step>
 			</ol>
-			<aside class="s-note s-walk-note">
-				<p class="s-note-text">{page.text("lesson.log")}</p>
-			</aside>
 		</section>
 	);
 }
@@ -464,14 +462,17 @@ function Ask({ page }: { page: PageReader }) {
 	const words = useSiteWords();
 	return (
 		<section class="s-section s-ask-wrap">
-			<div class="s-ask">
-				<h2 class="s-ask-title">{page.text("ask.title")}</h2>
-				<p class="s-ask-lead">{page.text("ask.lead")}</p>
+			<div class="s-ask s-ask-row">
+				<div class="s-ask-copy">
+					<h2 class="s-ask-title">{page.text("ask.title")}</h2>
+					<p class="s-ask-lead">{page.text("ask.lead")}</p>
+				</div>
 				<p class="s-choices">
 					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
 						{words.text("nav.add")}
 					</a>
-					<a class="s-btn" href={sourceURL}>
+					<a class="s-btn s-btn-github" href={sourceURL}>
+						<GitHubMark size={20} />
 						{page.text("ask.code")}
 					</a>
 				</p>

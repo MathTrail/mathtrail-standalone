@@ -22,7 +22,7 @@ export function serviceThrough(host: Host): Service {
 	return {
 		recordAnswer: (taskId, choice, hintUsed) =>
 			recordAnswer(host, taskId, choice, hintUsed),
-		taskStatus: (requestId) => taskStatus(host, requestId),
+		taskStatus: (requestId, refused) => taskStatus(host, requestId, refused),
 		readProgress: () => readProgress(host),
 		saveEdit: (changes) => saveEdit(host, changes),
 	};
@@ -50,12 +50,23 @@ async function recordAnswer(
 	}
 }
 
-// taskStatus asks the service how the task of the request stands. A question
-// whose answer never came leaves it unknown, and is asked again later.
-async function taskStatus(host: Host, requestId: string): Promise<TaskStatus> {
+// taskStatus asks the service how the task of the request stands, saying the
+// tries turned down the card has heard of when it has heard the task is being
+// written. A question whose answer never came leaves it unknown, and is asked
+// again later.
+async function taskStatus(
+	host: Host,
+	requestId: string,
+	refused: number | undefined,
+): Promise<TaskStatus> {
 	try {
 		return readTaskStatus(
-			await host.callTool("read_task", { request_id: requestId }),
+			await host.callTool(
+				"read_task",
+				refused === undefined
+					? { request_id: requestId }
+					: { request_id: requestId, refused },
+			),
 		);
 	} catch (error: unknown) {
 		console.error("widget: how the task stands did not arrive", error);

@@ -50,7 +50,7 @@ func TestTheRequestIsReadOutOfTheWords(t *testing.T) {
 		{
 			name: "the package after a word about the language",
 			words: "The package of request " + id + ".\n" +
-				"The parent chose ru for the lessons: talk to the child in it, and every task is written in it." + pack,
+				"The parent chose ru for the lessons: talk in it, and every task is written in it." + pack,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

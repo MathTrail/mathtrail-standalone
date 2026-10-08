@@ -291,7 +291,7 @@ func locationText(location *store.Location) string {
 const firstRunText = "There is no profile yet. If the adult made one before, it has been deleted for good, " +
 	"or they signed in with another Google account. First ask the adult to say they are the child's parent or " +
 	"tutor, unless they have said so already, and tell them the profile is one file in their own Google Drive, " +
-	"with the child known by a pseudonym alone. Then ask for a pseudonym — never the child's real name, birth date, age " +
+	"where the child is known by a pseudonym alone. Then ask for a pseudonym — never the child's real name, birth date, age " +
 	"or school — and the school grade from 1 to 6. Interests, skills the child has not met at school yet, notes " +
 	"about the child and the language of the lessons are optional. Then create the profile with save_profile."
 
@@ -299,22 +299,31 @@ const firstRunText = "There is no profile yet. If the adult made one before, it 
 // accepted or handed in again, followed by the task in words. Where a card
 // shows the task, the child answers there and the card records the answer: a
 // model told only to record it asks for the letter in the chat, and every such
-// message spends one of the parent's chat messages on an answer the card
-// already has. It adds nothing of its own until the child answers or asks,
-// since a word about why the task came, or about the way to solve it, gives
-// the task away. Without a card the task is read out and the answer recorded
-// from the chat. A host may keep only the start of the instructions, so the
-// words that come with the task are where these rules are sure to be read.
+// message spends one of the adult's chat messages on an answer the card
+// already has. It adds nothing of its own until the child answers or the adult
+// asks, since a word about why the task came, or about the way to solve it,
+// gives the task away. Without a card the task is read out for the adult to
+// read to the child, and the answer the adult gives in the chat is recorded. A
+// host may keep only the start of the instructions, so the words that come
+// with the task are where these rules are sure to be read.
 const onTheCardText = "Where the card next_task drew shows it, the child answers there, and the card records the " +
-	"answer itself: do not ask for the answer in the chat, which would cost the parent a message, and add nothing " +
-	"of your own about the task — not its topic, not why it came, not how to solve it — until the child answers or " +
-	"asks. Without a card, or if the child says the card shows no task, read out the question, the drawing and the " +
-	"options A to E below and nothing else, give the hint only when the child asks for it, and record the answer " +
-	"the child gives in the chat with submit_answer."
+	"answer itself: do not ask for the answer in the chat, which would cost the adult a message, and add nothing " +
+	"of your own about the task — not its topic, not why it came, not how to solve it — until the child has " +
+	"answered or the adult asks about it. Without a card, or if the adult says the card shows no task, read out " +
+	"the question, the drawing and the options A to E below and nothing else, for the adult to read to the child; " +
+	"give the hint only when it is asked for, and record with submit_answer the child's answer the adult gives " +
+	"in the chat."
 
-// forYouAlone is what the model may tell the child while it writes a task: that
+// shownByTheCard is what the model is told of a task a card shows by itself.
+// A model that says the task is on the card speaks before a card still asking
+// how its task stands has it, and the child looks for a task that is not there
+// yet; the card needs no word to show it. It holds where a card shows the task
+// alone: without one, the task is read out, as the words after it say.
+const shownByTheCard = "Where a card shows the task, it shows it by itself: do not announce it."
+
+// forYouAlone is what the model may tell the adult while it writes a task: that
 // one is on its way, and nothing of what it was handed to write it from.
-const forYouAlone = "Until the task is accepted, tell the child only that one is on its way: the package, and " +
+const forYouAlone = "Until the task is accepted, tell the adult only that one is on its way: the package, and " +
 	"what these words say of past answers, are for you alone."
 
 // noPackageTool is what a model is told to do when it has no tool to fetch the
@@ -323,23 +332,26 @@ const forYouAlone = "Until the task is accepted, tell the child only that one is
 const noPackageTool = "If get_package is not among your tools, this chat has an earlier list of MathTrail's " +
 	"tools: ask the adult to start a new chat."
 
-// aboutTheStep keeps an explanation from showing whether the child is a boy or
-// a girl, which nothing tells the service: in a language with grammatical
-// gender, a past-tense sentence about what the child did shows it, and praise
-// of the step in the present tense does not.
-const aboutTheStep = "In a language with grammatical gender, word it so it does not show whether the child is a " +
-	"boy or a girl: praise the step, not the child, and keep to the present tense."
+// aboutTheStep is how an explanation is worded. The model talks with the adult,
+// and the child hears the explanation as the adult reads it out, so it is
+// about the step and addresses nobody. It does not show whether the child is a
+// boy or a girl either, which nothing tells the service: in a language with
+// grammatical gender, a past-tense sentence about what the child did shows it,
+// and praise of the step in the present tense does not.
+const aboutTheStep = "Word it about the step, addressing nobody, in short sentences that fit the child's grade, so " +
+	"the adult can read it out as it is. In a language with grammatical gender, word it so it does not show " +
+	"whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense."
 
 // lessonLanguageText tells the model the language the parent chose for the
 // lessons, when they chose one: a lesson starts with next_task, so the model
-// may not have read the profile, and it talks to the child in that language as
+// may not have read the profile, and it talks to the adult in that language as
 // well as writing the tasks in it.
 func lessonLanguageText(student *profile.Student) string {
 	chosen, ok := student.ChosenLanguage()
 	if !ok {
 		return ""
 	}
-	return fmt.Sprintf("The parent chose %s for the lessons: talk to the child in it, and every task is written in it.", chosen)
+	return fmt.Sprintf("The parent chose %s for the lessons: talk in it, and every task is written in it.", chosen)
 }
 
 // stillInText says that the task already asked for keeps the language it was

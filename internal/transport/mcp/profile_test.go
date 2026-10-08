@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -190,9 +191,9 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 // The tools of the profile and the progress are described as not being where
 // a lesson starts: the progress puts the adult's screen in front of the child,
 // and the profile is the adult's business. A task needs only next_task, which
-// says when there is no profile, and the progress is shown when someone asks
-// for it. Neither tool of the profile draws a card, and both say so: the model
-// is the one to tell the adult what was saved, and where the form is.
+// says when there is no profile, and the progress is shown when the adult asks
+// for it. Neither tool of the profile draws a card, and both say so: the result
+// says what was saved, and the description where the form is.
 func TestTheAdultsToolsAreNotWhereALessonStarts(t *testing.T) {
 	t.Parallel()
 
@@ -208,15 +209,86 @@ func TestTheAdultsToolsAreNotWhereALessonStarts(t *testing.T) {
 	for _, want := range []struct{ name, says string }{
 		{"get_profile", "a task needs only next_task"},
 		{"get_profile", "It draws no card: the adult sees the profile, and changes it with a form, in the Profile section of the progress"},
-		{"save_profile", "No card is drawn: say in a sentence what was saved."},
-		{"get_progress", "Call it only when someone asks to see the progress"},
-		{"get_progress", "card draws the rank, not the rating's number: say the number yourself"},
-		{"get_progress", "that is for the adult, a rough guide and never a school mark or a verdict on the child"},
+		{"save_profile", "No card is drawn; the result gives the profile as it was saved."},
+		{"get_progress", "Call it only when the adult asks to see the progress"},
+		{"get_progress", "Its card draws the rank, not the rating's number."},
+		{"get_progress", "a rough guide, since the tasks are olympiad ones"},
 	} {
 		if description, listed := described[want.name]; !listed || !strings.Contains(description, want.says) {
 			t.Errorf("%s is described as %q (listed: %v), want it listed and saying %q", want.name, description, listed, want.says)
 		}
 	}
+}
+
+// spoken is how a rule of behaviour reads: what to say, to whom, and how, what
+// never to do, and what to do first. A description says what its tool does,
+// what it takes and changes, and when to call it; how to talk in a lesson is
+// for the instructions, since a directory turns down a description that tells
+// the model how to behave.
+var spoken = regexp.MustCompile(`(?i)\b(say|tell|talk|speak|praise|explain|present|announce|offer|greet|show|ask)\b|` +
+	`\bpass( \w+)? on\b|\bin your own words\b|\bdo not\b|\bdon't\b|\bnever (say|tell|put|ask|show|give|name)\b|` +
+	`\bbefore you\b|\bword it\b`)
+
+// No description, of a tool or of its arguments, tells the model how to
+// behave in a lesson, and every tool the model calls says what it does to the
+// parent's file, or that it does nothing to it.
+func TestADescriptionSaysWhatItsToolDoes(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, memory.New())
+	listed, err := session.ListTools(t.Context(), nil)
+	if err != nil {
+		t.Fatalf("ListTools() error = %v", err)
+	}
+	described := map[string]string{}
+	for _, tool := range listed.Tools {
+		described[tool.Name] = tool.Description
+		if said := spoken.FindString(tool.Description); said != "" {
+			t.Errorf("%s's description tells the model how to behave, with %q: %q", tool.Name, said, tool.Description)
+		}
+		for argument, words := range argumentWords(t, tool) {
+			if said := spoken.FindString(words); said != "" {
+				t.Errorf("%s's argument %s tells the model how to behave, with %q: %q", tool.Name, argument, said, words)
+			}
+		}
+	}
+	for _, want := range []struct{ name, says string }{
+		{"get_profile", "It changes nothing."},
+		{"save_profile", "in its file in the adult's Google Drive"},
+		{"get_progress", "Calling it changes nothing."},
+		{"next_task", "It writes to the profile's file in the adult's Google Drive"},
+		{"get_package", "It changes nothing."},
+		{"prepare_task", "It writes to the profile's file in the adult's Google Drive"},
+		{"submit_task", "Each call is written to the profile's file in the adult's Google Drive"},
+		{"submit_answer", "The answer is written to the profile's file in the adult's Google Drive"},
+	} {
+		if !strings.Contains(described[want.name], want.says) {
+			t.Errorf("%s is described as %q, want it to say what it does to the file: %q", want.name, described[want.name], want.says)
+		}
+	}
+}
+
+// argumentWords are the descriptions of a listed tool's arguments, by name.
+func argumentWords(t *testing.T, tool *mcp.Tool) map[string]string {
+	t.Helper()
+
+	var schema struct {
+		Properties map[string]struct {
+			Description string `json:"description"`
+		} `json:"properties"`
+	}
+	raw, err := json.Marshal(tool.InputSchema)
+	if err != nil {
+		t.Fatalf("%s's input schema does not write: %v", tool.Name, err)
+	}
+	if err := json.Unmarshal(raw, &schema); err != nil {
+		t.Fatalf("%s's input schema does not read: %v", tool.Name, err)
+	}
+	words := map[string]string{}
+	for name, property := range schema.Properties {
+		words[name] = property.Description
+	}
+	return words
 }
 
 // listing is how a tool is meant to be listed. wordsOnly marks the tool that
@@ -718,10 +790,12 @@ func TestTheWordsForTheModelSayWhatTheCardShows(t *testing.T) {
 		}), "get_profile",
 			[]string{"Left out of the tasks: long_division_by_hand."}},
 		{"the overall rank and how far through it", keptWith(t, "olya"), "get_progress",
-			[]string{"Overall rating 1486, rank 2 of 11, 91% of the way to rank 3."}},
+			[]string{"Overall rating 1486, rank 2 of 11, 91% of the way to rank 3.",
+				"Where a card is drawn, it shows the rank alone, not this number: say the number yourself."}},
 		{"the grades each run of ranks matches", keptWith(t, "olya"), "get_progress",
 			[]string{"The card marks under the ranks the grades whose tasks each run of them roughly matches: " +
-				"ranks 1 to 4 grades 1-2, ranks 5 to 7 grades 3-4, ranks 8 to 11 grades 5-6; rank 2 is in the run of grades 1-2."}},
+				"ranks 1 to 4 grades 1-2, ranks 5 to 7 grades 3-4, ranks 8 to 11 grades 5-6; rank 2 is in the run of grades 1-2. " +
+				"It is a rough guide, never a school mark or a verdict on the child."}},
 		{"the highest rank", keptAs(t, "petya", func(p *profile.Profile) {
 			p.Ratings.Theta = 9
 		}), "get_progress",

@@ -325,7 +325,7 @@ describe("the page Research", () => {
 				"#paper .s-research-paper-words p",
 			),
 		).toEqual([
-			"Its methods, tables, protocols, limitations and ethics. The PDF comes once the paper names its authors and its archive.",
+			"Its methods, tables, protocols, limitations and ethics. The PDF comes with the next release.",
 		]);
 	});
 

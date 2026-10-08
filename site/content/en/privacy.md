@@ -49,7 +49,7 @@ It holds:
 - where the ratings stood before each of the latest answers, and at the start of each of the last seven days with answers, so that the progress can show what moved since the last task and over the week;
 - a counter of tasks accepted today, which is how the daily limit is kept;
 - the current task, with its answer encrypted so that it cannot be read out of the file before the child answers;
-- the next task, which the chat writes ahead while the child solves the current one, with its answer encrypted the same way, until the child asks for it.
+- the next task, which the chat writes ahead while the child solves the current one, with its answer encrypted the same way, until it is asked for.
 
 It does not hold the child's name, birth date, school, address, photograph or anything else that identifies them. **The pseudonym is the only name involved, and it never appears inside a task.**
 

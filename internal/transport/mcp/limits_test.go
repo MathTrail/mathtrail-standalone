@@ -217,8 +217,8 @@ func dayOf(t *testing.T, daily profile.Daily) store.Storage {
 }
 
 // A day at a ceiling of its own opens no request. The refusal is limited, as
-// limit_reached, in the words the child is to hear — that the new tasks are
-// over for today, that there will be more tomorrow, and what they can do
+// limit_reached, in the words the adult is to hear — that the new tasks are
+// over for today, that there will be more tomorrow, and what can be done
 // meanwhile — with no number in them, and which ceiling it was is in the line
 // alone. Nothing is written.
 func TestADayAtItsCeilingOpensNoRequest(t *testing.T) {
@@ -258,7 +258,7 @@ func TestADayAtItsCeilingOpensNoRequest(t *testing.T) {
 // wantTheDayFull holds a result of next_task to the refusal of a day with no
 // room left: limited, as limit_reached, naming no problem, on a card that
 // knows whose it is, in words that say what happened, when it clears and what
-// the child can do meanwhile, and no number.
+// can be done meanwhile, and no number.
 func wantTheDayFull(t *testing.T, result *mcp.CallToolResult) {
 	t.Helper()
 
@@ -267,7 +267,7 @@ func wantTheDayFull(t *testing.T, result *mcp.CallToolResult) {
 		t.Errorf("next_task = %+v, want limited as limit_reached, naming no problem, on the child's card", got)
 	}
 	words := textOf(t, result)
-	for _, said := range []string{"no more new tasks today", "more tomorrow", "look at their progress"} {
+	for _, said := range []string{"Tell the adult so", "no more new tasks today", "more tomorrow", "the progress can be looked at"} {
 		if !strings.Contains(words, said) {
 			t.Errorf("the words are %q, want them to say %q", words, said)
 		}

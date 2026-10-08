@@ -72,6 +72,9 @@
 	--s-on-trap: #8c1d18;
 	--s-right: #c4eed0;
 	--s-on-right: #0a3818;
+	--s-free: #e6f4ea;
+	--s-free-edge: #b7dfc3;
+	--s-on-free: #146c2e;
 	--s-paper: #f4f2ec;
 	--s-on-paper: #6b6457;
 	--s-wip: #fbf3dd;
@@ -1089,6 +1092,45 @@ a:hover {
 	font-weight: 500;
 }
 
+/* The chip that says MathTrail is free, lit with a pale green. */
+.s-chip-free {
+	border-color: var(--s-free-edge);
+	background: var(--s-free);
+	color: var(--s-on-free);
+}
+
+/* The chip that leads to the code on GitHub: GitHub's mark before the words,
+   an arrow after them, and the look of a link on hover. */
+.s-chip-source {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--s-text);
+	text-decoration: none;
+	transition:
+		background-color 0.15s,
+		border-color 0.15s;
+}
+
+.s-chip-source:hover {
+	border-color: var(--s-outline);
+	background: var(--s-tint);
+}
+
+.s-chip-source:focus-visible {
+	outline: 2px solid var(--s-accent);
+	outline-offset: 2px;
+}
+
+.s-chip-source .s-github-mark,
+.s-chip-source-arrow {
+	flex: none;
+}
+
+.s-chip-source-arrow {
+	color: var(--s-muted);
+}
+
 .s-chip-group {
 	border-color: var(--s-accent-tint);
 	background: var(--s-accent-tint);
@@ -1523,6 +1565,54 @@ a:hover {
 	text-wrap: balance;
 }
 
+/* The home page's closing call: its words on the left and its buttons on the
+   right, in one low row, one above the other on a narrower screen. */
+.s-ask-row {
+	flex-direction: row;
+	justify-content: space-between;
+	gap: var(--space-24) 48px;
+	padding: 48px 56px;
+	text-align: start;
+}
+
+.s-ask-copy {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	min-inline-size: 0;
+}
+
+.s-ask-row .s-ask-title {
+	max-inline-size: none;
+	font-size: clamp(1.75rem, 1.3rem + 1vw, 2.25rem);
+}
+
+.s-ask-row .s-choices {
+	flex: none;
+	justify-content: flex-end;
+}
+
+@media (max-width: 991px) {
+	.s-ask-row {
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 40px var(--space-24);
+	}
+
+	.s-ask-row .s-choices {
+		flex: initial;
+		justify-content: flex-start;
+	}
+}
+
+/* The button to the code on GitHub: GitHub's mark before words in the text's
+   own colour, so that it reads as GitHub's rather than as one more link. */
+.s-btn-github,
+.s-btn-github:hover {
+	gap: 10px;
+	color: var(--s-text);
+}
+
 .s-ask-phrase {
 	margin: 0;
 	padding: 12px 20px;
@@ -1813,7 +1903,7 @@ a:hover {
 	line-height: 1.5;
 }
 
-.s-message-child .s-bubble {
+.s-message-adult .s-bubble {
 	align-self: flex-end;
 	border-end-end-radius: 4px;
 	background: var(--s-accent-tint);
@@ -4699,10 +4789,6 @@ a:hover {
 	.s-walk-stage > .s-walk-card {
 		transition: none;
 	}
-}
-
-.s-walk-note {
-	margin-block-start: 56px;
 }
 
 /* Connecting: Claude's steps on a tinted panel, and ChatGPT's on a white one

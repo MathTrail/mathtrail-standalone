@@ -12,8 +12,9 @@ import (
 // of the part of the topic's page it is about, in the language asked for, a
 // topic to begin with the strong one it builds on, and a step for every topic
 // with no topic before it. A step of a kind with no
-// words is left out. A review with nothing in it says so, and the trial series
-// has none to tell.
+// words is left out. A review that names a page says to pass it on only as it
+// is named, and one that names none says nothing of pages. A review with
+// nothing in it says so, and the trial series has none to tell.
 func TestEveryReasonAndStepIsToldInWords(t *testing.T) {
 	t.Parallel()
 
@@ -59,7 +60,8 @@ func TestEveryReasonAndStepIsToldInWords(t *testing.T) {
 			"two or three short tasks a day, until it comes back. " +
 			"3. Pigeonhole principle (https://mathtrail.app/en/topics/pigeonhole-principle/#home): " +
 			"a few more tasks in it; MathTrail sets them where the child stands. " +
-			"4. Write each option down once, in a fixed order, and look for repeats before counting them."},
+			"4. Write each option down once, in a fixed order, and look for repeats before counting them. " +
+			"Pass a page on only as it is named here, never one of your own making."},
 		{"the hint alone, in a language the site is written in", "ru", &progress.Review{
 			Strong:  []progress.Judged{},
 			Develop: []progress.Judged{{Topic: "logic.knights_liars", Reasons: []progress.Reason{progress.ReasonHints}, Moving: true}},
@@ -67,14 +69,16 @@ func TestEveryReasonAndStepIsToldInWords(t *testing.T) {
 			Steps:   []progress.Step{{Kind: progress.StepUnaided, Topic: "logic.knights_liars"}},
 		}, "Review for the adult. To develop: Knights and liars (the hint used in half its latest answers; " +
 			"its last answer was right, so a move has begun). What to do next: " +
-			"1. Knights and liars (https://mathtrail.app/ru/topics/knights-and-liars/#home): try each task first without the hint."},
+			"1. Knights and liars (https://mathtrail.app/ru/topics/knights-and-liars/#home): try each task first without the hint. " +
+			"Pass a page on only as it is named here, never one of your own making."},
 		{"a topic to begin, at the top of its page", "en", &progress.Review{
 			Strong:  []progress.Judged{{Topic: "counting.gaps", Reasons: []progress.Reason{progress.ReasonMastered}}},
 			Develop: []progress.Judged{}, Early: []string{},
 			Steps: []progress.Step{{Kind: progress.StepBegin, Topic: "time.calendar", Base: "counting.gaps"}},
 		}, "Review for the adult. Strong: Gaps and boundaries (mastered). What to do next: " +
 			"1. Calendar and age (https://mathtrail.app/en/topics/calendar-and-age/): " +
-			"a new topic to begin; its base, Gaps and boundaries, is a strength."},
+			"a new topic to begin; its base, Gaps and boundaries, is a strength. " +
+			"Pass a page on only as it is named here, never one of your own making."},
 		{"a step of a kind with no words", "en", &progress.Review{
 			Strong: []progress.Judged{}, Develop: []progress.Judged{}, Early: []string{},
 			Steps: []progress.Step{

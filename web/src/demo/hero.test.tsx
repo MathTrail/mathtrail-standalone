@@ -166,7 +166,7 @@ describe("the card on the first screen, come alive", () => {
 		expect(text(".mt-note-hint p")).toBe(data.handed.task.hint);
 	});
 
-	test("asks for another task as a chat does: the child's message, the card the task is written on, then the lesson's task again", async () => {
+	test("asks for another task as a chat does: the parent's message, the card the task is written on, then the lesson's task again", async () => {
 		alive();
 		press(option("B"));
 		await passing(checkingTakes);

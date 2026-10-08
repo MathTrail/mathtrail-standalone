@@ -103,7 +103,7 @@ func TestATaskWrittenAheadOnceTheCardIsAnsweredIsTheNextOne(t *testing.T) {
 				t.Errorf("card %d, %d answers: the task ahead is dressed in %q, want %q, as the next one is",
 					card, answers, got.Setting, want)
 			}
-			if got.Rationale != "Written ahead, before the child asks for it. "+next.Rationale {
+			if got.Rationale != "Written ahead, before it is asked for. "+next.Rationale {
 				t.Errorf("card %d, %d answers: the rationale is %q, want the next one's, %q, written ahead",
 					card, answers, got.Rationale, next.Rationale)
 			}

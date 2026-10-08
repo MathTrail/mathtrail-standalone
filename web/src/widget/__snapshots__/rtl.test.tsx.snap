@@ -109,7 +109,7 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
           <p
             class="mt-verdict-detail"
           >
-            ستظهر المسألة التالية أدناه؛ وإن لم تظهر، فاطلب مسألة في الدردشة.
+            ستظهر المسألة التالية أدناه؛ وإن لم تظهر، فيمكن طلب مسألة في الدردشة.
           </p>
         </div>
       </div>

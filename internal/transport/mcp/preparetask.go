@@ -52,15 +52,15 @@ func (s *Service) prepareTaskTool() Tool {
 		Title: "Get the next task ready",
 		Description: "Gets the next task ready. It hands you the package of the task to write now: the one the " +
 			"child's card waits for, when there is one; otherwise the next task, which you write ahead while the " +
-			"child works on the one on the card, and which is kept, sealed, until the child asks for another — then " +
+			"child works on the one on the card, and which is kept, sealed, until another is asked for — then " +
 			"next_task puts it, at once, on the card it draws. When the next task is written already, or the day " +
 			"has no room for another, it says there is nothing to write. Call it once a task is on the card, and as " +
 			"the last step of every turn of a lesson. Always pass language, the language of the chat. Your own " +
-			"idea of what the child needs next — an easier task after several misses, say — goes here, as topic, " +
-			"grade_level or difficulty with a short reason, and shapes the task written ahead. Write the task to the package and hand it in with " +
-			"submit_task and its request_id. Say nothing to the child about a task written ahead, and never put the " +
-			"child's name in a task. It writes to the profile's file in the adult's Google Drive the request it " +
-			"opens for the task written ahead, and lets go of a task kept that no longer fits the lesson.",
+			"idea of what the child needs next — an easier task after several misses, for example — goes here, as " +
+			"topic, grade_level or difficulty with a short reason, and shapes the task written ahead. Write the task " +
+			"to the package and hand it in with submit_task and its request_id. It writes to the profile's file in " +
+			"the adult's Google Drive the request it opens for the task written ahead, and lets go of a task kept " +
+			"that no longer fits the lesson.",
 		Effect:     Adds,
 		Idempotent: true,
 	}, s.prepareTask)
@@ -134,8 +134,8 @@ func (s *Service) prepared(p *profile.Profile, in *prepareTaskIn, language strin
 		return reply, nil, err
 	}
 	if p.ReadyTask != nil {
-		return Reply[any]{Text: joined("The next task is written already, and kept for the child until they ask "+
-			"for another: there is nothing to write now. Say nothing about it to the child.",
+		return Reply[any]{Text: joined("The next task is written already, and kept for the child until another is "+
+			"asked for: there is nothing to write now. Say nothing about it.",
 			s.lastAnswerText(p))}, nil, nil
 	}
 	if _, _, reached := s.daily.reached(p.Daily.Today(now)); reached {
@@ -183,16 +183,16 @@ func oneMoreLikeIt(p *profile.Profile) (tutor.Choice, bool) {
 	}
 	return tutor.Choice{
 		Topic: task.Topic, GradeLevel: task.GradeLevel, Difficulty: task.Difficulty,
-		Reason: "One more like the task the child or the adult asked for, in case the child wants another like it.",
+		Reason: "One more like the task the adult asked for, in case another like it is wanted.",
 	}, true
 }
 
 // aheadLead is what the model is told of the request for the task written
-// ahead: what it is for, and that the child hears nothing of it.
+// ahead: what it is for, and that nothing is said of it.
 func aheadLead(request *profile.OpenRequest) string {
 	return fmt.Sprintf("Request %[1]s is open for the next task, written ahead: the child is working on the task on "+
-		"the card, and this one is kept until they ask for another. Write it now, to the package below, and hand it "+
-		"in with submit_task and request_id %[1]s. Say nothing about it to the child, now or once it is kept.",
+		"the card, and this one is kept until another is asked for. Write it now, to the package below, and hand it "+
+		"in with submit_task and request_id %[1]s. Say nothing about it, now or once it is kept.",
 		request.ID)
 }
 

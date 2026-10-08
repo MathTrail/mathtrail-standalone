@@ -61,17 +61,17 @@ lesson:
     progress:
       title: Progress you can read
       text: The rank reached and the rank of every topic, the mistakes that keep coming back, what comes next — and a review for you of what goes well and what to develop.
-  log: One thing to know — the chat's log of tool calls shows each task together with its answer. Keep it closed while your child solves.
   # The name of the child the cards show, an invented one.
   child: Comet
-  # Two messages of the chat beneath a card answered wrong: the child's
-  # question and the model's reply. They are the site's words, never the card's.
+  # Two messages of the chat beneath a card answered wrong: the adult's
+  # question and the model's reply, about the step and to nobody, for the adult
+  # to read out to the child. They are the site's words, never the card's.
   chat:
     label: An illustration of the chat
-    child: The child
+    adult: The adult
     model: The model
     question: Why one more post?
-    reply: Walk along the fence from the left. Each gap ends with a post, so 4 gaps bring 4 posts, and the first post stands before them all. 4 + 1 = 5.
+    reply: Along the fence from the left, each gap ends with a post, so 4 gaps bring 4 posts, and the first post stands before them all. 4 + 1 = 5.
 
 # The task of the lesson: a variant of a reference task, never one word for
 # word.
@@ -113,5 +113,5 @@ connect:
 
 ask:
   title: Start with one task.
-  lead: Add MathTrail to Claude, and solve the first task side by side with your child.
+  lead: Add MathTrail to Claude — it takes about two minutes.
   code: View the code on GitHub

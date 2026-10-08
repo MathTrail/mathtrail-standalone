@@ -11,7 +11,7 @@ import { type Key, useWords } from "./words";
 export type Request = "idle" | "sending" | "sent" | "lost";
 
 /**
- * useChatRequest is something a card asks the chat for, in words the child's
+ * useChatRequest is something a card asks the chat for, in words the adult's
  * own message would use — only the model can write the next task — and where
  * the ask stands. A second press while one is on its way is the same ask.
  * busy says, at the moment it is asked, whether one is on its way.

@@ -18,7 +18,7 @@ import (
 
 // The next task is written ahead: once a task is on the card, the model writes
 // the one after it while the child works, and the service keeps it, sealed,
-// until the child asks for another. Every task written ahead here is a relay
+// until another is asked for. Every task written ahead here is a relay
 // of three swimmers — the race again in other words, so that it is no near
 // copy of the race on the card.
 
@@ -127,8 +127,8 @@ func TestTheNextTaskIsWrittenAheadOnceATaskIsOnTheCard(t *testing.T) {
 	words := prepared(t, session, aheadChoice)
 	ahead := aheadOpen(t, kept)
 	if !strings.Contains(words, "Request "+ahead.ID+" is open for the next task, written ahead") ||
-		!strings.Contains(words, "Say nothing about it to the child") || !strings.Contains(words, "\n\nPackage:\n") {
-		t.Errorf("prepare_task says %q, want the request written ahead, the child told nothing, and the package", leadOf(words))
+		!strings.Contains(words, "Say nothing about it, now or once it is kept") || !strings.Contains(words, "\n\nPackage:\n") {
+		t.Errorf("prepare_task says %q, want the request written ahead, nothing said of it, and the package", leadOf(words))
 	}
 	if ahead.TutorMode != profile.TutorLLM || ahead.Brief.TargetConcept != "logic.ordering" || ahead.Brief.Difficulty != 2 {
 		t.Errorf("the request ahead is %+v, want it where the model asked", ahead)
@@ -222,7 +222,7 @@ func TestAskingInTheChatWaitsForTheTaskBeingWrittenAhead(t *testing.T) {
 	}
 
 	handed := call(t, session, "submit_task", relayOn(p.OpenRequest))
-	wantSaid(t, textOf(t, handed), "Accepted at attempt 1: task "+profile.TaskIDFor(ahead.ID)+" is on the child's card.",
+	wantSaid(t, textOf(t, handed), "Accepted at attempt 1: task "+profile.TaskIDFor(ahead.ID)+" goes on the child's card now",
 		"Now call prepare_task")
 	if shown := awaited(t, session, ahead.ID); shown.Screen != "task" || shown.Task == nil || shown.Task.Question != relayQuestion {
 		t.Errorf("read_task once the relay is accepted = %+v, want it on the card next_task drew", shown)
@@ -376,7 +376,7 @@ func TestATaskWrittenAheadForAPersonsAskCountsAsAskedFor(t *testing.T) {
 
 			prepared(t, session, map[string]any{"language": "en"})
 			if ahead := aheadOpen(t, kept); ahead.Brief.TargetConcept != "logic.ordering" ||
-				!strings.Contains(ahead.Brief.Rationale, "One more like the task the child or the adult asked for") {
+				!strings.Contains(ahead.Brief.Rationale, "One more like the task the adult asked for") {
 				t.Errorf("the request ahead is %+v, want one more like the relay", ahead.Brief)
 			}
 		})

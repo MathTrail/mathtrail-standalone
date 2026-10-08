@@ -103,11 +103,10 @@ const words = [
 	"    progress:",
 	"      title: Progress",
 	"      text: Ranks.",
-	"  log: The log shows the answer.",
 	"  child: Comet",
 	"  chat:",
 	"    label: An illustration",
-	"    child: The child",
+	"    adult: The adult",
 	"    model: The model",
 	"    question: Why one more?",
 	"    reply: Count the posts.",
@@ -328,7 +327,7 @@ describe("the home page", () => {
 	test("shows beside its first screen the task as it arrives, in the chat under the parent's message", () => {
 		const hero = the(".s-hero-card");
 
-		expect(hero.querySelector(".s-frame .s-message-child")?.textContent).toBe(
+		expect(hero.querySelector(".s-frame .s-message-adult")?.textContent).toBe(
 			"A task, please",
 		);
 		expect(statesIn(hero)).toEqual([
@@ -409,7 +408,7 @@ describe("the home page", () => {
 			(part) => part.getAttribute("class") ?? "",
 		);
 
-		expect(parts).toEqual(["s-message s-message-child", "s-card", "s-chat"]);
+		expect(parts).toEqual(["s-message s-message-adult", "s-card", "s-chat"]);
 		expect(statesIn(step(5))).toContain("B wrong");
 		expect(step(5).querySelector(".s-chat figcaption")?.textContent).toBe(
 			"An illustration",
@@ -422,7 +421,7 @@ describe("the home page", () => {
 	});
 
 	test("shows the progress at the last step, asked for by the parent, its topics and repeating mistakes open", () => {
-		expect(step(6).querySelector(".s-message-child")?.textContent).toBe(
+		expect(step(6).querySelector(".s-message-adult")?.textContent).toBe(
 			"How is it going?",
 		);
 		expect(
@@ -430,12 +429,6 @@ describe("the home page", () => {
 				...step(6).querySelectorAll('.mt-fold-button[aria-expanded="true"]'),
 			].map((button) => button.querySelector(".mt-fold-title")?.textContent),
 		).toEqual(["Topics", "Mistakes that repeat"]);
-	});
-
-	test("says the chat's log of tool calls shows the answer, in the section on a lesson", () => {
-		expect(
-			home.querySelector(`#${lessonSection} .s-walk-note`)?.textContent,
-		).toBe("The log shows the answer.");
 	});
 
 	test("connects to Claude step by step, the connector's address in full after the third", () => {

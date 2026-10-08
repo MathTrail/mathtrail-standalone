@@ -466,7 +466,7 @@ describe("the panel of topics", () => {
 });
 
 describe("a topic chosen", () => {
-	test("is saved, told to the model, and then asked for in the child's words, which the card ends on", async () => {
+	test("is saved, told to the model, and then asked for in the adult's words, which the card ends on", async () => {
 		const heard = await draw();
 		open();
 
