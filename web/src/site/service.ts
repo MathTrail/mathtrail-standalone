@@ -135,7 +135,6 @@ export type Link = readonly [from: string, to: string];
 export const links: readonly Link[] = [
 	["adult", "model"],
 	["kid", "appsrt"],
-	["model", "kid"],
 	["adult", "authsrv"],
 	["model", "router"],
 	["appsrt", "router"],
@@ -237,9 +236,21 @@ export type Scenario = {
 	readonly steps: readonly Step[];
 };
 
-// lesson are the actors of a lesson: the child, the card, the host's model,
-// the service and the parent's Drive.
-const lesson: readonly Actor[] = [
+// asking are the actors of a task asked for: the adult, who asks for it in the
+// chat, the card, the host's model, the service and the parent's Drive.
+const asking: readonly Actor[] = [
+	{ id: "adult", kind: "person" },
+	{ id: "card", kind: "host" },
+	{ id: "model", kind: "host" },
+	{ id: "service", kind: "service" },
+	{ id: "drive", kind: "google" },
+];
+
+// answering are the actors of an answer: the adult, who asks about it in the
+// chat, and the child beside them, who answers on the card, then the card,
+// the host's model, the service and the parent's Drive.
+const answering: readonly Actor[] = [
+	{ id: "adult", kind: "person" },
 	{ id: "kid", kind: "person" },
 	{ id: "card", kind: "host" },
 	{ id: "model", kind: "host" },
@@ -259,14 +270,14 @@ const note = (from: number, to: number, tone: "host" | "service"): Step => ({
 });
 
 /**
- * scenarios are a lesson's three ways, call by call: a task, from the child's
- * asking to the card that shows it; an answer, from the press to the chat's
- * explaining; and the parent's one sign-in.
+ * scenarios are a lesson's three ways, call by call: a task, from the adult's
+ * asking to the card that shows it; an answer, from the child's press to the
+ * chat's explaining to the adult; and the parent's one sign-in.
  */
 export const scenarios: readonly Scenario[] = [
 	{
 		id: "task",
-		actors: lesson,
+		actors: asking,
 		steps: [
 			call(1, 3),
 			call(3, 4),
@@ -286,16 +297,16 @@ export const scenarios: readonly Scenario[] = [
 	},
 	{
 		id: "answer",
-		actors: lesson,
+		actors: answering,
 		steps: [
-			call(1, 2),
-			call(2, 4),
-			note(4, 5, "service"),
-			call(4, 5),
-			reply(4, 2),
-			inHost(2, 3),
-			call(1, 3),
-			reply(3, 1),
+			call(2, 3),
+			call(3, 5),
+			note(5, 6, "service"),
+			call(5, 6),
+			reply(5, 3),
+			inHost(3, 4),
+			call(1, 4),
+			reply(4, 1),
 		],
 	},
 	{

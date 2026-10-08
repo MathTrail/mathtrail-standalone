@@ -220,6 +220,6 @@ sources:
 paper:
   title: The whole paper
   ready: Its methods, tables, protocols, limitations and ethics, in English.
-  waiting: Its methods, tables, protocols, limitations and ethics. The PDF comes once the paper names its authors and its archive.
+  waiting: Its methods, tables, protocols, limitations and ethics. The PDF comes with the next release.
   open: Open the PDF
   code: Code on GitHub

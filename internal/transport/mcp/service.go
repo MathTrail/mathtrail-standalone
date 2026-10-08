@@ -26,10 +26,15 @@ type Service struct {
 	// store is the profile's store as the tools reach it, each operation once
 	// the writes after the answer this instance began for its account are done;
 	// direct is the same store reached at once, which those writes themselves
-	// go through.
-	store    store.Storage
-	direct   store.Storage
-	pending  *pending
+	// go through. Either way a write that lands is news to the questions held
+	// for its account.
+	store   store.Storage
+	direct  store.Storage
+	pending *pending
+	news    *news
+	// hold is how long a card's question that would only hear what the card
+	// knows already waits for news.
+	hold     time.Duration
 	content  *content.Content
 	reviewer checks.Reviewer
 	sealer   profile.Sealer
@@ -132,11 +137,14 @@ func NewService(parts *Parts) (*Service, error) {
 	case parts.SiteURL == "":
 		return nil, fmt.Errorf("%w: the tools need the site's address", ErrSettings)
 	}
-	later := newPending()
+	later, heard := newPending(), newNews()
+	direct := telling{Storage: parts.Store, news: heard}
 	return &Service{
-		store:    settled{Storage: parts.Store, pending: later},
-		direct:   parts.Store,
+		store:    settled{Storage: direct, pending: later},
+		direct:   direct,
 		pending:  later,
+		news:     heard,
+		hold:     heldForNews,
 		content:  parts.Content,
 		reviewer: parts.Reviewer,
 		sealer:   parts.Sealer,
@@ -176,7 +184,7 @@ func (s *Service) ProfileTools() []Tool {
 // written ahead when there is one; one hands the model what to write it from;
 // one gets the next task ready, to be written ahead; one takes what the model
 // wrote through the checks and puts it on the child's card, or keeps it until
-// the child asks; one tells a card how the task it waits for stands; and one
+// another is asked for; one tells a card how the task it waits for stands; and one
 // records the child's answer and tells how it went.
 func (s *Service) TaskTools() []Tool {
 	return []Tool{

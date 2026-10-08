@@ -71,7 +71,7 @@ function handedFor(handed: HandedTask, requestId: string): HandedTask {
 
 /**
  * demoHost is the chat around the card on the home page. A message the card
- * puts in the chat is handed to sent, which shows it as the child's and brings
+ * puts in the chat is handed to sent, which shows it as the parent's and brings
  * the next task. A line for the model goes nowhere, since no model reads the
  * page, and no tool is called and no page opened: the card on the page asks
  * the service through the page, and shows no link.

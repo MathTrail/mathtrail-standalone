@@ -109,7 +109,7 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
           <p
             class="mt-verdict-detail"
           >
-            ستظهر المسألة التالية أدناه؛ وإن لم تظهر، فاطلب مسألة في الدردشة.
+            ستظهر المسألة التالية أدناه؛ وإن لم تظهر، فيمكن طلب مسألة في الدردشة.
           </p>
         </div>
       </div>
@@ -3901,7 +3901,9 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
         <fieldset
           class="mt-options"
         >
-          <legend>
+          <legend
+            class="mt-vh"
+          >
             الإجابات
           </legend>
           <div
@@ -4960,7 +4962,9 @@ exports[`the screens in Arabic > the task 1`] = `
         <fieldset
           class="mt-options"
         >
-          <legend>
+          <legend
+            class="mt-vh"
+          >
             ما الإجابة الصحيحة؟
           </legend>
           <div
@@ -5078,16 +5082,42 @@ exports[`the screens in Arabic > the task 1`] = `
       >
         <button
           aria-expanded="false"
-          class="mt-btn"
+          class="mt-btn mt-btn-icon mt-btn-hint"
+          title="تلميح"
           type="button"
         >
-          تلميح
+          <svg
+            aria-hidden="true"
+            class="mt-icon"
+            fill="none"
+            height="20"
+            viewBox="0 0 24 24"
+            width="20"
+          />
+          <span
+            class="mt-vh"
+          >
+            تلميح
+          </span>
         </button>
         <button
-          class="mt-btn"
+          class="mt-btn mt-btn-icon mt-btn-another"
+          title="مسألة أخرى"
           type="button"
         >
-          مسألة أخرى
+          <svg
+            aria-hidden="true"
+            class="mt-icon"
+            fill="none"
+            height="20"
+            viewBox="0 0 24 24"
+            width="20"
+          />
+          <span
+            class="mt-vh"
+          >
+            مسألة أخرى
+          </span>
         </button>
       </div>
       <p
@@ -5249,7 +5279,9 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
         <fieldset
           class="mt-options"
         >
-          <legend>
+          <legend
+            class="mt-vh"
+          >
             ما الإجابة الصحيحة؟
           </legend>
           <div
@@ -5367,16 +5399,42 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
       >
         <button
           aria-expanded="false"
-          class="mt-btn"
+          class="mt-btn mt-btn-icon mt-btn-hint"
+          title="تلميح"
           type="button"
         >
-          تلميح
+          <svg
+            aria-hidden="true"
+            class="mt-icon"
+            fill="none"
+            height="20"
+            viewBox="0 0 24 24"
+            width="20"
+          />
+          <span
+            class="mt-vh"
+          >
+            تلميح
+          </span>
         </button>
         <button
-          class="mt-btn"
+          class="mt-btn mt-btn-icon mt-btn-another"
+          title="مسألة أخرى"
           type="button"
         >
-          مسألة أخرى
+          <svg
+            aria-hidden="true"
+            class="mt-icon"
+            fill="none"
+            height="20"
+            viewBox="0 0 24 24"
+            width="20"
+          />
+          <span
+            class="mt-vh"
+          >
+            مسألة أخرى
+          </span>
         </button>
         <button
           aria-controls="P0-0"
@@ -5384,11 +5442,19 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
           class="mt-btn mt-topic-button"
           type="button"
         >
+          <svg
+            aria-hidden="true"
+            class="mt-icon"
+            fill="none"
+            height="20"
+            viewBox="0 0 24 24"
+            width="20"
+          />
           <span
             class="mt-topic-button-text"
           >
             <span
-              class="mt-topic-button-label"
+              class="mt-vh"
             >
               الموضوع:
             </span>

@@ -20,16 +20,7 @@ describe("the course of a task a card waits for", () => {
 		]);
 	});
 
-	test("has the task written and checked once it has come, with nothing under way", () => {
-		expect(stepsOf("checked")).toEqual([
-			{ key: "waiting.step.topic", status: "done" },
-			{ key: "waiting.step.writing", status: "done" },
-			{ key: "waiting.step.answers", status: "done" },
-			{ key: "waiting.step.ready", status: "waiting" },
-		]);
-	});
-
-	test("has every step done once the task is ready", () => {
+	test("has every step done once the task is ready, with nothing under way", () => {
 		expect(stepsOf("ready")).toEqual([
 			{ key: "waiting.step.topic", status: "done" },
 			{ key: "waiting.step.writing", status: "done" },
@@ -48,9 +39,8 @@ describe("the wait's own moments", () => {
 		expect(moments.spread).toBeLessThan(moments.ask);
 	});
 
-	test("finish the course in under a second, so that a task that has come is not held back", () => {
-		expect(moments.beat).toBeGreaterThan(0);
+	test("hold the course done for a glimpse alone, so that a task that has come is all but not held back", () => {
 		expect(moments.held).toBeGreaterThan(0);
-		expect(moments.beat + moments.held).toBeLessThan(1000);
+		expect(moments.held).toBeLessThanOrEqual(300);
 	});
 });

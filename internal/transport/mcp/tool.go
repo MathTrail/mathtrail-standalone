@@ -25,7 +25,10 @@ type Spec struct {
 	Name string
 	// Title is the name a person reads.
 	Title string
-	// Description tells the model when and how to call the tool.
+	// Description says what the tool does, what it takes, returns and changes,
+	// and when to call it. How to behave in a lesson is the instructions' to
+	// say: a directory turns down a description that tells the model how to
+	// behave.
 	Description string
 	// Effect is what the tool does to the parent's file. Every tool says it:
 	// the hints a host asks a person's permission by are made from it.

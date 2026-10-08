@@ -2,6 +2,8 @@ import type { CallToolResult } from "@modelcontextprotocol/client";
 import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
 import topics from "../../../content/catalogs/topics.json";
 import type { CallStage } from "../widget/bridge";
+import { cardWords } from "../widget/dictionaries";
+import { topicName } from "../widget/names";
 import type { AnswerResult } from "../widget/payload";
 import {
 	answered,
@@ -36,6 +38,7 @@ import {
 	withTopicChoice,
 	writing,
 } from "../widget/testing/lesson";
+import { topicGroups } from "../widget/topicGroups";
 
 /**
  * Scene is one state of a lesson on a card: the payload the card is drawn
@@ -96,6 +99,20 @@ const fences: Readonly<Record<string, Fence>> = {
 
 // A reply that never comes, for a card caught while it checks an answer.
 const never = new Promise<CallToolResult>(() => {});
+
+// longestTopicIn is the topic the choice offers whose name is the longest in
+// language, a character counted as one however many units it takes.
+function longestTopicIn(language: string): string {
+	const words = cardWords(language, undefined);
+	const length = (topic: string) => [...topicName(words, topic)].length;
+	const offered = topicGroups.flatMap((group) =>
+		group.topics.map((topic) => topic.id),
+	);
+	return offered.reduce(
+		(longest, topic) => (length(topic) > length(longest) ? topic : longest),
+		offered[0] ?? "",
+	);
+}
 
 /**
  * scenesIn are every scene of a lesson, on a card whose words are in language:
@@ -162,6 +179,13 @@ export function scenesIn(language: string): Scene[] {
 			name: "topic chosen, its mark above the task",
 			payload: withTopicChoice(handed, { chosen: handed.task.topic }),
 			play: inThePanel(),
+		},
+		// The button names the topic chosen with the choice shut: the topic whose
+		// name is the longest in the card's language, so that the measure of the
+		// layout sees the longest name the button holds.
+		{
+			name: "topic chosen, the choice shut",
+			payload: withTopicChoice(handed, { chosen: longestTopicIn(language) }),
 		},
 		{
 			name: "topic choice, a child in grade 1",

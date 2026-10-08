@@ -25,6 +25,41 @@ describe("the widget's words", () => {
 		},
 	);
 
+	// The adult types in the chat and the child answers on the card, so a card
+	// that sends its reader to the chat to ask for a task speaks to the adult,
+	// in the form its words for the adult already take where the language
+	// tells the two apart: the form the card asks for a new profile in.
+	test.each([
+		["ar", "يمكن طلب"],
+		["bn", "চান"],
+		["de", "Sie"],
+		["es", "pida"],
+		["fa", "بخواهید"],
+		["fr", "demandez"],
+		["hi", "माँगें"],
+		["it", "chieda"],
+		["ja", "頼んでください"],
+		["ko", "요청해 주세요"],
+		["ru", "попросите"],
+		["tr", "isteyin"],
+		["uk", "попросіть"],
+		["ur", "مانگیں"],
+		["vi", "yêu cầu"],
+		["zh-Hans", "请"],
+	])("in %s send the adult to the chat as %s", (tag, form) => {
+		const words = dictionaries.get(tag) ?? {};
+		for (const key of [
+			"profile.gone",
+			"waiting.ask_in_chat",
+			"waiting.next_below",
+			"waiting.slow_detail",
+		]) {
+			expect(String(words[key]).toLocaleLowerCase(tag), key).toContain(
+				form.toLocaleLowerCase(tag),
+			);
+		}
+	});
+
 	test("tell a rank by its number, with no name of its own", () => {
 		expect(
 			Object.keys(english).filter((key) => key.startsWith("rank.")),

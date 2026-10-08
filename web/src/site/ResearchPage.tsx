@@ -8,6 +8,7 @@ import { countSlots, Num } from "./ResearchNumbers";
 import { Theses } from "./ResearchTheses";
 import type { PageReader } from "./reader";
 import type { PaperFile, Research } from "./research";
+import { GitHubMark } from "./SourceChip";
 import { useSiteWords } from "./words";
 
 /**
@@ -147,16 +148,17 @@ function Paper({
 			class="s-wrap s-research-wrap s-research-section s-research-end"
 			id={researchSections.paper}
 		>
-			<div class="s-research-paper">
-				<div class="s-research-paper-words">
-					<h2>{page.text("paper.title")}</h2>
-					<p>
+			<div class="s-ask s-ask-row">
+				<div class="s-ask-copy">
+					<h2 class="s-ask-title">{page.text("paper.title")}</h2>
+					<p class="s-ask-lead">
 						{page.text(paper === undefined ? "paper.waiting" : "paper.ready")}
 					</p>
 				</div>
-				<p class="s-research-actions">
+				<p class="s-choices">
 					<PaperButton page={page} paper={paper} at="paper.open" />
-					<a class="s-btn" href={sourceURL}>
+					<a class="s-btn s-btn-github" href={sourceURL}>
+						<GitHubMark size={20} />
 						{page.text("paper.code")}
 					</a>
 				</p>

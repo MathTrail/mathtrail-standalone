@@ -10,7 +10,7 @@ import (
 // ErrSealed means the sealed part of the task on the card cannot be read: the
 // key that sealed it has been retired, or it was sealed under a shape this
 // build does not know. A task is worth less than a profile, so the answer is
-// to tell the child this one can no longer be checked and give them another.
+// to say this one can no longer be checked and give the child another.
 var ErrSealed = errors.New("profile: the sealed part of the task cannot be read")
 
 // SecretVersion is the shape of the sealed part. It moves on its own: what is

@@ -103,7 +103,7 @@ OAuth 2.1 with PKCE, by a client ID metadata document or by dynamic client regis
 PNG, at least 1000 pixels wide, three to five, of the card alone and without the prompt in the picture. `just listing-shots` takes them from the widget's preview into `web/listing/`, 1280 pixels wide, with the card's version left out and the task's row of posts cut short, in the order and the themes below (R232). Each picture's prompt is given beside it. No picture shows an answer before the child has answered, or the chat's log of tool calls (О-27).
 
 1. "Let's do a MathTrail task." The card with the task and its five options, in the light theme.
-2. "Let's do a MathTrail task.", then Hint tapped on the card. The same card with the hint open, in the dark theme.
+2. "Let's do a MathTrail task.", then the bulb, Hint, tapped on the card. The same card with the hint open, in the dark theme.
 3. "Let's do a MathTrail task.", then a wrong option tapped on the card. The card names the mistake and shows the solution, in the light theme.
 4. "How is my child doing?" The progress with its review open, in the dark theme.
 

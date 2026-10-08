@@ -139,19 +139,13 @@ func (s *Service) getProgressTool() Tool {
 			"behind the overall one, the topics mastered, the latest answers and how many tasks were left without " +
 			"one, the mistakes that keep coming back, what comes next, and where the profile's file is kept. It " +
 			"also tells what moved since the last answer and over the last seven days, each topic by its own " +
-			"answers: say a step back gently, as part of learning, never as a score against the child. Its " +
-			"card draws the rank, not the rating's number: say the number yourself. The scale is one for grades 1 " +
-			"to 6, so an older child's number is higher. Under the ranks the card marks which grades' tasks each " +
-			"run of them roughly matches: that is for the adult, a rough guide and never a school mark or a " +
-			"verdict on the child, since the tasks are olympiad ones. During the trial series — the first five " +
-			"tasks — there is no rating yet, only how many of the five are done. Call it only when someone " +
-			"asks to see the progress or what to work on: after the trial series it also reviews the topics " +
-			"for the adult — the strong ones, the ones to develop and what to do next, each step with its " +
-			"advice and its topic's page on the site, which you pass on only as given here. Tell the " +
-			"adult the review in plain words; a topic too early to judge is no verdict on it. To practise a " +
-			"topic it names, call next_task with that topic and a reason once the child wants a task — or, while " +
-			"the lessons are kept to a topic someone chose, offer to change that choice with save_profile. " +
-			"Present it encouragingly. Calling it changes nothing.",
+			"answers. Its card draws the rank, not the rating's number. The scale is one for grades 1 to 6, so an " +
+			"older child's number is higher. Under the ranks the card marks which grades' tasks each run of them " +
+			"roughly matches: a rough guide, since the tasks are olympiad ones. During the trial series — the " +
+			"first five tasks — there is no rating yet, only how many of the five are done. After the trial " +
+			"series it also reviews the topics for the adult — the strong ones, the ones to develop and what to " +
+			"do next, each step with its advice and its topic's page on the site. Call it only when the adult " +
+			"asks to see the progress or what to work on. Calling it changes nothing.",
 		Effect:     Reads,
 		Idempotent: true,
 		DrawsCard:  true,
@@ -349,12 +343,14 @@ func (s *Service) progressText(
 
 // standingText is the overall rating in words: its rank, how far through the
 // rank it has come, and which grades' tasks the ranks roughly match, or
-// nothing while the trial series runs.
+// nothing while the trial series runs. A card shows the rank alone, so the
+// number is the model's to say.
 func standingText(overall *progress.Standing) string {
 	if overall == nil {
 		return ""
 	}
-	return joined(rankText(overall), gradesText(overall.Rank))
+	return joined(rankText(overall), "Where a card is drawn, it shows the rank alone, not this number: say the number yourself.",
+		gradesText(overall.Rank))
 }
 
 // rankText is the overall rating with its rank in words, and how far through
@@ -369,7 +365,8 @@ func rankText(overall *progress.Standing) string {
 }
 
 // gradesText is which grades' tasks each run of ranks roughly matches, as the
-// card marks it under the ranks, and the run the rank is in.
+// card marks it under the ranks, and the run the rank is in: a rough guide,
+// since the tasks are olympiad ones, and never a mark of the child's school.
 func gradesText(rank int) string {
 	levels := rating.GradeLevels()
 	runs := make([]string, 0, len(levels))
@@ -381,45 +378,53 @@ func gradesText(rank int) string {
 	if level, matched := rating.GradeLevelOfRank(rank); matched {
 		words += fmt.Sprintf("; rank %d is in the run of grades %s", rank, level)
 	}
-	return words + "."
+	return words + ". It is a rough guide, never a school mark or a verdict on the child."
 }
 
 // topicMoves are the topics' moves the words name, in the order they name
-// them, each with the words for it. A topic's move is its own: what its own
-// answers moved, beside what the overall level did.
+// them, each with the words for it and whether it is a step back, which is to
+// be told gently. A topic's move is its own: what its own answers moved,
+// beside what the overall level did.
 var topicMoves = []struct {
 	move  progress.Move
 	words string
+	back  bool
 }{
-	{progress.RankUp, "a rank up by their own answers"},
-	{progress.Forward, "forward by their own answers"},
-	{progress.New, "answered for the first time"},
-	{progress.Back, "back by their own answers"},
-	{progress.RankDown, "a rank down by their own answers"},
+	{progress.RankUp, "a rank up by their own answers", false},
+	{progress.Forward, "forward by their own answers", false},
+	{progress.New, "answered for the first time", false},
+	{progress.Back, "back by their own answers", true},
+	{progress.RankDown, "a rank down by their own answers", true},
 }
 
 // changeText is how the overall rating and the topics moved since the last
 // answer and over the last seven days, in words, saying nothing of a while
-// that cannot be told.
+// that cannot be told. A step back it names is to be told gently.
 func (s *Service) changeText(summary *progress.Summary) string {
-	return joined(
-		s.whileText("Since the last answer", summary, func(changes progress.Changes) *progress.Change {
-			return changes.LastTask
-		}),
-		s.whileText("Over the last seven days", summary, func(changes progress.Changes) *progress.Change {
-			return changes.Week
-		}),
-	)
+	sinceLast, backSinceLast := s.whileText("Since the last answer", summary, func(changes progress.Changes) *progress.Change {
+		return changes.LastTask
+	})
+	overWeek, backOverWeek := s.whileText("Over the last seven days", summary, func(changes progress.Changes) *progress.Change {
+		return changes.Week
+	})
+	words := joined(sinceLast, overWeek)
+	if backSinceLast || backOverWeek {
+		words = joined(words, "Say a step back gently, as part of learning, never as a score against the child.")
+	}
+	return words
 }
 
 // whileText is the moves of one while: the overall rating from where it
 // stood to where it stands, and the topics whose own answers moved them, by
-// how. A while with no move of the overall rating to tell says nothing.
-func (s *Service) whileText(lead string, summary *progress.Summary, of func(progress.Changes) *progress.Change) string {
+// how, and whether it names a step back — the overall rating lower than it
+// stood, which the words give in numbers, or a topic's move marked as one. A
+// while with no move of the overall rating to tell says nothing.
+func (s *Service) whileText(lead string, summary *progress.Summary, of func(progress.Changes) *progress.Change) (words string, back bool) {
 	overall := of(summary.Changes)
 	if overall == nil {
-		return ""
+		return "", false
 	}
+	back = overall.Before.Rating > summary.Overall.Rating
 	parts := []string{overallMoveText(overall.Before, summary.Overall)}
 	for _, kind := range topicMoves {
 		var named []string
@@ -430,9 +435,10 @@ func (s *Service) whileText(lead string, summary *progress.Summary, of func(prog
 		}
 		if len(named) > 0 {
 			parts = append(parts, kind.words+": "+strings.Join(named, ", "))
+			back = back || kind.back
 		}
 	}
-	return lead + ", " + strings.Join(parts, "; ") + "."
+	return lead + ", " + strings.Join(parts, "; ") + ".", back
 }
 
 // overallMoveText is the overall rating from where it stood to where it

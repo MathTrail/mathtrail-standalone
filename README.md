@@ -24,20 +24,20 @@ It is neither a homework solver nor a drill of the school syllabus. It turns an 
 
 The screens below are the widget itself, photographed by every release from the scenes of its preview, at a large phone's width, so the version on the card is the one the service runs. The card follows the chat's light or dark theme, and the screens show the dark one. The fence task, its options and its traps are an example.
 
-<img src="https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/task-dark.png" width="428" alt="The MathTrail card with a task. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach · Grade 3, beside the release it runs: the word version over the number, in a small frame. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then Pick one answer and five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, two buttons, Hint and Another task, and at the end of the row, Topic: the coach chooses, with an arrow that opens the choice of the topic.">
+<img src="https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/task-dark.png" width="428" alt="The MathTrail card with a task. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach · Grade 3, beside the release it runs: the word version over the number, in a small frame. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, two square buttons drawn by their icons, a bulb on amber for the hint and two arrows in a circle on blue for another task, and at the end of the row a green button with a spark, Coach, and an arrow that opens the choice of the topic.">
 
-A child asks in the chat for a new task, and it arrives as a card:
+The adult asks in the chat for a new task, and it arrives as a card for the child beside them:
 
 - **The task.** The chat's model wrote it, and the service let it through only after its checks. The drawing is plain text, laid out left to right in any language.
 - **Five options, A to E.** The answer is not in the card: it is sealed in the parent's Drive until the child picks one.
-- **Help that stays the child's own.** Hint shows a leading question or a first step, which the model wrote with the task. Another task skips this one. A question about the task is asked in the chat, and the model helps without giving the answer away; a child who says "I don't know" there gets the solution, and it counts as a wrong answer.
+- **Help that stays the child's own.** Hint shows a leading question or a first step, which the model wrote with the task. Another task skips this one. A question about the task is asked in the chat by the adult, and the model helps without giving the answer away; when the child does not know, the adult says so there, the solution comes, and it counts as a wrong answer.
 - **The next one, at once.** While the child solves, the chat's model writes the next task ahead, sealed in the same file. Another task asks the chat for it, and the new card the chat draws below shows it at once.
 - **A topic of the child's own.** Once the first five tasks have found where the child stands, Topic, at the end of the row, keeps the next tasks to one topic the child or the adult picks — the ones the progress suggests first, then every topic in its group — or gives the choice back to the coach. Asking in the chat does the same.
 - **The top line.** It shows the child's pseudonym, never a real name, and opens the progress screen.
 
 ### After a wrong answer
 
-<img src="https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/wrong-dark.png" width="428" alt="The same card after the child picked B, 4. Option B is framed in red and marked Your answer; option C, 5, is framed in green and marked Correct answer. Under the options, MathTrail says: Not quite — it's 5, not 4. A red note titled The trap reads: Counted the gaps instead of the posts. The solution follows in three steps: 12 divided by 3 is 4 gaps; a straight fence with posts at both ends has one more post than gaps; 4 plus 1 is 5 posts. The rating in this topic goes from 1502 to 1480. At the bottom, Another task, and at the end of the row, Topic: the coach chooses.">
+<img src="https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/wrong-dark.png" width="428" alt="The same card after the child picked B, 4. Option B is framed in red and marked Your answer; option C, 5, is framed in green and marked Correct answer. Under the options, MathTrail says: Not quite — it's 5, not 4. A red note titled The trap reads: Counted the gaps instead of the posts. The solution follows in three steps: 12 divided by 3 is 4 gaps; a straight fence with posts at both ends has one more post than gaps; 4 plus 1 is 5 posts. The rating in this topic goes from 1502 to 1480. At the bottom, Another task, and at the end of the row, the green button with a spark, Coach.">
 
 A tap records the answer at once, before any explanation, so nothing in the chat can talk it into being right. Every wrong option was written with a named trap behind it, and the card shows the trap the child fell into — here, counting the gaps instead of the posts — then the solution. The model explains in the chat starting from that trap, not from the right answer, and the child's rating in the topic moves.
 
@@ -45,7 +45,7 @@ A tap records the answer at once, before any explanation, so nothing in the chat
 
 <img src="https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/progress-dark.png" width="428" alt="The progress screen of Comet, grade 3, every section open. At its head, a switch between Last task and Past week, with the past week chosen; Rank 3, of 11, over a course of eleven steps, two filled and the third partly, the week's gain striped in green; under the course three brackets, Gr. 1–2 under ranks 1 to 4 in bold, Gr. 3–4 and Gr. 5–6, and a note for parents that the scale shows roughly which grades' tasks the child can manage, olympiad tasks and no school mark; Over the past week — a new rank: 2 → 3; then Next — rank 4. Next up: Enumeration, once more. Topics, two moved up and one back, each with a course of its own and the rank in it: Ordering, mastered, a new rank, Rank 4; Enumeration, forward, Rank 3; Gaps and boundaries, even, Rank 3; Parity and alternation, the rank below, Rank 2; Pigeonhole principle, no answers yet. Review, strengths and plan. Strengths: Ordering, mastered, well above the overall level, a clear step up over the past week. To develop: Enumeration, Missed a case while listing again and again; Parity and alternation, well below the overall level, a clear step back over the past week. Too early to judge: Gaps and boundaries. Mistakes that repeat: Missed a case while listing, 3 times; Counted the same thing twice, 2 times. What to do next: 1, Enumeration, list the cases in a fixed order, smallest first, and tick each one off so that none is left out; 2, Parity and alternation, two or three short tasks a day, until the bar comes back. Recent answers: Enumeration wrong, Enumeration skipped, Gaps and boundaries right, Ordering right, Parity and alternation wrong; in all, 1 task was left without an answer. Profile, for the parent, with an Edit button at its head: grade 3, which is only a label; interests space, animals and football; not at school yet, Division with a remainder; the language of the lessons, the chat's. Your data: where the profile is, how to delete it, how to cut off access, and how to remove the app.">
 
-The same screen opens from the card's top line or when the child or the parent asks in the chat. It shows the rank reached on a chess-style rating, with the school grades whose tasks it roughly matches marked for the parent, and how it moved since the last task or over the past week, what comes next, the rank of every topic and how it moved, a review for the parent — what goes well, what to develop and why, the traps that keep coming back and what to do next —, the recent answers, and the profile, which the parent changes right there with Edit. All of it is one JSON file in the parent's own Google Drive.
+The same screen opens from the card's top line or when the parent asks in the chat. It shows the rank reached on a chess-style rating, with the school grades whose tasks it roughly matches marked for the parent, and how it moved since the last task or over the past week, what comes next, the rank of every topic and how it moved, a review for the parent — what goes well, what to develop and why, the traps that keep coming back and what to do next —, the recent answers, and the profile, which the parent changes right there with Edit. All of it is one JSON file in the parent's own Google Drive.
 
 ## Add it to your chat
 
@@ -84,7 +84,7 @@ What is collected and where it goes is in the [privacy policy](https://mathtrail
 
 ## How it works
 
-MathTrail connects to Claude or ChatGPT as an app over the [Model Context Protocol](https://modelcontextprotocol.io), and draws its screens with the [MCP Apps extension](https://modelcontextprotocol.io/extensions/apps/overview). A parent (or tutor) adds it to their own chat, and the child solves tasks there:
+MathTrail connects to Claude or ChatGPT as an app over the [Model Context Protocol](https://modelcontextprotocol.io), and draws its screens with the [MCP Apps extension](https://modelcontextprotocol.io/extensions/apps/overview). A parent (or tutor) adds it to their own chat and runs the lesson there, and the child, beside them, answers on the card:
 
 1. The service picks a topic and difficulty for the child and gives the chat's model a brief, reference examples and formats.
 2. The chat's model writes the task.
@@ -95,12 +95,13 @@ The unusual part is step 2: the task is written by the chat's own model, and the
 
 ```mermaid
 sequenceDiagram
+    participant A as Adult
     participant C as Child
     participant M as Claude or ChatGPT
     participant T as MathTrail
     participant D as The parent's Drive
 
-    C->>M: a new task, please
+    A->>M: a new task, please
     M->>T: what should it be about?
     T->>D: read the profile
     T-->>M: topic, difficulty, reference tasks, formats

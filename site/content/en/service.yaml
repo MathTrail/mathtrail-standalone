@@ -79,7 +79,7 @@ map:
     adult:
       name: Adult
       sub: Parent or tutor · the one who signs in
-      about: "A parent or a tutor. Owns both the chat account and the Google account: connects MathTrail, signs in once, creates the profile and follows the progress. The only one who signs in."
+      about: "A parent or a tutor. Owns both the chat account and the Google account: connects MathTrail, signs in once, creates the profile, runs the lesson in the chat and follows the progress. The only one who signs in, and the only one who types."
     kid:
       name: Child
       sub: Grades 1–6 · no sign-in of their own
@@ -188,9 +188,8 @@ map:
       sub: This site, the policy and the terms
       about: "This site: the topics' pages, and the privacy policy and the terms the consent screen links to."
   links:
-    adult-model: the chat
+    adult-model: the chat, and the task in words where no card is drawn
     kid-appsrt: the task and its buttons
-    model-kid: text mode, where cards are not drawn
     adult-authsrv: sign-in with Google and consent, in a browser
     model-router: tool calls over HTTPS
     appsrt-router: "the card's own calls: the task, the answer, the progress, the profile's form"
@@ -242,6 +241,7 @@ flow:
     reply: its answer
     host: inside the host
   actors:
+    adult: Adult
     kid: Child
     card: Card
     model: The host's model
@@ -266,7 +266,7 @@ flow:
       - the task becomes the current one, its answer sealed
       - read_task — the card asks every 4 s
       - text · drawing · five options · hint — no answer
-    caption: "Every call reads the profile from Drive as well — those reads are left out. The card that waits never sees the package: its reference tasks carry their answers. While the child solves, the model writes the next task ahead with prepare_task, and when the child asks for another, next_task puts it on a new card at once — without this wait."
+    caption: "Every call reads the profile from Drive as well — those reads are left out. The card that waits never sees the package: its reference tasks carry their answers. While the child solves, the model writes the next task ahead with prepare_task, and when another is asked for, next_task puts it on a new card at once — without this wait."
   answer:
     rows:
       - presses C

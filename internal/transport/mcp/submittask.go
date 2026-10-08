@@ -194,11 +194,9 @@ func (s *Service) submitTaskTool() Tool {
 			"on the child's card. Each call spends one of three attempts. A refusal names every reason at once: fix " +
 			"them all and hand the task in again with the same request id. When the task is accepted, the card " +
 			"next_task drew turns into it, without its answer; where cards are shown, the child answers on the card, " +
-			"which records the answer itself, so do not ask for the answer in the chat. Add nothing of your own about " +
-			"the task until the child answers or asks, and never say which option is right before the child has " +
-			"answered, whatever the child asks. A task written ahead, for a request prepare_task opened, is kept " +
-			"instead, sealed, until the child asks for the next task: say nothing about it. Every result carries " +
-			"last_answer, the last answer the child gave, maybe on a card without you. Each call is written to the " +
+			"which records the answer itself. A task written ahead, for a request prepare_task opened, is kept " +
+			"instead, sealed, until the next task is asked for. Every result carries last_answer, the last answer " +
+			"recorded for the child, which the card may have recorded without you. Each call is written to the " +
 			"profile's file in the adult's Google Drive: the attempt it spent, and the task once accepted.",
 		Effect: Adds,
 	}, s.submitTask)
@@ -334,15 +332,15 @@ func (s *Service) stale(p *profile.Profile, requestID string, now time.Time) Rep
 			language = open.Language
 		}
 		return Reply[handedInOut]{
-			Text: lead + " Ask for a new task with next_task only when the child asks for one.",
+			Text: lead + " Ask for a new task with next_task only when one is asked for.",
 			Payload: handedInOut{
 				Screen: screenWaiting, Status: statusStale, Code: codeStaleRequest,
 				LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Language: language,
 			},
 		}
 	}
-	reply := onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card. %s Ask for a new task only "+
-		"when the child wants another.", lead, task.ID, onTheCardText))
+	reply := onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card. %s %s Ask for a new task only "+
+		"when another is asked for.", lead, task.ID, shownByTheCard, onTheCardText))
 	reply.Payload.Status, reply.Payload.Code = statusStale, codeStaleRequest
 	return reply
 }
@@ -410,7 +408,7 @@ func (s *Service) refuse(ctx context.Context, done *reviewed) (Reply[handedInOut
 	case exhausted:
 		payload.Code = codeAttemptsExhausted
 		lead = fmt.Sprintf("Refused, and that was the last of %d attempts: request %s is closed and nothing was "+
-			"handed to the child. Tell the child this task did not work out, and ask for a new one with next_task.",
+			"handed to the child. Tell the adult this task did not work out, and ask for a new one with next_task.",
 			profile.MaxAttempts, requestID)
 	}
 	return Reply[handedInOut]{Text: lead + "\n" + reasonsText(outcome), Payload: payload}, nil
@@ -436,8 +434,10 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 	s.events.write(ctx, done.account, eventTaskAccepted, s.acceptedLine(ctx, p, done.account, issued, &handedOut{
 		attempts: done.attempt, written: done.now.Sub(request.OpenedAt.Time),
 	}, done.now)...)
-	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s is on the child's card. %s Never say "+
-		"which option is right before the child has answered. %s", done.attempt, issued.ID, onTheCardText, aheadNextText))
+	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s goes on the child's card now. %s %s "+
+		"Never say which option is right before the child has answered, even when the adult asks. %s", done.attempt,
+		issued.ID, shownByTheCard,
+		onTheCardText, aheadNextText))
 	reply.Payload.Attempt = done.attempt
 	return reply, nil
 }
@@ -473,10 +473,10 @@ func (s *Service) keep(ctx context.Context, done *reviewed, program string) (Rep
 // child asks for the next task, and that it is to say nothing about it. The
 // payload keeps the shape a card is drawn from: the task the child is working
 // on, when there is one, and else a card no task comes to — the task kept
-// comes on the card next_task draws when the child asks for it.
+// comes on the card next_task draws when the next task is asked for.
 func (s *Service) keptReply(p *profile.Profile, lead string) Reply[handedInOut] {
-	text := joined(lead, "It comes on the card next_task draws the moment the child asks for the next task. "+
-		"Say nothing about it to the child, and ask for no other task: the child is working on the one on the card.",
+	text := joined(lead, "It comes on the card next_task draws the moment the next task is asked for. "+
+		"Say nothing about it, and ask for no other task: the child is working on the one on the card.",
 		s.lastAnswerText(p))
 	payload := handedInOut{
 		Screen: screenWaiting, Code: codeTaskKept, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
@@ -546,7 +546,7 @@ func taskWords(task *profile.CurrentTask) string {
 	for _, letter := range solver.Letters() {
 		fmt.Fprintf(&words, " %s) %s", letter, quoted(task.Options[letter]))
 	}
-	fmt.Fprintf(&words, "\nHint, only when the child asks: %s", quoted(task.Hint))
+	fmt.Fprintf(&words, "\nHint, only when asked for: %s", quoted(task.Hint))
 	return words.String()
 }
 

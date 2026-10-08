@@ -18,6 +18,7 @@
 	"task.closed": "This task is closed. The newest task is further down the chat.",
 	"topic_choice.label": "Topic:",
 	"topic_choice.coach": "the coach chooses",
+	"topic_choice.coach_short": "Coach",
 	"topic_choice.title": "Which topic next?",
 	"topic_choice.lead": "A new task comes right away, and the topic stays for the next ones",
 	"topic_choice.close": "Close",

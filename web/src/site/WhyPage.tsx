@@ -3,10 +3,11 @@ import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
 import { address } from "./addresses";
 import { sourceURL } from "./brand";
-import { ChildAsks } from "./Chat";
+import { AdultAsks } from "./Chat";
 import { connectAddress } from "./home";
 import type { PageProps } from "./pages";
 import type { Fill, PageReader } from "./reader";
+import { SourceChip } from "./SourceChip";
 import { StaticAnswer } from "./StaticCard";
 import { TableFrame } from "./TableFrame";
 import { gradesOfAll } from "./topics";
@@ -66,9 +67,9 @@ function Hero({
 				<h1>{page.text("hero.title")}</h1>
 				<p class="s-lead">{page.text("hero.lead", { last: grades[1] })}</p>
 				<p class="s-chips">
+					<span class="s-chip s-chip-free">{page.text("hero.free")}</span>
+					<SourceChip label={page.text("hero.open")} />
 					<span class="s-chip">{gradesText(words, grades)}</span>
-					<span class="s-chip">{page.text("hero.free")}</span>
-					<span class="s-chip">{page.text("hero.open")}</span>
 				</p>
 			</div>
 			<figure class="s-panel s-contrast">
@@ -314,7 +315,7 @@ function Thinking({ page, why }: { page: PageReader; why: Why }) {
 						/>
 						<figcaption>{page.text("thinking.caption")}</figcaption>
 					</figure>
-					<ChildAsks page={page} at="thinking.chat" />
+					<AdultAsks page={page} at="thinking.chat" />
 				</div>
 			</div>
 		</section>
@@ -357,9 +358,11 @@ function Ask({ page }: { page: PageReader }) {
 	const words = useSiteWords();
 	return (
 		<section class="s-section s-ask-wrap">
-			<div class="s-ask">
-				<h2 class="s-ask-title">{page.text("ask.title")}</h2>
-				<p class="s-ask-lead">{page.text("ask.lead")}</p>
+			<div class="s-ask s-ask-row">
+				<div class="s-ask-copy">
+					<h2 class="s-ask-title">{page.text("ask.title")}</h2>
+					<p class="s-ask-lead">{page.text("ask.lead")}</p>
+				</div>
 				<p class="s-choices">
 					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
 						{words.text("nav.add")}

@@ -64,7 +64,7 @@ export type Bridge = {
 
 /**
  * Host is what a card asks of the chat host it is drawn in: to call one of
- * the service's tools, to put the child's words in the chat, and to tell the
+ * the service's tools, to put the adult's words in the chat, and to tell the
  * model what happened on the card.
  */
 export type Host = {
@@ -78,7 +78,7 @@ export type Host = {
 		args: Record<string, unknown>,
 	): Promise<CallToolResult>;
 	/**
-	 * sendMessage puts text in the chat as the child's message, which the model
+	 * sendMessage puts text in the chat as the adult's message, which the model
 	 * answers. It rejects when the host refuses the message or it is lost.
 	 */
 	sendMessage(text: string): Promise<void>;

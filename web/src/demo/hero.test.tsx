@@ -166,7 +166,25 @@ describe("the card on the first screen, come alive", () => {
 		expect(text(".mt-note-hint p")).toBe(data.handed.task.hint);
 	});
 
-	test("asks for another task as a chat does: the child's message, the card the task is written on, then the lesson's task again", async () => {
+	// The page keeps no profile to save a choice in, and has no task on another
+	// topic to give.
+	test("shows the button of the topic, the coach choosing, and takes no press on it", () => {
+		alive();
+		const topic = card()?.querySelector<HTMLButtonElement>(".mt-topic-button");
+		if (topic === null || topic === undefined) {
+			throw new Error("the live card has no button of the topic");
+		}
+
+		press(topic);
+
+		expect(topic.getAttribute("aria-disabled")).toBe("true");
+		expect(topic.getAttribute("aria-expanded")).toBe("false");
+		expect(
+			card()?.querySelector(".mt-topic-panel")?.hasAttribute("hidden"),
+		).toBe(true);
+	});
+
+	test("asks for another task as a chat does: the parent's message, the card the task is written on, then the lesson's task again", async () => {
 		alive();
 		press(option("B"));
 		await passing(checkingTakes);

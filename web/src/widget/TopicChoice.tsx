@@ -1,4 +1,4 @@
-import type { ComponentChildren, RefObject } from "preact";
+import { type ComponentChildren, createContext, type RefObject } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { classes } from "../design/classes";
 import { Button } from "../design/controls";
@@ -13,6 +13,14 @@ import type { TopicChoice } from "./payload";
 import { useService } from "./service";
 import { topicGroups } from "./topicGroups";
 import { type Key, useWords } from "./words";
+
+/**
+ * ChoosesTopic says whether a choice of the topic can be acted on where a card
+ * is drawn: saved to the child's profile and followed by a task on the topic.
+ * Where it cannot, the card shows the topic's button locked and makes no
+ * choice, whatever is pressed.
+ */
+export const ChoosesTopic = createContext(true);
 
 /**
  * Said is what the card says of the last choice sent: that it is on its way,
@@ -42,7 +50,7 @@ export type Choosing = {
 };
 
 // lineWait is how long a choice waits for the host to take the model's line
-// before the child's message goes, in milliseconds.
+// before the card's message goes, in milliseconds.
 const lineWait = 500;
 
 // within is promise, waited for no longer than ms.
@@ -60,7 +68,7 @@ function within(ms: number, promise: Promise<void>): Promise<void> {
  * topic the lessons are kept to as the service last said, until the card
  * changes it. A choice is saved to the profile, the model is told of it in
  * the service's words through tell, and only then is the next task asked of
- * the chat in the child's words, through ask, as another task is: a choice not
+ * the chat in the adult's words, through ask, as another task is: a choice not
  * saved asks nothing, and says so. Nothing is chosen while busy says the card is in the
  * middle of something else, nor while a choice is on its way: a press of a
  * choice that looks locked is turned away here. The panel takes
@@ -129,7 +137,7 @@ export function useTopicChoice(
 			}));
 			return;
 		}
-		// The model reads the line with the child's message, so the line goes to
+		// The model reads the line with the card's message, so the line goes to
 		// the host first, and the message once the host has taken it — or a
 		// moment later, since a host that keeps no line, or never says so, still
 		// takes the message.
@@ -165,18 +173,24 @@ export function useTopicChoice(
 
 /**
  * TopicButton is the button at the end of a task's row that opens the choice
- * of the topic: it names the topic the lessons are kept to, or says the coach
- * chooses it, and whether the choice is open. Its words wrap rather than run
- * out of a narrow card. It takes no press while locked.
+ * of the topic: a tag and the topic the lessons are kept to, or a spark and
+ * that the coach chooses it, and whether the choice is open. A narrow card
+ * shows the topic alone, or the coach in a word, and leaves "Topic:" to a
+ * screen reader. Its words wrap rather than run out of a narrow card. It takes
+ * no press while locked.
  */
 export function TopicButton({
 	choosing,
+	wide,
 	locked,
 }: {
 	choosing: Choosing;
+	wide: boolean;
 	locked: boolean;
 }) {
 	const words = useWords();
+	const chosen = choosing.chosen;
+	const coach = wide ? "topic_choice.coach" : "topic_choice.coach_short";
 	return (
 		<Button
 			className="mt-topic-button"
@@ -186,14 +200,13 @@ export function TopicButton({
 			onClick={choosing.toggle}
 			buttonRef={choosing.button}
 		>
+			<Icon name={chosen === null ? "sparkle" : "tag"} size={20} />
 			<span class="mt-topic-button-text">
-				<span class="mt-topic-button-label">
+				<span class={wide ? "mt-topic-button-label" : "mt-vh"}>
 					{words.text("topic_choice.label")}
 				</span>{" "}
 				<span class="mt-topic-button-value">
-					{choosing.chosen === null
-						? words.text("topic_choice.coach")
-						: topicName(words, choosing.chosen)}
+					{chosen === null ? words.text(coach) : topicName(words, chosen)}
 				</span>
 			</span>
 			<Icon name="chevron-right" size={16} className="mt-chevron" />

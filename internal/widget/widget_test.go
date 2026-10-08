@@ -108,6 +108,42 @@ func TestTheMovesStandOutFromTheCardAndTheCourse(t *testing.T) {
 	}
 }
 
+// The buttons under a task each wear a tone of their own — a tint, a border,
+// and an ink for the icon and the words — and the ink stands out from the
+// tint: an icon as a part of a picture must, at 3 to 1, and the words of the
+// topic's button as text must, at 4.5 to 1. In either theme, and the same for
+// a viewer who prefers the dark theme as for a host that names it.
+func TestTheButtonsUnderATaskStandOutInTheirTones(t *testing.T) {
+	t.Parallel()
+
+	tokens := widget.Tokens()
+	light := tokensOf(t, tokens, `:root, [data-theme="light"] {`)
+	dark := tokensOf(t, tokens, `[data-theme="dark"] {`)
+	preferred := tokensOf(t, tokens, `:root:not([data-theme="light"]) {`)
+	for _, tone := range []struct {
+		name  string
+		least float64
+	}{{"hint-button", 3}, {"another-button", 3}, {"topic-button", 4.5}} {
+		for _, theme := range []struct {
+			name   string
+			tokens map[string]string
+		}{{"light", light}, {"dark", dark}} {
+			ink, tint := theme.tokens[tone.name+"-text"], theme.tokens[tone.name+"-tint"]
+			if got := contrast(t, ink, tint); got < tone.least {
+				t.Errorf("--%s-text in the %s theme is %q, %.2f to 1 against its tint %s, want %.1f to 1 at least",
+					tone.name, theme.name, ink, got, tint, tone.least)
+			}
+		}
+		for _, part := range []string{"tint", "border", "text"} {
+			name := tone.name + "-" + part
+			if preferred[name] != dark[name] {
+				t.Errorf("--%s is %q for a viewer who prefers the dark theme and %q for a host that names it, want one",
+					name, preferred[name], dark[name])
+			}
+		}
+	}
+}
+
 // Each theme shows one of the logo's two drawings: the light theme the one on
 // a white tile, and the dark theme the site's icon itself, alike for a host
 // that names it and for a viewer who prefers it.

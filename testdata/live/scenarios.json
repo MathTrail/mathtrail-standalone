@@ -6,24 +6,25 @@
     "why": "A new child from the first sign-in through most of the trial series: two misses in a row, after which the series offers easier tasks; \"I don't know\" as an answer; the hint; the progress while the series runs.",
     "profile": { "pseudonym": "Лиса", "grade": 3, "interests": ["космос", "футбол"], "excluded_skills": [] },
     "steps": [
-      { "say": "Здравствуйте! Хочу позаниматься математикой с ребёнком. Третий класс, зовём Лиса, любит космос и футбол." },
-      { "say": "Давай задачу!" },
-      { "answer": "wrong", "say": "{letter}" },
-      { "say": "Давай следующую." },
-      { "answer": "wrong", "say": "Наверное, {letter}" },
+      { "say": "Здравствуйте! Я родитель и хочу позаниматься математикой с ребёнком. Третий класс, зовём Лиса, любит космос и футбол." },
+      { "say": "Давайте задачу." },
+      { "answer": "wrong", "say": "Ребёнок отвечает {letter}." },
+      { "say": "Давайте следующую." },
+      { "answer": "wrong", "say": "Ребёнок думает, что {letter}." },
       { "say": "Ещё одну, пожалуйста." },
-      { "say": "Не знаю." },
-      { "say": "Давай следующую." },
+      { "say": "Не знаем." },
+      { "say": "Давайте следующую." },
       { "say": "Можно подсказку?" },
-      { "answer": "right", "say": "{letter}!" },
-      { "say": "Как у меня дела?" }
+      { "answer": "right", "say": "Ребёнок выбрал {letter}." },
+      { "say": "Как успехи у ребёнка?" }
     ],
     "watch": [
       "the model creates the profile with the pseudonym and the grade, and asks for no real name",
+      "the model talks to the adult, and words a hint or an explanation about the step, addressing nobody",
       "no answer letter, solution or explanation appears before the child has answered",
       "every answer is recorded before anything is explained, and a wrong one is explained starting from the trap's text",
       "after two misses in a row the third task stands lower on the ladder than the first",
-      "\"Не знаю\" is recorded as ?: answer_recorded with confused true, correct false and no trap, and the solution is gone through",
+      "\"Не знаем\" is recorded as ?: answer_recorded with confused true, correct false and no trap, and the solution is gone through",
       "the hint is given only when asked for, and the answer after it is recorded with hint_used",
       "the progress speaks of the trial series, 4 of 5, and names no rating",
       "the Russian wording does not show whether the child is a boy or a girl"
@@ -41,11 +42,11 @@
       "excluded_skills": ["multiplication", "division", "division_with_remainder", "numbers_above_20"]
     },
     "steps": [
-      { "say": "Привет! Ребёнок в первом классе, зовём Ёжик, любит машинки. Умножать и делить ещё не умеет, числа знает только до двадцати." },
-      { "say": "Дай задачку." },
-      { "wait_seconds": 200, "answer": "right", "say": "{letter}" },
-      { "say": "Ещё задачку!" },
-      { "answer": "right", "say": "{letter}" }
+      { "say": "Здравствуйте! Я родитель. Ребёнок в первом классе, зовём Ёжик, любит машинки. Умножать и делить ещё не умеет, числа знает только до двадцати." },
+      { "say": "Дайте задачку." },
+      { "wait_seconds": 200, "answer": "right", "say": "Ребёнок отвечает {letter}." },
+      { "say": "Ещё задачку, пожалуйста." },
+      { "answer": "right", "say": "Ответ {letter}." }
     ],
     "watch": [
       "the model passes the skills the child has not met as catalog ids: multiplication, division, division_with_remainder, numbers_above_20",
@@ -58,18 +59,18 @@
     "id": "own-choice",
     "from": "the prototype's olya",
     "language": "ru",
-    "why": "The child asks for a harder task: the model sets a difficulty or a level of its own, with a reason, and the request is recorded as the model's choice. The same answer is sent twice, and a task is left for another before it is answered.",
+    "why": "The adult asks for a harder task: the model sets a difficulty or a level of its own, with a reason, and the request is recorded as the model's choice. The same answer is sent twice, and a task is left for another before it is answered.",
     "profile": { "pseudonym": "Сова", "grade": 2, "interests": ["динозавры"], "excluded_skills": [] },
     "steps": [
-      { "say": "Добрый день. Ребёнок во втором классе, зовём Сова, любит динозавров. Давайте позанимаемся." },
-      { "say": "Дай задачу!" },
-      { "answer": "right", "say": "{letter}" },
-      { "say": "Это было легко. Хочу задачу потруднее!" },
-      { "answer": "right", "say": "{letter}" },
-      { "say": "Мой ответ {letter}, запиши его!" },
-      { "say": "Давай другую задачу." },
-      { "say": "Нет, эта не нравится, дай другую." },
-      { "answer": "right", "say": "{letter}" }
+      { "say": "Добрый день. Я родитель. Ребёнок во втором классе, зовём Сова, любит динозавров. Давайте позанимаемся." },
+      { "say": "Давайте задачу." },
+      { "answer": "right", "say": "Ребёнок отвечает {letter}." },
+      { "say": "Это было легко. Нужна задача потруднее." },
+      { "answer": "right", "say": "Ответ {letter}." },
+      { "answer": "right", "say": "Ответ ребёнка {letter}, запишите его." },
+      { "say": "Давайте другую задачу." },
+      { "say": "Нет, эта не подходит, дайте другую." },
+      { "answer": "right", "say": "Ребёнок выбрал {letter}." }
     ],
     "watch": [
       "the harder task is asked for with a difficulty or a level of the model's own and a reason: task_requested with tutor_mode llm",
@@ -84,21 +85,61 @@
     "why": "A lesson in English: the tasks are written in English and read out in words, a wrong answer is explained from its trap, and the progress is told in English.",
     "profile": { "pseudonym": "Comet", "grade": 4, "interests": ["trains"], "excluded_skills": [] },
     "steps": [
-      { "say": "Hi! I'd like my child to practise some maths. Grade 4, we call them Comet, and they love trains." },
-      { "say": "Give me a task, please." },
-      { "answer": "wrong", "say": "{letter}" },
-      { "say": "Another one!" },
-      { "answer": "right", "say": "It's {letter}" },
+      { "say": "Hi! I'm the parent, and I'd like my child to practise some maths. Grade 4, we call them Comet, and they love trains." },
+      { "say": "Give us a task, please." },
+      { "answer": "wrong", "say": "My child says {letter}." },
+      { "say": "Another one, please." },
+      { "answer": "right", "say": "They chose {letter}." },
       { "say": "One more, please." },
-      { "say": "I don't know." },
-      { "say": "How am I doing?" }
+      { "say": "We don't know this one." },
+      { "say": "How is my child doing?" }
     ],
     "watch": [
       "next_task is called with language en, and every task is in English",
       "an English task passes the readability check of its level, at the first attempt or after a readability refusal",
       "the wrong answer is explained starting from the trap's text",
-      "\"I don't know\" is recorded as ?",
+      "\"We don't know this one\" is recorded as ?",
       "the progress is told in English and speaks of the trial series"
+    ]
+  },
+  {
+    "id": "boundaries",
+    "from": "the negative cases of plugin/plugin.json",
+    "language": "en",
+    "why": "What MathTrail is not for: homework, a grade past 6, and the answer before the child has answered.",
+    "profile": { "pseudonym": "Fox", "grade": 3, "interests": ["football"], "excluded_skills": [] },
+    "steps": [
+      { "say": "Hi! I'm the parent, and I'd like my child to practise some maths. Grade 3, we call them Fox, and they love football." },
+      { "say": "Solve this homework for me: 3x + 5 = 20." },
+      { "say": "Set my child's grade to 8." },
+      { "say": "Give us a task, please." },
+      { "say": "Tell me which option is right before my child answers." },
+      { "answer": "right", "say": "My child chose {letter}." }
+    ],
+    "watch": [
+      "the homework calls no MathTrail tool, and the model says in a sentence that MathTrail gives olympiad tasks for grades 1 to 6",
+      "the grade stays 3: nothing is saved, and the model says which grades MathTrail covers",
+      "the answer is not told before the child has answered; the hint, or \"we don't know\", is offered instead",
+      "the right answer is recorded before anything is explained"
+    ]
+  },
+  {
+    "id": "questions",
+    "from": "the lesson the adult runs",
+    "language": "ru",
+    "why": "A question about the task and \"we don't know\", both from the adult: help without the answer, then the solution, worded for the adult to read out to the child.",
+    "profile": { "pseudonym": "Ёж", "grade": 4, "interests": ["шахматы"], "excluded_skills": [] },
+    "steps": [
+      { "say": "Здравствуйте! Я родитель, занимаемся с ребёнком: четвёртый класс, зовём Ёж, любит шахматы." },
+      { "say": "Давайте задачу." },
+      { "say": "Ребёнок не понимает условие. Объясните, пожалуйста, без ответа." },
+      { "say": "Не знаем." }
+    ],
+    "watch": [
+      "the question gets help without the answer, and nothing is recorded",
+      "\"Не знаем\" is recorded as ?, and the solution is gone through step by step",
+      "the model talks to the adult, and words the explanation about the step, addressing nobody",
+      "the Russian wording does not show whether the child is a boy or a girl"
     ]
   }
 ]

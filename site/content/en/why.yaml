@@ -122,19 +122,20 @@ thinking:
     - title: A mistake is a diagnosis
       text: Behind every wrong option stands a named trap. The explanation starts from how the child reasoned, not from the right answer.
     - title: A hint instead of the answer
-      text: A child can ask for a hint, or ask in their own words, “why not 6?”. The model answers about this very problem.
+      text: The child can open a hint on the card, and the adult can ask in the chat, in the child's own words, “why not 6?”. The model answers about this very problem.
   topics: See the topics →
   # The name of the child the card on this page shows, an invented one.
   child: Comet
   caption: The card as a chat shows it after a wrong answer. The child and the numbers are an example.
-  # Two messages of the chat beneath the card: the child's question and the
-  # model's reply. They are the site's words, never the card's.
+  # Two messages of the chat beneath the card: the adult's question and the
+  # model's reply, about the step and to nobody, for the adult to read out to
+  # the child. They are the site's words, never the card's.
   chat:
     label: An illustration of the chat
-    child: The child
+    adult: The adult
     model: The model
     question: Why not 6?
-    reply: Six would count a post twice. Walk along the fence from the left. Each gap ends with a post, so 4 gaps bring 4 posts, and the first post stands before them all. 4 + 1 = 5.
+    reply: Six would count a post twice. Along the fence from the left, each gap ends with a post, so 4 gaps bring 4 posts, and the first post stands before them all. 4 + 1 = 5.
 
 app:
   title: Why this is no ordinary app

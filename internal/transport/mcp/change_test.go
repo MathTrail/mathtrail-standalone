@@ -171,15 +171,18 @@ func petyaThisWeek(p *profile.Profile) {
 // The words say what moved in each while: the overall rating from where it
 // stood to where it stands, with its rank when the rank changed, and then the
 // topics whose own answers moved them, by how; a topic nothing of its own
-// moved is not named, and a while that cannot be told is not spoken of.
+// moved is not named, and a while that cannot be told is not spoken of. A step
+// back, of the overall rating or of a topic, is to be told gently, and words
+// that name none say nothing of it.
 func TestTheWordsSayWhatMovedEachTopicByItsOwnAnswers(t *testing.T) {
 	t.Parallel()
 
+	const gently = "Say a step back gently, as part of learning, never as a score against the child."
 	for _, tc := range []struct {
 		name   string
 		change func(p *profile.Profile)
 		want   []string
-		unsaid string
+		unsaid []string
 	}{
 		{
 			name:   "moves in both whiles",
@@ -188,13 +191,25 @@ func TestTheWordsSayWhatMovedEachTopicByItsOwnAnswers(t *testing.T) {
 				"Since the last answer, the overall rating went from 1966 to 1985; a rank up by their own answers: Pigeonhole principle.",
 				"Over the last seven days, the overall rating went from 1800 to 1985, rank 4 to rank 5; " +
 					"answered for the first time: Pigeonhole principle; back by their own answers: Ordering.",
+				gently,
 			},
+		},
+		{
+			name:   "the overall rating down since the last answer",
+			change: petyaMoved(2000, 2010),
+			want:   []string{"Since the last answer, the overall rating went from 2000 to 1985", gently},
+		},
+		{
+			name:   "nothing but steps forward",
+			change: petyaMoved(1966, 1990),
+			want:   []string{"Since the last answer, the overall rating went from 1966 to 1985"},
+			unsaid: []string{"step back"},
 		},
 		{
 			name:   "a quiet week after an answer that keeps nothing before it",
 			change: func(*profile.Profile) {},
 			want:   []string{"Over the last seven days, the overall rating stayed at 1985."},
-			unsaid: "Since the last answer",
+			unsaid: []string{"Since the last answer", "step back"},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -208,7 +223,7 @@ func TestTheWordsSayWhatMovedEachTopicByItsOwnAnswers(t *testing.T) {
 
 // wantWords fails the test unless the words say every sentence wanted, and
 // nothing of what is to stay unsaid.
-func wantWords(t *testing.T, words string, want []string, unsaid string) {
+func wantWords(t *testing.T, words string, want, unsaid []string) {
 	t.Helper()
 
 	for _, sentence := range want {
@@ -216,8 +231,10 @@ func wantWords(t *testing.T, words string, want []string, unsaid string) {
 			t.Errorf("the words are %q, want them to say %q", words, sentence)
 		}
 	}
-	if unsaid != "" && strings.Contains(words, unsaid) {
-		t.Errorf("the words are %q, want nothing said %q", words, unsaid)
+	for _, sentence := range unsaid {
+		if strings.Contains(words, sentence) {
+			t.Errorf("the words are %q, want nothing said %q", words, sentence)
+		}
 	}
 }
 

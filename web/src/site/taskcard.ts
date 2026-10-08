@@ -4,6 +4,7 @@ import {
 	type HandedTask,
 	readAnswer,
 	readHandedTask,
+	type TopicChoice,
 } from "../widget/payload";
 import { type CatalogTopic, gradesOf } from "./topics";
 import type { CatalogTrap } from "./traps";
@@ -125,13 +126,16 @@ const checkedTask = "site_card";
 /**
  * handedOf is card's task with the words said, as the widget reads a task
  * handed out, under the task's id: no service handed it out, and nothing shows
- * the id. A task the widget's own reader refuses stops the build.
+ * the id. A task handed out with offered has the button of the topic, as a
+ * task after the trial series has. A task the widget's own reader refuses
+ * stops the build.
  */
 export function handedOf(
 	card: CardFacts,
 	said: TaskWords,
 	id: string,
 	where: string,
+	offered?: TopicChoice,
 ): HandedTask {
 	const handed = readHandedTask({
 		screen: "task",
@@ -146,6 +150,7 @@ export function handedOf(
 			hint: said.hint,
 		},
 		language: said.language,
+		topic_choice: offered,
 	});
 	if (handed === undefined) {
 		throw new Error(
@@ -157,17 +162,19 @@ export function handedOf(
 
 /**
  * answerOf is card with the words said, as the widget reads one: the task
- * handed to the child, and the wrong answer recorded for it. The task has no
- * hint, which a card no longer shows once its answer is in. A card the
- * widget's own readers refuse stops the build.
+ * handed to the child, with the button of the topic when offered, and the
+ * wrong answer recorded for it. The task has no hint, which a card no longer
+ * shows once its answer is in. A card the widget's own readers refuse stops
+ * the build.
  */
 export function answerOf(
 	card: CardFacts,
 	said: CardWords,
 	id: string,
 	where: string,
+	offered?: TopicChoice,
 ): WrongAnswer {
-	const handed = handedOf(card, { ...said, hint: "" }, id, where);
+	const handed = handedOf(card, { ...said, hint: "" }, id, where, offered);
 	const result = recordedOf(
 		{
 			task_id: id,

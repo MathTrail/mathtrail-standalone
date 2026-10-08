@@ -323,7 +323,18 @@ describe("the page of the service", () => {
 	test("tells a screen reader whom each step goes from and to", () => {
 		expect(
 			texts(`#${stepsId("task")} .s-service-arrow-words .s-hidden`).slice(0, 2),
-		).toEqual(["Child → The host's model: ", "The host's model → MathTrail: "]);
+		).toEqual(["Adult → The host's model: ", "The host's model → MathTrail: "]);
+	});
+
+	test("has the child answer on the card and the adult ask in the chat", () => {
+		const answer = texts(
+			`#${stepsId("answer")} .s-service-arrow-words .s-hidden`,
+		);
+		expect(answer[0]).toBe("Child → Card: ");
+		expect(answer.slice(-2)).toEqual([
+			"Adult → The host's model: ",
+			"The host's model → Adult: ",
+		]);
 	});
 
 	test("chooses the first scenario when the page opens, and offers the others", () => {

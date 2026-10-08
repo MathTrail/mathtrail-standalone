@@ -41,7 +41,7 @@ Which screen a card shows is decided by the payload, not by the tool: `get_progr
 | `read_task` | the widget only, from a card that waits for a task (R152) | **no** — the card that called it turns into its task | 1 | 0 | always |
 | `submit_answer` | the **widget**, or the model in text mode | **no** — the card turns itself over | 1 | 1 | this task was already answered |
 
-One full task costs four reads and three writes — `next_task`, `get_package`, `submit_task`, `submit_answer` —, one more pair for each rejected attempt, and one read for each question the card asks while it waits: every four seconds while the task is written, about fifteen for a minute's wait (R152). A task written ahead costs as much — `prepare_task` in place of the two of the ask, `submit_task`, and `next_task` when it is handed out, `submit_answer` —, but its writing lies outside the child's wait: a task kept reaches the new card for one read and one write (R235, R252). Opening the progress from a card costs one read more, and the search and the folder's name that say where the profile's file is (R147). Everything between the read and the write is pure computation: the rule, the checks, the Starlark solver and the ratings never touch the network (01-context).
+One full task costs four reads and three writes — `next_task`, `get_package`, `submit_task`, `submit_answer` —, one more pair for each rejected attempt, and one read for each question the card asks while it waits: every four seconds while the task is written, about fifteen for a minute's wait (R152). A question that would only hear what the card knows waits for news, up to four seconds, so a card still asks about fifteen times a minute; a question news wakes answers from the profile the write left, and reads nothing more (R259). A task written ahead costs as much — `prepare_task` in place of the two of the ask, `submit_task`, and `next_task` when it is handed out, `submit_answer` —, but its writing lies outside the child's wait: a task kept reaches the new card for one read and one write (R235, R252). Opening the progress from a card costs one read more, and the search and the folder's name that say where the profile's file is (R147). Everything between the read and the write is pure computation: the rule, the checks, the Starlark solver and the ratings never touch the network (01-context).
 
 ## Scenario 1. First sign-in
 
@@ -97,9 +97,10 @@ sequenceDiagram
     MT-->>M: the package — brief, the idea to build on in words, corridor, three reference tasks,<br/>the traps, the prohibitions, the formats, the solver templates, the drawing frames,<br/>the checklist and the guide
     Note over M,W: no card is drawn from the package: the reference tasks carry their answers
 
-    par the card asks how the task stands, every few seconds
-        W->>MT: read_task with the request id
+    par the card asks how the task stands, a question every four seconds
+        W->>MT: read_task with the request id, and the tries turned down it has heard of
         MT->>D: read the profile
+        Note over MT: nothing new to the card: the question waits for news, up to 4 s
         MT-->>W: being written, and how many tries were turned down
     and at most three attempts
         Note over M: the model writes the task, the Starlark solver and its self-check
@@ -116,9 +117,8 @@ sequenceDiagram
             MT-->>M: accepted, plus the task exactly as the child will see it
         end
     end
-    W->>MT: read_task with the request id
-    MT->>D: read the profile
-    MT-->>W: the task on the card — wording, drawing, five answer buttons, Hint;<br/>the card turns into it
+    Note over MT,W: the write wakes the card's question held on this instance,<br/>handing it the profile written, which it answers from
+    MT-->>W: the task on the card — wording, drawing, five answer buttons, Hint;<br/>the card ticks its course done and turns into it 300 ms later
 ```
 
 **What the model gets and what the child gets.** The model receives the wording, the options and the hint — never the answer, the trap texts or the solution; that is the same split the prototype used, and it is what keeps criterion 11.3 true while the model is still in the conversation. The child sees the card with no answer on it. One honest exception, settled in О-27: the adult who opens the host's own tool-call log sees the task the model submitted, answer included — T03 confirmed Claude shows the raw request JSON. That is outside the threat model and belongs in the privacy policy (T19).
@@ -130,6 +130,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
+    participant A as Adult
     participant K as Child
     participant W as Widget card
     participant M as The host's model
@@ -145,31 +146,30 @@ sequenceDiagram
     MT->>D: write the profile — after the answer, in the same request (R255)
     Note over W: the result screen — the child gets the full diagnosis<br/>even if the model never says another word
     W->>M: ui/update-model-context — one line about what just happened
-    K->>W: types a question in the card's field — "why isn't it 6?"
-    W->>M: ui/message — the child's words (R91)
-    M-->>K: the answer in the chat, under the card
-    Note over K,M: the card has no "I don't know": the child says it in the chat, and the model<br/>records it with submit_answer "?", a wrong answer with no trap (R93, R208)
+    A->>M: asks in the chat, for the child — "why isn't it 6?"
+    M-->>A: the answer in the chat, under the card, about the step, for the adult to read out
+    Note over A,M: the card has no "I don't know": the adult says it in the chat, and the model<br/>records it with submit_answer "?", a wrong answer with no trap (R93, R208, R261)
 ```
 
-**The button records before anything is explained.** The order in the diagram is the requirement: the press calls the tool, the tool records the answer in the profile and answers the card from it, and the write lands in the same request a moment later, while the card shows the result (R255); only then is anything said to the model, which reads it with the child's next message. Nothing about the recording depends on the model noticing (О-42) — and it must not, because the two mechanisms that tell the model what happened, `ui/message` and `ui/update-model-context`, were only confirmed in T03 as far as "the call returns without an error"; that they land in the conversation has not been seen with human eyes yet. If both silently do nothing, the child still gets the result screen, the ratings are still updated, and the model catches up on its next call, because every tool result carries the outcome of the last answer.
+**The button records before anything is explained.** The order in the diagram is the requirement: the press calls the tool, the tool records the answer in the profile and answers the card from it, and the write lands in the same request a moment later, while the card shows the result (R255); only then is anything said to the model, which reads it with the next message in the chat. Nothing about the recording depends on the model noticing (О-42) — and it must not, because the two mechanisms that tell the model what happened, `ui/message` and `ui/update-model-context`, were only confirmed in T03 as far as "the call returns without an error"; that they land in the conversation has not been seen with human eyes yet. If both silently do nothing, the child still gets the result screen, the ratings are still updated, and the model catches up on its next call, because every tool result carries the outcome of the last answer.
 
-**The model may not state the task's state from memory.** If `ui/update-model-context` is the mechanism that fails, the child is already reading the result screen while the model's context still holds an unanswered task — and a child who then types "but why is that the answer?" would be answered from a picture two minutes out of date. The compensating control is a rule in the instructions (T36): before saying anything about the current task — praising it, explaining it, offering the next one — the model calls a tool and reads the state back. Every tool result carries the outcome of the last recorded answer for exactly this reason, so one call is enough and no round trip is wasted.
+**The model may not state the task's state from memory.** If `ui/update-model-context` is the mechanism that fails, the child is already reading the result screen while the model's context still holds an unanswered task — and an adult who then types "but why is that the answer?" would be answered from a picture two minutes out of date. The compensating control is a rule in the instructions (T36): before saying anything about the current task — praising it, explaining it, offering the next one — the model calls a tool and reads the state back. Every tool result carries the outcome of the last recorded answer for exactly this reason, so one call is enough and no round trip is wasted.
 
 The obvious alternative is worse: having the widget send a chat message after every answer would keep the model in step by construction, and would spend a turn of the conversation each time. On a free tier those turns are the scarce resource this whole design protects (PRODUCT 6), and a button that costs none of them is the point of О-42.
 
-**"Hint" costs nothing extra, and "I don't know" is an answer.** The hint is part of the task the model submitted, so the widget already has it and reveals it with no call at all; that it was opened travels with the answer. "I don't know" has no button on the card: the child says it in the chat, and the model records it like any answer — `submit_answer` with `?`, a wrong answer for the rating, with no trap — and then goes through the solution (R93, R208). A question about the task is asked in the chat, before the answer or after; the model answers there, and nothing is recorded (R91, R145). Before the answer it helps without giving the answer away, as its instructions require for anything said about an open task; after it, the chat is where the child asks why.
+**"Hint" costs nothing extra, and "I don't know" is an answer.** The hint is part of the task the model submitted, so the widget already has it and reveals it with no call at all; that it was opened travels with the answer. "I don't know" has no button on the card: the adult says it in the chat, and the model records it like any answer — `submit_answer` with `?`, a wrong answer for the rating, with no trap — and then goes through the solution (R93, R208). A question about the task is asked in the chat by the adult, before the answer or after; the model answers there, about the step, for the adult to read out, and nothing is recorded (R145, R261). Before the answer it helps without giving the answer away, as its instructions require for anything said about an open task; after it, the chat is where the adult asks why, for the child.
 
 ## Scenario 4. The same lesson as text
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant K as Child and adult
+    participant A as Adult, the child beside them
     participant M as The host's model
     participant MT as MathTrail
     participant D as Drive
 
-    K->>M: a new task
+    A->>M: a new task
     M->>MT: next_task
     MT->>D: read, then write — the open request
     MT-->>M: the request is open
@@ -179,12 +179,12 @@ sequenceDiagram
     M->>MT: submit_task
     MT->>D: read, then write — the current task
     MT-->>M: accepted, plus the task as text: wording, drawing, options A–E, hint
-    M-->>K: reads the task out in the chat, with no answer in sight
-    K->>M: B
+    M-->>A: reads the task out in the chat, for the adult to read to the child, with no answer in sight
+    A->>M: B, the child's answer
     M->>MT: submit_answer — task id, option B
     MT->>D: read, then write — ratings and history
     MT-->>M: wrong — the correct letter is D, the trap behind B, the solution
-    M-->>K: starts from the trap the child fell into, then the solution step by step
+    M-->>A: starts from the trap the child fell into, then the solution step by step, about the step
 ```
 
 Text mode is not a reduced version: the same tools, the same payloads and, but for the questions a card asks while it waits, the same Drive calls (О-10). The only difference is who draws the card — the widget, or the model with words. The one thing the child loses is the button that records without spending a chat turn, which matters on a free tier (PRODUCT 6).
@@ -194,14 +194,14 @@ Text mode is not a reduced version: the same tools, the same payloads and, but f
 ```mermaid
 sequenceDiagram
     autonumber
-    participant A as Adult or child
+    participant A as Adult
     participant M as The host's model
     participant MT as MathTrail
     participant D as Drive
     participant W as Widget card
     participant S as The site
 
-    A->>M: how am I doing
+    A->>M: how is my child doing
     M->>MT: get_progress
     MT->>D: read the profile
     MT-->>M: ratings per topic with the rank, mastered topics, the recent answers,<br/>the map of misconceptions, the recommendation
@@ -261,7 +261,7 @@ sequenceDiagram
     MT-->>M: kept: say nothing about it, and ask for no other task
 
     K->>W: "Another task"
-    W-->>M: "Another task", in the card's language, as the child's message
+    W-->>M: "Another task", in the card's language, as the adult's message
     Note over W: the host has the ask: the card is done with —<br/>options locked, buttons gone, the new task "will come below"
     M->>MT: next_task, with the chat language
     MT->>D: read the profile
@@ -272,7 +272,7 @@ sequenceDiagram
     M->>MT: prepare_task — waits for that write on this instance, and the next task is written ahead again
 ```
 
-The first task of a lesson is asked for and written as scenario 2 shows, unless one kept from an earlier sitting still fits; then the model goes straight on to write the next one ahead. A child who asks for another, in the chat or with "Another task" on the card, has the task kept handed out by `next_task`, on the new card it draws, at once, and the model writes the one after it (R252). A child who asks while the next task is still being written waits for it on the new card: `next_task` makes the request ahead one the child waits for, and the task goes to that card once it is accepted. With nothing kept and nothing being written, `next_task` opens a request as scenario 2 shows.
+The first task of a lesson is asked for and written as scenario 2 shows, unless one kept from an earlier sitting still fits; then the model goes straight on to write the next one ahead. Another task asked for, in the chat or with "Another task" on the card, is the task kept, handed out by `next_task`, on the new card it draws, at once, and the model writes the one after it (R252). Another task asked for while the next one is still being written is waited for on the new card: `next_task` makes the request ahead one the child waits for, and the task goes to that card once it is accepted. With nothing kept and nothing being written, `next_task` opens a request as scenario 2 shows.
 
 A task kept is handed out whatever the answer before it was, and let go, its request too, once the lesson has moved away from what it was written for: another language of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person asked for, or — for a task kept — another version of the instructions (SPEC 3.7, R237).
 
@@ -282,11 +282,11 @@ The child presses "Another task" — on the result screen, or on the task card i
 
 1. **The card keeps its task and says that, once the ask reaches the chat, the new one will come below**, in a card of its own (R145). It does not turn to a waiting screen: a host may hold the card's message for the person to send, and a card cannot see whether it went, so a wait drawn there could tick off steps while nothing is being written. While the ask is on its way the button takes no second press and the options none, since an answer would race the ask. Once the host has it, the card is done with: its options stay locked, its buttons and its choice of the topic are gone, and what it says of the new task takes the focus, since a second ask would skip the task the new card brings (R252).
 2. **The press reaches the model** through `ui/message`, because generating a task is the model's job and only the model can start it. This is the one step with no fallback inside the product: if a host does not deliver widget messages, the adult types "next task" in the chat and everything else is identical. A host that refuses the message says so, and the card says the ask was not sent and is given back, to ask again. T03 got as far as "the call succeeds"; T46 and T62–T63 are where it is confirmed for real. Claude puts the message in its input and waits for the person to press Enter (`docs/live/07-acceptance-claude.md`, finding 5).
-3. **The model calls `next_task`**, and the card the host draws for that call is where the new task comes. A task kept that still fits is on it at once, and the result sends the model on to write the one after it (scenario 6). Otherwise that card, drawn as the call starts, is the wait (R152): it knows it is a task's card from the host's `toolInfo`, and shows "Preparing the next task…" a moment after it is drawn, the topic being picked. The model then gets the package with `get_package`, writes the task and hands it in with `submit_task`, which draws no card. Meanwhile the card, handed the request by `next_task`'s result, asks `read_task` how the task stands — a moment after it is drawn, then every four seconds — and shows it being written, and a try the checks turned down with a new one being written; once the task is accepted, the next question finds it on the card, and the card turns into it.
+3. **The model calls `next_task`**, and the card the host draws for that call is where the new task comes. A task kept that still fits is on it at once, and the result sends the model on to write the one after it (scenario 6). Otherwise that card, drawn as the call starts, is the wait (R152): it knows it is a task's card from the host's `toolInfo`, and shows "Preparing the next task…" a moment after it is drawn, the topic being picked. The model then gets the package with `get_package`, writes the task and hands it in with `submit_task`, which draws no card. Meanwhile the card, handed the request by `next_task`'s result, asks `read_task` how the task stands — a moment after it is drawn, then every four seconds, each question held for news while it would tell the card nothing new — and shows it being written, and a try the checks turned down with a new one being written; once the task is accepted, the question held for news hears of it, or the next question finds it, and the card turns into it (R259).
 
 **A topic chosen on the card is "Another task" with one step before it** (R194). Once the trial series is over, the task's card ends its row with the topic's button, and the choice it opens — or the cross of the mark above a task given on the topic chosen — first saves the choice with `edit_profile`, the topic alone (SPEC 3.6); once it is saved, the card gives the model the service's line of it with `ui/update-model-context`, and only then sends the ask, in the child's words with the topic's name, by `ui/message`, as the button does — so the model reads the line with the ask, and `next_task` finds the choice in the profile; a task kept on another topic is let go, and the new card waits for one on the topic chosen (R237). The card is then done with, as after the button (R252). A choice not saved sends nothing: the card says so under the choice, and the child may choose again. A request already open keeps its topic; the choice starts with the task after it.
 
-A card cannot learn of a call that did not draw it ("One payload, two readers"), so it asks, and each question is a Drive read: about fifteen for a minute's wait, one at a time, none while the page is out of sight. The rejection of such a card in R134 and R146 counted on a wait that starts with the hand-in; the author's live check of 2026-10-03 found the hand-in a minute after the ask (R152).
+A card cannot learn of a call that did not draw it ("One payload, two readers"), so it asks, and each question is a Drive read: about fifteen for a minute's wait, one at a time, none while the page is out of sight. The rejection of such a card in R134 and R146 counted on a wait that starts with the hand-in; the author's live check of 2026-10-03 found the hand-in a minute after the ask (R152). A question that would only hear what the card knows waits for news, up to four seconds: a hand-in that lands on the card's instance wakes it, so the task comes about half a second after it is accepted, and one that lands on another is found at the next question (R259).
 
 A request that ends with no task — three tries refused, the window passed, a newer request — is said on the card at the first answer that says so, and settled at the second, since a read straight after a write may bring the file as it was before it: no task is here, with the line that the next one comes below or, if none does, that a task can be asked for in the chat. The words are the same whatever ended it, since the card cannot tell. A card drawn again with an earlier chat says the same, its task long gone: the profile keeps the current task alone.
 
@@ -423,7 +423,7 @@ Two rules about the wording of all of them: they are written for a model that ha
 Found while drawing the flows. None changes a product decision, so none becomes an open question in PRODUCT 12.2.
 
 1. **Two host mechanisms are still only half-verified.** `ui/message` and `ui/update-model-context` returned successfully in T03 but were never seen landing in a conversation. Nothing depends on them for correctness — the answer is recorded by the tool — but each needs a compensating control that has to be built rather than assumed: a deadline on the waiting screen for a lost `ui/message`, and the rule never to speak about the current task from memory for a lost `ui/update-model-context`. Both are specified above. **For:** T46 and T62–T63, which must watch for both in the transcript; T56 and T36, which build the two controls. **Since T62.4 and T62.5 (R145, R146):** no card waits after a `ui/message`, so no deadline covers a lost one: the card keeps its task, says the new one comes below once the ask reaches the chat, and takes the press again, and the chat is where to ask when nothing comes. The one deadline left is on the card of a task being handed in, which no message draws. T62 saw Claude put a card's message into the chat's input for the person to send ([report 07](../live/07-acceptance-claude.md), finding 5).
-2. **`submit_answer` renders no card of its own.** In a widget host where the child types the letter in the chat instead of pressing a button, the task card therefore keeps showing the task while the model explains in words. The alternative — giving the tool its own widget — risks two cards for one press, which T03 never tested ("several widgets in one turn" is still `?` in its matrix). **For:** T55 and T56, and worth one live check in T62.
+2. **`submit_answer` renders no card of its own.** In a widget host where the adult types the child's letter in the chat instead of the child pressing a button, the task card therefore keeps showing the task while the model explains in words. The alternative — giving the tool its own widget — risks two cards for one press, which T03 never tested ("several widgets in one turn" is still `?` in its matrix). **For:** T55 and T56, and worth one live check in T62.
 3. **The waiting card cannot dismiss itself, so it has a deadline instead.** Polling would cost a Drive read each time, so after 120 seconds the card stops looking busy and points at the chat ("The waiting screen and Another task"). The number is a requirement of the flow; what the card looks like when it fires is **for:** T56. **Drawn in T56 (R134):** the steps give way to a line that no task is being prepared unless a new one is below, what to do about it, and "Ask again" (the warm-up is gone since R145). **Since T62.5 (R146):** only the card of a task being handed in waits, its steps follow the call, and it gives up two minutes after the call last moved on, saying to ask in the chat, with no button; a card a task did not come to has no clock. **Since T62.8 (R152):** the card is drawn by `next_task` and asks how its task stands — the polling this note set aside, a Drive read each time —, says two minutes after the wait last had news that the task is taking long, and asks every fifteen seconds from then on until the task comes or the request is over.
 4. **The day of the daily counters is a UTC day.** It costs less than it looks: the product shows no rhythm of practice at all (R13, О-49), so an early rollover makes a limit looser for one evening and never stricter. If exactness is wanted, the widget knows the browser's timezone and could pass it. **For:** T09 and T52. **Kept in T52:** the ceilings of the day read the counters on a UTC day.
 5. **The abandonment window for an open request is a number nobody has fixed yet** — around fifteen minutes fits a 69-second median and three attempts. **For:** T15, confirmed in T52. **Set in T44:** fifteen minutes by default, `MATHTRAIL_REQUEST_WINDOW`, never under a minute; T52 is still where it is confirmed against real sessions. **Not in T52:** the limits run no session; the window is confirmed with the acceptance runs, T62–T64.

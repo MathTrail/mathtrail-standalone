@@ -29,8 +29,13 @@ export type Service = {
 		choice: Letter,
 		hintUsed: boolean,
 	): Promise<AnswerOutcome>;
-	/** taskStatus says how the task of the request requestId stands. */
-	taskStatus(requestId: string): Promise<TaskStatus>;
+	/**
+	 * taskStatus says how the task of the request requestId stands. Given the
+	 * tries turned down the card has heard of, it may wait a few seconds for
+	 * news before it says so: a task still being written with as many tells the
+	 * card nothing it does not know.
+	 */
+	taskStatus(requestId: string, refused?: number): Promise<TaskStatus>;
 	/** readProgress reads the child's progress as it stands. */
 	readProgress(): Promise<ProgressRead>;
 	/**

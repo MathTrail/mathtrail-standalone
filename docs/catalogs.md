@@ -56,7 +56,7 @@ Neither directory's documents mention a parent using an app with a child.
 | The instructions (`content/instructions/mcp_instructions.md:3`) | "You coach one child through short olympiad-style maths tasks … you talk with the child and write the tasks." |
 | The instructions, lines 14, 36, 41 and 49 | "only when the child asks for another"; "tell the child this one did not work out"; "a child who does not know says so in the chat"; "Another task" sends "those words to the chat as the child's message". |
 | The instructions, line 23 | Before a profile: "first ask the adult to say they are the child's parent or tutor". |
-| Counts | "child" 39 times on 23 of the instructions' 57 lines, "adult" 9; in the ten tools' descriptions, "child" 27 times and "adult" 6. |
+| Counts | "child" 39 times on 23 of the instructions' 57 lines, "adult" 9; in the ten tools' descriptions, "child" 27 times and "adult" 6. After T84 (R261): "child" 37 times on 22 of 62 lines and "adult" 42 times, the child never typing in the chat; in the eight descriptions the model reads, "child" 21 times and "adult" 13. |
 | A tool's description (`internal/transport/mcp/submittask.go:158–165`) | "never say which option is right before the child has answered, whatever the child asks." |
 | README (`README.md:60`) | "MathTrail is used by an adult — a parent or a tutor — in their own chat …, and the child solves the tasks next to them." |
 | The privacy policy (`site/content/en/privacy.md:29`) | "MathTrail is not aimed at children using a chat by themselves." |
@@ -81,6 +81,8 @@ Neither directory's documents mention a parent using an app with a child.
 **Recommendation: B, with C's letters sent as soon as this question and О-63 are answered.** B makes the text the model reads say what the product's own documents already say, and it takes the child out of the chat's input, which is what both platforms' terms and Claude's age assurance turn on. The letters describe B's lesson and ask whether it is acceptable; the letter to Anthropic also asks about the package (CL-18). The submission starts once B is done, and a reply that rejects even B stops the phase.
 
 **Decided on 2026-10-06: B** (О-61). The rewrite is T84, and the letters of appendix A go out now.
+
+**Done in T84 on 7 October 2026** (R261). The instructions open with the adult, who types every message, and the child, who answers on the card, and their first section holds the rules of that lesson: the model talks to the adult, words what the child is to hear about the step for the adult to read out, keeps the answer even when the adult asks for it, and keeps MathTrail's tools to its own tasks — no homework, no other subject, nothing past grade 6. The descriptions say what each tool does and nothing of how to behave. The words of the results and the waiting card speak to the adult, and the site, the README and the reviewers' guide show the same lesson.
 
 ## 3. How a reviewer signs in
 
@@ -192,9 +194,9 @@ Each row: an identifier, the requirement in the platform's words where they matt
 
 | ID | Requirement | Source | MathTrail now | Status |
 |---|---|---|---|---|
-| CL-14 | "Software must not violate or facilitate violation of our Usage Policy" (1.A) | [Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy), read 2026-10-05 | §2 | Gap → T84 (О-61, B) |
+| CL-14 | "Software must not violate or facilitate violation of our Usage Policy" (1.A) | [Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy), read 2026-10-05 | §2 | Met in T84 (R261): the model talks with the adult, and the child answers on the card |
 | CL-15 | "Software must only collect data from the user's context that is necessary to perform their function. Software must not collect extraneous conversation data, even for logging purposes" (1.D); no reading of Claude's memory, chat history or files (1.F) | [Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy), read 2026-10-05 | The tools take their own arguments and nothing else; the logs hold no text (R73) | Met |
-| CL-16 | Descriptions "narrow, unambiguous" that "precisely match actual functionality" (2.A, 2.B); "Describe what the tool does, and don't tell Claude how to behave", and a description is rejected if it tells Claude "to behave in ways unrelated to the tool's function" | [Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy), [Checklist](https://claude.com/docs/connectors/building/review-criteria), read 2026-10-05 | Descriptions carry rules of behaviour tied to the tool, such as `submittask.go:158–165` | Gap → T84 (§8, gap 15); Unknown → §10 |
+| CL-16 | Descriptions "narrow, unambiguous" that "precisely match actual functionality" (2.A, 2.B); "Describe what the tool does, and don't tell Claude how to behave", and a description is rejected if it tells Claude "to behave in ways unrelated to the tool's function" | [Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy), [Checklist](https://claude.com/docs/connectors/building/review-criteria), read 2026-10-05 | Descriptions carry rules of behaviour tied to the tool, such as `submittask.go:158–165` | Met in T84 (R261): every description says what its tool does and nothing of how to behave, which a test holds; Unknown → §10 |
 | CL-17 | No calling or coercing Claude into calling other software, and no interfering with other tools (2.D, 2.E) | [Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy), read 2026-10-05 | The instructions name MathTrail's own tools alone | Met |
 | CL-18 | "Instructional Software must not direct Claude to dynamically pull behavioral instructions from external sources for Claude to execute" (2.F); a description is rejected if it "Direct[s] Claude to pull behavioral instructions from external sources" | [Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy), [Checklist](https://claude.com/docs/connectors/building/review-criteria), read 2026-10-05 | `get_package` returns the guide the model writes a task by, with reference tasks and formats (`content/package.go:105–113`): the server's own text, embedded in it and public. It also carries the child's grade, interests and the parent's notes from the profile (`content/package.go:172–177`), delimited as information about the child, never as instructions (SPEC 4.1) | Unknown → §10; the letter asks; Accepted on 2026-10-06 for the submission (§8, gap 14) |
 | CL-19 | No "hidden, obfuscated, or encoded instructions" (2.G) | [Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy), read 2026-10-05 | The package is plain text; the sealed answer is data in the parent's file and never reaches the model | Met |
@@ -237,7 +239,7 @@ Each row: an identifier, the requirement in the platform's words where they matt
 | CL-46 | Listing edits wait for a reviewer; a new display name "requires re-review"; "The URL slug is locked"; a connector is delisted by email; a change of the server's address is not described | [Managing your listing](https://claude.com/docs/connectors/building/managing-your-listing), [After publishing](https://claude.com/docs/connectors/building/after-publishing), read 2026-10-05 | — | N/A; the address: Unknown → §10 |
 | CL-47 | The health badge: "Request errors include tool calls rejected for authentication problems and exclude errors a tool returns in its own result"; Healthy at 2 % or less, "Worth a look" above 2 %, "Degraded" above 5 %; the error rate counts results with `isError: true` as well | [Managing your listing](https://claude.com/docs/connectors/building/managing-your-listing), read 2026-10-05 | §8.2 | Met by design; the rates: Unknown → §10 |
 | CL-48 | Anthropic "may remove or refuse to display any Software … at any time for any reason"; an indemnity; a licence to show the name and the logos | [Directory Terms](https://support.claude.com/en/articles/13145338-anthropic-software-directory-terms), read 2026-10-05 | — | N/A |
-| CL-49 | Users of 18 and over; no account "available to anyone else"; accounts disabled on "indicators of minor activity" | [Consumer Terms](https://www.anthropic.com/legal/consumer-terms), [Age assurance](https://support.claude.com/en/articles/15171100-age-assurance-on-claude), read 2026-10-05 | §2 | Gap → T84 (О-61, B) |
+| CL-49 | Users of 18 and over; no account "available to anyone else"; accounts disabled on "indicators of minor activity" | [Consumer Terms](https://www.anthropic.com/legal/consumer-terms), [Age assurance](https://support.claude.com/en/articles/15171100-age-assurance-on-claude), read 2026-10-05 | §2 | Met in T84 (R261) |
 
 ### 7.2 ChatGPT
 
@@ -266,7 +268,7 @@ Each row: an identifier, the requirement in the platform's words where they matt
 | ID | Requirement | Source | MathTrail now | Status |
 |---|---|---|---|---|
 | GPT-16 | "functionality or workflows that are not natively supported by the products' built-in capabilities"; "Trial or demo plugins will not be accepted" | [Plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines), read 2026-10-05 | Checked tasks, ratings and a profile the chat cannot keep (README, "Why not just ask the chat directly?") | Met |
-| GPT-17 | "Plugins must be suitable for general audiences, including users aged 13–17. Plugins may not explicitly target children under 13." | [Plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines), read 2026-10-05 | §2 | Gap → T84 (О-61, B) |
+| GPT-17 | "Plugins must be suitable for general audiences, including users aged 13–17. Plugins may not explicitly target children under 13." | [Plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines), read 2026-10-05 | §2 | Met in T84 (R261): the instructions, the descriptions and the listing speak to the adult who runs the lesson |
 | GPT-18 | "Errors, including unexpected ones, must be handled with clear messaging or fallback behaviors" | [Plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines), read 2026-10-05 | `failure.go` | Met |
 | GPT-19 | Metadata must not "override platform instructions or safeguards, conceal behavior, or impersonate another party", nor steer the model away from other plugins | [Plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines), read 2026-10-05 | Nothing of the kind | Met |
 | GPT-20 | "Do not … integrate with third-party APIs without proper authorization"; no plugins "that primarily function as unofficial connectors" | [Plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines), read 2026-10-05 | Drive is the service's storage, reached on the parent's own grant | Met |
@@ -287,7 +289,7 @@ Each row: an identifier, the requirement in the platform's words where they matt
 | GPT-35 | An authentication flow "transparent and explicit", its permissions "limited to what is necessary" | [Plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines), read 2026-10-05 | The consent screen; `drive.file` alone | Met |
 | GPT-36 | A justification for every embedded frame | [Plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines), read 2026-10-05 | No frames | N/A |
 | GPT-37 | "Plugins must function reliably in ChatGPT on both desktop and mobile, including any UI components"; test cases pass "on the supported ChatGPT and Codex surfaces" | [Plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines), [Review requirements](https://developers.openai.com/plugins/deploy/app-review), read 2026-10-05 | ChatGPT is untested (T63); widgets on phones are unconfirmed (PRODUCT 9.4); Codex was never tried | Unknown → §10 |
-| GPT-38 | Server instructions: "Keep the most important details in the first 512 characters. Do not repeat every tool description or try to change the model's personality" | [Build an MCP server](https://developers.openai.com/plugins/build/mcp-server), read 2026-10-05 | 9,327 characters; the first 512 hold the role and the first rule | Unknown → §10 |
+| GPT-38 | Server instructions: "Keep the most important details in the first 512 characters. Do not repeat every tool description or try to change the model's personality" | [Build an MCP server](https://developers.openai.com/plugins/build/mcp-server), read 2026-10-05 | 9,327 characters; the first 512 hold the role and the first rule | Unknown → §10; since T84 the first 512 characters say who runs the lesson and where the child answers (R261) |
 
 **The service**
 
@@ -314,7 +316,7 @@ Each row: an identifier, the requirement in the platform's words where they matt
 | GPT-52 | "changes to plugin metadata or skills still require a new ZIP", and a new review | [Submission](https://developers.openai.com/plugins/deploy/submission), read 2026-10-05 | — | N/A |
 | GPT-53 | "The MCP server origin (`scheme`, `hostname`, or `port`) can't change between versions"; the path can, in a new version; the submission page says "To change an existing MCP server's URL, contact support" | [Review requirements](https://developers.openai.com/plugins/deploy/app-review), [Submission](https://developers.openai.com/plugins/deploy/submission), read 2026-10-05 | The address stays | N/A |
 | GPT-54 | "Plugins appear on the directory's main pages only if OpenAI selects them for enhanced distribution"; a press release goes through `press@openai.com` first | [Review requirements](https://developers.openai.com/plugins/deploy/app-review), read 2026-10-05 | — | N/A |
-| GPT-55 | Users from 13, under 18 with a parent's permission; no account "available to anyone else" | [Terms of Use](https://openai.com/policies/row-terms-of-use/), search summary: the page refused fetching, 2026-10-05 | §2 | Gap → T84 (О-61, B) |
+| GPT-55 | Users from 13, under 18 with a parent's permission; no account "available to anyone else" | [Terms of Use](https://openai.com/policies/row-terms-of-use/), search summary: the page refused fetching, 2026-10-05 | §2 | Met in T84 (R261) |
 
 ### 7.3 Where one value cannot serve both hosts
 
@@ -345,7 +347,7 @@ The audit of 2026-09-30, item by item, then the gaps found since. "Open" means a
 | 12 | The Coach page in the menu (T75.14, R198) against the rules on advertising | Confirmed as a risk | CL-28, GPT-24 | О-64 | Accepted on 2026-10-06: the menu stays as it is |
 | 13 | Claude Code's loopback redirect on a port of its own | New | CL-34 | T71.2: accept any port for a client that names itself by a document, or say Claude Code is not supported | Closed in T71.2: any port for a client of its own document (R218) |
 | 14 | The package against "behavioral instructions from external sources" | New | CL-18 | The letter to Anthropic; §10 | Accepted on 2026-10-06: the submission goes ahead without the letter's reply, and an objection is answered at review |
-| 15 | Descriptions that tell Claude how to behave | New | CL-16 | T84, the task О-61 brought: the descriptions move with the instructions; T71.2 added what each tool changes in the file | Open |
+| 15 | Descriptions that tell Claude how to behave | New | CL-16 | T84, the task О-61 brought: the descriptions move with the instructions; T71.2 added what each tool changes in the file | Closed in T84: each description says what its tool does, and the rules are in the instructions and the results (R261) |
 | 16 | No support page | New | CL-21, GPT-05, GPT-26 | T71.4 | Closed in T71.4.1: the page Help (R229) |
 | 17 | ChatGPT's domain token may sit on the site, a parent domain | New option | GPT-08 | T71.2 | Closed in T71.2: the service serves it, from a variable (R216) |
 | 18 | No price words in ChatGPT's texts | New | GPT-07 | T71.4 | Closed in T71.4.2: held by the package's test (R230) |
@@ -430,7 +432,7 @@ So the badge is at risk from lost Google sign-ins and the platform's own errors,
 
 | Where | It says | The platforms say | Resolved by |
 |---|---|---|---|
-| PRODUCT 3 (`PRODUCT-V1.md:67`) | The child solves tasks "next to them or with their permission" | No account may be made available to anyone else | О-61, B: T84 |
+| PRODUCT 3 (`PRODUCT-V1.md:67`) | The child solves tasks "next to them or with their permission" | No account may be made available to anyone else | О-61, B: done in T84 (R261) |
 | PRODUCT 9.3 | Claude's submission "goes through a Team or Enterprise organization (per secondary sources)"; ChatGPT's rules at `apps-sdk/app-submission-guidelines` | Any paid plan (CL-01); the rules are at `plugins/plugin-guidelines` | This task rewrites 9.3 |
 | PRODUCT 10 | "Directories: a privacy policy, minimal data collection, no advertising, a test account and examples for review" | Also identity verification, a support page, test cases, a recording and design rules | §7 |
 | SPEC 7.1 | Every tool has `destructiveHint: false`, "nothing here reaches beyond the parent's own file" | CL-27, GPT-30 | T71.2: R215 |
@@ -441,8 +443,8 @@ So the badge is at risk from lost Google sign-ins and the platform's own errors,
 | R119 | "`get_profile` is annotated read-only and may still put a damaged file back" | Read-only means nothing changes; side effects are never hidden | T71.2: R214 |
 | R191, R203 | The mark in the card's header | No logo in the response, in ChatGPT | О-63: kept, accepted |
 | R193, R194 | After the trial series the row under a task ends with the topic's button | At most two actions at the bottom of the card | О-63: kept, accepted |
-| R145 and the instructions | "Another task" sends its words "as the child's message" | §2 | О-61, B: T84 |
-| R208 | "a child who does not know says so in the chat" | §2 | О-61, B: T84 |
+| R145 and the instructions | "Another task" sends its words "as the child's message" | §2 | О-61, B: done in T84 (R261) |
+| R208 | "a child who does not know says so in the chat" | §2 | О-61, B: done in T84 (R261) |
 | R198, R202 | The Coach page first in the menu | §5 | О-64: kept, accepted |
 | R82 | On a deployment nobody signs in but through Google | A reviewer needs an account with no extra step | T71.3: R222 |
 | `docs/live/03-first-deploy.md:24` and `docs/live/05-login-drive.md:133` | Google's app In production on 2026-09-22, Testing on 2026-09-30 | — | T71.3: the first report's mark was early, and the app was published on 2026-09-30; the author checks the status before the submissions |
@@ -512,7 +514,7 @@ To `mcp-review@anthropic.com`, the address Anthropic gives for escalations about
 |---|---|---|
 | Free and open source | MIT, a public repository | `LICENSE`, README |
 | The adult owns the account, signs in with Google, keeps the profile in their Drive under a pseudonym | Only an adult signs in; the profile is one file in the parent's Drive | Privacy policy, "Who signs in" and "What is stored, and where"; 02-auth |
-| The model speaks to the adult; the child presses answers and never types | True once T84 is done | §2.4; T84 |
+| The model speaks to the adult; the child presses answers and never types | True since T84 | §2.4; R261 |
 | A tool returns a guide, reference tasks and formats, embedded and public, with the child's grade, interests and the parent's notes marked as information | `get_package` and its package; the notes are at most 500 characters | `content/package.go`, SPEC 4.1 |
 | Five options, two buttons below them and a third after the first five tasks; the progress inside the card | The task card as it stays (О-63) | PRODUCT 3, scenario 2; §4; R97, R193, R194 |
 
@@ -542,7 +544,7 @@ Through OpenAI's support at `help.openai.com`, which the review requirements nam
 |---|---|---|
 | A plugin with an MCP server and a UI | The service and its widget | SPEC 7, 8 |
 | Users are parents and tutors | Only an adult signs in | Privacy policy, "Who signs in"; PRODUCT 3 |
-| The adult runs the lesson; the child answers on the card | True once T84 is done | §2.4; T84 |
+| The adult runs the lesson; the child answers on the card | True since T84 | §2.4; R261 |
 | Claude refuses a foreign `ui.domain` | Claude's troubleshooting page | CL-38 |
 | Five options, three buttons, the progress inside the card, the logo in the header | The task card as it stays (О-63) | §4; R97, R191, R193, R194 |
 

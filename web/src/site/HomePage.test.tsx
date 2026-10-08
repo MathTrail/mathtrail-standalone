@@ -103,11 +103,10 @@ const words = [
 	"    progress:",
 	"      title: Progress",
 	"      text: Ranks.",
-	"  log: The log shows the answer.",
 	"  child: Comet",
 	"  chat:",
 	"    label: An illustration",
-	"    child: The child",
+	"    adult: The adult",
 	"    model: The model",
 	"    question: Why one more?",
 	"    reply: Count the posts.",
@@ -328,7 +327,7 @@ describe("the home page", () => {
 	test("shows beside its first screen the task as it arrives, in the chat under the parent's message", () => {
 		const hero = the(".s-hero-card");
 
-		expect(hero.querySelector(".s-frame .s-message-child")?.textContent).toBe(
+		expect(hero.querySelector(".s-frame .s-message-adult")?.textContent).toBe(
 			"A task, please",
 		);
 		expect(statesIn(hero)).toEqual([
@@ -342,6 +341,38 @@ describe("the home page", () => {
 		expect(hero.querySelector(".mt-diagram")?.textContent).toBe(
 			file.home.card.drawing,
 		);
+	});
+
+	test("holds the chat of its first screen in a phone, all but the chat a drawing a screen reader skips, in the track the demo holds it in", () => {
+		const phone = the(".s-hero-track > .s-hero > .s-hero-card > .s-phone");
+
+		expect(
+			phone.querySelector(".s-phone-screen > .s-frame > .s-frame-body .s-card"),
+		).not.toBeNull();
+		expect(
+			[...phone.querySelectorAll(".s-phone-screen > *")].map((part) => [
+				part.className,
+				part.getAttribute("aria-hidden"),
+			]),
+		).toEqual([
+			["s-phone-status", "true"],
+			["s-frame", null],
+			["s-phone-composer", "true"],
+			["s-phone-home", "true"],
+		]);
+		expect(home.querySelectorAll(".s-hero-track")).toHaveLength(1);
+	});
+
+	test("draws the button of the topic on every card of its task, the coach choosing, locked: the page lets no topic be chosen", () => {
+		const cards = [...home.querySelectorAll(".mt-widget")].filter(
+			(widget) => widget.querySelector(".mt-option") !== null,
+		);
+		const buttons = cards.map((widget) =>
+			widget.querySelector(".mt-topic-button")?.getAttribute("aria-disabled"),
+		);
+
+		expect(cards.length).toBeGreaterThan(1);
+		expect(buttons).toEqual(cards.map(() => "true"));
 	});
 
 	test("names the catalog's traps a wrong option is tied to as the card names them", () => {
@@ -409,7 +440,7 @@ describe("the home page", () => {
 			(part) => part.getAttribute("class") ?? "",
 		);
 
-		expect(parts).toEqual(["s-message s-message-child", "s-card", "s-chat"]);
+		expect(parts).toEqual(["s-message s-message-adult", "s-card", "s-chat"]);
 		expect(statesIn(step(5))).toContain("B wrong");
 		expect(step(5).querySelector(".s-chat figcaption")?.textContent).toBe(
 			"An illustration",
@@ -422,7 +453,7 @@ describe("the home page", () => {
 	});
 
 	test("shows the progress at the last step, asked for by the parent, its topics and repeating mistakes open", () => {
-		expect(step(6).querySelector(".s-message-child")?.textContent).toBe(
+		expect(step(6).querySelector(".s-message-adult")?.textContent).toBe(
 			"How is it going?",
 		);
 		expect(
@@ -430,12 +461,6 @@ describe("the home page", () => {
 				...step(6).querySelectorAll('.mt-fold-button[aria-expanded="true"]'),
 			].map((button) => button.querySelector(".mt-fold-title")?.textContent),
 		).toEqual(["Topics", "Mistakes that repeat"]);
-	});
-
-	test("says the chat's log of tool calls shows the answer, in the section on a lesson", () => {
-		expect(
-			home.querySelector(`#${lessonSection} .s-walk-note`)?.textContent,
-		).toBe("The log shows the answer.");
 	});
 
 	test("connects to Claude step by step, the connector's address in full after the third", () => {

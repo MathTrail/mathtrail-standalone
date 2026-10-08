@@ -155,7 +155,7 @@ describe("what the card asks of the host", () => {
 		expect(result.structuredContent).toEqual(progress.structuredContent);
 	});
 
-	test("a message is put in the chat as the child's", async () => {
+	test("a message is put in the chat as the adult's", async () => {
 		const { host, widgetSide } = await openTestHost();
 		const heard = listenAsHost(host, () => progress);
 		const bridge = openBridge();

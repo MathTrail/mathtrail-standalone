@@ -117,7 +117,7 @@ const words = [
 	"  caption: The card.",
 	"  chat:",
 	"    label: An illustration",
-	"    child: The child",
+	"    adult: The adult",
 	"    model: The model",
 	"    question: Why not 6?",
 	"    reply: One post twice.",
@@ -242,7 +242,7 @@ describe("the page Why", () => {
 			[...(chat?.querySelectorAll(".s-message") ?? [])].map((message) =>
 				message.getAttribute("class"),
 			),
-		).toEqual(["s-message s-message-child", "s-message s-message-model"]);
+		).toEqual(["s-message s-message-adult", "s-message s-message-model"]);
 	});
 
 	test("shows a finding for each work the data names, in its order, each linking its work", () => {
@@ -276,9 +276,15 @@ describe("the page Why", () => {
 	test("names the grades MathTrail is for from the catalog", () => {
 		const grades = topics.flatMap((topic) => gradesOf(topic.grade_levels));
 
-		expect(why.querySelector(".s-hero .s-chip")?.textContent).toBe(
+		expect(
+			[...why.querySelectorAll(".s-hero .s-lead + .s-chips .s-chip")].map(
+				(chip) => chip.textContent,
+			),
+		).toEqual([
+			"Free",
+			"Open",
 			`Grades ${Math.min(...grades)}–${Math.max(...grades)}`,
-		);
+		]);
 	});
 
 	test("names its example topics as the card names them", () => {

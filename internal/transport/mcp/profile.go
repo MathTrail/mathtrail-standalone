@@ -54,9 +54,9 @@ type saveProfileIn struct {
 	ExcludedSkills   []string `json:"excluded_skills,omitempty" jsonschema:"ids of skills the child has not met at school yet, from the list in this tool's description. The list replaces the one kept; an empty list clears it"`
 	Notes            *string  `json:"notes,omitempty" jsonschema:"what the adult wants known about the child, for pitching the words, at most 500 characters. An empty text clears it"`
 	UILanguage       *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons — the tasks, the cards and your words — as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes them follow the chat's language"`
-	Country          *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code such as US or FR. It is kept only to count families by country: set it only when the adult says it of their own accord, and never ask for it. An empty text clears it, and the state with it"`
+	Country          *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code such as US or FR. It is kept only to count families by country, and set only when the adult names it unasked. An empty text clears it, and the state with it"`
 	Region           *string  `json:"region,omitempty" jsonschema:"for a family in the United States, its state as an ISO 3166-2 code such as US-TX, set only when the adult says it of their own accord. An empty text clears it"`
-	LessonTopic      *string  `json:"lesson_topic,omitempty" jsonschema:"the topic to keep the lessons to, by its id from the list in the description of next_task: once the trial series is over, every task is on it until the choice is given back. Set it only when the child or the adult asks to keep to one topic; an empty text gives the choice back to the rule"`
+	LessonTopic      *string  `json:"lesson_topic,omitempty" jsonschema:"the topic to keep the lessons to, by its id from the list in the description of next_task: once the trial series is over, every task is on it until the choice is given back. Set it only when asked to keep the lessons to one topic; an empty text gives the choice back to the rule"`
 	SignInCountryOff *bool    `json:"signin_country_off,omitempty" jsonschema:"true to leave the country the adult signs in from out of what MathTrail counts, false to count it again. Set it only when the adult asks"`
 	StartOver        bool     `json:"start_over,omitempty" jsonschema:"true only when a result said the profile file cannot be read, was saved by a version of MathTrail this one cannot read, or is in the Google Drive bin, and the adult asked for a new profile instead. The old file is set aside, not deleted, and a new profile starts from the pseudonym and grade given. A profile this version can read is never started over"`
 	Restore          bool     `json:"restore,omitempty" jsonschema:"true only when a result said the profile file is damaged and the adult agreed to put it back: the file returns to its latest earlier version that can be read, and anything saved after that version is lost. Pass nothing else with it"`
@@ -97,8 +97,8 @@ func (s *Service) getProfileTool() Tool {
 			"Call it when the adult asks about the profile; a task needs only next_task. It draws no card: the " +
 			"adult sees the profile, and changes it with a form, in the Profile section of the progress get_progress shows. " +
 			"When there is no profile yet it says so, as next_task does, and how to set one up with save_profile. " +
-			"Every result carries last_answer, the last answer the child gave, maybe on a card without you: read it " +
-			"before you say anything about the current task.",
+			"Every result carries last_answer, the last answer recorded for the child, which the card may have " +
+			"recorded without you.",
 		Effect:     Reads,
 		Idempotent: true,
 	}, s.getProfile)
@@ -110,8 +110,8 @@ func (s *Service) saveProfileTool() Tool {
 		Title: "Save the child's profile",
 		Description: "Creates the child's profile, or changes it, in its file in the adult's Google Drive: each " +
 			"field given replaces what was kept. Pass only what changes; a field left out stays as it is. To create " +
-			"the profile, pseudonym and grade are required. No card is drawn: say in a sentence what was saved. " +
-			"When a field breaks a rule, nothing is saved and the result names the field and the rule. start_over " +
+			"the profile, pseudonym and grade are required. No card is drawn; the result gives the profile as it " +
+			"was saved. When a field breaks a rule, nothing is saved and the result names the field and the rule. start_over " +
 			"and restore replace the whole profile, and keep the old file in Drive.\n\nSkills that can be left out " +
 			"of the tasks, by id:\n" + s.skillList(),
 		Effect:     Overwrites,

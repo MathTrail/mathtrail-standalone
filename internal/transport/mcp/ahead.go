@@ -15,7 +15,7 @@ import (
 
 // The next task is written ahead: once a task is on the card, the model writes
 // the one after it while the child works, and the service keeps it, sealed,
-// until the child asks for another — then it comes at once, on the card the ask
+// until another is asked for — then it comes at once, on the card the ask
 // draws. What the tools that ask for a task and write one ahead share is here:
 // the lesson as it stands, which a task written ahead has to fit; letting go of
 // one that no longer does; and handing out the task kept.
@@ -23,8 +23,7 @@ import (
 // aheadNextText sends the model on to write the next task ahead, once a task
 // is on the card.
 const aheadNextText = "Now call prepare_task: it gives you the package of the next task, which you write ahead " +
-	"while the child works on this one, and which is kept until the child asks for another. Say nothing to the " +
-	"child about that task."
+	"while the child works on this one, and which is kept until another is asked for. Say nothing about that task."
 
 // lessonNow is the lesson as it stands for a task written ahead: its language
 // — the parent's choice, or else language, the chat's —, the topic the
@@ -144,8 +143,8 @@ func (s *Service) waitForAhead(ctx context.Context, account store.Account, p *pr
 	return request, skipped, nil
 }
 
-// handOutKept is the hand-out of the kept task taskID to the child, who asked
-// for the next one, as a change any read of the profile can be given: the task
+// handOutKept is the hand-out of the kept task taskID to the child, once the
+// next one is asked for, as a change any read of the profile can be given: the task
 // kept becomes the one on the card, and the one left there without an answer
 // is skipped. A profile with that task on the card already holds the change,
 // and one that no longer keeps it allows it no more. Once the file holds the

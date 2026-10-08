@@ -398,11 +398,15 @@ func wantNoPackage(t *testing.T, result *mcp.CallToolResult, pack map[string]jso
 }
 
 // The words around a task keep the model from giving it away: while the task
-// is written the child hears only that one is coming — so say the request and
+// is written the adult hears only that one is coming — so say the request and
 // the package alike — and once the card shows it — accepted, or handed in
-// again after it was — the model adds nothing of its own until the child
-// answers or asks. A host may keep only the start of the instructions, so the
-// words that come with the task are where the rule is sure to be read.
+// again after it was — the model does not announce it where a card shows it,
+// since the card shows it by itself, reads it out where none does, and adds
+// nothing of its own until the child answers or the adult asks. A task just accepted
+// goes on the card now rather than being on it: a card still asking how its
+// task stands has not shown it yet. A host may keep only the start of the
+// instructions, so the words that come with the task are where the rule is
+// sure to be read.
 func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 	t.Parallel()
 
@@ -417,13 +421,22 @@ func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 	for name, result := range map[string]*mcp.CallToolResult{
 		"next_task opening the request": asked, "next_task asked again": again, "get_package": pack,
 	} {
-		if lead := leadOf(textOf(t, result)); !strings.Contains(lead, "tell the child only that one is on its way") {
-			t.Errorf("%s says %q, want the child told only that a task is coming", name, lead)
+		if lead := leadOf(textOf(t, result)); !strings.Contains(lead, "tell the adult only that one is on its way") {
+			t.Errorf("%s says %q, want the adult told only that a task is coming", name, lead)
 		}
 	}
-	for _, handedIn := range []string{"when accepted", "when handed in again"} {
-		if text := textOf(t, call(t, session, "submit_task", race)); !strings.Contains(text, "add nothing of your own about the task") {
-			t.Errorf("submit_task %s says %q, want the model to add nothing about the task on the card", handedIn, text)
+	for _, tc := range []struct{ handedIn, where string }{
+		{handedIn: "when accepted", where: "goes on the child's card now."},
+		{handedIn: "when handed in again", where: "is on the child's card."},
+	} {
+		text := textOf(t, call(t, session, "submit_task", race))
+		for _, says := range []string{
+			tc.where, "Where a card shows the task, it shows it by itself: do not announce it.",
+			"add nothing of your own about the task", "Without a card, or if the adult says the card shows no task, read out",
+		} {
+			if !strings.Contains(text, says) {
+				t.Errorf("submit_task %s says %q, want %q", tc.handedIn, text, says)
+			}
 		}
 	}
 }
@@ -433,10 +446,11 @@ func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 // asked the parent to type the letter in, and every such message spends one of
 // the parent's chat messages on an answer the card already has. The model is
 // told so where it reads it as the task comes — the words of the task accepted,
-// or handed in again while the card shows it — and in the descriptions of the
-// tools that hand a task in and record an answer; each says it of a host that
-// shows cards, and the words of the task say what to do without one: read the
-// task out and record the answer given in the chat.
+// or handed in again while the card shows it — and the words of the task say
+// what to do without a card: read the task out for the adult to read to the
+// child, and record the child's answer the adult gives in the chat. The
+// descriptions of the tools that hand a task in and record an answer say that
+// the card records it, and leave what to do about it to the words.
 func TestTheModelAsksForNoAnswerTheCardRecords(t *testing.T) {
 	t.Parallel()
 
@@ -448,8 +462,9 @@ func TestTheModelAsksForNoAnswerTheCardRecords(t *testing.T) {
 		for _, says := range []string{
 			"Where the card next_task drew shows it, the child answers there, and the card records the answer itself: " +
 				"do not ask for the answer in the chat",
-			"Without a card, or if the child says the card shows no task, read out the question",
-			"record the answer the child gives in the chat with submit_answer",
+			"Without a card, or if the adult says the card shows no task, read out the question",
+			"for the adult to read to the child",
+			"record with submit_answer the child's answer the adult gives in the chat",
 		} {
 			if !strings.Contains(text, says) {
 				t.Errorf("submit_task %s says %q, want it saying %q", handedIn, text, says)
@@ -466,10 +481,8 @@ func TestTheModelAsksForNoAnswerTheCardRecords(t *testing.T) {
 		described[tool.Name] = tool.Description
 	}
 	for tool, says := range map[string]string{
-		"submit_task": "where cards are shown, the child answers on the card, which records the answer itself, so do " +
-			"not ask for the answer in the chat",
-		"submit_answer": "Where cards are shown, an answer given on the card is recorded by the card itself: do not ask " +
-			"for one in the chat",
+		"submit_task":   "where cards are shown, the child answers on the card, which records the answer itself.",
+		"submit_answer": "Where cards are shown, an answer given on the card is recorded by the card itself.",
 	} {
 		if !strings.Contains(described[tool], says) {
 			t.Errorf("%s is described as %q, want it saying %q", tool, described[tool], says)
@@ -1360,7 +1373,7 @@ func TestALessonIsHeldInTheLanguageTheParentChose(t *testing.T) {
 		t.Errorf("the ask again in the chat's language says %q, want the request kept in %s with nothing set aside", again, russian)
 	}
 	for name, lead := range map[string]string{"opening the request": first, "asked again": again} {
-		if !strings.Contains(lead, "The parent chose "+russian+" for the lessons: talk to the child in it") {
+		if !strings.Contains(lead, "The parent chose "+russian+" for the lessons: talk in it") {
 			t.Errorf("next_task %s says %q, want the model told the language the parent chose, and to talk in it", name, lead)
 		}
 	}

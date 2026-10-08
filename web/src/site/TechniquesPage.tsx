@@ -326,9 +326,11 @@ function End({ page }: { page: PageReader }) {
 	const words = useSiteWords();
 	return (
 		<section class="s-section s-ask-wrap">
-			<div class="s-ask">
-				<h2 class="s-ask-title">{page.text("end.title")}</h2>
-				<p class="s-ask-lead">{page.text("end.lead")}</p>
+			<div class="s-ask s-ask-row">
+				<div class="s-ask-copy">
+					<h2 class="s-ask-title">{page.text("end.title")}</h2>
+					<p class="s-ask-lead">{page.text("end.lead")}</p>
+				</div>
 				<p class="s-choices">
 					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
 						{words.text("nav.add")}

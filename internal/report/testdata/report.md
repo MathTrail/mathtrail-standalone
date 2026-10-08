@@ -1,6 +1,6 @@
 # What the log adds up to
 
-167 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 09:02:04 UTC. 2 more lines, not the service's, were left out.
+174 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 09:20:03 UTC. 2 more lines, not the service's, were left out.
 
 ## Tasks
 
@@ -47,6 +47,15 @@ How long next_task took when it handed out a task written ahead, which the card 
 |---|---|---:|---:|---:|---:|---:|
 | 0a1b2c3d4e5f | claude | 1 | 230 | 230 | 60 | 60 |
 | 88b63e22129c | claude | 1 | 260 | 260 | 60 | 60 |
+
+## Tasks accepted, shown on the card
+
+How long after the hand-in that accepted a task written while the child waited the waiting card's question brought it: from the answer of submit_task to the answer of the first read_task with the task of the same request once the hand-in had begun, by the version of the instructions and the host of the hand-in. A question held for news is answered as the hand-in lands on its instance, and counts as nothing when it answered before the hand-in did; one on another instance, or one not held, finds the task at the next question. A card that asked first only more than a quarter of an hour after, one drawn again with its chat, is left out.
+
+| Instructions | Host | Shown | Milliseconds, median | Milliseconds, 95th percentile | Longest |
+|---|---|---:|---:|---:|---:|
+| 0a1b2c3d4e5f | chatgpt | 1 | 3000 | 3000 | 3000 |
+| 88b63e22129c | claude | 1 | 550 | 550 | 550 |
 
 ## Hand-ins by their parts
 
@@ -141,22 +150,23 @@ A pace writes one line for a flood of refusals, and a day's ceiling one for ever
 
 ## Tool calls
 
-Milliseconds are the service's own time for a call, from its start to its answer, its calls to Drive included; without Drive, the same less the time its calls to Drive took before it answered, tied to the call by the request they were made in. A write made after the answer is in neither.
+Milliseconds are the service's own time for a call, from its start to its answer, its calls to Drive included; without Drive, the same less the time its calls to Drive took before it answered, tied to the call by the request they were made in. A write made after the answer is in neither. A card's question held for news, read_task's, takes a few seconds more while it waits.
 
 | Host | Tool | Calls | Answered | Refused | Failed | Invalid | Milliseconds, median | Milliseconds, 95th percentile | Without Drive, median | Without Drive, 95th percentile |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | chatgpt | get_profile | 1 | 0 | 0 | 1 | 0 | 5000 | 5000 | 5000 | 5000 |
 | chatgpt | next_task | 2 | 2 | 0 | 0 | 0 | 90 | 140 | 90 | 140 |
 | chatgpt | other | 1 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 |
-| chatgpt | submit_task | 3 | 0 | 3 | 0 | 0 | 310 | 320 | 310 | 320 |
+| chatgpt | read_task | 1 | 1 | 0 | 0 | 0 | 3900 | 3900 | 3900 | 3900 |
+| chatgpt | submit_task | 4 | 1 | 3 | 0 | 0 | 310 | 1700 | 310 | 1700 |
 | claude | get_profile | 1 | 1 | 0 | 0 | 0 | 5 | 5 | 5 | 5 |
 | claude | get_progress | 1 | 1 | 0 | 0 | 0 | 400 | 400 | 70 | 70 |
 | claude | next_task | 6 | 5 | 1 | 0 | 0 | 120 | 300 | 60 | 300 |
 | claude | prepare_task | 2 | 2 | 0 | 0 | 0 | 150 | 150 | 150 | 150 |
 | claude | read_progress | 1 | 1 | 0 | 0 | 0 | 100 | 100 | 100 | 100 |
-| claude | read_task | 2 | 2 | 0 | 0 | 0 | 70 | 90 | 20 | 30 |
+| claude | read_task | 5 | 5 | 0 | 0 | 0 | 140 | 2800 | 140 | 2800 |
 | claude | submit_answer | 44 | 44 | 0 | 0 | 0 | 80 | 80 | 80 | 80 |
-| claude | submit_task | 4 | 3 | 1 | 0 | 0 | 240 | 300 | 240 | 300 |
+| claude | submit_task | 6 | 4 | 2 | 0 | 0 | 250 | 1900 | 250 | 1900 |
 | claude | take_task | 1 | 1 | 0 | 0 | 0 | 1620 | 1620 | 1620 | 1620 |
 
 ## Writes after the answer
@@ -180,11 +190,11 @@ A request's trace is kept or dropped as the request arrives. The spans of a kept
 
 ## The busiest minute
 
-The most a minute by the clock held, the minute a pace is counted over. An account's pace counts every message it sends the MCP endpoint, and a tool call is the one a line names the account on; an instance's counts every request it is sent, at the MCP endpoint and at the sign-in apart. The lines of requests name 2 instances. The MCP endpoint was sent 0.06 requests for each tool call.
+The most a minute by the clock held, the minute a pace is counted over. An account's pace counts every message it sends the MCP endpoint, and a tool call is the one a line names the account on; an instance's counts every request it is sent, at the MCP endpoint and at the sign-in apart. The lines of requests name 2 instances. The MCP endpoint was sent 0.05 requests for each tool call.
 
 | What | Most in a minute |
 |---|---:|
-| Tool calls of one account | 3 |
+| Tool calls of one account | 4 |
 | Requests to the MCP endpoint on one instance | 2 |
 | Other requests on one instance | 1 |
 | Requests to the MCP endpoint on all instances | 3 |

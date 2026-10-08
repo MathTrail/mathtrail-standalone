@@ -238,16 +238,16 @@ describe("the page about who makes MathTrail", () => {
 			`mailto:${contactAddress}`,
 		]);
 		expect(footer).toContain(`mailto:${contactAddress}`);
-		expect(texts(".s-contact-copy a")[0]).toBe(contactAddress);
+		expect(texts(".s-ask-copy a")[0]).toBe(contactAddress);
 	});
 
 	test("leads to the issues of the code, and to the code the footer leads to", () => {
-		expect(all(".s-contact-copy a", "href")).toEqual([
+		expect(all(".s-ask-copy a", "href")).toEqual([
 			`mailto:${contactAddress}`,
 			issuesURL,
 		]);
-		expect(texts(".s-contact-copy a")[1]).toBe("open an issue");
-		expect(all(".s-contact-actions a", "href")).toEqual([
+		expect(texts(".s-ask-copy a")[1]).toBe("open an issue");
+		expect(all(".s-ask .s-choices a", "href")).toEqual([
 			`mailto:${contactAddress}`,
 			sourceURL,
 		]);

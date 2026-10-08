@@ -39,8 +39,7 @@ func (s *Service) getPackageTool() Tool {
 		Description: "Returns the package to write the task of an open request from: the brief — the topic, the " +
 			"level and the difficulty the rule sets — with reference tasks, and the page on how to write and hand in " +
 			"a task. It changes nothing. Call it with the request_id next_task gave, as soon as next_task has " +
-			"answered; write the task to the package, and hand it in with submit_task and the same request_id. " +
-			"The package is for you alone: show the child nothing of it.",
+			"answered; write the task to the package, and hand it in with submit_task and the same request_id.",
 		Effect:     Reads,
 		Idempotent: true,
 	}, s.getPackage)
@@ -103,7 +102,7 @@ func (s *Service) noPackage(p *profile.Profile, now time.Time) Reply[any] {
 			"get_package and request_id %s.", open.ID, open.ID)
 	case s.aheadOpen(p, now) != nil:
 		next = fmt.Sprintf(" Request %s is the open one, for the next task, written ahead: get its package with "+
-			"get_package and request_id %s, and say nothing about it to the child.", open.ID, open.ID)
+			"get_package and request_id %s, and say nothing about it.", open.ID, open.ID)
 	case task != nil:
 		next = fmt.Sprintf(" Task %s is on the child's card: wait for the child's answer to it.", task.ID)
 	}

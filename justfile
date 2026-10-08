@@ -806,17 +806,16 @@ _fma:
 # site/research/paper-a.en.pdf with its facts in site/research/paper.json,
 # which git does not keep: the PDF prints the commit it is built from. A paper
 # that still prints a placeholder, an author, an affiliation or a mark of
-# something to come, is refused before it is built: until it holds none, the
-# page shows its title alone.
-# Put the paper's PDF on the site, once it holds no placeholder
+# something to come, goes to the site as it is, and the lines that print one
+# are named.
+# Put the paper's PDF on the site, naming the placeholders it still prints
 site-paper:
     #!/usr/bin/env bash
     set -euo pipefail
     left=$(just _paper-placeholders)
     if [ -n "$left" ]; then
         echo "$left" >&2
-        echo "site-paper: the paper still prints a placeholder; until it holds none, the page shows its title alone" >&2
-        exit 1
+        echo "site-paper: the PDF goes to the site still printing the placeholders above" >&2
     fi
     just research paper-a
     just _paper-to-site

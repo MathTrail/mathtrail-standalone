@@ -1,7 +1,7 @@
 # The research's data, made from one commit. Paper A's experiments are held to
 # the results the repository keeps, paper A is built from them, and from the
 # same commit comes the data of the site's page "Research", which takes the
-# paper's PDF in once the paper prints no placeholder. An experiment is run
+# paper's PDF in, whatever placeholder it still prints. An experiment is run
 # again only when its program or its results changed: a key names both, and a
 # run that reproduced them keeps a mark under it. A release's run hands the
 # page's data and the PDF on, as one artifact, to the site's build after it; a
@@ -154,8 +154,6 @@ jobs:
     # On the runner itself: the paper is typeset in an image of its own, and the
     # toolchain image has no docker client to start it with. Go is the version
     # the research module declares.
-    outputs:
-      clean: ${{ steps.site.outputs.clean }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -174,22 +172,18 @@ jobs:
       # fails nothing, and the summary says which TBD it waits for.
       - name: Build the named and the anonymous paper, and the one for submission once no TBD is left
         run: just _paper-a-builds >> "$GITHUB_STEP_SUMMARY"
-      # Every run makes the named PDF ready for the site, and hands it on only
-      # once the paper prints no placeholder: until then the page shows the
-      # paper's title alone.
-      - id: site
-        name: Make the named paper ready for the site, and hand it on once it prints no placeholder
+      # Every run hands the named PDF on to the site, whatever it still
+      # prints: the summary names the placeholders a reader will find in it.
+      - name: Make the named paper ready for the site
         run: |
           just _paper-to-site
           left=$(just _paper-placeholders)
           if [ -z "$left" ]; then
-              echo "clean=true" >> "$GITHUB_OUTPUT"
               echo "The named PDF goes to the site with the page's data." >> "$GITHUB_STEP_SUMMARY"
           else
-              echo "clean=false" >> "$GITHUB_OUTPUT"
               {
                   echo
-                  echo "The page shows the paper's title alone, as the paper still prints $(wc -l <<< "$left") placeholders:"
+                  echo "The named PDF goes to the site with the page's data, and still prints $(wc -l <<< "$left") placeholders:"
                   echo
                   echo '```'
                   echo "$left"
@@ -220,7 +214,6 @@ jobs:
           retention-days: 7
           overwrite: true
       - name: Hand the named paper on to the page's data
-        if: steps.site.outputs.clean == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: paper-a-site
@@ -276,7 +269,6 @@ jobs:
           restore-keys: go-
       # The paper's facts go into the page's data beside the bench's numbers.
       - name: Take the named paper the site offers
-        if: needs.paper.outputs.clean == 'true'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: paper-a-site

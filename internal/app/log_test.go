@@ -203,13 +203,33 @@ func wantTheLessonInTheReport(t *testing.T, lines []observer.LoggedEntry) {
 			t.Errorf("the report of the lesson has no row starting %q:\n%s", row, added.String())
 		}
 	}
-	// The report holds the lines to the rules this test holds them to, and
-	// finds them kept: its own section, up to the next, says so.
-	_, rules, _ := strings.Cut(added.String(), "## The rules of the log")
-	rules, _, _ = strings.Cut(rules, "\n## ")
-	if !strings.Contains(rules, "None in these lines.") {
+	wantTheLessonInItsSections(t, added.String(), version)
+}
+
+// wantTheLessonInItsSections holds two sections of the report of the lesson,
+// each up to the next. The card's question after the hand-in brought the
+// task: the lines name the task's request and what each call answered, as the
+// report reads them, so the section of tasks shown on the card counts it. And
+// the report holds the lines to the rules this test holds them to, and finds
+// them kept.
+func wantTheLessonInItsSections(t *testing.T, added, version string) {
+	t.Helper()
+
+	if shown := sectionOf(added, "## Tasks accepted, shown on the card"); !strings.Contains(shown,
+		"| "+version+" | claude | 1 |") {
+		t.Errorf("the report of the lesson shows no task come to the card that waited for it:%s", shown)
+	}
+	if rules := sectionOf(added, "## The rules of the log"); !strings.Contains(rules, "None in these lines.") {
 		t.Errorf("the report finds the lesson's lines breaking the rules of the log:%s", rules)
 	}
+}
+
+// sectionOf is the section of the report added under the heading, up to the
+// next.
+func sectionOf(added, heading string) string {
+	_, section, _ := strings.Cut(added, heading)
+	section, _, _ = strings.Cut(section, "\n## ")
+	return section
 }
 
 // wantNothingPersonal holds every text of every line to carrying nothing of a

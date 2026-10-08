@@ -9,9 +9,9 @@ import type { Key } from "./words";
  * went unanswered; how long the wait may go without news before the card says
  * it is taking long; how far its first question may be put off, so that the
  * cards of a chat drawn again do not all ask at once; and, once the task has
- * come, how long after ticking off its checks the card ticks the task ready,
- * and how long it holds the course done before the task takes its place. A
- * task usually takes a minute to write, and its checks seconds.
+ * come, how long the card holds its course done, every step ticked at once,
+ * before the task takes its place. A task usually takes a minute to write,
+ * and its checks seconds.
  */
 export const moments = {
 	shown: 400,
@@ -19,19 +19,18 @@ export const moments = {
 	askSlowly: 15_000,
 	slow: 120_000,
 	spread: 1_500,
-	beat: 300,
-	held: 500,
+	held: 300,
 } as const;
 
 /**
  * Phase is how far a task has got as a card can see it: its topic and
  * difficulty being picked, before the service has answered the ask; the task
- * being written; and, once the task has come, its checks passed, then the
- * task ready. The checks run inside the hand-in, out of the card's sight, so
- * the card claims them only once the task is there: a task reaches the card
- * only after every check has passed.
+ * being written; and, once the task has come, the task ready, its checks
+ * passed. The checks run inside the hand-in, out of the card's sight, so the
+ * card claims them only once the task is there: a task reaches the card only
+ * after every check has passed.
  */
-export type Phase = "choosing" | "writing" | "checked" | "ready";
+export type Phase = "choosing" | "writing" | "ready";
 
 // The usual course of a task, in the order it takes them.
 const course: readonly Key[] = [
@@ -45,7 +44,6 @@ const course: readonly Key[] = [
 const taken: Record<Phase, number> = {
 	choosing: 0,
 	writing: 1,
-	checked: 3,
 	ready: 4,
 };
 

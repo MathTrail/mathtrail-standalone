@@ -429,18 +429,104 @@ const hostKeeps = 2048
 func TestWhatAlwaysHoldsIsKeptByAHostThatCuts(t *testing.T) {
 	t.Parallel()
 
-	text := loaded(t).ServerInstructions()
+	always := throughAlways(t, loaded(t).ServerInstructions())
+	if kept := len(utf16.Encode([]rune(always))); kept > hostKeeps {
+		t.Errorf(`the server instructions up to the end of "## Always" are %d characters long, and a host may keep only the first %d`,
+			kept, hostKeeps)
+	}
+}
+
+// throughAlways is the server instructions from their start to the end of
+// "## Always", which must be their first section.
+func throughAlways(t *testing.T, text string) string {
+	t.Helper()
+
 	first := strings.Index(text, "\n## ")
 	if first < 0 || !strings.HasPrefix(text[first+1:], "## Always\n") {
 		t.Fatal(`the first section of the server instructions is not "## Always"`)
 	}
-	end := len(text)
 	if next := strings.Index(text[first+1:], "\n## "); next >= 0 {
-		end = first + 1 + next
+		return text[:first+1+next]
 	}
-	if kept := len(utf16.Encode([]rune(text[:end]))); kept > hostKeeps {
-		t.Errorf(`the server instructions up to the end of "## Always" are %d characters long, and a host may keep only the first %d`,
-			kept, hostKeeps)
+	return text
+}
+
+// hostReadsFirst is as much of a server's instructions as ChatGPT asks to hold
+// what matters most, counted as JavaScript counts characters.
+const hostReadsFirst = 512
+
+// Who runs the lesson is said before anything else: the adult types every
+// message, and the child, beside them, answers on the card and never in the
+// chat, so the model talks with the adult.
+func TestTheInstructionsOpenWithWhoRunsTheLesson(t *testing.T) {
+	t.Parallel()
+
+	units := utf16.Encode([]rune(loaded(t).ServerInstructions()))
+	opening := string(utf16.Decode(units[:min(len(units), hostReadsFirst)]))
+	for _, says := range []string{
+		"An adult, a parent or a tutor, runs the lesson",
+		"types every message",
+		"answers each task on its card",
+		"never types in the chat",
+		"you talk with the adult",
+	} {
+		if !strings.Contains(opening, says) {
+			t.Errorf("the first %d characters of the server instructions do not say %q", hostReadsFirst, says)
+		}
+	}
+}
+
+// Every rule a lesson keeps whatever the host stands in "## Always", where a
+// host that cuts the instructions still finds it. Each rule is found by the
+// words that carry it.
+func TestAlwaysSaysEveryRuleOfALesson(t *testing.T) {
+	t.Parallel()
+
+	always := throughAlways(t, loaded(t).ServerInstructions())
+	for _, rule := range []struct{ that, says string }{
+		{"the model talks to the adult", "Talk to the adult"},
+		{"what the child hears is worded for the adult to read out", "for the adult to read out"},
+		{"nothing shows whether the child is a boy or a girl", "whether the child is a boy or a girl"},
+		{"not even a pseudonym that has a gender of its own", "not even the pseudonym"},
+		{"the child is spoken of by the pseudonym and never as he or she", "speak of the child by the pseudonym, never as he or she"},
+		{"the child is known by a pseudonym", "known by a pseudonym alone"},
+		{"the answer waits for the child's", "keep the answer, the solution and the explanations to yourself"},
+		{"the answer waits even when the adult asks for it", "even when the adult asks"},
+		{"the hint comes only when asked for", "give the hint only when asked"},
+		{"a task on the card gets no word of the model's own", "say nothing of a task on the card"},
+		{"the adult gives the child's answer in the chat", "When the adult gives the child's answer in the chat"},
+		{"an answer is recorded before it is explained", "before you explain anything"},
+		{`"I don't know" is an answer`, "\"I don't know\" is the answer `?`"},
+		{"a wrong answer is explained from its trap", "from its trap's text"},
+		{"the adult decides when the next task comes", "The adult decides when the next task comes"},
+		{"the last answer is read from a tool", "read the last recorded answer in its result"},
+		{"MathTrail's tools are for its own tasks alone", "never for homework, another subject or a task past grade 6"},
+	} {
+		if !strings.Contains(always, rule.says) {
+			t.Errorf(`"## Always" does not say that %s: it has no %q`, rule.that, rule.says)
+		}
+	}
+}
+
+// The tools' descriptions say what each tool does and leave how to behave to
+// the instructions, so the rules a description no longer carries are said
+// there.
+func TestTheInstructionsSayWhatTheDescriptionsLeaveOut(t *testing.T) {
+	t.Parallel()
+
+	text := loaded(t).ServerInstructions()
+	for _, rule := range []struct{ that, says string }{
+		{"a step back is told gently", "say a step back gently"},
+		{"the model says the rating's number", "say the number yourself"},
+		{"the grades under the ranks are no school mark", "never a school mark or a verdict on the child"},
+		{"a topic's page is passed on as the result names it", "pass a page on only as the result names it"},
+		{"the progress is told encouragingly", "Present it encouragingly"},
+		{"the country is never asked for", "never ask for them"},
+		{"homework is not MathTrail's", "MathTrail is not for homework"},
+	} {
+		if !strings.Contains(text, rule.says) {
+			t.Errorf("the server instructions do not say that %s: they have no %q", rule.that, rule.says)
+		}
 	}
 }
 

@@ -51,6 +51,13 @@ func write(out io.Writer, c *counts) error {
 			"made before it answered. The hand-out is written after the answer and is part of neither; a call is " +
 			"counted whether that write went through or not, since the card drew the task all the same.",
 			c.handOutsTable()},
+		{"Tasks accepted, shown on the card", "How long after the hand-in that accepted a task written while the " +
+			"child waited the waiting card's question brought it: from the answer of submit_task to the answer of " +
+			"the first read_task with the task of the same request once the hand-in had begun, by the version of " +
+			"the instructions and the host of the hand-in. A question held for news is answered as the hand-in " +
+			"lands on its instance, and counts as nothing when it answered before the hand-in did; one on another " +
+			"instance, or one not held, finds the task at the next question. A card that asked first only " +
+			"more than a quarter of an hour after, one drawn again with its chat, is left out.", c.shownTable()},
 		{"Hand-ins by their parts", "How large the tasks handed in were, in bytes of the JSON the checks read: " +
 			"the task, the self-check, the solver, the core idea inside the task, and the whole, the brief among " +
 			"it when one came. Format now is a hand-in of the form the guide asks for; before, one that also " +
@@ -76,7 +83,8 @@ func write(out io.Writer, c *counts) error {
 			"call it refused.", c.limitsTable()},
 		{"Tool calls", "Milliseconds are the service's own time for a call, from its start to its answer, its calls " +
 			"to Drive included; without Drive, the same less the time its calls to Drive took before it answered, " +
-			"tied to the call by the request they were made in. A write made after the answer is in neither.",
+			"tied to the call by the request they were made in. A write made after the answer is in neither. A " +
+			"card's question held for news, read_task's, takes a few seconds more while it waits.",
 			c.toolsTable()},
 		{"Writes after the answer", "The writes the child need not wait for — a task written ahead handed out, " +
 			"an answer recorded — are made once the call has answered, while its request is held open; here by " +

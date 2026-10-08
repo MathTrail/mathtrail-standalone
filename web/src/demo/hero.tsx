@@ -6,6 +6,7 @@ import { ComingCard } from "../widget/ComingCard";
 import { CardIsTheDocument } from "../widget/focus";
 import { ServiceContext } from "../widget/service";
 import { TaskCard } from "../widget/TaskCard";
+import { ChoosesTopic } from "../widget/TopicChoice";
 import { NamesBuild, versionGiven } from "../widget/version";
 import { type Key, WordsContext } from "../widget/words";
 import type { DemoData } from "./data";
@@ -26,9 +27,10 @@ type Scene = { kind: "task" } | { kind: "coming"; requestId: string };
  * of the lesson's task, in the page's language, answering presses as a chat's
  * does — an option checked and told, the hint opened. The page answers for
  * the service, and the card, a part of the page, takes no focus back from the
- * reader. Another task is asked for as a chat asks for one: the child's
- * message in the chat's frame, under it the card the task is written on, and
- * then the lesson's task once more.
+ * reader. Its button of the topic, the coach choosing, takes no press: the
+ * page lets no topic be chosen. Another task is asked for as a chat asks for
+ * one: the parent's message in the chat's frame, under it the card the task
+ * is written on, and then the lesson's task once more.
  * frame is the body of the chat's frame the card stands in, and bubble the
  * message above the card.
  */
@@ -71,20 +73,22 @@ export function HeroDemo({
 			<WordsContext.Provider value={words}>
 				<IdScope.Provider value={liveScope}>
 					<CardIsTheDocument.Provider value={false}>
-						<ServiceContext.Provider value={service}>
-							{scene.kind === "task" ? (
-								<TaskCard handed={data.handed} host={host} />
-							) : (
-								<ComingCard
-									key={scene.requestId}
-									coming={{
-										requestId: scene.requestId,
-										child: data.handed.child,
-									}}
-									host={host}
-								/>
-							)}
-						</ServiceContext.Provider>
+						<ChoosesTopic.Provider value={false}>
+							<ServiceContext.Provider value={service}>
+								{scene.kind === "task" ? (
+									<TaskCard handed={data.handed} host={host} />
+								) : (
+									<ComingCard
+										key={scene.requestId}
+										coming={{
+											requestId: scene.requestId,
+											child: data.handed.child,
+										}}
+										host={host}
+									/>
+								)}
+							</ServiceContext.Provider>
+						</ChoosesTopic.Provider>
 					</CardIsTheDocument.Provider>
 				</IdScope.Provider>
 			</WordsContext.Provider>

@@ -320,12 +320,9 @@ describe("the page Research", () => {
 			expect(each.querySelector('a[type="application/pdf"]')).toBeNull();
 		}
 		expect(
-			texts(
-				unshipped.get("en") as Document,
-				"#paper .s-research-paper-words p",
-			),
+			texts(unshipped.get("en") as Document, "#paper .s-ask-lead"),
 		).toEqual([
-			"Its methods, tables, protocols, limitations and ethics. The PDF comes once the paper names its authors and its archive.",
+			"Its methods, tables, protocols, limitations and ethics. The PDF comes with the next release.",
 		]);
 	});
 

@@ -23,7 +23,7 @@ export function ChatFrame({
 				<span>{title}</span>
 			</p>
 			<div class="s-frame-body">
-				<div class="s-message s-message-child">
+				<div class="s-message s-message-adult">
 					<p class="s-bubble">{ask}</p>
 				</div>
 				{children}
@@ -33,18 +33,19 @@ export function ChatFrame({
 }
 
 /**
- * ChildAsks is the child's question about a card and the model's reply, as
+ * AdultAsks is the adult's question about a card and the model's reply, as
  * messages of the chat beneath the card labelled as an illustration, from the
  * page's words under at: the label, who speaks, the question and the reply.
+ * The adult types in the chat, and the child answers on the card.
  */
-export function ChildAsks({ page, at }: { page: PageReader; at: string }) {
+export function AdultAsks({ page, at }: { page: PageReader; at: string }) {
 	return (
 		<ChatLines
 			label={page.text(`${at}.label`)}
 			lines={[
 				{
-					from: "child",
-					speaker: page.text(`${at}.child`),
+					from: "adult",
+					speaker: page.text(`${at}.adult`),
 					said: page.text(`${at}.question`),
 				},
 				{
@@ -61,14 +62,14 @@ export function ChildAsks({ page, at }: { page: PageReader; at: string }) {
 // reader hears and the eye sees by the side the message stands on, and what
 // is said.
 type ChatLine = {
-	readonly from: "child" | "model";
+	readonly from: "adult" | "model";
 	readonly speaker: ComponentChildren;
 	readonly said: ComponentChildren;
 };
 
 // ChatLines are messages of the chat beneath a card, labelled as an
 // illustration: a card never holds the model's words, which are the chat's.
-// The child's message stands at the end of the line and the model's at its
+// The adult's message stands at the end of the line and the model's at its
 // start, as a chat sets them.
 function ChatLines({
 	label,

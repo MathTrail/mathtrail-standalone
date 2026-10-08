@@ -66,8 +66,9 @@ func (s *Service) lessonTopicText(p *profile.Profile) string {
 // of the lessons and nothing else: what the next tasks are on now, and that a
 // task already being written keeps its own. The card's words asking the chat
 // for a task on it follow these, unless the host refuses them; the model asks
-// for the task when the child does, so that these words, read with whatever
-// comes next instead, skip no task the child is still working on.
+// for the task when it is asked for in the chat, so that these words, read
+// with whatever comes next instead, skip no task the child is still working
+// on.
 func (s *Service) topicChangedText(p *profile.Profile) string {
 	lead := "On the card, the choice of the topic of the lessons was given back to the rule: it chooses the " +
 		"topic of every task again."
@@ -75,7 +76,7 @@ func (s *Service) topicChangedText(p *profile.Profile) string {
 		lead = "On the card, the child or the adult chose the topic of the lessons."
 	}
 	return joined(lead, s.lessonTopicText(p), s.topicStillText(p),
-		"Do not explain the choice or say why the next task comes; ask for it with next_task when the child does.")
+		"Do not explain the choice or say why the next task comes; call next_task when the next task is asked for.")
 }
 
 // topicStillText says that the task the child waits for keeps the topic it was

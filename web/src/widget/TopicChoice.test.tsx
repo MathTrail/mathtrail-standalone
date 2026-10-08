@@ -1,6 +1,8 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { Icon } from "../design/icons";
+import { drawingAlone, drawingOf } from "../design/testing/drawing";
 import { cardWords } from "./dictionaries";
 import { buttonIn, drawCard, openCard, press, takeDown } from "./testing/card";
 import { deliver, type Opening, type ToolCall } from "./testing/host";
@@ -166,15 +168,49 @@ function open(): void {
 	press(topicButton());
 }
 
+// The parts of the topic's button: the icon before its words, its label and
+// the value after the label.
+const topicIcon = () => drawingOf(topicButton().querySelector("svg"));
+const topicLabel = () =>
+	topicButton().querySelector(".mt-topic-button-text")?.firstElementChild;
+const topicValue = () =>
+	topicButton().querySelector(".mt-topic-button-value")?.textContent;
+
+// asWide has a card measure as a wide one does: the design's tokens give the
+// width a wide card starts at, and the room the card is observed to have is
+// more than that. Every other style reads as it is.
+function asWide(): void {
+	vi.stubGlobal(
+		"ResizeObserver",
+		class {
+			readonly tell: ResizeObserverCallback;
+			constructor(tell: ResizeObserverCallback) {
+				this.tell = tell;
+			}
+			observe() {
+				const room = {
+					borderBoxSize: [{ inlineSize: 736, blockSize: 0 }],
+					contentRect: { width: 736 },
+				} as unknown as ResizeObserverEntry;
+				this.tell([room], this as unknown as ResizeObserver);
+			}
+			disconnect() {}
+		},
+	);
+	const read = CSSStyleDeclaration.prototype.getPropertyValue;
+	vi.spyOn(
+		CSSStyleDeclaration.prototype,
+		"getPropertyValue",
+	).mockImplementation(function (this: CSSStyleDeclaration, name: string) {
+		return name === "--widget-wide" ? "640px" : read.call(this, name);
+	});
+}
+
 describe("the button that chooses the topic", () => {
 	test("stands at the end of the row, saying the coach chooses, and names the panel it opens", async () => {
 		await draw();
 
-		expect(shownButtons()).toEqual([
-			"Hint",
-			"Another task",
-			"Topic: the coach chooses",
-		]);
+		expect(shownButtons()).toEqual(["Hint", "Another task", "Topic: Coach"]);
 		expect(topicButton().getAttribute("aria-expanded")).toBe("false");
 		expect(topicButton().getAttribute("aria-controls")).toBe(panel().id);
 		expect(panel().hidden).toBe(true);
@@ -184,6 +220,49 @@ describe("the button that chooses the topic", () => {
 		await draw(withTopicChoice(fence, { chosen: "time.clocks" }));
 
 		expect(topicButton().textContent).toBe("Topic: Clocks");
+	});
+
+	test("on a narrow card marks the coach's choice by a spark and a word, its label left to a screen reader", async () => {
+		await draw();
+
+		expect(topicIcon()).toEqual(drawingAlone(<Icon name="sparkle" />));
+		expect(topicValue()).toBe("Coach");
+		expect(topicLabel()?.textContent).toBe("Topic:");
+		expect(topicLabel()?.className).toBe("mt-vh");
+	});
+
+	test("on a narrow card marks a topic chosen by its tag and its name, its label left to a screen reader", async () => {
+		await draw(withTopicChoice(fence, { chosen: "time.clocks" }));
+
+		expect(topicIcon()).toEqual(drawingAlone(<Icon name="tag" />));
+		expect(topicValue()).toBe("Clocks");
+		expect(topicLabel()?.className).toBe("mt-vh");
+	});
+
+	describe("on a wide card", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+			vi.unstubAllGlobals();
+		});
+
+		test("says the coach chooses, under its label, by a spark", async () => {
+			asWide();
+			await draw();
+
+			expect(root.querySelector(".mt-wide")).not.toBeNull();
+			expect(topicButton().textContent).toBe("Topic: the coach chooses");
+			expect(topicLabel()?.className).toBe("mt-topic-button-label");
+			expect(topicIcon()).toEqual(drawingAlone(<Icon name="sparkle" />));
+		});
+
+		test("names the topic chosen under its label, by its tag", async () => {
+			asWide();
+			await draw(withTopicChoice(fence, { chosen: "time.clocks" }));
+
+			expect(topicButton().textContent).toBe("Topic: Clocks");
+			expect(topicLabel()?.className).toBe("mt-topic-button-label");
+			expect(topicIcon()).toEqual(drawingAlone(<Icon name="tag" />));
+		});
 	});
 
 	test.each([
@@ -216,10 +295,7 @@ describe("the button that chooses the topic", () => {
 		press(option("B"));
 
 		await vi.waitFor(() =>
-			expect(shownButtons()).toEqual([
-				"Another task",
-				"Topic: the coach chooses",
-			]),
+			expect(shownButtons()).toEqual(["Another task", "Topic: Coach"]),
 		);
 	});
 
@@ -466,7 +542,7 @@ describe("the panel of topics", () => {
 });
 
 describe("a topic chosen", () => {
-	test("is saved, told to the model, and then asked for in the child's words, which the card ends on", async () => {
+	test("is saved, told to the model, and then asked for in the adult's words, which the card ends on", async () => {
 		const heard = await draw();
 		open();
 
@@ -665,7 +741,7 @@ describe("a topic chosen", () => {
 			expect(heard.messages).toEqual([]);
 			expect(heard.modelLines).toEqual([]);
 			expect(panel().hidden).toBe(false);
-			expect(topicButton().textContent).toBe("Topic: the coach chooses");
+			expect(topicButton().textContent).toBe("Topic: Coach");
 			expect(document.activeElement).toBe(choice("Clocks"));
 
 			press(button("Close"));
@@ -873,7 +949,7 @@ describe("the mark of the topic chosen", () => {
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
 		await vi.waitFor(() => expect(requestNote()).toBe(notSent));
 		expect(root.querySelector(".mt-topic-chip")).toBeNull();
-		expect(topicButton().textContent).toBe("Topic: the coach chooses");
+		expect(topicButton().textContent).toBe("Topic: Coach");
 	});
 
 	test("takes no press of its cross while an answer is checked", async () => {
@@ -935,7 +1011,7 @@ describe("the choice of the topic in the card's language", () => {
 			{ links: "open" },
 		);
 
-		expect(topicButton().textContent).toBe("Тема: выбирает тренер");
+		expect(topicButton().textContent).toBe("Тема: Тренер");
 		open();
 		expect(choice("Проценты").textContent).toBe(
 			`Проценты ${inRussian.text("topic_choice.from_grade", { grade: 5 })}`,

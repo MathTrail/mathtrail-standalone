@@ -83,11 +83,11 @@ var failures = []struct {
 	},
 	{
 		// The seal was lost after the answer was recorded: the answer counts,
-		// and the model must not tell the child otherwise. Looked for before
-		// the lost seal it wraps.
+		// and the model must not say otherwise. Looked for before the lost
+		// seal it wraps.
 		cause:    errToldNoMore,
 		kind:     kindSealed,
-		sentence: "This task was answered already and the answer is recorded, but it can no longer be told again, so the task was taken off the card. Read the last recorded answer in the result of the next tool you call, and ask for a new task with next_task when the child wants another.",
+		sentence: "This task was answered already and the answer is recorded, but it can no longer be told again, so the task was taken off the card. Read the last recorded answer in the result of the next tool you call, and ask for a new task with next_task when another is asked for.",
 	},
 	{
 		// The task's answer is sealed under a key that has since been
@@ -95,7 +95,7 @@ var failures = []struct {
 		// the child is owed another.
 		cause:    profile.ErrSealed,
 		kind:     kindSealed,
-		sentence: "This task can no longer be checked, so no answer was recorded and it was taken off the card. Tell the child, and ask for a new task with next_task.",
+		sentence: "This task can no longer be checked, so no answer was recorded and it was taken off the card. Tell the adult, and ask for a new task with next_task.",
 	},
 	{
 		// The parent took the service's access to their Drive back. Only a

@@ -138,8 +138,10 @@ type counts struct {
 	limits   map[string]int
 	tools    map[toolOf]*calls
 	// handOuts are how long next_task took to hand out a task written ahead,
-	// and late how the writes made after an answer went.
+	// shown how long after its hand-in a task written while the child waited
+	// came to the card, and late how the writes made after an answer went.
 	handOuts map[group]*handOuts
+	shown    map[group][]int64
 	late     map[lateOf]*lateWrites
 	// promises and keptUp are the answers weighed against the chance their
 	// tasks were handed out at, by that chance and by how many answers the
@@ -207,6 +209,7 @@ func tally(in *input) *counts {
 		}
 	}
 	c.versions = inOrder(firstSeen)
+	c.shown = shownAfterHandIn(lines)
 	c.late = writesAfterAnswer(lines)
 	testedUsers, testedLearners := testChildren(lines)
 	c.testing = testedUsers

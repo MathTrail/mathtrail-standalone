@@ -71,12 +71,12 @@ type Brief struct {
 //
 // Most requests are for the task the child is waiting for. One written ahead
 // is for the task after the one on the card: the model writes it while the
-// child works, and it is kept until the child asks for the next task — unless
-// the child asks while it is still being written, and then it is waited for
-// like any other.
+// child works, and it is kept until the next task is asked for — unless it is
+// asked for while it is still being written, and then it is waited for like
+// any other.
 type OpenRequest struct {
-	// Ahead says the task is written ahead, to be kept until the child asks
-	// for it, rather than handed to a child who is waiting for it.
+	// Ahead says the task is written ahead, to be kept until it is asked for,
+	// rather than handed to a child who is waiting for it.
 	Ahead bool `json:"ahead,omitempty"`
 	// Asked says a person asked for the topic, the level or the difficulty
 	// the task is set at, rather than the rule choosing them.
@@ -116,7 +116,7 @@ type CurrentTask struct {
 	Answered *Given `json:"answered,omitempty"`
 	// Asked says a person asked for the topic, the level or the difficulty
 	// the task is set at: the task written ahead after it is set the same, in
-	// case the child wants one more like it.
+	// case one more like it is wanted.
 	Asked bool `json:"asked,omitempty"`
 	// Difficulty is the difficulty of the task inside its level, from
 	// MinDifficulty to MaxDifficulty.
