@@ -66,8 +66,8 @@ resource "google_cloud_run_v2_service" "service" {
     timeout                          = var.request_timeout
     max_instance_request_concurrency = var.concurrency
 
-    # Down to nothing when nobody is asking, and up to a ceiling low enough that
-    # a burst cannot outrun the free allowance.
+    # Down to nothing when nobody is asking, and up to a small ceiling, which
+    # bounds how fast a burst can spend the free allowance.
     scaling {
       min_instance_count = 0
       max_instance_count = var.max_instances

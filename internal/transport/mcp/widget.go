@@ -67,8 +67,11 @@ func widgetRead(uri, page string, sandbox Sandbox) *mcp.ReadResourceResult {
 // empty lists rather than left out: the page may reach no network, load
 // nothing from anywhere, frame nothing and set its base nowhere else. A widget
 // that cannot reach the network cannot leak what it holds, and what it holds
-// is a child's task. It asks for no permission, and for a visible border: a
-// card is a task, and a boundary is what makes it read as one.
+// is a child's task. It asks for no permission, and for no border of the
+// host's: the card draws its own, and a host's frame around it would be a
+// second card around the first. That is said rather than left out, because
+// hosts left to choose differ: Claude frames a card on a phone and not on the
+// web.
 //
 // ChatGPT reads the same policy under a key of its own, which also names the
 // origins a card's links may open without a warning first: the site's alone.
@@ -89,7 +92,7 @@ func widgetMeta(sandbox Sandbox) mcp.Meta {
 				"frameDomains":    []string{},
 				"baseUriDomains":  []string{},
 			},
-			"prefersBorder": true,
+			"prefersBorder": false,
 		},
 		"openai/widgetCSP": map[string]any{
 			"connect_domains":  []string{},

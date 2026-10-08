@@ -76,12 +76,14 @@ jobs:
           languages: javascript-typescript
           build-mode: none
           queries: security-extended
-          # The research page's design draft and the coach's prototype the
-          # site frames run their own copy of React to show themselves in a
-          # browser. Both are a design tool's export, none of it code written
-          # here, so they are left out of the analysis.
+          # The pages a design tool exported run their own copy of React to
+          # show themselves in a browser: the coach's prototype the site
+          # frames, the research page's draft and the author's drafts, which
+          # come and go as each is ported. None of it is code written here,
+          # so it is left out of the analysis.
           config: |
             paths-ignore:
+              - draft
               - research/draft-ui
               - site/assets/coach-prototype.html
 

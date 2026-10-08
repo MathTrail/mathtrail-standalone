@@ -112,7 +112,7 @@ variable "image" {
 variable "max_instances" {
   description = "How many instances may run at once. Each one keeps its own request-rate counter, so the effective rate ceiling is this many times the configured one."
   type        = number
-  default     = 3
+  default     = 5
 }
 
 variable "concurrency" {

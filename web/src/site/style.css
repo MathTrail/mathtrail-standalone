@@ -3492,7 +3492,9 @@ a:hover {
 	text-wrap: pretty;
 }
 
+/* A drawing lays itself out by the room its column leaves it. */
 .s-research-thesis-drawing {
+	container-type: inline-size;
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
@@ -3506,13 +3508,17 @@ a:hover {
 	}
 }
 
-/* Who does what: three boxes in a row, MathTrail's in its slate. */
+/* Who does what: three boxes, MathTrail's in its slate, one under another
+   with the arrows pointing down. Where there is room for the three at their
+   least and the two arrows between them, 416 pixels and a few to spare,
+   they stand in a row, the arrows pointing on; a row short of room breaks a
+   long name onto a second line of its box, all three boxes as tall as the
+   tallest, and never leaves a box on a row of its own. */
 .s-research-writes {
 	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
+	flex-direction: column;
+	align-self: center;
+	gap: 6px;
 	margin: 0;
 	padding: 0;
 	list-style: none;
@@ -3520,29 +3526,52 @@ a:hover {
 
 .s-research-writes li {
 	display: flex;
-	align-items: center;
-	gap: 10px;
+	flex-direction: column;
+	gap: 6px;
 }
 
-.s-research-writes li + li::before {
-	content: "⟶" / "";
-	color: var(--s-outline);
-	font-size: 1.125rem;
+/* Turned, the arrow stands as tall as it was wide: the margins give it that
+   room. */
+.s-research-writes-arrow {
+	flex: none;
+	align-self: center;
+	margin-block: 5px;
+	rotate: 90deg;
+	fill: none;
+	stroke: var(--s-outline);
+	stroke-width: 1.5;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+@container (inline-size >= 420px) {
+	.s-research-writes,
+	.s-research-writes li {
+		flex-direction: row;
+	}
+
+	.s-research-writes-arrow {
+		margin-block: 0;
+		rotate: none;
+	}
 }
 
 .s-research-box {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	justify-content: center;
 	gap: 2px;
 	min-inline-size: 116px;
-	padding: 12px 16px;
+	padding: 12px 14px;
 	border: 1px solid var(--s-rule);
 	border-radius: 6px;
+	text-align: center;
 }
 
 .s-research-who {
 	font-size: 1.125rem;
+	text-wrap: balance;
 }
 
 .s-research-does {

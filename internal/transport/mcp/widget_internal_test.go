@@ -26,7 +26,8 @@ func TestEveryReadOfTheWidgetGetsAResultOfItsOwn(t *testing.T) {
 	first.Meta = mcp.Meta{"io.modelcontextprotocol/serverInfo": "the server"}
 	first.Contents[0].Meta["written"] = true
 	ui, _ := first.Contents[0].Meta["ui"].(map[string]any)
-	ui["prefersBorder"] = false
+	border, _ := ui["prefersBorder"].(bool)
+	ui["prefersBorder"] = !border
 	csp, _ := ui["csp"].(map[string]any)
 	csp["connectDomains"] = []string{"https://elsewhere.example"}
 	widgetCSP, _ := first.Contents[0].Meta["openai/widgetCSP"].(map[string]any)
