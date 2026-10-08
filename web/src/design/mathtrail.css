@@ -339,6 +339,12 @@ button.mt-bar {
 	line-height: 20px;
 	font-weight: 500;
 }
+/* The ring of the focus is drawn inside the way back: the card cuts off
+   whatever reaches past its edges, and while the progress is read a bar runs
+   along its foot. */
+.mt .mt-bar-back:focus-visible {
+	outline-offset: -2px;
+}
 .mt-bar-name {
 	min-width: 0;
 	overflow: hidden;
@@ -744,7 +750,10 @@ button.mt-bar {
 	font-weight: inherit;
 	line-height: inherit;
 }
-.mt-fold-button {
+/* A fold's button and its outline while the progress is read are laid out
+   alike, so that the one stands where the other did. */
+.mt-fold-button,
+.mt-skeleton-row {
 	display: flex;
 	align-items: center;
 	gap: 12px;
@@ -752,13 +761,16 @@ button.mt-bar {
 	min-height: 56px;
 	padding-block: 10px;
 	padding-inline: 16px;
+}
+.mt-fold-button {
 	border: 0;
 	background: transparent;
 	color: var(--text);
 	text-align: start;
 	cursor: pointer;
 }
-.mt-wide .mt-fold-button {
+.mt-wide .mt-fold-button,
+.mt-wide .mt-skeleton-row {
 	padding-inline: 20px;
 }
 /* The ring of the focus is drawn inside the button: the card cuts off
@@ -926,6 +938,11 @@ button.mt-bar {
 	border-block-start: none;
 	border-radius: 0 0 3px 3px;
 }
+/* The outline of a progress being read draws its brackets as faint as its
+   shapes. */
+.mt-skeleton .mt-grades-bracket {
+	border-color: var(--border);
+}
 .mt-grades-runs td:first-child .mt-grades-bracket {
 	margin-inline-start: 0;
 }
@@ -1092,6 +1109,96 @@ button.mt-bar {
 .mt-switch-input:focus-visible + .mt-switch-label {
 	outline: 2px solid var(--accent);
 	outline-offset: 2px;
+}
+/* A screen being read: its outline in the screen's own frames, a faint shape
+   wherever its words and marks will stand, with a sheen passing over it, and
+   a bar that runs along a track under the way back. Nothing moves for a
+   reader who asks for no motion: the track is left with no stretch on it —
+   one standing still would read as a part already read — and no sheen is
+   drawn. */
+.mt-skeleton {
+	position: relative;
+}
+.mt-skeleton rect {
+	fill: var(--skeleton);
+}
+.mt-shape {
+	display: block;
+	flex-shrink: 0;
+	max-width: 100%;
+}
+/* A run's shape stands in the middle of its bracket, as its words do. */
+.mt-skeleton .mt-grades-label .mt-shape {
+	margin-inline: auto;
+}
+/* A section's title at the start of its line, its summary and its arrow at
+   the end, as a fold's button lays them out. */
+.mt-skeleton-row .mt-shape:first-child {
+	margin-inline-end: auto;
+}
+.mt-sheen {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+.mt-sheen::before {
+	content: "";
+	display: block;
+	width: 50%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, var(--sheen), transparent);
+	animation: mt-sheen 1.6s ease-in-out infinite;
+}
+@keyframes mt-sheen {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(200%);
+	}
+}
+/* The bar lies over the top of what comes under it and takes no room of its
+   own, so that nothing moves when it goes. It is placed so that it is drawn
+   over the header under it, which is not: the header's band would cover it
+   otherwise. */
+.mt-loading-bar {
+	position: relative;
+	display: block;
+	height: 3px;
+	margin-block-end: -3px;
+	overflow: hidden;
+	background: var(--skeleton);
+}
+/* The run is drawn from the left, as a course is, and the track turns round
+   for a line that reads the other way. */
+.mt-loading-run {
+	position: absolute;
+	inset-block: 0;
+	left: 0;
+	width: 40%;
+	border-radius: 2px;
+	background: var(--accent);
+	animation: mt-run 1.1s ease-in-out infinite;
+}
+@keyframes mt-run {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(250%);
+	}
+}
+/* The bar and the sheen run from where a line starts to where it ends. */
+[dir="rtl"] .mt-loading-bar,
+[dir="rtl"] .mt-sheen {
+	transform: scaleX(-1);
+}
+@media (prefers-reduced-motion: reduce) {
+	.mt-loading-run,
+	.mt-sheen {
+		display: none;
+	}
 }
 .mt-list {
 	display: flex;

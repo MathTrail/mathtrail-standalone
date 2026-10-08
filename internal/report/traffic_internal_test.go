@@ -139,3 +139,41 @@ func TestTheNewestBuildOfTheTelemetryIsTheOneInForce(t *testing.T) {
 		t.Errorf("tracesAbout() = %q, want it to say the newest build exports nothing", about)
 	}
 }
+
+// The busiest minute says how many instances the lines of its requests name:
+// one, several, or none at all where one process of a run on this machine
+// wrote them. Lines that hold no request say nothing of instances.
+func TestTheBusiestMinuteSaysHowManyInstancesWroteItsRequests(t *testing.T) {
+	t.Parallel()
+
+	request := func(instance string) string {
+		return `{"message":"http_request","time":"2026-09-30T08:15:01Z","route":"/mcp"` + instance + `}`
+	}
+	const named = "The lines of requests name"
+	for _, test := range []struct {
+		name  string
+		lines []string
+		want  string
+	}{
+		{"one instance", []string{request(`,"instance":"i-1"`), request(`,"instance":"i-1"`)},
+			named + " one instance."},
+		{"two instances", []string{request(`,"instance":"i-1"`), request(`,"instance":"i-2"`)},
+			named + " 2 instances."},
+		{"a run on this machine", []string{request(""), request("")},
+			named + " no instance: one process of a run on this machine wrote them."},
+		{"no request at all", []string{`{"message":"tool_call","time":"2026-09-30T08:15:01Z","user":"u1"}`}, ""},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			about := tallied(t, test.lines...).busyAbout()
+			wantSaid := 0
+			if test.want != "" {
+				wantSaid = 1
+			}
+			if !strings.Contains(about, test.want) || strings.Count(about, named) != wantSaid {
+				t.Errorf("busyAbout() = %q, want it to say %q and nothing else of instances", about, test.want)
+			}
+		})
+	}
+}

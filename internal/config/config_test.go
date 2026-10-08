@@ -1072,6 +1072,7 @@ func TestTheSiteIsNamedAsABrowserWritesItsOrigin(t *testing.T) {
 		{"a name in another script, with an underscore", "https://Bü_cher.example", "https://xn--b_cher-3ya.example"},
 		{"this machine, with the port http implies", "http://localhost:80", "http://localhost"},
 		{"this machine by its address", "http://[::1]:8000", "http://[::1]:8000"},
+		{"this machine by its address, with the port http implies", "http://[::1]:80", "http://[::1]"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

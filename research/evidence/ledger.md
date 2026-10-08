@@ -1,13 +1,13 @@
 # Evidence ledger
 
-Rule G1 of [RUN.md](../RUN.md): every claim the papers make about MathTrail or its prototype is recorded with its proof — the product's here, the prototype's in [prototype.md](prototype.md). S02 filled the product part and S03 the prototype part; S02.1 moved the product part to a commit of `main` once the product had grown its endpoint, sign-in, storage and widget. Later tasks add the claims they need.
+Rule G1 of [RUN.md](../RUN.md): every claim the papers make about MathTrail or its prototype is recorded with its proof — the product's here, the prototype's in [prototype.md](prototype.md). S02 filled the product part and S03 the prototype part; S02.1 moved the product part to a commit of `main` once the product had grown its endpoint, sign-in, storage and widget. The service's real use began after the product's pin, so its claims are a part of their own, pinned to a later commit (Q88). Later tasks add the claims they need.
 
 ## Format
 
 | ID | Claim | Status | Evidence | Used in |
 |---|---|---|---|---|
 
-- **ID** — `C001`, `C002`, … for the product, `P001`, `P002`, … for the prototype. Numbers are never reused.
+- **ID** — `C001`, `C002`, … for the product, `U001`, `U002`, … for its real use, `P001`, `P002`, … for the prototype. Numbers are never reused.
 - **Claim** — one fact, stated the way a paper would state it.
 - **Status:**
   - *built* — the code, tests or data at the pinned commit show it;
@@ -234,6 +234,21 @@ A claim that stops being true of the product leaves the table; its number is nev
 
 - **C055** — README described the widget, the answer button and the explanation of the mistake in the present tense while they were open tasks. Retired at `52ce86908135`: all three are built (C038, C039, C068).
 - **C058** — a profile could exclude at most 15 skills while the catalog held 25. Retired at `52ce86908135`: the limit is 25, the size of the catalog, and a test of the content holds the two to one number.
+
+## Use
+
+The service's real use: families' lessons in the deployed service, and the totals it publishes of them. Real lessons began after the commit paper A describes, so these claims are proven at a later commit of their own, which [use-stats.txt](use-stats.txt) names (`just research use-pin <commit>`); nothing is counted there. Generated from [claims-use.json](claims-use.json) by `just research ledger`. The paper prints no number of real use from these claims: what it prints comes from the service's monthly snapshot of public totals, shown only behind ten children or more (U002).
+
+<!-- ledger:use:begin -->
+Pinned commit: `443b06faaa6b` of `github.com/MathTrail/mathtrail-standalone`, 2026-10-07. Every fact below was computed at that commit.
+
+### Real use
+
+| ID | Claim | Status | Evidence | Used in |
+|---|---|---|---|---|
+| U001 | Families have used the deployed service in real lessons since its first weeks in production: in Claude their tasks reached the card, where the child answers, and the first parents' reading of the progress changed how it names a child's rank. | measured | `docs/live/16-task-time.md:11@443b06faaa6b`<br>`docs/live/16-task-time.md:339@443b06faaa6b`<br>`docs/decisions.md:643@443b06faaa6b` | A: §7 limitations, §8 discussion |
+| U002 | Since 4 October 2026 the service counts its use into totals it keeps for years, and shows a month's totals publicly, on the site's page "Research" and in applications for grants, only once ten children and thirty answers or more stand behind them. | built | `docs/grants/README.md:20@443b06faaa6b`<br>`infra/analytics/views/public/chances_total.sql:12@443b06faaa6b`<br>`site/content/en/privacy.md:95@443b06faaa6b` | A: §7 limitations |
+<!-- ledger:use:end -->
 
 ## Prototype
 

@@ -15,5 +15,7 @@ module "analytics" {
   # a job's subject names the environment it runs in.
   snapshot_reader = "principal://iam.googleapis.com/projects/${data.google_project.this.number}/locations/global/workloadIdentityPools/${var.workload_identity_pool_id}/subject/${var.github_oidc_subject_prefix}:environment:live-numbers"
 
+  billing_export = var.billing_export
+
   depends_on = [google_project_service.enabled]
 }

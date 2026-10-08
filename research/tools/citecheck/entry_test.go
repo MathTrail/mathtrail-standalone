@@ -24,6 +24,22 @@ func TestEntryForWritesEachKindOfWork(t *testing.T) {
 		DOI: "10.5281/zenodo.1", Registry: "DataCite", Kind: "JournalArticle", Title: "A deposit of an article",
 		Authors: []Person{{"Doe", "J."}}, Years: []int{2020}, Venues: []string{"Journal of Things"}, Publisher: "Zenodo",
 	}
+	paper := Work{
+		DOI: "10.1145/3000001", Registry: "Crossref", Kind: "proceedings-article", Title: "Adaptive Practice at Scale",
+		Authors: []Person{{"Doe", "Jane"}}, Years: []int{2019}, Venues: []string{"Proceedings of the Learning Conference"}, Publisher: "ACM",
+	}
+	monograph := Work{
+		DOI: "10.1007/978-0-000-00000-0", Registry: "Crossref", Kind: "monograph", Title: "Mathematical Olympiads for Young Children",
+		Authors: []Person{{"Smith", "Ann"}}, Years: []int{2015}, Publisher: "Springer",
+	}
+	undated := Work{
+		DOI: "10.1000/report.1", Registry: "Crossref", Kind: "report", Title: "Guidance on Tutoring",
+		Authors: []Person{{Family: "An Agency"}}, Publisher: "The Agency",
+	}
+	uncontained := Work{
+		DOI: "10.1007/978-0-000-00000-0_3", Registry: "Crossref", Kind: "book-chapter", Title: "Counting Problems",
+		Authors: []Person{{"Lee", "Kim"}}, Years: []int{2018}, Publisher: "Springer",
+	}
 	tests := []struct {
 		name string
 		work Work
@@ -60,6 +76,34 @@ func TestEntryForWritesEachKindOfWork(t *testing.T) {
 			{"journal", "Journal of Things"},
 			{"year", "2020"},
 			{"doi", "10.5281/zenodo.1"},
+		}}},
+		{"a paper of proceedings", paper, Entry{Type: "inproceedings", Key: "doe2019adaptive", Fields: []Field{
+			{"author", "Doe, Jane"},
+			{"title", "Adaptive Practice at Scale"},
+			{"booktitle", "Proceedings of the Learning Conference"},
+			{"publisher", "ACM"},
+			{"year", "2019"},
+			{"doi", "10.1145/3000001"},
+		}}},
+		{"a monograph", monograph, Entry{Type: "book", Key: "smith2015mathematical", Fields: []Field{
+			{"author", "Smith, Ann"},
+			{"title", "Mathematical Olympiads for Young Children"},
+			{"publisher", "Springer"},
+			{"year", "2015"},
+			{"doi", "10.1007/978-0-000-00000-0"},
+		}}},
+		{"a report with no year", undated, Entry{Type: "misc", Key: "anagencyndguidance", Fields: []Field{
+			{"author", "{An Agency}"},
+			{"title", "Guidance on Tutoring"},
+			{"doi", "10.1000/report.1"},
+			{"publisher", "The Agency"},
+		}}},
+		{"a chapter with no container", uncontained, Entry{Type: "incollection", Key: "lee2018counting", Fields: []Field{
+			{"author", "Lee, Kim"},
+			{"title", "Counting Problems"},
+			{"publisher", "Springer"},
+			{"year", "2018"},
+			{"doi", "10.1007/978-0-000-00000-0_3"},
 		}}},
 	}
 	for _, tt := range tests {

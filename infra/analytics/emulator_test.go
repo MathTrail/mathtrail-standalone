@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -117,9 +116,12 @@ var (
 	run    = strconv.FormatInt(time.Now().UnixNano(), 36)
 )
 
-// space is a test's own datasets in the emulator — the raw lines, the counts
-// and the two sets of views — and the names the SQL is written with, filled in
-// as Terraform fills them.
+// datasets are a space's datasets: the raw lines, the counts, the two sets of
+// views and the export of the costs.
+var datasets = []string{"logs", "impact", "public", "private", "billing"}
+
+// space is a test's own datasets in the emulator and the names the SQL is
+// written with, filled in as Terraform fills them.
 type space struct {
 	e      *emulator
 	prefix string
@@ -130,7 +132,7 @@ type space struct {
 // A dataset the emulator would not delete is logged, not failed: the test has
 // had its say, and the memory it leaves is what the next tests run out of.
 func (s *space) drop(t *testing.T) {
-	for _, dataset := range []string{"logs", "impact", "public", "private"} {
+	for _, dataset := range datasets {
 		request, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, s.e.base+"/datasets/"+s.prefix+dataset+"?deleteContents=true", http.NoBody)
 		if err != nil {
 			t.Logf("drop %s%s: %v", s.prefix, dataset, err)
@@ -166,23 +168,25 @@ func namedSpace(t *testing.T) *space {
 
 	prefix := fmt.Sprintf("r%s_t%d_", run, spaces.Add(1))
 	return &space{e: emulatorOf(t), prefix: prefix, names: map[string]string{
-		"logs":    project + "." + prefix + "logs._AllLogs",
-		"impact":  project + "." + prefix + "impact",
-		"public":  project + "." + prefix + "public",
-		"private": project + "." + prefix + "private",
-		"events":  eventsList(t),
-		"fold":    read(t, "views/public/fold.sql"),
+		"logs":       project + "." + prefix + "logs._AllLogs",
+		"impact":     project + "." + prefix + "impact",
+		"public":     project + "." + prefix + "public",
+		"private":    project + "." + prefix + "private",
+		"billing":    project + "." + prefix + "billing",
+		"project_id": project,
+		"events":     eventsList(t),
+		"fold":       read(t, "views/public/fold.sql"),
 	}}
 }
 
 // make makes a space's datasets: the raw lines in a table of the shape the
 // linked dataset of a log bucket has, the tables of the counts from their
-// schemas, and empty datasets for the views.
+// schemas, and empty datasets for the views and for the export of the costs.
 func (s *space) make(t *testing.T) {
 	t.Helper()
 
 	e, prefix := s.e, s.prefix
-	for _, dataset := range []string{"logs", "impact", "public", "private"} {
+	for _, dataset := range datasets {
 		e.post(t, "/datasets", map[string]any{"datasetReference": map[string]string{"projectId": project, "datasetId": prefix + dataset}})
 	}
 	e.query(t, "CREATE TABLE `"+s.names["logs"]+"` (timestamp TIMESTAMP, log_name STRING, insert_id STRING, json_payload JSON)")
@@ -280,9 +284,6 @@ func (s *space) render(t *testing.T, file string, more map[string]string) string
 	}
 	return strings.Join(kept, "\n")
 }
-
-// placeholder is a name the SQL is written with, as templatefile writes one.
-var placeholder = regexp.MustCompile(`\$\{(\w+)\}`)
 
 // fill puts the names in, as templatefile does; a name the SQL uses and is
 // not given fails the test, as it fails Terraform.

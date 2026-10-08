@@ -9,6 +9,7 @@ What the service is made of and what it talks to. Neither the child nor the adul
 ```mermaid
 flowchart LR
     adult(["Adult<br/>parent or tutor"])
+    owner(["Owner<br/>runs the deployment"])
     kid(["Child<br/>grades 1–6"])
 
     subgraph host["Chat host · Claude — web, desktop, phone · ChatGPT — web, phone unconfirmed"]
@@ -45,7 +46,9 @@ flowchart LR
         ar["Artifact Registry<br/>image by digest"]
         clog["Cloud Logging<br/>instance stdout"]
         bq["BigQuery<br/>the counts kept for years"]
-        studio["Data Studio<br/>a private and a public report"]
+        studio["Data Studio<br/>a private and a public report,<br/>the daily report by mail"]
+        monitor["Cloud Monitoring<br/>the load alert"]
+        billing["Cloud Billing<br/>the export of the costs"]
     end
 
     subgraph gh["GitHub"]
@@ -90,6 +93,10 @@ flowchart LR
     logs -- "stdout" --> clog
     clog -. "the lines a child is counted from, 62 days,<br/>counted every night" .-> bq
     bq -. "views" .-> studio
+    billing -. "what each day cost" .-> bq
+    studio -. "every morning, the day's counts and costs" .-> owner
+    router -. "requests, counted by Cloud Run" .-> monitor
+    monitor -. "mails past the line of requests a minute" .-> owner
     ga -- "image" --> ar
     ga -. "publishes the pages" .-> pages
     authsrv -. "links on the consent screen" .-> pages
@@ -106,6 +113,7 @@ flowchart LR
 | Actor | Why it is on the diagram | PRODUCT |
 |---|---|---|
 | Adult — parent or tutor | Owns both the host account and the Google account: connects the app, signs in, creates the profile, watches the progress. Only the adult signs in through Google (О-22) | 3, 9.3 |
+| Owner | Runs the deployment, and is mailed by it: the load alert and the daily report (R266, R267) | 6 |
 | Child | Solves tasks in the adult's chat; has no sign-in of their own | 3 |
 | Host model | Writes the task, the solver, the explanation and the self-check, and runs the lesson in text mode. The service makes no LLM calls itself | 4.1, 4.3 |
 | The host's MCP Apps runtime | Renders the widget in a sandboxed iframe, passes it the locale, the platform and the container size, and forwards tool calls made from the widget | 4.2, 9.3 |
@@ -116,7 +124,9 @@ flowchart LR
 | Artifact Registry | The revision image by digest, with a cleanup policy for old images | 7 |
 | Cloud Logging | Where the structured stdout of Cloud Run lands, and where the aggregates are counted from (О-16). The lines a child is counted from are also kept 62 days in a bucket of their own, where a deployment keeps the counts (R192) | 6 |
 | BigQuery | The counts of how the service is used, kept for years for grant applications: a query counts the bucket's lines into them every night, and no table holds a name any child is counted under (SPEC 12.4, R192) | 6 |
-| Data Studio | Two reports of those counts: exact numbers for the owner, and, for anyone with the link, closed months with no group of fewer than ten children. Made by hand: no API makes a report | 6 |
+| Data Studio | Two reports of those counts: exact numbers for the owner, and, for anyone with the link, closed months with no group of fewer than ten children. A page of the private one, each day's counts beside what the day cost, is mailed to the owner every morning (R267). Made by hand: no API makes a report or a schedule | 6 |
+| Cloud Billing | Its export of the costs into BigQuery, which only the console turns on, is where the daily report reads what a day cost (R267) | 6 |
+| Cloud Monitoring | Mails the owner when the service has more requests a minute than the deployment's line, by Cloud Run's own count of them (R266) | 6 |
 | GitHub Actions | Build, checks, image publication and deploy through WIF, with no service-account keys | 7, 8 |
 | GitHub Pages | The site: the privacy policy and the terms, which the Google consent screen and the directories link to (О-19), and the topics' pages, which the progress card asks the host to open and the words for the model name (R186) | 6, 7, 8 |
 
@@ -208,7 +218,7 @@ The acceptance check for this task: every requirement in sections 4–7 belongs 
 | 5 Free-form notes go only into the model's package, with a length cap (О-31) | Tools, Content |
 | 5 The file size is bounded: a history window plus a summary (О-5, О-40) | Storage |
 | 6 One binary, stateless, configured through environment variables | Container and config |
-| 6 $0 within the free tier, with a budget alert | Outside the service: Cloud Run and the budget (T20); inside: Limits |
+| 6 $0 within the free tier, with a budget alert | Outside the service: Cloud Run, the budget (T20), the load alert (R266) and the daily report of the costs (R267); inside: Limits |
 | 6 Limits: per-user rate, per-IP before sign-in, global, daily, with a clear message | Limits |
 | 6 Free chat tiers: the scenario fits their message limits | Widget (a button costs no model turn), Tools (one generation per task) |
 | 6 Phones first: 320 px, finger-sized buttons, a drawing that fits the width | Widget, Checks |

@@ -93,6 +93,7 @@
 	"progress.mastered": "已掌握",
 	"progress.right": "正确",
 	"progress.wrong": "错误",
+	"progress.loading": "进度加载中…",
 	"progress.failed": "进度没能加载出来。返回后再试一次吧。",
 	"profile.label": "档案 · 供家长查看",
 	"profile.edit": "修改",

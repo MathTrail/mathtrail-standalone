@@ -2,15 +2,21 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
+	"math"
+	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
 	"github.com/MathTrail/mathtrail-standalone/research/experiments/reviewing"
 )
 
@@ -22,6 +28,86 @@ func loaded(t *testing.T) *content.Content {
 	}
 	return shipped
 }
+
+func newRunner(t *testing.T) solver.Runner {
+	t.Helper()
+	runner, err := reviewing.NewRunner()
+	if err != nil {
+		t.Fatalf("reviewing.NewRunner() error = %v", err)
+	}
+	return runner
+}
+
+// unhurriedRunner is the experiment's sandbox with time to spare, for a test
+// of what the reviews decide over every reference task. Under the race
+// detector and beside the other tests a solver runs many times slower than in
+// the experiment, so the time a run may take, and wait for its slot, is no
+// part of what such a test checks; the steps a run may take, which decide
+// every verdict, stay the experiment's.
+func unhurriedRunner(t *testing.T) solver.Runner {
+	t.Helper()
+	limits := reviewing.SandboxLimits
+	limits.Timeout, limits.Wait = time.Minute, time.Minute
+	runner, err := starlark.New(limits)
+	if err != nil {
+		t.Fatalf("starlark.New() error = %v", err)
+	}
+	return runner
+}
+
+// ladderPackages are the packages at every point of the ladder, built once
+// for every test that reads them: building every one of them takes seconds
+// under the race detector.
+var ladderPackages = sync.OnceValues(func() ([]packageAt, error) {
+	shipped, err := content.Load()
+	if err != nil {
+		return nil, err
+	}
+	return packages(shipped)
+})
+
+func builtPackages(t *testing.T) []packageAt {
+	t.Helper()
+	packs, err := ladderPackages()
+	if err != nil {
+		t.Fatalf("packages() error = %v", err)
+	}
+	return packs
+}
+
+// cancelled is a context whose caller has already gone.
+func cancelled() context.Context {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	return ctx
+}
+
+func readLines(t *testing.T, path string) []string {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("os.ReadFile(%s) error = %v", path, err)
+	}
+	return strings.Split(string(data), "\n")
+}
+
+func readCSV(t *testing.T, path string) [][]string {
+	t.Helper()
+	file, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("os.Open(%s) error = %v", path, err)
+	}
+	defer func() { _ = file.Close() }()
+	rows, err := csv.NewReader(file).ReadAll()
+	if err != nil || len(rows) == 0 {
+		t.Fatalf("%s holds %d rows, error = %v; want a header at least", path, len(rows), err)
+	}
+	return rows
+}
+
+// committed is the path of a file of the results the paper's numbers come
+// from, as they are committed beside the harness.
+func committed(name string) string { return filepath.Join("results", name) }
 
 // sameReview reviews a reference task as the harness times it and as the
 // experiment with injected defects did, reports where the two part, and says
@@ -102,6 +188,21 @@ func TestAQuantileIsAValueMeasured(t *testing.T) {
 	}
 }
 
+// A quantile of no values is no number, at every q, rather than an index
+// outside them: a table with nothing in it reads as NaN instead of stopping
+// the harness halfway through what it writes.
+func TestAQuantileOfNothingIsNoNumber(t *testing.T) {
+	t.Parallel()
+	for _, q := range []float64{0, 0.5, 0.99, 1} {
+		t.Run(strconv.FormatFloat(q, 'g', -1, 64), func(t *testing.T) {
+			t.Parallel()
+			if got := quantile(nil, q); !math.IsNaN(got) {
+				t.Errorf("quantile(nil, %v) = %v, want NaN", q, got)
+			}
+		})
+	}
+}
+
 // The interval of a median draws tasks with all their reviews, and holds the
 // median: tasks whose reviews all take the same time give an interval of that
 // time alone.
@@ -123,10 +224,7 @@ func TestTheMediansIntervalDrawsWholeTasks(t *testing.T) {
 func TestEveryPointOfTheLadderHasAPackageAtEveryTurn(t *testing.T) {
 	t.Parallel()
 	shipped := loaded(t)
-	packs, err := packages(shipped)
-	if err != nil {
-		t.Fatal(err)
-	}
+	packs := builtPackages(t)
 	points := 0
 	for _, topic := range shipped.TopicIDs() {
 		points += rating.Difficulties * len(shipped.LevelsOf(topic))

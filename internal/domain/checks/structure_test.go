@@ -157,6 +157,10 @@ var formatBreakages = []breakage{
 		d.Task.Drawing = "o--o"
 		d.Task.DrawingStructure = &checks.DrawingStructure{Kind: "number_line"}
 	}, "at least one object"},
+	{"a drawn object with no id", func(d *checks.Draft) {
+		d.Task.Drawing = "o--o"
+		d.Task.DrawingStructure = &checks.DrawingStructure{Kind: "number_line", Objects: []checks.DrawingObject{{Label: "A"}}}
+	}, "objects.0 has no id"},
 	{"a drawn object with no label", func(d *checks.Draft) {
 		d.Task.Drawing = "o--o"
 		d.Task.DrawingStructure = &checks.DrawingStructure{Kind: "number_line", Objects: []checks.DrawingObject{{ID: "A"}}}

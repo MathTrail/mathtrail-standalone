@@ -52,6 +52,8 @@ func TestParseBibRefusesWhatWouldMakeACitationAmbiguousOrBroken(t *testing.T) {
 		{"a string macro", "@string{ce = {Computers}}", "@string is not used here"},
 		{"a quote never closed", "@misc{a, title = \"x", "never closes its quote"},
 		{"a quoted value with a stray brace", "@misc{a, title = \"}{\"}", "closes a brace it never opened"},
+		{"a type with no brace after it", "@misc a, title = {x}}", "@misc is not followed by {"},
+		{"a field with no name", "@misc{a, = {x}}", "a field's name is missing"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

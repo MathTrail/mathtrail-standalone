@@ -76,7 +76,8 @@
 % \statpct{source}{key}{places} prints a share as a percentage; \statabs
 % drops the sign of a value the text calls "below" or "behind"; \statnum
 % groups the thousands of a whole number; \statword and \Statword spell out a
-% whole number up to twenty, in running text and at the start of a sentence.
+% whole number up to twenty, in running text and at the start of a sentence;
+% \statmonth names the month a number from one to twelve stands for.
 % \statmin and \statmax{source}{places}{key,key,...} print the least and the
 % greatest of several values, and \statminpct and \statmaxpct the same as
 % percentages, so that a range over several cells names each cell it covers.
@@ -89,6 +90,8 @@
 \newcommand{\Statword}[2]{\Numberword{\the\numexpr\stat{#1}{#2}\relax}}
 \newcommand{\numberword}[1]{\ifcase#1 zero\or one\or two\or three\or four\or five\or six\or seven\or eight\or nine\or ten\or eleven\or twelve\or thirteen\or fourteen\or fifteen\or sixteen\or seventeen\or eighteen\or nineteen\or twenty\else\PackageError{paper-a}{No word for #1}{Print it with \string\statnum.}\fi}
 \newcommand{\Numberword}[1]{\ifcase#1 Zero\or One\or Two\or Three\or Four\or Five\or Six\or Seven\or Eight\or Nine\or Ten\or Eleven\or Twelve\or Thirteen\or Fourteen\or Fifteen\or Sixteen\or Seventeen\or Eighteen\or Nineteen\or Twenty\else\PackageError{paper-a}{No word for #1}{Print it with \string\statnum.}\fi}
+\newcommand{\statmonth}[2]{\monthword{\the\numexpr\stat{#1}{#2}\relax}}
+\newcommand{\monthword}[1]{\ifcase#1 \PackageError{paper-a}{No month #1}{A month is numbered from 1 to 12.}\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\else\PackageError{paper-a}{No month #1}{A month is numbered from 1 to 12.}\fi}
 \ExplSyntaxOn
 \cs_new:Npn \__paper_values:nn #1#2 { \clist_map_tokens:nn {#2} { \__paper_value:nn {#1} } }
 \cs_new:Npn \__paper_value:nn #1#2 { , \stat {#1} {#2} }

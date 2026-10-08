@@ -210,6 +210,7 @@ sequenceDiagram
 
     A->>W: "Profile & progress" on a task card
     W->>MT: read_progress — the widget's own tool, which draws no card (R97)
+    Note over W: until the reply, the screen's outline under the child's line, and a bar running (R268)
     MT->>D: read the profile
     MT-->>W: the same progress, with the profile's fields and where its file is
     Note over W: drawn in the same card, "Back to task" returns to it — the model is not asked

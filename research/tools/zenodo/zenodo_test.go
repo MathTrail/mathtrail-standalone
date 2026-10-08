@@ -294,6 +294,7 @@ func TestTheCommandDraftsAndPublishes(t *testing.T) {
 
 func TestTheCommandRefusesBeforeAnyRequest(t *testing.T) {
 	t.Parallel()
+	missing := filepath.Join(t.TempDir(), "zenodo.json")
 	for _, tc := range []struct {
 		name, token, why string
 		args             []string
@@ -305,6 +306,9 @@ func TestTheCommandRefusesBeforeAnyRequest(t *testing.T) {
 		{"no step", fakeToken, "usage", []string{"upload"}, ""},
 		{"a placeholder for an author", fakeToken, "placeholder", []string{"draft", "-version", "paper-a/aaa", "-archive", "x"},
 			`[{"name": "[Author]", "affiliation": "[Affiliation]"}]`},
+		{"an unknown flag", fakeToken, "flag provided but not defined: -verbose", []string{"publish", "-version", "paper-a/aaa", "-verbose"}, ""},
+		{"a stray argument", fakeToken, "usage", []string{"publish", "-version", "paper-a/aaa", "now"}, ""},
+		{"a description that is not there", fakeToken, "the record's description: open " + missing, []string{"draft", "-version", "paper-a/aaa", "-archive", "x", "-metadata", missing}, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

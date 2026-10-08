@@ -1619,6 +1619,10 @@ func TestWithNoProfileThereIsNoTask(t *testing.T) {
 		waiting.Screen != "first_run" {
 		t.Errorf("get_package says %q and read_task = %+v, want both to point at the first sign-in", pack, waiting)
 	}
+	if written := prepared(t, session, map[string]any{"language": "en"}); !strings.HasPrefix(written,
+		"No task can be written yet. There is no profile yet.") {
+		t.Errorf("prepare_task says %q, want it to point at the first sign-in", written)
+	}
 	if confirmed, pseudonym := strings.Index(asked, "parent or tutor"), strings.Index(asked, "ask for a pseudonym"); confirmed < 0 || pseudonym < confirmed {
 		t.Errorf("next_task says %q, want the adult asked to say they are the parent or tutor before the pseudonym", asked)
 	}
@@ -1706,6 +1710,38 @@ func TestATaskThatCannotBeSealedIsNotHandedOut(t *testing.T) {
 	wantOurSentence(t, call(t, session, "submit_task", raceOn(asked.OpenRequest)), "Something went wrong inside MathTrail.")
 	if p, now := loadKept(t, kept); now != revision || p.CurrentTask != nil || p.OpenRequest.Attempts != 0 {
 		t.Errorf("the profile is at revision %s with task %+v, want it untouched", now, p.CurrentTask)
+	}
+}
+
+// sealedBy serves the tools of the lesson over kept, as lesson does, under the
+// seal given in place of the seal of these cases.
+func sealedBy(t *testing.T, kept store.Storage, seal profile.Sealer) (*harness, *mcp.ClientSession) {
+	t.Helper()
+
+	h := newHarness(t)
+	service := lessonService(t, h, kept, &clock{at: lessonDay}, nil, func(parts *mcpserver.Parts) { parts.Sealer = seal })
+	h.start(t, mcpserver.DevSignIn, slices.Concat(service.ProfileTools(), service.TaskTools())...)
+	session := h.connect(t, "")
+	return h, session
+}
+
+// A task written ahead that cannot be sealed is not kept either: a task kept
+// with its answer in the open is worse than none. The failure is ours, told in
+// our words, and nothing is written — not even the attempt.
+func TestATaskWrittenAheadThatCannotBeSealedIsNotKept(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	raceHandedOut(t, session, kept)
+	prepared(t, session, aheadChoice)
+	ahead := aheadOpen(t, kept)
+	_, revision := loadKept(t, kept)
+
+	_, keyless := sealedBy(t, kept, keyGone{})
+	wantOurSentence(t, call(t, keyless, "submit_task", relayOn(ahead)), "Something went wrong inside MathTrail.")
+	if p, now := loadKept(t, kept); now != revision || p.ReadyTask != nil || p.OpenRequest == nil || p.OpenRequest.Attempts != 0 {
+		t.Errorf("the profile is at revision %s keeping %+v beside %+v, want it untouched", now, p.ReadyTask, p.OpenRequest)
 	}
 }
 
@@ -1949,7 +1985,9 @@ func TestAReviewThatCannotBeJudgedSpendsNothing(t *testing.T) {
 
 // A request no package can be built for — its topic, or a skill the child has
 // not met, gone from the catalog in a file edited by hand — is the service's
-// failure, and nothing is written, whether the request is new or open already.
+// failure, and nothing is written, whether the request is new or open already,
+// and whichever tool would hand the package over: next_task, which makes sure
+// of it before it opens a request, prepare_task, or get_package.
 func TestARequestNoPackageCanBeBuiltForWritesNothing(t *testing.T) {
 	t.Parallel()
 
@@ -1959,18 +1997,36 @@ func TestARequestNoPackageCanBeBuiltForWritesNothing(t *testing.T) {
 		Grade: 2, Pseudonym: "Otter", ExcludedSkills: []string{"gone_skill"},
 	}, "test", lessonDay)
 
-	for name, p := range map[string]*profile.Profile{"an open request": gone, "a new request": unknown} {
+	type toolCall struct {
+		tool      string
+		arguments map[string]any
+	}
+	inEnglish := map[string]any{"language": "en"}
+	for name, tc := range map[string]struct {
+		p *profile.Profile
+		// calls are made one after the other, in this order, against the
+		// one profile.
+		calls []toolCall
+	}{
+		"an open request": {gone, []toolCall{
+			{"next_task", inEnglish}, {"prepare_task", inEnglish}, {"get_package", map[string]any{"request_id": fuzzRequest}},
+		}},
+		"a new request": {unknown, []toolCall{{"next_task", inEnglish}, {"prepare_task", inEnglish}}},
+	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			kept := keptAsIs(t, p)
+			kept := keptAsIs(t, tc.p)
 			_, session := lesson(t, kept)
 			_, revision := loadKept(t, kept)
 
-			wantOurSentence(t, call(t, session, "next_task", map[string]any{"language": "en"}),
-				"Something went wrong inside MathTrail.")
-			if _, now := loadKept(t, kept); now != revision {
-				t.Error("the profile was written, want nothing written")
+			for _, c := range tc.calls {
+				t.Run(c.tool, func(t *testing.T) {
+					wantOurSentence(t, call(t, session, c.tool, c.arguments), "Something went wrong inside MathTrail.")
+					if _, now := loadKept(t, kept); now != revision {
+						t.Errorf("%s wrote the profile, want nothing written", c.tool)
+					}
+				})
 			}
 		})
 	}

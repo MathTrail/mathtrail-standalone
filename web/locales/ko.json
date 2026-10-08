@@ -93,6 +93,7 @@
 	"progress.mastered": "마스터",
 	"progress.right": "정답",
 	"progress.wrong": "오답",
+	"progress.loading": "기록을 불러오는 중…",
 	"progress.failed": "기록을 불러오지 못했어요. 뒤로 가서 다시 해 보세요.",
 	"profile.label": "프로필 · 보호자용",
 	"profile.edit": "수정",

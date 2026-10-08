@@ -414,6 +414,32 @@ describe("a card a task asked for comes to", () => {
 		expect(card.asked()).toHaveLength(3);
 	});
 
+	// A host may lose a call on its way to the service, or the answer on its
+	// way back: the card has heard nothing of the task, and goes on waiting.
+	test("takes a question whose answer never came back for no news, goes on showing the task being written, and asks again seldom", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const card = await drawn(
+			answering(() => Promise.reject(new Error("the host lost the call"))),
+		);
+
+		await pass(first + late);
+		expect(card.asked()).toHaveLength(1);
+		expect(console.error).toHaveBeenCalledOnce();
+		expect(labels()).toEqual([
+			"Done: Picked topic and difficulty",
+			"In progress: Writing the task",
+			"Waiting: Checking every answer",
+			"Waiting: Ready",
+		]);
+		expect(news()).toBe("");
+		expect(root.querySelector(".mt-verdict")).toBeNull();
+
+		await pass(moments.askSlowly + first - 2 * late);
+		expect(card.asked()).toHaveLength(1);
+		await pass(2 * late);
+		expect(card.asked()).toHaveLength(2);
+	});
+
 	test("asks nothing while the page is out of sight, and asks at once when it is looked at again", async () => {
 		seen = "hidden";
 		const card = await drawn(answering(writing()));

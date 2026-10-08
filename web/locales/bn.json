@@ -94,6 +94,7 @@
 	"progress.mastered": "শেখা হয়েছে",
 	"progress.right": "ঠিক",
 	"progress.wrong": "ভুল",
+	"progress.loading": "অগ্রগতি লোড হচ্ছে…",
 	"progress.failed": "অগ্রগতি লোড হয়নি। ফিরে গিয়ে আবার চেষ্টা করো।",
 	"profile.label": "প্রোফাইল · অভিভাবকের জন্য",
 	"profile.edit": "বদলান",

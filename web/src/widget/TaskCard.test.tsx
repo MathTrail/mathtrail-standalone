@@ -105,6 +105,11 @@ function topLine(): HTMLButtonElement {
 }
 
 const text = (selector: string) => root.querySelector(selector)?.textContent;
+// runSpans are how many steps each bracket under the progress's course spans.
+const runSpans = () =>
+	[...root.querySelectorAll(".mt-grades-runs td")].map((run) =>
+		run.getAttribute("colspan"),
+	);
 const replies = () => [...root.querySelectorAll(".mt-replies .mt-reply")];
 const shownButtons = () =>
 	[...root.querySelectorAll<HTMLButtonElement>(".mt-btns .mt-btn")].map(
@@ -743,6 +748,39 @@ describe("the progress", () => {
 		expect(heard.calls[1]?.arguments).toEqual({});
 	});
 
+	test("shows the outline of the screen under the child's line while it is read, and the screen in its place once it is", async () => {
+		const read = pending();
+		await drawCard(fence, ({ name }) =>
+			name === "read_progress" ? read.result : answered(),
+		);
+
+		press(topLine());
+
+		const over = root.querySelector(
+			'article[aria-label="Profile and progress"]',
+		);
+		expect(
+			[...(over?.children ?? [])].map((part) => part.classList[0]),
+		).toEqual(["mt-loading-bar", "mt-head", "mt-skeleton"]);
+		expect(over?.querySelector(".mt-head .mt-name")?.textContent).toBe(
+			fence.child.pseudonym,
+		);
+		expect(over?.querySelector(".mt-skeleton > output")?.textContent).toBe(
+			"Loading the progress…",
+		);
+		expect(root.querySelector(".mt-rank-name")).toBeNull();
+		const outlined = runSpans();
+		expect(outlined).toHaveLength(3);
+
+		read.arrive(progress);
+
+		await vi.waitFor(() => expect(text(".mt-rank-name")).toBe("Rank 3"));
+		// The brackets under the course stand where their outlines stood.
+		expect(runSpans()).toEqual(outlined);
+		expect(root.querySelector(".mt-loading-bar")).toBeNull();
+		expect(root.querySelector(".mt-skeleton")).toBeNull();
+	});
+
 	test("keeps the while chosen for the moves when it is opened again", async () => {
 		await drawCard(fence, ({ name }) =>
 			name === "read_progress" ? progressMoving : answered(),
@@ -812,7 +850,7 @@ describe("the progress", () => {
 		);
 	});
 
-	test("that does not arrive says so", async () => {
+	test("that does not arrive says so, in place of its outline", async () => {
 		await drawCard(fence, () => failure);
 
 		press(topLine());
@@ -822,6 +860,8 @@ describe("the progress", () => {
 				"The progress didn't load. Go back and try again.",
 			),
 		);
+		expect(root.querySelector(".mt-loading-bar")).toBeNull();
+		expect(root.querySelector(".mt-skeleton")).toBeNull();
 	});
 
 	test("that does not read says it did not load", async () => {
@@ -1003,9 +1043,7 @@ describe("a card drawn where a page answers for the service", () => {
 		await vi.waitFor(() =>
 			expect(root.querySelector(".mt-bar-back")).not.toBeNull(),
 		);
-		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-rank")).not.toBeNull(),
-		);
+		await vi.waitFor(() => expect(text(".mt-rank-name")).toBe("Rank 3"));
 		expect(tools).toEqual([]);
 	});
 });

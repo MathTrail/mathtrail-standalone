@@ -95,6 +95,7 @@
 	"progress.mastered": "Maîtrisé",
 	"progress.right": "Juste",
 	"progress.wrong": "Faux",
+	"progress.loading": "Chargement des progrès…",
 	"progress.failed": "Impossible de charger tes progrès. Reviens en arrière et réessaie.",
 	"profile.label": "Profil · pour les parents",
 	"profile.edit": "Modifier",

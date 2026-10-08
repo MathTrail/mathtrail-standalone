@@ -2,6 +2,7 @@ package drivestore_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"maps"
@@ -79,6 +80,47 @@ func TestAPauseIsRiddenOut(t *testing.T) {
 	lines := f.linesOf("drive_call")
 	if len(lines) != 1 || lines[0]["retries"] != int64(2) || lines[0]["outcome"] != "ok" {
 		t.Errorf("drive_call lines = %v, want one download made again twice, ok", lines)
+	}
+}
+
+// wantGivenUp holds the error of a call whose caller gave up to being the
+// caller's own, and to none of the store's refusals, which a caller would act
+// on.
+func wantGivenUp(t *testing.T, call string, err error) {
+	t.Helper()
+
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("%s given up on: error = %v, want %v", call, err, context.Canceled)
+	}
+	for _, refusal := range []error{store.ErrBehind, store.ErrCorrupted, store.ErrNotFound, store.ErrUnavailable} {
+		if errors.Is(err, refusal) {
+			t.Errorf("%s given up on: error = %v, want it not to be %v", call, err, refusal)
+		}
+	}
+}
+
+// A call whose caller gives up during a pause Drive asked for is not made
+// again: it ends with the caller's own error, not as Drive out of reach, and
+// its line says it was given up on after no retry — at info, since nothing
+// failed.
+func TestAPauseGivenUpOnIsNotMadeAgain(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	f.create(t, mia, child("Mia"))
+	f.fake.Fail(drivetest.Download, http.StatusTooManyRequests, "rateLimitExceeded")
+	f.fake.ResetCalls()
+	f.logs.TakeAll()
+
+	_, _, err := f.storage.Load(f.givingUpDuringTheNextWait(t), mia)
+	wantGivenUp(t, "Load()", err)
+	if calls := f.fake.Calls(); !maps.Equal(calls, drivetest.Calls{"download": 1}) {
+		t.Errorf("Load() given up on during a pause cost %v, want the one download Drive asked to pause", calls)
+	}
+	lines := f.logs.FilterMessage("drive_call").All()
+	if len(lines) != 1 || lines[0].Level != zapcore.InfoLevel ||
+		lines[0].ContextMap()["outcome"] != "canceled" || lines[0].ContextMap()["retries"] != int64(0) {
+		t.Errorf("drive_call lines = %v, want one at info, canceled after no retry", lines)
 	}
 }
 
@@ -208,6 +250,138 @@ func TestWritesOfOneAccountTakeTurnsOnAnInstance(t *testing.T) {
 	}
 }
 
+// writeUnderWay starts a save of the profile whose upload Drive holds, so
+// that it keeps the account's turn, and answers what lets the upload land and
+// waits for the save to end. The calls, and their lines, are counted from the
+// save's start.
+func (f *fixture) writeUnderWay(t *testing.T, p *profile.Profile, from store.Revision) (land func() error) {
+	t.Helper()
+
+	letGo := f.fake.Hold(drivetest.Update)
+	f.fake.ResetCalls()
+	f.logs.TakeAll()
+	landed := make(chan error, 1)
+	go func() {
+		_, err := f.storage.Save(t.Context(), mia, p, from)
+		landed <- err
+	}()
+	for deadline := time.Now().Add(10 * time.Second); f.fake.Calls()["update"] == 0; {
+		select {
+		case err := <-landed:
+			t.Fatalf("Save() under way ended before its upload: error = %v, want it held in the upload", err)
+		default:
+			if time.Now().After(deadline) {
+				t.Fatal("Save() under way never reached its upload, want it held there")
+			}
+			time.Sleep(time.Millisecond)
+		}
+	}
+	return func() error {
+		letGo()
+		return <-landed
+	}
+}
+
+// everyCallEndedWell holds every call of Drive's the store made since its
+// lines were last taken to having ended well. A call made once its caller had
+// given up never reaches Drive, and is told by its line alone.
+func (f *fixture) everyCallEndedWell(t *testing.T) {
+	t.Helper()
+
+	for _, line := range f.linesOf("drive_call") {
+		if line["outcome"] != "ok" {
+			t.Errorf("a %v call ended %v, want every call made to have ended well", line["op"], line["outcome"])
+		}
+	}
+}
+
+// wroteNothingBut holds the account's Drive to the write under way alone: no
+// other upload, no file made, nothing set aside, and no call of Drive's that
+// went any way but well.
+func (f *fixture) wroteNothingBut(t *testing.T, underWay []byte) {
+	t.Helper()
+
+	if calls := f.fake.Calls(); calls["update"] != 1 || calls["create"] != 0 {
+		t.Errorf("the calls made were %v, want the upload under way alone and no file made", calls)
+	}
+	if got := f.profileFile(t, miaToken).Content; !bytes.Equal(got, underWay) {
+		t.Errorf("the profile holds\n%s\nwant the write under way:\n%s", got, underWay)
+	}
+	if aside := setAside(f.fake, miaToken); len(aside) != 0 {
+		t.Errorf("%d files were set aside, want none", len(aside))
+	}
+	f.everyCallEndedWell(t)
+}
+
+// A call that waits for the account's turn while another write holds it — a
+// slow upload from another tab — and whose caller gives up meanwhile ends
+// with the caller's own error, and is never made: nothing more is asked of
+// Drive for it, it writes nothing, and the write under way lands as it would
+// have.
+func TestACallWhoseCallerGivesUpWaitingForItsTurnIsNeverMade(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		// spoil readies the file for the call, once the write under way holds
+		// the turn.
+		spoil func(t *testing.T, f *fixture)
+		// call makes the call that waits, with a profile and the revision it
+		// was read at.
+		call func(ctx context.Context, s store.Storage, p *profile.Profile, read store.Revision) error
+	}{
+		{"Create", nil, func(ctx context.Context, s store.Storage, _ *profile.Profile, _ store.Revision) error {
+			_, err := s.Create(ctx, mia, child("A second Mia"))
+			return err
+		}},
+		{"Save", nil, func(ctx context.Context, s store.Storage, p *profile.Profile, read store.Revision) error {
+			_, err := s.Save(ctx, mia, moved(p, "Mia from another tab"), read)
+			return err
+		}},
+		{"StartOver", nil, func(ctx context.Context, s store.Storage, _ *profile.Profile, _ store.Revision) error {
+			_, err := s.StartOver(ctx, mia, child("Mia anew"))
+			return err
+		}},
+		// A recovery reads the file and its history before it waits for the
+		// turn to write, so the file it reads has to be damaged.
+		{"Restore", func(t *testing.T, f *fixture) { plant(t, f.fake, miaToken, damage) },
+			func(ctx context.Context, s store.Storage, _ *profile.Profile, _ store.Revision) error {
+				_, _, err := s.Restore(ctx, mia)
+				return err
+			}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := newFixture(t, 5*time.Second)
+			f.create(t, mia, child("Mia"))
+			first, read := f.loaded(t, f.storage, mia)
+			second, _ := f.loaded(t, f.storage, mia)
+			underWay := moved(first, "Mia under way")
+			land := f.writeUnderWay(t, underWay, read)
+			if tc.spoil != nil {
+				tc.spoil(t, f)
+			}
+
+			// The caller gives up once the call waits for its turn: well after
+			// the few reads of Drive a recovery makes before it does, even on a
+			// machine the race detector and the other tests slow down. A read
+			// the deadline cut short would be a call of Drive's that did not
+			// end well, which this case holds the store to never making.
+			ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+			defer cancel()
+			err := tc.call(ctx, f.storage, second, read)
+			if landed := land(); landed != nil {
+				t.Fatalf("Save() under way error = %v, want nil", landed)
+			}
+			if !errors.Is(err, context.DeadlineExceeded) {
+				t.Errorf("%s() given up on while it waited for its turn: error = %v, want %v", tc.name, err, context.DeadlineExceeded)
+			}
+			f.wroteNothingBut(t, fileOf(t, underWay))
+		})
+	}
+}
+
 // The window that remains: two instances share nothing, and two saves from
 // one revision whose uploads overlap — each read the file again before the
 // other wrote — both land. The later upload is what the file holds, whole.
@@ -304,6 +478,72 @@ func TestAReadThatStaysBehindIsRefusedOnce(t *testing.T) {
 	}
 }
 
+// A file gone when a read behind a write looks at it again is a file Drive no
+// longer has: told as that, and forgotten, so that the next call searches for
+// where the profile is now rather than asking for the file again.
+func TestAFileGoneWhileAReadWaitedToCatchUpIsForgotten(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	written := f.writtenThenBehind(t, 1)
+	letThrough(f.fake, drivetest.Download, 1)
+	f.fake.Fail(drivetest.Download, http.StatusNotFound, "notFound")
+
+	if _, _, err := f.storage.Load(t.Context(), mia); !errors.Is(err, store.ErrNotFound) {
+		t.Fatalf("Load() of a file gone on the second look: error = %v, want %v", err, store.ErrNotFound)
+	}
+	f.fake.ResetCalls()
+	got, _ := f.loaded(t, f.storage, mia)
+	if calls := f.fake.Calls(); !maps.Equal(calls, drivetest.Calls{"list": 1, "download": 1}) {
+		t.Errorf("Load() after the file was gone cost %v, want a search and a download", calls)
+	}
+	if got.Revision != written.Revision {
+		t.Errorf("Load() after the file was gone read revision %d, want the one written, %d", got.Revision, written.Revision)
+	}
+}
+
+// A read that waits for Drive to catch up — with a write of this instance's,
+// or with a file it just put back — and whose caller gives up meanwhile ends
+// there, with the caller's own error: never told as behind, nor as damage the
+// parent would be asked about, and nothing more is asked of Drive. Nor is the
+// write waited for let go of: the next read still finds it.
+func TestAReadGivenUpOnWhileItWaitsEndsThere(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		// written writes the profile, has Drive answer its next two downloads
+		// early, and answers the profile as written.
+		written func(t *testing.T, f *fixture) *profile.Profile
+		// calls are what the read costs until it waits.
+		calls drivetest.Calls
+	}{
+		{"behind a write", func(t *testing.T, f *fixture) *profile.Profile { return f.writtenThenBehind(t, 2) },
+			drivetest.Calls{"download": 1}},
+		{"of a file just put back", func(t *testing.T, f *fixture) *profile.Profile { return f.putBackThenEarly(t, 2) },
+			drivetest.Calls{"download": 2, "list": 1}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := newFixture(t, 5*time.Second)
+			written := tc.written(t, f)
+			f.fake.ResetCalls()
+			f.logs.TakeAll()
+
+			_, _, err := f.storage.Load(f.givingUpDuringTheNextWait(t), mia)
+			wantGivenUp(t, "Load()", err)
+			if calls := f.fake.Calls(); !maps.Equal(calls, tc.calls) {
+				t.Errorf("Load() given up on while it waited cost %v, want %v", calls, tc.calls)
+			}
+			f.everyCallEndedWell(t)
+			if got, _ := f.loaded(t, f.storage, mia); got.Revision != written.Revision {
+				t.Errorf("Load() after the read given up on = revision %d, want the one written, %d", got.Revision, written.Revision)
+			}
+		})
+	}
+}
+
 // A file found by a search is trusted for ten minutes, and then searched for
 // again — writing to it does not make it any younger.
 func TestARememberedFileIsSearchedForAgainAfterTenMinutes(t *testing.T) {
@@ -325,6 +565,131 @@ func TestARememberedFileIsSearchedForAgainAfterTenMinutes(t *testing.T) {
 	f.loaded(t, f.storage, mia)
 	if calls := f.fake.Calls(); !maps.Equal(calls, drivetest.Calls{"list": 1, "download": 1}) {
 		t.Errorf("Load() eleven minutes on cost %v, want a search and a download", calls)
+	}
+}
+
+// A save made once the file it was read from is no longer trusted finds the
+// file by its marker again, and lands there.
+func TestASaveAfterTheFileIsNoLongerTrustedFindsItAndLands(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	f.create(t, mia, child("Mia"))
+	p, read := f.loaded(t, f.storage, mia)
+	written := moved(p, "Mia the brave")
+	f.clock.advance(11 * time.Minute)
+	f.fake.ResetCalls()
+
+	f.saved(t, f.storage, mia, written, read)
+	if calls := f.fake.Calls(); !maps.Equal(calls, drivetest.Calls{"list": 1, "download": 1, "update": 1}) {
+		t.Errorf("Save() eleven minutes on cost %v, want a search, the file read again and the upload", calls)
+	}
+	if got, want := f.profileFile(t, miaToken).Content, fileOf(t, written); !bytes.Equal(got, want) {
+		t.Errorf("the file holds\n%s\nwant the save:\n%s", got, want)
+	}
+}
+
+// A save is made over the state of the file the profile was read from: a
+// revision of another file — even one that holds the same bytes — or one no
+// store in Drive hands out is refused as a conflict before anything is read
+// again or written, and the caller reads again.
+func TestASaveFromARevisionNotOfTheProfilesFileIsAConflict(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		// from is the revision the save is made from, given the one the
+		// profile was read at.
+		from func(t *testing.T, f *fixture, read store.Revision) store.Revision
+	}{
+		{"a revision of another file", func(t *testing.T, f *fixture, read store.Revision) store.Revision {
+			// A second file carrying the profile, holding the very same bytes,
+			// changed last: the profile is in it now.
+			f.fake.Put(miaToken, &drivetest.File{
+				Name: fileName, MimeType: fileType, AppProperties: maps.Clone(profileMarker), Content: f.profileFile(t, miaToken).Content,
+			})
+			return read
+		}},
+		{"what no store in Drive hands out", func(*testing.T, *fixture, store.Revision) store.Revision { return "42" }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := newFixture(t, 5*time.Second)
+			f.create(t, mia, child("Mia"))
+			p, read := f.loaded(t, f.storage, mia)
+			from := tc.from(t, f, read)
+			before := f.fake.Files(miaToken)
+			f.fake.ResetCalls()
+
+			_, err := f.instance(t, 5*time.Second).Save(t.Context(), mia, moved(p, "Mia the brave"), from)
+			if !errors.Is(err, store.ErrConflict) {
+				t.Errorf("Save() error = %v, want %v", err, store.ErrConflict)
+			}
+			if calls := f.fake.Calls(); calls["download"] != 0 || calls["update"] != 0 {
+				t.Errorf("Save() cost %v, want neither a file read again nor an upload", calls)
+			}
+			f.leftAsTheyWere(t, before)
+		})
+	}
+}
+
+// leftAsTheyWere holds every file of the account's Drive to holding what it
+// held before.
+func (f *fixture) leftAsTheyWere(t *testing.T, before []*drivetest.File) {
+	t.Helper()
+
+	after := f.fake.Files(miaToken)
+	if len(after) != len(before) {
+		t.Fatalf("the Drive holds %d files, want the %d it held", len(after), len(before))
+	}
+	for i, file := range after {
+		if !bytes.Equal(file.Content, before[i].Content) {
+			t.Errorf("file %q holds\n%s\nwant it as it was:\n%s", file.Name, file.Content, before[i].Content)
+		}
+	}
+}
+
+// A write refused because the file changed since it was read leaves a line
+// with the profile's number it was read at and the one the file holds now —
+// none, when the file holds no profile — so that a reader can tell two writes
+// that raced from a file damaged by hand.
+func TestAConflictLineSaysWhatTheFileHeld(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		// change changes the file once the profile was read from it.
+		change func(t *testing.T, f *fixture)
+		found  int64
+	}{
+		{"moved on by another write", func(t *testing.T, f *fixture) {
+			other := f.instance(t, 5*time.Second)
+			p, read := f.loaded(t, other, mia)
+			f.saved(t, other, mia, moved(p, "Mia from another tab"), read)
+		}, 2},
+		{"damaged by hand", func(t *testing.T, f *fixture) { plant(t, f.fake, miaToken, damage) }, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := newFixture(t, 5*time.Second)
+			f.create(t, mia, child("Mia"))
+			p, read := f.loaded(t, f.storage, mia)
+			tc.change(t, f)
+			changed := f.profileFile(t, miaToken).Content
+
+			if _, err := f.storage.Save(t.Context(), mia, moved(p, "Mia the brave"), read); !errors.Is(err, store.ErrConflict) {
+				t.Errorf("Save() over a file changed since it was read: error = %v, want %v", err, store.ErrConflict)
+			}
+			lines := f.linesOf("drive_conflict")
+			if len(lines) != 1 || lines[0]["read_revision"] != int64(1) || lines[0]["found_revision"] != tc.found || lines[0]["reason"] != "changed" {
+				t.Errorf("drive_conflict lines = %v, want one, changed, read at 1 and found at %d", lines, tc.found)
+			}
+			if got := f.profileFile(t, miaToken).Content; !bytes.Equal(got, changed) {
+				t.Errorf("the file holds\n%s\nwant it as it was changed:\n%s", got, changed)
+			}
+		})
 	}
 }
 

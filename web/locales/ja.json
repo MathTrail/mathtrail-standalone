@@ -93,6 +93,7 @@
 	"progress.mastered": "マスター",
 	"progress.right": "せいかい",
 	"progress.wrong": "まちがい",
+	"progress.loading": "記録を読みこみ中…",
 	"progress.failed": "記録を読みこめませんでした。もどって、もう一度やってみてください。",
 	"profile.label": "プロフィール · 保護者の方へ",
 	"profile.edit": "編集",

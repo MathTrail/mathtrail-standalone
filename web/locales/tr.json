@@ -94,6 +94,7 @@
 	"progress.mastered": "Öğrenildi",
 	"progress.right": "Doğru",
 	"progress.wrong": "Yanlış",
+	"progress.loading": "İlerleme yükleniyor…",
 	"progress.failed": "İlerleme yüklenemedi. Geri dön ve tekrar dene.",
 	"profile.label": "Profil · ebeveyn için",
 	"profile.edit": "Düzenle",

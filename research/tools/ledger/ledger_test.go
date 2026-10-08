@@ -247,10 +247,14 @@ func TestRenderQualifiesLinesByCommitAndKeepsCellsWhole(t *testing.T) {
 	}
 }
 
+// A value stays inside its cell: a pipe in it is escaped, a backtick in it
+// gets a longer fence, and one at its end is set apart from the fence by a
+// space, as Markdown asks. Written against the fence, that backtick would make
+// a longer run that closes nothing, and the code would swallow the row.
 func TestRenderKeepsPipesAndBackticksInsideTheirCells(t *testing.T) {
 	t.Parallel()
 	rows := []Row{
-		{Claim: Claim{ID: "C|1", Group: "G", Text: "a", Status: "built|x", UsedIn: "A"}, Proofs: []Proof{{Place: "k = a|b`c", Fact: true}, {Place: "odd`name.go:3"}}},
+		{Claim: Claim{ID: "C|1", Group: "G", Text: "a", Status: "built|x", UsedIn: "A"}, Proofs: []Proof{{Place: "k = a|b`c", Fact: true}, {Place: "odd`name.go:3"}, {Place: "tail = a`", Fact: true}}},
 	}
 	got := Render(rows, pinned(nil))
 	var row string
@@ -263,7 +267,7 @@ func TestRenderKeepsPipesAndBackticksInsideTheirCells(t *testing.T) {
 	if n := strings.Count(row, "|") - strings.Count(row, `\|`); n != 6 {
 		t.Errorf("row has %d separators, want 6: %s", n, row)
 	}
-	for _, want := range []string{"``k = a\\|b`c``", "``odd`name.go:3@e1c315303bf6``"} {
+	for _, want := range []string{"``k = a\\|b`c``", "``odd`name.go:3@e1c315303bf6``", "`` tail = a` ``"} {
 		if !strings.Contains(row, want) {
 			t.Errorf("row lacks %s: %s", want, row)
 		}

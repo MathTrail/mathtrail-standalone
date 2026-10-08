@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -138,6 +139,35 @@ func TestANewStartWithNothingToSetAsideIsAFirstProfile(t *testing.T) {
 	if text := textOf(t, created); created.IsError || !strings.HasPrefix(text, "The profile is created.") {
 		t.Errorf("save_profile with start_over and no profile = %q, want a first profile", text)
 	}
+}
+
+// A new start in place of a file nothing can read, with details that break a
+// rule, is refused field by field as a first profile is. The file stays as it
+// was: nothing is set aside, or written, for a profile that was never made.
+func TestANewStartWithDetailsThatBreakARuleSetsNothingAside(t *testing.T) {
+	t.Parallel()
+
+	fake := drivetest.New(t)
+	fake.Put(googleToken, &drivetest.File{
+		Name: "mathtrail-profile.json", MimeType: "application/json", AppProperties: maps.Clone(profileMarker), Content: damaged,
+	})
+	d := instanceOverDrive(t, fake)
+
+	fake.ResetCalls()
+	refused := payloadOf[profilePayload](t, call(t, d.session, "save_profile", startOver("", 9)))
+	want := []problemPayload{{Field: "grade", Code: "out_of_range"}, {Field: "pseudonym", Code: "required"}}
+	if refused.Status != "rejected" || refused.Code != "invalid_profile" || refused.Screen != "first_run" ||
+		!slices.Equal(withoutRules(refused.Problems), want) {
+		t.Errorf("save_profile with start_over and broken details = %+v, want the details refused as %+v", refused, want)
+	}
+	if calls := fake.Calls(); calls["update"] != 0 || calls["create"] != 0 {
+		t.Errorf("a new start refused cost %v, want nothing written", calls)
+	}
+	if aside := setAsideIn(fake); len(aside) != 0 {
+		t.Errorf("%d files were set aside, want none", len(aside))
+	}
+	wantOurSentence(t, call(t, d.session, "get_profile", map[string]any{}),
+		"The child's profile file in the adult's Google Drive is damaged")
 }
 
 // locatedPayload is where a payload says the profile's file is.

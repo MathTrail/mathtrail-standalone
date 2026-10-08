@@ -49,6 +49,10 @@ func TestFindReportsOnlyNumbersNoMacroPrinted(t *testing.T) {
 		{"a formula's structure", `$1 - c$, $x^2$, $S \in \{0, 1\}$, $\ln 10$, $\frac{(\theta - \theta_0)^2}{2\sigma_0^2}$`, nil},
 		{"a number in a formula", `$P = 0.85$ and \[ K = 0.05\,n \]`, []string{"0.85", "0.05"}},
 		{"a later task's mark", `\TBD{K05: the authors of S63}`, nil},
+		{"a comment on the last line", "7 % 42 is a note", []string{"7"}},
+		{"a formula that never closes", "$x^2 + 5", []string{"5"}},
+		{"a power in a formula", "$2^{10}$ cells", []string{"10"}},
+		{"an escaped brace inside a quoted argument", `\given{\}0.6} and 5`, []string{"5"}},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

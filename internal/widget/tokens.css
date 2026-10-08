@@ -56,6 +56,10 @@
      back is a coral, not the red of a wrong answer. */
   --gain: #1f7a4c;
   --loss: #b9472b;
+  /* A screen being read: the faint shapes of what is coming and the track a
+     bar runs along, and the sheen that passes over its outline. */
+  --skeleton: #ebe9e4;
+  --sheen: rgba(255,255,255,0.6);
   --page: #f5f4ef;
   --page-sunk: #ebe9e2;
   --shadow-frame: 0 1px 2px rgba(31,30,27,0.06), 0 16px 40px rgba(31,30,27,0.10);
@@ -110,6 +114,8 @@
   --ramp-5: #4ade80;
   --gain: #5fd090;
   --loss: #f08f78;
+  --skeleton: #2f2e2b;
+  --sheen: rgba(255,255,255,0.045);
   --page: #141312;
   --page-sunk: #1b1a18;
   --shadow-frame: 0 1px 2px rgba(0,0,0,0.5), 0 16px 40px rgba(0,0,0,0.45);
@@ -190,6 +196,8 @@
   --ramp-5: #4ade80;
   --gain: #5fd090;
   --loss: #f08f78;
+  --skeleton: #2f2e2b;
+  --sheen: rgba(255,255,255,0.045);
   --page: #141312;
   --page-sunk: #1b1a18;
   --shadow-frame: 0 1px 2px rgba(0,0,0,0.5), 0 16px 40px rgba(0,0,0,0.45);

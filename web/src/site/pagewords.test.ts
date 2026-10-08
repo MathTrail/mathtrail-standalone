@@ -44,12 +44,20 @@ describe("a page's words", () => {
 		]);
 	});
 
-	test("keep a key written with nothing after it, as an empty text", () => {
-		expect([...parsePageWords("title: T\nlead:\n")]).toEqual([
-			["title", "T"],
-			["lead", ""],
-		]);
-	});
+	// An empty text is the comparison of a page's words to refuse, by its key,
+	// so the key stays whichever way it is written with nothing after it.
+	test.each([
+		["after its colon", "title: T\nlead:\n", "lead"],
+		["in a section written in braces", "title: T\nhero: {lead}\n", "hero.lead"],
+	])(
+		"keep a key written with nothing %s, as an empty text",
+		(_, source, key) => {
+			expect([...parsePageWords(source)]).toEqual([
+				["title", "T"],
+				[key, ""],
+			]);
+		},
+	);
 
 	test.each([
 		["an empty file", "", "holds 0 documents"],
@@ -73,6 +81,11 @@ describe("a page's words", () => {
 		["an empty section", "hero: {}\n", "hero is an empty section"],
 		["an empty list", "tips: []\n", "tips is an empty list"],
 		["a broken file", "title: [A\n", "Flow sequence in block collection"],
+		[
+			"a directive the parser only warns about",
+			"%FOO bar\n---\ntitle: A\n",
+			"Unknown directive %FOO",
+		],
 	])("are refused for %s", (_, source, want) => {
 		expect(() => parsePageWords(source)).toThrow(want);
 	});

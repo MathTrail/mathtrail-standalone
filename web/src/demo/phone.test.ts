@@ -104,14 +104,16 @@ function lay(layout: Layout): void {
 // windowOf is a window over layout, as heldFrom asks while wide says so: its
 // stylesheet holds the first screen 64 pixels down, under the menu, in the
 // room layout says, the page scrolls by layout, and its frames run and the
-// sizes it watches change when the test says. A window that refuses
-// listeners throws at the first one asked of its media query.
+// sizes it watches change when the test says; a frame cancelled before then
+// never runs. A window that refuses listeners throws at the first one asked
+// of its media query.
 function windowOf(layout: Layout, wide = true, refuses = false) {
 	let matches = wide;
 	const queries: string[] = [];
 	const changes = new Set<() => void>();
 	const heard = new Map<string, Set<() => void>>();
-	const frames: FrameRequestCallback[] = [];
+	const frames = new Map<number, FrameRequestCallback>();
+	let framesAsked = 0;
 	const watchers = new Set<() => void>();
 	const watched: Element[] = [];
 	const fire = (type: string) => {
@@ -120,7 +122,9 @@ function windowOf(layout: Layout, wide = true, refuses = false) {
 		}
 	};
 	const runFrames = () => {
-		for (const run of frames.splice(0)) {
+		const due = [...frames.values()];
+		frames.clear();
+		for (const run of due) {
 			run(0);
 		}
 	};
@@ -161,8 +165,12 @@ function windowOf(layout: Layout, wide = true, refuses = false) {
 		scrollBy: ({ top = 0 }: ScrollToOptions) => {
 			layout.scrolled += top;
 		},
-		requestAnimationFrame: (run: FrameRequestCallback) => frames.push(run),
-		cancelAnimationFrame: () => {},
+		requestAnimationFrame: (run: FrameRequestCallback) => {
+			framesAsked += 1;
+			frames.set(framesAsked, run);
+			return framesAsked;
+		},
+		cancelAnimationFrame: (frame: number) => frames.delete(frame),
 		addEventListener: (type: string, listener: () => void) => {
 			const listeners = heard.get(type) ?? new Set();
 			listeners.add(listener);
@@ -181,6 +189,11 @@ function windowOf(layout: Layout, wide = true, refuses = false) {
 			fire("scroll");
 			runFrames();
 		},
+		scrollWithFrameDue(to: number) {
+			layout.scrolled = to;
+			fire("scroll");
+		},
+		framesDue: () => frames.size,
 		resize(toWide: boolean) {
 			matches = toWide;
 			for (const change of [...changes]) {
@@ -394,6 +407,24 @@ describe("the first screen on a wide window", () => {
 		expect(room()).toBe(`${836 + 299 + 450}px`);
 	});
 
+	// A page scrolled by a wheel or a finger says so many times in a frame,
+	// and the chat is set once for the frame the window draws.
+	test("follows the page's scroll in the window's next frame, once however often the page scrolls before it", () => {
+		openHome("en");
+		const layout = tall();
+		lay(layout);
+		const window = windowOf(layout);
+		holdTheFirstScreen(document, window.window);
+
+		window.scrollWithFrameDue(100);
+		window.scrollWithFrameDue(150);
+		expect(window.framesDue()).toBe(1);
+		expect(chat().scrollTop).toBe(0);
+
+		window.runFrames();
+		expect(chat().scrollTop).toBe(150);
+	});
+
 	test("is not held where, held, it would not stand whole under the menu, and the chat scrolls by itself", () => {
 		openHome("en");
 		const layout = tall();
@@ -457,6 +488,24 @@ test("the first screen, let go, is as the page was built and follows nothing", (
 	stop();
 	window.scroll(150);
 	window.sizesChange();
+	window.runFrames();
+
+	expect(track().dataset.pinned).toBeUndefined();
+	expect(room()).toBe("");
+	expect(chat().scrollTop).toBe(0);
+});
+
+test("the first screen, let go while frames are due, is as the page was built once they would have come", () => {
+	openHome("en");
+	const layout = tall();
+	lay(layout);
+	const window = windowOf(layout);
+	const stop = holdTheFirstScreen(document, window.window);
+	window.scrollWithFrameDue(150);
+	window.sizesChange();
+	expect(window.framesDue()).toBe(2);
+
+	stop();
 	window.runFrames();
 
 	expect(track().dataset.pinned).toBeUndefined();

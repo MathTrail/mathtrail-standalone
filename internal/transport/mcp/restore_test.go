@@ -2,6 +2,7 @@ package mcpserver_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive/drivetest"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
+	"github.com/MathTrail/mathtrail-standalone/internal/store/memory"
 )
 
 // fileWithHistory is a profile file in the Drive whose latest state is the
@@ -111,6 +113,27 @@ func TestARestoreOfAReadableProfilePutsNothingBack(t *testing.T) {
 	}
 	if calls := fake.Calls(); calls["update"] != 0 || calls["keep"] != 0 || calls["delete"] != 0 {
 		t.Errorf("a restore not made cost %v, want nothing written", calls)
+	}
+}
+
+// A file put back where there is no profile at all — the parent deleted it
+// since the damage was told — shows the first sign-in, and nothing is made:
+// there is nothing to put back, and a profile is made in the chat.
+func TestARestoreWithNoProfileShowsTheFirstSignIn(t *testing.T) {
+	t.Parallel()
+
+	kept := memory.New()
+	_, session := lesson(t, kept)
+
+	result := call(t, session, "save_profile", map[string]any{"restore": true})
+	if got := payloadOf[profilePayload](t, result); got.Screen != "first_run" || got.Status != "" || got.Profile != nil {
+		t.Errorf("save_profile with restore and no profile = %+v, want the first sign-in", got)
+	}
+	if text := textOf(t, result); !strings.HasPrefix(text, "There is no profile yet") {
+		t.Errorf("save_profile with restore and no profile says %q, want it to say there is no profile", text)
+	}
+	if _, _, err := kept.Load(t.Context(), devAccount); !errors.Is(err, store.ErrNotFound) {
+		t.Errorf("Load() error = %v, want still no profile", err)
 	}
 }
 

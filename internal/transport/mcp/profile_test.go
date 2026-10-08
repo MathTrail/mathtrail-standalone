@@ -855,6 +855,8 @@ func TestAStoreThatFailsIsToldInOurWords(t *testing.T) {
 		"Something went wrong inside MathTrail.")
 	wantOurSentence(t, call(t, session, "next_task", map[string]any{"language": "en"}),
 		"Something went wrong inside MathTrail.")
+	wantOurSentence(t, call(t, session, "prepare_task", map[string]any{"language": "en"}),
+		"Something went wrong inside MathTrail.")
 	wantOurSentence(t, call(t, session, "submit_task", raceOn(openRace(t))),
 		"Something went wrong inside MathTrail.")
 	h.settle()
@@ -881,6 +883,8 @@ func TestASaveThatLostToAnotherWriteIsToldSo(t *testing.T) {
 	result := call(t, session, "save_profile", map[string]any{"grade": 4})
 	wantOurSentence(t, result, "The child's profile was changed somewhere else at the same moment")
 	wantOurSentence(t, call(t, session, "next_task", map[string]any{"language": "en"}),
+		"The child's profile was changed somewhere else at the same moment")
+	wantOurSentence(t, call(t, session, "edit_profile", map[string]any{"grade": 4}),
 		"The child's profile was changed somewhere else at the same moment")
 
 	h.settle()

@@ -94,6 +94,7 @@
 	"progress.mastered": "مسلط",
 	"progress.right": "درست",
 	"progress.wrong": "غلط",
+	"progress.loading": "در حال بارگیری پیشرفت…",
 	"progress.failed": "پیشرفت بارگیری نشد. برگرد و دوباره تلاش کن.",
 	"profile.label": "نمایه · برای والدین",
 	"profile.edit": "ویرایش",

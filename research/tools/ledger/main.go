@@ -30,6 +30,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -37,59 +38,87 @@ import (
 )
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, "ledger:", err)
-		os.Exit(1)
-	}
+	os.Exit(run(os.Args[1:], func(repo, commit string) Source {
+		return gitShow(context.Background(), repo, commit)
+	}, os.Stdout, os.Stderr))
 }
 
-func run() error {
-	claimsPath := flag.String("claims", "", "the claims file")
-	statsPath := flag.String("stats", "", "the key=value facts computed at the pinned commit")
-	ledgerPath := flag.String("ledger", "", "the ledger file whose section is rendered")
-	section := flag.String("section", "", "the name in the section's markers")
-	repo := flag.String("repo", ".", "the git repository the proofs are read from")
-	numbersPath := flag.String("numbers", "", "the file the claims' numbers are written to, if any")
-	check := flag.Bool("check", false, "fail if the section or the numbers are out of date instead of rewriting them")
-	flag.Parse()
-	if *claimsPath == "" || *statsPath == "" || *ledgerPath == "" || *section == "" {
+// run runs the command on its arguments, reading the proofs through show and
+// speaking through stdout and stderr, and returns the exit status: 0 when the
+// ledger is written or found up to date, and for -h; 2 when the arguments do
+// not parse; and 1 for any other failure, whose reason goes to stderr.
+func run(args []string, show func(repo, commit string) Source, stdout, stderr io.Writer) int {
+	flags := flag.NewFlagSet("ledger", flag.ContinueOnError)
+	flags.SetOutput(stderr)
+	var j job
+	flags.StringVar(&j.claimsPath, "claims", "", "the claims file")
+	flags.StringVar(&j.statsPath, "stats", "", "the key=value facts computed at the pinned commit")
+	flags.StringVar(&j.ledgerPath, "ledger", "", "the ledger file whose section is rendered")
+	flags.StringVar(&j.section, "section", "", "the name in the section's markers")
+	flags.StringVar(&j.repo, "repo", ".", "the git repository the proofs are read from")
+	flags.StringVar(&j.numbersPath, "numbers", "", "the file the claims' numbers are written to, if any")
+	flags.BoolVar(&j.check, "check", false, "fail if the section or the numbers are out of date instead of rewriting them")
+	if err := flags.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return 0
+		}
+		return 2
+	}
+	if err := j.do(show, stdout); err != nil {
+		fmt.Fprintln(stderr, "ledger:", err)
+		return 1
+	}
+	return 0
+}
+
+// job is what one run is asked to do: the files it reads and writes, the
+// repository the proofs come from, and whether it only checks.
+type job struct {
+	claimsPath, statsPath, ledgerPath, section, repo, numbersPath string
+	check                                                         bool
+}
+
+// do resolves every claim at the commit the stats name, then writes the
+// ledger's section and the numbers, or with check only compares them.
+func (j *job) do(show func(repo, commit string) Source, stdout io.Writer) error {
+	if j.claimsPath == "" || j.statsPath == "" || j.ledgerPath == "" || j.section == "" {
 		return errors.New("-claims, -stats, -ledger and -section are all required")
 	}
 
-	claims, err := readClaims(*claimsPath)
+	claims, err := readClaims(j.claimsPath)
 	if err != nil {
 		return err
 	}
-	stats, err := readStats(*statsPath)
+	stats, err := readStats(j.statsPath)
 	if err != nil {
 		return err
 	}
-	rows, err := Resolve(claims, gitShow(context.Background(), *repo, stats.Commit), stats)
+	rows, err := Resolve(claims, show(j.repo, stats.Commit), stats)
 	if err != nil {
 		return err
 	}
 	table := Render(rows, stats)
 	numbers := RenderNumbers(rows, stats)
 
-	if *check {
-		if err := checkLedger(*ledgerPath, *section, table); err != nil {
+	if j.check {
+		if err := checkLedger(j.ledgerPath, j.section, table); err != nil {
 			return err
 		}
-		if err := checkNumbers(*numbersPath, numbers); err != nil {
+		if err := checkNumbers(j.numbersPath, numbers); err != nil {
 			return err
 		}
-		fmt.Printf("%d claims, every proof found at %s, and %s is up to date\n", len(rows), stats.Commit, *ledgerPath)
+		fmt.Fprintf(stdout, "%d claims, every proof found at %s, and %s is up to date\n", len(rows), stats.Commit, j.ledgerPath)
 		return nil
 	}
-	if err := writeLedger(*ledgerPath, *section, table); err != nil {
+	if err := writeLedger(j.ledgerPath, j.section, table); err != nil {
 		return err
 	}
-	if *numbersPath != "" {
-		if err := replaceFile(filepath.Clean(*numbersPath), []byte(numbers), 0o644); err != nil {
+	if j.numbersPath != "" {
+		if err := replaceFile(filepath.Clean(j.numbersPath), []byte(numbers), 0o644); err != nil {
 			return fmt.Errorf("write numbers: %w", err)
 		}
 	}
-	fmt.Printf("%d claims written to %s\n", len(rows), *ledgerPath)
+	fmt.Fprintf(stdout, "%d claims written to %s\n", len(rows), j.ledgerPath)
 	return nil
 }
 

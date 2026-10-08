@@ -95,6 +95,7 @@
 	"progress.mastered": "Dominado",
 	"progress.right": "Acerto",
 	"progress.wrong": "Erro",
+	"progress.loading": "Carregando o progresso…",
 	"progress.failed": "Não foi possível carregar o progresso. Volte e tente de novo.",
 	"profile.label": "Perfil · para os pais",
 	"profile.edit": "Editar",

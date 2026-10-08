@@ -864,7 +864,8 @@ _paper-placeholders:
 # which are its pages, as the build's log gives them, its size, held to the
 # file's, its hash and the commit the paper's numbers were computed on. The
 # PDF prints the commit it is built from, which must make it, so a paper built
-# while the research's tree held changes no commit has is refused.
+# while the research's tree, or the snapshot of real use it prints, held changes
+# no commit has is refused.
 _paper-to-site:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -873,7 +874,7 @@ _paper-to-site:
     # the PDF.
     version=$(just research _paper-a-version)
     if [[ $version == *", modified" ]] || ! grep -q -x -F "Paper A: Version of $version." research/paper-a/build/paper-a.log; then
-        echo "_paper-to-site: research/ holds changes no commit has; commit them, and the paper names that commit" >&2
+        echo "_paper-to-site: research/ or site/research/live.json holds changes no commit has; commit them, and the paper names that commit" >&2
         exit 1
     fi
     pdf=research/paper-a/build/paper-a.pdf
@@ -976,7 +977,8 @@ tf-check:
     terraform -chdir={{ TF_DIR }} validate
 
 # The SQL of the counts kept for years — the nightly script, the tables it
-# fills and the views two reports read — run against a BigQuery emulator
+# fills, the views two reports read and the daily report's view over the
+# export of the costs — run against a BigQuery emulator
 # started for the run, on a port of its own, and removed after it. The tests
 # are the files Terraform hands BigQuery, filled in the same way; they stand
 # behind the build tag analytics, since a plain test run starts no container.

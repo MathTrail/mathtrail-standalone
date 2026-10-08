@@ -94,6 +94,7 @@
 	"progress.mastered": "Beheerst",
 	"progress.right": "Goed",
 	"progress.wrong": "Fout",
+	"progress.loading": "Voortgang laden…",
 	"progress.failed": "De voortgang kon niet worden geladen. Ga terug en probeer het opnieuw.",
 	"profile.label": "Profiel · voor ouders",
 	"profile.edit": "Wijzigen",

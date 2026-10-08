@@ -130,6 +130,9 @@ func TestASubmissionOutOfTheFormatIsRefusedByName(t *testing.T) {
 		{"an object where a list belongs", func(p *parts) {
 			p.selfCheck = json.RawMessage(strings.Replace(string(p.selfCheck), `"issues":[]`, `"issues":{}`, 1))
 		}, []string{"self_check.issues must be a list"}},
+		{"text where an object belongs", func(p *parts) {
+			p.task = explanationAsText(p.task)
+		}, []string{"task.distractors.* must be an object"}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -149,6 +152,51 @@ func TestASubmissionOutOfTheFormatIsRefusedByName(t *testing.T) {
 			}
 		})
 	}
+}
+
+// A value of the wrong shape where an object belongs is refused once, by what
+// it should hold, and never also as a member the format does not have: a value
+// that is no object has no members to judge, and two refusals of one slip
+// would send the model looking for a second.
+func TestAWrongShapeWhereAnObjectBelongsIsRefusedOnce(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name   string
+		change func(*parts)
+		want   string
+	}{
+		{"an explanation written as text", func(p *parts) {
+			p.task = explanationAsText(p.task)
+		}, "task.distractors.* must be an object"},
+		{"an issue written as a number", func(p *parts) {
+			p.selfCheck = json.RawMessage(strings.Replace(string(p.selfCheck), `"issues":[]`, `"issues":[5]`, 1))
+		}, "self_check.issues.0 must be an object"},
+		{"a drawn object written as its name", func(p *parts) {
+			p.task = withMember(t, p.task, "drawing_structure", map[string]any{"kind": "row", "objects": []any{"ship"}})
+		}, "task.drawing_structure.objects.0 must be an object"},
+		{"a drawing's structure written in words", func(p *parts) {
+			p.task = withMember(t, p.task, "drawing_structure", "a row of four ships")
+		}, "task.drawing_structure must be an object"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			submitted := validParts(t)
+			test.change(&submitted)
+			_, problems := checks.Decode(submitted.task, submitted.selfCheck)
+			if want := []checks.Problem{{Code: checks.CodeBadStructure, Message: test.want}}; !slices.Equal(problems, want) {
+				t.Errorf("Decode() = %v, want %v", problems, want)
+			}
+		})
+	}
+}
+
+// explanationAsText is a task whose last explanation is written as the words
+// the child is told alone, with no trap.
+func explanationAsText(raw json.RawMessage) json.RawMessage {
+	return json.RawMessage(strings.Replace(string(raw),
+		`{"trap":"double_count","text":"You counted every pair twice."}`, `"You counted every pair twice."`, 1))
 }
 
 // The same stray member in all four explanations is one thing to fix.

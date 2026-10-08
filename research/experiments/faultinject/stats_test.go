@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"math"
 	"testing"
 
@@ -65,5 +66,65 @@ func TestSketchSimilarityMatchesTheService(t *testing.T) {
 	}
 	if _, readable := sketchSimilarity("not base64!", checks.Fingerprint(question, language)); readable {
 		t.Error("sketchSimilarity read a sketch that is not one")
+	}
+}
+
+// The chance of at most k successes in n tries is certain from k = n on and
+// none below k = 0, certain at a chance of 0 and none at a chance of 1 short of
+// every try; in between it is the sum of the binomial terms: at most two of
+// four fair tries is 11 in 16.
+func TestTheBinomialChanceAtItsEdges(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		name    string
+		k, n    int
+		p, want float64
+	}{
+		{"every try", 4, 4, 0.3, 1},
+		{"more than every try", 5, 4, 0.3, 1},
+		{"fewer than none", -1, 4, 0.3, 0},
+		{"a chance of none", 2, 4, 0, 1},
+		{"a certain chance", 2, 4, 1, 0},
+		{"fair tries", 2, 4, 0.5, 11.0 / 16},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := binomialAtMost(test.k, test.n, test.p); math.Abs(got-test.want) > 1e-12 {
+				t.Errorf("binomialAtMost(%d, %d, %v) = %v, want %v", test.k, test.n, test.p, got, test.want)
+			}
+		})
+	}
+}
+
+// With no host to draw there is nothing to bound, and the interval is every
+// share there is; an empty list has no value at any share of it.
+func TestAnEmptyBootstrapBoundsNothing(t *testing.T) {
+	t.Parallel()
+	if low, high := bootstrapByHost(nil, seeded("test", "bootstrap")); low != 0 || high != 1 {
+		t.Errorf("bootstrapByHost(nil) = (%v, %v), want (0, 1)", low, high)
+	}
+	if got := percentile(nil, 0.5); !math.IsNaN(got) {
+		t.Errorf("percentile(nil) = %v, want NaN", got)
+	}
+}
+
+// Two sketches are compared only when both can be read and they are of one
+// length: anything else is no estimate at all, not an estimate of zero.
+func TestSketchesThatCannotBeComparedGiveNoEstimate(t *testing.T) {
+	t.Parallel()
+	sketch := checks.Fingerprint("Ann has 3 red pencils and 4 blue pencils. How many pencils does Ann have?", language)
+	short := base64.StdEncoding.EncodeToString([]byte{1, 2, 3})
+	for name, pair := range map[string][2]string{
+		"the second unreadable": {sketch, "not base64!"},
+		"the second shorter":    {sketch, short},
+		"the first shorter":     {short, sketch},
+		"both empty":            {"", ""},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			if estimate, readable := sketchSimilarity(pair[0], pair[1]); readable || estimate != 0 {
+				t.Errorf("sketchSimilarity = %v, %v; want 0, false", estimate, readable)
+			}
+		})
 	}
 }

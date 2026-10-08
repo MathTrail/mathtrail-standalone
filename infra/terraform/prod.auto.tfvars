@@ -39,6 +39,10 @@ disable_default_url = true
 # privacy policy at mathtrail.app says.
 analytics = true
 
+# Who the load alert is mailed to: the company's address, which the site's
+# privacy policy and terms already publish.
+operator_email = "altedtech.info@gmail.com"
+
 # The reviewers' sign-in, by the versions of its two secrets.
 reviewer_password_version = "2"
 reviewer_grant_version    = "3"

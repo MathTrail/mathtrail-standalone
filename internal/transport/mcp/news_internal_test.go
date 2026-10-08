@@ -111,3 +111,21 @@ func heardOf(ear <-chan []byte) ([]byte, bool) {
 		return nil, false
 	}
 }
+
+// A profile that cannot be written down is handed to the questions as nothing,
+// and they hear it all the same: a write landed, and a question that waited for
+// one is not left waiting out its hold for news that came.
+func TestAProfileThatCannotBeWrittenDownIsStillNews(t *testing.T) {
+	t.Parallel()
+
+	heard := newNews()
+	ear, stop := heard.listen("masha")
+	defer stop()
+	unwritable := newOtter()
+	unwritable.Student.Grade = profile.MaxGrade + 1
+
+	heard.tell("masha", unwritable)
+	if raw, told := heardOf(ear); !told || raw != nil {
+		t.Errorf("the question was handed %q, told %t, want it told, with nothing", raw, told)
+	}
+}

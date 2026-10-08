@@ -14,9 +14,10 @@ This is the artifact of the paper *The Model Writes, the Service Checks: Olympia
 | `service/research/experiments/learnersim/` | E-A3, simulated learners under the service's update and the baselines | Sections 5 and 6.2, Figure 2 |
 | `service/research/experiments/perf/` | E-A4, what a review costs and how large the model's package is | Section 6.3 |
 | `service/research/experiments/reviewing/` | The review harness the experiments share | — |
-| `service/research/evidence/ledger.md` | Every claim the paper makes about the service, with the file and line in this tree that prove it; `claims-product.json` is its source, and `product-stats.txt` holds the facts computed from the code by `product.sh` | throughout |
+| `service/research/evidence/ledger.md` | Every claim the paper makes about the service, with the file and line in this tree that prove it; `claims-product.json` is its source, and `product-stats.txt` holds the facts computed from the code by `product.sh`. The claims of the service's real use, which began after that commit, are proven at a later commit of the service's repository, the one `use-stats.txt` names, whose files this tree does not hold; `claims-use.json` is their source | throughout |
 | `service/research/evidence/prototype.md` | The claims about the prototype the service grew from, each proven by a quotation from the prototype's public repository | Sections 3 and 6 |
 | `service/research/paper-a/numbers.tex` | Every number the paper prints, as the macro it is printed through | throughout |
+| `service/research/paper-a/live.txt` | What the paper prints of the service's real use, as the research's `tools/live` wrote it from the monthly snapshot of public totals beside it, `live.json`, there when the tree the artifact was assembled from held one | Section 7 |
 | `service/research/literature/numbers.txt` | The numbers the paper takes from other works, each with the passage it comes from | Sections 1, 2, 5 and 8 |
 
 ## Reproducing the results
@@ -51,11 +52,11 @@ grep '^package' "$ea4/numbers.txt" | diff "$ea4/shipped-package-lines" -
 
 `provenance.txt` beside each result names the commit the run was made on and the Go and Starlark versions it used.
 
-Each results directory has a `numbers.txt` of `key=value` lines, and `paper-a/numbers.tex` defines one macro per line: `\stat{ea1}{key}` is E-A1's `key`, `ea3` E-A3's and `ea4` E-A4's; `product` is a fact of `evidence/product-stats.txt`, `ledger` one of `evidence/ledger-numbers.txt`, and `literature` one of `literature/numbers.txt`, all under `service/research/`.
+Each results directory has a `numbers.txt` of `key=value` lines, and `paper-a/numbers.tex` defines one macro per line: `\stat{ea1}{key}` is E-A1's `key`, `ea3` E-A3's and `ea4` E-A4's; `product` is a fact of `evidence/product-stats.txt`, `ledger` one of `evidence/ledger-numbers.txt`, `literature` one of `literature/numbers.txt`, and `live` one of `paper-a/live.txt`, all under `service/research/`. `live.txt` gives a state, 0 while no snapshot has a month counted whole, 1 when the month's children were too few for its total to be shown and 2 when it is shown; the snapshot's month as `year` and `month`; and, at state 2, the snapshot's total as it stands.
 
 ## What is not here
 
-- **Data about children.** None was collected: the experiments run on the reference tasks and on simulated learners.
+- **Data about children.** None was collected: the experiments run on the reference tasks and on simulated learners. The paper prints of real children only the totals the service publishes of a month behind ten children or more, from `paper-a/live.json`, which names no child.
 - **Model outputs.** Neither experiment calls a language model; the one file in the results a model wrote is `reading.csv`, above.
 
 ## Licence

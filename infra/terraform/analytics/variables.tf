@@ -19,3 +19,8 @@ variable "snapshot_reader" {
   description = "The one federated principal that may borrow the identity reading the snapshot of the live numbers, as principal://iam.googleapis.com/projects/NUMBER/locations/global/workloadIdentityPools/POOL/subject/SUBJECT."
   type        = string
 }
+
+variable "billing_export" {
+  description = "Whether Cloud Billing's standard usage cost export has made its table in the dataset billing, so that the daily report's view can be made over it."
+  type        = bool
+}

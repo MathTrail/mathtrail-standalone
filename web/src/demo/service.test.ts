@@ -81,6 +81,38 @@ describe("the service the demo answers for", () => {
 		]);
 	});
 
+	// An answer of the trial series moves no rating, and the rating stands
+	// where the answer before it left it for the answer after it.
+	test("tells an answer that moves no rating so, and moves the next on from where the one before it left the rating", async () => {
+		const data = fenceData();
+		const service = demoService({
+			...data,
+			results: { ...data.results, D: { ...data.results.D, rating: null } },
+		});
+		const ratings: unknown[] = [];
+		for (const [taskId, choice] of [
+			["task_1", "B"],
+			["task_2", "D"],
+			["task_3", "C"],
+		] as const) {
+			void service.recordAnswer(taskId, choice, false).then((told) => {
+				ratings.push(told.kind === "answered" ? told.result.rating : told);
+			});
+			await vi.advanceTimersByTimeAsync(checkingTakes);
+		}
+
+		const wrong = data.results.B.rating;
+		const right = data.results.C.rating;
+		if (wrong === null || right === null) {
+			throw new Error("the fence's answers move no rating");
+		}
+		expect(ratings).toEqual([
+			{ before: wrong.before, after: wrong.after },
+			null,
+			{ before: wrong.after, after: wrong.after + right.after - right.before },
+		]);
+	});
+
 	test("says a task asked for is being written, then hands it out: the lesson's task, under an id of its own", async () => {
 		const data = fenceData();
 		const service = demoService(data);
@@ -103,10 +135,13 @@ describe("the service the demo answers for", () => {
 		});
 	});
 
-	test("saves no change to a profile, since the page keeps none", async () => {
-		expect(
-			await demoService(fenceData()).saveEdit({ lesson_topic: "" }),
-		).toEqual({ kind: "failed" });
+	test("reads no progress and saves no change to a profile, since the page keeps none", async () => {
+		const service = demoService(fenceData());
+
+		expect(await service.readProgress()).toEqual({ kind: "failed" });
+		expect(await service.saveEdit({ lesson_topic: "" })).toEqual({
+			kind: "failed",
+		});
 	});
 });
 

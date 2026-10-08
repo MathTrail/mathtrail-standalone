@@ -2,6 +2,7 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { Page } from "playwright-core";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
 	type Photo,
@@ -9,7 +10,14 @@ import {
 	photoPath,
 	photos,
 } from "../src/site/brand.ts";
-import { cropOf, makePhotos, originalOf, pictureOnly } from "./photos.ts";
+import {
+	cropOf,
+	drawerIn,
+	makePhotos,
+	originalOf,
+	pictureOnly,
+	quality,
+} from "./photos.ts";
 import { keptPhotoOf } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
@@ -150,6 +158,83 @@ describe("making a photograph", () => {
 		expect(() => pictureOnly(whole.subarray(0, whole.length - 3))).toThrow(
 			"cut short",
 		);
+	});
+});
+
+// pageAnswering is a page whose browser answers what it is asked to run with
+// answers, one after another — the size it decodes an original at, then the
+// picture it writes — and keeps what it was given each time, in order.
+function pageAnswering(...answers: unknown[]) {
+	const given: unknown[] = [];
+	const page: { evaluate: (run: unknown, arg: unknown) => Promise<unknown> } = {
+		evaluate: async (_, arg) => {
+			given.push(arg);
+			return answers.shift();
+		},
+	};
+	return { page: page as unknown as Page, given };
+}
+
+// asData is a data URL of a WebP file, as a browser's canvas writes one.
+const asData = (file: Buffer) =>
+	`data:image/webp;base64,${file.toString("base64")}`;
+
+describe("drawing a photograph in a browser", () => {
+	const original = "data:image/jpeg;base64,b3JpZ2luYWw=";
+	const photo: Photo = { name: "dad", width: 960, height: 1200 };
+	// decoded is wider than the photograph's proportions, so the part kept
+	// lies across its middle.
+	const decoded = { width: 2001, height: 1500 };
+	const image = chunk("VP8 ", Buffer.from("a frame"));
+
+	test("asks the browser to draw the part of the original kept at the size it decodes, at the photograph's size and quality", async () => {
+		const { page, given } = pageAnswering(decoded, asData(webp(image)));
+
+		await drawerIn(page)(original, photo);
+
+		expect(given).toEqual([
+			original,
+			{
+				data: original,
+				crop: cropOf(decoded, photo),
+				width: 960,
+				height: 1200,
+				quality,
+			},
+		]);
+	});
+
+	test("keeps of what the browser writes the picture alone", async () => {
+		const written = webp(
+			chunk("VP8X", Buffer.alloc(10)),
+			image,
+			chunk("EXIF", Buffer.from("where")),
+		);
+		const { page } = pageAnswering(decoded, asData(written));
+
+		expect(await drawerIn(page)(original, photo)).toEqual(webp(image));
+	});
+
+	// A browser that cannot write WebP writes PNG in its place, and says so
+	// only by the type at the head of its data.
+	test("refuses a picture the browser wrote as PNG", async () => {
+		const { page } = pageAnswering(
+			decoded,
+			"data:image/png;base64,iVBORw0KGgo=",
+		);
+
+		await expect(drawerIn(page)(original, photo)).rejects.toThrow(
+			"the browser wrote no WebP",
+		);
+	});
+
+	test("refuses an original the browser decodes smaller than its photograph, and asks it to draw nothing", async () => {
+		const { page, given } = pageAnswering({ width: 600, height: 800 });
+
+		await expect(drawerIn(page)(original, photo)).rejects.toThrow(
+			"smaller than its photograph",
+		);
+		expect(given).toEqual([original]);
 	});
 });
 

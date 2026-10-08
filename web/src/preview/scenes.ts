@@ -97,7 +97,8 @@ const fences: Readonly<Record<string, Fence>> = {
 	},
 };
 
-// A reply that never comes, for a card caught while it checks an answer.
+// A reply that never comes, for a card caught while it waits for one: an
+// answer being checked, a form being saved, a progress being read.
 const never = new Promise<CallToolResult>(() => {});
 
 // longestTopicIn is the topic the choice offers whose name is the longest in
@@ -296,6 +297,14 @@ export function scenesIn(language: string): Scene[] {
 			payload: { ...handed, status: "stale", code: "stale_request" },
 		},
 		{ name: "progress", payload: handed, answers: service(), play: topLine },
+		// The progress opened over a task and still being read: the outline of
+		// the screen to come under the child's line, with its bar.
+		{
+			name: "progress being read",
+			payload: handed,
+			answers: () => never,
+			play: topLine,
+		},
 		{
 			name: "progress over a task, every section open",
 			payload: handed,

@@ -274,3 +274,29 @@ func TestTheStandardErrorIsCountedByChild(t *testing.T) {
 func weighing() *counts {
 	return &counts{promises: map[promisedIn]*cameTrue{}, keptUp: map[keptUpIn]*keptUp{}, answersLeftOut: map[string]int{}}
 }
+
+// Phrases are listed as a sentence lists them: one alone as it is, two with
+// "and" between them, and more with commas between and "and" before the last.
+func TestPhrasesAreListedAsASentenceListsThem(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name    string
+		phrases []string
+		want    string
+	}{
+		{"none", nil, ""},
+		{"one", []string{"with the hint (2)"}, "with the hint (2)"},
+		{"two", []string{"with the hint (2)", "in the trial (1)"}, "with the hint (2) and in the trial (1)"},
+		{"three", []string{"with the hint (2)", "in the trial (1)", "chosen by a tutor (3)"},
+			"with the hint (2), in the trial (1) and chosen by a tutor (3)"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := inWords(test.phrases); got != test.want {
+				t.Errorf("inWords(%q) = %q, want %q", test.phrases, got, test.want)
+			}
+		})
+	}
+}

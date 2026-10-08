@@ -78,6 +78,10 @@ func TestCombinatoricsRefusals(t *testing.T) {
 		{"a number as a sequence", `permutations(7, 2)`, "not a sequence"},
 		{"a tuple of less than nothing", `permutations([1, 2], -1)`, "shorter than empty"},
 		{"a repeat of less than nothing", `product([1, 2], repeat=-1)`, "must be between 0"},
+		// Python's product takes repeat and nothing else by name, and a solver
+		// that names another means something this helper would never do.
+		{"a keyword product does not take", `product([1, 2], times=2)`, `unexpected keyword argument "times"`},
+		{"a number to draw on again", `combinations_with_replacement(7, 2)`, "not a sequence"},
 		{"no r at all", `combinations([1, 2])`, "missing argument"},
 		{"more orderings than will be built", `permutations(range(1000), 3)`, "elements"},
 		{"more choices than will be built", `combinations(range(100), 10)`, "elements"},

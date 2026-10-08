@@ -7,6 +7,7 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -62,6 +63,28 @@ func TestADamagedFileIsToldAndLeftAsItIs(t *testing.T) {
 	}
 	if lines := f.linesOf("drive_recovered"); len(lines) != 0 {
 		t.Errorf("drive_recovered lines = %v, want none: nothing was put back", lines)
+	}
+}
+
+// A remembered file that reads as damage is told as damage only once a search
+// says it is still the profile: another instance may have set it aside, and
+// started a new one. A search Drive fails leaves that unknown, so the read is
+// told as Drive out of reach — never as damage the parent would be asked to
+// put back or start over from — and once Drive answers, the damage is told.
+func TestADamagedReadWhoseSearchFailsIsNotToldAsDamage(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	f.create(t, mia, child("Mia"))
+	plant(t, f.fake, miaToken, damage)
+	failEveryTry(f.fake, drivetest.List, http.StatusServiceUnavailable, "backendError")
+
+	_, _, err := f.storage.Load(t.Context(), mia)
+	if !errors.Is(err, store.ErrUnavailable) || errors.Is(err, store.ErrCorrupted) {
+		t.Errorf("Load() of a damaged file while the search fails: error = %v, want %v and not %v", err, store.ErrUnavailable, store.ErrCorrupted)
+	}
+	if _, _, err := f.storage.Load(t.Context(), mia); !errors.Is(err, store.ErrDamaged) {
+		t.Errorf("Load() once Drive answers the search: error = %v, want %v", err, store.ErrDamaged)
 	}
 }
 
@@ -166,6 +189,24 @@ func TestAFileJustPutBackStillEarlyIsToldAsBehindOnce(t *testing.T) {
 	}
 }
 
+// A file just put back that reads as the damage, and that Drive then fails to
+// read once more, is told as Drive out of reach: never as damage the parent
+// would be asked about again.
+func TestAFileJustPutBackThatDriveFailsToReadAgainIsNotCalledDamaged(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	f.putBackThenEarly(t, 2)
+	// The file as remembered, and as the search finds it, both read early.
+	letThrough(f.fake, drivetest.Download, 2)
+	failEveryTry(f.fake, drivetest.Download, http.StatusServiceUnavailable, "backendError")
+
+	_, _, err := f.storage.Load(t.Context(), mia)
+	if !errors.Is(err, store.ErrUnavailable) || errors.Is(err, store.ErrCorrupted) {
+		t.Errorf("Load() error = %v, want %v and not %v", err, store.ErrUnavailable, store.ErrCorrupted)
+	}
+}
+
 // A file put back that has since been damaged again and set aside by another
 // instance, for a new start, is no early read: the search finds the profile
 // started in its place, and nothing waits.
@@ -259,6 +300,52 @@ func TestARecoveryThatCannotReachDriveSaysSo(t *testing.T) {
 	_, _, err := f.storage.Restore(t.Context(), mia)
 	if !errors.Is(err, store.ErrUnavailable) || errors.Is(err, store.ErrCorrupted) {
 		t.Errorf("Restore() error = %v, want %v and not %v", err, store.ErrUnavailable, store.ErrCorrupted)
+	}
+}
+
+// A recovery whose write-back Drive refuses — the last read of the file
+// before it, or the write itself in a Drive with no room — says why, and
+// leaves the damage where it is: nothing was put back, and nothing is said to
+// be unreadable.
+func TestARecoveryWhoseWriteBackIsRefusedLeavesTheDamage(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name  string
+		spoil func(*drivetest.Drive)
+		want  error
+	}{
+		// The store has not seen the file before, so its first download is the
+		// read that finds the damage, and the next the one before the write.
+		{"Drive failing the read before the write", func(fake *drivetest.Drive) {
+			letThrough(fake, drivetest.Download, 1)
+			failEveryTry(fake, drivetest.Download, http.StatusServiceUnavailable, "backendError")
+		}, store.ErrUnavailable},
+		{"a Drive with no room for the write", func(fake *drivetest.Drive) {
+			fake.Fail(drivetest.Update, http.StatusForbidden, "storageQuotaExceeded")
+		}, store.ErrStorageFull},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := newFixture(t, 5*time.Second)
+			f.fake.Put(miaToken, &drivetest.File{
+				Name: fileName, MimeType: fileType, AppProperties: maps.Clone(profileMarker),
+				Revisions: []drivetest.Revision{{Content: fileOf(t, child("Mia"))}, {Content: damage}},
+			})
+			tc.spoil(f.fake)
+
+			_, _, err := f.storage.Restore(t.Context(), mia)
+			if !errors.Is(err, tc.want) || errors.Is(err, store.ErrCorrupted) {
+				t.Errorf("Restore() error = %v, want %v and not %v", err, tc.want, store.ErrCorrupted)
+			}
+			if got := f.profileFile(t, miaToken).Content; !bytes.Equal(got, damage) {
+				t.Errorf("the file holds\n%s\nwant the damage, left where it is", got)
+			}
+			if lines := f.linesOf("drive_recovered"); len(lines) != 0 {
+				t.Errorf("drive_recovered lines = %v, want none: nothing was put back", lines)
+			}
+		})
 	}
 }
 
@@ -429,6 +516,29 @@ func TestAFileTooLargeIsPutBackFromItsHistory(t *testing.T) {
 	}
 	if got := f.profileFile(t, miaToken).Content; !bytes.Equal(got, fileOf(t, good)) {
 		t.Errorf("the file holds %d bytes, want the profile it held before", len(got))
+	}
+}
+
+// A revision too large for any profile is no state to put the file back to,
+// and no reason to stop: it is passed over for the next one tried.
+func TestARevisionTooLargeIsPassedOver(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	older := fileOf(t, child("Mia two states ago"))
+	f.fake.Put(miaToken, &drivetest.File{
+		Name: fileName, MimeType: fileType, AppProperties: maps.Clone(profileMarker),
+		Revisions: []drivetest.Revision{{Content: older}, {Content: oversized}, {Content: damage}},
+	})
+
+	if _, _, err := f.storage.Restore(t.Context(), mia); err != nil {
+		t.Fatalf("Restore() error = %v, want nil", err)
+	}
+	if got := f.profileFile(t, miaToken).Content; !bytes.Equal(got, older) {
+		t.Errorf("the file holds %d bytes, want the state before the one too large", len(got))
+	}
+	if lines := f.linesOf("drive_recovered"); len(lines) != 1 || lines[0]["tried"] != int64(2) {
+		t.Errorf("drive_recovered lines = %v, want one, after two tries", lines)
 	}
 }
 
@@ -611,5 +721,41 @@ func TestARevisionAlreadyGoneIsAsGoodAsDeleted(t *testing.T) {
 	}
 	if got := f.fake.Files(miaToken)[0].Content; !bytes.Equal(got, good) {
 		t.Errorf("the file holds %s, want the state before the damage", got)
+	}
+}
+
+// Making room stops at the first revision Drive will not delete, and the
+// recovery goes on without the room: the states it cannot keep are passed
+// over, and the recovery is not told as one that found nothing readable —
+// nobody is offered a new start for it.
+func TestARecoveryThatCouldNotMakeRoomIsNotToldAsNothingReadable(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	good := fileOf(t, child("Mia"))
+	history := make([]drivetest.Revision, 0, 203)
+	for range 200 {
+		history = append(history, drivetest.Revision{Content: []byte("{}"), KeepForever: true})
+	}
+	// Two states not kept yet, which a recovery reads: room for both.
+	history = append(history, drivetest.Revision{Content: good}, drivetest.Revision{Content: good},
+		drivetest.Revision{Content: damage})
+	f.fake.Put(miaToken, &drivetest.File{Name: fileName, MimeType: fileType, AppProperties: maps.Clone(profileMarker), Revisions: history})
+	f.fake.Fail(drivetest.DeleteRevision, http.StatusBadRequest, "badRequest")
+	f.fake.ResetCalls()
+
+	// A revision that could not be kept could not be read, so the recovery
+	// cannot say that none of them holds a profile.
+	_, _, err := f.storage.Restore(t.Context(), mia)
+	if want := "a revision could not be read: drive: keep revision"; err == nil || errors.Is(err, store.ErrCorrupted) ||
+		!strings.Contains(err.Error(), want) {
+		t.Errorf("Restore() error = %v, want one saying %q, and not %v", err, want, store.ErrCorrupted)
+	}
+	if calls := f.fake.Calls(); calls["delete"] != 1 || calls["keep"] != 2 {
+		t.Errorf("the recovery asked to delete %d revisions and to keep %d, want the one Drive refused to delete, and both states it reads tried",
+			calls["delete"], calls["keep"])
+	}
+	if got := f.fake.Files(miaToken)[0].Content; !bytes.Equal(got, damage) {
+		t.Errorf("the file holds %s, want the damage left where it is", got)
 	}
 }

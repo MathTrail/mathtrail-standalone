@@ -197,6 +197,43 @@ func TestWhatWasMendedIsCountedByItsField(t *testing.T) {
 	}
 }
 
+// Tasks written ahead and let go are counted by the version, the reason and
+// whether the task had been written and kept or was still being written, a
+// row for each. Under each version, in the order it first appears, the row
+// that let go the most comes first, whatever the other row of its reason
+// holds; rows that let go as many come by their reason, and of one reason the
+// tasks still being written before the ones kept.
+func TestTasksLetGoAreCountedByWhyAndWhetherTheyWereWritten(t *testing.T) {
+	t.Parallel()
+
+	dropped := func(at, version, reason string, written bool, request string) string {
+		return fmt.Sprintf(`{"message":"task_dropped","time":%q,"reason":%q,"written":%t,`+
+			`"instructions_version":%q,"request_id":%q}`, at, reason, written, version, request)
+	}
+	rows := tallied(t,
+		dropped("2026-10-02T09:00:00Z", "v2", "topic", true, "r1"),
+		dropped("2026-10-02T09:01:00Z", "v2", "topic", true, "r2"),
+		dropped("2026-10-02T09:02:00Z", "v2", "topic", true, "r3"),
+		dropped("2026-10-02T09:03:00Z", "v2", "topic", false, "r4"),
+		dropped("2026-10-02T09:04:00Z", "v2", "language", false, "r5"),
+		dropped("2026-10-02T09:05:00Z", "v2", "language", false, "r6"),
+		dropped("2026-10-02T09:06:00Z", "v2", "skill", true, "r7"),
+		dropped("2026-10-02T09:07:00Z", "v2", "skill", false, "r8"),
+		dropped("2026-10-01T09:00:00Z", "v1", "skill", true, "r9"),
+	).letGoTable().rows
+	want := [][]string{
+		{"v1", "skill", "kept", "1"},
+		{"v2", "topic", "kept", "3"},
+		{"v2", "language", "being written", "2"},
+		{"v2", "skill", "being written", "1"},
+		{"v2", "skill", "kept", "1"},
+		{"v2", "topic", "being written", "1"},
+	}
+	if !slices.EqualFunc(rows, want, slices.Equal[[]string]) {
+		t.Errorf("tasks let go = %v, want %v", rows, want)
+	}
+}
+
 // A request handed back while it is still open is the request already
 // counted, not another one.
 func TestARequestHandedBackIsNotAskedForAgain(t *testing.T) {

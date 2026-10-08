@@ -11,10 +11,11 @@ import (
 // the catalog's description and its advice, a step in a topic with the address
 // of the part of the topic's page it is about, in the language asked for, a
 // topic to begin with the strong one it builds on, and a step for every topic
-// with no topic before it. A step of a kind with no
-// words is left out. A review that names a page says to pass it on only as it
-// is named, and one that names none says nothing of pages. A review with
-// nothing in it says so, and the trial series has none to tell.
+// with no topic before it. A topic or a trap the catalog no longer has is
+// told by its id, with no page and no advice of the catalog's. A step of a
+// kind with no words is left out. A review that names a page says to pass it
+// on only as it is named, and one that names none says nothing of pages. A
+// review with nothing in it says so, and the trial series has none to tell.
 func TestEveryReasonAndStepIsToldInWords(t *testing.T) {
 	t.Parallel()
 
@@ -79,6 +80,15 @@ func TestEveryReasonAndStepIsToldInWords(t *testing.T) {
 			"1. Calendar and age (https://mathtrail.app/en/topics/calendar-and-age/): " +
 			"a new topic to begin; its base, Gaps and boundaries, is a strength. " +
 			"Pass a page on only as it is named here, never one of your own making."},
+		{"a step in a topic gone from the catalog, which has no page to name", "en", &progress.Review{
+			Strong: []progress.Judged{}, Develop: []progress.Judged{}, Early: []string{},
+			Steps: []progress.Step{{Kind: progress.StepPractice, Topic: "clocks.sundials"}},
+		}, "Review for the adult. What to do next: " +
+			"1. clocks.sundials: a few more tasks in it; MathTrail sets them where the child stands."},
+		{"a trap gone from the catalog, with no advice of its own", "en", &progress.Review{
+			Strong: []progress.Judged{}, Develop: []progress.Judged{}, Early: []string{},
+			Steps: []progress.Step{{Kind: progress.StepTrap, Trap: "read_the_sundial_backwards"}},
+		}, "Review for the adult. What to do next: 1. watch for this mistake: read_the_sundial_backwards."},
 		{"a step of a kind with no words", "en", &progress.Review{
 			Strong: []progress.Judged{}, Develop: []progress.Judged{}, Early: []string{},
 			Steps: []progress.Step{

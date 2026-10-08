@@ -142,6 +142,35 @@ func TestAnInstanceThatRemembersANewerFileSetAsideReadsTheNewProfile(t *testing.
 	}
 }
 
+// An instance that remembers a file another set aside from the bin, which the
+// parent has since restored, goes on with it while it trusts what it
+// remembers, since the file reads; its first write there is refused as a
+// conflict — the file is no longer the profile — and the next read finds the
+// profile started in its place.
+func TestAWriteIntoAFileSetAsideSinceIsAConflict(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	f.create(t, mia, child("Mia"))
+	p, read := f.loaded(t, f.storage, mia)
+	old := f.profileFile(t, miaToken).ID
+	f.fake.Edit(miaToken, old, func(file *drivetest.File) { file.Trashed = true })
+	if _, err := f.instance(t, 5*time.Second).StartOver(t.Context(), mia, child("Mia anew")); err != nil {
+		t.Fatalf("StartOver() on another instance error = %v, want nil", err)
+	}
+	f.fake.Edit(miaToken, old, func(file *drivetest.File) { file.Trashed = false })
+
+	if _, err := f.storage.Save(t.Context(), mia, moved(p, "Mia in the old file"), read); !errors.Is(err, store.ErrConflict) {
+		t.Errorf("Save() into a file set aside since: error = %v, want %v", err, store.ErrConflict)
+	}
+	if lines := f.linesOf("drive_conflict"); len(lines) != 1 || lines[0]["reason"] != "set_aside" {
+		t.Errorf("drive_conflict lines = %v, want one, set_aside", lines)
+	}
+	if got, _ := f.loaded(t, f.storage, mia); got.Student.Pseudonym != "Mia anew" {
+		t.Errorf("Load() after the write refused = %q, want the profile started in place of the file set aside", got.Student.Pseudonym)
+	}
+}
+
 // A profile that reads is never started over, and nothing is set aside: what
 // the parent was told no longer holds.
 func TestAReadableProfileIsNeverStartedOver(t *testing.T) {
@@ -240,6 +269,10 @@ func TestANewStartThatFailsFirstLeavesTheAccountAsItWas(t *testing.T) {
 		}, store.ErrConflict},
 		{"Drive not answering the read", func(fake *drivetest.Drive) {
 			failEveryTry(fake, drivetest.Download, http.StatusServiceUnavailable, "backendError")
+		}, store.ErrUnavailable},
+		{"Drive not answering the look into the bin", func(fake *drivetest.Drive) {
+			letThrough(fake, drivetest.List, 1)
+			failEveryTry(fake, drivetest.List, http.StatusServiceUnavailable, "backendError")
 		}, store.ErrUnavailable},
 		{"Drive failing the new file", func(fake *drivetest.Drive) {
 			fake.Fail(drivetest.Create, http.StatusServiceUnavailable, "backendError")

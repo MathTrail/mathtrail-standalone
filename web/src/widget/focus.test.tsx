@@ -1,7 +1,7 @@
 import { type ComponentChildren, render } from "preact";
 import { useRef } from "preact/hooks";
 import { act } from "preact/test-utils";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { CardIsTheDocument, useFocusKeptOnTheCard } from "./focus";
 
 const root = document.createElement("div");
@@ -9,6 +9,7 @@ document.body.append(root);
 
 afterEach(() => {
 	act(() => render(null, root));
+	vi.restoreAllMocks();
 });
 
 // Card is a card whose one thing left to do, once done is true, is the
@@ -39,6 +40,17 @@ describe("a card whose focus is on nothing once its answer is in", () => {
 		draw(true);
 
 		expect(document.activeElement?.textContent).toBe("Another task");
+	});
+
+	// The card's frame holds no focus while the adult types in the chat, and
+	// an answer that comes meanwhile does not take the focus from the chat.
+	test("leaves it where it is when the card's document does not hold the focus", () => {
+		vi.spyOn(document, "hasFocus").mockReturnValue(false);
+		draw(false);
+
+		draw(true);
+
+		expect(document.activeElement).toBe(document.body);
 	});
 
 	// On a page a focus on nothing is where the reader left it: the card is

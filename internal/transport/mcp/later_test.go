@@ -561,3 +561,127 @@ func TestAWriteThatLandedUnheardCountsAsWritten(t *testing.T) {
 		t.Errorf("answer_recorded lines = %d, want 1", len(lines))
 	}
 }
+
+// behindTwice is a store whose first write, once armed, cannot reach the file
+// and writes nothing, and whose next two reads after it both lag behind, as
+// Drive may for longer than a moment.
+type behindTwice struct {
+	store.Storage
+	armed   atomic.Bool
+	lagging atomic.Int32
+}
+
+func (b *behindTwice) Save(ctx context.Context, account store.Account, p *profile.Profile, expected store.Revision) (store.Revision, error) {
+	if b.armed.CompareAndSwap(true, false) {
+		b.lagging.Store(2)
+		return "", fmt.Errorf("%w: no answer in time", store.ErrUnavailable)
+	}
+	return b.Storage.Save(ctx, account, p, expected)
+}
+
+func (b *behindTwice) Load(ctx context.Context, account store.Account) (*profile.Profile, store.Revision, error) {
+	for left := b.lagging.Load(); left > 0; left = b.lagging.Load() {
+		if b.lagging.CompareAndSwap(left, left-1) {
+			return nil, "", store.ErrBehind
+		}
+	}
+	return b.Storage.Load(ctx, account)
+}
+
+// A write after the answer whose fresh read still lags behind once read again
+// has nothing to make the change again on: it fails, its line says why in the
+// words a call's line uses, as a warning, and nothing counts the answer.
+func TestAWriteWhoseFreshReadKeepsLaggingFails(t *testing.T) {
+	t.Parallel()
+
+	p := raceOnTheCard(t, rating.TrialAnswers)
+	kept := &behindTwice{Storage: keptAsIs(t, p)}
+	h, session := lesson(t, kept)
+	kept.armed.Store(true)
+
+	call(t, session, "submit_answer", map[string]any{"task_id": p.CurrentTask.ID, "answer": "C"})
+	h.settle()
+	line := lateLine(t, h, "submit_answer")
+	if line["outcome"] != "failed" || line["error"] != "behind" || line["level"] != zapcore.WarnLevel ||
+		fmt.Sprint(line["attempts"]) != "1" {
+		t.Errorf("the answer's line = %v, want failed on the first try, for behind, as a warning", line)
+	}
+	if after, _ := loadKept(t, kept.Storage); after.CurrentTask.Answered != nil {
+		t.Errorf("the file holds the answer %+v, want none", after.CurrentTask.Answered)
+	}
+	if lines := linesOf(h, "answer_recorded"); len(lines) != 0 {
+		t.Errorf("answer_recorded lines = %d, want none for an answer the file does not hold", len(lines))
+	}
+}
+
+// An answer whose file another instance wrote first is recorded again on what
+// is there now only while it can be. Once that instance has taken the task
+// off the card the answer is lost; once it has left a seal nobody can open,
+// the answer cannot be recorded at all and its write fails. Either way the
+// line says so, as a warning, and nothing counts the answer.
+func TestAnAnswerOvertakenIsRecordedAgainOnlyWhileItCanBe(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name      string
+		edit      func(*profile.Profile)
+		outcome   string
+		errorKind any
+	}{
+		{"the task taken off the card", func(p *profile.Profile) { p.DiscardTask() }, "lost", nil},
+		{"a seal nobody can open", func(p *profile.Profile) { p.CurrentTask.Sealed = "mt1.t.kid.broken" }, "failed", "sealed"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := raceOnTheCard(t, rating.TrialAnswers)
+			kept := &overtaking{Storage: keptAsIs(t, p), edit: tc.edit}
+			h, session := lesson(t, kept)
+			kept.armed.Store(true)
+
+			told := answered(t, call(t, session, "submit_answer", map[string]any{"task_id": p.CurrentTask.ID, "answer": "C"}))
+			if told.Choice != "C" {
+				t.Fatalf("submit_answer = %+v, want C told recorded: the call answers before it writes", told)
+			}
+			h.settle()
+			line := lateLine(t, h, "submit_answer")
+			if line["outcome"] != tc.outcome || line["error"] != tc.errorKind || line["level"] != zapcore.WarnLevel {
+				t.Errorf("the answer's line = %v, want %s with the error %v, as a warning", line, tc.outcome, tc.errorKind)
+			}
+			if after, _ := loadKept(t, kept.Storage); after.CurrentTask != nil && after.CurrentTask.Answered != nil {
+				t.Errorf("the file holds the answer %+v, want none", after.CurrentTask.Answered)
+			}
+			if lines := linesOf(h, "answer_recorded"); len(lines) != 0 {
+				t.Errorf("answer_recorded lines = %d, want none for an answer the file does not hold", len(lines))
+			}
+		})
+	}
+}
+
+// A hand-out another instance made first, of the same task kept, is the
+// change the file holds already: the card shows the task the file has on it,
+// and the line says the change was there already. The hand-out is counted by
+// the instance that made it, so the lines here count the race alone.
+func TestAHandOutAnotherInstanceMadeFirstIsThereAlready(t *testing.T) {
+	t.Parallel()
+
+	kept := &overtaking{Storage: racer(t), edit: func(p *profile.Profile) { _, _ = p.HandOutReady(lessonDay) }}
+	h, session := lesson(t, kept)
+	_, relay := keepTheRelay(t, session, kept)
+	kept.armed.Store(true)
+
+	card := payloadOf[requestPayload](t, call(t, session, "next_task", map[string]any{"language": "en"}))
+	if card.Task == nil || card.Task.ID != relay {
+		t.Fatalf("next_task = %+v, want the relay on the card", card)
+	}
+	h.settle()
+	if p, _ := loadKept(t, kept.Storage); p.CurrentTask == nil || p.CurrentTask.ID != relay || p.ReadyTask != nil {
+		t.Errorf("the file holds %+v on the card and %+v kept, want the relay handed out", p.CurrentTask, p.ReadyTask)
+	}
+	if line := lateLine(t, h, "next_task"); line["outcome"] != "already" || line["level"] != zapcore.InfoLevel {
+		t.Errorf("the hand-out's line = %v, want already, as information", line)
+	}
+	if got := len(linesOf(h, "task_accepted")); got != 1 {
+		t.Errorf("task_accepted lines = %d, want the race's alone", got)
+	}
+}
