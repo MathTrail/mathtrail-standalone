@@ -18,6 +18,7 @@
 	"task.closed": "โจทย์ข้อนี้ปิดแล้ว โจทย์ข้อล่าสุดอยู่ด้านล่างในแชท",
 	"topic_choice.label": "หัวข้อ:",
 	"topic_choice.coach": "โค้ชเลือกให้",
+	"topic_choice.coach_short": "โค้ช",
 	"topic_choice.title": "ต่อไปเอาหัวข้ออะไรดี",
 	"topic_choice.lead": "โจทย์ใหม่จะมาทันที และข้อต่อ ๆ ไปจะอยู่ในหัวข้อนี้",
 	"topic_choice.close": "ปิด",

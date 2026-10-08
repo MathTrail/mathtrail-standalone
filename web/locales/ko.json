@@ -18,6 +18,7 @@
 	"task.closed": "이 문제는 이미 끝났어요. 가장 최근 문제는 채팅 아래쪽에 있어요.",
 	"topic_choice.label": "주제:",
 	"topic_choice.coach": "코치가 골라요",
+	"topic_choice.coach_short": "코치",
 	"topic_choice.title": "다음엔 어떤 주제로 할까요?",
 	"topic_choice.lead": "새 문제가 바로 나오고, 다음 문제들도 이 주제로 이어져요",
 	"topic_choice.close": "닫기",

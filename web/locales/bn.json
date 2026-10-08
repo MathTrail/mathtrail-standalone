@@ -18,6 +18,7 @@
 	"task.closed": "এই প্রশ্নটা বন্ধ হয়ে গেছে। সবচেয়ে নতুন প্রশ্নটা চ্যাটে আরও নিচে আছে।",
 	"topic_choice.label": "বিষয়:",
 	"topic_choice.coach": "কোচ বেছে নেবে",
+	"topic_choice.coach_short": "কোচ",
 	"topic_choice.title": "এরপর কোন বিষয়?",
 	"topic_choice.lead": "নতুন প্রশ্ন এখনই আসবে, আর পরের প্রশ্নগুলোও এই বিষয়েই থাকবে",
 	"topic_choice.close": "বন্ধ করো",

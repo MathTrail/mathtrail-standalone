@@ -67,9 +67,9 @@ function Hero({
 				<h1>{page.text("hero.title")}</h1>
 				<p class="s-lead">{page.text("hero.lead", { last: grades[1] })}</p>
 				<p class="s-chips">
-					<span class="s-chip">{gradesText(words, grades)}</span>
 					<span class="s-chip s-chip-free">{page.text("hero.free")}</span>
 					<SourceChip label={page.text("hero.open")} />
+					<span class="s-chip">{gradesText(words, grades)}</span>
 				</p>
 			</div>
 			<figure class="s-panel s-contrast">
@@ -358,9 +358,11 @@ function Ask({ page }: { page: PageReader }) {
 	const words = useSiteWords();
 	return (
 		<section class="s-section s-ask-wrap">
-			<div class="s-ask">
-				<h2 class="s-ask-title">{page.text("ask.title")}</h2>
-				<p class="s-ask-lead">{page.text("ask.lead")}</p>
+			<div class="s-ask s-ask-row">
+				<div class="s-ask-copy">
+					<h2 class="s-ask-title">{page.text("ask.title")}</h2>
+					<p class="s-ask-lead">{page.text("ask.lead")}</p>
+				</div>
 				<p class="s-choices">
 					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
 						{words.text("nav.add")}

@@ -132,16 +132,16 @@ export function optionStateOf(answer: Answer, letter: Letter): OptionState {
  * model's own words, since the card keeps none. And whatever the model says
  * next is worded about the step, addressing nobody, since the model talks
  * with the adult and the child hears it as the adult reads it out; nor does it
- * show whether the child is a boy or a girl, which nothing tells the card: in
- * a language with grammatical gender, a past-tense sentence about what the
- * child did shows it.
+ * show whether the child is a boy or a girl, which nothing tells the card: he
+ * or she shows it, and in a language with grammatical gender so does a
+ * past-tense sentence about what the child did.
  */
 export function modelLineOf(result: AnswerResult): string {
 	return `${recordedLineOf(result)} ${aboutTheStep}`;
 }
 
 const aboutTheStep =
-	"Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.";
+	"Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.";
 
 // recordedLineOf is what the card says is recorded, and how it went.
 function recordedLineOf(result: AnswerResult): string {

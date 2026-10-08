@@ -26,6 +26,7 @@ import {
 	homeTaskOf,
 	lessonSection,
 } from "./home";
+import { Phone } from "./Phone";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { GitHubMark, SourceChip } from "./SourceChip";
@@ -50,16 +51,17 @@ const demoScript = "/assets/demo.js";
 
 /**
  * HomePage is the site's front page, for a parent: what MathTrail is, beside
- * the card of a task as a chat draws it; why asking the chat alone is not
- * enough; how a lesson goes, step by step, each step beside the card as it
- * stands at that step; how to connect MathTrail; and a last call to start.
- * Every card is drawn when the site is built, and the page reads in full as
- * it is drawn. Its demo, when it runs, brings the card on the first screen
- * alive, gives the steps one card on a wide window and the connector's
- * address a button that copies it; the page carries what the demo needs, so
- * that it loads nothing else. The grades are the catalog's, the names of the
- * traps and the cards' words the widget's, and the lesson's task the site's
- * data said in the page's words.
+ * the card of a task as a chat draws it, in a phone; why asking the chat
+ * alone is not enough; how a lesson goes, step by step, each step beside the
+ * card as it stands at that step; how to connect MathTrail; and a last call
+ * to start. Every card is drawn when the site is built, and the page reads in
+ * full as it is drawn. Its demo, when it runs, brings the card on the first
+ * screen alive and, on a wide window, moves the chat in the phone with the
+ * page's scroll; it gives the steps one card on a wide window and the
+ * connector's address a button that copies it; the page carries what the
+ * demo needs, so that it loads nothing else. The grades are the catalog's,
+ * the names of the traps and the cards' words the widget's, and the lesson's
+ * task the site's data said in the page's words.
  */
 export function HomePage({ page, data }: PageProps) {
 	const home = data.home;
@@ -142,7 +144,9 @@ function lessonOf(page: PageReader, home: Home): LessonCards {
 
 // Hero is the first screen: what MathTrail is and for which grades, the way to
 // add it and the way to see a lesson first, where it works, and beside them
-// the card of a task as a chat draws it once the task has arrived.
+// the card of a task as a chat draws it once the task has arrived, in a phone.
+// The track around it is the room the page's scroll runs through while the
+// demo holds the first screen in place and moves the chat in the phone.
 function Hero({
 	page,
 	grades,
@@ -154,41 +158,47 @@ function Hero({
 }) {
 	const words = useSiteWords();
 	return (
-		<section class="s-wrap s-hero">
-			<div class="s-hero-copy">
-				<p class="s-chips">
-					<span class="s-chip s-chip-free">{page.text("hero.free")}</span>
-					<SourceChip label={page.text("hero.open")} />
-					<span class="s-chip">{gradesText(words, grades)}</span>
-				</p>
-				<h1>{page.text("hero.title")}</h1>
-				<p class="s-lead">
-					{page.text("hero.lead", { range: gradesRange(page.locale, grades) })}
-				</p>
-				<p class="s-choices s-hero-actions">
-					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
-						{words.text("nav.add")}
-					</a>
-					<a
-						class="s-btn"
-						href={sectionAddress(page.locale, frontPage, lessonSection)}
-					>
-						{page.text("hero.see")}
-					</a>
-				</p>
-				<p class="s-hero-note">{page.text("hero.note")}</p>
-			</div>
-			<figure class="s-panel s-hero-card">
-				<Chat page={page}>
-					<StaticTask
-						handed={handed}
-						start={lessonStart}
-						locale={page.locale}
-					/>
-				</Chat>
-				<figcaption>{page.text("hero.caption")}</figcaption>
-			</figure>
-		</section>
+		<div class="s-hero-track">
+			<section class="s-wrap s-hero">
+				<div class="s-hero-copy">
+					<p class="s-chips">
+						<span class="s-chip s-chip-free">{page.text("hero.free")}</span>
+						<SourceChip label={page.text("hero.open")} />
+						<span class="s-chip">{gradesText(words, grades)}</span>
+					</p>
+					<h1>{page.text("hero.title")}</h1>
+					<p class="s-lead">
+						{page.text("hero.lead", {
+							range: gradesRange(page.locale, grades),
+						})}
+					</p>
+					<p class="s-choices s-hero-actions">
+						<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
+							{words.text("nav.add")}
+						</a>
+						<a
+							class="s-btn"
+							href={sectionAddress(page.locale, frontPage, lessonSection)}
+						>
+							{page.text("hero.see")}
+						</a>
+					</p>
+					<p class="s-hero-note">{page.text("hero.note")}</p>
+				</div>
+				<figure class="s-hero-card s-hero-phone">
+					<Phone>
+						<Chat page={page}>
+							<StaticTask
+								handed={handed}
+								start={lessonStart}
+								locale={page.locale}
+							/>
+						</Chat>
+					</Phone>
+					<figcaption>{page.text("hero.caption")}</figcaption>
+				</figure>
+			</section>
+		</div>
 	);
 }
 

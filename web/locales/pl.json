@@ -18,6 +18,7 @@
 	"task.closed": "To zadanie jest już zamknięte. Najnowsze zadanie jest niżej na czacie.",
 	"topic_choice.label": "Temat:",
 	"topic_choice.coach": "wybiera trener",
+	"topic_choice.coach_short": "Trener",
 	"topic_choice.title": "Jaki temat teraz?",
 	"topic_choice.lead": "Nowe zadanie przyjdzie od razu, a\u00a0temat zostanie na kolejne",
 	"topic_choice.close": "Zamknij",

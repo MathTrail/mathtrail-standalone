@@ -31,8 +31,8 @@ In a chat with MathTrail switched on, type as the adult would; the card is the c
 
 1. **A task.** Say "Let's do a MathTrail task." A card shows that the task is being written; the model takes a minute or two. Then the card shows the task and five options, and the model goes on to write the next task ahead, saying nothing about it.
 2. **An answer.** Choose an option on the card, as the child would, or tell the chat the child's answer. A wrong answer is explained from the mistake it reflects, and then step by step; "We don't know this one", said in the chat, is an answer too.
-3. **The hint.** Press **Hint** on the card before answering.
-4. **Another task.** Press **Another task**: the card puts its words in the chat — in Claude, press Enter to send them —, the task written ahead appears at once on a new card below, and the model writes the one after it. Or ask for one in the chat, or ask for a topic: "Let's practise counting."
+3. **The hint.** Press the bulb, **Hint**, on the card before answering.
+4. **Another task.** Press the two arrows in a circle, **Another task**; once the child has answered, the button says it in words. The card puts its words in the chat — in Claude, press Enter to send them —, the task written ahead appears at once on a new card below, and the model writes the one after it. Or ask for one in the chat, or ask for a topic: "Let's practise counting."
 5. **The progress.** Say "Show the progress." The card shows each topic's rank, what moved since the last task and over the past week, the **Review** — strengths, topics to develop and what to do next — and **Mistakes that repeat**.
 6. **The profile.** Open **Profile and progress** at the top of a task's card: its **Profile · for the parent** section shows the profile, and **Edit** there changes the interests or the grade. Or ask in the chat: "Change my child's interests to space and dinosaurs." The profile has no card of its own: asked to show it, the chat tells it in words.
 

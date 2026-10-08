@@ -1,10 +1,11 @@
-import { Button } from "../design/controls";
+import { IconButton } from "../design/controls";
 import { useWords } from "./words";
 
 /**
- * LessonButtons are the buttons under a task not yet answered: the hint, and
- * another task. While an answer is checked they are locked, and while an ask
- * for another task is on its way to the chat its button is too.
+ * LessonButtons are the buttons under a task not yet answered, each drawn by
+ * its icon: the hint, a bulb, and another task, two arrows in a circle. While
+ * an answer is checked they are locked, and while an ask for another task is
+ * on its way to the chat its button is too.
  */
 export function LessonButtons({
 	locked,
@@ -22,16 +23,23 @@ export function LessonButtons({
 	const words = useWords();
 	return (
 		<>
-			<Button key="hint" locked={locked} expanded={hintOpen} onClick={onHint}>
-				{words.text(hintOpen ? "task.hide_hint" : "task.hint")}
-			</Button>
-			<Button
+			<IconButton
+				key="hint"
+				icon="hint"
+				label={words.text(hintOpen ? "task.hide_hint" : "task.hint")}
+				className="mt-btn-hint"
+				locked={locked}
+				expanded={hintOpen}
+				onClick={onHint}
+			/>
+			<IconButton
 				key="another"
+				icon="renew"
+				label={words.text("task.another")}
+				className="mt-btn-another"
 				locked={locked || anotherSending}
 				onClick={onAnother}
-			>
-				{words.text("task.another")}
-			</Button>
+			/>
 		</>
 	);
 }

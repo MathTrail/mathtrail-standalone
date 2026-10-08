@@ -18,6 +18,7 @@
 	"task.closed": "यह सवाल बंद हो चुका है। सबसे नया सवाल चैट में और नीचे है।",
 	"topic_choice.label": "विषय:",
 	"topic_choice.coach": "कोच की पसंद",
+	"topic_choice.coach_short": "कोच",
 	"topic_choice.title": "आगे किस विषय पर?",
 	"topic_choice.lead": "नया सवाल अभी आएगा, और अगले सवाल भी इसी विषय पर रहेंगे",
 	"topic_choice.close": "बंद करो",

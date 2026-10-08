@@ -34,8 +34,8 @@ export type Site = NonNullable<z.infer<typeof site>>;
 // topicChoice is what the card of a task offers to keep the lessons to a
 // topic: the topic chosen, or null while the rule chooses; the topics the
 // review suggests; and the site whose page of topics the groups link to. A
-// task without it — in the trial series, of an earlier release, or on a page
-// of the site — offers no choice, and one that does not read is read so too.
+// task without it — in the trial series, or of an earlier release — offers no
+// choice, and one that does not read is read so too.
 const topicChoice = z
 	.object({
 		chosen: z.string().nullable(),

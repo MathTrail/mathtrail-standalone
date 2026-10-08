@@ -18,6 +18,7 @@
 	"task.closed": "Ця задача вже закрита. Найновіша задача — нижче в чаті.",
 	"topic_choice.label": "Тема:",
 	"topic_choice.coach": "обирає тренер",
+	"topic_choice.coach_short": "Тренер",
 	"topic_choice.title": "На яку тему далі?",
 	"topic_choice.lead": "Задача зміниться одразу, тема збережеться для наступних",
 	"topic_choice.close": "Закрити",

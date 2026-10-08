@@ -174,27 +174,27 @@ describe("the line for the model", () => {
 		[
 			"a right answer",
 			resultOf(rightAnswer),
-			"Task task_fence has its answer recorded: C, which is right. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
+			"Task task_fence has its answer recorded: C, which is right. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
 		],
 		[
 			"a wrong answer",
 			wrong,
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
+			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
 		],
 		[
 			'"I don\'t know"',
 			resultOf(dontKnowAnswer),
-			"Task task_fence has its answer recorded: \"I don't know\", which counts as a wrong answer; the right option is C. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
+			"Task task_fence has its answer recorded: \"I don't know\", which counts as a wrong answer; the right option is C. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
 		],
 		[
 			"a wrong answer the service told no trap for",
 			{ ...wrong, trap: null },
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
+			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
 		],
 		[
 			"a mistake the child has made before",
 			resultOf(repeatedAnswer),
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
+			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
 		],
 	])("after %s says what is recorded", (_, result, want) => {
 		expect(modelLineOf(result)).toBe(want);

@@ -25,8 +25,8 @@ const built = join(repository, "site", "dist");
  * pictureStyle lays the first screen of the home page out as a picture: the
  * mark and the name on top, with no menu; the heading, its chips and its
  * promise on the left, and no buttons, which nobody can press in a picture;
- * the card beside them, running off the picture's lower edge as the page runs
- * on; and nothing under the first screen.
+ * the card beside them in its phone, running off the picture's lower edge as
+ * the page runs on; and nothing under the first screen.
  */
 export const pictureStyle = `
 	.s-navlinks, .s-nav-tools, .s-footer, .s-hero-actions, .s-hero-note,
@@ -38,14 +38,12 @@ export const pictureStyle = `
 	.s-nav-inner, .s-hero { max-inline-size: none; padding-inline: 56px; }
 	.s-nav-inner { min-block-size: 96px; }
 	.s-hero {
-		grid-template-columns: minmax(0, 1fr) 456px;
 		gap: 56px;
 		padding-block-start: 8px;
 	}
 	.s-hero-copy { padding-block-start: 8px; }
 	.s-hero h1 { font-size: 60px; }
 	.s-hero .s-lead { font-size: 22px; }
-	.s-hero-card { padding: 24px; }
 `;
 
 async function main(): Promise<void> {

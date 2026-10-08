@@ -18,6 +18,7 @@
 	"task.closed": "Ce problème est clos. Le plus récent se trouve plus bas dans le chat.",
 	"topic_choice.label": "Thème\u00a0:",
 	"topic_choice.coach": "le coach choisit",
+	"topic_choice.coach_short": "Coach",
 	"topic_choice.title": "Quel thème ensuite\u00a0?",
 	"topic_choice.lead": "Un nouveau problème arrive tout de suite, et le thème reste pour les suivants",
 	"topic_choice.close": "Fermer",

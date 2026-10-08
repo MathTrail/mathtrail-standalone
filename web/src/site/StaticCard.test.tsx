@@ -383,24 +383,23 @@ describe("a card of a task being written, drawn on a page", () => {
 });
 
 describe("a card of a task the site draws", () => {
-	// A page keeps no profile, so it has no topic to keep the lessons to: the
-	// site's task is handed to its card with no choice of the topic.
-	test("offers no choice of the topic", () => {
-		const handed = handedOf(
-			{
-				topic: "counting.gaps",
-				grade: 3,
-				drawing: "",
-				options: { A: "3", B: "4", C: "5", D: "6", E: "12" },
-				choice: "B",
-				correct: "C",
-				trap: "fence_gaps",
-				rating: { before: 1502, after: 1480 },
-			},
-			{ language: "ru", child: "Комета", question: "?", hint: "?" },
-			"site_card",
-			"the card of this test",
-		);
+	// facts are the facts of a card of the site's, and said its words.
+	const facts = {
+		topic: "counting.gaps",
+		grade: 3,
+		drawing: "",
+		options: { A: "3", B: "4", C: "5", D: "6", E: "12" },
+		choice: "B",
+		correct: "C",
+		trap: "fence_gaps",
+		rating: { before: 1502, after: 1480 },
+	};
+	const said = { language: "ru", child: "Комета", question: "?", hint: "?" };
+
+	// A card handed no choice of the topic, as the card of the page Why is,
+	// shows none, as a card of the trial series does.
+	test("handed no choice of the topic, offers none", () => {
+		const handed = handedOf(facts, said, "site_card", "the card of this test");
 		const page = pageOf(
 			<StaticTask handed={handed} start={lessonStart} locale="ru" />,
 		);
@@ -409,5 +408,50 @@ describe("a card of a task the site draws", () => {
 		expect(page.querySelector(".mt-btns .mt-btn")).not.toBeNull();
 		expect(page.querySelector(".mt-topic-button")).toBeNull();
 		expect(page.querySelector(".mt-topic-panel")).toBeNull();
+	});
+
+	// A page keeps no profile to save a choice in, so a card handed the coach's
+	// choice, as the home page's are, shows the button and takes no press on it.
+	test("handed the coach's choice, shows the button of the topic locked", () => {
+		const handed = handedOf(facts, said, "site_card", "the card of this test", {
+			chosen: null,
+			recommended: [],
+		});
+		const page = pageOf(
+			<StaticTask handed={handed} start={lessonStart} locale="ru" />,
+		);
+
+		expect(handed.topic_choice).toEqual({ chosen: null, recommended: [] });
+		expect(
+			page.querySelector(".mt-topic-button")?.getAttribute("aria-disabled"),
+		).toBe("true");
+		expect(page.querySelector(".mt-topic-panel")?.hasAttribute("hidden")).toBe(
+			true,
+		);
+	});
+
+	test("handed the coach's choice, is the card a chat draws for it, but for the lock on its button of the topic", async () => {
+		const payload = {
+			...russianFence,
+			topic_choice: { chosen: null, recommended: [] },
+		};
+		drawn = await drawCard(payload, { tools: never });
+		const handed = readHandedTask(payload);
+		if (handed === undefined) {
+			throw new Error("the example is no task handed out");
+		}
+		const page = pageOf(
+			<StaticTask handed={handed} start={lessonStart} locale="ru" />,
+		);
+
+		sameCard(page, drawn.root);
+		expect(
+			drawn.root
+				.querySelector(".mt-topic-button")
+				?.getAttribute("aria-disabled"),
+		).toBeNull();
+		expect(
+			page.querySelector(".mt-topic-button")?.getAttribute("aria-disabled"),
+		).toBe("true");
 	});
 });

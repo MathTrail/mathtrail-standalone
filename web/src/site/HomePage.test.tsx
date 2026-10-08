@@ -343,6 +343,38 @@ describe("the home page", () => {
 		);
 	});
 
+	test("holds the chat of its first screen in a phone, all but the chat a drawing a screen reader skips, in the track the demo holds it in", () => {
+		const phone = the(".s-hero-track > .s-hero > .s-hero-card > .s-phone");
+
+		expect(
+			phone.querySelector(".s-phone-screen > .s-frame > .s-frame-body .s-card"),
+		).not.toBeNull();
+		expect(
+			[...phone.querySelectorAll(".s-phone-screen > *")].map((part) => [
+				part.className,
+				part.getAttribute("aria-hidden"),
+			]),
+		).toEqual([
+			["s-phone-status", "true"],
+			["s-frame", null],
+			["s-phone-composer", "true"],
+			["s-phone-home", "true"],
+		]);
+		expect(home.querySelectorAll(".s-hero-track")).toHaveLength(1);
+	});
+
+	test("draws the button of the topic on every card of its task, the coach choosing, locked: the page lets no topic be chosen", () => {
+		const cards = [...home.querySelectorAll(".mt-widget")].filter(
+			(widget) => widget.querySelector(".mt-option") !== null,
+		);
+		const buttons = cards.map((widget) =>
+			widget.querySelector(".mt-topic-button")?.getAttribute("aria-disabled"),
+		);
+
+		expect(cards.length).toBeGreaterThan(1);
+		expect(buttons).toEqual(cards.map(() => "true"));
+	});
+
 	test("names the catalog's traps a wrong option is tied to as the card names them", () => {
 		const card = cardWords("en", undefined);
 

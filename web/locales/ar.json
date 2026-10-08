@@ -18,6 +18,7 @@
 	"task.closed": "هذه المسألة مغلقة. أحدث مسألة أدناه في الدردشة.",
 	"topic_choice.label": "الموضوع:",
 	"topic_choice.coach": "يختاره المدرب",
+	"topic_choice.coach_short": "المدرب",
 	"topic_choice.title": "ما موضوع المسألة التالية؟",
 	"topic_choice.lead": "تأتي مسألة جديدة فورًا، ويبقى الموضوع للمسائل التالية",
 	"topic_choice.close": "إغلاق",

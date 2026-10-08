@@ -18,6 +18,7 @@
 	"task.closed": "Soal ini sudah ditutup. Soal terbaru ada lebih ke bawah di chat.",
 	"topic_choice.label": "Topik:",
 	"topic_choice.coach": "dipilih pelatih",
+	"topic_choice.coach_short": "Pelatih",
 	"topic_choice.title": "Topik apa berikutnya?",
 	"topic_choice.lead": "Soal baru langsung datang, dan topiknya tetap untuk soal-soal berikutnya",
 	"topic_choice.close": "Tutup",

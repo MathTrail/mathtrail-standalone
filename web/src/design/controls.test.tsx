@@ -6,6 +6,7 @@ import {
 	Checkbox,
 	CheckGroup,
 	ChipsField,
+	IconButton,
 	type Option,
 	OptionList,
 	OptionRow,
@@ -15,6 +16,8 @@ import {
 	ViewSwitch,
 	withinLength,
 } from "./controls";
+import { Icon } from "./icons";
+import { drawingAlone, drawingOf } from "./testing/drawing";
 
 const root = document.createElement("div");
 document.body.append(root);
@@ -97,12 +100,13 @@ describe("the options", () => {
 		value: String(at + 3),
 	}));
 
-	test("stand in their order under their legend", () => {
+	test("stand in their order under their legend, which a screen reader alone hears", () => {
 		draw(<OptionList legend="Pick one answer" options={five} />);
 
 		expect(root.querySelector("fieldset legend")?.textContent).toBe(
 			"Pick one answer",
 		);
+		expect(root.querySelector("fieldset legend")?.className).toBe("mt-vh");
 		expect(
 			[...root.querySelectorAll(".mt-option-letter")].map(
 				(letter) => letter.textContent,
@@ -212,6 +216,55 @@ describe("a button", () => {
 	test("that is pressed does its thing", () => {
 		const done = vi.fn();
 		draw(<Button onClick={done}>Hint</Button>);
+
+		pressed(root.querySelector("button"));
+
+		expect(done).toHaveBeenCalledOnce();
+	});
+});
+
+describe("an icon button", () => {
+	test("is drawn by its icon alone, and named by its words to a screen reader and under a pointer", () => {
+		draw(<IconButton icon="hint" label="Hint" className="mt-btn-hint" />);
+
+		const shown = root.querySelector("button");
+		expect(shown?.className).toBe("mt-btn mt-btn-icon mt-btn-hint");
+		expect(shown?.textContent).toBe("Hint");
+		expect(shown?.querySelector(".mt-vh")?.textContent).toBe("Hint");
+		expect(shown?.getAttribute("title")).toBe("Hint");
+		expect(drawingOf(shown?.querySelector("svg") ?? null)).toEqual(
+			drawingAlone(<Icon name="hint" />),
+		);
+	});
+
+	test("says whether what it shows is shown, and that is locked does nothing", () => {
+		const done = vi.fn();
+		draw(
+			<>
+				<IconButton
+					icon="hint"
+					label="Hide hint"
+					expanded
+					locked
+					onClick={done}
+				/>
+				<IconButton icon="renew" label="Another task" />
+			</>,
+		);
+
+		const [open, plain] = root.querySelectorAll("button");
+		pressed(open ?? null);
+
+		expect(done).not.toHaveBeenCalled();
+		expect(open?.getAttribute("aria-expanded")).toBe("true");
+		expect(open?.getAttribute("aria-disabled")).toBe("true");
+		expect(plain?.hasAttribute("aria-expanded")).toBe(false);
+		expect(plain?.hasAttribute("aria-disabled")).toBe(false);
+	});
+
+	test("that is pressed does its thing", () => {
+		const done = vi.fn();
+		draw(<IconButton icon="renew" label="Another task" onClick={done} />);
 
 		pressed(root.querySelector("button"));
 

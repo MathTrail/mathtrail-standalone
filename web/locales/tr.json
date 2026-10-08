@@ -18,6 +18,7 @@
 	"task.closed": "Bu soru kapandı. En yeni soru sohbette daha aşağıda.",
 	"topic_choice.label": "Konu:",
 	"topic_choice.coach": "koç seçer",
+	"topic_choice.coach_short": "Koç",
 	"topic_choice.title": "Sırada hangi konu olsun?",
 	"topic_choice.lead": "Yeni soru hemen gelir, konu sonrakiler için de kalır",
 	"topic_choice.close": "Kapat",

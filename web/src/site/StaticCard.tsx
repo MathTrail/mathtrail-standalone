@@ -13,6 +13,7 @@ import type {
 	ProgressReport,
 } from "../widget/payload";
 import { TaskCard } from "../widget/TaskCard";
+import { ChoosesTopic } from "../widget/TopicChoice";
 import { NamesBuild, versionGiven } from "../widget/version";
 import { WordsContext } from "../widget/words";
 
@@ -134,7 +135,8 @@ export function StaticComing({
 // Still is a card drawn on a page: shown rather than used, speaking the
 // widget's words in the page's language, and naming the build only when the
 // site was built from a release, which is the one the chats run. A site built
-// from anything else names none, rather than a "dev" nobody runs.
+// from anything else names none, rather than a "dev" nobody runs. A page lets
+// no topic be chosen, so a task's button of the topic is drawn locked.
 function Still({
 	locale,
 	children,
@@ -146,7 +148,9 @@ function Still({
 		<div class="s-card" inert>
 			<NamesBuild.Provider value={versionGiven()}>
 				<WordsContext.Provider value={cardWords(locale, undefined)}>
-					{children}
+					<ChoosesTopic.Provider value={false}>
+						{children}
+					</ChoosesTopic.Provider>
 				</WordsContext.Provider>
 			</NamesBuild.Provider>
 		</div>

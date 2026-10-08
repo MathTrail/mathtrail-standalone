@@ -25,6 +25,19 @@ const drawings = {
 		d: "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z",
 		tone: text,
 	},
+	renew: {
+		d: "M4 12a8 8 0 0 1 13.66-5.66L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.66 5.66L4 15.5M4 20v-4.5h4.5",
+		tone: text,
+	},
+	// The spark is the logo's star, with a smaller one beside it.
+	sparkle: {
+		d: "M10 5Q12 11 18 13 12 15 10 21 8 15 2 13 8 11 10 5ZM19 2.5v5M16.5 5h5",
+		tone: text,
+	},
+	tag: {
+		d: "M3 5a2 2 0 0 1 2-2h6.17a2 2 0 0 1 1.41.59l8.3 8.3a2 2 0 0 1 0 2.83l-6.17 6.17a2 2 0 0 1-2.83 0l-8.3-8.3A2 2 0 0 1 3 11.17ZM7.5 7.5h.01",
+		tone: text,
+	},
 	// A verdict is its tick or cross in a ring, in its own colour; a step done
 	// is ticked in the colour of the strongest ink, and a step to come is the
 	// ring alone.

@@ -18,6 +18,7 @@
 	"task.closed": "این مسئله بسته شده است. جدیدترین مسئله پایین‌تر در چت است.",
 	"topic_choice.label": "مبحث:",
 	"topic_choice.coach": "مربی انتخاب می‌کند",
+	"topic_choice.coach_short": "مربی",
 	"topic_choice.title": "مبحث بعدی چه باشد؟",
 	"topic_choice.lead": "مسئلهٔ جدید همین حالا می‌آید و مبحث برای مسئله‌های بعدی می‌ماند",
 	"topic_choice.close": "بستن",

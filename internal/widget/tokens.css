@@ -24,6 +24,18 @@
   --hint-tint: #fbf6e7;
   --hint-border: #ebdfbc;
   --hint-text: #5b4a17;
+  /* The buttons under a task, each in a tone of its own: the hint's amber,
+     another task's blue and the topic's green — a tint, a border, and the
+     colour of the icon and the words on it. */
+  --hint-button-tint: #fdf3d9;
+  --hint-button-border: #e9d1a0;
+  --hint-button-text: #9d6300;
+  --another-button-tint: #ebf5ff;
+  --another-button-border: #c1d7ee;
+  --another-button-text: #2863ab;
+  --topic-button-tint: #e6f9ee;
+  --topic-button-border: #b5dcc6;
+  --topic-button-text: #2b6e5a;
   --letter-fill: #f8f7f4;
   --letter-border: #d6d2ca;
   --letter-text: #3d3a35;
@@ -74,6 +86,15 @@
   --hint-tint: #2e2918;
   --hint-border: #4d4426;
   --hint-text: #e8d7a0;
+  --hint-button-tint: #2f2716;
+  --hint-button-border: #5e4b22;
+  --hint-button-text: #f0bd5c;
+  --another-button-tint: #172638;
+  --another-button-border: #2e4b6e;
+  --another-button-text: #8fc3f7;
+  --topic-button-tint: #132d25;
+  --topic-button-border: #2c5a49;
+  --topic-button-text: #7fd6b4;
   --letter-fill: #2a2926;
   --letter-border: #4d4a44;
   --letter-text: #dcd8d0;
@@ -145,6 +166,15 @@
   --hint-tint: #2e2918;
   --hint-border: #4d4426;
   --hint-text: #e8d7a0;
+  --hint-button-tint: #2f2716;
+  --hint-button-border: #5e4b22;
+  --hint-button-text: #f0bd5c;
+  --another-button-tint: #172638;
+  --another-button-border: #2e4b6e;
+  --another-button-text: #8fc3f7;
+  --topic-button-tint: #132d25;
+  --topic-button-border: #2c5a49;
+  --topic-button-text: #7fd6b4;
   --letter-fill: #2a2926;
   --letter-border: #4d4a44;
   --letter-text: #dcd8d0;

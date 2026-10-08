@@ -18,6 +18,7 @@
 	"task.closed": "Deze opgave is afgesloten. De nieuwste opgave staat verderop in de chat.",
 	"topic_choice.label": "Onderwerp:",
 	"topic_choice.coach": "de coach kiest",
+	"topic_choice.coach_short": "Coach",
 	"topic_choice.title": "Welk onderwerp hierna?",
 	"topic_choice.lead": "Er komt meteen een nieuwe opgave, en het onderwerp blijft voor de volgende",
 	"topic_choice.close": "Sluiten",

@@ -9,6 +9,7 @@ import {
 } from "./brand";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
+import { GitHubMark } from "./SourceChip";
 
 /**
  * AboutPage is the page that says who makes MathTrail — one family, the four
@@ -87,22 +88,23 @@ function Team({ page }: { page: PageReader }) {
 function Contact({ page }: { page: PageReader }) {
 	const mail = `mailto:${contactAddress}`;
 	return (
-		<section class="s-wrap s-section">
-			<div class="s-code s-contact">
-				<div class="s-contact-copy">
-					<h2 class="s-contact-title">{page.text("contact.title")}</h2>
-					<p class="s-tile-text">
+		<section class="s-section s-ask-wrap">
+			<div class="s-ask s-ask-row">
+				<div class="s-ask-copy">
+					<h2 class="s-ask-title">{page.text("contact.title")}</h2>
+					<p class="s-ask-lead">
 						{page.text("contact.lead", {
 							address: <a href={mail}>{contactAddress}</a>,
 							issue: <a href={issuesURL}>{page.text("contact.issue")}</a>,
 						})}
 					</p>
 				</div>
-				<p class="s-choices s-contact-actions">
+				<p class="s-choices">
 					<a class="s-btn s-btn-filled" href={mail}>
 						{page.text("contact.write")}
 					</a>
-					<a class="s-btn" href={sourceURL}>
+					<a class="s-btn s-btn-github" href={sourceURL}>
+						<GitHubMark size={20} />
 						{page.text("contact.github")}
 					</a>
 				</p>

@@ -18,6 +18,7 @@
 	"task.closed": "Bài toán này đã đóng. Bài mới nhất ở phía dưới đoạn chat.",
 	"topic_choice.label": "Chủ đề:",
 	"topic_choice.coach": "huấn luyện viên chọn",
+	"topic_choice.coach_short": "Huấn luyện viên",
 	"topic_choice.title": "Tiếp theo là chủ đề nào?",
 	"topic_choice.lead": "Bài mới sẽ đến ngay, và chủ đề được giữ cho các bài sau",
 	"topic_choice.close": "Đóng",

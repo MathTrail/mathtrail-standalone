@@ -322,7 +322,7 @@ describe("the page Research", () => {
 		expect(
 			texts(
 				unshipped.get("en") as Document,
-				"#paper .s-research-paper-words p",
+				"#paper .s-ask-lead",
 			),
 		).toEqual([
 			"Its methods, tables, protocols, limitations and ethics. The PDF comes with the next release.",

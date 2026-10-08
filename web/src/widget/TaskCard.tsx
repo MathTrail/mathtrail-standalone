@@ -1,5 +1,5 @@
 import type { ComponentChildren, Ref } from "preact";
-import { useReducer, useRef } from "preact/hooks";
+import { useContext, useReducer, useRef } from "preact/hooks";
 import { Diagram, Note, Verdict } from "../design/blocks";
 import {
 	Button,
@@ -32,6 +32,7 @@ import type { HandedTask } from "./payload";
 import { useService } from "./service";
 import { TaskResult } from "./TaskResult";
 import {
+	ChoosesTopic,
 	TopicButton,
 	TopicChip,
 	TopicNote,
@@ -127,8 +128,10 @@ export function TaskInCard({
 	}
 	// A choice asks for a task, so it waits for an answer or an ask already on
 	// its way, even one pressed in the same moment, before the card redraws.
+	// Where a choice cannot be acted on, none is ever made.
+	const choosesTopic = useContext(ChoosesTopic);
 	const choosing = useTopicChoice(handed.topic_choice, {
-		busy: () => answering.current || another.busy(),
+		busy: () => !choosesTopic || answering.current || another.busy(),
 		tell,
 		ask: another.send,
 	});
@@ -180,8 +183,10 @@ export function TaskInCard({
 	// card's: a screen reader reads it in its own voice, and it runs its own way.
 	const inTask: Said = { lang: task.language, dir: directionOf(task.language) };
 	const offered = handed.topic_choice;
-	// The choice of the topic asks for a task, so it waits as another task does.
-	const topicLocked = lesson.answer.state === "checking" || asking || saving;
+	// The choice of the topic asks for a task, so it waits as another task does;
+	// where a choice cannot be acted on, its button is shown and stays locked.
+	const topicLocked =
+		!choosesTopic || lesson.answer.state === "checking" || asking || saving;
 
 	return (
 		<>
@@ -232,7 +237,11 @@ export function TaskInCard({
 									onAnother={askForAnother}
 								/>
 								{offered !== undefined && (
-									<TopicButton choosing={choosing} locked={topicLocked} />
+									<TopicButton
+										choosing={choosing}
+										wide={wide}
+										locked={topicLocked}
+									/>
 								)}
 							</div>
 							{offered !== undefined && (

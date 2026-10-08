@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { type Letter, letters } from "../widget/choices";
-import type { AnswerResult, HandedTask } from "../widget/payload";
+import type { AnswerResult, HandedTask, TopicChoice } from "../widget/payload";
 import { sectionAddress } from "./addresses";
 import { frontPage } from "./content";
 import {
@@ -92,6 +92,11 @@ export function connectAddress(locale: string): string {
 const homeCard = "the card on the home page";
 const homeTask = "site_home";
 
+// coachChooses is the choice of the topic the home page's cards show, as a card
+// after the trial series does: the coach chooses, and nothing is suggested.
+// The page lets no topic be chosen, so the button is drawn locked.
+const coachChooses: TopicChoice = { chosen: null, recommended: [] };
+
 /**
  * readHome reads what the home page takes from the site's data, beside the
  * catalog the card speaks of. Every wrong option has a trap of the catalog
@@ -155,19 +160,21 @@ function checkTraps(catalog: CardCatalog, card: HomeCard): void {
 
 /**
  * homeTaskOf is the lesson's task with the words said, as the widget reads a
- * task handed out: the card of the steps before an answer.
+ * task handed out: the card of the steps before an answer, with the button of
+ * the topic, the coach choosing.
  */
 export function homeTaskOf(card: HomeCard, said: HomeWords): HandedTask {
-	return handedOf(factsOf(card), said, homeTask, homeCard);
+	return handedOf(factsOf(card), said, homeTask, homeCard, coachChooses);
 }
 
 /**
  * homeAnswerOf is the lesson's task with the words said, answered with the
- * option the steps pick, as the widget reads a wrong answer recorded.
+ * option the steps pick, as the widget reads a wrong answer recorded, with the
+ * button of the topic, the coach choosing.
  */
 export function homeAnswerOf(card: HomeCard, said: HomeWords): WrongAnswer {
 	const words: CardWords = { ...said, trap: trapWords(said, card.choice) };
-	return answerOf(factsOf(card), words, homeTask, homeCard);
+	return answerOf(factsOf(card), words, homeTask, homeCard, coachChooses);
 }
 
 /**

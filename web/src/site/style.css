@@ -75,6 +75,9 @@
 	--s-free: #e6f4ea;
 	--s-free-edge: #b7dfc3;
 	--s-on-free: #146c2e;
+	--s-phone: #1f1f1f;
+	--s-phone-edge: #44474b;
+	--s-phone-field: #eceff3;
 	--s-paper: #f4f2ec;
 	--s-on-paper: #6b6457;
 	--s-wip: #fbf3dd;
@@ -1565,8 +1568,8 @@ a:hover {
 	text-wrap: balance;
 }
 
-/* The home page's closing call: its words on the left and its buttons on the
-   right, in one low row, one above the other on a narrower screen. */
+/* A closing call in one low row: its words on the left and its buttons on the
+   right, one above the other on a narrower screen. */
 .s-ask-row {
 	flex-direction: row;
 	justify-content: space-between;
@@ -2831,36 +2834,12 @@ a:hover {
 	white-space: nowrap;
 }
 
-/* Where to write: the framed line of "Why", a size larger and on its own. */
-.s-contact {
-	gap: var(--space-24);
-	margin: 0;
-	padding: 32px;
-}
-
-.s-contact-copy {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-8);
-	max-inline-size: 640px;
-}
-
+/* The heading of a framed note, a size above the text under it. */
 .s-contact-title {
 	margin: 0;
 	font-size: 1.5rem;
 	font-weight: 600;
 	line-height: 1.25;
-}
-
-.s-contact-actions {
-	justify-content: flex-start;
-	margin: 0;
-}
-
-@media (max-width: 479px) {
-	.s-contact {
-		padding: var(--space-24);
-	}
 }
 
 /* The page of the coach. Its first screen sets its words, under a badge that
@@ -4556,38 +4535,6 @@ a:hover {
 	color: var(--s-page);
 }
 
-/* The whole paper, between two rules, its buttons beside its words. */
-.s-research-paper {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 24px;
-	padding-block: 36px;
-	border-block: 1px solid var(--s-rule);
-}
-
-.s-research-paper-words {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	max-inline-size: 640px;
-}
-
-.s-research-paper-words h2 {
-	margin: 0;
-	font-size: clamp(1.5rem, 3vw, 1.875rem);
-	font-weight: 600;
-	line-height: 1.2;
-}
-
-.s-research-paper-words p {
-	margin: 0;
-	color: var(--s-muted);
-	font-size: 1rem;
-	line-height: 1.56;
-}
-
 .s-research-end {
 	padding-block-end: 64px;
 }
@@ -4651,6 +4598,255 @@ a:hover {
 
 .s-frame .s-message-model .s-bubble {
 	background: var(--s-tint);
+}
+
+/* The home page's first screen holds its chat in a phone, on the white of the
+   page: a dark edge around a screen with the status bar on top, the chat
+   under its name in the middle, and the field a message is typed in at the
+   bottom, over a white glow that fades the chat out under it. The chat
+   scrolls inside the screen, with no scroll bar, as a phone's does. On a
+   narrow screen the phone keeps its shape and takes the width there is: its
+   size is reckoned from the width of the figure it stands in. */
+.s-hero-phone {
+	margin: 0;
+	container-type: inline-size;
+}
+
+/* Beside the words, the phone stands at the end of the page's width, in a
+   column as wide as it is, and the words take the rest. */
+@media (min-width: 992px) {
+	.s-hero-track > .s-hero {
+		grid-template-columns: minmax(0, 1fr) 376px;
+	}
+}
+
+.s-phone {
+	flex: none;
+	inline-size: min(376px, 100cqi);
+	block-size: calc(min(376px, 100cqi) * 772 / 376);
+	padding: 11px;
+	border-radius: 58px;
+	background: var(--s-phone);
+	box-shadow:
+		inset 0 0 0 1.5px var(--s-phone-edge),
+		0 2px 4px rgb(60 64 67 / 18%),
+		0 28px 64px rgb(60 64 67 / 24%);
+}
+
+.s-phone-screen {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	block-size: 100%;
+	overflow: hidden;
+	border-radius: 47px;
+	background: var(--s-page);
+}
+
+.s-phone-status {
+	position: relative;
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: space-between;
+	block-size: 52px;
+	padding-block: 4px 0;
+	padding-inline: 36px 30px;
+	color: var(--s-phone);
+	font-size: 0.9375rem;
+	font-weight: 600;
+}
+
+.s-phone-island {
+	position: absolute;
+	inset-block-start: 11px;
+	inset-inline: 0;
+	inline-size: 112px;
+	block-size: 32px;
+	margin-inline: auto;
+	border-radius: 20px;
+	background: var(--s-phone);
+}
+
+.s-phone-system {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.s-phone-signal {
+	display: flex;
+	align-items: flex-end;
+	gap: 2px;
+	block-size: 11px;
+}
+
+.s-phone-bar {
+	inline-size: 3px;
+	border-radius: 1px;
+	background: currentColor;
+}
+
+.s-phone-bar:nth-child(1) {
+	block-size: 4px;
+}
+
+.s-phone-bar:nth-child(2) {
+	block-size: 6px;
+}
+
+.s-phone-bar:nth-child(3) {
+	block-size: 8.5px;
+}
+
+.s-phone-bar:nth-child(4) {
+	block-size: 11px;
+}
+
+.s-phone-battery {
+	position: relative;
+	inline-size: 25px;
+	block-size: 12px;
+	border: 1.5px solid currentColor;
+	border-radius: 4px;
+}
+
+.s-phone-battery::after {
+	position: absolute;
+	inset: 1.5px 6px 1.5px 1.5px;
+	border-radius: 1.5px;
+	background: currentColor;
+	content: "";
+}
+
+.s-phone .s-frame {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-block-size: 0;
+	max-inline-size: none;
+	border: 0;
+	border-radius: 0;
+}
+
+.s-phone .s-frame-head {
+	flex: none;
+	min-block-size: 44px;
+}
+
+.s-phone .s-frame-body {
+	flex: 1;
+	min-block-size: 0;
+	padding: 14px 12px 24px;
+	overflow-y: auto;
+	scrollbar-width: none;
+}
+
+.s-phone .s-frame-body::-webkit-scrollbar {
+	display: none;
+}
+
+.s-phone-composer {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 10px;
+	block-size: 46px;
+	margin-inline: 12px;
+	padding-inline: 18px 6px;
+	border: 1px solid var(--s-line);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	box-shadow: 0 -12px 16px 4px var(--s-page);
+}
+
+.s-phone-field {
+	flex: 1;
+	max-inline-size: 46%;
+	block-size: 8px;
+	border-radius: 4px;
+	background: var(--s-phone-field);
+}
+
+.s-phone-send {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 34px;
+	block-size: 34px;
+	margin-inline-start: auto;
+	border-radius: 50%;
+	background: var(--s-accent);
+	color: var(--s-page);
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+.s-phone-home {
+	flex: none;
+	inline-size: 132px;
+	block-size: 5px;
+	margin: 10px auto 8px;
+	border-radius: 3px;
+	background: var(--s-phone);
+}
+
+@media (max-width: 420px) {
+	.s-phone {
+		border-radius: 50px;
+	}
+
+	.s-phone-screen {
+		border-radius: 40px;
+	}
+}
+
+/* A browser with no container units keeps the phone's own size, no wider
+   than there is room for. */
+@supports not (inline-size: 1cqi) {
+	.s-phone {
+		inline-size: 376px;
+		max-inline-size: 100%;
+		block-size: 772px;
+	}
+}
+
+/* With the page's script, on a window wide enough for the phone to stand
+   beside the words and tall enough for the first screen to fit under the
+   menu, the first screen is held in place while the page scrolls, and the
+   script moves the chat in the phone as far as the page has scrolled: through
+   the chat to its end, then on, idle, before the page scrolls on. The room the
+   page scrolls through is the script's to measure, and so is whether the
+   first screen, held, stands whole under the menu; the phone there is as tall
+   as the window lets it be, the width of a phone's chat kept. Without the
+   script, or on a smaller window, nothing is held and the chat scrolls by
+   itself. */
+@media (min-width: 992px) and (min-height: 700px) {
+	.s-hero-track[data-pinned] {
+		block-size: var(--s-hero-room);
+	}
+
+	.s-hero-track[data-pinned] > .s-hero {
+		position: sticky;
+		inset-block-start: 64px;
+		align-items: center;
+		min-block-size: calc(100svh - 64px);
+		padding-block: var(--space-24);
+	}
+
+	.s-hero-track[data-pinned] .s-hero-copy {
+		padding-block-start: 0;
+	}
+
+	.s-hero-track[data-pinned] .s-phone {
+		block-size: min(772px, calc(100svh - 152px));
+	}
+
+	.s-hero-track[data-pinned] .s-phone .s-frame-body {
+		overflow-y: hidden;
+	}
 }
 
 /* How a lesson goes: each step's words beside the card as it stands at that

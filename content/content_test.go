@@ -488,6 +488,7 @@ func TestAlwaysSaysEveryRuleOfALesson(t *testing.T) {
 		{"what the child hears is worded for the adult to read out", "for the adult to read out"},
 		{"nothing shows whether the child is a boy or a girl", "whether the child is a boy or a girl"},
 		{"not even a pseudonym that has a gender of its own", "not even the pseudonym"},
+		{"the child is spoken of by the pseudonym and never as he or she", "speak of the child by the pseudonym, never as he or she"},
 		{"the child is known by a pseudonym", "known by a pseudonym alone"},
 		{"the answer waits for the child's", "keep the answer, the solution and the explanations to yourself"},
 		{"the answer waits even when the adult asks for it", "even when the adult asks"},

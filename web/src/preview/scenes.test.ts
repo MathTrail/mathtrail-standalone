@@ -71,3 +71,21 @@ describe("the preview's card asked for another task once the answer is in", () =
 		expect(root.querySelector(".mt-btns")).toBeNull();
 	});
 });
+
+describe("the preview's topic chosen with the choice shut", () => {
+	// The button names the topic chosen; the scene chooses the topic whose name
+	// is the longest in the card's language, which is not the same topic in
+	// every language, so that the measure of the layout sees each language's
+	// longest.
+	test.each([
+		["en", "games.strategy"],
+		["de", "parity.alternation"],
+		["fr", "logic.sets"],
+	])("in %s chooses %s", (language, topic) => {
+		const scene = scenesIn(language).find(
+			(found) => found.name === "topic chosen, the choice shut",
+		);
+
+		expect(scene?.payload).toMatchObject({ topic_choice: { chosen: topic } });
+	});
+});

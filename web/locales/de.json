@@ -18,6 +18,7 @@
 	"task.closed": "Diese Aufgabe ist abgeschlossen. Die neueste Aufgabe steht weiter unten im Chat.",
 	"topic_choice.label": "Thema:",
 	"topic_choice.coach": "wählt der Trainer",
+	"topic_choice.coach_short": "Trainer",
 	"topic_choice.title": "Welches Thema als Nächstes?",
 	"topic_choice.lead": "Eine neue Aufgabe kommt sofort, und das Thema bleibt für die nächsten",
 	"topic_choice.close": "Schließen",

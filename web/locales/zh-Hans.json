@@ -18,6 +18,7 @@
 	"task.closed": "这道题已经结束了。最新的题目在聊天下方。",
 	"topic_choice.label": "专题：",
 	"topic_choice.coach": "由教练选择",
+	"topic_choice.coach_short": "教练",
 	"topic_choice.title": "下一题选什么专题？",
 	"topic_choice.lead": "新题马上就来，之后的题目也会沿用这个专题",
 	"topic_choice.close": "关闭",

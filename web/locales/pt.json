@@ -18,6 +18,7 @@
 	"task.closed": "Este problema já foi encerrado. O mais recente está mais abaixo no chat.",
 	"topic_choice.label": "Tema:",
 	"topic_choice.coach": "o treinador escolhe",
+	"topic_choice.coach_short": "Treinador",
 	"topic_choice.title": "Qual tema agora?",
 	"topic_choice.lead": "Um problema novo chega na hora, e o tema fica para os próximos",
 	"topic_choice.close": "Fechar",

@@ -10,7 +10,8 @@ import { useScopedId } from "./ids";
  * what it shows is apart from it, names it by its id. A disabled button is out
  * of use; a locked one ignores presses but keeps its place in the tab order
  * and the focus it has, so that a press answered in a moment does not throw
- * the focus away. A class given is the button's own, beside the design's.
+ * the focus away. A class given is the button's own, beside the design's, and
+ * a title shows as a pointer rests on the button.
  */
 export function Button({
 	variant = "secondary",
@@ -18,6 +19,7 @@ export function Button({
 	controls,
 	disabled = false,
 	locked = false,
+	title,
 	onClick,
 	buttonRef,
 	className,
@@ -28,6 +30,7 @@ export function Button({
 	controls?: string;
 	disabled?: boolean;
 	locked?: boolean;
+	title?: string;
 	onClick?: () => void;
 	buttonRef?: Ref<HTMLButtonElement>;
 	className?: string;
@@ -42,6 +45,7 @@ export function Button({
 				variant === "primary" && "mt-btn-primary",
 				className,
 			)}
+			title={title}
 			disabled={disabled}
 			aria-disabled={locked ? "true" : undefined}
 			aria-expanded={expanded}
@@ -54,6 +58,41 @@ export function Button({
 		>
 			{children}
 		</button>
+	);
+}
+
+/**
+ * IconButton is a button drawn by its icon alone, a finger's size: its words
+ * are what a screen reader names it by, and what shows as a pointer rests on
+ * it. A class given gives it its tone. It shows, locks and takes a press as a
+ * Button does.
+ */
+export function IconButton({
+	icon,
+	label,
+	expanded,
+	locked = false,
+	onClick,
+	className,
+}: {
+	icon: IconName;
+	label: string;
+	expanded?: boolean;
+	locked?: boolean;
+	onClick?: () => void;
+	className?: string;
+}) {
+	return (
+		<Button
+			className={classes("mt-btn-icon", className)}
+			expanded={expanded}
+			locked={locked}
+			title={label}
+			onClick={onClick}
+		>
+			<Icon name={icon} size={20} />
+			<span class="mt-vh">{label}</span>
+		</Button>
 	);
 }
 
@@ -151,8 +190,9 @@ export function OptionRow<L extends string>({
 
 /**
  * OptionList is the five answers under a legend that says what to do with
- * them, or what they now show. When the list is locked, every row is. The
- * answers' texts are in the language said, the legend in the card's.
+ * them, or what they now show. The legend is a screen reader's alone: on the
+ * screen, the answers say it themselves. When the list is locked, every row
+ * is. The answers' texts are in the language said, the legend in the card's.
  */
 export function OptionList<L extends string>({
 	legend,
@@ -169,7 +209,7 @@ export function OptionList<L extends string>({
 }) {
 	return (
 		<fieldset class="mt-options">
-			<legend>{legend}</legend>
+			<legend class="mt-vh">{legend}</legend>
 			<div class="mt-options-list">
 				{options.map((option) => (
 					<OptionRow
