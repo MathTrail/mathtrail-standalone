@@ -34,8 +34,7 @@ resource "google_monitoring_alert_policy" "load" {
       ])
 
       # The rate over the last five minutes, every revision and every answer
-      # summed: an average that rolls, so a burst of seconds mails nobody and
-      # nothing has to go on for a while longer on top of it.
+      # summed: an average that rolls, so a burst of seconds mails nobody.
       aggregations {
         alignment_period     = "300s"
         per_series_aligner   = "ALIGN_RATE"
@@ -44,10 +43,12 @@ resource "google_monitoring_alert_policy" "load" {
 
       comparison      = "COMPARISON_GT"
       threshold_value = var.load_alert_per_minute / 60
-      duration        = "0s"
 
-      # No requests write no points, and that is no load: the incident closes
-      # rather than waiting for data that will not come.
+      # A minute over the line before it fires: Cloud Monitoring takes a rule
+      # for missing points only in a condition that waits a minute at least.
+      # No requests write no points, and that is no load, so the incident
+      # closes rather than waiting for data that will not come.
+      duration                = "60s"
       evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
     }
   }
