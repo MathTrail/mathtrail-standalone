@@ -1,6 +1,7 @@
 package content
 
 import (
+	"strings"
 	"testing"
 	"testing/fstest"
 )
@@ -83,6 +84,21 @@ func TestInstructionsThatSayNothingStopTheService(t *testing.T) {
 	src := contentCopy(t)
 	src[instructionsDir+"/task_writing.md"] = &fstest.MapFile{Data: []byte("   \n")}
 	wantProblem(t, src, "task_writing.md: the file is empty")
+}
+
+// A set whose every file is empty is no instructions at all, and is said to be:
+// a model handed it would be told nothing of how a task is written, whatever
+// else is wrong with each file.
+func TestInstructionsThatAllSayNothingStopTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	for name := range src {
+		if strings.HasPrefix(name, instructionsDir+"/") {
+			src[name] = &fstest.MapFile{Data: []byte("\n")}
+		}
+	}
+	wantProblem(t, src, "there are no instructions for the model")
 }
 
 func TestAStrayFileAmongTheInstructionsStopsTheService(t *testing.T) {

@@ -6,7 +6,7 @@ The name is not part of the licence: a copy that runs publicly goes by a name of
 
 ## What is done by hand, ever
 
-Five things, once — four because no API can do them, and the settings of the repository itself — and two more for a copy that keeps the counts of how it is used:
+Five things, once — four because no API can do them, and the settings of the repository itself — and three more for a copy that keeps the counts of how it is used:
 
 1. **The bootstrap**, below: the project, the bucket its state lives in and the identity the pipeline signs in as. A pipeline cannot create the door it walks in by. Once — and again on the day that identity needs a right it was not given, which is its own section further down.
 2. **The Google consent screen and one OAuth client.** Google has no API for either.
@@ -15,8 +15,9 @@ Five things, once — four because no API can do them, and the settings of the r
 5. **The repository's settings**: the fork's workflows enabled, GitHub Pages published from them on the site's domain, and that domain verified for Pages.
 6. **The two reports of the counts**, in Data Studio (formerly Looker Studio), where `analytics` is on: Data Studio has no API that makes a report ([below](#the-counts-kept-for-years)).
 7. **The GitHub App that brings the live numbers to the site**, with its two environments, where `analytics` is on: GitHub makes an App only for a person on its pages ([below](#the-counts-kept-for-years)).
+8. **The daily report**, where `analytics` is on: the export of the costs turned on in the Billing console, and the report's page and its schedule in Data Studio. Neither has an API ([below](#the-daily-report)).
 
-Everything else — enabling APIs, the registry and its cleanup, the secrets, the service, the domain mapping, the spend alert, the counts kept for years, the image and every roll-out after it — happens when a change reaches the main branch, or when the workflow is started by hand from a branch. The site is published the same way, by a workflow of its own.
+Everything else — enabling APIs, the registry and its cleanup, the secrets, the service, the domain mapping, the spend alert, the load alert, the counts kept for years, the image and every roll-out after it — happens when a change reaches the main branch, or when the workflow is started by hand from a branch. The site is published the same way, by a workflow of its own.
 
 ## What you need
 
@@ -158,7 +159,7 @@ Add the service to a chat the way the [README](../README.md#add-it-to-your-chat)
 - [ ] `disable_default_url = true` merged, once the domain answers.
 - [ ] A task in a chat, through your own sign-in.
 
-It is not finished until all four of these say so:
+It is not finished until all four of these say so, and the fifth too where `operator_email` names an operator:
 
 ```bash
 # the domain answers, and answers as the commit that was deployed
@@ -172,6 +173,9 @@ gcloud billing budgets list --billing-account=01ABCD-234567-89EFGH
 
 # both cleanup policies are in force, and cleanupPolicyDryRun is false
 gcloud artifacts repositories describe mathtrail --location=us-central1
+
+# the load alert exists: mathtrail load
+gcloud monitoring policies list --project=PROJECT_ID --format="value(displayName)"
 ```
 
 ## The variables
@@ -201,8 +205,11 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 | `google_client_secret_version` | `1` | The secret version the sign-in authenticates with |
 | `reviewer_password_version`, `reviewer_grant_version` | empty | The secret versions of the reviewers' sign-in, set together or not at all; empty, the service is given neither and the sign-in is off ([below](#the-reviewers-sign-in)) |
 | `analytics` | `false` | Whether the counts of how the service is used are kept for years: the lines they are made from kept 62 days in a log bucket of their own, counted every night into BigQuery, and views for two reports ([below](#the-counts-kept-for-years)). Turn it on once your privacy policy says so |
+| `billing_export` | `false` | Where `analytics` is on: whether the export of the costs has made its table in the dataset `billing`, so that the daily report's view can be made over it; set once the table is there ([below](#the-daily-report)) |
 | `settings` | `{}` | Extra environment variables of the service — the site's address, ceilings and timeouts, never a secret. The solver slots and `GOMEMLIMIT` follow `cpu` and `memory`, and are refused here |
 | `budget_amount`, `budget_currency` | `1`, `USD` | Where the spend alert fires |
+| `operator_email` | empty | The address the load alert is mailed to; empty, there is no alert. It is written in the repository, so it has to be an address already public ([below](#the-load-alert)) |
+| `load_alert_per_minute` | `300` | Requests a minute, on average over five minutes, past which the load alert is mailed |
 | `keep_images` | `5` | Image versions kept whatever their age |
 | `image_max_age` | `30d` | When an older version is deleted |
 
@@ -243,6 +250,7 @@ The rest have the defaults the service is meant to run with. The ones a deployme
 - **The Google OAuth client and the consent screen.** No API exists; they are the reason step 5 is done by hand.
 - **The two reports of the counts.** Data Studio has no API that makes a report; they are made by hand, [below](#the-counts-kept-for-years).
 - **The App that brings the live numbers to the site, its key and its two environments.** Made by hand, [below](#the-counts-kept-for-years); the key is a secret of one environment alone.
+- **The export of the costs, and the daily report's page and its schedule.** Only the Billing console turns the export on, and Data Studio has no API that makes a page or a schedule; both are done by hand, [below](#the-daily-report).
 - **Domain ownership and DNS.** At the registrar and in Search Console.
 - **The site's Pages settings.** Its source and its domain, in the repository's settings.
 - **The pool the pipeline signs in through.** Created by the bootstrap, deliberately outside Terraform.
@@ -255,9 +263,10 @@ The intent is $0, and inside the free allowance it is $0 — but the allowance i
 - **Artifact Registry** beyond half a gigabyte of images. The cleanup policies keep the repository small; a deployment that pushes many images a day should check that they are working.
 - **Secret Manager** beyond six active versions or the monthly free accesses. A version is read once per instance start, and the rotation keeps at most four versions live: three of the sealing key and the one key the children are counted under. The reviewers' sign-in adds two while it is on, and each new password or grant one more until the version it replaces is destroyed.
 - **Cloud Logging** beyond the free monthly ingestion. With `analytics` on, the lines the children are counted from are taken in twice, into the default bucket and into their own, and kept there past 30 days at $0.01 a GiB a month: kilobytes a day.
-- **BigQuery** beyond 1 TiB of queries and 10 GiB of storage a month, with `analytics` on. The nightly query reads megabytes and the tables hold kilobytes; a report reads them through its own cache. Google's price list names no charge for a scheduled query beyond its query, and the spend alert is what would tell otherwise.
+- **BigQuery** beyond 1 TiB of queries and 10 GiB of storage a month, with `analytics` on. The nightly query reads megabytes and the tables hold kilobytes; a report reads them through its own cache. The export of the costs, where it is on, writes kilobytes a day. Google's price list names no charge for a scheduled query beyond its query, and the spend alert is what would tell otherwise.
 - **Cloud Trace** beyond 2.5 million spans a month. The platform's own traces of incoming requests are not billed at all; these are the spans the service adds inside them, and the sampler is what keeps their number a fraction of the requests.
 - **Cloud Monitoring** beyond 150 MiB a month of ingested metrics of our own. The platform's own metrics of the service are free; ours are the three of section 12.5 of the spec. What passes that allowance is not traffic but series, and a series is created by every new combination of labels — which is why every label here is drawn from a closed list and no label ever carries anything a caller chose. One label holding a user or a task identifier would pass it in a week.
+- **Cloud Monitoring's alerting**, where `operator_email` names an operator. Google's price list, read on 2026-10-08, starts charging for alerting no sooner than 1 September 2027, and promises notice 90 and 30 days before: $0.35 a month for each metric an alerting policy names, and $0.50 for every million points its queries return. For the one load alert that is some $0.39 a month, against a budget of $1. Its mail costs nothing.
 - **A region that is not first-tier**, where the free allowance does not apply.
 - **Cloud DNS**, if the domain's records are ever moved into it: a managed zone is billed per month whether anybody visits or not. That is why DNS stays at the registrar and those records are made by hand.
 - **A load balancer**, if the domain mapping is ever replaced by one. Domain mappings cost nothing; a forwarding rule is billed by the hour.
@@ -303,6 +312,16 @@ It should name `roles/telemetry.writer` and `roles/serviceusage.serviceUsageCons
 
 ```bash
 for role in roles/logging.configWriter roles/bigquery.admin; do
+  gcloud projects add-iam-policy-binding PROJECT_ID \
+    --member="serviceAccount:mathtrail-tf@PROJECT_ID.iam.gserviceaccount.com" \
+    --role="$role" --condition=None
+done
+```
+
+**The two of the load alert.** Where `operator_email` names an operator, the configuration creates a notification channel and the alert that mails it, which need `roles/monitoring.notificationChannelEditor` and `roles/monitoring.alertPolicyEditor` on the applying identity. A pull request's checks do not call Cloud Monitoring and pass without them, so grant them before merging the change that brings the alert, or the delivery after it stops at the alert:
+
+```bash
+for role in roles/monitoring.notificationChannelEditor roles/monitoring.alertPolicyEditor; do
   gcloud projects add-iam-policy-binding PROJECT_ID \
     --member="serviceAccount:mathtrail-tf@PROJECT_ID.iam.gserviceaccount.com" \
     --role="$role" --condition=None
@@ -406,7 +425,7 @@ A binary run without the image needs the file itself: download a month from DB-I
 
 A copy that has to show how much it is used — for a grant application, say — sets `analytics = true` in its tfvars, once its privacy policy says what is kept (this repository's does). The service writes the lines either way; what the switch adds is keeping their counts. Section 12.4 of the spec says what is counted and shown, and decision R192 of [decisions.md](decisions.md) why.
 
-- **What the delivery creates.** A log bucket, `activity`, that keeps the lines the children are counted from for 62 days, and the sink that copies them into it; its link to BigQuery, `activity_logs`; the dataset `impact`, whose tables are the counts and the only thing kept for years; a scheduled query that fills them every night at half past one in UTC, run by an identity of its own that may read the lines, write the counts and nothing else; and two datasets of views, `impact_private` with exact numbers and `impact_public` with no group of fewer than ten children. For the page "Research", a second scheduled query, run every day at half past two by the same identity, keeps the snapshot of the live numbers, one row of the public views, in the table `live` of a dataset of its own, `impact_site`; and an identity, `<service_name>-live`, may read that dataset and nothing else, and only a job of the GitHub environment `live-numbers` may borrow it.
+- **What the delivery creates.** A log bucket, `activity`, that keeps the lines the children are counted from for 62 days, and the sink that copies them into it; its link to BigQuery, `activity_logs`; the dataset `impact`, whose tables are the counts and the only thing kept for years; a scheduled query that fills them every night at half past one in UTC, run by an identity of its own that may read the lines, write the counts and nothing else; and two datasets of views, `impact_private` with exact numbers and `impact_public` with no group of fewer than ten children. For the page "Research", a second scheduled query, run every day at half past two by the same identity, keeps the snapshot of the live numbers, one row of the public views, in the table `live` of a dataset of its own, `impact_site`; and an identity, `<service_name>-live`, may read that dataset and nothing else, and only a job of the GitHub environment `live-numbers` may borrow it. For the daily report, an empty dataset, `billing`, which the export of the costs writes into once it is turned on, and the view `impact_private.daily_report` over it once `billing_export` says so ([below](#the-daily-report)).
 - **Before the first delivery with it**, run the bootstrap again: the applying identity needs two roles more ([below](#when-the-bootstrap-changes)). The first apply may stop at a scheduled query while the rights of its identity spread through the platform; start the delivery again.
 - **A night that did not run** is made up for by the next: every night counts again every period the bucket still holds whole. A run started by hand in the console (BigQuery → Scheduled queries → Run now) does the same. Nothing tells you of a failure but the numbers themselves, and `just impact` lists the days no night counted.
 - **The numbers.** `just impact` prints the main numbers of the latest months as the public views show them, and `just impact private` the exact ones. `just analytics-test` runs the SQL against a BigQuery emulator before it ever reaches the project.
@@ -427,6 +446,34 @@ What `live.yml` needs is made by hand too, once, before it first runs on `main`.
 3. **The environments.** In the repository's *Settings → Environments*, make `live-numbers` and `live-numbers-delivery`, and limit each one's deployment branches to `main`. Give `live-numbers-delivery` the secret `LIVE_APP_PRIVATE_KEY`, the whole private key file, and the variable `LIVE_APP_CLIENT_ID`; then delete the key file you downloaded.
 4. **Auto-merge.** *Settings → General → Pull Requests → Allow auto-merge*. If the rules of `main` ask for an approval, the App's pull request waits for one; with none asked, nothing but the required checks stands between the App and `main`, so keep its key in that one environment.
 5. **`infra/ci.env`.** `GCP_LIVE_SERVICE_ACCOUNT` is the reader's address, which `terraform output live_service_account` prints once the delivery has made it.
+
+## The load alert
+
+Where `operator_email` names an address, the delivery creates an email channel to it and one alert: Cloud Run's own count of the service's requests, all its revisions together, averaged over the last five minutes, past `load_alert_per_minute` a minute, 300 unless set. A card waiting for a task asks fifteen times a minute, so 300 is some twenty families at once; the busiest minute of real lessons so far held 19 requests to the MCP endpoint on one instance. The mail names the commands that tell more, `just usage 1h` and `just report 1h`, and a second mail comes once the load is back under the line. The count is the platform's, so it costs nothing to keep and is there whatever the service's own telemetry does.
+
+- **Before the first delivery with it**, grant the applying identity its two roles ([above](#when-the-bootstrap-changes)).
+- **The address is written in the repository**, in the tfvars, so it has to be one already public, such as the one the privacy policy names. The mail comes from Google's alerting, and a group address has to accept mail from `alerting-noreply@google.com`.
+- **What it costs**: nothing until Google starts charging for alerting, then some $0.39 a month ([above](#what-can-cost-money)).
+
+## The daily report
+
+Every morning Data Studio mails one page of the private report: what yesterday cost and how the service was used, beside the month so far and a table of the last fortnight. The costs come from Cloud Billing's export to BigQuery, the counts are the night's, from `impact.daily`, and one view, `impact_private.daily_report`, sets them side by side. It needs `analytics`, and is made by hand, once, in this order:
+
+1. **Turn the export on.** In the Billing console of the account the project is billed to: *Billing export → BigQuery export → Standard usage cost → Edit settings*, the project, and the dataset `billing` the delivery has made. It takes *Billing Account Costs Manager* or *Administrator*. Turning it on lets the export's own identity write into the dataset; leave that right where it is. A dataset in a region is given the costs from the day the export is turned on, and none from before.
+2. **Wait for its table.** The export writes its first rows within hours, sometimes a day, and `bq ls PROJECT_ID:billing` then lists `gcp_billing_export_v1_…`. Set `billing_export = true` in the tfvars and deliver it: the delivery makes the view. Set before the table is there, the delivery stops at the view, since BigQuery makes no view over a table that does not exist.
+3. **The page.** In the private report, add data from BigQuery: the project, the dataset `impact_private`, the view `daily_report`. In the data source, set the data freshness to one hour, and the type of `charged`, `credits` and `cost` to the currency of the billing account. On a page of its own:
+   - **Yesterday**: scorecards of `cost`, `charged`, `credits`, `learners`, `tasks`, `answers` and `topics_won`, each filtered on `yesterday` being true.
+   - **The month so far**: scorecards of the sums of `cost`, `charged`, `tasks`, `answers` and `topics_won`, filtered on `this_month` being true, and of `learners_month` filtered on `yesterday`: a sum of the days' children would count a child once for every day.
+   - **The last fortnight**: a table of `day` and the other columns, filtered on `days_ago` being at most 14, newest first.
+4. **The schedule.** *Share → Schedule delivery*: the recipients, this page alone, a start at 8:00, repeated every day. Data Studio takes the time zone of the computer the schedule is made on and has no setting of its own, so make it on a computer set to the time zone the mail is wanted in.
+
+What to know when reading it:
+
+- A day is a UTC day, as every count here is, and so is a day of the costs: the one their usage began in, in UTC, rather than the Pacific day the Billing console shows. On the first of a month, the month so far is the month just ended, whole.
+- The export promises no time of writing, and Google says a day's costs are usually there within a day: the morning's figure for yesterday may still grow, and the fortnight's table shows it settle.
+- `charged` is the price of what was used, `credits` the free allowance and any other credit against it, below nought, and `cost` what is left to pay. They are this project's charges alone, as the spend alert counts them: what the billing account is charged for itself or for its other projects is not in them.
+- An empty day is one the night did not count, or one the export holds nothing of; `just impact` lists the first.
+- Moving the project to another billing account leaves the export behind: turn it on again on the new account, into the same dataset.
 
 ## When the pipeline is not available
 
@@ -452,4 +499,4 @@ gcloud run services update-traffic mathtrail --region=us-central1 --to-revisions
 
 `terraform destroy` removes everything the configuration created, including the secrets and every version in them: copy the sealing key out first if anything sealed with it still matters. The APIs stay enabled, because switching one off breaks whatever else in the project still uses it. The project, the state bucket, the federated pool, the DNS records and the OAuth client were never described here and stay as they are, and so does the site, until Pages is switched off in the repository's settings.
 
-With `analytics` on, the destroy stops at the tables of the counts: they are years of evidence, and protected from deletion on purpose. To remove them too, set `deletion_protection = false` on them in `infra/terraform/analytics/main.tf`, apply, and destroy again. The log bucket goes, and its name stays taken for seven days, so `analytics` turned off and on again within a week fails until they pass. The Data Studio reports were never described here either.
+With `analytics` on, the destroy stops at the tables of the counts: they are years of evidence, and protected from deletion on purpose. To remove them too, set `deletion_protection = false` on them in `infra/terraform/analytics/main.tf`, apply, and destroy again. The log bucket goes, and its name stays taken for seven days, so `analytics` turned off and on again within a week fails until they pass. The destroy stops at the dataset `billing` too once the export has written into it, and so does a delivery that turns `analytics` off, since what it holds cannot be exported again: delete the export's table by hand, after turning the export off, to go on. The Data Studio reports and the schedule of the daily report were never described here either.

@@ -2,6 +2,7 @@ package oauthserver
 
 import (
 	"errors"
+	"html"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -118,6 +119,69 @@ func TestNothingGoesOnToAGoogleThatIsNotThere(t *testing.T) {
 	stopped := approving.get(h.authorizeURL(clientID, nil))
 	if stopped.status != http.StatusServiceUnavailable || stopped.location != "" {
 		t.Errorf("GET /oauth/authorize approved = %d to %q, want 503 and a page", stopped.status, stopped.location)
+	}
+}
+
+// Where no Google sign-in is configured, the way back to Google — the decision
+// the page asking for the Drive posts — leads nowhere either: the parent stops
+// at the page that says signing in is not set up, is sent to no Google, and
+// the line says why; nobody is said to have gone back.
+func TestNoWayBackGoesToAGoogleThatIsNotThere(t *testing.T) {
+	t.Parallel()
+
+	h := newSignInWithoutGoogle(t)
+	parent := h.browser(t)
+	_, request := h.toConsent(parent, h.register(hostRedirect, hostName))
+
+	stopped := parent.post(h.served.URL+"/oauth/consent", url.Values{"request": {request}, "decision": {"again"}})
+	if stopped.status != http.StatusServiceUnavailable || stopped.location != "" {
+		t.Errorf("POST /oauth/consent going back = %d to %q, want 503 and a page", stopped.status, stopped.location)
+	}
+	if heading := pageWords(t)["refusal.unconfigured.heading"]; !strings.Contains(stopped.body, html.EscapeString(heading)) {
+		t.Errorf("the page does not say %q", heading)
+	}
+	if lines := h.lines(eventAuthReject); len(lines) != 1 || lines[0]["step"] != stepConsent || lines[0]["reason"] != "unconfigured" {
+		t.Errorf("auth_reject lines = %v, want one at the consent screen for want of Google", lines)
+	}
+	if lines := h.lines(eventAuthConsent); len(lines) != 0 {
+		t.Errorf("auth_consent lines = %v, want none: nobody went back to Google", lines)
+	}
+}
+
+// Tokens that cannot be sealed are a failure of the server's own: the host is
+// answered server_error and handed no token at all, not even the one that did
+// seal, and the line of the exchange is an error that tells what failed.
+func TestTokensThatCannotBeSealedAreAFailureOfOurs(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name  string
+		spoil func(issuing *tokens)
+	}{
+		{"the access token", func(issuing *tokens) { issuing.access = brokenSealer{} }},
+		{"the refresh token", func(issuing *tokens) { issuing.refresh = brokenSealer{} }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := newSignIn(t)
+			client := h.register(hostRedirect, hostName)
+			code := h.signedInCode(t, client)
+			tc.spoil(h.server.tokens)
+
+			answer := h.exchange(t, code, client, nil)
+			wantRefused(t, h, &answer, http.StatusInternalServerError, "server_error", eventAuthToken, "internal")
+			if answer.field("access_token") != "" || answer.field("refresh_token") != "" {
+				t.Errorf("the host was handed %v, want no token", answer.fields)
+			}
+			lines := h.logs.FilterMessage(eventAuthToken).All()
+			if len(lines) != 1 || lines[0].Level != zapcore.ErrorLevel {
+				t.Fatalf("auth_token lines = %v, want one error", lines)
+			}
+			if said, _ := lines[0].ContextMap()["error"].(string); !strings.Contains(said, "seal a token") {
+				t.Errorf("the error line says %q, want it to tell the token could not be sealed", said)
+			}
+		})
 	}
 }
 

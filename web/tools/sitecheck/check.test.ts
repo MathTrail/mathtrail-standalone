@@ -489,6 +489,26 @@ describe("check", () => {
 		});
 	});
 
+	// A server answers a link to nothing, or to a directory, with no file, so a
+	// page that loads one is as broken as one that loads a file never built.
+	test.each([
+		["whose file is gone", "shared/gone.css"],
+		["that leads to a directory", "shared"],
+	])("serves nothing through a link %s", async (_, target) => {
+		const dir = await site((files) => {
+			files["shared/kept.css"] = "body{}";
+		});
+		await unlink(join(dir, "assets", "style.css"));
+		await symlink(join(dir, target), join(dir, "assets", "style.css"));
+
+		expect((await check(dir, options())).map(lineOf)).toEqual(
+			["index.html", "ru/index.html"].map(
+				(path) =>
+					`${path}: link: <link href="/assets/style.css"> leads to assets/style.css, which the site does not have`,
+			),
+		);
+	});
+
 	test("weighs what a stylesheet loads through another, once each", async () => {
 		const dir = await site((files) => {
 			files["assets/style.css"] = '@import "more.css";';
@@ -563,6 +583,49 @@ describe("check", () => {
 			},
 		]);
 	});
+
+	// A budget of zero is no budget: the size it would hold is left unchecked,
+	// and the other budget holds as before.
+	test.for([
+		{
+			against: "both budgets, naming the page and the framed document",
+			budgets: {},
+			past: ["assets/demo.html: weight", "index.html: weight"],
+		},
+		{
+			against: "the framed document's alone, when a page's budget is zero",
+			budgets: { maxPageBytes: 0 },
+			past: ["assets/demo.html: weight"],
+		},
+		{
+			against: "the page's alone, when a framed document's budget is zero",
+			budgets: { maxFrameBytes: 0 },
+			past: ["index.html: weight"],
+		},
+		{
+			against: "neither, when both budgets are zero",
+			budgets: { maxPageBytes: 0, maxFrameBytes: 0 },
+			past: [],
+		},
+	])(
+		"weighs a page and a document it frames, each past its budget, against $against",
+		async ({ budgets, past }) => {
+			const dir = await site((files) => {
+				files["index.html"] = pageAt("/", addresses).replace(
+					"</body>",
+					'<img src="/assets/big.png" alt=""><iframe src="/assets/demo.html" title="Demo"></iframe></body>',
+				);
+				files["assets/big.png"] = "x".repeat(5000);
+				files["assets/demo.html"] = "x".repeat(5000);
+			});
+
+			expect(
+				(await check(dir, { ...options(), ...budgets })).map(
+					({ path, rule }) => `${path}: ${rule}`,
+				),
+			).toEqual(past);
+		},
+	);
 
 	test("weighs a page without the photographs it shows, which are worth their weight", async () => {
 		const dir = await site(showing("/assets/photos/us.webp"));
@@ -733,6 +796,18 @@ describe("check", () => {
 			files: siteAt(addresses),
 			options: { ...options(), base: `${base}/site` },
 			message: `base URL "${base}/site" is not an origin`,
+		},
+		{
+			name: "a base that is no address at all",
+			files: siteAt(addresses),
+			options: { ...options(), base: "not an address" },
+			message: `base URL "not an address" is not an origin`,
+		},
+		{
+			name: "a base of a scheme a site is not served by",
+			files: siteAt(addresses),
+			options: { ...options(), base: "ftp://example.test" },
+			message: `base URL "ftp://example.test" is not an origin`,
 		},
 		{
 			name: "a published address that is no page's",

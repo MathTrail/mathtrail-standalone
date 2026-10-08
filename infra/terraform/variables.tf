@@ -224,6 +224,12 @@ variable "analytics" {
   default     = false
 }
 
+variable "billing_export" {
+  description = "Whether Cloud Billing's standard usage cost export writes into the dataset billing and has made its table there, so that the daily report's view can be made over it. Only the console turns the export on, so this is set once the table exists. Read only where analytics is on."
+  type        = bool
+  default     = false
+}
+
 variable "budget_amount" {
   description = "The monthly spend, in whole units of budget_currency, that the alert is measured against. This is an alert and not a cap: nothing stops a project at a number."
   type        = string
@@ -234,6 +240,18 @@ variable "budget_currency" {
   description = "The currency of the spend alert. It has to be the currency of the billing account."
   type        = string
   default     = "USD"
+}
+
+variable "operator_email" {
+  description = "The address the load alert is mailed to. Empty means no alert, so a copy is mailed nothing until it names its own operator. It is written in this repository, so it has to be an address already public."
+  type        = string
+  default     = ""
+}
+
+variable "load_alert_per_minute" {
+  description = "Requests a minute to the service, all its revisions together and on average over five minutes, past which the load alert is mailed."
+  type        = number
+  default     = 300
 }
 
 variable "keep_images" {

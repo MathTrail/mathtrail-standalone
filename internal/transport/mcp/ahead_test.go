@@ -504,6 +504,38 @@ func TestATaskKeptIsLetGoWhenTheLessonMovesAway(t *testing.T) {
 	}
 }
 
+// A task still being written ahead is let go as a task kept is once the
+// lesson moves away from it — here to lessons held in another language: the
+// child is not made to wait for a task in the old one. The task asked for is
+// written now, in the lesson's language, and the line says the task let go
+// had not been written yet.
+func TestATaskBeingWrittenAheadIsLetGoWhenTheLessonMovesAway(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	h, session := lesson(t, kept)
+	raceHandedOut(t, session, kept)
+	prepared(t, session, aheadChoice)
+	ahead := aheadOpen(t, kept)
+	changeKept(t, kept, func(p *profile.Profile) {
+		russian := "ru"
+		p.Student.UILanguage = &russian
+	})
+
+	coming := wantComing(t, call(t, session, "next_task", map[string]any{"language": "en"}))
+	p, _ := loadKept(t, kept)
+	if p.OpenRequest == nil || p.OpenRequest.ID == ahead.ID || p.OpenRequest.Ahead || coming.RequestID != p.OpenRequest.ID ||
+		coming.Language != "ru" {
+		t.Fatalf("next_task = %+v with the request %+v, want the request ahead let go and a task asked for now, in ru",
+			coming, p.OpenRequest)
+	}
+	h.settle()
+	dropped := linesOf(h, "task_dropped")
+	if len(dropped) != 1 || dropped[0].ContextMap()["reason"] != "language" || dropped[0].ContextMap()["written"] != false {
+		t.Errorf("task_dropped lines = %v, want one, the task being written let go for language", dropped)
+	}
+}
+
 // A task kept is handed out when a person asks for where it stands: asking
 // for its own topic asks for nothing it is not.
 func TestATaskKeptIsHandedOutForAnAskItFits(t *testing.T) {
@@ -718,5 +750,99 @@ func TestATaskWrittenAheadIsBuiltOnTheIdeaAfterTheTaskOnTheCard(t *testing.T) {
 			t.Errorf("after the answer the package's %s is %s, want the one written ahead from, %s",
 				part, afterTheAnswer[part], ahead[part])
 		}
+	}
+}
+
+// A child who asks for another task in the chat while the next one is still
+// being written ahead, on a Drive with no room left, has nothing waited for:
+// the model is told the Drive is full, the request stays written ahead, and
+// the task on the card stays where it is.
+func TestAskingForTheTaskAheadOnAFullDriveChangesNothing(t *testing.T) {
+	t.Parallel()
+
+	kept := &failingLater{Storage: racer(t)}
+	_, session := lesson(t, kept)
+	race := raceHandedOut(t, session, kept)
+	prepared(t, session, aheadChoice)
+	ahead := aheadOpen(t, kept)
+	kept.armed.Store(true)
+
+	wantOurSentence(t, call(t, session, "next_task", map[string]any{"language": "en"}), "The adult's Google Drive is full")
+	if p, _ := loadKept(t, kept); p.OpenRequest == nil || p.OpenRequest.ID != ahead.ID || !p.OpenRequest.Ahead ||
+		p.CurrentTask == nil || p.CurrentTask.ID != profile.TaskIDFor(race.ID) {
+		t.Errorf("the profile holds the request %+v and the task %+v, want the request ahead and the race as they were",
+			p.OpenRequest, p.CurrentTask)
+	}
+}
+
+// A request for the task written ahead that cannot be saved — the Drive full —
+// is told in the words of that failure, and leaves no request open.
+func TestARequestAheadThatCannotBeSavedLeavesNoneOpen(t *testing.T) {
+	t.Parallel()
+
+	kept := &failingLater{Storage: racer(t)}
+	_, session := lesson(t, kept)
+	raceHandedOut(t, session, kept)
+	kept.armed.Store(true)
+
+	wantOurSentence(t, call(t, session, "prepare_task", aheadChoice), "The adult's Google Drive is full")
+	if p, _ := loadKept(t, kept); p.OpenRequest != nil {
+		t.Errorf("the profile holds the request %+v, want none", p.OpenRequest)
+	}
+}
+
+// A task written ahead that passes its checks on a Drive with no room left is
+// not kept: the model is told the Drive is full, and the request stays open
+// with no attempt spent, for the same task to be handed in again.
+func TestATaskWrittenAheadThatCannotBeSavedIsNotKept(t *testing.T) {
+	t.Parallel()
+
+	kept := &failingLater{Storage: racer(t)}
+	h, session := lesson(t, kept)
+	raceHandedOut(t, session, kept)
+	prepared(t, session, aheadChoice)
+	ahead := aheadOpen(t, kept)
+	kept.armed.Store(true)
+
+	wantOurSentence(t, call(t, session, "submit_task", relayOn(ahead)), "The adult's Google Drive is full")
+	if p, _ := loadKept(t, kept); p.ReadyTask != nil || p.OpenRequest == nil || p.OpenRequest.ID != ahead.ID ||
+		p.OpenRequest.Attempts != 0 {
+		t.Errorf("the profile keeps %+v beside the request %+v, want nothing kept and no attempt spent", p.ReadyTask, p.OpenRequest)
+	}
+	h.settle()
+	if lines := linesOf(h, "task_kept"); len(lines) != 0 {
+		t.Errorf("task_kept lines = %d, want none for a task the file does not keep", len(lines))
+	}
+}
+
+// A chat language no task can be written in is refused before anything is
+// asked for, by the rule it broke: none given, or one that names no language.
+// Nothing is written.
+func TestAChatLanguageNoTaskAheadCanBeWrittenInIsRefused(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, language, code string
+	}{
+		{"none given", "", "required"},
+		{"no language", "not a language", "not_a_language"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept := racer(t)
+			_, session := lesson(t, kept)
+			raceHandedOut(t, session, kept)
+			_, revision := loadKept(t, kept)
+
+			refused := payloadOf[requestPayload](t, call(t, session, "prepare_task", map[string]any{"language": tc.language}))
+			if refused.Status != "rejected" || refused.Code != "invalid_arguments" || len(refused.Problems) != 1 ||
+				refused.Problems[0].Field != "language" || refused.Problems[0].Code != tc.code {
+				t.Errorf("prepare_task = %+v, want the language refused as %s", refused, tc.code)
+			}
+			if p, now := loadKept(t, kept); now != revision || p.OpenRequest != nil {
+				t.Errorf("the profile holds the request %+v at revision %s, want nothing written", p.OpenRequest, now)
+			}
+		})
 	}
 }

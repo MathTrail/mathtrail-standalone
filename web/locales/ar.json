@@ -98,6 +98,7 @@
 	"progress.mastered": "تم إتقانه",
 	"progress.right": "صحيح",
 	"progress.wrong": "خطأ",
+	"progress.loading": "جار تحميل التقدم…",
 	"progress.failed": "تعذر تحميل التقدم. لنرجع ونجرب مرة أخرى.",
 	"profile.label": "الملف الشخصي · لولي الأمر",
 	"profile.edit": "تعديل",

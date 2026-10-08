@@ -153,16 +153,24 @@ func (c *clock) advance(by time.Duration) {
 }
 
 // waits writes down every wait the store asks for, and waits for none of
-// them, unless the context has ended.
+// them, unless the context has ended — or ends during the wait, when a case
+// has its caller give up then.
 type waits struct {
 	mu    sync.Mutex
 	asked []time.Duration
+	// giveUp ends the context of the next wait, as a caller who gives up while
+	// the store waits does.
+	giveUp context.CancelFunc
 }
 
 func (w *waits) wait(ctx context.Context, d time.Duration) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.asked = append(w.asked, d)
+	if w.giveUp != nil {
+		w.giveUp()
+		w.giveUp = nil
+	}
 	return ctx.Err()
 }
 
@@ -175,6 +183,20 @@ func (w *waits) taken() []time.Duration {
 	return asked
 }
 
+// givingUpDuringTheNextWait is a context whose caller gives up on it while
+// the store next waits: for a pause Drive asked for, or for a read to catch
+// up.
+func (f *fixture) givingUpDuringTheNextWait(t *testing.T) context.Context {
+	t.Helper()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	t.Cleanup(cancel)
+	f.waits.mu.Lock()
+	defer f.waits.mu.Unlock()
+	f.waits.giveUp = cancel
+	return ctx
+}
+
 // tries is how many times a call Drive keeps refusing is made: once, and once
 // more after each pause.
 const tries = 3
@@ -183,6 +205,14 @@ const tries = 3
 func failEveryTry(fake *drivetest.Drive, kind string, status int, reason string) {
 	for range tries {
 		fake.Fail(kind, status, reason)
+	}
+}
+
+// letThrough has Drive serve the next calls of a kind as it would, as many as
+// given, so that a refusal planned after them meets the call that follows.
+func letThrough(fake *drivetest.Drive, kind string, calls int) {
+	for range calls {
+		fake.Hold(kind)()
 	}
 }
 
@@ -594,34 +624,57 @@ func TestDrivesRefusalsAreToldInTheStoresWords(t *testing.T) {
 
 // A search Drive failed to answer is not an account with no profile: taken
 // for one, it would have a second profile made beside the first. So a failed
-// search reaches the caller as the failure it is, and nothing is created.
+// search reaches the caller as the failure it is, and nothing is created — and
+// so does a failed look into the bin, where a profile the parent put there is
+// found.
 func TestASearchThatFailedIsNotAProfileMissing(t *testing.T) {
 	t.Parallel()
 
-	f := newFixture(t, 5*time.Second)
-	f.create(t, mia, child("Mia"))
-	cold := f.instance(t, 5*time.Second)
-	for name, try := range map[string]func() error{
-		"Load": func() error {
-			_, _, err := cold.Load(t.Context(), mia)
-			return err
-		},
-		"Create": func() error {
-			_, err := cold.Create(t.Context(), mia, child("A second Mia"))
-			return err
-		},
-		"Export": func() error {
-			_, err := cold.Export(t.Context(), mia)
-			return err
-		},
+	for _, tc := range []struct {
+		name string
+		// inBin puts the profile in the bin, where only the look into the bin
+		// finds it.
+		inBin bool
+		// answered is how many searches Drive answers before the one that
+		// fails.
+		answered int
+	}{
+		{"the search", false, 0},
+		{"the look into the bin", true, 1},
 	} {
-		failEveryTry(f.fake, drivetest.List, http.StatusServiceUnavailable, "backendError")
-		err := try()
-		if !errors.Is(err, store.ErrUnavailable) || errors.Is(err, store.ErrNotFound) {
-			t.Errorf("%s() while the search fails: error = %v, want %v and not %v", name, err, store.ErrUnavailable, store.ErrNotFound)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := newFixture(t, 5*time.Second)
+			f.create(t, mia, child("Mia"))
+			if tc.inBin {
+				f.fake.Edit(miaToken, f.profileFile(t, miaToken).ID, func(file *drivetest.File) { file.Trashed = true })
+			}
+			cold := f.instance(t, 5*time.Second)
+			for name, try := range map[string]func() error{
+				"Load": func() error {
+					_, _, err := cold.Load(t.Context(), mia)
+					return err
+				},
+				"Create": func() error {
+					_, err := cold.Create(t.Context(), mia, child("A second Mia"))
+					return err
+				},
+				"Export": func() error {
+					_, err := cold.Export(t.Context(), mia)
+					return err
+				},
+			} {
+				letThrough(f.fake, drivetest.List, tc.answered)
+				failEveryTry(f.fake, drivetest.List, http.StatusServiceUnavailable, "backendError")
+				err := try()
+				if !errors.Is(err, store.ErrUnavailable) || errors.Is(err, store.ErrNotFound) {
+					t.Errorf("%s() while %s fails: error = %v, want %v and not %v", name, tc.name, err, store.ErrUnavailable, store.ErrNotFound)
+				}
+			}
+			f.profileFile(t, miaToken)
+		})
 	}
-	f.profileFile(t, miaToken)
 }
 
 // A profile deleted between its read and its write is not written, and not
@@ -686,6 +739,50 @@ func TestAFullDriveRefusesTheWrite(t *testing.T) {
 	}
 }
 
+// A first profile Drive refuses on the way — the search for the folder it
+// goes into, or its own file in a folder that is there — is not made: the
+// refusal reaches the caller in the store's words, no profile file is left in
+// the Drive, and nothing is remembered of one.
+func TestAFirstProfileRefusedOnTheWayIsNotMade(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		// spoil readies the Drive, and has it refuse the call the case names.
+		spoil func(fake *drivetest.Drive)
+		want  error
+	}{
+		{"the search for the folder", func(fake *drivetest.Drive) {
+			// The search for the profile and the look into the bin come first.
+			letThrough(fake, drivetest.List, 2)
+			failEveryTry(fake, drivetest.List, http.StatusServiceUnavailable, "backendError")
+		}, store.ErrUnavailable},
+		{"the file, in a folder that is there", func(fake *drivetest.Drive) {
+			fake.Put(miaToken, &drivetest.File{Name: folderName, MimeType: drive.FolderType, AppProperties: maps.Clone(folderMarker)})
+			fake.Fail(drivetest.Create, http.StatusForbidden, "storageQuotaExceeded")
+		}, store.ErrStorageFull},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := newFixture(t, 5*time.Second)
+			tc.spoil(f.fake)
+
+			if _, err := f.storage.Create(t.Context(), mia, child("Mia")); !errors.Is(err, tc.want) {
+				t.Errorf("Create() error = %v, want %v", err, tc.want)
+			}
+			for _, file := range f.fake.Files(miaToken) {
+				if file.AppProperties["mathtrail"] == "profile" {
+					t.Errorf("the Drive holds the profile file %q after a refused first profile, want none", file.Name)
+				}
+			}
+			if _, _, err := f.storage.Load(t.Context(), mia); !errors.Is(err, store.ErrNotFound) {
+				t.Errorf("Load() after a refused first profile: error = %v, want %v", err, store.ErrNotFound)
+			}
+		})
+	}
+}
+
 // Every write carries a copy of the version of the file's shape beside the
 // marker, whatever the copy said before: the two never drift apart.
 func TestEveryWriteCarriesTheVersionOfTheShape(t *testing.T) {
@@ -710,33 +807,53 @@ func TestEveryWriteCarriesTheVersionOfTheShape(t *testing.T) {
 }
 
 // The profile is exported as the file it is, where the parent can open it:
-// the folder it is in, the file, and a link — and a folder of the parent's
-// own, which the service may not see, leaves only the folder's name unsaid.
+// the folder it is in, the file, and a link. A folder of the parent's own,
+// which the service may not see, or no folder at all, leaves only the folder's
+// name unsaid; a folder Drive fails to name is Drive out of reach, and nothing
+// is exported as if the folder were not there.
 func TestTheProfileIsExportedAsWhereItIs(t *testing.T) {
 	t.Parallel()
 
-	f := newFixture(t, 5*time.Second)
-	f.create(t, mia, child("Mia"))
-	file := f.profileFile(t, miaToken)
+	for _, tc := range []struct {
+		name string
+		// move puts the profile's file where the case has it, or has Drive
+		// refuse what the export asks of it.
+		move   func(f *fixture, file string)
+		folder string
+		want   error
+	}{
+		{"in the folder the store made", func(*fixture, string) {}, folderName, nil},
+		{"in a folder of the parent's own", func(f *fixture, file string) {
+			theirs := f.fake.Put(miaToken, &drivetest.File{Name: "Kids", MimeType: drive.FolderType, Own: true})
+			f.fake.Edit(miaToken, file, func(edited *drivetest.File) { edited.Parents = []string{theirs} })
+		}, "", nil},
+		{"in no folder at all", func(f *fixture, file string) {
+			f.fake.Edit(miaToken, file, func(edited *drivetest.File) { edited.Parents = nil })
+		}, "", nil},
+		{"in a folder Drive fails to name", func(f *fixture, _ string) {
+			failEveryTry(f.fake, drivetest.Get, http.StatusServiceUnavailable, "backendError")
+		}, "", store.ErrUnavailable},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	location, err := f.storage.Export(t.Context(), mia)
-	if err != nil {
-		t.Fatalf("Export() error = %v, want nil", err)
-	}
-	want := store.Location{Folder: folderName, File: fileName, Link: drivetest.WebViewLink(file.ID)}
-	if !reflect.DeepEqual(location, want) {
-		t.Errorf("Export() = %+v, want %+v", location, want)
-	}
+			f := newFixture(t, 5*time.Second)
+			f.create(t, mia, child("Mia"))
+			file := f.profileFile(t, miaToken).ID
+			tc.move(f, file)
 
-	theirs := f.fake.Put(miaToken, &drivetest.File{Name: "Kids", MimeType: drive.FolderType, Own: true})
-	f.fake.Edit(miaToken, file.ID, func(edited *drivetest.File) { edited.Parents = []string{theirs} })
-	location, err = f.storage.Export(t.Context(), mia)
-	if err != nil {
-		t.Fatalf("Export() from a folder of the parent's own error = %v, want nil", err)
-	}
-	want.Folder = ""
-	if !reflect.DeepEqual(location, want) {
-		t.Errorf("Export() from a folder of the parent's own = %+v, want %+v", location, want)
+			location, err := f.storage.Export(t.Context(), mia)
+			if !errors.Is(err, tc.want) {
+				t.Fatalf("Export() error = %v, want %v", err, tc.want)
+			}
+			want := store.Location{Folder: tc.folder, File: fileName, Link: drivetest.WebViewLink(file)}
+			if tc.want != nil {
+				want = store.Location{}
+			}
+			if !reflect.DeepEqual(location, want) {
+				t.Errorf("Export() = %+v, want %+v", location, want)
+			}
+		})
 	}
 }
 

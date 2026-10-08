@@ -46,13 +46,23 @@ const placeholder = "{endpoint}"
 
 func main() {
 	isolated, err := run(context.Background(), os.Args[1:], os.Stdin, os.Stdout)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "isolation:", err)
-		os.Exit(2)
+	os.Exit(exitCode(os.Stderr, isolated, err))
+}
+
+// exitCode is the status the command exits with once run has given its
+// verdict, or failed to reach one: 0 for a client that is isolated, 1 for one
+// that is not, and 2, with the reason printed, when the check could not run.
+// A check that failed says nothing of the client, so its error wins over any
+// verdict.
+func exitCode(stderr io.Writer, isolated bool, err error) int {
+	switch {
+	case err != nil:
+		fmt.Fprintf(stderr, "isolation: %v\n", err)
+		return 2
+	case !isolated:
+		return 1
 	}
-	if !isolated {
-		os.Exit(1)
-	}
+	return 0
 }
 
 func run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer) (bool, error) {

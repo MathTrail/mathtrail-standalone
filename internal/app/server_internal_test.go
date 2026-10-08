@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -62,6 +63,39 @@ func TestAShutdownThatFailsIsNotADrainCutShort(t *testing.T) {
 	}
 	if stopped := logs.FilterMessage("stopped").All(); len(stopped) != 0 {
 		t.Errorf("stop lines = %v, want none for a way out that failed", stopped)
+	}
+}
+
+// A server whose listener is gone stops serving on its own, which nobody asked
+// for: Run returns that as a failure of serving, and no line says the server
+// was asked to stop or stopped as asked.
+func TestAServerThatStopsServingOnItsOwnFails(t *testing.T) {
+	t.Parallel()
+
+	var lc net.ListenConfig
+	listener, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	if err = listener.Close(); err != nil {
+		t.Fatalf("close the listener: %v", err)
+	}
+	core, logs := observer.New(zapcore.InfoLevel)
+	server := &Server{
+		http:         &http.Server{Handler: http.NotFoundHandler(), ReadHeaderTimeout: time.Second},
+		logger:       zap.New(core),
+		drainTimeout: time.Second,
+		listener:     listener,
+	}
+
+	err = server.Run(t.Context())
+	if err == nil || !strings.HasPrefix(err.Error(), "app: serve: ") || !errors.Is(err, net.ErrClosed) {
+		t.Errorf("Run() error = %v, want a failure of serving on the closed listener", err)
+	}
+	for _, message := range []string{"shutdown requested", "stopped"} {
+		if lines := logs.FilterMessage(message).All(); len(lines) != 0 {
+			t.Errorf("%q lines = %v, want none for a server nobody asked to stop", message, lines)
+		}
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -341,6 +342,29 @@ func TestARefusingCollectorDoesNotStopTheService(t *testing.T) {
 	closing, cancelClosing := context.WithTimeout(context.WithoutCancel(t.Context()), time.Second)
 	defer cancelClosing()
 	_ = tel.Shutdown(closing)
+}
+
+// Measurements the collector refuses are a delivery that failed, and the
+// caller is told so by name: a flush carries the spans and the measurements
+// side by side, and a failure that did not say which of the two it lost is
+// one nobody can act on.
+func TestMeasurementsTheCollectorRefusesAreReportedAsTheMeasurements(t *testing.T) {
+	t.Parallel()
+
+	collector := newCollector(t, http.StatusBadRequest)
+	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 0})
+	counter, err := tel.MeterProvider().Meter("test").Int64Counter("unit_total")
+	if err != nil {
+		t.Fatalf("Int64Counter() error = %v, want nil", err)
+	}
+	counter.Add(t.Context(), 1)
+
+	if err := tel.ForceFlush(t.Context(), false); err == nil || !strings.Contains(err.Error(), "metrics: post:") {
+		t.Errorf("ForceFlush() error = %v, want the measurements' delivery named as refused", err)
+	}
+	if got := len(collector.takenAt("/v1/metrics")); got != 1 {
+		t.Errorf("the collector saw %d metric deliveries, want the 1 it refused", got)
+	}
 }
 
 // Switched off, the providers still exist and still hand out tracers, because

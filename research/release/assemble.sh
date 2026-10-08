@@ -9,10 +9,14 @@
 # and commit that would lead to the system, its repositories or its authors, and
 # fails if one is left anywhere in it.
 #
-# Usage: assemble.sh named|anonymous   (from research/; prints the tarball)
+# Usage: assemble.sh named|anonymous <snapshot>   (from research/; prints the tarball)
+# The snapshot is the monthly one of real use the paper's numbers were written
+# from; it ships once there is one.
 set -euo pipefail
 
-flavour=${1:?usage: assemble.sh named|anonymous}
+usage="usage: assemble.sh named|anonymous <snapshot>"
+flavour=${1:?$usage}
+snapshot=${2:?$usage}
 case $flavour in
 named) name=paper-a-artifact ;;
 anonymous) name=paper-a-artifact-anonymous ;;
@@ -71,6 +75,7 @@ research=(
     experiments/PROTOCOL-A-offline.md experiments/PROTOCOL-A-offline.md.ots
     experiments/faultinject experiments/learnersim experiments/perf experiments/reviewing
     evidence/ledger.md evidence/claims-product.json evidence/product-stats.txt evidence/ledger-numbers.txt
+    evidence/claims-use.json evidence/use-stats.txt evidence/use.sh
     evidence/prototype.md evidence/claims-prototype.json evidence/prototype-stats.txt
     evidence/facts.sh evidence/product.sh evidence/prototype.sh
     literature/numbers.txt
@@ -81,6 +86,10 @@ tar -c "${research[@]}" | tar -x -C "$tree/research"
 # version sits beside it, and the module builds from it with no network.
 (cd "$tree/research" && go mod edit -replace="$product_module=../")
 cp paper-a/generated/numbers.tex "$tree/research/paper-a/numbers.tex"
+cp paper-a/generated/live.txt "$tree/research/paper-a/live.txt"
+if [[ -f "$snapshot" ]]; then
+    cp "$snapshot" "$tree/research/paper-a/live.json"
+fi
 cp release/DEVIATIONS.md "$tree/research/experiments/DEVIATIONS.md"
 cp release/README.md "$out/README.md"
 git -C .. show "$full:LICENSE" >"$tree/research/LICENSE"
@@ -180,6 +189,7 @@ if [[ "$flavour" == anonymous ]]; then
     # pin, the prototype's pin, a run's commit — and then it is refused.
     known=$({
         git -C .. rev-parse "$full"
+        git -C .. rev-parse "$(sed -n 's/^commit=//p' evidence/use-stats.txt)^{commit}"
         sed -n 's/^\(commit\|pin\)=//p' experiments/*/results/provenance.txt | xargs -r -I{} git -C .. rev-parse "{}^{commit}"
         git -C "$prototype_clone" rev-parse "$(sed -n 's/^commit=//p' evidence/prototype-stats.txt)^{commit}"
     } | LC_ALL=C sort -u)

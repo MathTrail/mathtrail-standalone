@@ -240,14 +240,9 @@ export type GradeRun = {
 };
 
 /**
- * GradeLegend marks runs of a course's steps under the course: a bracket
- * under each run, as wide as its steps, with its words under it, the run the
- * course stands in drawn stronger, and a note under them all. A card sets no
- * style on an element, so the runs are the cells of a table as wide as the
- * course, one column a step, each cell spanning its run; a bracket stops
- * short of the next by half the course's gap on each inner side, which keeps
- * its ends within a fraction of a pixel of the steps' edges. The table is a
- * drawing, and a screen reader reads each run's words instead.
+ * GradeLegend marks runs of a course's steps under the course, as GradeRuns
+ * draws them, each with its words, and a note under them all. A screen reader
+ * reads each run's words instead of the drawing.
  */
 export function GradeLegend({
 	of,
@@ -260,25 +255,7 @@ export function GradeLegend({
 }) {
 	return (
 		<div class="mt-grades">
-			<table class="mt-grades-runs" aria-hidden="true">
-				<colgroup>
-					<col span={of} />
-				</colgroup>
-				<tbody>
-					<tr>
-						{runs.map((run) => (
-							<td
-								key={run.first}
-								colSpan={run.last - run.first + 1}
-								data-current={run.current ? "" : undefined}
-							>
-								<span class="mt-grades-bracket" />
-								<span class="mt-grades-label">{run.label}</span>
-							</td>
-						))}
-					</tr>
-				</tbody>
-			</table>
+			<GradeRuns of={of} runs={runs} />
 			<ul class="mt-vh">
 				{runs.map((run) => (
 					<li key={run.first}>{run.said}</li>
@@ -286,6 +263,51 @@ export function GradeLegend({
 			</ul>
 			<p class="mt-grades-note">{note}</p>
 		</div>
+	);
+}
+
+/**
+ * GradeRuns draws runs of a course's steps under the course of of steps: a
+ * bracket under each run, as wide as its steps, with what stands under it —
+ * its words, or a shape in their place —, the run the course stands in drawn
+ * stronger. A card sets no style on an element, so the runs are the cells of a
+ * table as wide as the course, one column a step, each cell spanning its run;
+ * a bracket stops short of the next by half the course's gap on each inner
+ * side, which keeps its ends within a fraction of a pixel of the steps' edges.
+ * The table is a drawing, hidden from a screen reader.
+ */
+export function GradeRuns({
+	of,
+	runs,
+}: {
+	of: number;
+	runs: readonly {
+		first: number;
+		last: number;
+		label: ComponentChildren;
+		current?: boolean;
+	}[];
+}) {
+	return (
+		<table class="mt-grades-runs" aria-hidden="true">
+			<colgroup>
+				<col span={of} />
+			</colgroup>
+			<tbody>
+				<tr>
+					{runs.map((run) => (
+						<td
+							key={run.first}
+							colSpan={run.last - run.first + 1}
+							data-current={run.current ? "" : undefined}
+						>
+							<span class="mt-grades-bracket" />
+							<span class="mt-grades-label">{run.label}</span>
+						</td>
+					))}
+				</tr>
+			</tbody>
+		</table>
 	);
 }
 

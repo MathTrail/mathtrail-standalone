@@ -29,6 +29,12 @@ type fakeZenodo struct {
 	elsewhere bool     // answers a new version with a draft at another address
 	broken    bool     // fails every upload
 	requests  []string // each request's method and path, in order
+	// fail fails every request it matches with a server error, once the
+	// request is logged and its token checked.
+	fail          func(*http.Request) bool
+	noLatestDraft bool // answers a new version without the link to its draft
+	noConceptDOI  bool // answers a publication without the DOI every version shares
+	samePage      bool // gives the first page of the list whatever page is asked for
 }
 
 type fakeDeposition struct {
@@ -69,9 +75,14 @@ func (f *fakeZenodo) authorized(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f.mu.Lock()
 		f.requests = append(f.requests, r.Method+" "+r.URL.Path)
+		fail := f.fail
 		f.mu.Unlock()
 		if r.Header.Get("Authorization") != "Bearer "+fakeToken {
 			http.Error(w, `{"message": "the token is not valid"}`, http.StatusUnauthorized)
+			return
+		}
+		if fail != nil && fail(r) {
+			http.Error(w, `{"message": "the service failed"}`, http.StatusInternalServerError)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -126,6 +137,9 @@ func (f *fakeZenodo) list(w http.ResponseWriter, r *http.Request) {
 		size = len(views) + 1
 	}
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if f.samePage {
+		page = 1
+	}
 	start := (page - 1) * size
 	if err != nil || page < 1 || start >= len(views) {
 		answer(w, http.StatusOK, []map[string]any{})
@@ -195,6 +209,9 @@ func (f *fakeZenodo) newVersion(w http.ResponseWriter, r *http.Request) {
 	if f.elsewhere {
 		links["latest_draft"] = "http://elsewhere.invalid/api/deposit/depositions/" + strconv.FormatInt(next.id, 10)
 	}
+	if f.noLatestDraft {
+		delete(links, "latest_draft")
+	}
 	answer(w, http.StatusCreated, v)
 }
 
@@ -210,7 +227,11 @@ func (f *fakeZenodo) publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	d.published = true
-	answer(w, http.StatusAccepted, f.view(d))
+	v := f.view(d)
+	if f.noConceptDOI {
+		delete(v, "conceptdoi")
+	}
+	answer(w, http.StatusAccepted, v)
 }
 
 func (f *fakeZenodo) files(w http.ResponseWriter, r *http.Request) {

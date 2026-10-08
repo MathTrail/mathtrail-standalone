@@ -93,6 +93,7 @@
 	"progress.mastered": "Thành thạo",
 	"progress.right": "Đúng",
 	"progress.wrong": "Sai",
+	"progress.loading": "Đang tải tiến độ…",
 	"progress.failed": "Không tải được tiến độ. Hãy quay lại và thử lại nhé.",
 	"profile.label": "Hồ sơ · Dành cho phụ huynh",
 	"profile.edit": "Sửa",

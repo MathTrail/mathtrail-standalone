@@ -210,7 +210,8 @@ func TestAQueryValueIsEscaped(t *testing.T) {
 }
 
 // Each refusal a caller acts on is told apart, and every other refusal is
-// none of them.
+// none of them: it says its status, and the reason Drive gave — or none, when
+// Drive gave none.
 func TestDrivesRefusalsAreToldApart(t *testing.T) {
 	t.Parallel()
 
@@ -223,23 +224,26 @@ func TestDrivesRefusalsAreToldApart(t *testing.T) {
 		status int
 		reason string
 		want   error
+		// says is what a refusal that is none of a caller's tells of itself.
+		says string
 	}{
-		{"the token not taken", http.StatusUnauthorized, "authError", drive.ErrUnauthorized},
-		{"no such file", http.StatusNotFound, "notFound", drive.ErrNotFound},
-		{"a pause asked for", http.StatusTooManyRequests, "rateLimitExceeded", drive.ErrRateLimited},
-		{"a pause asked for this parent", http.StatusForbidden, "userRateLimitExceeded", drive.ErrRateLimited},
-		{"a pause asked for the service", http.StatusForbidden, "rateLimitExceeded", drive.ErrRateLimited},
-		{"the service's calls for the day spent", http.StatusForbidden, "dailyLimitExceeded", drive.ErrRateLimited},
-		{"a full Drive", http.StatusForbidden, "storageQuotaExceeded", drive.ErrStorageFull},
-		{"a failure of Drive's", http.StatusInternalServerError, "backendError", drive.ErrUnavailable},
-		{"Drive not there", http.StatusServiceUnavailable, "backendError", drive.ErrUnavailable},
-		{"a token that grants nothing of Drive", http.StatusForbidden, "insufficientPermissions", drive.ErrUnauthorized},
-		{"a file the parent keeps from the app", http.StatusForbidden, "appNotAuthorizedToFile", drive.ErrNotFound},
-		{"a file the parent may not change", http.StatusForbidden, "insufficientFilePermissions", drive.ErrNotFound},
-		{"a revision not kept forever", http.StatusForbidden, "download_restricted_for_revision", drive.ErrNotKept},
-		{"a revision not kept forever, in the other spelling", http.StatusForbidden, "downloadRestrictedForRevision", drive.ErrNotKept},
-		{"a refusal Drive gives no word of ours for", http.StatusForbidden, "domainPolicy", nil},
-		{"a request Drive cannot read", http.StatusBadRequest, "badRequest", nil},
+		{"the token not taken", http.StatusUnauthorized, "authError", drive.ErrUnauthorized, ""},
+		{"no such file", http.StatusNotFound, "notFound", drive.ErrNotFound, ""},
+		{"a pause asked for", http.StatusTooManyRequests, "rateLimitExceeded", drive.ErrRateLimited, ""},
+		{"a pause asked for this parent", http.StatusForbidden, "userRateLimitExceeded", drive.ErrRateLimited, ""},
+		{"a pause asked for the service", http.StatusForbidden, "rateLimitExceeded", drive.ErrRateLimited, ""},
+		{"the service's calls for the day spent", http.StatusForbidden, "dailyLimitExceeded", drive.ErrRateLimited, ""},
+		{"a full Drive", http.StatusForbidden, "storageQuotaExceeded", drive.ErrStorageFull, ""},
+		{"a failure of Drive's", http.StatusInternalServerError, "backendError", drive.ErrUnavailable, ""},
+		{"Drive not there", http.StatusServiceUnavailable, "backendError", drive.ErrUnavailable, ""},
+		{"a token that grants nothing of Drive", http.StatusForbidden, "insufficientPermissions", drive.ErrUnauthorized, ""},
+		{"a file the parent keeps from the app", http.StatusForbidden, "appNotAuthorizedToFile", drive.ErrNotFound, ""},
+		{"a file the parent may not change", http.StatusForbidden, "insufficientFilePermissions", drive.ErrNotFound, ""},
+		{"a revision not kept forever", http.StatusForbidden, "download_restricted_for_revision", drive.ErrNotKept, ""},
+		{"a revision not kept forever, in the other spelling", http.StatusForbidden, "downloadRestrictedForRevision", drive.ErrNotKept, ""},
+		{"a refusal Drive gives no word of ours for", http.StatusForbidden, "domainPolicy", nil, "status 403, reason domainPolicy"},
+		{"a request Drive cannot read", http.StatusBadRequest, "badRequest", nil, "status 400, reason badRequest"},
+		{"a refusal that gives no reason", http.StatusBadRequest, "", nil, "status 400, reason none"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -256,6 +260,9 @@ func TestDrivesRefusalsAreToldApart(t *testing.T) {
 				if is, want := errors.Is(err, sentinel), errors.Is(tc.want, sentinel); is != want {
 					t.Errorf("Download() error = %v; errors.Is(%v) = %t, want %t", err, sentinel, is, want)
 				}
+			}
+			if !strings.Contains(err.Error(), tc.says) {
+				t.Errorf("Download() error = %q, want it to say %q", err, tc.says)
 			}
 		})
 	}
@@ -375,65 +382,98 @@ func TestACallThatTakesTooLongEnds(t *testing.T) {
 	}
 }
 
+// answersRead are the errors of every call that reads Drive's answer as JSON,
+// made to the API at root: what each makes of the answer it is given.
+func answersRead(t *testing.T, root string) map[string]error {
+	t.Helper()
+
+	files, revisions := filesAt(t, root, 5*time.Second), revisionsAt(t, root, 5*time.Second)
+	meta := &drive.File{Name: "file.json", MimeType: "application/json"}
+	ctx := t.Context()
+	return map[string]error{
+		"List":           second(files.List(ctx, token, marked)),
+		"Get":            second(files.Get(ctx, token, "a-file")),
+		"Create":         second(files.Create(ctx, token, meta, []byte("{}"))),
+		"Update":         second(files.Update(ctx, token, "a-file", &drive.Change{Meta: meta, Content: []byte("{}")})),
+		"Revisions.List": second(revisions.List(ctx, token, "a-file")),
+		"Revisions.Keep": revisions.Keep(ctx, token, "a-file", "a-revision"),
+	}
+}
+
 // An answer that breaks off, or does not read as one of Drive's, is Drive not
-// answering — the same as no answer at all, and not a fault of the service's.
+// answering — the same as no answer at all, and not a fault of the service's
+// — whichever call it answers, and even when it names a file: what is read of
+// it is not taken for what Drive said. What a file or a revision holds is
+// whatever it holds, so a download is failed only by an answer cut short.
 func TestAnAnswerThatBreaksOffIsDriveNotAnswering(t *testing.T) {
 	t.Parallel()
 
-	for name, answer := range map[string]http.HandlerFunc{
-		"cut short": func(w http.ResponseWriter, _ *http.Request) {
+	for _, tc := range []struct {
+		name   string
+		answer http.HandlerFunc
+		// failsDownloads says the answer fails a download as well.
+		failsDownloads bool
+	}{
+		{"cut short", func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Length", "1000")
 			_, _ = w.Write([]byte(`{"files": [{"id": "a-fi`))
-		},
-		"not Drive's": func(w http.ResponseWriter, _ *http.Request) {
+		}, true},
+		{"not Drive's", func(w http.ResponseWriter, _ *http.Request) {
 			_, _ = w.Write([]byte(`<html>a page of somebody else's</html>`))
-		},
+		}, false},
+		// JSON that names a file, and holds every other field Drive answers
+		// with as a value of another kind.
+		{"of another shape", func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte(`{"id": "a-file", "files": "none", "revisions": "none", "trashed": "yes", "keepForever": "yes"}`))
+		}, false},
 	} {
-		t.Run(name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			server := httptest.NewServer(answer)
+			server := httptest.NewServer(tc.answer)
 			t.Cleanup(server.Close)
-			files := filesAt(t, server.URL, 5*time.Second)
-			if _, err := files.List(t.Context(), token, marked); !errors.Is(err, drive.ErrUnavailable) {
-				t.Errorf("List() error = %v, want %v", err, drive.ErrUnavailable)
+			calls := answersRead(t, server.URL)
+			if tc.failsDownloads {
+				files, revisions := filesAt(t, server.URL, 5*time.Second), revisionsAt(t, server.URL, 5*time.Second)
+				calls["Download"] = second(files.Download(t.Context(), token, "a-file", 1<<10))
+				calls["Revisions.Download"] = second(revisions.Download(t.Context(), token, "a-file", "a-revision", 1<<10))
 			}
-			if _, err := files.Download(t.Context(), token, "a-file", 1<<10); name == "cut short" && !errors.Is(err, drive.ErrUnavailable) {
-				t.Errorf("Download() error = %v, want %v", err, drive.ErrUnavailable)
+			for call, err := range calls {
+				if !errors.Is(err, drive.ErrUnavailable) {
+					t.Errorf("%s() error = %v, want %v", call, err, drive.ErrUnavailable)
+				}
 			}
 		})
 	}
 }
 
-// An answer about a file says which file it is, or it is not taken for one;
-// and a call about a file names one, or it is not sent — as it stands it would
-// reach the address of the search.
+// An answer about a file, or a revision of one, says which it is, or it is
+// not taken for one; and a call about a file names one, or it is not sent —
+// as it stands it would reach the address of the search.
 func TestAFileIsAlwaysNamed(t *testing.T) {
 	t.Parallel()
 
 	nameless := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet && r.URL.Path == "/drive/v3/files" {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/drive/v3/files":
 			_, _ = w.Write([]byte(`{"files": [{"name": "a file of no ID"}]}`))
-			return
+		case strings.HasSuffix(r.URL.Path, "/revisions"):
+			_, _ = w.Write([]byte(`{"revisions": [{"keepForever": true}]}`))
+		case strings.Contains(r.URL.Path, "/revisions/"):
+			_, _ = w.Write([]byte(`{"keepForever": true}`))
+		default:
+			_, _ = w.Write([]byte(`{"name": "a file of no ID"}`))
 		}
-		_, _ = w.Write([]byte(`{"name": "a file of no ID"}`))
 	}))
 	t.Cleanup(nameless.Close)
-	files := filesAt(t, nameless.URL, 5*time.Second)
-	meta := &drive.File{Name: "file.json", MimeType: "application/json"}
-	ctx := t.Context()
-
-	for call, err := range map[string]error{
-		"List":   second(files.List(ctx, token, marked)),
-		"Get":    second(files.Get(ctx, token, "a-file")),
-		"Create": second(files.Create(ctx, token, meta, []byte("{}"))),
-		"Update": second(files.Update(ctx, token, "a-file", &drive.Change{Meta: meta, Content: []byte("{}")})),
-	} {
+	for call, err := range answersRead(t, nameless.URL) {
 		if !errors.Is(err, drive.ErrUnavailable) {
 			t.Errorf("%s() answered with no ID: error = %v, want %v", call, err, drive.ErrUnavailable)
 		}
 	}
 
+	meta := &drive.File{Name: "file.json", MimeType: "application/json"}
+	ctx := t.Context()
 	fake, named := standIn(t)
 	for call, err := range map[string]error{
 		"Get":      second(named.Get(ctx, token, "")),

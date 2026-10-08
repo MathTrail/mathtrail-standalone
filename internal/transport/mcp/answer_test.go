@@ -3,6 +3,7 @@ package mcpserver_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"slices"
@@ -911,6 +912,38 @@ func TestAnAnswerToAProfileThatCannotBeReadIsOurFailure(t *testing.T) {
 	wantOurSentence(t, answerIt(t, session, "tsk_any", "C", false), "Something went wrong inside MathTrail.")
 	h.settle()
 	wantFailed(t, h, "submit_answer", "internal")
+}
+
+// openOnly is a seal that still opens what was sealed with it and seals
+// nothing more, as a key ring whose sealing broke after the task was handed
+// out.
+type openOnly struct{ profile.Sealer }
+
+func (openOnly) Seal([]byte, ...string) (string, error) {
+	return "", errors.New("the key seals nothing more")
+}
+
+// An answer is recorded by sealing the task again, bound to the letter chosen,
+// so that only that answer opens it later. A task that opens but cannot be
+// sealed again records nothing: the failure is ours, told in our one sentence,
+// and nothing is written or counted.
+func TestAnAnswerItsTaskCannotBeSealedAgainWithIsNotRecorded(t *testing.T) {
+	t.Parallel()
+
+	p := raceOnTheCard(t, rating.TrialAnswers)
+	kept := keptAsIs(t, p)
+	_, revision := loadKept(t, kept)
+	h, session := sealedBy(t, kept, openOnly{sealer(t)})
+
+	wantOurSentence(t, answerIt(t, session, p.CurrentTask.ID, "C", false), "Something went wrong inside MathTrail.")
+	if after, now := loadKept(t, kept); now != revision || after.CurrentTask == nil || after.CurrentTask.Answered != nil {
+		t.Errorf("the profile is at revision %s with %+v on the card, want it untouched", now, after.CurrentTask)
+	}
+	h.settle()
+	wantFailed(t, h, "submit_answer", "internal")
+	if lines := linesOf(h, "answer_recorded"); len(lines) != 0 {
+		t.Errorf("answer_recorded lines = %d, want none for an answer nothing recorded", len(lines))
+	}
 }
 
 // A task that cannot be checked is taken off the card by a write like any

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "U001",
+    "group": "Real use",
+    "claim": "Families have used the deployed service in real lessons since its first weeks in production: in Claude their tasks reached the card, where the child answers, and the first parents' reading of the progress changed how it names a child's rank.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/live/16-task-time.md",
+        "match": "^- \\*\\*Families in production, the"
+      },
+      {
+        "file": "docs/live/16-task-time.md",
+        "match": "A child spent a median of"
+      },
+      {
+        "file": "docs/decisions.md",
+        "match": "after the first parents found the ranks' names meaningless"
+      }
+    ],
+    "used_in": "A: §7 limitations, §8 discussion"
+  },
+  {
+    "id": "U002",
+    "group": "Real use",
+    "claim": "Since 4 October 2026 the service counts its use into totals it keeps for years, and shows a month's totals publicly, on the site's page \"Research\" and in applications for grants, only once ten children and thirty answers or more stand behind them.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "docs/grants/README.md",
+        "match": "Use has been counted since 4 October 2026"
+      },
+      {
+        "file": "infra/analytics/views/public/chances_total.sql",
+        "match": "^WHERE counted\\.bucket IS NULL AND counted\\.learners >= 10 AND counted\\.answers >= 30$"
+      },
+      {
+        "file": "site/content/en/privacy.md",
+        "match": "They are shown only as totals of ten children or more"
+      }
+    ],
+    "used_in": "A: §7 limitations"
+  }
+]

@@ -94,6 +94,7 @@
 	"progress.mastered": "सीख लिया",
 	"progress.right": "सही",
 	"progress.wrong": "गलत",
+	"progress.loading": "प्रगति लोड हो रही है…",
 	"progress.failed": "प्रगति लोड नहीं हुई। वापस जाओ और फिर से कोशिश करो।",
 	"profile.label": "प्रोफ़ाइल · अभिभावक के लिए",
 	"profile.edit": "बदलें",

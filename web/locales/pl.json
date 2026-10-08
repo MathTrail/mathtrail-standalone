@@ -96,6 +96,7 @@
 	"progress.mastered": "Opanowane",
 	"progress.right": "Dobrze",
 	"progress.wrong": "Źle",
+	"progress.loading": "Wczytujemy postępy…",
 	"progress.failed": "Nie udało się wczytać postępów. Wróć i spróbuj jeszcze raz.",
 	"profile.label": "Profil · dla rodziców",
 	"profile.edit": "Edytuj",

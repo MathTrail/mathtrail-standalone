@@ -8,6 +8,9 @@ import (
 	"testing"
 )
 
+// placeholder is a name the SQL is written with, as templatefile writes one.
+var placeholder = regexp.MustCompile(`\$\{(\w+)\}`)
+
 // read is a file of the repository, by its path from this package's folder.
 func read(t *testing.T, file string) string {
 	t.Helper()
@@ -103,4 +106,75 @@ func assigned(text, name string) (string, bool) {
 		return "", false
 	}
 	return match[1], true
+}
+
+// The daily report's view is made over the export only once the deployment
+// says the export has made its table, in the dataset of the owner's exact
+// numbers, from the file its tests run; and the export's dataset is kept where
+// the counts are, so one query reads both.
+func TestTheDailyReportWaitsForTheExportsTable(t *testing.T) {
+	t.Parallel()
+
+	report := read(t, "../terraform/analytics/daily_report.tf")
+	view := blockOf(t, report, `resource "google_bigquery_table" "daily_report" {`)
+	dataset := blockOf(t, report, `resource "google_bigquery_dataset" "billing" {`)
+	for _, want := range []struct{ what, in, pattern string }{
+		{"the view waits for the export's table", view, `count\s*=\s*var\.billing_export \? 1 : 0`},
+		{"the view is among the owner's exact numbers", view, `dataset_id\s*=\s*google_bigquery_dataset\.private\.dataset_id`},
+		{"the view is daily_report", view, `table_id\s*=\s*"daily_report"`},
+		{"the view runs the report's SQL", view, `query\s*=\s*templatefile\("\$\{local\.analytics\}/billing/daily_report\.sql"`},
+		{"the export's dataset is billing", dataset, `dataset_id\s*=\s*"billing"`},
+		{"the export's dataset is where the counts are", dataset, `location\s*=\s*var\.region`},
+		{"the deployment says when the export has its table", read(t, "../terraform/analytics.tf"), `billing_export\s*=\s*var\.billing_export`},
+	} {
+		t.Run(want.what, func(t *testing.T) {
+			t.Parallel()
+
+			if !regexp.MustCompile(want.pattern).MatchString(want.in) {
+				t.Errorf("got no match for %s, want one", want.pattern)
+			}
+		})
+	}
+}
+
+// Who may write the export's dataset is the console's to say once the export
+// is turned on: no block of the configuration names a right on it or puts
+// anything in it, so no apply takes the export's own right away.
+func TestTheExportsDatasetIsTheConsolesToGrant(t *testing.T) {
+	t.Parallel()
+
+	dataset := blockOf(t, read(t, "../terraform/analytics/daily_report.tf"), `resource "google_bigquery_dataset" "billing" {`)
+	if access := regexp.MustCompile(`(?m)^\s*access\s*[{=].*$`).FindString(dataset); access != "" {
+		t.Errorf("got %q in the dataset billing, want no access named: the console keeps the export's", strings.TrimSpace(access))
+	}
+	files, err := filepath.Glob("../terraform/analytics/*.tf")
+	if err != nil {
+		t.Fatalf("list the module: %v", err)
+	}
+	naming := regexp.MustCompile(`dataset_id\s*=\s*(google_bigquery_dataset\.billing\.dataset_id|"billing")`)
+	got := 0
+	for _, file := range files {
+		got += len(naming.FindAllString(read(t, file), -1))
+	}
+	if got != 1 {
+		t.Errorf("got %d blocks naming the dataset billing, want 1, the dataset itself", got)
+	}
+}
+
+// The export's table is named after the billing account, which this
+// repository does not hold: the report reads the standard export through a
+// wildcard and is given no name but the datasets' and the project's.
+func TestTheDailyReportNamesNoBillingAccount(t *testing.T) {
+	t.Parallel()
+
+	sql := read(t, "billing/daily_report.sql")
+	given := map[string]bool{"impact": true, "billing": true, "project_id": true}
+	for _, found := range placeholder.FindAllStringSubmatch(sql, -1) {
+		if !given[found[1]] {
+			t.Errorf("got ${%s} in the report, want only ${impact}, ${billing} and ${project_id}", found[1])
+		}
+	}
+	if wildcard := "`${billing}.gcp_billing_export_v1_*`"; !strings.Contains(sql, wildcard) {
+		t.Errorf("got no %s in the report, want the standard export read through it", wildcard)
+	}
 }

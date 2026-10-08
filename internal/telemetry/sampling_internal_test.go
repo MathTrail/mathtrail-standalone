@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"math"
 	"math/rand/v2"
+	"strings"
 	"testing"
 
 	"github.com/leanovate/gopter"
@@ -78,4 +79,28 @@ func keptOf(ratio float64, changing int, fixed uint64) float64 {
 // once in hundreds of millions of draws.
 func chance(ratio float64) float64 {
 	return 6 * math.Sqrt(ratio*(1-ratio)/tracesPerShare)
+}
+
+// The sampler is described by the share it keeps, and so is the sampler that
+// follows a request's parent with it: the SDK names a sampler by its
+// description wherever it reports one, and a name that hid the share would
+// leave whoever reads it guessing what is kept.
+func TestTheSamplerIsDescribedByItsShare(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		ratio float64
+		want  string
+	}{{0, "TraceShare{0}"}, {0.25, "TraceShare{0.25}"}, {1, "TraceShare{1}"}} {
+		t.Run(test.want, func(t *testing.T) {
+			t.Parallel()
+
+			if got := newTraceShare(test.ratio).Description(); got != test.want {
+				t.Errorf("newTraceShare(%g).Description() = %q, want %q", test.ratio, got, test.want)
+			}
+			if got := sampler(test.ratio).Description(); !strings.Contains(got, test.want) {
+				t.Errorf("sampler(%g).Description() = %q, want it to name %q", test.ratio, got, test.want)
+			}
+		})
+	}
 }

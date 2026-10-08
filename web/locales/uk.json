@@ -96,6 +96,7 @@
 	"progress.mastered": "Опановано",
 	"progress.right": "Правильно",
 	"progress.wrong": "Неправильно",
+	"progress.loading": "Завантажуємо прогрес…",
 	"progress.failed": "Прогрес не завантажився. Повернися назад і спробуй ще раз.",
 	"profile.label": "Профіль · для батьків",
 	"profile.edit": "Змінити",

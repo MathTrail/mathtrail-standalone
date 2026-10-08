@@ -2,6 +2,7 @@ package main
 
 import (
 	"slices"
+	"strconv"
 	"testing"
 )
 
@@ -93,5 +94,92 @@ func TestLinesGoIntoTheBodyOfSolve(t *testing.T) {
 	}
 	if _, inserted := insertIntoSolve("def other(options):\n    return []\n", []string{"pass"}); inserted {
 		t.Error("insertIntoSolve found a solve in a program without one")
+	}
+}
+
+// A first letter is lowered whatever its script, and a text that does not
+// begin with a character it can read is left as it is.
+func TestLowerFirstLowersOnlyAFirstLetterItCanRead(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct{ name, text, want string }{
+		{"a letter of the Latin script", "Ann has 3 coins.", "ann has 3 coins."},
+		{"a letter with an accent", "Éva has 3 coins.", "éva has 3 coins."},
+		{"no text", "", ""},
+		{"a byte that is no character", "\xffAnn", "\xffAnn"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := lowerFirst(test.text); got != test.want {
+				t.Errorf("lowerFirst(%q) = %q, want %q", test.text, got, test.want)
+			}
+		})
+	}
+}
+
+// A replacement takes the capitals of the word it replaces: all of them for a
+// word in capitals, the first for a word that has a capital first letter, and
+// none otherwise; a word of one capital letter has a capital first letter.
+func TestAReplacementTakesTheCapitalsOfTheWordItReplaces(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct{ name, replacement, original, want string }{
+		{"a word in capitals", "about", "EXACTLY", "ABOUT"},
+		{"a capital first letter", "about", "Exactly", "About"},
+		{"no capital", "about", "exactly", "about"},
+		{"one capital letter", "kim", "A", "Kim"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := withCaseOf(test.replacement, test.original); got != test.want {
+				t.Errorf("withCaseOf(%q, %q) = %q, want %q", test.replacement, test.original, got, test.want)
+			}
+		})
+	}
+}
+
+// A run of digits too long to be a whole number the operators can count with
+// leaves the whole text alone, rather than changing the numbers before it and
+// not the rest; the first whole number is the first that stands alone.
+func TestANumberPastTheRangeLeavesTheTextAlone(t *testing.T) {
+	t.Parallel()
+	about := func(n int) string { return "about " + strconv.Itoa(n) }
+	text := "3 cats and 99999999999999999999 dogs."
+	if got, changed := bumpNumbers(text); got != text || changed {
+		t.Errorf("bumpNumbers(%q) = %q, %v; want it unchanged, false", text, got, changed)
+	}
+	for _, test := range []struct {
+		name, text, want string
+		changed          bool
+	}{
+		{"a number past the range first", "99999999999999999999 dogs and 3 cats.", "99999999999999999999 dogs and 3 cats.", false},
+		{"no number", "No number here.", "No number here.", false},
+		{"a decimal before a whole number", "It takes 1.5 litres or 3 cups.", "It takes 1.5 litres or about 3 cups.", true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got, changed := replaceFirstNumber(test.text, about); got != test.want || changed != test.changed {
+				t.Errorf("replaceFirstNumber(%q) = %q, %v; want %q, %v", test.text, got, changed, test.want, test.changed)
+			}
+		})
+	}
+}
+
+// A word the pattern finds and the map does not name is left as it was, and
+// does not count as found.
+func TestSwapWordsChangesOnlyTheWordsItKnows(t *testing.T) {
+	t.Parallel()
+	pattern, to := wordPattern([]string{"ann", "ben"}), map[string]string{"ann": "kim"}
+	for _, test := range []struct {
+		name, text, want string
+		found            bool
+	}{
+		{"a word the map names", "Ann gives Ben a coin.", "Kim gives Ben a coin.", true},
+		{"only a word it does not", "Ben keeps the coin.", "Ben keeps the coin.", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got, found := swapWords(test.text, pattern, to); got != test.want || found != test.found {
+				t.Errorf("swapWords(%q) = %q, %v; want %q, %v", test.text, got, found, test.want, test.found)
+			}
+		})
 	}
 }

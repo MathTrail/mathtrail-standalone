@@ -1,8 +1,11 @@
 package checks
 
 import (
+	"strconv"
 	"testing"
 
+	"github.com/leanovate/gopter"
+	"github.com/leanovate/gopter/prop"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -61,4 +64,32 @@ func TestTheGradeDoesNotDependOnHowTheTextIsWritten(t *testing.T) {
 			}
 		})
 	}
+}
+
+// No text has no sentence, and any other text has one at least, however little
+// of it reads as one: a heading alone, or marks with no words between them, is
+// still the one sentence its text has.
+func TestOnlyNoTextHasNoSentence(t *testing.T) {
+	t.Parallel()
+
+	if got := fkSentences(""); got != 0 {
+		t.Errorf("fkSentences(%q) = %d, want 0", "", got)
+	}
+	// The edges the texts drawn below never reach: a text of nothing but
+	// spaces, a mark alone, and a word with no mark after it.
+	for _, text := range []string{" ", ".", "?!", "Hi"} {
+		t.Run(strconv.Quote(text), func(t *testing.T) {
+			t.Parallel()
+
+			if got := fkSentences(text); got != 1 {
+				t.Errorf("fkSentences(%q) = %d, want 1", text, got)
+			}
+		})
+	}
+	properties := gopter.NewProperties(nil)
+	properties.Property("a text that is there has a sentence at least", prop.ForAll(
+		func(text string) bool { return fkSentences(text) >= 1 },
+		genText(),
+	))
+	properties.TestingRun(t)
 }

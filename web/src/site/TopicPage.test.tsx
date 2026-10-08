@@ -380,6 +380,22 @@ describe("a topic's page is refused when", () => {
 		expect(() => render(sourcesWith(english))).toThrow(want);
 	});
 
+	// Ordering's page is published, and no reference task of ordering names a
+	// trap: its page would have no trap to explain.
+	test("no reference task of its topic names a trap, the commonest of which the page explains", () => {
+		expect(() =>
+			renderSite({
+				base: "https://example.test",
+				sources: sourcesWith(words),
+				frame,
+				data,
+				pages: sitePages(data),
+			}),
+		).toThrow(
+			"no reference task of logic.ordering names a trap, and its page explains the most frequent",
+		);
+	});
+
 	test("its words work through another number of examples than the data gives", () => {
 		const fewer = dataWith([{ level: "3-4", solver: "first", answer: "1" }]);
 

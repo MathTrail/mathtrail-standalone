@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -179,6 +182,141 @@ func TestCleanDropsTagsAndKeepsInequalities(t *testing.T) {
 			t.Parallel()
 			if got := clean(in); got != want {
 				t.Errorf("clean(%q) = %q, want %q", in, got, want)
+			}
+		})
+	}
+}
+
+// registry stands in for one registry that answers every request with one
+// status and body, and counts the requests it was sent.
+type registry struct {
+	*httptest.Server
+	asked atomic.Int32
+}
+
+func answering(t *testing.T, status int, body string) *registry {
+	t.Helper()
+	r := &registry{}
+	r.Server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		r.asked.Add(1)
+		w.WriteHeader(status)
+		_, _ = io.WriteString(w, body)
+	}))
+	t.Cleanup(r.Close)
+	return r
+}
+
+// registriesOf asks the two stand-ins, one as Crossref and one as DataCite.
+func registriesOf(crossref, datacite *registry) Registries {
+	return Registries{Client: crossref.Client(), Crossref: crossref.URL, DataCite: datacite.URL, UserAgent: "citecheck-test"}
+}
+
+// A registry that answers with something other than a record has not said
+// that it does not hold the DOI: the lookup fails, and the other registry,
+// which would say it holds no such DOI, is not asked in its place.
+func TestARecordThatIsNotJSONIsAFailureNotAMissingWork(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		registry, doi string
+	}{
+		{"crossref", "10.1016/j.compedu.2011.02.003"},
+		{"datacite", "10.48550/arXiv.2503.16460"},
+	} {
+		t.Run(tc.registry, func(t *testing.T) {
+			t.Parallel()
+			page := answering(t, http.StatusOK, "<html><body>A notice about the service</body></html>")
+			missing := answering(t, http.StatusNotFound, "")
+			registries := registriesOf(page, missing)
+			if tc.registry == "datacite" {
+				registries = registriesOf(missing, page)
+			}
+
+			_, err := registries.Lookup(context.Background(), tc.doi)
+
+			if err == nil || errors.Is(err, ErrNotFound) || !strings.Contains(err.Error(), tc.registry+": read the record of "+tc.doi) {
+				t.Errorf("Lookup error = %v, want %s unable to read the record, which is not ErrNotFound", err, tc.registry)
+			}
+			if n := missing.asked.Load(); n != 0 {
+				t.Errorf("the other registry was asked %d times, want none", n)
+			}
+		})
+	}
+}
+
+// A DataCite record gives its titles by type, its creators as one name or
+// split in two, its year as a string, and its container by its title; each is
+// read where a Work keeps it, and an alternative title, before the others or
+// after them, is neither the title nor the subtitle.
+func TestLookupReadsADataCiteRecordOfEveryShape(t *testing.T) {
+	t.Parallel()
+	record := `{"data": {"attributes": {
+		"doi": "10.5281/zenodo.42",
+		"titles": [
+			{"title": "An Alternative Name", "titleType": "AlternativeTitle"},
+			{"title": "Counting &amp; Reasoning"},
+			{"title": "A Study of Olympiad Tasks", "titleType": "Subtitle"},
+			{"title": "Another Alternative Name", "titleType": "AlternativeTitle"}
+		],
+		"creators": [{"name": "Family, Given"}, {"name": "An Organisation"}, {"name": "Doe, Jane", "givenName": "Jane", "familyName": "Doe"}],
+		"publicationYear": "2021",
+		"publisher": "Zenodo",
+		"container": {"title": "Series of Datasets"},
+		"types": {"resourceTypeGeneral": "Dataset"}
+	}}}`
+	crossref := answering(t, http.StatusNotFound, "")
+
+	work, err := registriesOf(crossref, answering(t, http.StatusOK, record)).Lookup(context.Background(), "10.5281/zenodo.42")
+
+	want := Work{
+		DOI: "10.5281/zenodo.42", Registry: "DataCite", Kind: "Dataset",
+		Title: "Counting & Reasoning", Subtitle: "A Study of Olympiad Tasks",
+		Authors: []Person{{"Family", "Given"}, {"An Organisation", ""}, {"Doe", "Jane"}},
+		Years:   []int{2021}, Venues: []string{"Series of Datasets"}, Publisher: "Zenodo",
+	}
+	if err != nil || !reflect.DeepEqual(work, want) {
+		t.Errorf("Lookup = %+v, %v; want %+v", work, err, want)
+	}
+	if n := crossref.asked.Load(); n != 0 {
+		t.Errorf("Crossref was asked %d times for a Zenodo DOI, want none", n)
+	}
+}
+
+// Crossref names an organisation among the authors by one name, with no
+// family name; that name is read as the family name, so that the check and
+// the key have one to go by.
+func TestLookupReadsAnOrganisationCrossrefNamesAsAnAuthor(t *testing.T) {
+	t.Parallel()
+	record := `{"message": {"DOI": "10.1000/report.1", "type": "report", "title": ["Guidance on Tutoring"],
+		"author": [{"name": "An Agency"}, {"given": "Ann", "family": "Smith"}],
+		"issued": {"date-parts": [[2023]]}}}`
+
+	work, err := registriesOf(answering(t, http.StatusOK, record), answering(t, http.StatusNotFound, "")).Lookup(context.Background(), "10.1000/report.1")
+
+	if want := []Person{{"An Agency", ""}, {"Smith", "Ann"}}; err != nil || !reflect.DeepEqual(work.Authors, want) {
+		t.Errorf("authors = %+v, %v; want %+v", work.Authors, err, want)
+	}
+}
+
+// DataCite gives a creator's family name apart when it knows it, and the name
+// as "Family, Given" otherwise; either way the person is split as Crossref
+// would split them, and a name with no comma is an organisation's.
+func TestDataCitePersonSplitsANameAsCrossrefWould(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		what, name, given, family string
+		want                      Person
+	}{
+		{"split by DataCite", "Doe, Jane", "Jane", "Doe", Person{"Doe", "Jane"}},
+		{"one name with a comma", "Doe, Jane", "", "", Person{"Doe", "Jane"}},
+		{"a comma with no space after it", "van der Maas,H.L.J.", "", "", Person{"van der Maas", "H.L.J."}},
+		{"a family name alone", "Somebody Else", "", "Doe", Person{"Doe", ""}},
+		{"an organisation", "An Organisation", "", "", Person{"An Organisation", ""}},
+		{"markup and spacing", "  Computers &amp;  Education Lab ", "", "", Person{"Computers & Education Lab", ""}},
+	} {
+		t.Run(tc.what, func(t *testing.T) {
+			t.Parallel()
+			if got := dataCitePerson(tc.name, tc.given, tc.family); got != tc.want {
+				t.Errorf("dataCitePerson(%q, %q, %q) = %+v, want %+v", tc.name, tc.given, tc.family, got, tc.want)
 			}
 		})
 	}

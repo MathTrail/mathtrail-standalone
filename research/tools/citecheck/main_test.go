@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -183,5 +185,106 @@ func TestAddRefusesAWorkAnEntryCitesByItsAddress(t *testing.T) {
 
 	if status != 1 || !strings.Contains(stdout.String(), "already in the file as old") {
 		t.Errorf("status %d, output %q; want the work refused as already there", status, &stdout)
+	}
+}
+
+// An entry with nothing to look it up by cannot be checked, and the check
+// says so without asking any registry: the registries here have no HTTP
+// client, and asking one would panic.
+func TestCheckCommandReportsAnEntryThatCannotBeLookedUp(t *testing.T) {
+	t.Parallel()
+	bib := writeBib(t, "@misc{web2024page,\n  title = {A page},\n  url   = {https://example.org},\n}\n")
+	var stdout, stderr bytes.Buffer
+
+	status := run(context.Background(), []string{"-bib", bib, "check"}, Registries{}, &stdout, &stderr)
+
+	want := "web2024page: cannot be checked: it has neither a DOI nor an arXiv id to check it by\n1 entries, 1 with problems\n"
+	if status != 1 || stdout.String() != want {
+		t.Errorf("check = %d, %q; want 1 and %q", status, &stdout, want)
+	}
+}
+
+// hangingUp is a registry that closes every connection without an answer.
+func hangingUp(t *testing.T) *httptest.Server {
+	t.Helper()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		hijacker, ok := w.(http.Hijacker)
+		if !ok {
+			t.Error("the stand-in cannot take the connection over")
+			return
+		}
+		if conn, _, err := hijacker.Hijack(); err == nil {
+			_ = conn.Close()
+		}
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
+// A registry that does not answer has said nothing of the work: the entry is
+// not checked, the run fails as one that could not do its job, and DataCite,
+// which would say it holds no such DOI, is not asked instead.
+func TestCheckCommandTellsARegistryThatDidNotAnswerFromAMissingWork(t *testing.T) {
+	t.Parallel()
+	good, _, _ := strings.Cut(records, "\n\n")
+	datacite := answering(t, http.StatusNotFound, "")
+	registries := Registries{Client: datacite.Client(), Crossref: hangingUp(t).URL, DataCite: datacite.URL, UserAgent: "citecheck-test"}
+	var stdout, stderr bytes.Buffer
+
+	status := run(context.Background(), []string{"-bib", writeBib(t, good), "check"}, registries, &stdout, &stderr)
+
+	if status != 2 || !strings.Contains(stdout.String(), "good: not checked: crossref:") || strings.Contains(stdout.String(), "no registry holds") {
+		t.Errorf("check = %d, %q; want 2 and the entry not checked", status, &stdout)
+	}
+	if n := datacite.asked.Load(); n != 0 {
+		t.Errorf("DataCite was asked %d times, want none", n)
+	}
+}
+
+// add starts a bibliography that is not there yet: the file it writes holds
+// the new entry alone.
+func TestAddCommandStartsABibliographyThatIsNotThere(t *testing.T) {
+	t.Parallel()
+	path := filepath.Join(t.TempDir(), "refs.bib")
+	var stdout, stderr bytes.Buffer
+
+	status := run(context.Background(), []string{"-bib", path, "add", "10.1016/j.compedu.2011.02.003"}, fixtureRegistries(t), &stdout, &stderr)
+
+	if status != 0 {
+		t.Fatalf("add = %d, want 0; output: %s%s", status, &stdout, &stderr)
+	}
+	written, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	entries, err := ParseBib(string(written))
+	if err != nil || len(entries) != 1 || !strings.HasPrefix(string(written), "@article{klinkenberg2011computer,\n") {
+		t.Errorf("the file holds %d entries, %v:\n%s\nwant the one entry added", len(entries), err, written)
+	}
+}
+
+// A bibliography add cannot read, or cannot write where it is, fails the
+// command as one that could not do its job, and names the file.
+func TestAddCommandFailsOnABibliographyItCannotReadOrWrite(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name string
+		path func(dir string) string
+		want string
+	}{
+		{"a directory", func(dir string) string { return dir }, "read "},
+		{"a file in a directory that is not there", func(dir string) string { return filepath.Join(dir, "missing", "refs.bib") }, "write "},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			path := tc.path(t.TempDir())
+			var stdout, stderr bytes.Buffer
+
+			status := run(context.Background(), []string{"-bib", path, "add", "10.1016/j.compedu.2011.02.003"}, fixtureRegistries(t), &stdout, &stderr)
+
+			if want := "citecheck: " + tc.want + path; status != 2 || !strings.Contains(stderr.String(), want) {
+				t.Errorf("add = %d, stderr %q; want 2 and %q", status, &stderr, want)
+			}
+		})
 	}
 }

@@ -163,6 +163,12 @@ func TestBrokenCatalogStopsTheService(t *testing.T) {
 			want:  `trap "off_by_one": the id is used twice`,
 		},
 		{
+			name:  "a trap with no id, named by its place",
+			file:  trapsFile,
+			entry: `{"id":"","description":"Missed one.","advice":"List the cases."}`,
+			want:  "trap 1: an id is one name in snake case",
+		},
+		{
 			name:  "a trap with no description",
 			file:  trapsFile,
 			entry: `{"id":"forgot_a_case","advice":"List the cases."}`,
@@ -229,6 +235,35 @@ func TestCatalogThatIsNotAListStopsTheService(t *testing.T) {
 	src := contentCopy(t)
 	src[topicsFile] = &fstest.MapFile{Data: []byte(`{"id":"logic.ordering"}`)}
 	wantProblem(t, src, "content: parse "+topicsFile)
+}
+
+// A file holds one JSON value. A second one after it, as two lists one after
+// the other that a merge left behind, is content somebody meant to be read,
+// and reading the first alone would drop it without a word.
+func TestACatalogHoldingTwoValuesStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	src[trapsFile] = &fstest.MapFile{Data: append(bytes.Clone(src[trapsFile].Data), "\n[]\n"...)}
+	wantProblem(t, src, "content: parse "+trapsFile+": more than one JSON value in the file")
+}
+
+// Every catalog is a file of the content, and one left out of it stops the
+// service rather than letting it serve with a closed list gone: the topics are
+// what a task is chosen from, the traps what a wrong answer is read by, and
+// the skills what a parent may leave out of the tasks.
+func TestACatalogLeftOutStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	for _, file := range []string{topicsFile, trapsFile, skillsFile} {
+		t.Run(file, func(t *testing.T) {
+			t.Parallel()
+
+			src := contentCopy(t)
+			delete(src, file)
+			wantProblem(t, src, "content: read "+file)
+		})
+	}
 }
 
 func TestTopicKnowsWhichLevelsItIsOfferedAt(t *testing.T) {

@@ -66,6 +66,10 @@ func TestArithmeticRefusals(t *testing.T) {
 		{"more to walk than will be walked", `sum(range(1000000001))`, "elements"},
 		{"nothing to add up", `sum()`, "missing argument"},
 		{"a fraction as the second", `gcd(12, 1.5)`, "not a whole number"},
+		// A float anywhere makes the sum a float, and a whole number past what
+		// a float can hold cannot be added to one: the language says so rather
+		// than answering with infinity.
+		{"a whole number too large to add to a fraction", `sum([0.5, int("1" + "0" * 400)])`, "sum: int too large"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()

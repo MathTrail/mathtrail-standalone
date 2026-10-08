@@ -222,6 +222,38 @@ func TestListenReportsATakenPort(t *testing.T) {
 	}
 }
 
+// Run binds the port itself when nothing bound it first, and reports a port
+// that is taken at once: the process stops at its start, rather than waiting
+// for a stop that would never come.
+func TestRunReportsATakenPort(t *testing.T) {
+	t.Parallel()
+
+	first := app.NewServer(newTestContainer(t))
+	if err := first.Listen(t.Context()); err != nil {
+		t.Fatalf("Listen() error = %v, want nil", err)
+	}
+	// Kept reachable to the end, so that no collection closes its listener
+	// and hands the port back before the second server tries it.
+	defer runtime.KeepAlive(first)
+
+	cfg := testConfig()
+	cfg.Port = portOf(t, first.Addr())
+	second := app.NewServer(containerFrom(t, cfg))
+	ran := make(chan error, 1)
+	go func() { ran <- second.Run(t.Context()) }()
+	select {
+	case err := <-ran:
+		if err == nil || !strings.HasPrefix(err.Error(), "app: listen on ") {
+			t.Errorf("Run() error = %v, want a refusal to listen on the port that is taken", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("Run() on a port that is taken did not return within 5s, want the refusal at once")
+	}
+	if addr := second.Addr(); addr != "" {
+		t.Errorf("Addr() = %q after the refusal, want nothing bound", addr)
+	}
+}
+
 // The content is read and checked while the container is built, so that a
 // catalog or a reference task nobody could use stops the process instead of
 // reaching a child.

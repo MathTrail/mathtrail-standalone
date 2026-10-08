@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -27,11 +28,15 @@ func TestMain(m *testing.M) {
 
 // actAsClient posts a body to the endpoint's /messages and fails as a client
 // does when it is refused, or stays silent, or hangs, as the action says.
+// post-as-gzip posts the body as it is while its header says it is gzipped.
 func actAsClient(action, endpoint string, args []string) int {
 	var body io.Reader
+	encoding := ""
 	switch action {
 	case "post":
 		body = strings.NewReader(args[0])
+	case "post-as-gzip":
+		body, encoding = strings.NewReader(args[0]), "gzip"
 	case "post-stdin":
 		body = os.Stdin
 	case "silent":
@@ -45,6 +50,9 @@ func actAsClient(action, endpoint string, args []string) int {
 	request, err := http.NewRequestWithContext(context.Background(), http.MethodPost, endpoint+"/messages", body)
 	if err != nil {
 		return 3
+	}
+	if encoding != "" {
+		request.Header.Set("Content-Encoding", encoding)
 	}
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
@@ -145,13 +153,16 @@ func TestRunRefusesToStartWithoutWhatItNeeds(t *testing.T) {
 	tests := []struct {
 		name string
 		args []string
+		want string // what the error says
 	}{
-		{"no directory", []string{"--", "env", "URL=" + placeholder, "true"}},
-		{"no client", []string{"-dir", dir}},
-		{"a client not pointed at the endpoint", []string{"-dir", dir, "--", "true"}},
-		{"a client that does not exist", []string{"-dir", dir, "--", filepath.Join(dir, "no-such-client"), placeholder}},
-		{"a directory that does not exist", []string{"-dir", filepath.Join(dir, "missing"), "--", "env", "URL=" + placeholder, "true"}},
-		{"a directory that is not empty", []string{"-dir", full, "--", "env", "URL=" + placeholder, "true"}},
+		{"no directory", []string{"--", "env", "URL=" + placeholder, "true"}, "usage: isolation -dir"},
+		{"no client", []string{"-dir", dir}, "usage: isolation -dir"},
+		{"a client not pointed at the endpoint", []string{"-dir", dir, "--", "true"}, "no argument of the client holds " + placeholder},
+		{"a client that does not exist", []string{"-dir", dir, "--", filepath.Join(dir, "no-such-client"), placeholder}, "run " + filepath.Join(dir, "no-such-client")},
+		{"a directory that does not exist", []string{"-dir", filepath.Join(dir, "missing"), "--", "env", "URL=" + placeholder, "true"}, "the directory for the requests"},
+		{"a directory that is not empty", []string{"-dir", full, "--", "env", "URL=" + placeholder, "true"}, "is not empty"},
+		{"an unknown flag", []string{"-verbose", "-dir", dir, "--", "env", "URL=" + placeholder, "true"}, "flag provided but not defined: -verbose"},
+		{"a timeout that is not a duration", []string{"-dir", dir, "-timeout", "soon", "--", "env", "URL=" + placeholder, "true"}, `invalid value "soon" for flag -timeout`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -159,8 +170,8 @@ func TestRunRefusesToStartWithoutWhatItNeeds(t *testing.T) {
 
 			_, err := run(context.Background(), tt.args, strings.NewReader(""), io.Discard)
 
-			if err == nil {
-				t.Error("run started, want an error")
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("run() error = %v, want one containing %q", err, tt.want)
 			}
 		})
 	}
@@ -211,5 +222,55 @@ func TestRunAsksAClientToEndBeforeKillingIt(t *testing.T) {
 
 	if _, err := os.Stat(marker); err != nil {
 		t.Errorf("the client got no SIGTERM before it was stopped: %v", err)
+	}
+}
+
+// A request the endpoint could not read says nothing of the tools it offered,
+// so it must never pass as isolated: run fails as a check that could not be
+// made, and gives no verdict at all.
+func TestRunGivesNoVerdictOnARequestItCouldNotRead(t *testing.T) {
+	t.Parallel()
+	var stdout bytes.Buffer
+	args := append([]string{"-dir", t.TempDir(), "--"}, client("post-as-gzip", `{"model":"m","messages":[]}`)...)
+
+	isolated, err := run(context.Background(), args, strings.NewReader(""), &stdout)
+
+	if err == nil || !strings.Contains(err.Error(), "record a request") || isolated {
+		t.Errorf("run() = %v, %v; want no verdict and an error about recording the request", isolated, err)
+	}
+	if stdout.Len() != 0 {
+		t.Errorf("output:\n%s\nwant none", &stdout)
+	}
+}
+
+// The exit status tells an isolated client from one that is not, and both
+// from a check that could not run, which alone is explained on stderr: a
+// verdict speaks for itself on stdout.
+func TestExitCodeTellsTheVerdictsFromACheckThatFailed(t *testing.T) {
+	t.Parallel()
+	failed := errors.New("listen: address in use")
+	for _, tc := range []struct {
+		name     string
+		isolated bool
+		err      error
+		code     int
+		printed  string
+	}{
+		{"an isolated client", true, nil, 0, ""},
+		{"a client that is not isolated", false, nil, 1, ""},
+		{"a check that could not run", false, failed, 2, "isolation: listen: address in use\n"},
+		{"a failure beside a verdict", true, failed, 2, "isolation: listen: address in use\n"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			var stderr bytes.Buffer
+
+			if code := exitCode(&stderr, tc.isolated, tc.err); code != tc.code {
+				t.Errorf("exitCode() = %d, want %d", code, tc.code)
+			}
+			if printed := stderr.String(); printed != tc.printed {
+				t.Errorf("printed %q, want %q", printed, tc.printed)
+			}
+		})
 	}
 }

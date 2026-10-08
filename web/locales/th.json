@@ -93,6 +93,7 @@
 	"progress.mastered": "คล่องแล้ว",
 	"progress.right": "ถูก",
 	"progress.wrong": "ผิด",
+	"progress.loading": "กำลังโหลดความคืบหน้า…",
 	"progress.failed": "โหลดความคืบหน้าไม่สำเร็จ กลับไปแล้วลองอีกครั้ง",
 	"profile.label": "โปรไฟล์ · สำหรับผู้ปกครอง",
 	"profile.edit": "แก้ไข",

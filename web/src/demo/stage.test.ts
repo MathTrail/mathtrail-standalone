@@ -212,6 +212,24 @@ describe("the steps of the lesson on a narrow window", () => {
 		expect(document.querySelector("#lesson")?.innerHTML).toBe(built);
 	});
 
+	// The window narrows between a scroll and the frame it asked for: by the
+	// frame, there is no shared card left to show.
+	test("get their cards back as the window narrows, and keep them through a frame that was due", () => {
+		openHome("en");
+		standing(2);
+		const built = document.querySelector("#lesson")?.innerHTML;
+		const window = windowOf(true);
+		shareTheCard(document, window.window);
+		window.scrollWithFrameDue();
+		window.changeSizeWithFrameDue();
+
+		window.resize(false);
+		window.runFrames();
+
+		expect(document.querySelector(".s-walk-staged")).toBeNull();
+		expect(document.querySelector("#lesson")?.innerHTML).toBe(built);
+	});
+
 	test("get their cards back as the window narrows, the page as it was built", () => {
 		openHome("en");
 		standing(2);

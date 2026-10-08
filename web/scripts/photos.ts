@@ -222,7 +222,7 @@ const webpData = "data:image/webp;base64,";
 // drawerIn is a Drawer that crops, scales and encodes in page: the crop is
 // worked out here from the size the browser decodes, and the picture alone is
 // kept of what the browser writes.
-function drawerIn(page: Page): Drawer {
+export function drawerIn(page: Page): Drawer {
 	return async (data, photo) => {
 		const crop = cropOf(await page.evaluate(measure, data), photo);
 		const drawn = await page.evaluate(draw, {

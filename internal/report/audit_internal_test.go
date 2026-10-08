@@ -42,6 +42,11 @@ func TestALineIsHeldToTheRulesOfTheLog(t *testing.T) {
 			[]breach{{event: "http_request", field: "query", rule: ruleEmail}}},
 		{"one escaped twice", `{"message":"http_request","query":"login_hint=kid%2540school.example"}`,
 			[]breach{{event: "http_request", field: "query", rule: ruleEmail}}},
+		{"one escaped three times", `{"message":"http_request","query":"login_hint=kid%252540school.example"}`,
+			[]breach{{event: "http_request", field: "query", rule: ruleEmail}}},
+		{"a percent sign and an at sign that hold no address",
+			`{"message":"http_request","query":"q=100%","errors":"a @ b"}`,
+			nil},
 		{"one in a list", `{"message":"task_submitted","failed":["readability","bob@home.example"]}`,
 			[]breach{{event: "task_submitted", field: "failed", rule: ruleEmail}}},
 		{"one in an object", `{"message":"startup","error":{"from":"carol@work.example"}}`,
@@ -82,6 +87,8 @@ func TestALineIsHeldToTheRulesOfTheLog(t *testing.T) {
 				{event: "answer_recorded", field: "topics_mastered", rule: ruleShape},
 			}},
 		{"a grade written as text", `{"message":"answer_recorded","grade":"2"}`,
+			[]breach{{event: "answer_recorded", field: "grade", rule: ruleShape}}},
+		{"a grade that is no whole number", `{"message":"answer_recorded","grade":2.5}`,
 			[]breach{{event: "answer_recorded", field: "grade", rule: ruleShape}}},
 		{"a host that names a server, on a line no child is counted from",
 			`{"message":"cimd_fetch","host":"claude.ai","outcome":"ok"}`,
@@ -147,6 +154,67 @@ func TestABreachNeverRepeatsWhatALineHeld(t *testing.T) {
 			return true
 		},
 		words, gen.SliceOfN(4, words), gen.SliceOfN(3, words),
+	))
+	properties.TestingRun(t)
+}
+
+// A grade or a count of topics fits however it is held: read back from a
+// line's text, which holds every number as a double, or taken from a logger's
+// fields, which hold a whole number as one. A fraction, a number past either
+// bound, and a number written as text or as anything else do not.
+func TestAWholeNumberFitsHoweverItIsHeld(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name  string
+		value any
+		want  bool
+	}{
+		{"a double read back from a line", 2.0, true},
+		{"a double that is no whole number", 2.5, false},
+		{"a whole number as a logger holds it", int64(6), true},
+		{"a whole number as the language holds it", 1, true},
+		{"one below the lowest, as a logger holds it", int64(lowestGrade - 1), false},
+		{"one above the highest, as the language holds it", highestGrade + 1, false},
+		{"a double above the highest", 7.0, false},
+		{"a number written as text", "2", false},
+		{"a truth value", true, false},
+		{"nothing", nil, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := wholeWithin(test.value, lowestGrade, highestGrade); got != test.want {
+				t.Errorf("wholeWithin(%#v, %d, %d) = %v, want %v", test.value, lowestGrade, highestGrade, got, test.want)
+			}
+		})
+	}
+}
+
+// Whatever the bounds, a whole number fits exactly when it lies between them,
+// held as a double, as a logger's whole number or as the language's; and a
+// number half way between two whole ones never fits. The numbers are drawn
+// close to the bounds, where a slip of one would show.
+func TestAWholeNumberFitsExactlyWhenItLiesWithinTheBounds(t *testing.T) {
+	t.Parallel()
+
+	lows, widths, offsets := gen.Int64Range(-1<<20, 1<<20), gen.Int64Range(0, 4), gen.Int64Range(-2, 6)
+	properties := gopter.NewProperties(nil)
+	properties.Property("a whole number fits as it lies, however it is held", prop.ForAll(
+		func(low, width, offset int64) bool {
+			high, value := low+width, low+offset
+			within := low <= value && value <= high
+			return wholeWithin(float64(value), low, high) == within &&
+				wholeWithin(value, low, high) == within &&
+				wholeWithin(int(value), low, high) == within
+		},
+		lows, widths, offsets,
+	))
+	properties.Property("a number half way between two whole ones never fits", prop.ForAll(
+		func(low, width, offset int64) bool {
+			return !wholeWithin(float64(low+offset)+0.5, low, low+width)
+		},
+		lows, widths, offsets,
 	))
 	properties.TestingRun(t)
 }

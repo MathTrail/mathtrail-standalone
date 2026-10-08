@@ -147,6 +147,9 @@ PROTOTYPE_CLONE := ".cache/llm-taskgen-prototype.git"
 [doc('Recompute evidence/product-stats.txt at a commit of the product')]
 pin commit: (_facts "evidence/product-stats.txt" "evidence/product.sh" commit)
 
+[doc("Name in evidence/use-stats.txt the later commit the claims of the service's real use are proven at")]
+use-pin commit: (_facts "evidence/use-stats.txt" "evidence/use.sh" commit)
+
 [doc('Recompute evidence/prototype-stats.txt at a commit of the prototype')]
 prototype-pin commit: _prototype-clone (_facts "evidence/prototype-stats.txt" "evidence/prototype.sh" PROTOTYPE_CLONE commit)
 
@@ -169,9 +172,15 @@ _facts out script *args:
 # product's part, its claims, facts, table and numbers, is named once here.
 PRODUCT_LEDGER := "-claims evidence/claims-product.json -stats evidence/product-stats.txt -ledger evidence/ledger.md -section product -numbers evidence/ledger-numbers.txt"
 
-[doc("Rewrite the claims tables, the product's in evidence/ledger.md and the prototype's in evidence/prototype.md, and the numbers the product's claims state, in evidence/ledger-numbers.txt")]
+# The service's real use came after the product's pin, which the paper
+# describes, so its claims are a part of their own, proven at the later commit
+# their stats name. They state no number.
+USE_LEDGER := "-claims evidence/claims-use.json -stats evidence/use-stats.txt -ledger evidence/ledger.md -section use"
+
+[doc("Rewrite the claims tables, the product's and its real use's in evidence/ledger.md and the prototype's in evidence/prototype.md, and the numbers the product's claims state, in evidence/ledger-numbers.txt")]
 ledger *flags: _prototype-clone
     go run ./tools/ledger {{ flags }} {{ PRODUCT_LEDGER }}
+    go run ./tools/ledger {{ flags }} {{ USE_LEDGER }}
     go run ./tools/ledger {{ flags }} -claims evidence/claims-prototype.json \
         -stats evidence/prototype-stats.txt -repo {{ PROTOTYPE_CLONE }} \
         -ledger evidence/prototype.md -section prototype
@@ -270,9 +279,15 @@ TEXLIVE := "texlive/texlive:TL2025-historic@sha256:f25ee2dcd00f58198f918064f4a1c
 PAPER_A_PAGES := "14"
 
 # The files every number of the paper is computed in or taken from, as
-# name=path: the product's facts, and the numbers of the works it cites. An
+# name=path: the product's facts, the numbers of the works it cites, and the
+# service's real use, as written from its latest monthly snapshot. An
 # experiment adds its own results here once they exist.
-NUMBERS := "product=evidence/product-stats.txt ledger=evidence/ledger-numbers.txt literature=literature/numbers.txt ea1=experiments/faultinject/results/numbers.txt ea3=experiments/learnersim/results/numbers.txt ea4=experiments/perf/results/numbers.txt"
+NUMBERS := "product=evidence/product-stats.txt ledger=evidence/ledger-numbers.txt literature=literature/numbers.txt ea1=experiments/faultinject/results/numbers.txt ea3=experiments/learnersim/results/numbers.txt ea4=experiments/perf/results/numbers.txt live=paper-a/generated/live.txt"
+
+# The monthly snapshot of the service's public totals, which the site's page
+# "Research" draws as well: the latest month counted whole, and its total once
+# enough children stand behind it to show it.
+LIVE_SNAPSHOT := "../site/research/live.json"
 
 # The keys whose values name the system to a reviewer: the commit can be looked
 # up. A web address, or the project's name, in any value is hidden as well.
@@ -289,13 +304,18 @@ paper-a-final: _paper-a-ledger _paper-a-numbers _paper-a-names _paper-a-handtype
 
 # The numbers the product's claims state reach the paper only as the claims
 # prove them at the pin the facts name: a claim, a pin or a number changed
-# since the ledger was written fails the build here.
+# since the ledger was written fails the build here. The claims of the
+# service's real use are held to their own commit the same way.
 [doc('Fail if a claim lost its proof, or a number the paper reads from the ledger is out of date')]
 _paper-a-ledger:
     go run ./tools/ledger -check {{ PRODUCT_LEDGER }}
+    go run ./tools/ledger -check {{ USE_LEDGER }}
 
-[doc('Write paper-a/generated/numbers.tex from the computed numbers')]
+# The snapshot is read first, into a source of numbers like the others: one
+# that shows what the public views would hide stops the build here.
+[doc('Write paper-a/generated/numbers.tex from the computed numbers, the latest monthly snapshot of real use among them')]
 _paper-a-numbers:
+    go run ./tools/live -snapshot {{ quote(LIVE_SNAPSHOT) }} -out paper-a/generated/live.txt
     go run ./tools/macros -out paper-a/generated/numbers.tex -identifying {{ IDENTIFYING }} {{ NUMBERS }}
 
 # No number in the paper is typed by hand: each comes through a macro of the
@@ -310,9 +330,10 @@ _paper-a-handtyped:
     go run ./tools/handtyped -names paper-a/names-with-digits.txt "${figures[@]}" paper-a/main.tex paper-a/sections/*.tex
 
 # The version of the paper: the date and the short hash of the commit it is
-# built from, marked as modified when the research's tree holds changes that
-# commit does not, a file it does not track among them, so that a build of an
-# edited tree never passes for the commit's. It is printed, and written to
+# built from, marked as modified when the research's tree, or the snapshot of
+# real use the paper prints, holds changes that commit does not, a file it
+# does not track among them, so that a build of an edited tree never passes
+# for the commit's. It is printed, and written to
 # paper-a/generated/version.tex, which the named build reads: latexmk builds
 # the paper again when a file it read has changed, and not when only its
 # command line has.
@@ -320,7 +341,7 @@ _paper-a-version:
     #!/usr/bin/env bash
     set -euo pipefail
     version="$(git log -1 --format=%cs), commit $(git rev-parse --short=12 HEAD)"
-    if [ -n "$(git status --porcelain -- .)" ]; then version="$version, modified"; fi
+    if [ -n "$(git status --porcelain -- . {{ quote(LIVE_SNAPSHOT) }})" ]; then version="$version, modified"; fi
     mkdir -p paper-a/generated
     printf '\\def\\Version{%s}\n' "$version" > paper-a/generated/version.tex
     echo "$version"
@@ -661,7 +682,7 @@ reproduce name dir='': (_experiment-build name)
 # and fails if one is left.
 [doc('Assemble the artifact of paper A as a tarball in release/build: named, or anonymous for double-blind review')]
 release flavour='named': _paper-a-numbers
-    release/assemble.sh {{ quote(flavour) }}
+    release/assemble.sh {{ quote(flavour) }} {{ quote(LIVE_SNAPSHOT) }}
 
 [doc('Unpack the artifact into an empty directory, rerun the experiments from it and compare what they write with the results it ships')]
 release-check flavour='named':

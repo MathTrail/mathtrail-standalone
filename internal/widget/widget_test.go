@@ -144,6 +144,40 @@ func TestTheButtonsUnderATaskStandOutInTheirTones(t *testing.T) {
 	}
 }
 
+// The shapes of a screen being read are faint, as what stands in for words
+// is, yet show on the card and on its bands, at 1.1 to 1 at least, in either
+// theme; and each theme has a sheen to pass over them. The dark theme's are
+// the same for a viewer who prefers it as for a host that names it.
+func TestAScreenBeingReadShowsFaintlyOnTheCard(t *testing.T) {
+	t.Parallel()
+
+	tokens := widget.Tokens()
+	light := tokensOf(t, tokens, `:root, [data-theme="light"] {`)
+	dark := tokensOf(t, tokens, `[data-theme="dark"] {`)
+	preferred := tokensOf(t, tokens, `:root:not([data-theme="light"]) {`)
+	for _, theme := range []struct {
+		name   string
+		tokens map[string]string
+	}{{"light", light}, {"dark", dark}} {
+		shape := theme.tokens["skeleton"]
+		for _, ground := range []string{"surface", "band"} {
+			if got := contrast(t, shape, theme.tokens[ground]); got < 1.1 {
+				t.Errorf("--skeleton in the %s theme is %q, %.2f to 1 against --%s %s, want 1.1 to 1 at least",
+					theme.name, shape, got, ground, theme.tokens[ground])
+			}
+		}
+		if theme.tokens["sheen"] == "" {
+			t.Errorf("the %s theme has no --sheen, want the sheen that passes over the shapes", theme.name)
+		}
+	}
+	for _, name := range []string{"skeleton", "sheen"} {
+		if preferred[name] != dark[name] {
+			t.Errorf("--%s is %q for a viewer who prefers the dark theme and %q for a host that names it, want one",
+				name, preferred[name], dark[name])
+		}
+	}
+}
+
 // Each theme shows one of the logo's two drawings: the light theme the one on
 // a white tile, and the dark theme the site's icon itself, alike for a host
 // that names it and for a viewer who prefers it.

@@ -86,3 +86,23 @@ func TestCitedFailsOnAKeyNoBibliographyHolds(t *testing.T) {
 		t.Errorf("cited on a file that is not there = %d, want 2", code)
 	}
 }
+
+// A bibliography -also names that is not there fails the command as one that
+// could not do its job, and names the file: a key only it holds would
+// otherwise be reported as cited by nobody's entry.
+func TestCitedFailsOnABibliographyThatIsNotThere(t *testing.T) {
+	t.Parallel()
+	refs := writeBib(t, "@article{checked2020work,\n  title = {A Work},\n}\n")
+	aux := filepath.Join(t.TempDir(), "paper.aux")
+	if err := os.WriteFile(aux, []byte("\\citation{checked2020work}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	missing := filepath.Join(t.TempDir(), "web.bib")
+	var stdout, stderr bytes.Buffer
+
+	code := run(context.Background(), []string{"-bib", refs, "-also", missing, "cited", aux}, Registries{}, &stdout, &stderr)
+
+	if code != 2 || !strings.Contains(stderr.String(), "citecheck: read "+missing) {
+		t.Errorf("cited with -also naming a missing file = %d, stderr %q; want 2 naming %s", code, &stderr, missing)
+	}
+}

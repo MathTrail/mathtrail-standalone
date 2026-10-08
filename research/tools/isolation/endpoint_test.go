@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -177,4 +178,70 @@ func sendEncoded(t *testing.T, url, encoding string, body []byte) {
 		t.Fatal(err)
 	}
 	_ = response.Body.Close()
+}
+
+// A body that says it is gzipped and cannot be undone could hold any tool at
+// all: the recorder keeps no file for it and fails, so the check cannot pass
+// on a request nobody read.
+func TestRecorderFailsOnABodyItCannotUndo(t *testing.T) {
+	t.Parallel()
+	plain := `{"messages":[],"tools":[{"name":"Bash"}]}`
+	zipped := gzipped(t, plain)
+	for _, tc := range []struct {
+		name string
+		body []byte
+	}{
+		{"a body that is not gzip", []byte(plain)},
+		{"a gzip body cut short", zipped[:len(zipped)/2]},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			dir := t.TempDir()
+			endpoint := newRecorder(dir)
+			server := httptest.NewServer(endpoint)
+			defer server.Close()
+
+			sendEncoded(t, server.URL+"/v1/messages", "gzip", tc.body)
+
+			if _, err := endpoint.recorded(); err == nil || !strings.Contains(err.Error(), "gzip body") {
+				t.Errorf("recorded() error = %v, want one about the gzip body", err)
+			}
+			if _, err := os.Stat(filepath.Join(dir, "request-001.json")); !errors.Is(err, os.ErrNotExist) {
+				t.Errorf("request-001.json: %v, want no file kept for a body nobody read", err)
+			}
+		})
+	}
+}
+
+// A client that asks to speak WebSocket is told the endpoint does not, so it
+// sends its request as plain HTTP instead; the request that asked is kept like
+// any other.
+func TestRecorderTurnsAWebSocketUpgradeAway(t *testing.T) {
+	t.Parallel()
+	endpoint := newRecorder(t.TempDir())
+	server := httptest.NewServer(endpoint)
+	defer server.Close()
+	request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL+"/v1/responses", http.NoBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Set("Connection", "Upgrade")
+	request.Header.Set("Upgrade", "websocket")
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = response.Body.Close()
+
+	if response.StatusCode != http.StatusUpgradeRequired {
+		t.Errorf("status = %d, want 426", response.StatusCode)
+	}
+	requests, err := endpoint.recorded()
+	if err != nil {
+		t.Fatalf("recorded: %v", err)
+	}
+	if len(requests) != 1 || requests[0].Method != http.MethodGet || requests[0].Target != "/v1/responses" || requests[0].Body != nil {
+		t.Errorf("recorded %+v, want only the GET of /v1/responses, with no body", requests)
+	}
 }

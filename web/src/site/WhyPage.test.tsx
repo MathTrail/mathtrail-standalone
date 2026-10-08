@@ -24,21 +24,25 @@ afterAll(async () => {
 	await browser.happyDOM.close();
 });
 
-// data is the site's data over the service's catalog, with no example of any
-// topic's page: the page Why draws its card, its topics' names and its works.
-const data = readSiteData(
-	{
-		topics: topics.map((topic) => ({ ...topic, site_page: false })),
-		traps,
-		tasks: [],
-	},
-	{
-		groups: file.groups,
-		examples: {},
-		progress: file.progress,
-		why: file.why,
-	},
-);
+// dataWith is the site's data over the service's catalog, with no example of
+// any topic's page, and why as what the page Why draws: its card, its topics'
+// names and its works.
+const dataWith = (why: typeof file.why | undefined) =>
+	readSiteData(
+		{
+			topics: topics.map((topic) => ({ ...topic, site_page: false })),
+			traps,
+			tasks: [],
+		},
+		{
+			groups: file.groups,
+			examples: {},
+			progress: file.progress,
+			why,
+		},
+	);
+
+const data = dataWith(file.why);
 
 // words are the page's words, the same in each language: every block the page
 // draws, with the slots it fills, and a finding for each work the data names.
@@ -164,15 +168,22 @@ const frame: Frame = {
 	footer: ["privacy", "terms"],
 };
 
-const render = (sources = sourcesWith()) =>
-	renderSite({ base: "https://example.test", sources, pages, frame, data });
+const render = (sources = sourcesWith(), given = data) =>
+	renderSite({
+		base: "https://example.test",
+		sources,
+		pages,
+		frame,
+		data: given,
+	});
 
 const files = render();
 
-// pageIn is the page Why in locale, read as a document.
-const pageIn = (locale: string) =>
+// pageIn is the page Why in locale, read as a document, of the site built as
+// given, or else of the one built here.
+const pageIn = (locale: string, built = files) =>
 	new browser.DOMParser().parseFromString(
-		files.find(({ path }) => path === `${locale}/why/index.html`)?.data ?? "",
+		built.find(({ path }) => path === `${locale}/why/index.html`)?.data ?? "",
 		"text/html",
 	);
 
@@ -260,17 +271,27 @@ describe("the page Why", () => {
 	});
 
 	test("cites a work by its one or two authors, or the first of more, and its year", () => {
-		const cited = [...why.querySelectorAll(".s-cite a")].map(
-			(link) => link.textContent,
+		const citedIn = (page: ReturnType<typeof pageIn>) =>
+			[...page.querySelectorAll(".s-cite a")].map((link) => link.textContent);
+		// The site's works have two authors or more, so one of them is given
+		// one author alone.
+		const { nunes2007 } = file.why.sources;
+		const alone = render(
+			sourcesWith(),
+			dataWith({
+				...file.why,
+				sources: {
+					...file.why.sources,
+					nunes2007: { ...nunes2007, authors: ["Nunes, T."] },
+				},
+			}),
 		);
 
-		expect(cited).toContain("Agarwal and Gaule, 2020");
-		expect(cited).toContain("Rebholz et al., 2022");
-		expect(
-			[...pageIn("ru").querySelectorAll(".s-cite a")].map(
-				(link) => link.textContent,
-			),
-		).toContain("Rebholz и др., 2022");
+		expect(citedIn(why)).toContain("Agarwal and Gaule, 2020");
+		expect(citedIn(why)).toContain("Rebholz et al., 2022");
+		expect(citedIn(pageIn("ru"))).toContain("Rebholz и др., 2022");
+		expect(citedIn(pageIn("en", alone))).toContain("Nunes, 2007");
+		expect(citedIn(pageIn("ru", alone))).toContain("Nunes, 2007");
 	});
 
 	test("names the grades MathTrail is for from the catalog", () => {
@@ -313,6 +334,15 @@ describe("the page Why", () => {
 
 		expect(lacking).not.toBe(words);
 		expect(() => render(sourcesWith(lacking))).toThrow("hero.free");
+	});
+
+	// The data may leave out the page's part, for a site built without the
+	// page; a site that has the page and not its part names the file to fix,
+	// rather than drawing an empty page.
+	test("is refused when the site's data has nothing for it", () => {
+		expect(() => render(sourcesWith(), dataWith(undefined))).toThrow(
+			"site/data.json has nothing for the page Why",
+		);
 	});
 
 	test("is refused when its words give a finding no work of the data backs", () => {

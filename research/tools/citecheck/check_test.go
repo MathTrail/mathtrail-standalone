@@ -48,6 +48,8 @@ func TestCheck(t *testing.T) {
 	unrecordedVenue.Venues = nil
 	organisation := klinkenberg
 	organisation.Authors = []Person{{Family: "National Research Council, Mathematics Learning Study Committee"}}
+	undated := klinkenberg
+	undated.Years = nil
 	tests := []struct {
 		name  string
 		entry Entry
@@ -78,6 +80,7 @@ func TestCheck(t *testing.T) {
 		{"a venue the registry does not record", with("journal", "Findings of EMNLP"), unrecordedVenue, []string{"cannot be checked"}},
 		{"others alone", with("author", "others"), klinkenberg, []string{"authors"}},
 		{"an organisation with a comma", entry("author", "{National Research Council, Mathematics Learning Study Committee}", "title", klinkenberg.Title, "year", "2011"), organisation, nil},
+		{"a year the registry does not record", entry(goodKlinkenberg...), undated, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

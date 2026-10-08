@@ -327,6 +327,77 @@ describe("the form of the profile", () => {
 		expect(heard.calls[0]?.arguments).toEqual({ signin_country_off: true });
 	});
 
+	// The places the form draws on list the states in the order of their
+	// codes, which is not the order of their names: Alaska's code comes before
+	// Alabama's. The form offers them by their names.
+	test("asks for a state once the United States is chosen, none first and then the states by their names, and sends the one chosen with it", async () => {
+		const { root, heard } = await opened(() =>
+			editSaved({ country: "US", region: "US-CA" }),
+		);
+		expect(() => field(root, "State")).toThrow("no field State");
+
+		chosen(root, "Country", "US");
+
+		const states = [...field<HTMLSelectElement>(root, "State").options];
+		expect(field<HTMLSelectElement>(root, "State").value).toBe("");
+		expect(states).toHaveLength(52);
+		expect(
+			states.slice(0, 5).map((state) => [state.value, state.textContent]),
+		).toEqual([
+			["", "Not set"],
+			["US-AL", "Alabama"],
+			["US-AK", "Alaska"],
+			["US-AZ", "Arizona"],
+			["US-AR", "Arkansas"],
+		]);
+
+		chosen(root, "State", "US-CA");
+		press(buttonIn(root, "Save"));
+
+		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
+		expect(heard.calls[0]?.arguments).toEqual({
+			country: "US",
+			region: "US-CA",
+		});
+	});
+
+	// A family that moves leaves its old state behind, as the service does: a
+	// state of the United States says nothing of a family in France.
+	test("leaves the state behind when another country is chosen, and asks for none there", async () => {
+		const { root, heard } = await opened(
+			() => editSaved({ country: "FR", region: null }),
+			{},
+			{
+				...standing,
+				profile: { ...standing.profile, country: "US", region: "US-TX" },
+			},
+		);
+		expect(field<HTMLSelectElement>(root, "State").value).toBe("US-TX");
+
+		chosen(root, "Country", "FR");
+
+		expect(() => field(root, "State")).toThrow("no field State");
+		press(buttonIn(root, "Save"));
+		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
+		expect(heard.calls[0]?.arguments).toEqual({ country: "FR", region: "" });
+	});
+
+	// A page's form, submitted, loads another page in its place: in a chat's
+	// frame that would put something else where the card was. The form is
+	// sent by its Save button alone.
+	test("is never submitted as a page's form is, and sends nothing when something submits it", async () => {
+		const { root, heard } = await opened();
+		const submitted = new Event("submit", { bubbles: true, cancelable: true });
+
+		act(() => {
+			form(root).dispatchEvent(submitted);
+		});
+
+		expect(submitted.defaultPrevented).toBe(true);
+		expect(heard.calls).toEqual([]);
+		expect(root.querySelector(".mt-form")).not.toBeNull();
+	});
+
 	test("keeps what was typed while its section is folded and opened again", async () => {
 		const { root } = await opened();
 

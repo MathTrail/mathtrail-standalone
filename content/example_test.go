@@ -182,6 +182,17 @@ func TestBrokenReferenceTaskStopsTheService(t *testing.T) {
 			want: `drawn object "A" appears twice`,
 		},
 		{
+			name: "a drawn object with no id",
+			change: func(task *Example) {
+				task.Drawing = "o--o"
+				task.DrawingStructure = &DrawingStructure{
+					Kind:    "number_line",
+					Objects: []DrawingObject{{Label: "A"}},
+				}
+			},
+			want: "drawn object 1 has no id",
+		},
+		{
 			name: "a drawn object with no label to look for",
 			change: func(task *Example) {
 				task.Drawing = "o--o"
