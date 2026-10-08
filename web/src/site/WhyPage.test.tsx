@@ -276,9 +276,15 @@ describe("the page Why", () => {
 	test("names the grades MathTrail is for from the catalog", () => {
 		const grades = topics.flatMap((topic) => gradesOf(topic.grade_levels));
 
-		expect(why.querySelector(".s-hero .s-chip")?.textContent).toBe(
+		expect(
+			[...why.querySelectorAll(".s-hero .s-lead + .s-chips .s-chip")].map(
+				(chip) => chip.textContent,
+			),
+		).toEqual([
+			"Free",
+			"Open",
 			`Grades ${Math.min(...grades)}–${Math.max(...grades)}`,
-		);
+		]);
 	});
 
 	test("names its example topics as the card names them", () => {
