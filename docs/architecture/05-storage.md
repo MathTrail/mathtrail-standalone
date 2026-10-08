@@ -80,7 +80,7 @@ This is per instance and makes no promise across them: a second instance reading
 
 **A write made after its call answered is waited for** (R255). The next call of the same account on the same instance waits for the writes it began before, so the model's `prepare_task` right after `next_task` reads the task handed out, not the file as it was. A call that reaches another instance within about 1.7 s reads the file as it was, as an early read does.
 
-**The rule that matters more than the budget: nothing slow may happen between the read and the write.** Every check that does not need the profile — the structure, the Starlark solver, the readability, the drawing — runs *before* the profile is read; only the near-duplicate check needs it, and it is a comparison against fingerprints already in hand. The read-modify-write window is therefore microseconds of pure computation rather than the second or more a solver can take. This is not a micro-optimisation: with no conditional write, that window *is* the race, and shrinking it is most of the protection we can buy.
+**The rule that matters more than the budget: nothing slow may happen between the read and the write.** Every check that does not need the profile — the structure, the Starlark solver, the readability, the picture — runs *before* the profile is read; only the near-duplicate check needs it, and it is a comparison against fingerprints already in hand. The read-modify-write window is therefore microseconds of pure computation rather than the second or more a solver can take. This is not a micro-optimisation: with no conditional write, that window *is* the race, and shrinking it is most of the protection we can buy.
 
 ## Two tabs, and what Drive cannot do for us
 

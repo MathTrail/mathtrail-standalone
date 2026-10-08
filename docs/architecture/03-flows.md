@@ -17,7 +17,7 @@ The rule everything else follows from:
 Three consequences, and they decide the shape of the flows:
 
 1. **The answer is in no payload at all** until the child has answered. Not in `content`, not in `structuredContent`, not in `_meta`. It sits in the sealed block in the profile (О-25) and is unsealed inside `submit_answer` — once the child has answered, and again for the same answer sent twice (PRODUCT 4.4, criterion 11.3).
-2. **The tool that hands over the package carries no widget.** The generation package — three reference tasks with their answers, the trap catalog, templates and frames — goes to the model through `get_package`, which renders nothing: a card rendered from its result would put reference answers inside the iframe the child is looking at, which О-26 forbids. `next_task` draws the card the task will come to, and carries no package, in its payload or in its words (R152).
+2. **The tool that hands over the package carries no widget.** The generation package — three reference tasks with their answers, the trap catalog, templates and the examples of pictures — goes to the model through `get_package`, which renders nothing: a card rendered from its result would put reference answers inside the iframe the child is looking at, which О-26 forbids. `next_task` draws the card the task will come to, and carries no package, in its payload or in its words (R152).
 3. **`submit_answer` carries no widget either**, for a different reason: the result screen is a state of the task card the child is already looking at, not a second card. The child presses a button and the same card turns over.
 4. **A refusal from `submit_task` names no answer letter and quotes no option.** Whether a card is drawn is a property of the *tool*, not of the individual result — the host reads `_meta.ui.resourceUri` from the tool definition (`getToolUiResourceUri(tool)` in the library) — so a tool that draws a card draws it on every call, refusals included. `submit_task` draws none since R152, but a host with an earlier list of the tools still draws one for it, so its refusals stay as they were. The model already holds its own draft and does not need the letters quoted back to fix it, and this way consequence 1 stays free of exceptions.
 
@@ -94,7 +94,7 @@ sequenceDiagram
     MT-->>W: the task on its way — the request, whose card it is, its language, and no package
     M->>MT: get_package with the request id
     MT->>D: read the profile
-    MT-->>M: the package — brief, the idea to build on in words, corridor, three reference tasks,<br/>the traps, the prohibitions, the formats, the solver templates, the drawing frames,<br/>the checklist and the guide
+    MT-->>M: the package — brief, the idea to build on in words, corridor, three reference tasks,<br/>the traps, the prohibitions, the formats, the solver templates, the examples of pictures,<br/>the checklist and the guide
     Note over M,W: no card is drawn from the package: the reference tasks carry their answers
 
     par the card asks how the task stands, a question every four seconds
@@ -106,7 +106,7 @@ sequenceDiagram
         Note over M: the model writes the task, the Starlark solver and its self-check
         M->>MT: submit_task with the request id: the task, its solver and its self-check, no brief
         MT->>D: read the profile
-        Note over MT: slips of form mended · structure · the letters of the lesson's language · the explanations behind the wrong options ·<br/>the solver runs · the self-check · readability for the level · near-duplicates · the drawing
+        Note over MT: slips of form mended · structure · the letters of the lesson's language · the explanations behind the wrong options ·<br/>the solver runs · the self-check · readability for the level · near-duplicates · the picture
         alt something failed
             Note over MT: the attempt counter goes up
             MT->>D: write the profile
@@ -118,7 +118,7 @@ sequenceDiagram
         end
     end
     Note over MT,W: the write wakes the card's question held on this instance,<br/>handing it the profile written, which it answers from
-    MT-->>W: the task on the card — wording, drawing, five answer buttons, Hint;<br/>the card ticks its course done and turns into it 300 ms later
+    MT-->>W: the task on the card — wording, picture, five answer buttons, Hint;<br/>the card ticks its course done and turns into it 300 ms later
 ```
 
 **What the model gets and what the child gets.** The model receives the wording, the options and the hint — never the answer, the trap texts or the solution; that is the same split the prototype used, and it is what keeps criterion 11.3 true while the model is still in the conversation. The child sees the card with no answer on it. One honest exception, settled in О-27: the adult who opens the host's own tool-call log sees the task the model submitted, answer included — T03 confirmed Claude shows the raw request JSON. That is outside the threat model and belongs in the privacy policy (T19).
@@ -178,7 +178,7 @@ sequenceDiagram
     MT-->>M: the package
     M->>MT: submit_task
     MT->>D: read, then write — the current task
-    MT-->>M: accepted, plus the task as text: wording, drawing, options A–E, hint
+    MT-->>M: accepted, plus the task as text: wording, options A–E, hint — no picture, the wording carries every fact
     M-->>A: reads the task out in the chat, for the adult to read to the child, with no answer in sight
     A->>M: B, the child's answer
     M->>MT: submit_answer — task id, option B
@@ -372,7 +372,7 @@ Every failed check comes back at once, so the model can fix everything in one mo
 
 | Code | When | What the model is told | Costs an attempt |
 |---|---|---|---|
-| `bad_structure` | the JSON schema or the structural rules fail: not five distinct options, a wrong option with no trap or no explanation, an unknown trap id, a member the format does not have | which field is wrong and what was expected | yes |
+| `bad_structure` | the JSON schema or the structural rules fail: not five distinct options, a wrong option with no trap or no explanation, an unknown trap id, a member the format does not have — a text drawing among them, which is told that pictures are now described in `picture` and where the guide is (R269) | which field is wrong and what was expected | yes |
 | `wrong_language` | the question, the hint, the solution, or the explanations taken together are mostly in other letters than those of the lesson's language (R210, SPEC 5.11) | which texts, the lesson's language and its letters, and that every text the child reads is written in it, the reference tasks being in English whatever the language | yes |
 | `distractor_explanations` (name fixed in T12) | the four deterministic conditions of R10: the explanations are not pairwise distinct, one repeats the solution or the hint, one is the catalog's trap description verbatim, or one is too short for its writing system | which option to rewrite and which condition it broke | yes |
 | `solver_error` | the Starlark program crashed, ran past its step or time limit, or printed something other than a list of letters | one short safe line and the limit it hit — never the interpreter's internals (О-8) | yes |
@@ -380,8 +380,8 @@ Every failed check comes back at once, so the model can fix everything in one mo
 | `self_check_blocking` | the self-check contains a blocking remark | the remark the model itself wrote, handed back | yes |
 | `readability` | the longest sentence is over the threshold for the task's level, or the Flesch–Kincaid index is too high (English only) | the measured value and the threshold for that level | yes |
 | `near_duplicate` | too close to a task this child has already seen or to a reference task | that it is a near-repeat and what to change — never the matching text, which the profile does not keep anyway (О-40) | yes |
-| `drawing_format` | width, number of lines, characters or prohibitions (О-11а, О-37) | which limit was exceeded | yes |
-| `drawing_mismatch` | the labels in the wording and in the structural description disagree (О-37) | which labels do not match | yes |
+| `drawing_format` | the picture's description is not one: an unknown kind or member, a member of the wrong type, a number outside its kind's limits (О-37, R269, SPEC 5.4) | the member by its path and the rule it broke, never its value | yes |
+| `drawing_mismatch` | the labels of the wording and of the picture disagree, or the picture shows the right answer the wording does not give (О-37, R269) | which labels of the wording the picture lacks, how many of its labels the wording leaves unnamed, or that the picture shows the answer — never the option | yes |
 | `stale_request` | the request id is not the open one, or there is no open request | ask for a task first | no |
 | `attempts_exhausted` | the third rejection | nothing was handed out, a new task may be requested, and the daily limit was not touched | the request closes |
 | `limit_reached` | the daily limit of accepted tasks, or the ceiling on failed generations | a plain sentence the model relays to the child, and when to come back; which of the two ceilings it was goes into the log, not to the child | no |
@@ -399,7 +399,7 @@ Two rules about the wording of all of them: they are written for a model that ha
 | 3.1 The parent connects the app, signs in, grants storage | 02-auth; scenario 1 |
 | 3.1 The profile is created: pseudonym, grade, interests, constraints | Scenario 1, `save_profile` |
 | 3.1 The child sees a waiting screen while the first task is written | Scenario 1's last step, "The waiting screen and Another task" |
-| 3.2 The card: wording, drawing, five answer buttons with their letters (R90), Hint, Another task (R208) | Scenario 2's last step; scenario 3 for the buttons |
+| 3.2 The card: wording, picture, five answer buttons with their letters (R90), Hint, Another task (R208) | Scenario 2's last step; scenario 3 for the buttons |
 | 3.3 Pressing a button records the answer before any explanation | Scenario 3, and the paragraph under it |
 | 3.3 Correct — brief praise; wrong — the trap first, then the solution | Scenario 3 and 4: the payload of `submit_answer` is the same in both modes |
 | 3.3 "I don't know" said in the chat, and a question about the task answered there (R91, R93, R208) | Scenario 3, the last two steps |
