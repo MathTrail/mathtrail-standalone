@@ -5,6 +5,15 @@ import {
 import { useEffect, useRef, useState } from "preact/hooks";
 import { toolInfoOf } from "../widget/testing/host";
 import type { Scene } from "./scenes";
+import { loadInTurn, turns } from "./turns";
+
+// The cards of a page load their pages eight at a time. A card's page asks for
+// every file of the widget at once, some hundred of them; the cards of a page
+// share one process of the browser, and Chromium lets a process have no more
+// than 2,700 requests open: it refuses the rest, and a card one of whose
+// modules it refused is never drawn. Eight cards keep a page far below that
+// however many scenes it frames, and more at once load no faster.
+const loading = turns(8);
 
 /**
  * HostedCard is the widget's own page in a frame, driven the way a chat host
@@ -114,11 +123,15 @@ export function HostedCard({
 		const loaded = frame.current;
 		// The host listens before the page loads: the page starts the handshake
 		// as soon as it runs.
+		let stop = () => {};
 		void host.connect(new PostMessageTransport(view, view)).then(() => {
-			loaded.src = "/widget.html";
+			if (!taken) {
+				stop = loadInTurn(loaded, "/widget.html", loading);
+			}
 		});
 		return () => {
 			taken = true;
+			stop();
 			void host.close();
 		};
 	}, [scene, theme, locale, width]);

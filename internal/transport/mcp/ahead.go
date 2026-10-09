@@ -3,11 +3,11 @@ package mcpserver
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"go.uber.org/zap"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -187,8 +187,8 @@ type handedOut struct {
 }
 
 // acceptedLine is the line of a task handed out: where it stands, how it came
-// to the child, whether it came with a drawing — never the drawing — and what
-// the child is counted by.
+// to the child, the kind of its picture — never the picture — and what the
+// child is counted by.
 func (s *Service) acceptedLine(ctx context.Context, p *profile.Profile, account store.Account, task *profile.CurrentTask,
 	how *handedOut, now time.Time,
 ) []zap.Field {
@@ -198,7 +198,7 @@ func (s *Service) acceptedLine(ctx context.Context, p *profile.Profile, account 
 		zap.Int("difficulty", task.Difficulty),
 		zap.Int("attempts", how.attempts),
 		zap.Int64("seconds_since_request", int64(how.written/time.Second)),
-		zap.Bool("drawing", strings.TrimSpace(task.Drawing) != ""),
+		zap.String("picture", picture.KindOf(task.Picture)),
 		zap.Bool("ready", how.ready),
 	}, s.acceptedFields(ctx, p, account, task, now)...)
 }

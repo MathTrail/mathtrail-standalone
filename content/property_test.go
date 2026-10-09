@@ -15,6 +15,7 @@ import (
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
@@ -96,13 +97,22 @@ type exampleSeed struct {
 	Texts    []string
 	Kind     string
 	Label    string
-	Relation string
 	Value    int
-	Drawn    bool
+	Pictured bool
+}
+
+// picture is a description made of the seed's raw material: it need not be a
+// picture the format accepts, since a copy carries over whatever it holds.
+func (s *exampleSeed) picture() json.RawMessage {
+	raw, err := json.Marshal(map[string]any{"kind": s.Kind, "label": s.Label, "value": s.Value})
+	if err != nil {
+		panic(err)
+	}
+	return raw
 }
 
 // build assembles a reference task holding everything a copy has to carry over:
-// the two maps, and a drawing whose object keeps its value behind a pointer.
+// the two maps, and a picture held as the bytes it was written in.
 func (s *exampleSeed) build() Example {
 	task := Example{
 		ID:            "gaps-posts-test",
@@ -122,14 +132,8 @@ func (s *exampleSeed) build() Example {
 		}
 		task.Distractors[letter] = Distractor{Trap: s.Traps[i], Text: s.Texts[i]}
 	}
-	if s.Drawn {
-		value := s.Value
-		task.Drawing = "A--B"
-		task.DrawingStructure = &DrawingStructure{
-			Kind:      s.Kind,
-			Objects:   []DrawingObject{{ID: "A", Label: s.Label, Value: &value}},
-			Relations: []DrawingRelation{{Type: s.Relation, From: "A", To: "B"}},
-		}
+	if s.Pictured {
+		task.Picture = s.picture()
 	}
 	return task
 }
@@ -145,38 +149,25 @@ func genExampleSeed() gopter.Gen {
 		"Texts":    gen.SliceOfN(solver.Count, gen.AnyString()),
 		"Kind":     gen.AnyString(),
 		"Label":    gen.AnyString(),
-		"Relation": gen.AnyString(),
 		"Value":    gen.Int(),
-		"Drawn":    gen.Bool(),
+		"Pictured": gen.Bool(),
 	}).Map(func(seed exampleSeed) *exampleSeed { return &seed })
 }
 
-// frame assembles a drawing frame from the same raw material: topics in a list
-// and a structure whose object keeps its value behind a pointer, which is
-// everything a copy of a frame has to carry over.
-func (s *exampleSeed) frame() Frame {
-	value := s.Value
-	return Frame{
-		Name:    "posts",
-		Purpose: s.Question,
-		Topics:  []string{s.Kind, s.Label},
-		Drawing: "A--B",
-		Structure: &DrawingStructure{
-			Kind:      s.Kind,
-			Objects:   []DrawingObject{{ID: "A", Label: s.Label, Value: &value}},
-			Relations: []DrawingRelation{{Type: s.Relation, From: "A", To: "B"}},
-		},
+// example assembles an example of a kind of picture from the same raw
+// material: topics in a list and a picture held as bytes, which is everything
+// a copy of an example has to carry over.
+func (s *exampleSeed) example() PictureExample {
+	return PictureExample{
+		Kind: picture.Kind(s.Kind), Purpose: s.Question, Topics: []string{s.Kind, s.Label}, Picture: s.picture(),
 	}
 }
 
-// editFrame rewrites every part of a frame that a caller could reach through a
-// reference rather than through a copy.
-func editFrame(frame *Frame) {
-	frame.Topics[0] = "edited by a caller"
-	frame.Structure.Kind = "edited by a caller"
-	frame.Structure.Objects[0].Label = "edited by a caller"
-	*frame.Structure.Objects[0].Value = 999
-	frame.Structure.Relations[0].Type = "edited by a caller"
+// editExample rewrites every part of an example of a kind that a caller could
+// reach through a reference rather than through a copy.
+func editExample(example *PictureExample) {
+	example.Topics[0] = "edited by a caller"
+	example.Picture[0] = 'X'
 }
 
 // editEverythingMutable rewrites every part of a task that a caller could reach
@@ -184,13 +175,9 @@ func editFrame(frame *Frame) {
 func editEverythingMutable(task *Example) {
 	task.Options["A"] = "edited by a caller"
 	task.Distractors["C"] = Distractor{Trap: "off_by_one", Text: "edited by a caller"}
-	if task.DrawingStructure == nil {
-		return
+	if len(task.Picture) > 0 {
+		task.Picture[0] = 'X'
 	}
-	task.DrawingStructure.Kind = "edited by a caller"
-	task.DrawingStructure.Objects[0].Label = "edited by a caller"
-	*task.DrawingStructure.Objects[0].Value = 999
-	task.DrawingStructure.Relations[0].Type = "edited by a caller"
 }
 
 func TestCopiesHoldTheirProperties(t *testing.T) {
@@ -218,23 +205,24 @@ func TestCopiesHoldTheirProperties(t *testing.T) {
 		genExampleSeed(),
 	))
 
-	properties.Property("a copy of a frame is equal to the frame", prop.ForAll(
+	properties.Property("a copy of an example of a kind is equal to the example", prop.ForAll(
 		func(seed *exampleSeed) bool {
-			frame := seed.frame()
-			return reflect.DeepEqual(frame.clone(), frame)
+			example := seed.example()
+			return reflect.DeepEqual(example.clone(), example)
 		},
 		genExampleSeed(),
 	))
 
-	properties.Property("editing a copy of a frame leaves the frame it came from untouched", prop.ForAll(
-		func(seed *exampleSeed) bool {
-			frame, witness := seed.frame(), seed.frame()
-			copied := frame.clone()
-			editFrame(&copied)
-			return reflect.DeepEqual(frame, witness)
-		},
-		genExampleSeed(),
-	))
+	properties.Property("editing a copy of an example of a kind leaves the example it came from untouched",
+		prop.ForAll(
+			func(seed *exampleSeed) bool {
+				example, witness := seed.example(), seed.example()
+				copied := example.clone()
+				editExample(&copied)
+				return reflect.DeepEqual(example, witness)
+			},
+			genExampleSeed(),
+		))
 
 	properties.Property("editing the levels or the bases of a copied topic leaves the topic untouched", prop.ForAll(
 		func(id string, levels []rating.GradeLevel, bases []string) bool {

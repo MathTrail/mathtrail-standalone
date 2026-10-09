@@ -2,6 +2,8 @@
 
 **Recommendation: draw every task picture as graphics, from a short description the model writes, with no library.** 2026-10-08.
 
+**Decided on 2026-10-08 (T70.1, R269).** The author went further than this recommendation: text pictures are thrown out entirely, so text mode keeps no text form either, and the wording carries every fact. The twelve kinds stay, the calendar among them. The checks read a picture's form, its labels and whether it shows the right answer; no rule asks for every number of a picture to be in the wording. The format is SPEC 4.4 and 5.4.
+
 The run of 2026-10-08 (`docs/live/21-crooked-drawings.md`) found the text drawings crooked for two reasons the model cannot fix:
 
 - Android's monospaced font has none of the drawing characters, so the columns part;
@@ -236,7 +238,7 @@ The tasks are queued in RUN.md, first among the tasks not done (the author's dec
 
 ## Open questions
 
-- **О-70 (PRODUCT-V1 12.2).** Whether v1 draws task pictures from descriptions. Section 2 of PRODUCT-V1 keeps "real images (SVG, raster)" out of v1 and lists "text drawings made of characters", which this changes.
+- **О-70 (PRODUCT-V1 12.2).** Whether v1 draws task pictures from descriptions. Section 2 of PRODUCT-V1 keeps "real images (SVG, raster)" out of v1 and lists "text drawings made of characters", which this changes. **Settled on 2026-10-08:** pictures from descriptions, and no text drawings (R269).
 
 ## Remarks
 

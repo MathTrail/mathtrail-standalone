@@ -174,7 +174,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 	// A task is reviewed against the content above and run in the sandbox
 	// above, the observed one, so that its solver's runs are recorded like
 	// any other.
-	c.Reviewer = checks.NewReviewer(embedded, c.Solver, checks.DefaultDrawingLimits())
+	c.Reviewer = checks.NewReviewer(embedded, c.Solver)
 
 	c.Store, err = profileStore(cfg, log, tel.TracerProvider(), reach.drive)
 	if err != nil {

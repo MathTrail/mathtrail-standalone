@@ -1,14 +1,16 @@
 package content
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"maps"
 	"regexp"
-	"slices"
 	"strings"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
@@ -26,13 +28,11 @@ type Example struct {
 	GradeLevel rating.GradeLevel `json:"grade_level"`
 	Difficulty int               `json:"difficulty"`
 	Question   string            `json:"question"`
-	// Drawing and DrawingStructure are set only where the task has something
-	// to see, and they are set together: a drawing with no structure cannot be
-	// checked against the wording.
-	Drawing          string            `json:"drawing,omitempty"`
-	DrawingStructure *DrawingStructure `json:"drawing_structure,omitempty"`
-	Options          map[string]string `json:"options"`
-	CorrectAnswer    string            `json:"correct_answer"`
+	// Picture is the description of the task's picture, which the card draws,
+	// set only where the task has something to see.
+	Picture       json.RawMessage   `json:"picture,omitempty"`
+	Options       map[string]string `json:"options"`
+	CorrectAnswer string            `json:"correct_answer"`
 	// Hint is a nudge that does not give the answer away. The tasks ported from
 	// the prototype have none; everything written since does.
 	Hint        string                `json:"hint,omitempty"`
@@ -54,29 +54,6 @@ type Example struct {
 type Distractor struct {
 	Trap string `json:"trap"`
 	Text string `json:"text"`
-}
-
-// DrawingStructure is a text drawing written out as data, so that the drawing
-// and the wording can be compared without either being understood.
-type DrawingStructure struct {
-	Kind      string            `json:"kind"`
-	Objects   []DrawingObject   `json:"objects"`
-	Relations []DrawingRelation `json:"relations,omitempty"`
-}
-
-// DrawingObject is one thing the drawing shows: its id, the label exactly as it
-// appears in the picture, and a value where it has one.
-type DrawingObject struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
-	Value *int   `json:"value,omitempty"`
-}
-
-// DrawingRelation is how two objects of a drawing stand to each other.
-type DrawingRelation struct {
-	Type string `json:"type"`
-	From string `json:"from"`
-	To   string `json:"to"`
 }
 
 const (
@@ -248,7 +225,7 @@ func (c exampleCheck) run(p *problems, i int, task *Example) {
 
 	c.checkOptions(p, where, task)
 	c.checkDistractors(p, where, task)
-	c.checkDrawing(p, where, task)
+	checkPicture(p, where, task.Picture)
 }
 
 // checkPlacement checks that the task is in the file of its own topic and is
@@ -329,78 +306,24 @@ func (c exampleCheck) checkDistractors(p *problems, where string, task *Example)
 	}
 }
 
-// checkDrawing checks that a picture and its description arrive together, that
-// the description is well formed, and that it holds together on its own: a
-// relation names objects the same drawing draws. What the picture says about
-// the wording is a matter for the checks a submitted task passes; here it only
-// has to be readable as data.
-func (c exampleCheck) checkDrawing(p *problems, where string, task *Example) {
-	hasDrawing, hasStructure := task.Drawing != "", task.DrawingStructure != nil
-	switch {
-	case hasDrawing && !hasStructure:
-		p.addf("%s: a drawing without its structure cannot be checked against the wording", where)
-		return
-	case hasStructure && !hasDrawing:
-		p.addf("%s: a drawing structure describes a drawing, and there is none", where)
-		return
-	case !hasStructure:
+// checkPicture checks that a reference task's picture, where it has one, is a
+// description of one of the kinds of picture, in the format a task the model
+// writes is held to. A reference task is in English, whose numbers a point
+// writes. What the picture says of the wording is the business of the tests
+// of the content, which hold every reference picture to the checks a task the
+// model writes passes.
+func checkPicture(p *problems, where string, description json.RawMessage) {
+	if description == nil {
 		return
 	}
-	checkDrawingStructure(p, where, task.DrawingStructure)
-}
-
-// checkDrawingStructure checks that a drawing's structure can be read as data:
-// it says what is drawn, names at least one object, gives every object an id
-// and a label, and relates only objects it names.
-func checkDrawingStructure(p *problems, where string, structure *DrawingStructure) {
-	if structure.Kind == "" {
-		p.addf("%s: the drawing structure does not say what is drawn", where)
-	}
-	if len(structure.Objects) == 0 {
-		p.addf("%s: the drawing structure names nothing that is drawn", where)
-	}
-	ids := checkDrawnObjects(p, where, structure.Objects)
-	checkDrawnRelations(p, where, structure.Relations, ids)
-}
-
-// checkDrawnObjects checks what the drawing says it shows and returns the ids it
-// named, for the relations to be measured against.
-func checkDrawnObjects(p *problems, where string, objects []DrawingObject) map[string]bool {
-	ids := make(map[string]bool, len(objects))
-	for i, object := range objects {
-		switch {
-		case object.ID == "":
-			p.addf("%s: drawn object %d has no id", where, i+1)
-		case ids[object.ID]:
-			p.addf("%s: drawn object %q appears twice", where, object.ID)
-		}
-		ids[object.ID] = true
-		if object.Label == "" {
-			p.addf("%s: drawn object %d has no label to look for in the drawing", where, i+1)
-		}
-	}
-	return ids
-}
-
-// checkDrawnRelations checks that every relation is a triple and that both of
-// its ends are objects the same drawing draws.
-func checkDrawnRelations(p *problems, where string, relations []DrawingRelation, ids map[string]bool) {
-	for i, relation := range relations {
-		if relation.Type == "" || relation.From == "" || relation.To == "" {
-			p.addf("%s: relation %d is not a type, a from and a to", where, i+1)
-			continue
-		}
-		if !ids[relation.From] {
-			p.addf("%s: relation %d starts at %q, which is not drawn", where, i+1, relation.From)
-		}
-		if !ids[relation.To] {
-			p.addf("%s: relation %d ends at %q, which is not drawn", where, i+1, relation.To)
-		}
+	_, broken := picture.Parse(description, picture.Point)
+	for _, problem := range broken {
+		p.addf("%s: %s %s", where, problem.Path, problem.Rule)
 	}
 }
 
 // clone copies a reference task together with everything it points at: the
-// options, the explanations of the wrong ones and the drawing. A task holds
+// options, the explanations of the wrong ones and the picture. A task holds
 // maps, and a map is a reference however many times the value around it is
 // copied, so without this a caller could rewrite an option inside the binary's
 // own content for every request that follows.
@@ -408,28 +331,9 @@ func (e *Example) clone() Example {
 	copied := *e
 	copied.Options = maps.Clone(e.Options)
 	copied.Distractors = maps.Clone(e.Distractors)
-	copied.DrawingStructure = e.DrawingStructure.clone()
+	copied.Picture = bytes.Clone(e.Picture)
 	return copied
 }
 
-// draws says whether a reference task carries a drawing.
-func (e *Example) draws() bool { return e.Drawing != "" }
-
-// clone copies a drawing's structure together with its objects, their values
-// and its relations, so that nothing in the copy reaches back into the content
-// it came from. A structure that is not there copies as none.
-func (s *DrawingStructure) clone() *DrawingStructure {
-	if s == nil {
-		return nil
-	}
-	copied := *s
-	copied.Objects = slices.Clone(s.Objects)
-	for i, object := range copied.Objects {
-		if object.Value != nil {
-			value := *object.Value
-			copied.Objects[i].Value = &value
-		}
-	}
-	copied.Relations = slices.Clone(s.Relations)
-	return &copied
-}
+// draws says whether a reference task carries a picture.
+func (e *Example) draws() bool { return len(e.Picture) > 0 }

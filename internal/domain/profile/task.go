@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -121,8 +122,6 @@ type CurrentTask struct {
 	// Difficulty is the difficulty of the task inside its level, from
 	// MinDifficulty to MaxDifficulty.
 	Difficulty int `json:"difficulty"`
-	// Drawing is the picture in text, when the task has one.
-	Drawing string `json:"drawing,omitempty"`
 	// Fingerprint is the sketch that joins the list of past tasks once this
 	// one is accepted.
 	Fingerprint string `json:"fingerprint"`
@@ -145,6 +144,11 @@ type CurrentTask struct {
 	Language string `json:"language"`
 	// Options are the ones the child chooses between, keyed by letter.
 	Options map[string]string `json:"options"`
+	// Picture is the description of the picture the card draws, as the checks
+	// accepted it, its keys in order, and none for a task with none. The
+	// profile keeps it and does not read it: a file edited by hand never fails
+	// to read for a picture.
+	Picture json.RawMessage `json:"picture,omitempty"`
 	// Sealed is everything that would give the answer away, as one opaque
 	// string. Nothing about it changes shape with the answer: its length says
 	// nothing, and it is opened only by an answer to this task.

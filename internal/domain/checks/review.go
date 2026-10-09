@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -108,13 +107,12 @@ type Reviewer interface {
 type reviewer struct {
 	content Content
 	runner  solver.Runner
-	limits  DrawingLimits
 }
 
-// NewReviewer builds a reviewer over what the service ships, the sandbox a
-// solver runs in and the limits a drawing is held to.
-func NewReviewer(content Content, runner solver.Runner, limits DrawingLimits) Reviewer {
-	return &reviewer{content: content, runner: runner, limits: limits}
+// NewReviewer builds a reviewer over what the service ships and the sandbox a
+// solver runs in.
+func NewReviewer(content Content, runner solver.Runner) Reviewer {
+	return &reviewer{content: content, runner: runner}
 }
 
 func (r *reviewer) Examine(ctx context.Context, submission *Submission) (Examined, error) {
@@ -150,8 +148,9 @@ func (r *reviewer) Judge(examined Examined, against Against) (Outcome, error) {
 	found.add(slices.Concat(examined.read, Structure(draft, r.content)), "")
 	found.add(r.language(task, against))
 	found.add(r.explanations(draft, against))
-	found.add(r.drawingFormat(task), "")
-	found.add(r.drawingMatch(task))
+	pictured := readPicture(task, against.Language)
+	found.add(pictured.format(), "")
+	found.add(pictured.match(task))
 	found.add(r.readability(task, against))
 	found.add(r.solverRuns(examined.answer))
 	found.add(r.answers(examined.answer, draft))
@@ -200,26 +199,6 @@ func (r *reviewer) explanations(draft Draft, against Against) (problems []Proble
 		return nil, "the explanations behind the wrong options were not checked: that needs a task that can be read"
 	}
 	return Explanations(draft, against.Language, r.content), ""
-}
-
-// drawingFormat checks the format of the drawing, when the task has one: a
-// drawing is not required, and a task without one has nothing to check here.
-func (r *reviewer) drawingFormat(task *Task) []Problem {
-	if task == nil {
-		return nil
-	}
-	return DrawingFormat(task.Drawing, r.limits)
-}
-
-// drawingMatch checks the drawing against its structure and the wording.
-func (r *reviewer) drawingMatch(task *Task) (problems []Problem, unchecked string) {
-	if task == nil || strings.TrimSpace(task.Drawing) == "" {
-		return nil, ""
-	}
-	if task.DrawingStructure == nil {
-		return nil, "the drawing was not checked against the wording: that needs task.drawing_structure"
-	}
-	return DrawingMatch(task.Question, task.Drawing, task.DrawingStructure), ""
 }
 
 // readability checks that the question reads as a task of the level asked for.

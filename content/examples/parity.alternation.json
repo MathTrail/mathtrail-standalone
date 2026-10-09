@@ -243,13 +243,7 @@
     "grade_level": "1-2",
     "difficulty": 2,
     "question": "A frog starts on stone 0 and always jumps 2 stones forward: 0, 2, 4, and so on. On which of these stones can it land?",
-    "drawing": " ▼\n─┼───┼───┼───┼───┼───┼───┼─→\n 0   1   2   3   4   5   6",
-    "drawing_structure": {
-      "kind": "number_line",
-      "objects": [
-        {"id": "start", "label": "0", "value": 0}
-      ]
-    },
+    "picture": {"kind": "number_line", "from": 0, "to": 6, "step": 1, "marks": [{"at": 0}]},
     "options": {
       "A": "7",
       "B": "9",
@@ -420,14 +414,7 @@
     "grade_level": "1-2",
     "difficulty": 3,
     "question": "20 lockers are numbered from 1 to 20, and all of them are closed. Anna opens every locker with an even number. How many lockers stay closed?",
-    "drawing": "1  2  3  4  5     20\n○──○──○──○──○─...─○",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "first", "label": "1"},
-        {"id": "last", "label": "20"}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{"mark": "ring", "label": "1"}, {"mark": "ring", "label": "2"}, {"mark": "ring", "label": "3"}, {"mark": "ring", "label": "4"}, {"mark": "ring", "label": "5"}, {"skip": true}, {"mark": "ring", "label": "20"}]},
     "options": {
       "A": "10",
       "B": "9",
@@ -1312,13 +1299,7 @@
     "grade_level": "3-4",
     "difficulty": 3,
     "question": "A grasshopper sits at 0 on a number line. It makes 9 jumps, and each jump is 1 step to the left or 1 step to the right. Where can it end up?",
-    "drawing": "             ▼\n─┼───┼───┼───┼───┼───┼───┼─→\n-3  -2  -1   0   1   2   3",
-    "drawing_structure": {
-      "kind": "number_line",
-      "objects": [
-        {"id": "start", "label": "0", "value": 0}
-      ]
-    },
+    "picture": {"kind": "number_line", "from": -3, "to": 3, "step": 1, "marks": [{"at": 0}]},
     "options": {
       "A": "0",
       "B": "2",
@@ -1937,19 +1918,7 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "Three frogs sit on a number line: frog P at 0, frog Q at 1 and frog R at 2. In each move one frog jumps over another frog and lands as far on the other side as it was before, like a jump from 1 over 2 to 3. After some moves, where can the frogs be?",
-    "drawing": " P   Q   R\n ▼   ▼   ▼\n─┼───┼───┼───┼───┼───┼───┼─→\n 0   1   2   3   4   5   6",
-    "drawing_structure": {
-      "kind": "number_line",
-      "objects": [
-        {"id": "P", "label": "P", "value": 0},
-        {"id": "Q", "label": "Q", "value": 1},
-        {"id": "R", "label": "R", "value": 2}
-      ],
-      "relations": [
-        {"type": "left_of", "from": "P", "to": "Q"},
-        {"type": "left_of", "from": "Q", "to": "R"}
-      ]
-    },
+    "picture": {"kind": "number_line", "from": 0, "to": 6, "step": 1, "marks": [{"at": 0, "label": "P"}, {"at": 1, "label": "Q"}, {"at": 2, "label": "R"}]},
     "options": {
       "A": "P at 0, Q at 4, R at 5",
       "B": "P at 0, Q at 5, R at 4",

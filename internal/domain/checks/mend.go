@@ -13,7 +13,7 @@ import (
 
 // A draft is read as the model meant it where what it wrote can mean one thing
 // alone: a letter in another case or between spaces, an option written as a
-// number, no issues written as null. Each is set right before the checks read
+// number, no issues or no picture written as null. Each is set right before the checks read
 // the draft, and named in it by its field, never by its value. A member
 // misspelt, a value missing, or anything that could mean two things is still
 // refused: read past, it would be a field the model believes it filled in.
@@ -26,6 +26,7 @@ const (
 	mendedOptionCheck   = "self_check.option_check"
 	mendedFinalAnswer   = "self_check.final_answer"
 	mendedIssues        = "self_check.issues"
+	mendedPicture       = "task.picture"
 )
 
 // plainNumber is an option written as a number that reads the same as text:
@@ -72,6 +73,22 @@ func optionsAsText(raw json.RawMessage) (json.RawMessage, bool) {
 		return raw, false
 	}
 	return setMember(members, "options", options, raw)
+}
+
+// mendPicture reads a picture written as null, the way a card's payload
+// writes no picture, or as an empty text, as no picture, and says whether it
+// did.
+func mendPicture(task *Task) bool {
+	if task == nil || task.Picture == nil {
+		return false
+	}
+	var text string
+	blank := json.Unmarshal(task.Picture, &text) == nil && strings.TrimSpace(text) == ""
+	if !absent(task.Picture) && !blank {
+		return false
+	}
+	task.Picture = nil
+	return true
 }
 
 // issuesListed is the self-check with issues written as null written as an

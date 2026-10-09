@@ -27,7 +27,7 @@ flowchart LR
         tools["Tools<br/>profile, progress, next task,<br/>submit task, answer"]
         rule["Rule<br/>topic, goal, difficulty corridor"]
         rating["Ratings<br/>θ, δ, β · Elo over IRT"]
-        checks["Checks<br/>structure, explanations, readability,<br/>near-duplicates, drawing format"]
+        checks["Checks<br/>structure, explanations, readability,<br/>near-duplicates, the picture"]
         solver["Solver<br/>Starlark under step and time limits,<br/>no network, no files"]
         content["Content<br/>catalogs, reference tasks, schemas,<br/>templates, instructions + version"]
         widget["Widget<br/>ui:// resource, one HTML file,<br/>locale dictionaries"]
@@ -142,10 +142,10 @@ Platforms outside v1 are deliberately absent from the diagram: Gemini and DeepSe
 | **Tools** | The five capabilities of PRODUCT 4.1, plus the answer tool the widget calls directly (О-42); the widget also reads the progress itself (R91) and saves the profile's form itself, through a tool of its own that never makes a profile (R148). Every call is the same shape: read the profile, compute, write it back. Nothing secret and nothing internal ever goes into `structuredContent` (О-39) | 3, 4.1–4.4 | T43–T45 |
 | **Rule** | The deterministic choice of a brief: after a failure, consolidate the same topic; otherwise a new topic not seen for a while; difficulty from the 70–85 % corridor. The hint, the pace and consecutive failures change nothing but this (О-33); "I don't know" is a wrong answer (R93) | 4.3, 4.5 | T27 |
 | **Ratings** | P = 0.2 + 0.8·σ(θ + δ − β), Elo updates with a decaying step, the corridor and the recommended β, the chess scale and the rank boundaries, the criterion for a mastered topic (О-32, О-48) | 4.5 | T25 |
-| **Checks** | The pipeline a submitted task passes: structure and five distinct options, a trap and an explanation behind every wrong one, explanations distinguishable from each other (R10), readability for the grade, near-duplicates, the format of the text drawing and the match between its structural description and the wording (О-37) | 4.3 | T32–T35 |
+| **Checks** | The pipeline a submitted task passes: structure and five distinct options, a trap and an explanation behind every wrong one, explanations distinguishable from each other (R10), readability for the grade, near-duplicates, the format of the picture's description and its match with the wording, the right answer kept out of it (О-37, R269) | 4.3 | T32–T35, T70.2 |
 | **Solver** | The Starlark sandbox: the model's program brute-forces the options and confirms that exactly one of them is correct. Step and time limits, no network, no files (О-8) | 4.3, 7 | T28 |
-| **Content** | Everything embedded in the binary that is not code: the topic, trap and skill catalogs, the reference tasks, the JSON schemas, the solver templates (R08), the drawing frames (R09), the model instructions and their version (О-21). It builds the generation package and is validated at startup | 4.3, 4.6, 8 | T23, T36, T36a, T36b |
-| **Widget** | The five screens of PRODUCT 4.2 plus the waiting screen (О-26): Preact bundled into one HTML file with no external loads, embedded in the binary. Locale dictionaries keyed by BCP 47 tags, a layout that works from 320 px, buttons sized for a finger | 4.2, 6, 7 | T42, T54–T57 |
+| **Content** | Everything embedded in the binary that is not code: the topic, trap and skill catalogs, the reference tasks, the JSON schemas, the solver templates (R08), the examples of the pictures' kinds (R09, R269), the model instructions and their version (О-21). It builds the generation package and is validated at startup | 4.3, 4.6, 8 | T23, T36, T36a, T36b, T70.4 |
+| **Widget** | The five screens of PRODUCT 4.2 plus the waiting screen (О-26): Preact bundled into one HTML file with no external loads, embedded in the binary. Locale dictionaries keyed by BCP 47 tags, a layout that works from 320 px, buttons sized for a finger, and the task's picture drawn from its description as SVG (R269) | 4.2, 6, 7 | T42, T54–T57, T70.3 |
 | **Storage** | The profile interface and its two implementations, in memory and in the parent's Drive. Find or create the file, compare revisions, resolve a two-tab conflict, recover a corrupted file, export, handle revoked access, and stay inside the Drive call budget | 5, 7, 9.4 | T40, T50, T51 |
 | **Sealing** | One mechanism doing two jobs: sealing the sign-in state and the Google tokens inside the tokens we hand out (О-7), and sealing the answer to the current task inside the profile file (О-25). Keys come from Secret Manager and rotate by key id | 4.4, 5, 6 | T24 |
 | **Limits** | Per-user rate in the instance's memory, per-IP before sign-in, a global cap, and the daily limit of accepted tasks counted in the profile (О-15, О-35). Over the limit, a clear message the model relays into the chat | 6, 9.4 | T52 |
@@ -183,16 +183,16 @@ The acceptance check for this task: every requirement in sections 4–7 belongs 
 | 4.2 No answer and no internal fields in the structured result (О-39) | Tools |
 | 4.2 Text mode is mandatory (О-10) | Tools, Content |
 | 4.3 The brief is built by the rule | Rule |
-| 4.3 The package: brief, reference tasks, trap catalog, prohibitions, formats, solver templates, drawing frames | Content, Rule, Tools |
+| 4.3 The package: brief, reference tasks, trap catalog, prohibitions, formats, solver templates, examples of pictures | Content, Rule, Tools |
 | 4.3 Structure, a trap and an explanation behind every wrong option | Checks |
 | 4.3 Explanations are distinguishable and do not retell the solution, the hint or the catalog (О-46) | Checks |
 | 4.3 A Starlark solver finds exactly one correct option, under limits and with no network | Solver |
 | 4.3 The model's self-check against a checklist | Content (the checklist), Checks (its presence and structure), the host model |
 | 4.3 Readability for the task's level | Checks |
 | 4.3 No near-duplicate among the child's earlier tasks and the reference tasks | Checks, Storage (fingerprints) |
-| 4.3 Text drawing: format, checked by the program | Checks |
-| 4.3 Text drawing: meaning by the model's self-check, structure by comparison (О-37) | Checks, Content, the host model |
-| 4.3 Text drawing: rendering, settled by a live test | Widget (calibrated in T58) |
+| 4.3 Picture: its description's format, its labels and no right answer in it, checked by the program (R269) | Checks |
+| 4.3 Picture: what it means, by the model's self-check (О-37) | Content, the host model |
+| 4.3 Picture: drawn by the card from its description, level on every device (R269) | Widget |
 | 4.3 Up to three attempts per request | Tools, Storage |
 | 4.3 An accepted task becomes the current one; the draft is never shown to the child | Tools, Storage, Widget |
 | 4.4 No pre-generated tasks | Tools (there is no buffer component) |
@@ -205,7 +205,7 @@ The acceptance check for this task: every requirement in sections 4–7 belongs 
 | 4.5 Hint, pace and consecutive failures do not change the rating (О-33); "I don't know" counts as a wrong answer (R93) | Ratings, Rule |
 | 4.5 A mastered topic is decided automatically and deterministically (О-32) | Ratings |
 | 4.5 β is barely calibrated in v1 | Ratings |
-| 4.6 Catalogs, reference tasks, schemas, templates, frames and instructions embedded in the binary | Content |
+| 4.6 Catalogs, reference tasks, schemas, templates, examples of pictures and instructions embedded in the binary | Content |
 | 4.6 The instructions version is logged with every result (О-21) | Content, Logging |
 | 4.6 Topics for grades 5–6 and the brute-forceable subset of geometry (О-30) | Content |
 | 4.6 The task is written in the chat's language, stored as a BCP 47 tag | Tools, Storage |
@@ -221,7 +221,7 @@ The acceptance check for this task: every requirement in sections 4–7 belongs 
 | 6 $0 within the free tier, with a budget alert | Outside the service: Cloud Run, the budget (T20), the load alert (R266) and the daily report of the costs (R267); inside: Limits |
 | 6 Limits: per-user rate, per-IP before sign-in, global, daily, with a clear message | Limits |
 | 6 Free chat tiers: the scenario fits their message limits | Widget (a button costs no model turn), Tools (one generation per task) |
-| 6 Phones first: 320 px, finger-sized buttons, a drawing that fits the width | Widget, Checks |
+| 6 Phones first: 320 px, finger-sized buttons, a picture that fits the width | Widget, Checks |
 | 6 Tools answer in under a second, Drive aside | Tools, Rule, Ratings, Checks, Solver (pure computation); Storage (the only network call) |
 | 6 OAuth 2.1 with PKCE, short-lived tokens, a token check on every request | Authorization server, HTTP router |
 | 6 OAuth state and Google tokens are not stored but sealed into tokens; the key lives in Secret Manager (О-7) | Sealing, Container and config |

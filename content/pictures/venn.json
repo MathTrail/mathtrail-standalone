@@ -1,0 +1,5 @@
+{
+  "purpose": "Two groups that overlap, inside a box of everyone the question counts: each group's label and size, the count in both, in neither and of everyone, the counts the question gives and ? for the one it asks about.",
+  "topics": ["logic.sets"],
+  "picture": {"kind": "venn", "total": "25", "sets": [{"label": "F", "count": "15"}, {"label": "C", "count": "12"}], "both": "5", "neither": "?"}
+}

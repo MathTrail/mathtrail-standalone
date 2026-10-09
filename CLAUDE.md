@@ -19,7 +19,7 @@ MathTrail v1 is a free, open-source (MIT) MCP app for olympiad-style maths, grad
 
 - picks the topic and difficulty with a deterministic rule;
 - hands the model a brief, reference examples and formats;
-- checks the submitted task: structure, a Starlark solver that brute-forces the options, the model's self-check, readability, near-duplicates and text drawings;
+- checks the submitted task: structure, a Starlark solver that brute-forces the options, the model's self-check, readability, near-duplicates and the picture it describes;
 - shows the task in MCP Apps widgets without the answer;
 - records the answer, explains the mistake and keeps Elo/IRT ratings.
 
@@ -100,7 +100,6 @@ These follow `mentor-api`, the platform's reference service. Where we differ fro
 
 ```
 cmd/server/main.go
-cmd/drawings/             the calibration set of text drawings, shown to a chat host on the widget's cards
 cmd/report/               prints what the service's log adds up to
 internal/
   apierror/       the shape of an HTTP error answer, as the platform's other services have it
@@ -113,6 +112,7 @@ internal/
   widget/         the widget page as the web build left it, embedded, and the design tokens; a placeholder until a build runs
   domain/         pure logic — no I/O, no SDKs, no transport
     rating/ tutor/ checks/ solver/ profile/ progress/
+    picture/      the format of a task's picture: twelve kinds, each read strictly, and what each shows a child
     country/      the countries, and the states of the United States, a family can say it lives in, by their ISO 3166 codes
   infra/          everything that talks to the outside world
     seal/
@@ -228,7 +228,7 @@ Implementations of the same interface must be interchangeable, and that is worth
 - Standard `testing` with `t.Fatalf`/`t.Errorf` in "got …, want …" form — the house style in `mentor-api`, where testify appears only as `mock.Anything` in generated mocks.
 - Table-driven subtests (`t.Run`) for similar cases, with `t.Parallel()` where a case shares no state; external `_test` packages for public behaviour, internal ones for unexported helpers.
 - Test helpers take `*testing.T` and start with `t.Helper()`, so a failure points at the test that broke, not at the helper.
-- Anything that parses what the chat's model produced — task JSON, readability, near-duplicates, the text drawing — gets a fuzz test (`FuzzXxx(f *testing.F)`). That input is untrusted, a panic there takes a request handler down with it, and fuzzing is how those inputs get found before a live host finds them.
+- Anything that parses what the chat's model produced — task JSON, readability, near-duplicates, the picture's description — gets a fuzz test (`FuzzXxx(f *testing.F)`). That input is untrusted, a panic there takes a request handler down with it, and fuzzing is how those inputs get found before a live host finds them.
 - Computation that holds an invariant — ratings, `seal`, trigram similarity, readability, the solver contract, the copies the content hands out — gets a property test with `gopter`: the test names the invariant and the library looks for the input that breaks it. A property replaces neither the worked examples of the golden vectors nor a fuzz test; it is what catches the case nobody thought of.
 - A new check counts as covered only when its test fails with the check switched off. Break it, watch the test go red, put it back — that is how a test that passes by accident is found, and it is cheaper than any tool that does the same thing by rewriting the code.
 - `go test -race` always; fixtures under `testdata/`.

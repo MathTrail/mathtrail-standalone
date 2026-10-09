@@ -1,6 +1,7 @@
 package checks_test
 
 import (
+	"encoding/json"
 	"maps"
 	"regexp"
 	"slices"
@@ -145,34 +146,10 @@ var formatBreakages = []breakage{
 	{"an explanation with no trap", func(d *checks.Draft) {
 		d.Task.Distractors["E"] = checks.Distractor{Text: "You counted every pair twice."}
 	}, "names no trap"},
-	{"a drawing without its structure", func(d *checks.Draft) { d.Task.Drawing = "o--o" }, "task.drawing_structure, and it is missing"},
-	{"a structure without its drawing", func(d *checks.Draft) {
-		d.Task.DrawingStructure = &checks.DrawingStructure{Kind: "number_line", Objects: []checks.DrawingObject{{ID: "A", Label: "A"}}}
-	}, "task.drawing, and it is missing"},
-	{"a drawing that does not say what it draws", func(d *checks.Draft) {
-		d.Task.Drawing = "o--o"
-		d.Task.DrawingStructure = &checks.DrawingStructure{Objects: []checks.DrawingObject{{ID: "A", Label: "A"}}}
-	}, "task.drawing_structure.kind"},
-	{"a drawing that draws nothing", func(d *checks.Draft) {
-		d.Task.Drawing = "o--o"
-		d.Task.DrawingStructure = &checks.DrawingStructure{Kind: "number_line"}
-	}, "at least one object"},
-	{"a drawn object with no id", func(d *checks.Draft) {
-		d.Task.Drawing = "o--o"
-		d.Task.DrawingStructure = &checks.DrawingStructure{Kind: "number_line", Objects: []checks.DrawingObject{{Label: "A"}}}
-	}, "objects.0 has no id"},
-	{"a drawn object with no label", func(d *checks.Draft) {
-		d.Task.Drawing = "o--o"
-		d.Task.DrawingStructure = &checks.DrawingStructure{Kind: "number_line", Objects: []checks.DrawingObject{{ID: "A"}}}
-	}, "objects.0 has no label"},
-	{"a relation that is not a triple", func(d *checks.Draft) {
-		d.Task.Drawing = "o--o"
-		d.Task.DrawingStructure = &checks.DrawingStructure{
-			Kind:      "number_line",
-			Objects:   []checks.DrawingObject{{ID: "A", Label: "A"}},
-			Relations: []checks.DrawingRelation{{Type: "left_of", From: "A"}},
-		}
-	}, "a type, a from and a to"},
+	{"a picture that is no object", func(d *checks.Draft) { d.Task.Picture = json.RawMessage(`"a clock at 4:30"`) },
+		"task.picture must be an object"},
+	{"a picture written as a list", func(d *checks.Draft) { d.Task.Picture = json.RawMessage(`[{"kind":"clock"}]`) },
+		"task.picture must be an object"},
 	{"issues left out", func(d *checks.Draft) { d.SelfCheck.Issues = nil }, "self_check.issues is missing"},
 	{"an issue of no known type", func(d *checks.Draft) {
 		d.SelfCheck.Issues = []checks.Issue{{Type: "boring", Severity: "minor", Comment: "Too easy."}}
@@ -261,13 +238,6 @@ func TestEveryFaultyEntryIsReported(t *testing.T) {
 		change func(*checks.Draft)
 		want   []string
 	}{
-		{"two drawn objects with no label", func(d *checks.Draft) {
-			d.Task.Drawing = "A--B--C"
-			d.Task.DrawingStructure = &checks.DrawingStructure{
-				Kind:    "number_line",
-				Objects: []checks.DrawingObject{{ID: "A"}, {ID: "B", Label: "B"}, {ID: "C"}},
-			}
-		}, []string{"objects.0 has no label", "objects.2 has no label"}},
 		{"two issues with no comment", func(d *checks.Draft) {
 			d.SelfCheck.Issues = []checks.Issue{
 				{Type: "ambiguous", Severity: "minor"},
@@ -319,7 +289,7 @@ func TestAnUnknownTrapIsNamedOnce(t *testing.T) {
 }
 
 // What the format allows is not refused: a self-check that could not solve the
-// task, a minor issue, and a drawing that comes with its structure.
+// task, a minor issue, and a picture, whose members its own check reads.
 func TestWhatTheFormatAllowsPasses(t *testing.T) {
 	t.Parallel()
 
@@ -331,14 +301,8 @@ func TestWhatTheFormatAllowsPasses(t *testing.T) {
 		{"a minor issue", func(d *checks.Draft) {
 			d.SelfCheck.Issues = []checks.Issue{{Type: "too_hard_for_grade", Severity: "minor", Comment: "Close to the edge."}}
 		}},
-		{"a drawing with its structure", func(d *checks.Draft) {
-			d.Task.Drawing = "A--B"
-			d.Task.DrawingStructure = &checks.DrawingStructure{
-				Kind:      "number_line",
-				Objects:   []checks.DrawingObject{{ID: "A", Label: "A"}, {ID: "B", Label: "B"}},
-				Relations: []checks.DrawingRelation{{Type: "left_of", From: "A", To: "B"}},
-			}
-		}},
+		{"a picture", func(d *checks.Draft) { d.Task.Picture = json.RawMessage(`{"kind":"clock","time":"4:30"}`) }},
+		{"a picture its own check refuses", func(d *checks.Draft) { d.Task.Picture = json.RawMessage(`{"kind":"star"}`) }},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()

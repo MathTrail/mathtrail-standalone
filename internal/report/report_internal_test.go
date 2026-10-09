@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -96,25 +97,28 @@ func TestACallIsKnownByItsSpanBeforeItsRequest(t *testing.T) {
 	}
 }
 
-// The drawings of a group are counted among the tasks whose lines say whether
+// The pictures of a group are counted among the tasks whose lines say whether
 // they came with one: where only some say, the count stands beside how many
 // said, so that it is not read against every task accepted, and where none
-// says, no count is made up.
-func TestADrawingIsCountedAmongTheLinesThatSaySo(t *testing.T) {
+// says, no count is made up. A line written before pictures says whether its
+// task came with a text drawing, and is counted so.
+func TestAPictureIsCountedAmongTheLinesThatSaySo(t *testing.T) {
 	t.Parallel()
 
-	accepted := func(drawing string) string {
+	accepted := func(picture string) string {
 		return `{"message":"task_accepted","topic":"logic.ordering","attempts":1,"seconds_since_request":10,` +
-			`"instructions_version":"v1"` + drawing + `}`
+			`"instructions_version":"v1"` + picture + `}`
 	}
 	for _, test := range []struct {
 		name  string
 		lines []string
 		want  string
 	}{
-		{"every line says", []string{accepted(`,"drawing":true`), accepted(`,"drawing":false`)}, "1"},
-		{"some lines say", []string{accepted(`,"drawing":true`), accepted(""), accepted(`,"drawing":false`)}, "1 of 2"},
+		{"every line says", []string{accepted(`,"picture":"clock"`), accepted(`,"picture":"none"`)}, "1"},
+		{"some lines say", []string{accepted(`,"picture":"row"`), accepted(""), accepted(`,"picture":"none"`)}, "1 of 2"},
 		{"no line says", []string{accepted(""), accepted("")}, notLogged},
+		{"lines written before pictures", []string{accepted(`,"drawing":true`), accepted(`,"drawing":false`)}, "1"},
+		{"a picture of no kind the format has", []string{accepted(`,"picture":"other"`)}, "1"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -124,9 +128,30 @@ func TestADrawingIsCountedAmongTheLinesThatSaySo(t *testing.T) {
 				t.Fatalf("accepted tasks in %d rows, want 1", len(rows))
 			}
 			if got := rows[0][3]; got != test.want {
-				t.Errorf("with a drawing = %q, want %q", got, test.want)
+				t.Errorf("with a picture = %q, want %q", got, test.want)
 			}
 		})
+	}
+}
+
+// The pictures are counted by their kind, under the version of the
+// instructions their tasks were written to, and a line written before
+// pictures by the one thing it says: that its task came with a text drawing.
+func TestAPictureIsCountedByItsKind(t *testing.T) {
+	t.Parallel()
+
+	c := tallied(t,
+		`{"message":"task_accepted","topic":"time.clocks","attempts":1,"picture":"clock","instructions_version":"v2"}`,
+		`{"message":"task_accepted","topic":"time.clocks","attempts":1,"picture":"clock","instructions_version":"v2"}`,
+		`{"message":"task_accepted","topic":"logic.sets","attempts":1,"picture":"none","instructions_version":"v2"}`,
+		`{"message":"task_accepted","topic":"logic.sets","attempts":1,"drawing":true,"instructions_version":"v1"}`,
+	)
+	want := map[kindOf]int{
+		{version: "v2", kind: "clock"}:     2,
+		{version: "v1", kind: textDrawing}: 1,
+	}
+	if !maps.Equal(c.kinds, want) {
+		t.Errorf("pictures by kind = %v, want %v", c.kinds, want)
 	}
 }
 
@@ -367,7 +392,7 @@ func TestAReportOfNoLinesSaysSo(t *testing.T) {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 	if got := out.String(); !strings.Contains(got, "No lines of the service's were read.") ||
-		strings.Count(got, "None in these lines.") != 21 || strings.Contains(got, "|") {
+		strings.Count(got, "None in these lines.") != 22 || strings.Contains(got, "|") {
 		t.Errorf("the report of no lines is\n%s\nwant it to say there are none, and no table", got)
 	}
 }

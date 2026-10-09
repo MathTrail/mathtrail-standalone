@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"encoding/json"
 	"errors"
 	"maps"
 	"slices"
@@ -120,8 +121,10 @@ func (p *Profile) Refuse(now time.Time) (exhausted bool, err error) {
 // and difficulty and its language — is not among it: that is what the request
 // asked for, and the checks refuse a task that asked for anything else.
 type Written struct {
-	Wording     string
-	Drawing     string
+	Wording string
+	// Picture is the description of the task's picture as the checks accepted
+	// it, and none for a task with none.
+	Picture     json.RawMessage
 	Options     map[string]string
 	Hint        string
 	Fingerprint string
@@ -148,10 +151,13 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 		return nil, ErrNoRequest
 	}
 
+	picture, err := inOrder(written.Picture)
+	if err != nil {
+		return nil, err
+	}
 	task := &CurrentTask{
 		Asked:               request.Asked,
 		Difficulty:          request.Brief.Difficulty,
-		Drawing:             written.Drawing,
 		Fingerprint:         written.Fingerprint,
 		GradeLevel:          request.Brief.GradeLevel,
 		Hint:                written.Hint,
@@ -160,6 +166,7 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 		IssuedAt:            At(now),
 		Language:            request.Language,
 		Options:             maps.Clone(written.Options),
+		Picture:             picture,
 		Topic:               request.Brief.TargetConcept,
 		TutorMode:           request.TutorMode,
 		Wording:             written.Wording,

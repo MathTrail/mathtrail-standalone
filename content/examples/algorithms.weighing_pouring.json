@@ -5,14 +5,7 @@
     "grade_level": "3-4",
     "difficulty": 1,
     "question": "You have an empty 3-litre jug, an empty 5-litre jug and a tap. The jugs have no marks. Each step is one of these: fill a jug from the tap, empty a jug onto the ground, or pour water from one jug into the other until the first jug is empty or the second is full. What is the smallest number of steps needed to have exactly 2 litres in one of the jugs?",
-    "drawing": "│   │   │   │\n│ 0 │   │ 0 │\n└───┘   └───┘\n  3       5",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "small_jug", "label": "3"},
-        {"id": "big_jug", "label": "5"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 3, "amount": 0}, {"capacity": 5, "amount": 0}]},
     "options": {
       "A": "1",
       "B": "3",
@@ -47,14 +40,7 @@
     "grade_level": "3-4",
     "difficulty": 1,
     "question": "Tim has a balance and two weights: 1 kg and 3 kg. He may put the weights only on the pan opposite the load. Which of these loads can Tim NOT weigh in one weighing?",
-    "drawing": "           ▲\n   ┌───────┴───────┐\n ┌─┴───┐       ┌───┴─┐\n │ ?   │       │ 1  3│\n └─────┘       └─────┘",
-    "drawing_structure": {
-      "kind": "balance",
-      "objects": [
-        {"id": "one", "label": "1"},
-        {"id": "three", "label": "3"}
-      ]
-    },
+    "picture": {"kind": "balance", "left": ["?"], "right": ["1", "3"]},
     "options": {
       "A": "1 kg",
       "B": "3 kg",
@@ -123,14 +109,7 @@
     "grade_level": "3-4",
     "difficulty": 1,
     "question": "A bucket holds 10 litres of water. Masha pours water from it into an empty 7-litre jug until the jug is full. How many litres are left in the bucket?",
-    "drawing": "│   │   │   │\n│10 │   │ 0 │\n└───┘   └───┘\n          7",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "bucket", "label": "10"},
-        {"id": "jug", "label": "7"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 10, "amount": 10}, {"capacity": 7, "amount": 0}]},
     "options": {
       "A": "0",
       "B": "3",
@@ -199,14 +178,7 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "You have an empty 3-litre jug, an empty 5-litre jug and a tap. The jugs have no marks. Each step is one of these: fill a jug from the tap, empty a jug onto the ground, or pour water from one jug into the other until the first jug is empty or the second is full. What is the smallest number of steps needed to have exactly 4 litres in one of the jugs?",
-    "drawing": "│   │   │   │\n│ 0 │   │ 0 │\n└───┘   └───┘\n  3       5",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "small_jug", "label": "3"},
-        {"id": "big_jug", "label": "5"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 3, "amount": 0}, {"capacity": 5, "amount": 0}]},
     "options": {
       "A": "4",
       "B": "5",
@@ -275,15 +247,7 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "Nina has a balance and three weights: 1 kg, 3 kg and 9 kg. She may put the weights only on the pan opposite the load. Which of these loads can she weigh in one weighing?",
-    "drawing": "           ▲\n   ┌───────┴───────┐\n ┌─┴───┐       ┌───┴─┐\n │ ?   │       │1 3 9│\n └─────┘       └─────┘",
-    "drawing_structure": {
-      "kind": "balance",
-      "objects": [
-        {"id": "one", "label": "1"},
-        {"id": "three", "label": "3"},
-        {"id": "nine", "label": "9"}
-      ]
-    },
+    "picture": {"kind": "balance", "left": ["?"], "right": ["1", "3", "9"]},
     "options": {
       "A": "2 kg",
       "B": "10 kg",
@@ -352,14 +316,7 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "You have an empty 5-litre jug, an empty 2-litre jug and a tap. The jugs have no marks. Each step is one of these: fill a jug from the tap, empty a jug onto the ground, or pour water from one jug into the other until the first jug is empty or the second is full. What is the smallest number of steps needed to have exactly 1 litre in one of the jugs?",
-    "drawing": "│   │   │   │\n│ 0 │   │ 0 │\n└───┘   └───┘\n  5       2",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "big_jug", "label": "5"},
-        {"id": "small_jug", "label": "2"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 5, "amount": 0}, {"capacity": 2, "amount": 0}]},
     "options": {
       "A": "2",
       "B": "3",
@@ -394,15 +351,7 @@
     "grade_level": "3-4",
     "difficulty": 3,
     "question": "A bucket holds 8 litres of water. There are two empty jugs of 5 litres and 3 litres. There is no tap, and no water may be poured away. Each step is pouring from one container into another until the first is empty or the second is full. What is the smallest number of steps needed to have exactly 4 litres in one of the containers?",
-    "drawing": "│   │   │   │   │   │\n│ 8 │   │ 0 │   │ 0 │\n└───┘   └───┘   └───┘\n  8       5       3",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "bucket", "label": "8"},
-        {"id": "big_jug", "label": "5"},
-        {"id": "small_jug", "label": "3"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 8, "amount": 8}, {"capacity": 5, "amount": 0}, {"capacity": 3, "amount": 0}]},
     "options": {
       "A": "6",
       "B": "4",
@@ -505,14 +454,7 @@
     "grade_level": "3-4",
     "difficulty": 3,
     "question": "You have an empty 4-litre jug, an empty 9-litre jug and a tap. The jugs have no marks. Each step is one of these: fill a jug from the tap, empty a jug onto the ground, or pour water from one jug into the other until the first jug is empty or the second is full. What is the smallest number of steps needed to have exactly 6 litres in one of the jugs?",
-    "drawing": "│   │   │   │\n│ 0 │   │ 0 │\n└───┘   └───┘\n  4       9",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "small_jug", "label": "4"},
-        {"id": "big_jug", "label": "9"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 4, "amount": 0}, {"capacity": 9, "amount": 0}]},
     "options": {
       "A": "6",
       "B": "7",
@@ -547,14 +489,7 @@
     "grade_level": "3-4",
     "difficulty": 3,
     "question": "You have an empty 6-litre jug, an empty 4-litre jug and a tap. The jugs have no marks. Each step is one of these: fill a jug from the tap, empty a jug onto the ground, or pour water from one jug into the other until the first jug is empty or the second is full. What is the smallest number of steps needed to have exactly 3 litres in one of the jugs?",
-    "drawing": "│   │   │   │\n│ 0 │   │ 0 │\n└───┘   └───┘\n  6       4",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "big_jug", "label": "6"},
-        {"id": "small_jug", "label": "4"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 6, "amount": 0}, {"capacity": 4, "amount": 0}]},
     "options": {
       "A": "3",
       "B": "4",
@@ -623,14 +558,7 @@
     "grade_level": "3-4",
     "difficulty": 4,
     "question": "You have an empty 5-litre jug, an empty 7-litre jug and a tap. The jugs have no marks. Each step is one of these: fill a jug from the tap, empty a jug onto the ground, or pour water from one jug into the other until the first jug is empty or the second is full. What is the smallest number of steps needed to have exactly 6 litres in one of the jugs?",
-    "drawing": "│   │   │   │\n│ 0 │   │ 0 │\n└───┘   └───┘\n  5       7",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "small_jug", "label": "5"},
-        {"id": "big_jug", "label": "7"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 5, "amount": 0}, {"capacity": 7, "amount": 0}]},
     "options": {
       "A": "6",
       "B": "8",
@@ -801,15 +729,7 @@
     "grade_level": "3-4",
     "difficulty": 5,
     "question": "A bucket holds 8 litres of water. There are two empty jugs of 5 litres and 3 litres. There is no tap, and no water may be poured away. Each step is pouring from one container into another until the first is empty or the second is full. What is the smallest number of steps needed to share the water into two equal parts: 4 litres in the bucket and 4 litres in the 5-litre jug?",
-    "drawing": "│   │   │   │   │   │\n│ 8 │   │ 0 │   │ 0 │\n└───┘   └───┘   └───┘\n  8       5       3",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "bucket", "label": "8"},
-        {"id": "big_jug", "label": "5"},
-        {"id": "small_jug", "label": "3"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 8, "amount": 8}, {"capacity": 5, "amount": 0}, {"capacity": 3, "amount": 0}]},
     "options": {
       "A": "5",
       "B": "6",
@@ -946,15 +866,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "A gardener has three empty buckets that hold 3, 5 and 8 litres, and a tap. In one step she fills a bucket from the tap or pours from one bucket into another. A pouring stops when one bucket is empty or the other is full. What is the smallest number of steps after which the 8-litre bucket holds exactly 2 litres?",
-    "drawing": "│   │   │   │   │   │\n│ 0 │   │ 0 │   │ 0 │\n└───┘   └───┘   └───┘\n  3       5       8",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "small_bucket", "label": "3"},
-        {"id": "middle_bucket", "label": "5"},
-        {"id": "big_bucket", "label": "8"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 3, "amount": 0}, {"capacity": 5, "amount": 0}, {"capacity": 8, "amount": 0}]},
     "options": {
       "A": "3",
       "B": "2",
@@ -1060,14 +972,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "A cook has a 4-litre pot and a 7-litre pot, both empty, and a tap. Each step fills a pot from the tap or pours water from one pot into the other until that pot is empty or the other is full. No water may ever go down the sink. What is the smallest number of steps after which a pot holds exactly 6 litres?",
-    "drawing": "│   │   │   │\n│ 0 │   │ 0 │\n└───┘   └───┘\n  4       7",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "small_pot", "label": "4"},
-        {"id": "big_pot", "label": "7"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 4, "amount": 0}, {"capacity": 7, "amount": 0}]},
     "options": {
       "A": "6",
       "B": "It is impossible",
@@ -1208,15 +1113,7 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "A 12-litre churn is full of milk. Next to it stand two empty jugs of 7 and 5 litres. In each step, milk is poured from one of the three into another, until the one poured from is empty or the one poured into is full. What is the smallest number of steps that leaves exactly 4 litres in one of them?",
-    "drawing": "│   │   │   │   │   │\n│12 │   │ 0 │   │ 0 │\n└───┘   └───┘   └───┘\n 12       7       5",
-    "drawing_structure": {
-      "kind": "pouring",
-      "objects": [
-        {"id": "churn", "label": "12"},
-        {"id": "big_jug", "label": "7"},
-        {"id": "small_jug", "label": "5"}
-      ]
-    },
+    "picture": {"kind": "containers", "items": [{"capacity": 12, "amount": 12}, {"capacity": 7, "amount": 0}, {"capacity": 5, "amount": 0}]},
     "options": {
       "A": "7",
       "B": "6",

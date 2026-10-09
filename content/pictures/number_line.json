@@ -1,0 +1,5 @@
+{
+  "purpose": "A number line from one whole number to another by a step; the card draws and numbers every tick. Put a mark on each tick the question names, with its label, and ? on the one it asks about.",
+  "topics": ["counting.gaps", "parity.alternation"],
+  "picture": {"kind": "number_line", "from": 0, "to": 6, "step": 1, "marks": [{"at": 0, "label": "P"}, {"at": 4, "label": "?"}]}
+}

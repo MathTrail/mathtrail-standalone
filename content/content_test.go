@@ -615,14 +615,13 @@ func TestWhatIsHandedOutIsACopy(t *testing.T) {
 		t.Error("editing a solver template handed out changed the content")
 	}
 
-	// A frame holds its topics and its structure behind references, like a
-	// reference task holds its options.
-	frames := c.Frames()
-	frames[0].Topics[0] = "edited.by.a.caller"
-	frames[0].Structure.Objects[0].Label = "edited by a caller"
-	if again := c.Frames()[0]; again.Topics[0] == "edited.by.a.caller" ||
-		again.Structure.Objects[0].Label == "edited by a caller" {
-		t.Error("editing a drawing frame handed out changed the content")
+	// An example of a kind of picture holds its topics and its picture behind
+	// references, like a reference task holds its options.
+	examples := c.PictureExamples()
+	examples[0].Topics[0] = "edited.by.a.caller"
+	examples[0].Picture[0] = 'X'
+	if again := c.PictureExamples()[0]; again.Topics[0] == "edited.by.a.caller" || again.Picture[0] == 'X' {
+		t.Error("editing an example of a picture handed out changed the content")
 	}
 }
 

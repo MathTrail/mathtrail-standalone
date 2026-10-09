@@ -47,7 +47,10 @@ func compare(t *testing.T, path string, goType reflect.Type, schema *schemaObjec
 	t.Helper()
 
 	schema = resolve(t, path, schema, defs)
-	if schema == nil {
+	if schema == nil || goType == reflect.TypeFor[json.RawMessage]() {
+		// A value kept as it came, a picture's description, has the shape of
+		// another format: the schema says what it is, and there are no field
+		// names below it to compare.
 		return
 	}
 

@@ -5,24 +5,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "Nina covers four cells of a 3 by 3 grid with square tiles: A1, B1, C1 and C2. Rows are A to C from the top, columns 1 to 3 from the left. Each tile has sides of 1 cm. What is the perimeter of her shape in centimetres?",
-    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │███│   │   │\n  ├───┼───┼───┤\nB │███│   │   │\n  ├───┼───┼───┤\nC │███│███│   │\n  └───┴───┴───┘",
-    "drawing_structure": {
-      "kind": "grid",
-      "objects": [
-        {"id": "A", "label": "A"},
-        {"id": "B", "label": "B"},
-        {"id": "C", "label": "C"},
-        {"id": "1", "label": "1"},
-        {"id": "2", "label": "2"},
-        {"id": "3", "label": "3"}
-      ],
-      "relations": [
-        {"type": "filled", "from": "A", "to": "1"},
-        {"type": "filled", "from": "B", "to": "1"},
-        {"type": "filled", "from": "C", "to": "1"},
-        {"type": "filled", "from": "C", "to": "2"}
-      ]
-    },
+    "picture": {"kind": "grid", "rows": ["A", "B", "C"], "cols": ["1", "2", "3"], "filled": ["A1", "B1", "C1", "C2"]},
     "options": {"A": "8", "B": "16", "C": "10", "D": "4", "E": "5"},
     "correct_answer": "C",
     "hint": "Walk around the shape and count every tile side on the outside.",
@@ -57,26 +40,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "A garden is a 4 by 4 grid of square beds, with rows A to D and columns 1 to 4. Roses grow in beds B2, B3, C2 and C3. How many other beds share a whole side with a rose bed?",
-    "drawing": "    1   2   3   4\n  ┌───┬───┬───┬───┐\nA │   │   │   │   │\n  ├───┼───┼───┼───┤\nB │   │███│███│   │\n  ├───┼───┼───┼───┤\nC │   │███│███│   │\n  ├───┼───┼───┼───┤\nD │   │   │   │   │\n  └───┴───┴───┴───┘",
-    "drawing_structure": {
-      "kind": "grid",
-      "objects": [
-        {"id": "A", "label": "A"},
-        {"id": "B", "label": "B"},
-        {"id": "C", "label": "C"},
-        {"id": "D", "label": "D"},
-        {"id": "1", "label": "1"},
-        {"id": "2", "label": "2"},
-        {"id": "3", "label": "3"},
-        {"id": "4", "label": "4"}
-      ],
-      "relations": [
-        {"type": "filled", "from": "B", "to": "2"},
-        {"type": "filled", "from": "B", "to": "3"},
-        {"type": "filled", "from": "C", "to": "2"},
-        {"type": "filled", "from": "C", "to": "3"}
-      ]
-    },
+    "picture": {"kind": "grid", "rows": ["A", "B", "C", "D"], "cols": ["1", "2", "3", "4"], "filled": ["B2", "B3", "C2", "C3"]},
     "options": {"A": "6", "B": "8", "C": "12", "D": "4", "E": "16"},
     "correct_answer": "B",
     "hint": "Look at each side of the rose square: which beds touch it there?",
@@ -94,27 +58,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "A playground is marked on a grid of squares with sides of 1 m. It takes up seven squares: A1, B1, C1, C2, C3, B3 and A3, where A to C are the rows from the top. How many metres of fence go all the way round it?",
-    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │███│   │███│\n  ├───┼───┼───┤\nB │███│   │███│\n  ├───┼───┼───┤\nC │███│███│███│\n  └───┴───┴───┘",
-    "drawing_structure": {
-      "kind": "grid",
-      "objects": [
-        {"id": "A", "label": "A"},
-        {"id": "B", "label": "B"},
-        {"id": "C", "label": "C"},
-        {"id": "1", "label": "1"},
-        {"id": "2", "label": "2"},
-        {"id": "3", "label": "3"}
-      ],
-      "relations": [
-        {"type": "filled", "from": "A", "to": "1"},
-        {"type": "filled", "from": "A", "to": "3"},
-        {"type": "filled", "from": "B", "to": "1"},
-        {"type": "filled", "from": "B", "to": "3"},
-        {"type": "filled", "from": "C", "to": "1"},
-        {"type": "filled", "from": "C", "to": "2"},
-        {"type": "filled", "from": "C", "to": "3"}
-      ]
-    },
+    "picture": {"kind": "grid", "rows": ["A", "B", "C"], "cols": ["1", "2", "3"], "filled": ["A1", "A3", "B1", "B3", "C1", "C2", "C3"]},
     "options": {"A": "12", "B": "15", "C": "7", "D": "28", "E": "16"},
     "correct_answer": "E",
     "hint": "Does the fence also have to run down into the gap in the middle?",
@@ -132,18 +76,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "In a board game, a domino covers two squares of a 3 by 3 board that share a side. Rows are A to C from the top, columns 1 to 3 from the left. Two placements are different if they cover different squares. In how many ways can the domino be placed?",
-    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │   │   │   │\n  ├───┼───┼───┤\nB │   │   │   │\n  ├───┼───┼───┤\nC │   │   │   │\n  └───┴───┴───┘",
-    "drawing_structure": {
-      "kind": "grid",
-      "objects": [
-        {"id": "A", "label": "A"},
-        {"id": "B", "label": "B"},
-        {"id": "C", "label": "C"},
-        {"id": "1", "label": "1"},
-        {"id": "2", "label": "2"},
-        {"id": "3", "label": "3"}
-      ]
-    },
+    "picture": {"kind": "grid", "rows": ["A", "B", "C"], "cols": ["1", "2", "3"], "filled": []},
     "options": {"A": "12", "B": "24", "C": "9", "D": "6", "E": "18"},
     "correct_answer": "A",
     "hint": "Count the places for a domino lying across first, then for one standing up.",
@@ -161,28 +94,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "A square cake is cut into 3 by 3 equal square pieces with sides of 2 cm. Rows are A to C from the top, columns 1 to 3 from the left. Oleg eats one corner piece. What is the perimeter of the cake that is left, in centimetres?",
-    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │   │███│███│\n  ├───┼───┼───┤\nB │███│███│███│\n  ├───┼───┼───┤\nC │███│███│███│\n  └───┴───┴───┘",
-    "drawing_structure": {
-      "kind": "grid",
-      "objects": [
-        {"id": "A", "label": "A"},
-        {"id": "B", "label": "B"},
-        {"id": "C", "label": "C"},
-        {"id": "1", "label": "1"},
-        {"id": "2", "label": "2"},
-        {"id": "3", "label": "3"}
-      ],
-      "relations": [
-        {"type": "filled", "from": "A", "to": "2"},
-        {"type": "filled", "from": "A", "to": "3"},
-        {"type": "filled", "from": "B", "to": "1"},
-        {"type": "filled", "from": "B", "to": "2"},
-        {"type": "filled", "from": "B", "to": "3"},
-        {"type": "filled", "from": "C", "to": "1"},
-        {"type": "filled", "from": "C", "to": "2"},
-        {"type": "filled", "from": "C", "to": "3"}
-      ]
-    },
+    "picture": {"kind": "grid", "rows": ["A", "B", "C"], "cols": ["1", "2", "3"], "filled": ["A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"]},
     "options": {"A": "22", "B": "24", "C": "20", "D": "28", "E": "32"},
     "correct_answer": "B",
     "hint": "Which sides of the cake does the eaten piece take away, and which new sides appear?",
@@ -200,22 +112,7 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "A chocolate bar has 2 rows of 3 squares. Rows are A and B from the top, columns 1 to 3 from the left. Kim and Lev break it along the lines into two pieces of 3 squares each, and each piece must hold together by whole sides. Two ways are different if they split the squares differently. How many ways are there?",
-    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │   │   │   │\n  ├───┼───┼───┤\nB │   │   │   │\n  └───┴───┴───┘",
-    "drawing_structure": {
-      "kind": "grid",
-      "objects": [
-        {"id": "A", "label": "A"},
-        {"id": "B", "label": "B"},
-        {"id": "1", "label": "1"},
-        {"id": "2", "label": "2"},
-        {"id": "3", "label": "3"}
-      ],
-      "relations": [
-        {"type": "above", "from": "A", "to": "B"},
-        {"type": "left_of", "from": "1", "to": "2"},
-        {"type": "left_of", "from": "2", "to": "3"}
-      ]
-    },
+    "picture": {"kind": "grid", "rows": ["A", "B"], "cols": ["1", "2", "3"], "filled": []},
     "options": {"A": "7", "B": "2", "C": "1", "D": "3", "E": "6"},
     "correct_answer": "D",
     "hint": "After the straight break, look for pieces shaped like a corner.",
@@ -233,28 +130,7 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "A square pond fills the middle of a 3 by 3 grid, and the other 8 squares are paving slabs. Rows are A to C from the top, columns 1 to 3 from the left. Two gardeners share the slabs, 4 each, and each gardener's slabs have to stay joined by whole sides. Splits count as different when the groups of slabs are different. How many splits are possible?",
-    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │███│███│███│\n  ├───┼───┼───┤\nB │███│   │███│\n  ├───┼───┼───┤\nC │███│███│███│\n  └───┴───┴───┘",
-    "drawing_structure": {
-      "kind": "grid",
-      "objects": [
-        {"id": "A", "label": "A"},
-        {"id": "B", "label": "B"},
-        {"id": "C", "label": "C"},
-        {"id": "1", "label": "1"},
-        {"id": "2", "label": "2"},
-        {"id": "3", "label": "3"}
-      ],
-      "relations": [
-        {"type": "filled", "from": "A", "to": "1"},
-        {"type": "filled", "from": "A", "to": "2"},
-        {"type": "filled", "from": "A", "to": "3"},
-        {"type": "filled", "from": "B", "to": "1"},
-        {"type": "filled", "from": "B", "to": "3"},
-        {"type": "filled", "from": "C", "to": "1"},
-        {"type": "filled", "from": "C", "to": "2"},
-        {"type": "filled", "from": "C", "to": "3"}
-      ]
-    },
+    "picture": {"kind": "grid", "rows": ["A", "B", "C"], "cols": ["1", "2", "3"], "filled": ["A1", "A2", "A3", "B1", "B3", "C1", "C2", "C3"]},
     "options": {"A": "4", "B": "8", "C": "28", "D": "1", "E": "2"},
     "correct_answer": "A",
     "hint": "The slabs make a ring around the pond. What must a group of 4 joined slabs look like?",

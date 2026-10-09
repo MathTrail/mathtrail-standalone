@@ -1,0 +1,5 @@
+{
+  "purpose": "Places in a ring — stations on a loop line, seats round a table, children in a circle — which the card numbers from 1 in the order of travel, with the place the question starts from marked.",
+  "topics": ["number.divisibility", "logic.knights_liars", "counting.gaps", "parity.alternation"],
+  "picture": {"kind": "ring", "count": 12, "start": {"at": 1, "label": "S"}}
+}

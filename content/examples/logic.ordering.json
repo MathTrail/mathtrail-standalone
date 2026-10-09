@@ -1161,15 +1161,7 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "Kim, Lea and Mo sit on chairs number 1, 2 and 3. Mo is not on chair 2. Lea sits on the chair whose number is one more than Mo's. Kim is not on chair 1. Who sits on chair 2?",
-    "drawing": "1  2  3\n●──●──●",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "chair_1", "label": "1"},
-        {"id": "chair_2", "label": "2"},
-        {"id": "chair_3", "label": "3"}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{"label": "1"}, {"label": "2"}, {"label": "3"}]},
     "options": {
       "A": "Kim",
       "B": "Mo",
@@ -1784,13 +1776,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "Five stalls stand in a row at a fair, numbered 1 to 5 from the gate. They sell toys, candy, cakes, popcorn and juice. The toy stall (T) is number 4. The candy stall is right next to the cake stall. The cake stall is further from the gate than the popcorn stall. What number is the popcorn stall?",
-    "drawing": "                  T\n●─────●─────●─────●─────●",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "T", "label": "T"}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{}, {}, {}, {"label": "T"}, {}]},
     "options": {
       "A": "1",
       "B": "5",
@@ -1896,13 +1882,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "Five friends stand in a row for a photo: Alice, Ben, Dev, Ella and Kira. Alice (A) stands first on the left. Kira and Dev do not stand next to each other. Dev and Ella do not stand next to each other either. Kira stands somewhere to the left of Dev. Who stands last on the right?",
-    "drawing": "A\n●─────●─────●─────●─────●",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "A", "label": "A"}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{"label": "A"}, {}, {}, {}, {}]},
     "options": {
       "A": "Kira",
       "B": "Ella",
@@ -1938,15 +1918,7 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "Seven bikes stand in a rack with slots numbered 1 to 7 from the left. Hana's bike is in slot 3. There are exactly three bikes between Ivo's bike and Jon's bike. Kai's bike is right next to Jon's, on its right. Lea's bike is to the right of Hana's but to the left of Ivo's. The other two bikes belong to Max and Ned. In which slot is Ivo's bike?",
-    "drawing": "1  2  3  4  5  6  7\n●──●──●──●──●──●──●",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "slot_1", "label": "1"},
-        {"id": "slot_3", "label": "3"},
-        {"id": "slot_7", "label": "7"}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{"label": "1"}, {"label": "2"}, {"label": "3"}, {"label": "4"}, {"label": "5"}, {"label": "6"}, {"label": "7"}]},
     "options": {
       "A": "1",
       "B": "6",

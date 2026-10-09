@@ -14,10 +14,18 @@ import (
 // retiredMembers are the members the format once had and no longer reads, by
 // the path of the object that held them: a chat begun with the guide that
 // asked for them still writes them, and is not to lose an attempt for it. A
-// member of that name anywhere else is a stray like any other.
+// member of that name anywhere else is a stray like any other. A text drawing
+// is read past only when it holds nothing; one that holds a drawing is refused
+// in words of its own, since the picture it means to show would be lost.
 var retiredMembers = map[string][]string{
-	"task": {"design_thought_process"},
+	"task": {"design_thought_process", textDrawing, textDrawingStructure},
 }
+
+// The members a task once drew its picture with, in characters.
+const (
+	textDrawing          = "drawing"
+	textDrawingStructure = "drawing_structure"
+)
 
 // Decode reads what the model handed in — the task and the self-check, each
 // as the JSON it arrived as — and reports everything about the format it
@@ -47,6 +55,10 @@ func Decode(task, selfCheck json.RawMessage) (Draft, []Problem) {
 	draft.Task, problems = decodePart[Task]("task", task, problems)
 	draft.SelfCheck, problems = decodePart[SelfCheck]("self_check", selfCheck, problems)
 	draft.Retired = retiredIn("task", task)
+	problems = append(problems, textDrawingIn(task)...)
+	if mendPicture(draft.Task) {
+		mended = append(mended, mendedPicture)
+	}
 	for _, field := range mendLetters(&draft) {
 		if !slices.Contains(mended, field) {
 			mended = append(mended, field)
@@ -69,6 +81,44 @@ func retiredIn(name string, raw json.RawMessage) []string {
 		}
 	}
 	return found
+}
+
+// textDrawingIn refuses a task that draws its picture in characters, as the
+// format once asked for: the picture is a description now, and the guide in
+// the package says how one is written. A text drawing that holds nothing — an
+// empty text, null, or an empty object — is read past as no drawing.
+func textDrawingIn(raw json.RawMessage) []Problem {
+	var members map[string]json.RawMessage
+	if json.Unmarshal(raw, &members) != nil {
+		return nil
+	}
+	var drawn []string
+	for _, member := range []string{textDrawing, textDrawingStructure} {
+		if value, held := members[member]; held && !empty(value) {
+			drawn = append(drawn, "task."+member)
+		}
+	}
+	verb := "draw"
+	switch len(drawn) {
+	case 0:
+		return nil
+	case 1:
+		verb = "draws"
+	}
+	return []Problem{structural("%s %s the picture in characters, which the format no longer does: describe "+
+		"the picture in task.picture instead, as the guide in the package says; get_package with the same "+
+		"request_id hands it back", inWords(drawn, 0), verb)}
+}
+
+// empty says whether a value holds nothing: null, a blank text, or an empty
+// object or list.
+func empty(value json.RawMessage) bool {
+	trimmed := bytes.TrimSpace(value)
+	var text string
+	if json.Unmarshal(trimmed, &text) == nil {
+		return strings.TrimSpace(text) == ""
+	}
+	return absent(trimmed) || bytes.Equal(trimmed, []byte("{}")) || bytes.Equal(trimmed, []byte("[]"))
 }
 
 // decodePart reads one part of a submission, or reports why it cannot. A part
@@ -111,6 +161,9 @@ func strays(raw json.RawMessage, format reflect.Type, path string) []Problem {
 	for format.Kind() == reflect.Pointer {
 		format = format.Elem()
 	}
+	if format == rawJSON {
+		return nil
+	}
 	switch format.Kind() {
 	case reflect.Struct:
 		return strayMembers(raw, format, path)
@@ -122,6 +175,11 @@ func strays(raw json.RawMessage, format reflect.Type, path string) []Problem {
 		return nil
 	}
 }
+
+// rawJSON is a member kept as it came, whose members are another check's to
+// judge: the description of a picture, which its own check reads member by
+// member and names by its paths.
+var rawJSON = reflect.TypeFor[json.RawMessage]()
 
 // strayMembers judges an object read into a struct: every member is a field of
 // it, and every field is judged in turn.

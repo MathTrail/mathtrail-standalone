@@ -105,11 +105,13 @@ type line struct {
 	Mended         []string `json:"mended"`
 
 	// An accepted task: the attempts it took, the seconds from the request to
-	// the task, and whether it came with a drawing, which a line written
-	// before the service said so leaves unsaid.
-	Attempts            whole `json:"attempts"`
-	SecondsSinceRequest whole `json:"seconds_since_request"`
-	Drawing             *bool `json:"drawing"`
+	// the task, and the kind of its picture, or none. A line written before
+	// pictures says only whether the task came with a text drawing, and one
+	// written before that says neither.
+	Attempts            whole  `json:"attempts"`
+	SecondsSinceRequest whole  `json:"seconds_since_request"`
+	Picture             string `json:"picture"`
+	Drawing             *bool  `json:"drawing"`
 	// A task handed out: whether it was written ahead and kept, and whether a
 	// card took it into its own place, which only a line from a release that let
 	// a card do so says.

@@ -16,7 +16,7 @@ import (
 var toolOutcomes = []string{"ok", "refused", "failed", "invalid"}
 
 // notLogged stands for a count no line of a group says anything about, such
-// as the drawings of tasks accepted before the service said whether there was
+// as the pictures of tasks accepted before the service said whether there was
 // one. A blank cell would read as none.
 const notLogged = "(not logged)"
 
@@ -33,9 +33,10 @@ func write(out io.Writer, c *counts) error {
 			"refused some; out of attempts, the requests whose last attempt was refused.", c.tasksTable()},
 		{"Accepted tasks", "The attempts an accepted task took, and the seconds from its request to its " +
 			"acceptance: the time the chat's model took to write it — for a task written ahead, the time its " +
-			"writing took, though the child had it at once. With a drawing counts the tasks that came " +
-			"with one; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and " +
-			"where none says, it is not logged.", c.acceptedTable()},
+			"writing took, though the child had it at once. With a picture counts the tasks that came " +
+			"with one, and a line written before pictures the tasks that came with a text drawing; where only some " +
+			"lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not " +
+			"logged.", c.acceptedTable()},
 		{"Tasks written ahead", "Asked ahead counts the requests opened for the next task while the child worked " +
 			"on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the " +
 			"tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took " +
@@ -66,9 +67,12 @@ func write(out io.Writer, c *counts) error {
 		{"What was mended", "The fields read as they were meant rather than as they were written — a letter in " +
 			"another case, an option written as a number, no issues written as null — by how many hand-ins.",
 			c.mendsTable()},
-		{"Drawings by topic", "The tasks accepted on each topic whose line says whether they came with a " +
-			"drawing, and how many of them did. A line written before the service said so is left out.",
-			c.drawingsTable()},
+		{"Pictures by topic", "The tasks accepted on each topic whose line says whether they came with a " +
+			"picture, and how many of them did. A line written before the service said so is left out.",
+			c.picturesTable()},
+		{"Pictures by kind", "The tasks accepted with a picture, by its kind; a line written before pictures " +
+			"says only that its task came with a text drawing, and other is a kind no format has, which only a " +
+			"file edited by hand holds.", c.kindsTable()},
 		{"Why attempts were refused", "An attempt is counted by one check, the first its refusal names, and " +
 			"fails that check and any others beside it.", c.refusalsTable()},
 		{"Chances and what came of them", c.promisesAbout(), c.promisesTable()},
@@ -193,7 +197,7 @@ func (c *counts) letGoTable() *table {
 // and how long they took to write.
 func (c *counts) acceptedTable() *table {
 	t := &table{columns: []string{
-		"Instructions", "Host", "Accepted", "With a drawing", "At the first attempt", "Attempts, mean",
+		"Instructions", "Host", "Accepted", "With a picture", "At the first attempt", "Attempts, mean",
 		"Seconds, median", "Seconds, 90th percentile", "Seconds, longest",
 	}, named: 2}
 	for _, g := range c.groups() {
@@ -201,15 +205,15 @@ func (c *counts) acceptedTable() *table {
 		if len(counted.attempts) == 0 {
 			continue
 		}
-		drawn := notLogged
+		pictured := notLogged
 		switch {
 		case counted.told == len(counted.attempts):
-			drawn = number(counted.drawn)
+			pictured = number(counted.pictured)
 		case counted.told > 0:
-			drawn = fmt.Sprintf("%d of %d", counted.drawn, counted.told)
+			pictured = fmt.Sprintf("%d of %d", counted.pictured, counted.told)
 		}
 		seconds := slices.Sorted(slices.Values(counted.seconds))
-		t.add(g.version, g.host, number(len(counted.attempts)), drawn, number(countOf(counted.attempts, 1)),
+		t.add(g.version, g.host, number(len(counted.attempts)), pictured, number(countOf(counted.attempts, 1)),
 			strconv.FormatFloat(mean(counted.attempts), 'f', 1, 64),
 			number(atRank(seconds, 50)), number(atRank(seconds, 90)), number(atRank(seconds, 100)))
 	}
@@ -273,19 +277,36 @@ func (c *counts) mendsTable() *table {
 	return t
 }
 
-// drawingsTable is, under each version and on each topic, the tasks accepted
-// whose line says whether they came with a drawing, and how many of them did.
-func (c *counts) drawingsTable() *table {
-	t := &table{columns: []string{"Instructions", "Topic", "Accepted", "With a drawing"}, named: 2}
-	keys := slices.Collect(maps.Keys(c.drawings))
-	slices.SortFunc(keys, func(a, b drawnOn) int {
+// picturesTable is, under each version and on each topic, the tasks accepted
+// whose line says whether they came with a picture, and how many of them did.
+func (c *counts) picturesTable() *table {
+	t := &table{columns: []string{"Instructions", "Topic", "Accepted", "With a picture"}, named: 2}
+	keys := slices.Collect(maps.Keys(c.pictures))
+	slices.SortFunc(keys, func(a, b topicOf) int {
 		return cmp.Or(
 			cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
 			cmp.Compare(a.topic, b.topic),
 		)
 	})
 	for _, key := range keys {
-		t.add(key.version, key.topic, number(c.drawings[key].accepted), number(c.drawings[key].drawn))
+		t.add(key.version, key.topic, number(c.pictures[key].accepted), number(c.pictures[key].pictured))
+	}
+	return t
+}
+
+// kindsTable is, under each version, the tasks accepted with a picture of
+// each kind.
+func (c *counts) kindsTable() *table {
+	t := &table{columns: []string{"Instructions", "Kind", "Accepted"}, named: 2}
+	keys := slices.Collect(maps.Keys(c.kinds))
+	slices.SortFunc(keys, func(a, b kindOf) int {
+		return cmp.Or(
+			cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
+			cmp.Compare(a.kind, b.kind),
+		)
+	})
+	for _, key := range keys {
+		t.add(key.version, key.kind, number(c.kinds[key]))
 	}
 	return t
 }

@@ -44,6 +44,12 @@ const (
 // other, and a line whose id is missing is a line that names no task.
 var sourceLine = regexp.MustCompile(`(?m)^# From reference task (\S+)\.\r?$`)
 
+// templateName is how a solver template is named: lowercase words and numbers
+// joined by dashes, as in round-table or number-thought-of. It reads like the
+// id of a reference task and is a rule of its own all the same, so that either
+// can change without the other.
+var templateName = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
+
 // Templates returns the solver templates of one topic, in the order a package
 // shows them. A topic with none — one whose reference tasks are still to be
 // written, so that nothing exists to generalise from — returns none.
@@ -104,7 +110,7 @@ func loadTopicTemplates(src fs.FS, p *problems, topic string, topicOf map[string
 	for _, entry := range entries {
 		where := topic + "/" + entry.Name()
 		name, named := strings.CutSuffix(entry.Name(), solverSuffix)
-		if entry.IsDir() || !named || !fileNamePattern.MatchString(name) {
+		if entry.IsDir() || !named || !templateName.MatchString(name) {
 			p.addf("%s: a template is a file named in lowercase words joined by dashes, ending in %s",
 				where, solverSuffix)
 			continue

@@ -1,0 +1,5 @@
+{
+  "purpose": "A square grid whose rows and columns have names — rows A, B, C from the top, columns 1, 2, 3 from the left — so that a cell is named as B2: some cells filled, some marked with a label. Name the rows and the columns in the question, as rows A to C.",
+  "topics": ["geometry.grid", "combinatorics.enumeration", "parity.alternation"],
+  "picture": {"kind": "grid", "rows": ["A", "B", "C"], "cols": ["1", "2", "3"], "filled": ["A1", "B1"], "marks": {"C3": "?"}}
+}

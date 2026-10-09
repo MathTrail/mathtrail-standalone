@@ -1,6 +1,6 @@
 # What the log adds up to
 
-174 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 09:20:03 UTC. 2 more lines, not the service's, were left out.
+178 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 10:15:01 UTC. 2 more lines, not the service's, were left out.
 
 ## Tasks
 
@@ -15,13 +15,14 @@ Asked for counts the requests opened; handed in, the attempts judged, of which t
 
 ## Accepted tasks
 
-The attempts an accepted task took, and the seconds from its request to its acceptance: the time the chat's model took to write it — for a task written ahead, the time its writing took, though the child had it at once. With a drawing counts the tasks that came with one; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not logged.
+The attempts an accepted task took, and the seconds from its request to its acceptance: the time the chat's model took to write it — for a task written ahead, the time its writing took, though the child had it at once. With a picture counts the tasks that came with one, and a line written before pictures the tasks that came with a text drawing; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not logged.
 
-| Instructions | Host | Accepted | With a drawing | At the first attempt | Attempts, mean | Seconds, median | Seconds, 90th percentile | Seconds, longest |
+| Instructions | Host | Accepted | With a picture | At the first attempt | Attempts, mean | Seconds, median | Seconds, 90th percentile | Seconds, longest |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
 | 0a1b2c3d4e5f | claude | 1 | (not logged) | 0 | 2.0 | 95 | 95 | 95 |
 | 88b63e22129c | (call not read) | 1 | 1 | 1 | 1.0 | 70 | 70 | 70 |
 | 88b63e22129c | claude | 3 | 1 | 3 | 1.0 | 40 | 40 | 40 |
+| f3e2d1c0b9a8 | (call not read) | 3 | 2 | 3 | 1.0 | 40 | 40 | 40 |
 
 ## Tasks written ahead
 
@@ -30,6 +31,7 @@ Asked ahead counts the requests opened for the next task while the child worked 
 | Instructions | Host | Asked ahead | Kept | Handed out ready | Taken by the card | Let go |
 |---|---|---:|---:|---:|---:|---:|
 | 88b63e22129c | claude | 2 | 1 | 2 of 3 | 1 | 1 |
+| f3e2d1c0b9a8 | claude | 0 | 1 | 0 of 0 | 0 | 0 |
 
 ## Why tasks written ahead were let go
 
@@ -78,15 +80,28 @@ The fields read as they were meant rather than as they were written — a letter
 | 88b63e22129c | self_check.final_answer | 1 |
 | 88b63e22129c | task.correct_answer | 1 |
 
-## Drawings by topic
+## Pictures by topic
 
-The tasks accepted on each topic whose line says whether they came with a drawing, and how many of them did. A line written before the service said so is left out.
+The tasks accepted on each topic whose line says whether they came with a picture, and how many of them did. A line written before the service said so is left out.
 
-| Instructions | Topic | Accepted | With a drawing |
+| Instructions | Topic | Accepted | With a picture |
 |---|---|---:|---:|
 | 88b63e22129c | counting.gaps | 2 | 1 |
 | 88b63e22129c | logic.ordering | 1 | 0 |
 | 88b63e22129c | parity.alternation | 1 | 1 |
+| f3e2d1c0b9a8 | counting.gaps | 1 | 1 |
+| f3e2d1c0b9a8 | logic.ordering | 1 | 0 |
+| f3e2d1c0b9a8 | time.clocks | 1 | 1 |
+
+## Pictures by kind
+
+The tasks accepted with a picture, by its kind; a line written before pictures says only that its task came with a text drawing, and other is a kind no format has, which only a file edited by hand holds.
+
+| Instructions | Kind | Accepted |
+|---|---|---:|
+| 88b63e22129c | (a text drawing) | 2 |
+| f3e2d1c0b9a8 | clock | 1 |
+| f3e2d1c0b9a8 | row | 1 |
 
 ## Why attempts were refused
 
@@ -206,7 +221,7 @@ The children the counts for grant applications are taken from, by the rules thos
 | Day | Children | Tasks | Answers | Topics won |
 |---|---:|---:|---:|---:|
 | 2026-09-29 | 2 | 3 | 1 | 2 |
-| 2026-09-30 | 1 | 1 | 0 | 0 |
+| 2026-09-30 | 1 | 4 | 0 | 0 |
 
 ## The rules of the log
 

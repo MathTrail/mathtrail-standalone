@@ -1,6 +1,6 @@
 module github.com/MathTrail/mathtrail-standalone/tools/learners
 
-go 1.27.1
+go 1.27.2
 
 require (
 	github.com/MathTrail/mathtrail-standalone v0.0.0-00010101000000-000000000000

@@ -15,7 +15,7 @@ func TestEveryReadOfTheWidgetGetsAResultOfItsOwn(t *testing.T) {
 	t.Parallel()
 
 	sandbox := Sandbox{Origin: "https://mcp.example", Site: "https://site.example"}
-	first, second := widgetRead(WidgetURI, "<p>the page</p>", sandbox), widgetRead(WidgetURI, "<p>the page</p>", sandbox)
+	first, second := widgetRead("<p>the page</p>", sandbox), widgetRead("<p>the page</p>", sandbox)
 	want, err := json.Marshal(second)
 	if err != nil {
 		t.Fatalf("the result does not marshal: %v", err)

@@ -1,0 +1,5 @@
+{
+  "purpose": "Jugs, buckets or tanks to pour between, as the task starts: how much each can hold and how much it holds now, and its label where the question names it.",
+  "topics": ["algorithms.weighing_pouring"],
+  "picture": {"kind": "containers", "items": [{"capacity": 8, "amount": 8}, {"capacity": 5, "amount": 0}, {"capacity": 3, "amount": 0}]}
+}

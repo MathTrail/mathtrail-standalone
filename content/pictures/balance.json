@@ -1,0 +1,5 @@
+{
+  "purpose": "A pan balance and what stands on each pan: the weights the question gives and ? for a load it asks about.",
+  "topics": ["algorithms.weighing_pouring"],
+  "picture": {"kind": "balance", "left": ["?"], "right": ["1", "3"]}
+}

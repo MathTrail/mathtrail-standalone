@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Task",
-  "description": "The task the model hands in. The language is an argument of the call, not a field here. Trap ids, five different options and a distractor for every wrong option are checked by the service, not by this schema.",
+  "description": "The task the model hands in. The language is an argument of the call, not a field here. Trap ids, five different options, a distractor for every wrong option and a picture held to the wording are checked by the service, not by this schema.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -24,12 +24,10 @@
       "type": "string",
       "minLength": 1
     },
-    "drawing": {
-      "description": "Optional text drawing, lines separated by newlines. It comes together with drawing_structure.",
-      "type": "string",
-      "minLength": 1
+    "picture": {
+      "description": "Optional: the picture the card draws for the task, described rather than drawn. A task without it has no picture.",
+      "$ref": "#/$defs/picture"
     },
-    "drawing_structure": { "$ref": "#/$defs/drawing_structure" },
     "options": {
       "description": "Exactly five options, all different.",
       "type": "object",
@@ -66,10 +64,6 @@
       "additionalProperties": { "$ref": "#/$defs/distractor" }
     }
   },
-  "dependentRequired": {
-    "drawing": ["drawing_structure"],
-    "drawing_structure": ["drawing"]
-  },
   "$defs": {
     "option": {
       "type": "string",
@@ -92,45 +86,543 @@
         }
       }
     },
-    "drawing_structure": {
-      "description": "The same picture as data, so that the drawing can be compared with the wording without either being understood.",
+    "picture": {
+      "description": "A description of one of twelve kinds of picture: its kind and the members of that kind, and no other member. The service also checks what this schema cannot say: a number in a label is written with the lesson's decimal mark, a cell lies in its grid and no two cells share a name, a mark stands on a tick of its line, a brace lies within its bar, a bar shades no more parts than it has, a container holds no more than its capacity, a skip stands between two items and never beside another, and every row of a table is as long as the header, or as the first row where there is none.",
       "type": "object",
-      "additionalProperties": false,
-      "required": ["kind", "objects"],
+      "required": ["kind"],
       "properties": {
         "kind": {
-          "description": "What is drawn, such as number_line, grid, balance, pouring or clock.",
-          "type": "string",
-          "minLength": 1
+          "description": "What the picture draws.",
+          "enum": [
+            "clock",
+            "table",
+            "number_line",
+            "row",
+            "ring",
+            "grid",
+            "bars",
+            "venn",
+            "balance",
+            "containers",
+            "piles",
+            "calendar"
+          ]
+        }
+      },
+      "oneOf": [
+        { "$ref": "#/$defs/clock" },
+        { "$ref": "#/$defs/table" },
+        { "$ref": "#/$defs/number_line" },
+        { "$ref": "#/$defs/row" },
+        { "$ref": "#/$defs/ring" },
+        { "$ref": "#/$defs/grid" },
+        { "$ref": "#/$defs/bars" },
+        { "$ref": "#/$defs/venn" },
+        { "$ref": "#/$defs/balance" },
+        { "$ref": "#/$defs/containers" },
+        { "$ref": "#/$defs/piles" },
+        { "$ref": "#/$defs/calendar" }
+      ]
+    },
+    "label": {
+      "description": "A Latin capital or a run of them, a number written as the question writes it, with the lesson's decimal mark and no separator between thousands, or ?, at most 5 characters long.",
+      "type": "string",
+      "maxLength": 5,
+      "pattern": "^(\\?|[A-Z]+|[-−]?[0-9]+([.,][0-9]+)?)$"
+    },
+    "time": {
+      "description": "A time of day, H:MM, from 0:00 to 23:59.",
+      "type": "string",
+      "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+    },
+    "note": {
+      "description": "An equality or an inequality of labels, numbers and ?, joined by + − × ÷ = < > ( ) and spaces, at most 24 characters long.",
+      "type": "string",
+      "maxLength": 24,
+      "pattern": "^[A-Z0-9.,+−×÷()? -]*[=<>][A-Z0-9.,+−×÷=<>()? -]*$"
+    },
+    "cell": {
+      "description": "A cell of a grid, named by its row and its column, as B2 is.",
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 10
+    },
+    "skip": {
+      "description": "A stretch cut short: it holds nothing, is never first or last, and is never next to another skip.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skip"],
+      "properties": {
+        "skip": { "const": true }
+      }
+    },
+    "clock": {
+      "description": "A clock face. The hands stand where the time puts them, the hour hand moved on by the minutes, and a time after 12:59 is drawn as a twelve-hour face shows it. The card draws the numbers 1 to 12 and the minute marks itself.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "time"],
+      "properties": {
+        "kind": { "const": "clock" },
+        "time": { "$ref": "#/$defs/time" },
+        "hour_label": {
+          "description": "A label at the tip of the hour hand, only where the question calls the hand so.",
+          "$ref": "#/$defs/label"
         },
-        "objects": {
-          "description": "What the drawing shows: an id, the label exactly as it appears in the drawing, and a value where the object has one.",
+        "minute_label": {
+          "description": "A label at the tip of the minute hand, only where the question calls the hand so.",
+          "$ref": "#/$defs/label"
+        }
+      }
+    },
+    "table": {
+      "description": "A table of 1 to 8 rows of 1 to 6 cells, every row as long as the header, or as the first row where there is none.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "rows"],
+      "properties": {
+        "kind": { "const": "table" },
+        "header": { "$ref": "#/$defs/table_row" },
+        "rows": {
           "type": "array",
           "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/table_row" }
+        }
+      }
+    },
+    "table_row": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "description": "A label, a time, … where cells are left out, or empty.",
+        "anyOf": [
+          { "$ref": "#/$defs/label" },
+          { "$ref": "#/$defs/time" },
+          { "enum": ["…", ""] }
+        ]
+      }
+    },
+    "number_line": {
+      "description": "A line of 2 to 16 evenly spaced ticks, from from to to by step, which the card numbers itself.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "from", "to"],
+      "properties": {
+        "kind": { "const": "number_line" },
+        "from": { "$ref": "#/$defs/tick" },
+        "to": { "$ref": "#/$defs/tick" },
+        "step": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 109998,
+          "default": 1
+        },
+        "marks": {
+          "description": "The marks the question names, each on a tick, one to a tick.",
+          "type": "array",
+          "maxItems": 16,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["id", "label"],
+            "required": ["at"],
             "properties": {
-              "id": { "type": "string", "minLength": 1 },
-              "label": { "type": "string", "minLength": 1 },
-              "value": { "type": "integer" }
+              "at": { "$ref": "#/$defs/tick" },
+              "label": { "$ref": "#/$defs/label" }
+            }
+          }
+        }
+      }
+    },
+    "tick": {
+      "description": "A tick's number, which the card draws: from -9999 to 99999.",
+      "type": "integer",
+      "minimum": -9999,
+      "maximum": 99999
+    },
+    "row": {
+      "description": "Objects in a row, such as posts, trees or children in a queue: 2 to 12 items.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "items"],
+      "properties": {
+        "kind": { "const": "row" },
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "items": {
+            "oneOf": [{ "$ref": "#/$defs/row_item" }, { "$ref": "#/$defs/skip" }]
+          }
+        },
+        "line": {
+          "description": "Whether the marks are joined by a line.",
+          "type": "boolean",
+          "default": true
+        },
+        "gaps": {
+          "description": "A label under every gap drawn.",
+          "$ref": "#/$defs/label"
+        },
+        "span": {
+          "description": "A label of the whole length.",
+          "$ref": "#/$defs/label"
+        },
+        "copies": {
+          "description": "The row drawn once, or twice, one under the other, as the two sides of a path.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2,
+          "default": 1
+        }
+      }
+    },
+    "row_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "description": "A label above the item.",
+          "$ref": "#/$defs/label"
+        },
+        "below": {
+          "description": "A label under the item.",
+          "$ref": "#/$defs/label"
+        },
+        "mark": {
+          "enum": ["dot", "ring", "square"],
+          "default": "dot"
+        }
+      }
+    },
+    "ring": {
+      "description": "Places in a ring, such as stations on a loop line or seats round a table: 3 to 24 of them, which the card numbers from 1 in the order of travel and draws clockwise.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "count"],
+      "properties": {
+        "kind": { "const": "ring" },
+        "count": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 24
+        },
+        "start": {
+          "description": "The place to start at, where the question names one.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["at"],
+          "properties": {
+            "at": {
+              "description": "A place of the ring, from 1 to its count.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 24
+            },
+            "label": { "$ref": "#/$defs/label" }
+          }
+        }
+      }
+    },
+    "grid": {
+      "description": "A grid of 1 to 8 rows and 1 to 8 columns, whose names are labels, each once.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "rows", "cols"],
+      "properties": {
+        "kind": { "const": "grid" },
+        "rows": { "$ref": "#/$defs/grid_names" },
+        "cols": { "$ref": "#/$defs/grid_names" },
+        "filled": {
+          "description": "The cells filled, each once.",
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/cell" }
+        },
+        "marks": {
+          "description": "A label in a cell, keyed by the cell.",
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/cell" },
+          "additionalProperties": { "$ref": "#/$defs/label" }
+        }
+      }
+    },
+    "grid_names": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/label" }
+    },
+    "bars": {
+      "description": "Quantities as 1 to 4 bars drawn to one scale, and notes under them all.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "bars"],
+      "properties": {
+        "kind": { "const": "bars" },
+        "bars": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/bar" }
+        },
+        "notes": {
+          "type": "array",
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/note" }
+        }
+      }
+    },
+    "bar": {
+      "description": "One bar, cut into equal parts, some of them shaded, or into segments of their own sizes, or into neither.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": { "$ref": "#/$defs/label" },
+        "parts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "shaded": {
+          "description": "How many of its parts are shaded, from 0 up to its parts.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "segments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["size"],
+            "properties": {
+              "size": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 60
+              },
+              "label": { "$ref": "#/$defs/label" }
             }
           }
         },
-        "relations": {
-          "description": "How the objects stand to each other, as triples such as left_of from A to B.",
+        "length": {
+          "description": "How long the bar is drawn, to the scale of the others.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        },
+        "value": {
+          "description": "A label at the bar's end.",
+          "$ref": "#/$defs/label"
+        },
+        "braces": {
+          "description": "Braces under the bar, at most 4, each from one edge between its parts or segments to a later one, the edges counted from 0 at the bar's start.",
           "type": "array",
+          "maxItems": 4,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type", "from", "to"],
+            "required": ["from", "to", "label"],
             "properties": {
-              "type": { "type": "string", "minLength": 1 },
-              "from": { "type": "string", "minLength": 1 },
-              "to": { "type": "string", "minLength": 1 }
+              "from": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 12
+              },
+              "to": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 12
+              },
+              "label": { "$ref": "#/$defs/label" }
             }
           }
+        },
+        "span": {
+          "description": "A label of the whole bar.",
+          "$ref": "#/$defs/label"
+        }
+      },
+      "dependentRequired": {
+        "shaded": ["parts"]
+      },
+      "not": { "required": ["parts", "segments"] }
+    },
+    "venn": {
+      "description": "Two groups that overlap, inside a box of everyone the question counts; every count is a label.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "sets"],
+      "properties": {
+        "kind": { "const": "venn" },
+        "sets": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label"],
+            "properties": {
+              "label": { "$ref": "#/$defs/label" },
+              "count": { "$ref": "#/$defs/label" }
+            }
+          }
+        },
+        "both": { "$ref": "#/$defs/label" },
+        "neither": { "$ref": "#/$defs/label" },
+        "total": { "$ref": "#/$defs/label" }
+      }
+    },
+    "balance": {
+      "description": "A pan balance and the labels of what stands on each pan.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "left", "right"],
+      "properties": {
+        "kind": { "const": "balance" },
+        "left": { "$ref": "#/$defs/pan" },
+        "right": { "$ref": "#/$defs/pan" }
+      }
+    },
+    "pan": {
+      "type": "array",
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/label" }
+    },
+    "containers": {
+      "description": "Jugs, buckets and the like to pour between: 1 to 4 of them, each with how much it can hold and how much it holds now, which the card writes on it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "items"],
+      "properties": {
+        "kind": { "const": "containers" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["capacity", "amount"],
+            "properties": {
+              "capacity": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 20
+              },
+              "amount": {
+                "description": "From 0 up to the capacity.",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 20
+              },
+              "label": { "$ref": "#/$defs/label" }
+            }
+          }
+        }
+      }
+    },
+    "piles": {
+      "description": "The piles of a game, such as stones, coins or counters: 1 to 6 of them.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "piles"],
+      "properties": {
+        "kind": { "const": "piles" },
+        "piles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "oneOf": [{ "$ref": "#/$defs/pile" }, { "$ref": "#/$defs/skip" }]
+          }
+        },
+        "box": {
+          "description": "All the piles in one box.",
+          "type": "boolean",
+          "default": false
+        },
+        "across": {
+          "description": "The piles side by side.",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "pile": {
+      "description": "One pile, a row of counters of one shape and fill. A pile with no count is a heap of no stated size.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "description": "A label at the pile's start.",
+          "$ref": "#/$defs/label"
+        },
+        "value": {
+          "description": "A label at the pile's end.",
+          "$ref": "#/$defs/label"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 40
+        },
+        "shown": {
+          "description": "How many counters a pile cut short shows, half before an ellipsis and half after: from 2 to one less than its count.",
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 39
+        },
+        "group": {
+          "description": "A gap after every so many counters.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40
+        },
+        "fill": { "enum": ["dark", "light"] },
+        "shape": { "enum": ["dot", "square"] },
+        "boxed": {
+          "description": "The pile in a box of its own.",
+          "type": "boolean"
+        }
+      },
+      "dependentRequired": {
+        "shown": ["count"]
+      }
+    },
+    "calendar": {
+      "description": "The page of a month. The card writes the weekdays' names in its own language.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "first", "days"],
+      "properties": {
+        "kind": { "const": "calendar" },
+        "first": {
+          "description": "The weekday of the 1st, 1 for Monday to 7 for Sunday.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 7
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 28,
+          "maximum": 31
+        },
+        "week_starts": {
+          "enum": ["monday", "sunday"],
+          "default": "monday"
+        },
+        "marks": {
+          "description": "A label on a day of the month, keyed by the day.",
+          "type": "object",
+          "propertyNames": { "pattern": "^([1-9]|[12][0-9]|3[01])$" },
+          "additionalProperties": { "$ref": "#/$defs/label" }
         }
       }
     }

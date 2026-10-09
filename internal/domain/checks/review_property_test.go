@@ -14,11 +14,11 @@ import (
 )
 
 // faulty is a task that passes, being broken one fault at a time. What more
-// than one fault touches — the drawing, the question — is settled once they
+// than one fault touches — the picture, the question — is settled once they
 // have all been applied.
 type faulty struct {
 	scenario
-	trailingSpace, strayLabel, copied bool
+	outOfFormat, strayLabel, copied bool
 }
 
 // faults are one way each to fail every check, none of them in the way of
@@ -32,7 +32,7 @@ var faults = []struct {
 	{checks.CodeDistractorExplanations, func(f *faulty) {
 		f.draft.Task.Distractors["D"] = checks.Distractor{Trap: "wrong_operation", Text: "You missed one pair."}
 	}},
-	{checks.CodeDrawingFormat, func(f *faulty) { f.trailingSpace = true }},
+	{checks.CodeDrawingFormat, func(f *faulty) { f.outOfFormat = true }},
 	{checks.CodeDrawingMismatch, func(f *faulty) { f.strayLabel = true }},
 	{checks.CodeReadability, func(f *faulty) { f.draft.Task.Question += longSentence }},
 	{checks.CodeSolverError, func(f *faulty) { f.runner = &scripted{result: solver.Result{Status: solver.StatusError}} }},
@@ -55,15 +55,15 @@ func broken(mask int) scenario {
 			fault.apply(&f)
 		}
 	}
-	if f.trailingSpace || f.strayLabel {
-		drawing, labels := "P───Q", []string{"P", "Q"}
-		if f.trailingSpace {
-			drawing += " "
+	if f.outOfFormat || f.strayLabel {
+		copies, labels := 1, []string{"P", "Q"}
+		if f.outOfFormat {
+			copies = 3
 		}
 		if f.strayLabel {
 			labels = append(labels, "R")
 		}
-		draw(&f.scenario, drawing, labels...)
+		picture(&f.scenario, pictureOf(copies, labels...), "P", "Q")
 	}
 	if f.copied {
 		f.references = []string{f.draft.Task.Question}
@@ -111,14 +111,14 @@ func FuzzReview(f *testing.F) {
 	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "3-4", "en")
 	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "1-2", "ru")
 	f.Add([]byte(`{"options":{"A":"x"},"question":" "}`), []byte("{"), "", "", "")
-	f.Add([]byte(`{"question":"P is left of R.","drawing":"P───Q \n","drawing_structure":`+
-		`{"kind":"line","objects":[{"id":"R","label":"R"}]}}`),
+	f.Add([]byte(`{"question":"P is left of R.","drawing":"P───Q \n","picture":`+
+		`{"kind":"row","items":[{"label":"R"},{"label":"7"}],"copies":3}}`),
 		[]byte(`{"issues":[{"type":"ambiguous","severity":"blocking","comment":"C"}],"final_answer":"B"}`),
 		"x", "9-10", "en-GB")
 
 	f.Fuzz(func(t *testing.T, task, selfCheck []byte, source, level, language string) {
 		reviewer := checks.NewReviewer(shipped{catalog: testCatalog, references: []string{good.Task.Question}},
-			&working{value: "six pairs"}, checks.DefaultDrawingLimits())
+			&working{value: "six pairs"})
 		examined, err := reviewer.Examine(t.Context(),
 			&checks.Submission{Task: task, SelfCheck: selfCheck, Solver: source})
 		if err != nil {

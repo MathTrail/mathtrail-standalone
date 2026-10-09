@@ -154,7 +154,7 @@ func NewHandler(settings *Settings, tools ...Tool) (http.Handler, error) {
 			},
 		},
 	)
-	AddWidget(server, WidgetURI, settings.Widget, Sandbox{Origin: settings.Origin, Site: settings.Site})
+	addWidget(server, settings.Widget, Sandbox{Origin: settings.Origin, Site: settings.Site})
 
 	names := make(map[string]struct{}, len(tools))
 	for _, tool := range tools {

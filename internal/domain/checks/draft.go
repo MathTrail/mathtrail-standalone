@@ -1,5 +1,7 @@
 package checks
 
+import "encoding/json"
+
 // Draft is a submission read into the format: the task and the self-check.
 // Each is nil when it could not be read at all, and then nothing that needs
 // it is checked — a refusal about a field of a task that is not there would
@@ -13,7 +15,7 @@ type Draft struct {
 	Retired []string
 	// Mended names the fields read as the model meant them rather than as it
 	// wrote them, each once: a letter in another case, an option written as a
-	// number, no issues written as null.
+	// number, no issues or no picture written as null.
 	Mended []string
 }
 
@@ -24,9 +26,9 @@ type Task struct {
 	CoreIdea string `json:"core_idea"`
 	// Question is the wording the child reads.
 	Question string `json:"question"`
-	// Drawing and DrawingStructure come together or not at all.
-	Drawing          string            `json:"drawing,omitempty"`
-	DrawingStructure *DrawingStructure `json:"drawing_structure,omitempty"`
+	// Picture is the description of a picture the card draws, as it came: its
+	// own check reads it member by member, and a task with none has none.
+	Picture json.RawMessage `json:"picture,omitempty"`
 	// Options are the five answers, keyed by letter.
 	Options map[string]string `json:"options"`
 	// CorrectAnswer is the letter of the one right option.
@@ -44,28 +46,6 @@ type Task struct {
 type Distractor struct {
 	Trap string `json:"trap"`
 	Text string `json:"text"`
-}
-
-// DrawingStructure is the drawing written out as data, so that the drawing and
-// the wording can be compared without either being understood.
-type DrawingStructure struct {
-	Kind      string            `json:"kind"`
-	Objects   []DrawingObject   `json:"objects"`
-	Relations []DrawingRelation `json:"relations,omitempty"`
-}
-
-// DrawingObject is one thing the drawing shows.
-type DrawingObject struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
-	Value *int   `json:"value,omitempty"`
-}
-
-// DrawingRelation is how two objects of a drawing stand to each other.
-type DrawingRelation struct {
-	Type string `json:"type"`
-	From string `json:"from"`
-	To   string `json:"to"`
 }
 
 // SelfCheck is the model's own pass over the task it wrote.
