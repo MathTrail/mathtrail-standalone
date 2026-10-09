@@ -1,6 +1,6 @@
 import type { ComponentChildren, Ref } from "preact";
 import { useContext, useReducer, useRef } from "preact/hooks";
-import { Diagram, Note, Verdict } from "../design/blocks";
+import { Note, Verdict } from "../design/blocks";
 import {
 	Button,
 	type Option,
@@ -8,6 +8,7 @@ import {
 	type OptionState,
 	type Said,
 } from "../design/controls";
+import { Diagram } from "../design/picture/diagram";
 import { ReplyCard } from "../design/thread";
 import { directionOf } from "../i18n/lookup";
 import type { Host } from "./bridge";
@@ -279,7 +280,7 @@ function givenOnTheChoice(handed: HandedTask, chosen: string | null): boolean {
 }
 
 // TaskBody is the task itself: the mark of the topic the lessons are kept to,
-// when the task is on it, its question, its drawing, the hint while it is
+// when the task is on it, its question, its picture, the hint while it is
 // shown and the task is not done with, and the options — to press unless
 // locked, or marked once the answer is in. A card done with, its next task
 // asked of the chat, no longer asks for a pick, whether or not it was answered.
@@ -308,8 +309,12 @@ function TaskBody({
 			<p class="mt-task-text" lang={inTask.lang} dir={inTask.dir}>
 				{task.question}
 			</p>
-			{task.drawing !== "" && (
-				<Diagram drawing={task.drawing} label={words.text("task.drawing")} />
+			{task.picture !== undefined && (
+				<Diagram
+					picture={task.picture}
+					label={words.text(`picture.${task.picture.kind}`)}
+					locale={task.language}
+				/>
 			)}
 			{lesson.hint.open && !isSettled(lesson.answer) && (
 				<Note tone="hint" label={words.text("task.hint")} said={inTask}>

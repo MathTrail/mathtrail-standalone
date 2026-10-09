@@ -2,13 +2,13 @@ import { describe, expect, test } from "vitest";
 import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
-import { answerOf, doiAddress, readWhy, type WhyCard } from "./why";
+import { answerOf, doiAddress, readWhy, type WhyCard, whyFile } from "./why";
 
 // catalog is the service's catalog of topics and traps.
 const catalog = { topics, traps };
 
-// own is what the site's own data gives the page "Why".
-const own = file.why;
+// own is what the site's own data gives the page "Why", as its reader takes it.
+const own = whyFile.parse(file.why);
 
 // withCard is the page's data with these fields of its card changed.
 const withCard = (fields: Partial<WhyCard>) => ({

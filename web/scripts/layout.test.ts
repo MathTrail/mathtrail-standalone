@@ -4,9 +4,12 @@ import { h, render } from "preact";
 import { describe, expect, test } from "vitest";
 import {
 	allowed,
+	type DrawnPicture,
 	type Finding,
 	type Measured,
+	type PictureWord,
 	pagesOf,
+	pictureFindings,
 	type Shard,
 	shardOf,
 	shareOf,
@@ -203,5 +206,84 @@ describe("the values a list offers", () => {
 		expect(
 			valuesOf([...list.options] as unknown as HTMLOptionElement[]),
 		).toEqual(tags);
+	});
+});
+
+// word is a word of a picture, 14 px and drawn at that size, where given.
+const word = (
+	text: string,
+	left: number,
+	top: number,
+	fields: Partial<PictureWord> = {},
+): PictureWord => ({
+	text,
+	left,
+	top,
+	right: left + 20,
+	bottom: top + 16,
+	written: 14,
+	size: 14,
+	...fields,
+});
+
+// pictureOf is a picture 200 px wide in a box 286 px wide, with words.
+const pictureOf = (
+	words: PictureWord[],
+	fields: Partial<DrawnPicture> = {},
+): DrawnPicture => ({
+	where: "svg.mt-picture",
+	box: { left: 10, top: 10, right: 210, bottom: 110 },
+	room: 286,
+	words,
+	...fields,
+});
+
+describe("a picture of a card", () => {
+	test("that fits its box, its words inside it and apart at their size, is found to be no trouble", () => {
+		expect(
+			pictureFindings([
+				pictureOf([word("A", 20, 20), word("B", 50, 20), word("C", 20, 40)]),
+			]),
+		).toEqual([]);
+	});
+
+	test("wider than its box is found", () => {
+		expect(pictureFindings([pictureOf([], { room: 190 })])).toEqual([
+			{ what: "is wider than its box", where: "svg.mt-picture", by: 10 },
+		]);
+	});
+
+	test.each([
+		["left", word("A", 7, 20)],
+		["top", word("A", 20, 7)],
+		["right", word("A", 193, 20)],
+		["bottom", word("A", 20, 97)],
+	])("with a word past its %s edge is found", (_, past) => {
+		expect(pictureFindings([pictureOf([past])])).toEqual([
+			{ what: "runs out of its picture", where: 'text "A"', by: 3 },
+		]);
+	});
+
+	test("with a word drawn smaller than 11 px is found", () => {
+		expect(
+			pictureFindings([pictureOf([word("A", 20, 20, { size: 10.5 })])]),
+		).toEqual([
+			{ what: "is drawn smaller than 11 px", where: 'text "A"', by: 0.5 },
+		]);
+	});
+
+	test("with a word the picture writes smaller than 11 px is found only where it is drawn smaller still", () => {
+		const meant = word("A", 20, 20, { written: 8, size: 8 });
+		const shrunk = word("B", 50, 20, { written: 8, size: 7.5 });
+
+		expect(pictureFindings([pictureOf([meant, shrunk])])).toEqual([
+			{ what: "is drawn smaller than 8 px", where: 'text "B"', by: 0.5 },
+		]);
+	});
+
+	test("with a word over another is found", () => {
+		expect(
+			pictureFindings([pictureOf([word("A", 20, 20), word("B", 30, 25)])]),
+		).toEqual([{ what: 'overlaps text "B"', where: 'text "A"', by: 1 }]);
 	});
 });

@@ -1,6 +1,9 @@
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { kinds } from "../design/picture/model";
+import { extremes } from "../design/picture/testing/extremes";
 import { cardWords } from "../widget/dictionaries";
+import { readHandedTask } from "../widget/payload";
 import { type Drawn, drawCard, takeDown } from "../widget/testing/card";
 import { scenesIn } from "./scenes";
 
@@ -87,5 +90,33 @@ describe("the preview's topic chosen with the choice shut", () => {
 		);
 
 		expect(scene?.payload).toMatchObject({ topic_choice: { chosen: topic } });
+	});
+});
+
+// The preview is where the layout of every picture is measured: a kind with no
+// scene of its own would be drawn somewhere no measure reaches.
+describe("the preview's pictures", () => {
+	const scenes = scenesIn("en");
+	const pictureOf = (name: string) =>
+		readHandedTask(scenes.find((scene) => scene.name === name)?.payload)?.task
+			.picture;
+
+	test("show every kind as the content shows the model, in the order of the kinds", () => {
+		const shown = scenes
+			.filter((scene) => scene.name.startsWith("picture: "))
+			.map((scene) => scene.name);
+
+		expect(shown).toEqual(kinds.map((kind) => `picture: ${kind}`));
+		for (const kind of kinds) {
+			expect(pictureOf(`picture: ${kind}`)?.kind).toBe(kind);
+		}
+	});
+
+	test("show every kind at its limits, as the card reads it", () => {
+		for (const extreme of extremes) {
+			expect(pictureOf(`picture at its limits: ${extreme.name}`)).toEqual(
+				extreme.picture,
+			);
+		}
 	});
 });

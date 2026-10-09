@@ -71,8 +71,8 @@ async function draw(payload: object, locale = "ar-EG"): Promise<HTMLElement> {
 }
 
 // markupOf is the markup of the card, or of the part of it named by selector
-// or given, as its snapshot keeps it: the drawings of its icons left out,
-// since they say nothing of the way its words run.
+// or given, as its snapshot keeps it: the drawings of its icons and of its
+// picture left out, since they say nothing of the way its words run.
 function markupOf(
 	root: HTMLElement,
 	selector: string | Element | null = ".mt-widget",
@@ -102,15 +102,15 @@ describe("a card in a language written right to left", () => {
 		expect(root.querySelector(".mt-widget")?.classList).toContain("mt-rtl");
 	});
 
-	test("keeps the task in its own language and direction, and its drawing left to right", async () => {
+	test("keeps the task in its own language and direction, and its picture left to right", async () => {
 		const root = await draw(fenceInArabic);
 
 		const question = root.querySelector(".mt-task-text");
 		expect(question?.getAttribute("lang")).toBe("ar");
 		expect(question?.getAttribute("dir")).toBe("rtl");
-		const drawing = root.querySelector("pre");
-		expect(drawing?.getAttribute("dir")).toBe("ltr");
-		expect(drawing?.textContent).toBe(fenceInArabic.task.drawing.trimEnd());
+		const picture = root.querySelector("svg.mt-picture");
+		expect(picture?.getAttribute("direction")).toBe("ltr");
+		expect(picture?.getAttribute("aria-label")).toBe("أشياء في صف");
 	});
 
 	test("keeps a task in English running left to right", async () => {

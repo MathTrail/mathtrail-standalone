@@ -10,6 +10,10 @@ export default defineConfig({
 	root: import.meta.dirname,
 	publicDir: false,
 	server: {
+		// The address the editor forwards a port of the container from: a
+		// server left to name localhost itself listens on IPv6's alone, which a
+		// forwarded port does not reach.
+		host: "127.0.0.1",
 		port: 5173,
 		strictPort: true,
 		fs: {

@@ -1,6 +1,8 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
 import topics from "../../../content/catalogs/topics.json";
+import { kinds, type Picture } from "../design/picture/model";
+import { extremes } from "../design/picture/testing/extremes";
 import type { CallStage } from "../widget/bridge";
 import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
@@ -21,6 +23,7 @@ import {
 	fenceSolutionInRussian,
 	firstRun,
 	firstRunRefused,
+	type Handed,
 	inTrial,
 	limited,
 	longTexts,
@@ -147,24 +150,12 @@ export function scenesIn(language: string): Scene[] {
 			answers: service(),
 			play: option("B"),
 		},
-		// The same task with its row of posts cut short, as a row the child
-		// counts is drawn, so that the count, which is the answer, cannot be read
-		// off the card before the child answers; and the progress with its
-		// review alone open, a card short enough to take in at once.
+		// The hint opened once the trial series is over; and the progress with
+		// its review alone open, a card short enough to take in at once.
 		{
-			name: "task after the trial series, its row cut short",
-			payload: rowCut(offering),
-		},
-		{
-			name: "hint after the trial series, its row cut short",
-			payload: rowCut(offering),
+			name: "hint after the trial series",
+			payload: offering,
 			play: button(0),
-		},
-		{
-			name: "wrong after the trial series, its row cut short",
-			payload: rowCut(offering),
-			answers: service(),
-			play: option("B"),
 		},
 		{
 			name: "progress, the review open",
@@ -534,7 +525,41 @@ export function scenesIn(language: string): Scene[] {
 			payload: handed,
 			insets: { top: 24, right: 0, bottom: 34, left: 0 },
 		},
+		// Every kind of picture on the card: as the content shows it to the
+		// model, and at the limits of its kind.
+		...examples.map(({ purpose, picture }) => ({
+			name: `picture: ${picture.kind}`,
+			payload: pictured(handed, picture, purpose),
+		})),
+		...extremes.map(({ name, picture }) => ({
+			name: `picture at its limits: ${name}`,
+			payload: pictured(handed, picture, name),
+		})),
 	];
+}
+
+// examples are the example of each kind of picture, as the content shows it
+// to the model, in the order the format lists the kinds.
+const examples = Object.values(
+	import.meta.glob<{ purpose: string; picture: Picture }>(
+		"../../../content/pictures/*.json",
+		{
+			eager: true,
+			import: "default",
+		},
+	),
+).sort(
+	(one, other) =>
+		kinds.indexOf(one.picture.kind) - kinds.indexOf(other.picture.kind),
+);
+
+// pictured is a task handed out with a picture: the fence, its question
+// saying what the picture is, and an id of its own.
+function pictured(handed: Handed, picture: Picture, question: string): Handed {
+	return {
+		...handed,
+		task: { ...handed.task, id: `task_${picture.kind}`, question, picture },
+	};
 }
 
 // option presses the option with letter.
@@ -545,16 +570,6 @@ function option(letter: string) {
 				row.click();
 			}
 		}
-	};
-}
-
-// rowCut is a task with its row of posts drawn cut short, its middle left
-// out, as a task is drawn whose posts the child counts: the count cannot be
-// read off the drawing before the child answers.
-function rowCut(payload: typeof fence): typeof fence {
-	return {
-		...payload,
-		task: { ...payload.task, drawing: "|--3--|--3-- ... --3--|\n" },
 	};
 }
 

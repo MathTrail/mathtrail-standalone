@@ -1706,11 +1706,6 @@ a:hover {
 		0 8px 24px rgb(31 31 31 / 8%);
 }
 
-.s-contrast .s-drawing {
-	padding: 12px 16px;
-	background: var(--s-soft);
-}
-
 .s-contrast figcaption {
 	color: var(--s-muted);
 	font-size: 0.875rem;

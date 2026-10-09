@@ -359,7 +359,12 @@
 		"card": {
 			"topic": "counting.gaps",
 			"grade": 3,
-			"drawing": "|--3--|--3--|--3--|--3--|",
+			"picture": {
+				"kind": "row",
+				"items": [{}, {}, { "skip": true }, {}],
+				"gaps": "3",
+				"span": "12"
+			},
 			"options": { "A": "3", "B": "4", "C": "5", "D": "6", "E": "12" },
 			"choice": "B",
 			"correct": "C",
@@ -456,7 +461,12 @@
 		"card": {
 			"topic": "counting.gaps",
 			"grade": 3,
-			"drawing": "├─────── 12 ───────┤\n├─3─┤",
+			"picture": {
+				"kind": "row",
+				"items": [{}, {}, { "skip": true }, {}],
+				"gaps": "3",
+				"span": "12"
+			},
 			"options": { "A": "3", "B": "4", "C": "5", "D": "36", "E": "12" },
 			"correct": "C",
 			"traps": {

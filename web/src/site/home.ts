@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { type Letter, letters } from "../widget/choices";
 import type { AnswerResult, HandedTask, TopicChoice } from "../widget/payload";
+import { pictureFormat } from "../widget/picture";
 import { sectionAddress } from "./addresses";
 import { frontPage } from "./content";
 import {
@@ -18,8 +19,8 @@ import {
 /**
  * homeFile is the shape of what the home page takes from the site's data, as
  * far as no language changes it. The card of its lesson: the topic and the
- * grade its task is set in, its drawing — numbers and lines, which read alike
- * in every language — its five options and the right one, the catalog's trap
+ * grade its task is set in, its picture — which holds no words, and reads
+ * alike in every language — its five options and the right one, the catalog's trap
  * behind each wrong option, the wrong option the lesson's steps pick, and the
  * rating in the topic before an answer, after a wrong one and after a right
  * one. And the three traps it names as examples of what a wrong option is
@@ -29,7 +30,7 @@ export const homeFile = z.object({
 	card: z.object({
 		topic: z.string(),
 		grade: z.number().int(),
-		drawing: z.string(),
+		picture: pictureFormat,
 		options: z.record(z.string(), z.string()),
 		correct: z.string(),
 		traps: z.record(z.string(), z.string()),
@@ -255,7 +256,7 @@ function factsOf(card: HomeCard): CardFacts {
 	return {
 		topic: card.topic,
 		grade: card.grade,
-		drawing: card.drawing,
+		picture: card.picture,
 		options: card.options,
 		choice: card.choice,
 		correct: card.correct,

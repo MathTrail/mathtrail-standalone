@@ -3889,15 +3889,15 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
         >
           طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟
         </p>
-        <pre
-          aria-label="الرسم"
-          class="mt-diagram"
-          dir="ltr"
+        <svg
+          aria-label="أشياء في صف"
+          class="mt-picture"
+          direction="ltr"
+          height="73.2"
           role="img"
-          tabindex="0"
-        >
-          |--3--|--3--|--3--|--3--|
-        </pre>
+          viewBox="-2 -2 160 73.2"
+          width="160"
+        />
         <fieldset
           class="mt-options"
         >
@@ -4950,15 +4950,15 @@ exports[`the screens in Arabic > the task 1`] = `
         >
           طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟
         </p>
-        <pre
-          aria-label="الرسم"
-          class="mt-diagram"
-          dir="ltr"
+        <svg
+          aria-label="أشياء في صف"
+          class="mt-picture"
+          direction="ltr"
+          height="73.2"
           role="img"
-          tabindex="0"
-        >
-          |--3--|--3--|--3--|--3--|
-        </pre>
+          viewBox="-2 -2 160 73.2"
+          width="160"
+        />
         <fieldset
           class="mt-options"
         >
@@ -5267,15 +5267,15 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
         >
           طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟
         </p>
-        <pre
-          aria-label="الرسم"
-          class="mt-diagram"
-          dir="ltr"
+        <svg
+          aria-label="أشياء في صف"
+          class="mt-picture"
+          direction="ltr"
+          height="73.2"
           role="img"
-          tabindex="0"
-        >
-          |--3--|--3--|--3--|--3--|
-        </pre>
+          viewBox="-2 -2 160 73.2"
+          width="160"
+        />
         <fieldset
           class="mt-options"
         >

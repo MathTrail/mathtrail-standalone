@@ -126,9 +126,10 @@ describe("a task card", () => {
 		expect(text(".mt-bar-action")).toBe("Profile & progress");
 		expect(text(".mt-badge")).toBe("Olympiad coach · Grade 3");
 		expect(text(".mt-task-text")).toBe(fence.task.question);
-		const drawing = root.querySelector("pre.mt-diagram");
-		expect(drawing?.getAttribute("dir")).toBe("ltr");
-		expect(drawing?.textContent).toBe("|--3--|--3--|--3--|--3--|");
+		const picture = root.querySelector("svg.mt-picture");
+		expect(picture?.getAttribute("role")).toBe("img");
+		expect(picture?.getAttribute("aria-label")).toBe("Things in a row");
+		expect(picture?.getAttribute("direction")).toBe("ltr");
 		expect(
 			[...root.querySelectorAll(".mt-option")].map((row) => row.textContent),
 		).toEqual(["A 3", "B 4", "C 5", "D 6", "E 12"]);
@@ -163,11 +164,53 @@ describe("a task card", () => {
 		expect(text(".mt-head .mt-version-number")).toBe("0.2.1");
 	});
 
-	test("draws no drawing for a task that has none", async () => {
-		await drawCard({ ...fence, task: { ...fence.task, drawing: "" } });
+	test("names a month's weekdays in the language the task is written in", async () => {
+		await drawCard({
+			...fence,
+			task: {
+				...fence.task,
+				language: "es",
+				picture: { kind: "calendar", first: 1, days: 30 },
+			},
+		});
 
-		expect(root.querySelector(".mt-diagram")).toBeNull();
+		const header = [...root.querySelectorAll("svg.mt-picture text")]
+			.slice(0, 7)
+			.map((name) => name.textContent);
+		expect(header).toEqual(["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]);
+		expect(
+			root.querySelector("svg.mt-picture")?.getAttribute("aria-label"),
+		).toBe("A month's page");
 	});
+
+	// What a service of another release, or a broken one, may hand out is no
+	// task the card's types describe: it is handed as it would arrive.
+	test.each<[string, Handed]>([
+		["has none", { ...fence, task: { ...fence.task, picture: undefined } }],
+		[
+			"was written for a card of before pictures, as a text drawing",
+			{
+				...fence,
+				task: { ...fence.task, picture: undefined, drawing: "|--3--|--3--|" },
+			} as unknown as Handed,
+		],
+		[
+			"the card cannot draw",
+			{
+				...fence,
+				task: { ...fence.task, picture: { kind: "pie" } },
+			} as unknown as Handed,
+		],
+	])(
+		"draws no picture for a task that %s, and shows the task",
+		async (_, handed) => {
+			await drawCard(handed);
+
+			expect(root.querySelector(".mt-picture")).toBeNull();
+			expect(root.querySelector("pre")).toBeNull();
+			expect(text(".mt-task-text")).toBe(fence.task.question);
+		},
+	);
 
 	test("has no button that opens nothing", async () => {
 		await drawCard();
@@ -184,7 +227,6 @@ describe("a task card", () => {
 				task: {
 					...fence.task,
 					question: trick,
-					drawing: trick,
 					hint: trick,
 					options: { ...fence.task.options, A: trick },
 				},

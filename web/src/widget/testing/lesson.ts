@@ -1,4 +1,5 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
+import type { Picture } from "../../design/picture/model";
 import type { AnswerResult, HandedTask, TopicChoice } from "../payload";
 
 /**
@@ -11,6 +12,18 @@ export type Handed = HandedTask & {
 	status?: "stale";
 	code?: "stale_request";
 };
+
+/**
+ * fenceRow is the fence's picture: its length and one gap between posts, the
+ * row cut short in its middle, as a row is drawn whose posts the child counts,
+ * so that the count, which is the answer, cannot be read off it.
+ */
+export const fenceRow = {
+	kind: "row",
+	items: [{}, {}, { skip: true }, {}],
+	gaps: "3",
+	span: "12",
+} satisfies Picture;
 
 /**
  * fence is the task of the approved design — posts along a fence — as the
@@ -27,7 +40,7 @@ export const fence: Handed = {
 		language: "en",
 		question:
 			"A fence is 12 meters long. Posts stand every 3 meters, including both ends. How many posts are there?",
-		drawing: "|--3--|--3--|--3--|--3--|\n",
+		picture: fenceRow,
 		options: { A: "3", B: "4", C: "5", D: "6", E: "12" },
 		hint: "Try a smaller fence first: 6 meters long, with a post every 3 meters. Draw it and count the posts.",
 	},
@@ -86,7 +99,7 @@ export const fenceSolutionInRussian =
 
 /**
  * fenceInArabic is the same task in Arabic, a language written right to
- * left: its words run that way, its drawing does not.
+ * left: its words run that way, its picture does not.
  */
 export const fenceInArabic: Handed = {
 	...fence,
@@ -700,9 +713,9 @@ export const editGone = toolResult({
 
 /**
  * longTexts is a task at every limit a card has to fit at its narrowest: a
- * pseudonym as long as a profile allows, a drawing as wide and as tall as the
- * checks allow, a number of fourteen digits and an option of two hundred
- * characters, and a word with no place to break.
+ * pseudonym as long as a profile allows, a number of fourteen digits and an
+ * option of two hundred characters, and a word with no place to break. It has
+ * no picture: the pictures at their limits are scenes of their own.
  */
 export const longTexts: Handed = {
 	...fence,
@@ -715,9 +728,7 @@ export const longTexts: Handed = {
 		...fence.task,
 		id: "task_long",
 		question: `Supercalifragilisticexpialidociousandthensomemore ${"and a long question that goes on ".repeat(8)}— how many?`,
-		drawing: Array.from({ length: 12 }, (_, row) =>
-			row % 2 === 0 ? `+${"-".repeat(28)}+` : `|${` ${row}`.padEnd(28)}|`,
-		).join("\n"),
+		picture: undefined,
 		options: {
 			A: "12345678901234",
 			B: "An answer of many words. ".repeat(8).trim(),

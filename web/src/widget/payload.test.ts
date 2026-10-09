@@ -19,6 +19,7 @@ import {
 	exhausted,
 	failure,
 	fence,
+	fenceRow,
 	firstRun,
 	firstRunRefused,
 	inTrial,
@@ -83,6 +84,33 @@ describe("a task handed to the card", () => {
 		});
 
 		expect(read?.topic_choice).toEqual({ chosen: null, recommended: [] });
+	});
+
+	test("is read with its picture", () => {
+		expect(readHandedTask(fence)?.task.picture).toEqual(fenceRow);
+	});
+
+	test.each([
+		["no picture", { ...fence.task, picture: undefined }],
+		["a picture written as null", { ...fence.task, picture: null }],
+		[
+			"a picture of a kind the card does not know",
+			{ ...fence.task, picture: { kind: "pie" } },
+		],
+		[
+			"a picture past its kind's limits",
+			{ ...fence.task, picture: { kind: "ring", count: 99 } },
+		],
+		[
+			"a text drawing a card of before pictures drew, and no picture",
+			{ ...fence.task, picture: undefined, drawing: "|--3--|--3--|" },
+		],
+	])("is read with no picture, and its words, from %s", (_, task) => {
+		const read = readHandedTask({ ...fence, task });
+
+		expect(read?.task.question).toBe(fence.task.question);
+		expect(read?.task.picture).toBeUndefined();
+		expect(read?.task).not.toHaveProperty("drawing");
 	});
 
 	test("is read when it is handed out again to the card it is on", () => {

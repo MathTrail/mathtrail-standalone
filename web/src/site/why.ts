@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { pictureFormat } from "../widget/picture";
 import {
 	type CardCatalog,
 	type CardWords,
@@ -46,7 +47,7 @@ export const whyFile = z.object({
 	card: z.object({
 		topic: z.string(),
 		grade: z.number().int(),
-		drawing: z.string(),
+		picture: pictureFormat,
 		options: z.record(z.string(), z.string()),
 		choice: z.string(),
 		correct: z.string(),

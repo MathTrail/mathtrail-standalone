@@ -1,6 +1,7 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import * as z from "zod";
 import { dontKnow, letters } from "./choices";
+import { pictureFormat } from "./picture";
 
 const letter = z.enum(letters);
 
@@ -60,7 +61,12 @@ const handedTask = z.object({
 		topic: z.string(),
 		language: z.string(),
 		question: z.string(),
-		drawing: z.string(),
+		// The task's picture, which the card draws; a task without one, a
+		// card of a release before pictures, and a picture the card cannot
+		// draw all read as none, and the task stands on its words. The empty
+		// text drawing the service still sends for those earlier cards is
+		// read past.
+		picture: pictureFormat.optional().catch(undefined),
 		options: z.object({
 			A: z.string(),
 			B: z.string(),

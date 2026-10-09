@@ -338,9 +338,9 @@ describe("the home page", () => {
 			"E default",
 		]);
 		expect(hero.querySelector(".mt-note-hint")).toBeNull();
-		expect(hero.querySelector(".mt-diagram")?.textContent).toBe(
-			file.home.card.drawing,
-		);
+		expect(
+			hero.querySelector("svg.mt-picture")?.getAttribute("aria-label"),
+		).toBe("Things in a row");
 	});
 
 	test("holds the chat of its first screen in a phone, all but the chat a drawing a screen reader skips, in the track the demo holds it in", () => {

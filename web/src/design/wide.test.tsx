@@ -49,10 +49,19 @@ beforeEach(() => {
 afterEach(() => {
 	act(() => render(null, root));
 	vi.unstubAllGlobals();
+	vi.restoreAllMocks();
 });
 
 const wideness = () =>
 	root.querySelector("[data-wide]")?.getAttribute("data-wide");
+
+// scrollbar is a scrollbar as wide as given down the side of the test page,
+// which lays nothing out: the page's own width less the scrollbar's.
+function scrollbar(width: number) {
+	vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(
+		window.innerWidth - width,
+	);
+}
 
 describe("a card", () => {
 	test("is narrow until it is measured", () => {
@@ -75,11 +84,43 @@ describe("a card", () => {
 	test("is wide from the width the tokens give, and narrow below it", () => {
 		act(() => render(<Card />, root));
 
-		Observed.last?.resize(640);
-		expect(wideness()).toBe("true");
 		Observed.last?.resize(639);
 		expect(wideness()).toBe("false");
+		Observed.last?.resize(640);
+		expect(wideness()).toBe("true");
 		Observed.last?.resize(736);
+		expect(wideness()).toBe("true");
+	});
+
+	test("once wide, stays wide while its page's scrollbar takes some of its width", () => {
+		act(() => render(<Card />, root));
+		Observed.last?.resize(640);
+
+		scrollbar(17);
+		Observed.last?.resize(640 - 17);
+		expect(wideness()).toBe("true");
+		Observed.last?.resize(640 - 18);
+		expect(wideness()).toBe("true");
+		Observed.last?.resize(640 - 19);
+		expect(wideness()).toBe("false");
+	});
+
+	test("once wide, goes narrow when its frame narrows", () => {
+		act(() => render(<Card />, root));
+		Observed.last?.resize(640);
+
+		scrollbar(0);
+		Observed.last?.resize(638);
+		expect(wideness()).toBe("false");
+	});
+
+	test("narrow, is not made wide by its page's scrollbar", () => {
+		act(() => render(<Card />, root));
+
+		scrollbar(17);
+		Observed.last?.resize(640 - 17);
+		expect(wideness()).toBe("false");
+		Observed.last?.resize(640);
 		expect(wideness()).toBe("true");
 	});
 
