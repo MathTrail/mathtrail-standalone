@@ -1,8 +1,9 @@
 # The page of the topic of knights and liars, for a parent. The topic's name,
 # its group, its grades and its traps' names are not here: they are the card's
-# words and the catalog's numbers. Each example's level, and the answer its
-# solver proves, are the site's data; an example here is worked through to that
-# answer. The traps are the topic's commonest, counted in its reference tasks.
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
 
 title: Knights and liars
 description: What knights-and-liars problems are, how they are solved, where children go wrong, and how to help at home.
@@ -16,10 +17,12 @@ hero:
   method: "“Suppose this one is a knight…”"
   teaches: To reason step by step, and to check yourself
   # Two islanders who call each other liars: one is a knight, the other a liar.
-  drawing: |2
-           A                B
-      “B is a liar”    “A is a liar”
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # The drawing is the site's own, and these are their names and what each says.
+  drawing:
+    first: A
+    first-says: “B is a liar”
+    second: B
+    second-says: “A is a liar”
 
 basis:
   title: The island's rules
@@ -119,13 +122,11 @@ examples:
     question: >-
       Ten islanders sit at a round table. Each of them says: “My neighbour on
       the right is a liar.” How many knights are at the table?
-    # The table drawn with its answer, knights and liars taking turns.
-    drawing: |2
-           K   L
-        L         K
-       K           L
-        L         K
-           K   L
+    # The table drawn with its answer, knights and liars taking turns. The
+    # drawing is the site's own, in the letters the third step writes.
+    drawing:
+      knight: K
+      liar: L
     steps:
       - >-
         If an islander is a knight, the words are true: the neighbour on the

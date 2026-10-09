@@ -1,9 +1,9 @@
-# The page of the topic of ordering, for a parent, in Russian. The topic's
-# name, its group, its grades and its traps' names are not here: they are the
-# card's words and the catalog's numbers. Each example's level, and the answer
-# its solver proves, are the site's data; an example here is worked through to
-# that answer. The traps are the topic's commonest, counted in its reference
-# tasks.
+# The page of the topic of ordering, for a parent, in Russian. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
 
 title: Упорядочивание
 description: Что такое задачи на упорядочивание, как их решают, где ошибаются дети и как помочь дома.
@@ -16,10 +16,8 @@ hero:
     которой каждая подсказка — звено и пропустить нельзя ни одну.
   method: Нарисовать линию и расставить всех на ней
   teaches: Складывать подсказки в одну картину и читать сравнение в обе стороны
-  # A line from the tallest to the shortest, as the solutions draw it.
-  drawing: |2
-       выше всех ...... ниже всех
-       Аня > Боря > Вика > Дима
+  # Its drawing is the site's data: four bars from the tallest to the shortest,
+  # as the solutions line them up.
 
 basis:
   title: Правила линии

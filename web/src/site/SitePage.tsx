@@ -22,9 +22,9 @@ export type PageFrame = {
 /**
  * SitePage is a whole page of the site: its head, the header, the page's own
  * part as the main one, and the footer. A document and a page a component
- * draws are set in the same frame; a page that draws a card of the widget
- * says so, and loads the card's stylesheet, and a page may carry rules of
- * style of its own in its head.
+ * draws are set in the same frame; a page that draws a card of the widget, or
+ * a picture as a card draws one, says so, and loads the card's stylesheet, and
+ * a page may carry rules of style of its own in its head.
  */
 export function SitePage({
 	head,

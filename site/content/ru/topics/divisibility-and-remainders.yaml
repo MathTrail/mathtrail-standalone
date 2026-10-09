@@ -1,9 +1,9 @@
 # The page of the topic of divisibility and remainders, for a parent, in
 # Russian. The topic's name, its group, its grades and its traps' names are not
-# here: they are the card's words and the catalog's numbers. Each example's
-# level, and the answer its solver proves, are the site's data; an example here
-# is worked through to that answer. The traps are the topic's commonest,
-# counted in its reference tasks.
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
 
 title: Делимость и остатки
 description: Что такое задачи на делимость и остатки, как их решают, где ошибаются дети и как помочь дома.
@@ -17,10 +17,8 @@ hero:
     деления.
   method: Записать число как полные группы и остаток
   teaches: Понимать остаток в словах задачи и проверять делимость, не деля
-  # Fourteen counted out in threes: four full groups and two left over.
-  drawing: |2
-    ●●● ●●● ●●● ●●● ●●
-    14 = 4 × 3 + 2
+  # Its drawing is the site's data: fourteen counted out in threes: four full
+  # groups and two left over.
 
 basis:
   title: Правила деления
@@ -85,9 +83,8 @@ examples:
     question: >-
       На экскурсию едут 150 учеников, в каждом автобусе 40 мест. Сколько нужно
       автобусов?
-    # Four buses: three full, and one with the 30 pupils left over.
-    drawing: |2
-      [40] [40] [40] [30]
+    # Its drawing is the site's data: four buses, three full, and one with the
+    # 30 pupils left over.
     steps:
       - "Отсчитаем учеников по 40: 150 = 3 × 40 + 30. Три автобуса полные, и остаются 30 учеников."
       - Этим 30 ученикам тоже нужен автобус, хоть он и не будет полным.
@@ -119,11 +116,8 @@ examples:
     question: >-
       Перемножили сто двоек: 2 × 2 × 2 × … × 2. Какой цифрой оканчивается
       результат?
-    # How many twos are multiplied, above, and the last digit of the answer,
-    # below.
-    drawing: |2
-      1 2 3 4   5 6 7 8
-      2 4 8 6   2 4 8 6
+    # Its drawing is the site's data: how many twos are multiplied, above, and
+    # the last digit of the product, below.
     steps:
       - >-
         Посмотрим на последнюю цифру, умножая двойки одну за другой: 2, 4, 8,

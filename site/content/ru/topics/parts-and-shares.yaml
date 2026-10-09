@@ -1,9 +1,9 @@
 # The page of the topic of parts and shares, for a parent, in Russian. The
 # topic's name, its group, its grades and its traps' names are not here: they
-# are the card's words and the catalog's numbers. Each example's level, and the
-# answer its solver proves, are the site's data; an example here is worked
-# through to that answer. The traps are the topic's commonest, counted in its
-# reference tasks.
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Части и доли
 description: Что такое задачи на части и доли, как их решают, где ошибаются дети и как помочь дома.
@@ -16,10 +16,8 @@ hero:
     бумаги, разрезанная на равные части, объясняет это лучше любого правила.
   method: Нарисовать целое полоской и разрезать на равные части
   teaches: Спрашивать «часть чего?» и находить целое по его части
-  # Twelve in four equal groups: three of the groups are three quarters.
-  drawing: |2
-    ●●● ●●● ●●● ○○○
-    3/4 от 12 = 9
+  # Its drawing is the site's data: twelve as a strip of four equal parts, three
+  # of which, three quarters, are 9.
 
 basis:
   title: Правила долей
@@ -100,10 +98,8 @@ examples:
     question: >-
       В понедельник Тёма прочитал 2/7 книги, во вторник — 3/7. Осталось 40
       страниц. Сколько страниц в книге?
-    # The book in sevenths: five read, and the two left are 40 pages.
-    drawing: |2
-      ■ ■ ■ ■ ■ □ □
-                40 страниц
+    # Its drawing is the site's data: the book in sevenths, five read, and the
+    # two left the 40 pages.
     steps:
       - За два дня Тёма прочитал 2/7 + 3/7 = 5/7 книги, значит, осталось 2/7.
       - "Эти 2/7 — 40 страниц: одна седьмая — это 40 : 2 = 20 страниц."
@@ -120,9 +116,8 @@ examples:
       и ещё пол-яйца. Второй — половину оставшихся и ещё пол-яйца, третий — так
       же. После этого все яйца проданы, и ни одно не разбили. Сколько яиц было
       у бабушки?
-    # The eggs Granny has before each buyer, and after the last.
-    drawing: |2
-      7 → 3 → 1 → 0
+    # Its drawing is the site's data: the eggs Granny has before each buyer, and
+    # after the last.
     steps:
       - >-
         Пойдём с конца. Третий покупатель взял половину яиц и ещё пол-яйца, и

@@ -46,68 +46,48 @@ groups:
   parts: "A whole cut into parts: shares, percentages and ratios."
   games: Find the plan that works whatever the other player or the scales do.
 
-# Every topic of the catalog, by its slug: a line for the parent, and a
-# drawing that is the site's own illustration, never a reference task's.
+# Every topic of the catalog, by its slug: a line for the parent. Its card's
+# drawing is the site's data, the site's own illustration and never a reference
+# task's; the words of a drawing of the site's own are here.
 topics:
   ordering:
     phrase: "Who is taller, older, faster: line everyone up from a few clues."
-    drawing: Ann > Ben > Kate
   knights-and-liars:
     phrase: Some always tell the truth, the others always lie. Work out who is who from what they say.
-    drawing: |
-      A: "I am a knight"
-      B: "A is lying"
+    # The drawing on its card is the site's own: two islanders, and what each
+    # says.
+    drawing:
+      first: A
+      first-says: “I am a knight”
+      second: B
+      second-says: “A is lying”
   enumeration:
     phrase: List every case in order, so that none is lost and none counted twice.
-    drawing: 12 13 21 23 31 32
   gaps-and-boundaries:
     phrase: "Posts and spans, floors and stairs: when to add one, and when not to."
-    drawing: "|--3--|--3--|--3--|"
   clocks:
     phrase: "How much time has passed, and what the time will be: the hands, the dial, going past noon."
-    drawing: 11:50 + 20 min = 12:10
   calendar-and-age:
     phrase: Days of the week, months and ages. A gap in age never changes, and the week comes round again.
-    drawing: |
-      Mum 30   Ann 6
-      +5 yrs   +5 yrs
   pigeonhole-principle:
     phrase: With more pigeons than holes, some hole is bound to hold two.
-    drawing: "[● ●] [●] [●]"
   parity-and-alternation:
     phrase: "Even and odd, every other one: what can be known without counting it all."
-    drawing: ● ○ ● ○ ● ○
   arithmetic-with-a-trick:
     phrase: "Count cleverly: reorder, group, and spot the easy way before working it out."
-    drawing: 25 × 7 × 4 = 7 × 100
   weighing-and-pouring:
     phrase: Find the fake coin in the fewest weighings, or measure out water with jugs that have no marks.
-    drawing: |
-      [● ● ●] = [● ● ●]
-      5 l · 3 l → 4 l
   parts-and-shares:
     phrase: "A half, a third, a quarter: a part of the whole, and the whole from its part."
-    drawing: ■ ■ ■ □ = 3/4
   percentages:
     phrase: How much that is in percent, and of what. A percent is one hundredth.
-    drawing: 10% of 50 = 5
   ratios-and-sharing:
     phrase: Share in the ratio 2 to 3, and find how much one part is.
-    drawing: "□ □ : □ □ □"
   figures-on-a-grid:
     phrase: Area and perimeter by the squares. Cut, fit together, and count without missing one.
-    drawing: |
-      +---+---+---+
-      |   |   |   |
-      +---+---+---+
   divisibility-and-remainders:
     phrase: Whether a number divides evenly, and what is left over when it does not.
-    drawing: 17 = 5 · 3 + 2
   overlapping-groups:
     phrase: Some children go to two clubs at once. How not to count them twice.
-    drawing: ( A ( 3 ) B )
   winning-strategy:
     phrase: Who takes the last match? Look for the positions that win whatever the other player does.
-    drawing: |
-      ||||| ||||| |||||
-      take 1 to 3

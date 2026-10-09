@@ -2,9 +2,11 @@ import { cardWords } from "../widget/dictionaries";
 import type { Section } from "../widget/folds";
 import { listed, topicName } from "../widget/names";
 import { progressOf, type SiteData } from "./data";
+import type { Drawing } from "./drawings";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { StaticProgress } from "./StaticCard";
+import { TopicDrawing } from "./TopicDrawings";
 import { TopicFoot } from "./TopicFoot";
 import { TopicMap } from "./TopicMap";
 import { lightRules, mapOf } from "./topicmap";
@@ -79,6 +81,7 @@ export function TopicsPage({ page, data }: PageProps) {
 												key={id}
 												page={page}
 												topic={topic}
+												drawing={cardDrawingOf(data, topic)}
 												name={name(topic)}
 												names={names}
 											/>,
@@ -100,39 +103,56 @@ export function topicsStyle(data: SiteData): string {
 	return lightRules(data.topics, mapOf(data.topics));
 }
 
+// cardDrawingOf is the drawing a topic's card shows: every topic's card has
+// one, or the page does not build.
+function cardDrawingOf(data: SiteData, topic: Topic): Drawing {
+	const drawings = data.drawings.get(topic.id);
+	if (drawings === undefined) {
+		throw new Error(`site/data.json gives the card of ${topic.id} no drawing`);
+	}
+	return drawings.card;
+}
+
 // TopicCard is a topic as the page of the topics shows it, under the anchor of
 // its slug, which the map leads to.
 function TopicCard({
 	page,
 	topic,
+	drawing,
 	name,
 	names,
 }: {
 	page: PageReader;
 	topic: Topic;
+	drawing: Drawing;
 	name: string;
 	names: (ids: readonly string[]) => string;
 }) {
 	const words = useSiteWords();
 	const key = `topics.${topic.slug}`;
 	return (
-		<article id={topic.slug} class="s-topic">
-			<pre class="s-topic-drawing" dir="ltr">
-				{page.plain(`${key}.drawing`)}
-			</pre>
-			<h3>{name}</h3>
-			<p class="s-topic-phrase">{page.text(`${key}.phrase`)}</p>
-			{topic.bases.length > 0 && (
-				<p class="s-topic-links">
-					{words.text("topics.builds_on", { topics: names(topic.bases) })}
-				</p>
-			)}
-			{topic.opens.length > 0 && (
-				<p class="s-topic-links">
-					{words.text("topics.opens", { topics: names(topic.opens) })}
-				</p>
-			)}
-			<TopicFoot topic={topic} />
+		<article id={topic.slug} class="s-topic s-topic-card">
+			<TopicDrawing
+				drawing={drawing}
+				page={page}
+				at={`${key}.drawing`}
+				where={`the card of ${topic.id}`}
+			/>
+			<div class="s-topic-body">
+				<h3>{name}</h3>
+				<p class="s-topic-phrase">{page.text(`${key}.phrase`)}</p>
+				{topic.bases.length > 0 && (
+					<p class="s-topic-links">
+						{words.text("topics.builds_on", { topics: names(topic.bases) })}
+					</p>
+				)}
+				{topic.opens.length > 0 && (
+					<p class="s-topic-links">
+						{words.text("topics.opens", { topics: names(topic.opens) })}
+					</p>
+				)}
+				<TopicFoot topic={topic} />
+			</div>
 		</article>
 	);
 }

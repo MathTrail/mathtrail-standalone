@@ -1,9 +1,9 @@
 # The page of the topic of arithmetic with a trick, for a parent. The topic's
 # name, its group, its grades and its traps' names are not here: they are the
-# card's words and the catalog's numbers. Each example's level, and the answer
-# its solver proves, are the site's data; an example here is worked through to
-# that answer. The traps are the topic's commonest, counted in its reference
-# tasks.
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
 
 title: Arithmetic with a trick
 description: What problems about clever counting and “I thought of a number” are, how they are solved, where children go wrong, and how to help at home.
@@ -17,10 +17,7 @@ hero:
     to look before counting.
   method: Look for the easy order before counting
   teaches: To regroup a sum or a product, and to undo a chain of steps from the end
-  # The sum regrouped into two easy hundreds.
-  drawing: |2
-    (19 + 81) + (23 + 77)
-       100    +    100
+  # Its drawing is the site's data: the sum regrouped into two easy hundreds.
 
 basis:
   title: The rules of clever counting

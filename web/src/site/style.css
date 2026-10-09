@@ -38,7 +38,7 @@
 
 /* The arrows the site's words draw, ← and →, which Onest keeps in its subset
    of symbols: only they are taken from it, so no other character the site
-   shows changes its face, the boxes of a task's drawing among them. */
+   shows changes its face. */
 @font-face {
 	font-family: "Onest";
 	font-style: normal;
@@ -675,8 +675,9 @@ a:hover {
 }
 
 .s-panel {
+	--s-panel-pad: clamp(16px, 3vw, 32px);
 	margin: 0;
-	padding: clamp(16px, 3vw, 32px);
+	padding: var(--s-panel-pad);
 	border-radius: 36px;
 	background: var(--s-tint);
 }
@@ -957,20 +958,20 @@ a:hover {
 	background: var(--s-tint);
 }
 
-.s-topic-drawing {
+/* On the page of the topics a card's drawing and its words are two rows that
+   the cards beside it share, so that their names stand level under drawings
+   of any height. */
+.s-topic-card {
+	display: grid;
+	grid-row: span 2;
+	grid-template-rows: subgrid;
+	row-gap: var(--space-16);
+}
+
+.s-topic-body {
 	display: flex;
-	align-items: center;
-	min-block-size: 84px;
-	margin: 0 0 var(--space-8);
-	padding: 16px 18px;
-	overflow: hidden;
-	border-radius: 18px;
-	background: var(--s-page);
-	color: var(--s-muted);
-	font-family: var(--font-mono);
-	font-size: 0.875rem;
-	line-height: 1.57;
-	white-space: pre;
+	flex-direction: column;
+	gap: var(--space-8);
 }
 
 .s-topic h3 {
@@ -1173,24 +1174,6 @@ a:hover {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-
-.s-drawing {
-	max-inline-size: 100%;
-	margin: 0;
-	padding: 24px 28px;
-	overflow-x: auto;
-	border-radius: 24px;
-	background: var(--s-page);
-	color: var(--s-text);
-	font-family: var(--font-mono);
-	font-size: 0.9375rem;
-	line-height: 1.6;
-	white-space: pre;
-}
-
-.s-subject-panel .s-drawing {
-	font-size: clamp(0.75rem, 0.55rem + 0.9vw, 1.125rem);
 }
 
 .s-contents {
@@ -1409,11 +1392,12 @@ a:hover {
 }
 
 .s-example {
+	--s-example-pad: clamp(20px, 4vw, 48px);
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-16);
 	margin-block-start: 48px;
-	padding: clamp(20px, 4vw, 48px);
+	padding: var(--s-example-pad);
 	border-radius: 36px;
 	background: var(--s-tint);
 }
@@ -1465,12 +1449,6 @@ a:hover {
 .s-step {
 	display: flex;
 	gap: 14px;
-}
-
-.s-example-work .s-drawing {
-	justify-self: center;
-	align-self: center;
-	font-size: 1.125rem;
 }
 
 .s-example-answer {
@@ -1643,17 +1621,6 @@ a:hover {
 	.s-tile,
 	.s-trap {
 		padding: var(--space-24);
-	}
-
-	.s-drawing {
-		padding: 16px;
-	}
-
-	/* On a phone an example's drawing is a size smaller: a line of twenty-odd
-	   characters then fits its panel on a screen 320 px wide, rather than
-	   scrolling inside it. */
-	.s-example-work .s-drawing {
-		font-size: 0.9375rem;
 	}
 
 	.s-ask-wrap {
@@ -2233,9 +2200,10 @@ a:hover {
 	flex: none;
 	align-items: center;
 	justify-content: center;
-	inline-size: 34px;
+	min-inline-size: 34px;
 	block-size: 34px;
-	border-radius: 50%;
+	padding-inline: 6px;
+	border-radius: 17px;
 	background: var(--s-accent-tint);
 	color: var(--s-on-tint);
 	font-weight: 600;
@@ -2700,6 +2668,228 @@ a:hover {
 	border-color: var(--s-outline);
 	background: var(--s-outline);
 	color: var(--s-page);
+}
+
+/* A topic's picture, drawn as a card of the widget draws one, on a white box
+   of its own; a drawing of the site's own stands on the same box as a
+   technique's. On a topic's page a picture is drawn at its own size, no wider
+   than 286 px: beside the words of a wide screen it has 344 px at the least,
+   and on a phone it reaches across the padding of the panel or the example it
+   stands in, so that a screen 320 px wide gives it 288. On a card it spans the
+   card with no room taken at its sides: on the narrowest card of four in a
+   row, 270 px less the card's padding, it has 230 px and shrinks to them,
+   which takes no label of the site's pictures below 11 px. These widths are
+   held in TopicDrawings.test.tsx. A card's drawing is never lower than most
+   of them stand, and as tall as the tallest in its row. */
+.s-picture {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--space-16);
+	border-radius: 24px;
+	background: var(--s-page);
+}
+
+.s-topic > .s-picture,
+.s-topic > .s-art {
+	justify-content: center;
+	min-block-size: 140px;
+	border-radius: 18px;
+}
+
+.s-topic > .s-picture {
+	padding-inline: 0;
+}
+
+.s-example-work > .s-picture,
+.s-example-work > .s-art {
+	justify-self: center;
+	align-self: center;
+}
+
+@media (max-width: 479px) {
+	.s-subject-panel > .s-picture {
+		margin-inline: calc(-1 * var(--s-panel-pad));
+		padding-inline: 0;
+	}
+
+	.s-example-work > .s-picture {
+		margin-inline: calc(-1 * var(--s-example-pad));
+		padding-inline: 0;
+	}
+}
+
+/* The drawings of the topics that are the site's own. Islanders, each beside
+   what they say. */
+.s-speech {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+}
+
+.s-speech-line {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+}
+
+.s-speech-says {
+	padding: 6px 12px;
+	border-radius: 14px;
+	border-start-start-radius: 4px;
+	background: var(--s-tint);
+}
+
+/* A sum or a product, the numbers that make a hundred marked, and a pair of
+   terms over the hundred it makes. */
+.s-sum {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	margin: 0;
+}
+
+.s-sum-break {
+	flex-basis: 100%;
+}
+
+.s-sum-pair {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: var(--space-8) 10px;
+	border: 1px dashed var(--s-line-strong);
+	border-radius: 8px;
+}
+
+/* Places round a circle, the first at the top: each turned by its share of a
+   full turn and moved out from the middle by the ring's reach. */
+.s-ring {
+	--ring: 200px;
+	--reach: 78px;
+	position: relative;
+	inline-size: var(--ring);
+	block-size: var(--ring);
+	margin-inline: auto;
+}
+
+.s-ring::before {
+	position: absolute;
+	border-radius: 50%;
+	content: "";
+}
+
+.s-ring-place {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-start: 50%;
+	transform: translate(-50%, -50%) rotate(var(--turn))
+		translateY(calc(-1 * var(--reach)));
+}
+
+/* The round table in the middle, and the seats round it, each turned back
+   upright. */
+.s-round-table::before {
+	inset: 50px;
+	background: var(--s-tint);
+}
+
+.s-round-table .s-art-dot {
+	transform: rotate(calc(-1 * var(--turn)));
+}
+
+/* The daisy's heart in the middle, and a petal pointing out from every
+   place, a torn one the outline of where it grew. */
+.s-daisy {
+	--ring: 164px;
+	--reach: 50px;
+}
+
+.s-daisy::before {
+	inset: 56px;
+	background: var(--s-wip-dot);
+}
+
+.s-petal {
+	display: block;
+	inline-size: 16px;
+	block-size: 40px;
+	border: 2px solid var(--s-accent);
+	border-radius: 50%;
+	background: var(--s-page);
+}
+
+.s-petal-torn {
+	border-style: dashed;
+	border-color: var(--s-line-strong);
+}
+
+/* Flags of two stripes, the top one above the bottom one. */
+.s-flag-pair {
+	display: inline-flex;
+	flex-direction: column;
+	inline-size: 30px;
+	overflow: hidden;
+	border-radius: 3px;
+	outline: 1px solid var(--s-line-strong);
+}
+
+.s-flag-stripe {
+	block-size: 11px;
+}
+
+/* A strip cut in two, every way, the two pieces in two shades. */
+.s-cuts {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--space-12);
+}
+
+.s-cut {
+	display: grid;
+	grid-template-columns: repeat(4, 14px);
+	grid-auto-rows: 14px;
+	gap: 2px;
+}
+
+.s-cut-cell {
+	border-radius: 2px;
+	background: var(--s-accent-tint);
+}
+
+.s-cut-first {
+	background: var(--s-accent);
+}
+
+/* A cube of wire: its edges, those behind the front dashed, and its corners,
+   black or white. */
+.s-cube {
+	display: block;
+	margin-inline: auto;
+}
+
+.s-cube-edge {
+	stroke: var(--s-muted);
+	stroke-width: 2;
+}
+
+.s-cube-behind {
+	stroke-dasharray: 4 4;
+}
+
+.s-cube-corner {
+	fill: var(--s-page);
+	stroke: var(--s-text);
+	stroke-width: 2;
+}
+
+.s-cube-dark {
+	fill: var(--s-text);
 }
 
 /* The hint: what a problem says, beside the techniques it suggests, in two

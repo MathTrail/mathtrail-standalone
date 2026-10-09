@@ -1,9 +1,9 @@
 # The page of the topic of gaps and boundaries, for a parent, in Russian. The
 # topic's name, its group, its grades and its traps' names are not here: they
-# are the card's words and the catalog's numbers. Each example's level, and the
-# answer its solver proves, are the site's data; an example here is worked
-# through to that answer. The traps are the topic's commonest, counted in its
-# reference tasks.
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Промежутки и границы
 description: Что такое задачи на промежутки и границы, как их решают, где ошибаются дети и как помочь дома.
@@ -17,12 +17,8 @@ hero:
     их быстрый рисунок маленького случая.
   method: Нарисовать маленький случай и посчитать на нём
   teaches: Отличать предметы от промежутков между ними и проверять правило на рисунке
-  # Four posts in a row, numbered above, and the three gaps between them,
-  # numbered below.
-  drawing: |2
-    1     2     3     4
-    |-----|-----|-----|
-       1     2     3
+  # Its drawing is the site's data: four posts in a row, numbered, and the three
+  # gaps between them.
 
 basis:
   title: Правила промежутков
@@ -91,11 +87,8 @@ examples:
       На автобусном маршруте 6 остановок. От каждой остановки до следующей
       автобус едет 3 минуты. Сколько минут он едет от первой остановки до
       последней?
-    # Six stops, and the five gaps between them, 3 minutes each.
-    drawing: |2
-      1   2   3   4   5   6
-      ●---●---●---●---●---●
-        3   3   3   3   3
+    # Its drawing is the site's data: six stops, and the five gaps between them,
+    # 3 minutes each.
     steps:
       - Нарисуем 6 остановок точками. Автобус едет по промежуткам между ними.
       - Между 6 остановками 5 промежутков, на один меньше, чем остановок.

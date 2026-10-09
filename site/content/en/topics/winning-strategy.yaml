@@ -1,9 +1,9 @@
 # The page of the topic of games with a winning strategy, for a parent. The
 # topic's name, its group, its grades and its traps' names are not here: they
-# are the card's words and the catalog's numbers. Each example's level, and the
-# answer its solver proves, are the site's data; an example here is worked
-# through to that answer. The traps are the topic's commonest, counted in its
-# reference tasks.
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Games with a winning strategy
 description: What problems about games and winning strategies are, how they are solved, where children go wrong, and how to help at home.
@@ -17,11 +17,8 @@ hero:
     which positions lose for the player who has to move from them.
   method: Work back from the end and find the losing positions
   teaches: To find a plan that wins whatever the other player does
-  # Piles of 0 to 8 matches when a move takes 1, 2 or 3: those marked lose
-  # for the player about to move.
-  drawing: |2
-    matches  0 1 2 3 4 5 6 7 8
-    loses    ●       ●       ●
+  # Its drawing is the site's data: piles of 0 to 8 matches when a move takes 1,
+  # 2 or 3: those marked lose for the player about to move.
 
 basis:
   title: The rules of games
@@ -115,14 +112,8 @@ examples:
       take turns to move it one square up, one square right, or one square
       diagonally up and to the right. Whoever moves the king into the top right
       corner wins. Who wins if both play as well as they can?
-    # The squares that lose for the player about to move, from the king's
-    # start at the bottom left to the corner at the top right.
-    drawing: |2
-      ● · ● · ●
-      · · · · ·
-      ● · ● · ●
-      · · · · ·
-      ● · ● · ●
+    # Its drawing is the site's data: the squares that lose for the player about
+    # to move, from the king's start in one corner to the corner opposite.
     steps:
       - >-
         Count how many rows and how many columns the king still has to go. From
@@ -147,14 +138,8 @@ examples:
       one petal or two petals that grow next to each other, with no gap between
       them. Whoever tears off the last petal wins. Who wins if both play as well
       as they can?
-    # The daisy after the first two moves: one petal torn by each player,
-    # opposite each other, and two rows of five left.
-    drawing: |2
-         ○ ● ●
-       ●       ●
-      ●         ●
-       ●       ●
-         ● ● ○
+    # Its drawing is the site's data: the daisy after the first two moves: one
+    # petal torn by each player, opposite each other, and two rows of five left.
     steps:
       - >-
         Whatever the first player tears off, one petal or two, the ring opens

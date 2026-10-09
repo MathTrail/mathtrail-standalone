@@ -1,13 +1,9 @@
 import type { VNode } from "preact";
-import type { PageReader } from "./reader";
+import { Chain, DigitTree, type DrawingProps } from "./Art";
 
 // Labels are where a drawing's labels are: the page, and their key in its
 // words.
-type Labels = { page: PageReader; at: string };
-
-// DrawingProps are what a technique's drawing is drawn from: its labels, and
-// the way the page's language writes numbers.
-type DrawingProps = Labels & { numbers: Intl.NumberFormat };
+type Labels = Pick<DrawingProps, "page" | "at">;
 
 /**
  * TechniqueDrawing is the drawing of the technique called id, laid out from
@@ -192,22 +188,7 @@ function Tree({ page, at, numbers }: DrawingProps) {
 	return (
 		<>
 			<Title page={page} at={at} />
-			<div class="s-tree">
-				{digits.map((first) => (
-					<div key={first} class="s-tree-branch">
-						<span class="s-art-dot">{numbers.format(first)}</span>
-						<span class="s-tree-leaves">
-							{digits
-								.filter((second) => second !== first)
-								.map((second) => (
-									<span key={second} class="s-art-chip">
-										{numbers.format(first * 10 + second)}
-									</span>
-								))}
-						</span>
-					</div>
-				))}
-			</div>
+			<DigitTree digits={digits} numbers={numbers} />
 			<p class="s-art-sum">{page.text(`${at}.total`)}</p>
 		</>
 	);
@@ -219,22 +200,24 @@ function Backwards({ page, at, numbers }: DrawingProps) {
 	return (
 		<>
 			<p class="s-art-title">{page.text(`${at}.forward`)}</p>
-			<div class="s-chain">
-				<span class="s-art-dot">{numbers.format(12)}</span>
-				<span class="s-chain-step">{page.text(`${at}.tanya`)} →</span>
-				<span class="s-art-dot">{numbers.format(6)}</span>
-				<span class="s-chain-step">{page.text(`${at}.petya`)} →</span>
-				<span class="s-art-dot">{numbers.format(2)}</span>
-			</div>
+			<Chain
+				start={numbers.format(12)}
+				steps={[
+					{ by: page.text(`${at}.tanya`), to: numbers.format(6) },
+					{ by: page.text(`${at}.petya`), to: numbers.format(2) },
+				]}
+			/>
 			<div class="s-art-part">
 				<p class="s-art-title">{page.text(`${at}.backward`)}</p>
-				<div class="s-chain">
-					<span class="s-art-dot s-art-dot-accent">{numbers.format(12)}</span>
-					<span class="s-chain-step">← {page.text(`${at}.undo-tanya`)}</span>
-					<span class="s-art-dot s-art-dot-accent">{numbers.format(6)}</span>
-					<span class="s-chain-step">← {page.text(`${at}.undo-petya`)}</span>
-					<span class="s-art-dot s-art-dot-accent">{numbers.format(2)}</span>
-				</div>
+				<Chain
+					start={numbers.format(12)}
+					steps={[
+						{ by: page.text(`${at}.undo-tanya`), to: numbers.format(6) },
+						{ by: page.text(`${at}.undo-petya`), to: numbers.format(2) },
+					]}
+					back
+					accent
+				/>
 			</div>
 		</>
 	);

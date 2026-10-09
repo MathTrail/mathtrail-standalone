@@ -1,9 +1,9 @@
-# The page of the topic of weighing and pouring, for a parent. The topic's
-# name, its group, its grades and its traps' names are not here: they are the
-# card's words and the catalog's numbers. Each example's level, and the answer
-# its solver proves, are the site's data; an example here is worked through to
-# that answer. The traps are the topic's commonest, counted in its reference
-# tasks.
+# The page of the topic of weighing and pouring, for a parent. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
 
 title: Weighing and pouring
 description: What problems about weighing on a balance and pouring between jugs are, how they are solved, where children go wrong, and how to help at home.
@@ -17,15 +17,8 @@ hero:
     first meeting with algorithms, plans that work whatever happens.
   method: Write down every state and look for the shortest way
   teaches: To plan steps ahead, and to think through every outcome of a weighing
-  # Measuring 4 litres with a 5-litre jug and a 3-litre jug, step by step.
-  drawing: |2
-    5 l  3 l
-     5    0
-     2    3
-     2    0
-     0    2
-     5    2
-     4    3
+  # Its drawing is the site's data: measuring 4 litres with a 5-litre jug and a
+  # 3-litre jug: what each holds, step by step.
 
 basis:
   title: The rules of weighing and pouring
@@ -93,13 +86,7 @@ examples:
       have no marks. In one step she fills a jug from the tap, pours a jug out,
       or pours from one jug into the other until the first is empty or the
       second is full. What is the fewest steps to get exactly 1 litre in a jug?
-    # What the two jugs hold after each step.
-    drawing: |2
-      3 l  5 l
-       3    0
-       0    3
-       3    3
-       1    5
+    # Its drawing is the site's data: what the two jugs hold after each step.
     steps:
       - Fill the 3-litre jug and pour it into the 5-litre jug, which now holds 3 litres.
       - >-
@@ -118,9 +105,8 @@ examples:
       There are 8 coins that look the same. One of them is fake and lighter
       than the others, which all weigh the same. What is the smallest number of
       weighings on a balance without weights that is sure to find the fake?
-    # The first weighing: three coins on each pan and two aside.
-    drawing: |2
-      [●●●] [●●●]  ●●
+    # Its drawing is the site's data: the first weighing: three coins for each
+    # pan, and two aside.
     steps:
       - Put 3 coins on each pan and keep 2 aside.
       - >-

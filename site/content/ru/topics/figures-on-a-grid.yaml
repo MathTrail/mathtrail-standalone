@@ -1,9 +1,9 @@
 # The page of the topic of figures on a square grid, for a parent, in Russian.
 # The topic's name, its group, its grades and its traps' names are not here:
-# they are the card's words and the catalog's numbers. Each example's level,
-# and the answer its solver proves, are the site's data; an example here is
-# worked through to that answer. The traps are the topic's commonest, counted
-# in its reference tasks.
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Фигуры на клетчатой бумаге
 description: Что такое задачи на площадь и периметр по клеткам, как их решают, где ошибаются дети и как помочь дома.
@@ -17,13 +17,8 @@ hero:
     пропуская и ничего не считая дважды.
   method: Считать внешние стороны каждой клетки
   teaches: Отличать площадь от периметра и считать клетки и стороны, ничего не пропуская и не повторяя
-  # An L of three cells: an area of 3 cells and a perimeter of 8 sides.
-  drawing: |2
-    +---+
-    |   |
-    +---+---+
-    |   |   |
-    +---+---+
+  # Its drawing is the site's data: an L of three cells, an area of 3 cells and
+  # a perimeter of 8 sides.
 
 basis:
   title: Правила клетчатой бумаги
@@ -90,15 +85,7 @@ examples:
     question: >-
       Крест сложен из 5 клеток: одна в середине и по одной с каждой из четырёх
       её сторон. Каков периметр креста в сторонах клеток?
-    # The cross of five cells.
-    drawing: |2
-          +---+
-          |   |
-      +---+---+---+
-      |   |   |   |
-      +---+---+---+
-          |   |
-          +---+
+    # Its drawing is the site's data: the cross of five cells.
     steps:
       - У каждого из 4 концов креста наружу смотрят 3 стороны, всего 4 × 3 = 12 сторон.
       - "У средней клетки наружу не смотрит ни одна сторона: каждая касается конца креста."
@@ -115,10 +102,8 @@ examples:
       Полоску 2 на 4 клетки разрезают по линиям сетки на две части по 4 клетки,
       и каждая часть должна быть цельной, не распадаться. Сколькими способами
       это можно сделать?
-    # The four cuts, with the two pieces of each in two shades.
-    drawing: |2
-      ████  ███░  ██░░  █░░░
-      ░░░░  █░░░  ██░░  ███░
+    # Its drawing is the site's data: the four cuts, with the two pieces of each
+    # in two shades.
     steps:
       - "Разрез прямо вдоль середины даёт два ряда по 4 клетки: 1 способ."
       - "Разрез прямо поперёк середины даёт два квадрата 2 на 2: 1 способ."
@@ -139,11 +124,8 @@ examples:
       его угла в противоположный проведён отрезок. Через сколько клеток он
       проходит? Клетка считается, если отрезок проходит через её внутреннюю
       часть, а не только касается угла.
-    # The rectangle, and the cells the line passes through.
-    drawing: |2
-      ░ ░ ░ █ █
-      ░ █ █ █ ░
-      █ █ ░ ░ ░
+    # Its drawing is the site's data: the rectangle, and the cells the line
+    # passes through.
     steps:
       - >-
         Идя из угла в угол, отрезок попадает в новую клетку каждый раз, когда

@@ -1,8 +1,9 @@
 # The page of the topic of clocks, for a parent, in Russian. The topic's name,
 # its group, its grades and its traps' names are not here: they are the card's
-# words and the catalog's numbers. Each example's level, and the answer its
-# solver proves, are the site's data; an example here is worked through to that
-# answer. The traps are the topic's commonest, counted in its reference tasks.
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
 
 title: Часы
 description: Что такое задачи на часы и время, как их решают, где ошибаются дети и как помочь дома.
@@ -15,10 +16,10 @@ hero:
     через целый час, через полдень или через полночь.
   method: Дойти до целого часа, а потом дальше
   teaches: Считать время через час и через полночь и отличать время на часах от того, сколько времени прошло
-  # Adding 25 minutes in two steps, through the whole hour.
-  drawing: |2
-    4:50 + 10 мин = 5:00
-    5:00 + 15 мин = 5:15
+  # Adding 25 minutes in two steps, through the whole hour. The drawing is the
+  # site's own, and each step's minutes are written in these words.
+  drawing:
+    step: "+{count} мин"
 
 basis:
   title: Правила часов
@@ -97,10 +98,8 @@ examples:
       В шахматном турнире 5 туров. Каждый тур длится 50 минут, а между
       соседними турами — перерыв 15 минут. Первый тур начинается в 10:00. Во
       сколько заканчивается последний тур?
-    # Five rounds and the four breaks between them.
-    drawing: |2
-      ■ ■ ■ ■ ■  туры
-       □ □ □ □   перерывы
+    # Its drawing is the site's data: five rounds of 50 minutes and the four
+    # breaks of 15 between them.
     steps:
       - "5 туров по 50 минут: 5 × 50 = 250 минут игры."
       - >-
@@ -121,10 +120,8 @@ examples:
       бабушкиного города и садится в 8:30 по часам Аниного. Часы в Анином
       городе показывают на 4 часа меньше, чем в бабушкином. Сколько длится
       полёт?
-    # The take-off and the landing on the clocks of both cities.
-    drawing: |2
-      бабушка 8:00 → 12:30
-      Аня     4:00 →  8:30
+    # Its drawing is the site's data: the take-off and the landing on the clocks
+    # of both cities, Grandma's first.
     steps:
       - >-
         8:00 и 8:30 показывают разные часы, поэтому сначала переведём оба

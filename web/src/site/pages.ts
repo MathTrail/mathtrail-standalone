@@ -22,9 +22,9 @@ export type PageProps = { readonly page: PageReader; readonly data: SiteData };
 /**
  * Page is a page a component draws: the component, which draws the part of the
  * page that is its own, between the site's header and its footer; whether it
- * draws a card of the widget, which loads the card's stylesheet; and the rules
- * of style its head carries, written from the site's data when the site is
- * built.
+ * draws a card of the widget or a picture as a card draws one, either of which
+ * loads the card's stylesheet; and the rules of style its head carries, written
+ * from the site's data when the site is built.
  */
 export type Page = {
 	readonly draw: (props: PageProps) => VNode;
@@ -56,7 +56,7 @@ export function sitePages(data: SiteData): ReadonlyMap<string, Page> {
 		["service", { draw: ServicePage, style: serviceRules }],
 		...data.topics.all.map((topic): [string, Page] => [
 			`topics/${topic.slug}`,
-			topicPage(topic),
+			topicPage(topic, data),
 		]),
 	]);
 }

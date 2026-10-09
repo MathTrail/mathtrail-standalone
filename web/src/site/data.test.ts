@@ -54,6 +54,23 @@ describe("the site's own data", () => {
 		);
 	});
 
+	test("draws the card of every topic of the catalog, and the first screen of every page it publishes", () => {
+		expect([...data.drawings.keys()].sort()).toEqual(
+			topics.map((topic) => topic.id).sort(),
+		);
+		expect(
+			[...data.drawings]
+				.filter(([, drawings]) => drawings.hero !== undefined)
+				.map(([id]) => id)
+				.sort(),
+		).toEqual(
+			topics
+				.filter((topic) => topic.site_page)
+				.map((topic) => topic.id)
+				.sort(),
+		);
+	});
+
 	test("ranks the traps of every topic of the catalog", () => {
 		expect([...data.traps.keys()].sort()).toEqual(
 			topics.map((topic) => topic.id).sort(),
@@ -90,13 +107,58 @@ describe("the site's own data", () => {
 });
 
 describe("the site's data", () => {
-	// knights is the site's data with the examples of that one page.
+	// knights is the site's data with the drawings and the examples of that one
+	// page.
 	const knights = {
 		...file,
+		drawings: { "logic.knights_liars": file.drawings["logic.knights_liars"] },
 		examples: { "logic.knights_liars": file.examples["logic.knights_liars"] },
 	};
 	// examples is the site's data with these examples of the topics' pages.
 	const examples = (given: unknown) => ({ ...knights, examples: given });
+	// drawings is the site's data with these drawings of the topics.
+	const drawings = (given: unknown) => ({ ...knights, drawings: given });
+	// card is the site's data with this drawing on the card of knights and liars.
+	const card = (given: unknown) =>
+		drawings({ "logic.knights_liars": { card: given } });
+	// clock is a picture of a clock, which every drawing may be.
+	const clock = { kind: "clock", time: "4:50" };
+
+	test("carries the drawings of each topic, and of each example, as the file writes them", () => {
+		const data = readSiteData(catalog, {
+			...knights,
+			drawings: {
+				"logic.knights_liars": {
+					card: { markup: "islanders" },
+					hero: { picture: clock },
+				},
+				"logic.ordering": { card: { markup: "daisy" } },
+			},
+			examples: {
+				"logic.knights_liars": [
+					{
+						level: "5-6",
+						solver: "round-table",
+						answer: "5",
+						drawing: { markup: "round-table" },
+					},
+					{ level: "3-4", solver: "two-on-the-road", answer: "A liar" },
+				],
+			},
+		});
+
+		expect(data.drawings.get("logic.knights_liars")).toEqual({
+			card: { markup: "islanders" },
+			hero: { picture: clock },
+		});
+		expect(data.drawings.get("logic.ordering")).toEqual({
+			card: { markup: "daisy" },
+		});
+		expect(data.examples.get("logic.knights_liars")).toEqual([
+			{ grades: [5, 6], drawing: { markup: "round-table" } },
+			{ grades: [3, 4] },
+		]);
+	});
 
 	test("sets each example at the grades of its level", () => {
 		const data = readSiteData(
@@ -170,6 +232,79 @@ describe("the site's data", () => {
 				"logic.knights_liars": [{ level: "3-4", solver: "one", answer: "" }],
 			}),
 			'→ at examples["logic.knights_liars"][0].answer',
+		],
+		[
+			"a drawing of a topic the catalog does not have",
+			drawings({ "logic.tables": { card: { markup: "islanders" } } }),
+			"site/data.json: the drawings of logic.tables are of a topic the catalog does not have",
+		],
+		[
+			"a drawing of the first screen of a page the catalog does not publish",
+			drawings({
+				"logic.ordering": {
+					card: { markup: "islanders" },
+					hero: { markup: "islanders" },
+				},
+			}),
+			"site/data.json: the first screen of logic.ordering has a drawing, and the catalog does not publish its page",
+		],
+		[
+			"a topic's drawings with no card",
+			drawings({ "logic.knights_liars": { hero: { picture: clock } } }),
+			'→ at drawings["logic.knights_liars"].card',
+		],
+		[
+			"a picture the card's reader refuses",
+			card({ picture: { kind: "clock", time: "25:00" } }),
+			'→ at drawings["logic.knights_liars"].card.picture.time',
+		],
+		[
+			"a drawing of the site's own it does not draw",
+			card({ markup: "spiral" }),
+			'→ at drawings["logic.knights_liars"].card.markup',
+		],
+		[
+			"a drawing that is neither a picture nor one of the site's own",
+			card({}),
+			'a drawing is a picture or a drawing of the site\'s own, one of the two\n  → at drawings["logic.knights_liars"].card',
+		],
+		[
+			"a drawing that is a picture and one of the site's own at once",
+			card({ picture: clock, markup: "islanders" }),
+			'a drawing is a picture or a drawing of the site\'s own, one of the two\n  → at drawings["logic.knights_liars"].card',
+		],
+		[
+			"a drawing with a member no drawing has",
+			card({ markup: "islanders", words: "A" }),
+			'Unrecognized key: "words"\n  → at drawings["logic.knights_liars"].card',
+		],
+		[
+			"an example's drawing under a misspelt name",
+			examples({
+				"logic.knights_liars": [
+					{
+						level: "3-4",
+						solver: "one",
+						answer: "1",
+						drawng: { picture: clock },
+					},
+				],
+			}),
+			'Unrecognized key: "drawng"\n  → at examples["logic.knights_liars"][0]',
+		],
+		[
+			"an example's drawing the card's reader refuses",
+			examples({
+				"logic.knights_liars": [
+					{
+						level: "3-4",
+						solver: "one",
+						answer: "1",
+						drawing: { picture: { kind: "clock" } },
+					},
+				],
+			}),
+			'→ at examples["logic.knights_liars"][0].drawing.picture.time',
 		],
 		[
 			"a work the page Why cites whose DOI is no DOI",

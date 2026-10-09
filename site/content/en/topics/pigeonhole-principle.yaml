@@ -1,9 +1,9 @@
 # The page of the topic of the pigeonhole principle, for a parent. The topic's
 # name, its group, its grades and its traps' names are not here: they are the
-# card's words and the catalog's numbers. Each example's level, and the answer
-# its solver proves, are the site's data; an example here is worked through to
-# that answer. The traps are the topic's commonest, counted in its reference
-# tasks.
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
 
 title: Pigeonhole principle
 description: What pigeonhole problems are, how they are solved, where children go wrong, and how to help at home.
@@ -17,10 +17,8 @@ hero:
     than the lucky one.
   method: Play the worst luck through, then add one
   teaches: To prove that something must happen, not just that it can
-  # Five pigeons in four holes: however they spread, one hole holds two.
-  drawing: |2
-         ● ● ● ● ●
-      [● ●] [●] [●] [●]
+  # Its drawing is the site's data: five pigeons in four holes, one of which
+  # holds two.
 
 basis:
   title: The rules of the worst case
@@ -116,10 +114,8 @@ examples:
       Each cell of a 2 by 2 grid holds 1, 2 or 3. Add up the two numbers of
       each row, each column and each diagonal. Is it true that two of these six
       sums are always equal?
-    # One way to fill the grid, to show what the sums are taken over.
-    drawing: |2
-          1   3
-          2   2
+    # Its drawing is the site's data: one way to fill the grid, to show what the
+    # sums are taken over.
     steps:
       - >-
         Count the holes: a sum of two numbers from 1, 2 and 3 is one of 2, 3,

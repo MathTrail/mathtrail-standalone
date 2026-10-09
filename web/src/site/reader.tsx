@@ -26,7 +26,8 @@ export type PageReader = {
 	text(key: string, slots?: Readonly<Record<string, Fill>>): ComponentChildren;
 	/**
 	 * plain is the text under key as it is written, its slots filled: for the
-	 * page's head, and for a text drawing, whose stars are no emphasis.
+	 * page's head and an element's attributes, and for a text whose stars are
+	 * no emphasis.
 	 */
 	plain(key: string, slots?: Readonly<Record<string, string | number>>): string;
 	/** list is the keys of the items of the list under key, in order. */

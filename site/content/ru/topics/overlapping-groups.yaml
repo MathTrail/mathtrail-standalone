@@ -1,9 +1,9 @@
 # The page of the topic of overlapping groups, for a parent, in Russian. The
 # topic's name, its group, its grades and its traps' names are not here: they
-# are the card's words and the catalog's numbers. Each example's level, and the
-# answer its solver proves, are the site's data; an example here is worked
-# through to that answer. The traps are the topic's commonest, counted in its
-# reference tasks.
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Пересекающиеся группы
 description: Что такое задачи про пересекающиеся группы, как их решают, где ошибаются дети и как помочь дома.
@@ -16,10 +16,8 @@ hero:
     превращают запутанный вопрос в четыре числа.
   method: Нарисовать круги и начать с середины
   teaches: Считать, не считая дважды, и понимать, что значит каждое число
-  # Two clubs that overlap: 7 in chess only, 3 in both, 9 in football only.
-  drawing: |2
-         шахматы     футбол
-      (   7   (   3   )   9   )
+  # Its drawing is the site's data: two clubs that overlap, 10 in one and 12 in
+  # the other, 3 of them in both.
 
 basis:
   title: Правила двух кругов
@@ -90,15 +88,13 @@ examples:
     question: >-
       В группе 24 ребёнка. У 15 есть сестра, у 11 — брат, а у 6 есть и
       сестра, и брат. У скольких детей нет ни сестры, ни брата?
-    # The two circles filled in, and those outside them.
-    drawing: |2
-           сестра      брат
-         (  9  (  6  )  5  )
-             снаружи: 4
+    # Its drawing is the site's data: the two circles filled in, A for a sister
+    # and B for a brother, and those outside them.
     steps:
       - >-
-        Нарисуем два пересекающихся круга, «сестра» и «брат». В середине — 6
-        детей, у которых есть и то, и другое.
+        Нарисуем два пересекающихся круга: в круге A дети, у которых есть
+        сестра, в круге B дети, у которых есть брат. В середине 6 детей, у
+        которых есть и сестра, и брат.
       - "Только сестра: 15 − 6 = 9. Только брат: 11 − 6 = 5."
       - "В кругах 9 + 6 + 5 = 20 детей. Снаружи 24 − 20 = 4."
     answer: 4 ребёнка.

@@ -1,9 +1,9 @@
 # The page of the topic of knights and liars, for a parent, in Russian. The
 # topic's name, its group, its grades and its traps' names are not here: they
-# are the card's words and the catalog's numbers. Each example's level, and the
-# answer its solver proves, are the site's data; an example here is worked
-# through to that answer. The traps are the topic's commonest, counted in its
-# reference tasks.
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Рыцари и лжецы
 description: Что такое задачи про рыцарей и лжецов, как их решают, где ошибаются дети и как помочь дома.
@@ -17,10 +17,12 @@ hero:
   method: «Предположим, что он рыцарь…»
   teaches: Рассуждать по цепочке и проверять себя
   # Two islanders who call each other liars: one is a knight, the other a liar.
-  drawing: |2
-          А               Б
-      «Б — лжец»      «А — лжец»
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # The drawing is the site's own, and these are their names and what each says.
+  drawing:
+    first: А
+    first-says: «Б — лжец»
+    second: Б
+    second-says: «А — лжец»
 
 basis:
   title: Правила острова
@@ -117,13 +119,11 @@ examples:
     question: >-
       За круглым столом сидят 10 жителей. Каждый сказал: «Мой сосед справа —
       лжец». Сколько за столом рыцарей?
-    # The table drawn with its answer, knights and liars taking turns.
-    drawing: |2
-           Р   Л
-        Л         Р
-       Р           Л
-        Л         Р
-           Р   Л
+    # The table drawn with its answer, knights and liars taking turns. The
+    # drawing is the site's own, in the letters the third step writes.
+    drawing:
+      knight: Р
+      liar: Л
     steps:
       - >-
         Если житель — рыцарь, он сказал правду: справа от него лжец.

@@ -130,7 +130,8 @@ function Guide({ page }: PageProps) {
 	);
 }
 
-// Sample draws a topic's text drawing as it is written.
+// Sample draws a block of its words as it is written: its stars are no
+// emphasis.
 function Sample({ page }: PageProps) {
 	return <pre dir="ltr">{page.plain("drawing")}</pre>;
 }

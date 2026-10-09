@@ -1,9 +1,9 @@
 # The page of the topic of percentages, for a parent, in Russian. The topic's
 # name, its group, its grades and its traps' names are not here: they are the
-# card's words and the catalog's numbers. Each example's level, and the answer
-# its solver proves, are the site's data; an example here is worked through to
-# that answer. The traps are the topic's commonest, counted in its reference
-# tasks.
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
 
 title: Проценты
 description: Что такое задачи на проценты, как их решают, где ошибаются дети и как помочь дома.
@@ -17,11 +17,8 @@ hero:
     избегает большинства ошибок.
   method: Перед каждым шагом спрашивать «процент от чего?»
   teaches: Находить, от чего берётся процент, и замечать, когда это меняется
-  # From the whole to one tenth, and on to the percentage asked for.
-  drawing: |2
-    100% = 50
-     10% =  5
-     30% = 15
+  # Its drawing is the site's data: 50 as ten tenths, three of which, 30%, are
+  # 15.
 
 basis:
   title: Правила процентов
@@ -98,10 +95,8 @@ examples:
     question: >-
       Велосипед стоит 400 монет. Весной его цена выросла на 25%, а осенью новая
       цена снизилась на 20%. Сколько стоит велосипед теперь?
-    # The price after each change, and each change under its arrow.
-    drawing: |2
-      400 → 500 → 400
-        +25%  −20%
+    # Its drawing is the site's data: the price after each change, each change
+    # on its arrow.
     steps:
       - >-
         Весной 100% — это старая цена, 400 монет: 25% от неё — 100 монет, и

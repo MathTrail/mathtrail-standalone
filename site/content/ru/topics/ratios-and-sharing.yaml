@@ -1,9 +1,9 @@
 # The page of the topic of ratios and sharing, for a parent, in Russian. The
 # topic's name, its group, its grades and its traps' names are not here: they
-# are the card's words and the catalog's numbers. Each example's level, and the
-# answer its solver proves, are the site's data; an example here is worked
-# through to that answer. The traps are the topic's commonest, counted in its
-# reference tasks.
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Отношения и деление на части
 description: Что такое задачи на отношения и деление на части, как их решают, где ошибаются дети и как помочь дома.
@@ -16,11 +16,8 @@ hero:
     приходится на одну, любая задача на отношения сводится к делению.
   method: Посчитать части, потом найти одну часть
   teaches: Видеть в отношении равные части и пересчитывать рецепт на другое число порций
-  # 35 sweets shared in the ratio 3 to 4: seven equal parts.
-  drawing: |2
-    Аня  □ □ □
-    Боря □ □ □ □
-    7 частей = 35
+  # Its drawing is the site's data: 35 shared in the ratio 3 to 4, seven equal
+  # parts.
 
 basis:
   title: Правила отношений
@@ -84,10 +81,8 @@ examples:
     question: >-
       Макс и Лена собрали вместе 45 грибов. На каждые 4 гриба Макса приходится
       5 грибов Лены. Сколько грибов собрала Лена?
-    # A box for every part: four for Max and five for Lena.
-    drawing: |2
-      Макс □ □ □ □
-      Лена □ □ □ □ □
+    # Its drawing is the site's data: a part for every box, four for Max and
+    # five for Lena.
     steps:
       - 4 к 5 значит 4 части у Макса и 5 у Лены, всего 9 равных частей.
       - "Одна часть — это 45 : 9 = 5 грибов."
@@ -102,12 +97,8 @@ examples:
     question: >-
       В хоре на каждые 4 мальчика приходится 7 девочек, и девочек на 9 больше,
       чем мальчиков. Сколько детей поёт в хоре?
-    # The boys' parts and the girls' parts: the girls' three extra parts are
-    # the 9.
-    drawing: |2
-      мальчики □ □ □ □
-      девочки  □ □ □ □ □ □ □
-                       └ 9 ┘
+    # Its drawing is the site's data: the boys' parts and the girls', the girls'
+    # three extra parts the 9.
     steps:
       - >-
         Мальчики — это 4 части, девочки — 7 частей, значит, у девочек на 3
@@ -127,10 +118,8 @@ examples:
       В двух коробках шарики в отношении 3 к 1. Когда из первой коробки во
       вторую переложили 10 шариков, в коробках стало поровну. Сколько всего
       шариков?
-    # The boxes in parts of the same total, before and after the move.
-    drawing: |2
-      до      А □ □ □  Б □
-      после   А □ □    Б □ □
+    # Its drawing is the site's data: the boxes in parts of the same total,
+    # before the move and after it.
     steps:
       - >-
         Когда шарики перекладывают из коробки в коробку, их общее число не

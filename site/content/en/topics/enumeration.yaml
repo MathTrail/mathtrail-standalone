@@ -1,8 +1,9 @@
 # The page of the topic of enumeration, for a parent. The topic's name, its
-# group, its grades and its traps' names are not here: they are the card's
-# words and the catalog's numbers. Each example's level, and the answer its
-# solver proves, are the site's data; an example here is worked through to that
-# answer. The traps are the topic's commonest, counted in its reference tasks.
+# group, its grades and its traps' names are not here: they are the card's words
+# and the catalog's numbers. The page's drawings, each example's level, and the
+# answer its solver proves, are the site's data; an example here is worked
+# through to that answer. The traps are the topic's commonest, counted in its
+# reference tasks.
 
 title: Enumeration
 description: What enumeration problems are, how they are solved, where children go wrong, and how to help at home.
@@ -16,13 +17,8 @@ hero:
     guess.
   method: List the cases by a rule
   teaches: To work in order, and to see when cases can be counted without listing them
-  # The two-digit numbers with different digits from 1, 2 and 3, grown from
-  # their first digit.
-  drawing: |2
-          1         2         3
-         / \       / \       / \
-        2   3     1   3     1   2
-       12  13    21  23    31  32
+  # Its drawing is the site's data: the two-digit numbers with different digits
+  # from 1, 2 and 3, grown from their first digit.
 
 basis:
   title: The rules of a list
@@ -88,10 +84,8 @@ examples:
       A flag has two stripes, one above the other. Each stripe is red, yellow
       or green, and the two stripes are different colours. How many different
       flags are there?
-    # Every flag, the top stripe above the bottom one: R red, Y yellow, G green.
-    drawing: |2
-         R  R  Y  Y  G  G
-         Y  G  R  G  R  Y
+    # Its drawing is the site's data: every flag, the top stripe above the
+    # bottom one, in its colours.
     steps:
       - >-
         Put the flags in order by the top stripe. With red on top, the bottom

@@ -1,9 +1,9 @@
 # The page of the topic of figures on a square grid, for a parent. The topic's
 # name, its group, its grades and its traps' names are not here: they are the
-# card's words and the catalog's numbers. Each example's level, and the answer
-# its solver proves, are the site's data; an example here is worked through to
-# that answer. The traps are the topic's commonest, counted in its reference
-# tasks.
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
 
 title: Figures on a square grid
 description: What problems about area and perimeter on squared paper are, how they are solved, where children go wrong, and how to help at home.
@@ -17,13 +17,8 @@ hero:
     counted twice is the whole skill.
   method: Count the outside sides of every cell
   teaches: To tell area from perimeter, and to count cells and sides without missing or repeating one
-  # An L of three cells: an area of 3 cells and a perimeter of 8 sides.
-  drawing: |2
-    +---+
-    |   |
-    +---+---+
-    |   |   |
-    +---+---+
+  # Its drawing is the site's data: an L of three cells, an area of 3 cells and
+  # a perimeter of 8 sides.
 
 basis:
   title: The rules of the grid
@@ -90,15 +85,7 @@ examples:
     question: >-
       A cross is made of 5 cells: one in the middle and one on each of its four
       sides. What is the perimeter of the cross, in cell sides?
-    # The cross of five cells.
-    drawing: |2
-          +---+
-          |   |
-      +---+---+---+
-      |   |   |   |
-      +---+---+---+
-          |   |
-          +---+
+    # Its drawing is the site's data: the cross of five cells.
     steps:
       - Each of the 4 arms has 3 sides facing outside, so the arms give 4 × 3 = 12 sides.
       - The middle cell has no side outside, since each of its sides touches an arm.
@@ -115,10 +102,8 @@ examples:
       A strip of 2 by 4 cells is cut along the grid lines into two pieces of 4
       cells each, and each piece must hold together. In how many different
       ways can it be cut?
-    # The four cuts, with the two pieces of each in two shades.
-    drawing: |2
-      ████  ███░  ██░░  █░░░
-      ░░░░  █░░░  ██░░  ███░
+    # Its drawing is the site's data: the four cuts, with the two pieces of each
+    # in two shades.
     steps:
       - "A cut straight along the middle gives two rows of 4: 1 way."
       - "A cut straight across the middle gives two squares of 2 by 2: 1 way."
@@ -138,11 +123,8 @@ examples:
       from one corner to the opposite one. How many cells does the line pass
       through? A cell counts when the line crosses its inside, not when it only
       touches a corner.
-    # The rectangle, and the cells the line passes through.
-    drawing: |2
-      ░ ░ ░ █ █
-      ░ █ █ █ ░
-      █ █ ░ ░ ░
+    # Its drawing is the site's data: the rectangle, and the cells the line
+    # passes through.
     steps:
       - >-
         Going from corner to corner, the line enters a new cell each time it

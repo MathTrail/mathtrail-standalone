@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { render } from "preact";
+import { type ComponentChild, render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { Diagram } from "./diagram";
+import { Diagram, drawPicture, PictureFrame } from "./diagram";
 import { kinds, type Picture } from "./model";
 import { extremes } from "./testing/extremes";
 import {
@@ -222,6 +222,49 @@ describe("a picture", () => {
 			}
 		}
 	});
+});
+
+// frameOf is the element a picture is drawn in, rendered on its own and kept
+// once the page it was rendered on is gone.
+function frameOf(node: ComponentChild): Element {
+	const container = document.createElement("div");
+	act(() => render(node, container));
+	const svg = container.querySelector("svg");
+	if (svg === null) {
+		throw new Error("no picture was drawn");
+	}
+	const kept = svg.cloneNode(true) as Element;
+	act(() => render(null, container));
+	return kept;
+}
+
+describe("a picture laid out on its own", () => {
+	test.each([
+		["with a member its kind needs left out", { kind: "clock" }],
+		["of a kind no drawing has", { kind: "spiral" }],
+	])("throws where it cannot be drawn, %s", (_, picture) => {
+		expect(() => drawPicture(picture as unknown as Picture, "en")).toThrow();
+	});
+
+	test.each(examples)(
+		"%s, framed with no label, is passed over by a screen reader and drawn as the card draws it",
+		(_, picture) => {
+			const labelled = frameOf(
+				<Diagram picture={picture} label="A picture" locale="en" />,
+			);
+			const hidden = frameOf(
+				<PictureFrame drawn={drawPicture(picture, "en")} />,
+			);
+
+			expect(hidden.getAttribute("aria-hidden")).toBe("true");
+			expect(hidden.hasAttribute("role")).toBe(false);
+			expect(hidden.hasAttribute("aria-label")).toBe(false);
+			hidden.removeAttribute("aria-hidden");
+			labelled.removeAttribute("role");
+			labelled.removeAttribute("aria-label");
+			expect(hidden.outerHTML).toBe(labelled.outerHTML);
+		},
+	);
 });
 
 describe("the points of a path", () => {

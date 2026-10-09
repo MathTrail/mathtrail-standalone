@@ -19,47 +19,62 @@ afterAll(async () => {
 	await browser.happyDOM.close();
 });
 
-// A catalog of three topics in three layers: beta builds on alpha, gamma on
-// both, its link from alpha skipping a column. Only beta's page is published.
-const data = readSiteData(
-	{
-		traps,
-		tasks: [],
-		topics: [
-			{
-				id: "logic.alpha",
-				slug: "alpha",
-				grade_levels: ["1-2", "3-4"],
-				builds_on: [],
-				site_page: false,
-			},
-			{
-				id: "logic.beta",
-				slug: "beta",
-				grade_levels: ["3-4"],
-				builds_on: ["logic.alpha"],
-				site_page: true,
-			},
-			{
-				id: "logic.gamma",
-				slug: "gamma",
-				grade_levels: ["5-6"],
-				builds_on: ["logic.alpha", "logic.beta"],
-				site_page: false,
-			},
-		],
-	},
-	{
-		groups: [
-			{ id: "logic", topics: ["logic.alpha", "logic.beta"] },
-			{ id: "counting", topics: ["logic.gamma"] },
-		],
-		examples: {},
-		progress: file.progress,
-	},
-);
+// drawings are the drawings of the three topics' cards: alpha's the site's own
+// drawing of two islanders, beta's a picture, and gamma's the site's own
+// drawing of a daisy, which has no words.
+const drawings = {
+	"logic.alpha": { card: { markup: "islanders" } },
+	"logic.beta": { card: { picture: { kind: "clock", time: "11:50" } } },
+	"logic.gamma": { card: { markup: "daisy" } },
+};
 
-// words are the page's words for that catalog, the same in each language.
+// dataWith is the site's data over a catalog of three topics in three layers,
+// with these drawings: beta builds on alpha, gamma on both, its link from
+// alpha skipping a column. Only beta's page is published.
+const dataWith = (drawn: unknown) =>
+	readSiteData(
+		{
+			traps,
+			tasks: [],
+			topics: [
+				{
+					id: "logic.alpha",
+					slug: "alpha",
+					grade_levels: ["1-2", "3-4"],
+					builds_on: [],
+					site_page: false,
+				},
+				{
+					id: "logic.beta",
+					slug: "beta",
+					grade_levels: ["3-4"],
+					builds_on: ["logic.alpha"],
+					site_page: true,
+				},
+				{
+					id: "logic.gamma",
+					slug: "gamma",
+					grade_levels: ["5-6"],
+					builds_on: ["logic.alpha", "logic.beta"],
+					site_page: false,
+				},
+			],
+		},
+		{
+			groups: [
+				{ id: "logic", topics: ["logic.alpha", "logic.beta"] },
+				{ id: "counting", topics: ["logic.gamma"] },
+			],
+			drawings: drawn,
+			examples: {},
+			progress: file.progress,
+		},
+	);
+
+const data = dataWith(drawings);
+
+// words are the page's words for that catalog, the same in each language:
+// the words of alpha's drawing among them.
 const words = [
 	"title: Topics",
 	"description: Every topic.",
@@ -90,11 +105,17 @@ const words = [
 	"  logic: Reasoning.",
 	"  counting: Counting.",
 	"topics:",
-	...["alpha", "beta", "gamma"].flatMap((slug) => [
-		`  ${slug}:`,
-		`    phrase: The topic ${slug}.`,
-		`    drawing: ${slug} * ${slug}`,
-	]),
+	"  alpha:",
+	"    phrase: The topic alpha.",
+	"    drawing:",
+	"      first: A",
+	"      first-says: “I am a knight”",
+	"      second: B",
+	"      second-says: “A is lying”",
+	"  beta:",
+	"    phrase: The topic beta.",
+	"  gamma:",
+	"    phrase: The topic gamma.",
 ].join("\n");
 
 // document is a document's text under its title.
@@ -202,10 +223,38 @@ describe("the page of the topics", () => {
 		]);
 	});
 
-	test("draws a topic's drawing as it is written", () => {
-		expect(topics.querySelector("#alpha pre")?.textContent).toBe(
-			"alpha * alpha",
+	test("draws each topic's drawing, which a screen reader passes over: the site's own in the page's words, or a picture", () => {
+		const drawn = [...topics.querySelectorAll(".s-topic")].map(
+			(card) => card.firstElementChild,
 		);
+
+		expect(drawn.map((box) => box?.getAttribute("aria-hidden"))).toEqual([
+			"true",
+			"true",
+			"true",
+		]);
+		expect(
+			[...(drawn[0]?.querySelectorAll(".s-speech-line") ?? [])].map(
+				(line) => line.textContent,
+			),
+		).toEqual(["A“I am a knight”", "B“A is lying”"]);
+		expect(drawn[1]?.matches(".s-picture")).toBe(true);
+		expect(drawn[1]?.querySelector("svg.mt-picture")).not.toBeNull();
+		expect(drawn[2]?.querySelectorAll(".s-petal")).toHaveLength(12);
+	});
+
+	test("is refused when the data gives a topic's card no drawing", () => {
+		const { "logic.gamma": _, ...fewer } = drawings;
+
+		expect(() =>
+			renderSite({
+				base: "https://example.test",
+				sources,
+				pages,
+				frame,
+				data: dataWith(fewer),
+			}),
+		).toThrow("site/data.json gives the card of logic.gamma no drawing");
 	});
 
 	test("shows the widget's own progress card, inert, and loads its stylesheet", () => {

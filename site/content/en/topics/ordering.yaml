@@ -1,8 +1,9 @@
-# The page of the topic of ordering, for a parent. The topic's name, its
-# group, its grades and its traps' names are not here: they are the card's
-# words and the catalog's numbers. Each example's level, and the answer its
-# solver proves, are the site's data; an example here is worked through to that
-# answer. The traps are the topic's commonest, counted in its reference tasks.
+# The page of the topic of ordering, for a parent. The topic's name, its group,
+# its grades and its traps' names are not here: they are the card's words and
+# the catalog's numbers. The page's drawings, each example's level, and the
+# answer its solver proves, are the site's data; an example here is worked
+# through to that answer. The traps are the topic's commonest, counted in its
+# reference tasks.
 
 title: Ordering
 description: What ordering problems are, how they are solved, where children go wrong, and how to help at home.
@@ -15,10 +16,8 @@ hero:
     of reasoning, in which every clue is a link and none may be left out.
   method: Draw a line and put everyone on it
   teaches: To join clues into one picture, and to read a comparison both ways
-  # A line from the tallest to the shortest, as the solutions draw it.
-  drawing: |2
-       tallest ........ shortest
-        Ann > Ben > Kate > Dan
+  # Its drawing is the site's data: four bars from the tallest to the shortest,
+  # as the solutions line them up.
 
 basis:
   title: The rules of a line
