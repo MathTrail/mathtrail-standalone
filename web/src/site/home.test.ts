@@ -76,7 +76,7 @@ describe("the card on the home page", () => {
 		solution: "Четыре и один.",
 	};
 
-	test("is a task handed out in the page's language, with the page's words, the hint and the data's drawing", () => {
+	test("is a task handed out in the page's language, with the page's words, the hint and the data's picture", () => {
 		const handed = homeTaskOf(own.card, said);
 
 		expect(handed.language).toBe("ru");
@@ -87,7 +87,7 @@ describe("the card on the home page", () => {
 		});
 		expect(handed.task.question).toBe(said.question);
 		expect(handed.task.hint).toBe(said.hint);
-		expect(handed.task.drawing).toBe(own.card.drawing);
+		expect(handed.task.picture).toEqual(own.card.picture);
 		expect(handed.task.options).toEqual(own.card.options);
 	});
 

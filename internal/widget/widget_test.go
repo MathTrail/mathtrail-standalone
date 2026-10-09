@@ -144,6 +144,40 @@ func TestTheButtonsUnderATaskStandOutInTheirTones(t *testing.T) {
 	}
 }
 
+// What a task's picture shades — the parts of a bar, the water in a
+// container, the filled cells, a mark's pointer, a marked day — stands out
+// from the card as a part of a picture a reader needs must, at 3 to 1 at
+// least, and a word written on it reads as text must, at 4.5 to 1, in either
+// theme; and it is the same for a viewer who prefers the dark theme as for a
+// host that names it.
+func TestWhatAPictureShadesStandsOutFromTheCardAndReads(t *testing.T) {
+	t.Parallel()
+
+	tokens := widget.Tokens()
+	light := tokensOf(t, tokens, `:root, [data-theme="light"] {`)
+	dark := tokensOf(t, tokens, `[data-theme="dark"] {`)
+	preferred := tokensOf(t, tokens, `:root:not([data-theme="light"]) {`)
+	for _, theme := range []struct {
+		name   string
+		tokens map[string]string
+	}{{"light", light}, {"dark", dark}} {
+		fill := theme.tokens["picture-fill"]
+		for _, against := range []struct {
+			what, token string
+			least       float64
+		}{{"the card", "surface", 3}, {"the words written on it", "text", 4.5}} {
+			if got := contrast(t, fill, theme.tokens[against.token]); got < against.least {
+				t.Errorf("--picture-fill in the %s theme is %q, %.2f to 1 against %s %s, want %.1f to 1 at least",
+					theme.name, fill, got, against.what, theme.tokens[against.token], against.least)
+			}
+		}
+	}
+	if preferred["picture-fill"] != dark["picture-fill"] {
+		t.Errorf("--picture-fill is %q for a viewer who prefers the dark theme and %q for a host that names it, want one",
+			preferred["picture-fill"], dark["picture-fill"])
+	}
+}
+
 // The shapes of a screen being read are faint, as what stands in for words
 // is, yet show on the card and on its bands, at 1.1 to 1 at least, in either
 // theme; and each theme has a sheen to pass over them. The dark theme's are

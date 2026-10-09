@@ -2,7 +2,7 @@
    a token, defined once for the widget, the site and the pages the service
    renders. Sides are logical — start and end, block and inline — so that a
    language written right to left mirrors the card without a rule of its own;
-   the one physical side is the drawing's, which never mirrors. */
+   the one physical side is the picture's, which never mirrors. */
 .mt,
 .mt * {
 	box-sizing: border-box;
@@ -29,8 +29,7 @@
 	border: 0;
 }
 .mt button:focus-visible,
-.mt a:focus-visible,
-.mt-diagram:focus-visible {
+.mt a:focus-visible {
 	outline: 2px solid var(--accent);
 	outline-offset: 2px;
 }
@@ -519,21 +518,46 @@ button.mt-bar {
 	overflow-wrap: break-word;
 	text-wrap: pretty;
 }
-/* The drawing is always laid out left to right, so its alignment is the one
-   physical side in the card. */
-.mt-diagram {
-	margin: 0;
-	padding: 10px 12px;
-	background: var(--code);
-	border: 1px solid var(--border);
-	border-radius: var(--radius-control);
-	font-family: var(--font-mono);
-	font-size: 14px;
-	line-height: 20px;
+/* A task's picture is drawn at its own size, and shrinks to the card where
+   the card is narrower: it never scrolls. It is laid out left to right in
+   every language, so its direction is set here as well as on the drawing:
+   an SVG's dir does not reach its text, and a text anchored at its start
+   would start at its right in a card written right to left. Its colours are
+   the theme's: lines and words in the colour of the text, and what is shaded
+   — parts, water, cells, marks — in a tone of the accent that stands out from
+   the card. */
+.mt-picture {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin-inline: auto;
+	direction: ltr;
 	color: var(--text);
-	overflow-x: auto;
-	white-space: pre;
-	text-align: left;
+	font-family: var(--font-sans);
+}
+.mt-pic-line {
+	fill: none;
+	stroke: currentColor;
+}
+.mt-pic-ink,
+.mt-pic-text {
+	fill: currentColor;
+}
+.mt-pic-strong {
+	font-weight: 600;
+}
+.mt-pic-plate {
+	fill: var(--surface);
+}
+.mt-pic-ring {
+	fill: var(--surface);
+	stroke: currentColor;
+}
+.mt-pic-band {
+	fill: var(--band);
+}
+.mt-pic-fill {
+	fill: var(--picture-fill);
 }
 
 /* Notes */

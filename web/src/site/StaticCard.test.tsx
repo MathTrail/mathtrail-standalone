@@ -25,6 +25,7 @@ import {
 	answered,
 	coming,
 	fenceInRussian,
+	fenceRow,
 	fenceSolutionInRussian,
 	standing,
 } from "../widget/testing/lesson";
@@ -387,7 +388,7 @@ describe("a card of a task the site draws", () => {
 	const facts = {
 		topic: "counting.gaps",
 		grade: 3,
-		drawing: "",
+		picture: fenceRow,
 		options: { A: "3", B: "4", C: "5", D: "6", E: "12" },
 		choice: "B",
 		correct: "C",
@@ -395,6 +396,16 @@ describe("a card of a task the site draws", () => {
 		rating: { before: 1502, after: 1480 },
 	};
 	const said = { language: "ru", child: "Комета", question: "?", hint: "?" };
+
+	// A picture the card would leave out would leave the site's card without
+	// it, and the task would not read as the page means it to.
+	test("whose picture the card cannot draw stops the build", () => {
+		const unreadable = { ...facts, picture: { kind: "pie" } as never };
+
+		expect(() =>
+			handedOf(unreadable, said, "site_card", "the card of this test"),
+		).toThrow("the card of this test has a picture the widget cannot draw");
+	});
 
 	// A card handed no choice of the topic, as the card of the page Why is,
 	// shows none, as a card of the trial series does.

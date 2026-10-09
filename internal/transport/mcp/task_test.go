@@ -1885,7 +1885,7 @@ func TestATextDrawingIsRefusedAndAnEmptyOneReadPast(t *testing.T) {
 			task["drawing"] = test.drawing
 			text := textOf(t, call(t, session, "submit_task", race))
 			if accepted := strings.HasPrefix(text, "Accepted"); accepted != test.accepted {
-				t.Fatalf("the words are %q, want accepted = %v", text, test.accepted)
+				t.Fatalf("the words are %q, accepted = %v, want %v", text, accepted, test.accepted)
 			}
 			if !test.accepted && (!strings.Contains(text, "task.picture") || !strings.Contains(text, "get_package")) {
 				t.Errorf("the words are %q, want them to send the model to task.picture and get_package", text)

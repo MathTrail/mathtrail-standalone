@@ -4,35 +4,6 @@ import type { Said } from "./controls";
 import { Icon } from "./icons";
 import { useScopedId } from "./ids";
 
-/**
- * Diagram is a task's text drawing: a grid of characters whose meaning is
- * where each one stands, so it is laid out left to right in every language and
- * never wrapped. One wider than the card scrolls sideways inside its own frame,
- * which a keyboard can reach to scroll. A screen reader is told it is a
- * drawing rather than read it character by character: the wording of a task
- * carries every fact its drawing shows.
- */
-export function Diagram({
-	drawing,
-	label,
-}: {
-	drawing: string;
-	label: string;
-}) {
-	return (
-		<pre
-			dir="ltr"
-			class="mt-diagram"
-			role="img"
-			aria-label={label}
-			// biome-ignore lint/a11y/noNoninteractiveTabindex: a drawing wider than the card scrolls inside its frame, and a keyboard has to reach it to scroll it
-			tabIndex={0}
-		>
-			{drawing.replace(/\n$/, "")}
-		</pre>
-	);
-}
-
 /** NoteTone is what a note carries: a plain line, the hint, or the trap. */
 export type NoteTone = "plain" | "hint" | "trap";
 

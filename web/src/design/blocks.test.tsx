@@ -3,7 +3,6 @@ import { useState } from "preact/hooks";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test } from "vitest";
 import {
-	Diagram,
 	Fold,
 	GeneratingSteps,
 	Note,
@@ -90,26 +89,6 @@ describe("a fold", () => {
 
 		expect(title()?.textContent).toBe("Topics");
 		expect(title()?.querySelector(".mt-fold-summary")).toBeNull();
-	});
-});
-
-describe("a drawing", () => {
-	test("is laid out left to right, named for a screen reader, and reachable to scroll", () => {
-		draw(<Diagram drawing={"A---B\n|   |\n"} label="Drawing" />);
-
-		const drawing = root.querySelector("pre.mt-diagram");
-		expect(drawing?.getAttribute("dir")).toBe("ltr");
-		expect(drawing?.getAttribute("role")).toBe("img");
-		expect(drawing?.getAttribute("aria-label")).toBe("Drawing");
-		expect(drawing?.getAttribute("tabindex")).toBe("0");
-		expect(drawing?.textContent).toBe("A---B\n|   |");
-	});
-
-	test("keeps markup in it as text", () => {
-		draw(<Diagram drawing="<b>A</b>" label="Drawing" />);
-
-		expect(root.querySelector("b")).toBeNull();
-		expect(root.querySelector("pre")?.textContent).toBe("<b>A</b>");
 	});
 });
 

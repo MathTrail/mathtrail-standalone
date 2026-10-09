@@ -5,7 +5,6 @@
 :root, [data-theme="light"] {
   --surface: #ffffff;
   --band: #f8f7f4;
-  --code: #f6f5f1;
   --border: #e3e0da;
   --border-strong: #cfcbc3;
   --text: #1f1e1b;
@@ -14,6 +13,9 @@
   --accent: #2f5bd6;
   --accent-fill: #2f5bd6;
   --accent-tint: #eef2fc;
+  /* What a picture shades — its parts, water, cells and marks: a tone of the
+     accent that stands out from the card, with the card's text legible on it. */
+  --picture-fill: #6989e1;
   --on-accent: #ffffff;
   --correct: #11643a;
   --correct-tint: #eaf5ee;
@@ -71,7 +73,6 @@
 [data-theme="dark"] {
   --surface: #1d1c1a;
   --band: #252421;
-  --code: #272623;
   --border: #3b3935;
   --border-strong: #4d4a44;
   --text: #edebe6;
@@ -80,6 +81,7 @@
   --accent: #8ea8ff;
   --accent-fill: #3d64d8;
   --accent-tint: #1f2a47;
+  --picture-fill: #3c61d0;
   --on-accent: #ffffff;
   --correct: #6fd39a;
   --correct-tint: #17301f;
@@ -153,7 +155,6 @@
   :root:not([data-theme="light"]) {
   --surface: #1d1c1a;
   --band: #252421;
-  --code: #272623;
   --border: #3b3935;
   --border-strong: #4d4a44;
   --text: #edebe6;
@@ -162,6 +163,7 @@
   --accent: #8ea8ff;
   --accent-fill: #3d64d8;
   --accent-tint: #1f2a47;
+  --picture-fill: #3c61d0;
   --on-accent: #ffffff;
   --correct: #6fd39a;
   --correct-tint: #17301f;

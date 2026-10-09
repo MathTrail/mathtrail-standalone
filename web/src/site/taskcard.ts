@@ -1,3 +1,4 @@
+import type { Picture } from "../design/picture/model";
 import { type Letter, letters } from "../widget/choices";
 import {
 	type AnswerResult,
@@ -11,7 +12,7 @@ import type { CatalogTrap } from "./traps";
 
 /**
  * CardFacts are a card of a task the site draws, as far as no language changes
- * it: the topic and the grade it is set in, its drawing, its five options, the
+ * it: the topic and the grade it is set in, its picture, its five options, the
  * option a child picks on it — a wrong one — and the right one, the catalog's
  * trap behind the option picked, and the rating in the topic before and after
  * the answer.
@@ -19,7 +20,7 @@ import type { CatalogTrap } from "./traps";
 export type CardFacts = {
 	readonly topic: string;
 	readonly grade: number;
-	readonly drawing: string;
+	readonly picture: Picture;
 	readonly options: Readonly<Record<string, string>>;
 	readonly choice: string;
 	readonly correct: string;
@@ -127,8 +128,8 @@ const checkedTask = "site_card";
  * handedOf is card's task with the words said, as the widget reads a task
  * handed out, under the task's id: no service handed it out, and nothing shows
  * the id. A task handed out with offered has the button of the topic, as a
- * task after the trial series has. A task the widget's own reader refuses
- * stops the build.
+ * task after the trial series has. A task the widget's own reader refuses, or
+ * whose picture it would leave out, stops the build.
  */
 export function handedOf(
 	card: CardFacts,
@@ -145,7 +146,7 @@ export function handedOf(
 			topic: card.topic,
 			language: said.language,
 			question: said.question,
-			drawing: card.drawing,
+			picture: card.picture,
 			options: card.options,
 			hint: said.hint,
 		},
@@ -156,6 +157,9 @@ export function handedOf(
 		throw new Error(
 			`${where} is no task the widget can draw: it needs the five options A to E`,
 		);
+	}
+	if (handed.task.picture === undefined) {
+		throw new Error(`${where} has a picture the widget cannot draw`);
 	}
 	return handed;
 }

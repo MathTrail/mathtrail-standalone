@@ -1,3 +1,4 @@
+import { Diagram } from "../design/picture/diagram";
 import type { Words } from "../i18n/words";
 import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
@@ -60,6 +61,7 @@ function Hero({
 	grades: readonly [number, number];
 }) {
 	const words = useSiteWords();
+	const said = cardWords(page.locale, undefined);
 	const { card } = why;
 	return (
 		<section class="s-wrap s-hero">
@@ -81,9 +83,11 @@ function Hero({
 				<div class="s-contrast-card s-contrast-raised">
 					<p class="s-contrast-label">{page.text("hero.olympiad.label")}</p>
 					<p class="s-contrast-text">{page.plain("task.question")}</p>
-					<pre class="s-drawing" dir="ltr">
-						{card.drawing}
-					</pre>
+					<Diagram
+						picture={card.picture}
+						label={said.text(`picture.${card.picture.kind}`)}
+						locale={said.locale}
+					/>
 					<p class="s-chips">
 						<span class="s-chip s-chip-right">
 							{page.text("hero.olympiad.answer", {

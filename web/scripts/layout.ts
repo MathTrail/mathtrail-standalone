@@ -5,8 +5,10 @@
 // engine of Safari and of every browser on an iPhone. A card fails when its
 // page scrolls sideways, when a part of it sticks out of the card, when text
 // runs out of the box it is set in, or when text a card is written to show
-// whole is cut short. The scenes are looked at again once a wait would have
-// been given up on. Every card in a language written right to left is
+// whole is cut short; and when a task's picture is wider than its room, or
+// writes a word past its edges, smaller than it was written or than 11 px, or
+// over another. The scenes are looked at again once a wait would have been
+// given up on. Every card in a language written right to left is
 // photographed, to be looked at.
 //
 //	node scripts/layout.ts [--engine chromium] [--language ar] [--width 320] [--shard 2/6]
@@ -33,6 +35,27 @@ export type Finding = {
 	where: string;
 	/** by is how many pixels too far. */
 	by: number;
+};
+
+/** Box is the room something takes on the screen: its edges. */
+export type Box = { left: number; top: number; right: number; bottom: number };
+
+/**
+ * PictureWord is one word of a task's picture as a browser draws it: what it
+ * says, the room it takes, the size the picture writes it at, and the size it
+ * comes out at on the screen.
+ */
+export type PictureWord = Box & { text: string; written: number; size: number };
+
+/**
+ * DrawnPicture is a task's picture as a browser draws it: what it is, the
+ * room it takes, the width it is given, and its words.
+ */
+export type DrawnPicture = {
+	where: string;
+	box: Box;
+	room: number;
+	words: PictureWord[];
 };
 
 /** Measured is what the card of one scene showed at one moment. */
@@ -83,13 +106,12 @@ function describe(element: Element): string {
 }
 
 // shownIn are the elements of the card a reader sees laid out: not what is
-// hidden from sight but read out, and not the drawing, which scrolls sideways
-// inside its own frame when it is wider than the card.
+// hidden from sight but read out.
 function shownIn(card: Element): HTMLElement[] {
 	return [...card.querySelectorAll<HTMLElement>("*")].filter((element) => {
 		const box = element.getBoundingClientRect();
 		return (
-			element.closest(".mt-vh, .mt-diagram, [hidden]") === null &&
+			element.closest(".mt-vh, [hidden]") === null &&
 			getComputedStyle(element).display !== "none" &&
 			(box.width > 0 || box.height > 0)
 		);
@@ -150,11 +172,134 @@ function findingsIn(): Finding[] {
 	return found;
 }
 
+// picturesIn are the pictures of the card of the page a reader sees, as they
+// are drawn: the room each takes, the width of the box it stands in, and each
+// of its words, with the size it is written at and the size the screen shows
+// it at.
+function picturesIn(): DrawnPicture[] {
+	const edgesOf = (rect: DOMRect) => ({
+		left: rect.left,
+		top: rect.top,
+		right: rect.right,
+		bottom: rect.bottom,
+	});
+	return [...document.querySelectorAll<SVGSVGElement>("svg.mt-picture")]
+		.filter(
+			(svg) =>
+				svg.closest(".mt-vh, [hidden]") === null &&
+				svg.getBoundingClientRect().width > 0,
+		)
+		.map((svg) => {
+			const scale = svg.getScreenCTM()?.a ?? 1;
+			const holder = svg.parentElement;
+			const style = holder === null ? undefined : getComputedStyle(holder);
+			const room =
+				holder === null || style === undefined
+					? svg.getBoundingClientRect().width
+					: holder.clientWidth -
+						Number.parseFloat(style.paddingLeft) -
+						Number.parseFloat(style.paddingRight);
+			return {
+				where: describe(svg),
+				box: edgesOf(svg.getBoundingClientRect()),
+				room,
+				words: [...svg.querySelectorAll("text")].map((text) => {
+					const written = Number(text.getAttribute("font-size"));
+					return {
+						text: text.textContent ?? "",
+						...edgesOf(text.getBoundingClientRect()),
+						written,
+						size: written * scale,
+					};
+				}),
+			};
+		});
+}
+
 // measuring is the expression a card's page evaluates to its findings.
 const measuring = `(() => {
 ${[describe, shownIn, outOfTheCard, outOfItsBox, findingsIn].join("\n")}
 return findingsIn();
 })()`;
+
+// picturing is the expression a card's page evaluates to its pictures.
+const picturing = `(() => {
+${[describe, picturesIn].join("\n")}
+return picturesIn();
+})()`;
+
+// smallest is the size below which a picture writes no word, but where its
+// drawing means to: the widest labels in a table or a grid of many columns.
+const smallest = 11;
+
+// near is how far, in pixels, a measure may be off before it counts.
+const near = 1;
+
+// wordOf names a word of a picture as a finding does.
+function wordOf(word: PictureWord): string {
+	return `text "${word.text}"`;
+}
+
+// overlapping says whether two boxes share more than a sliver of room.
+function overlapping(one: Box, other: Box): boolean {
+	return (
+		Math.min(one.right, other.right) - Math.max(one.left, other.left) > near &&
+		Math.min(one.bottom, other.bottom) - Math.max(one.top, other.top) > near
+	);
+}
+
+/**
+ * pictureFindings are the ways the pictures of a card do not fit: a picture
+ * wider than the box it stands in, a word that runs out of its picture, a
+ * word smaller on the screen than 11 px, or than the picture writes it where
+ * the picture means it smaller, and a word over another word.
+ */
+export function pictureFindings(pictures: readonly DrawnPicture[]): Finding[] {
+	return pictures.flatMap((picture) => {
+		const found: Finding[] = [];
+		const wider = picture.box.right - picture.box.left - picture.room;
+		if (wider > near) {
+			found.push({
+				what: "is wider than its box",
+				where: picture.where,
+				by: Math.round(wider),
+			});
+		}
+		for (const [at, word] of picture.words.entries()) {
+			const beyond = Math.max(
+				picture.box.left - word.left,
+				picture.box.top - word.top,
+				word.right - picture.box.right,
+				word.bottom - picture.box.bottom,
+			);
+			if (beyond > near) {
+				found.push({
+					what: "runs out of its picture",
+					where: wordOf(word),
+					by: Math.round(beyond),
+				});
+			}
+			const least = Math.min(smallest, word.written);
+			if (word.size < least - 0.05) {
+				found.push({
+					what: `is drawn smaller than ${least} px`,
+					where: wordOf(word),
+					by: Math.round((least - word.size) * 10) / 10,
+				});
+			}
+			for (const other of picture.words.slice(at + 1)) {
+				if (overlapping(word, other)) {
+					found.push({
+						what: `overlaps ${wordOf(other)}`,
+						where: wordOf(word),
+						by: near,
+					});
+				}
+			}
+		}
+		return found;
+	});
+}
 
 /**
  * allowed says whether a finding is how the card is meant to behave. A
@@ -216,9 +361,12 @@ async function measuredOn(page: Page, base: string, shown: Shown) {
 			});
 		});
 		for (const [at, card] of cards.entries()) {
-			const findings = (await card.frame.evaluate<Finding[]>(measuring)).filter(
-				(finding) => !allowed(finding),
-			);
+			const findings = [
+				...(await card.frame.evaluate<Finding[]>(measuring)),
+				...pictureFindings(
+					await card.frame.evaluate<DrawnPicture[]>(picturing),
+				),
+			].filter((finding) => !allowed(finding));
 			const scene = card.scene;
 			measured.push({ ...shown, scene, moment: moment.name, findings });
 			// Taking a picture hides the caret of a field, and leaves an empty

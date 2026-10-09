@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, test } from "vitest";
+import type { Picture } from "../src/design/picture/model.ts";
 import { scenesIn } from "../src/preview/scenes.ts";
 import { previewWidths } from "../src/preview/widths.ts";
 import { density } from "./drive.ts";
@@ -84,16 +85,20 @@ describe("the pictures of the listing in Claude's directory", () => {
 	// in full would show the count, which is the answer.
 	test("draw the task's row cut short in every picture of the task", () => {
 		const scenes = scenesIn("en");
-		const drawings = shots.flatMap((shot) => {
+		const pictures = shots.flatMap((shot) => {
 			const scene = scenes.find((found) => found.name === shot.scene);
-			const handed = scene?.payload as { task?: { drawing?: string } };
+			const handed = scene?.payload as { task?: { picture?: Picture } };
 			return handed?.task === undefined
 				? []
-				: [{ scene: shot.scene, drawing: handed.task.drawing }];
+				: [{ scene: shot.scene, picture: handed.task.picture }];
 		});
-		expect(drawings.length).toBeGreaterThan(0);
-		for (const { scene, drawing } of drawings) {
-			expect(drawing, scene).toContain(" ... ");
+		expect(pictures.length).toBeGreaterThan(0);
+		for (const { scene, picture } of pictures) {
+			expect(picture?.kind, scene).toBe("row");
+			const cut =
+				picture?.kind === "row" &&
+				picture.items.some((item) => item.skip === true);
+			expect(cut, scene).toBe(true);
 		}
 	});
 });

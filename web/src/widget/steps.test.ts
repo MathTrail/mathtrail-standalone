@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { stepsOf } from "./steps";
 import { fenceSolution, fenceSolutionInRussian } from "./testing/lesson";
+import { seeded } from "./testing/seeded";
 
 afterEach(() => {
 	vi.unstubAllGlobals();
@@ -162,18 +163,6 @@ describe("every reference solution", () => {
 		}
 	});
 });
-
-// seeded is a source of numbers from 0 to 1 that says the same every run: a
-// failure found once is found again.
-function seeded(seed: number): () => number {
-	let state = seed;
-	return () => {
-		state = (state + 0x6d2b79f5) | 0;
-		let mixed = Math.imul(state ^ (state >>> 15), 1 | state);
-		mixed = (mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed)) ^ mixed;
-		return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
-	};
-}
 
 // The pieces a solution a model writes is made of: words in several scripts,
 // numbers in several digits, operations, and every kind of stop and space.

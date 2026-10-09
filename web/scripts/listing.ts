@@ -25,22 +25,22 @@ export type Shot = { scene: string; theme: "light" | "dark"; file: string };
 
 /**
  * shots are the listing's pictures, in the order docs/listing.md gives their
- * prompts: a card past the trial series, with its row of posts cut short so
- * that no picture before the answer gives the count away.
+ * prompts: a card past the trial series, whose row of posts is drawn cut
+ * short, so that no picture before the answer gives the count away.
  */
 export const shots: readonly Shot[] = [
 	{
-		scene: "task after the trial series, its row cut short",
+		scene: "task after the trial series",
 		theme: "light",
 		file: "1-task-light",
 	},
 	{
-		scene: "hint after the trial series, its row cut short",
+		scene: "hint after the trial series",
 		theme: "dark",
 		file: "2-hint-dark",
 	},
 	{
-		scene: "wrong after the trial series, its row cut short",
+		scene: "wrong after the trial series",
 		theme: "light",
 		file: "3-wrong-light",
 	},

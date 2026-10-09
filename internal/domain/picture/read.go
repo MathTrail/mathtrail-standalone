@@ -74,6 +74,9 @@ var (
 		"+ − × ÷ = < > ( ) and spaces, at most %d characters long", MaxNoteCharacters)
 )
 
+// objectRule is what a member must be that holds members of its own.
+const objectRule = "must be an object"
+
 // label reads a member that is a label, and the empty text when it is left
 // out or is no label.
 func (o *object) label(name string, need bool) string {
@@ -227,7 +230,7 @@ func (o *object) objects(name string, least, most int, of string, need bool) []*
 		path := fmt.Sprintf("%s.%d", o.at(name), i)
 		members, isObject := item.(map[string]any)
 		if !isObject {
-			o.fault(path, "must be an object")
+			o.fault(path, objectRule)
 			continue
 		}
 		read[i] = o.object(path, members)
@@ -259,7 +262,7 @@ func (o *object) child(name string) *object {
 	}
 	members, isObject := value.(map[string]any)
 	if !isObject {
-		o.fault(o.at(name), "must be an object")
+		o.fault(o.at(name), objectRule)
 		return nil
 	}
 	return o.object(o.at(name), members)
@@ -276,7 +279,7 @@ func (o *object) keyed(name string) map[string]any {
 	}
 	entries, isObject := value.(map[string]any)
 	if !isObject {
-		o.fault(o.at(name), "must be an object")
+		o.fault(o.at(name), objectRule)
 		return nil
 	}
 	return entries
