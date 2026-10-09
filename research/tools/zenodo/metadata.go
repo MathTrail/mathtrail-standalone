@@ -45,7 +45,7 @@ type RelatedIdentifier struct {
 // ReadMetadata reads the record's description from a file, refusing a field
 // it does not know, and one a step sets itself.
 func ReadMetadata(path string) (Metadata, error) {
-	data, err := os.ReadFile(filepath.Clean(path))
+	data, err := os.ReadFile(filepath.Clean(path)) //nolint:gosec // G703: the description the operator named on the command line
 	if err != nil {
 		return Metadata{}, fmt.Errorf("the record's description: %w", err)
 	}

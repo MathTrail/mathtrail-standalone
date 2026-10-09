@@ -8,7 +8,7 @@ and so are the standard library and the runtime of the Go release that
 builds them, listed as std. Each line is a license, what it covers, and the
 text of that license at the exact version that is built.
 
-BSD-3-Clause  std                                            https://github.com/golang/go/blob/go1.27.1/LICENSE
+BSD-3-Clause  std                                            https://github.com/golang/go/blob/go1.27.2/LICENSE
 Apache-2.0    cloud.google.com/go/compute/metadata           https://github.com/googleapis/google-cloud-go/blob/compute/metadata/v0.10.0/compute/metadata/LICENSE
 MIT           github.com/cenkalti/backoff/v5                 https://github.com/cenkalti/backoff/blob/v5.0.3/LICENSE
 MIT           github.com/cespare/xxhash/v2                   https://github.com/cespare/xxhash/blob/v2.3.0/LICENSE.txt
@@ -77,7 +77,7 @@ MIT           go.uber.org/zap                                https://github.com/
 MIT           go.yaml.in/yaml/v3                             https://github.com/yaml/go-yaml/blob/v3.0.5/LICENSE
 BSD-3-Clause  go4.org/netipx                                 https://github.com/go4org/netipx/blob/fdeea329fbba/LICENSE
 BSD-3-Clause  golang.org/x/crypto                            https://cs.opensource.google/go/x/crypto/+/v0.57.0:LICENSE
-BSD-3-Clause  golang.org/x/net                               https://cs.opensource.google/go/x/net/+/v0.59.0:LICENSE
+BSD-3-Clause  golang.org/x/net                               https://cs.opensource.google/go/x/net/+/v0.60.0:LICENSE
 BSD-3-Clause  golang.org/x/oauth2                            https://cs.opensource.google/go/x/oauth2/+/v0.37.0:LICENSE
 BSD-3-Clause  golang.org/x/sync/errgroup                     https://cs.opensource.google/go/x/sync/+/v0.23.0:LICENSE
 BSD-3-Clause  golang.org/x/sys                               https://cs.opensource.google/go/x/sys/+/v0.48.0:LICENSE

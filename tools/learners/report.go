@@ -18,7 +18,7 @@ import (
 // the criterion as every rule meets it with the choice it comes to, and what
 // the run was. It returns the summary, for the command to print.
 func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design) (string, error) {
-	if err := os.MkdirAll(filepath.Clean(dir), 0o750); err != nil {
+	if err := os.MkdirAll(filepath.Clean(dir), 0o750); err != nil { //nolint:gosec // G703: the directory the operator named on the command line
 		return "", fmt.Errorf("learners: make the results directory: %w", err)
 	}
 	names := metricNames(ms)
@@ -56,7 +56,7 @@ func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design)
 }
 
 func writeCSV(path string, rows [][]string) error {
-	file, err := os.Create(filepath.Clean(path))
+	file, err := os.Create(filepath.Clean(path)) //nolint:gosec // G703: a path the tool chose itself or the operator named on the command line
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func writeCSV(path string, rows [][]string) error {
 
 // writeText writes a text into a file made as the tables are made.
 func writeText(path, text string) error {
-	file, err := os.Create(filepath.Clean(path))
+	file, err := os.Create(filepath.Clean(path)) //nolint:gosec // G703: a file under the directory the operator named on the command line
 	if err != nil {
 		return err
 	}
