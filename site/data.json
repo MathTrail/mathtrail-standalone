@@ -1050,7 +1050,22 @@
 			"choice": "B",
 			"rating": { "before": 1502, "wrong": 1480, "right": 1524 }
 		},
-		"traps": ["off_by_one", "missed_case", "double_count"]
+		"traps": ["off_by_one", "missed_case", "double_count"],
+		"pick": {
+			"skills": [
+				{ "topic": "combinatorics.enumeration", "share": 0.82 },
+				{ "topic": "counting.gaps", "share": 0.64 },
+				{ "topic": "parity.alternation", "share": 0.58 }
+			],
+			"chance": 0.72,
+			"corridor": { "low": 0.7, "high": 0.85 }
+		},
+		"alone": {
+			"options": { "A": "12", "B": "18", "C": "20" },
+			"right": ["A", "B"]
+		},
+		"languages": ["en", "ru", "es", "zh"],
+		"map": "logic.knights_liars"
 	},
 	"research": {
 		"sources": [

@@ -64,22 +64,33 @@
 	--s-accent-hover: #0842a0;
 	--s-accent-tint: #d3e3fd;
 	--s-on-tint: #041e49;
+	--s-accent-soft: #eef3fd;
 	--s-edge: #a9b6c8;
 	--s-line-soft: #dde3ea;
 	--s-dim: #9aa0a6;
+	--s-idle: #a8b0b9;
+	--s-quiet: #5f6368;
 	--s-soft: #f8fafd;
 	--s-trap: #ffdad6;
+	--s-trap-edge: #f2b8b5;
 	--s-on-trap: #8c1d18;
+	--s-wrong: #b3261e;
 	--s-right: #c4eed0;
 	--s-on-right: #0a3818;
 	--s-free: #e6f4ea;
 	--s-free-edge: #b7dfc3;
 	--s-on-free: #146c2e;
+	--s-laissez: #fdf3d0;
+	--s-laissez-edge: #efd98f;
+	--s-on-laissez: #6b5210;
+	--s-tea: #c8d6c0;
 	--s-phone: #1f1f1f;
 	--s-phone-edge: #44474b;
 	--s-phone-field: #eceff3;
 	--s-paper: #f4f2ec;
 	--s-on-paper: #6b6457;
+	--s-plain: #f6f5f2;
+	--s-plain-edge: #e6e3dd;
 	--s-wip: #fbf3dd;
 	--s-on-wip: #6b4e12;
 	--s-wip-dot: #c9982f;
@@ -1101,6 +1112,14 @@ a:hover {
 	border-color: var(--s-free-edge);
 	background: var(--s-free);
 	color: var(--s-on-free);
+}
+
+/* The chip that leaves the child to the task and the parent to the tea, lit
+   with a pale yellow. */
+.s-chip-laissez {
+	border-color: var(--s-laissez-edge);
+	background: var(--s-laissez);
+	color: var(--s-on-laissez);
 }
 
 /* The chip that leads to the code on GitHub: GitHub's mark before the words,
@@ -4753,8 +4772,9 @@ a:hover {
 	padding-block-end: 64px;
 }
 
-/* The home page. Its first screen: the buttons under the promise, and a line
-   under them on where it works. */
+/* The home page. Its first screen: how the task was picked under the promise,
+   the buttons under that, and a line under them for the parent, after a cup
+   of tea. */
 .s-hero-actions {
 	justify-content: flex-start;
 	margin: 0;
@@ -4764,6 +4784,194 @@ a:hover {
 	margin: 0;
 	color: var(--s-muted);
 	font-size: 0.9375rem;
+}
+
+.s-tea {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+}
+
+/* The cup: a bowl rounder at the bottom, and its handle on the side a line
+   ends on. */
+.s-cup {
+	position: relative;
+	flex: none;
+	inline-size: 15px;
+	block-size: 11px;
+	border-radius: 2px 2px 7px 7px;
+	background: var(--s-tea);
+}
+
+.s-cup::after {
+	position: absolute;
+	inset-block-start: 2px;
+	inset-inline-end: -6px;
+	inline-size: 5px;
+	block-size: 5px;
+	border: 2px solid var(--s-tea);
+	border-inline-start: 0;
+	border-start-end-radius: 4px;
+	border-end-end-radius: 4px;
+	content: "";
+}
+
+/* How the task was picked: a pale panel under its title, the child's topics
+   in one column and why this one in the other, side by side where both fit
+   and one under the other where they do not. A topic's bar is grey and the
+   picked one's blue; the chance stands as a mark on a bar where its corridor
+   is green. */
+.s-pick {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	max-inline-size: 600px;
+	margin: 0;
+	padding-block: var(--space-16);
+	padding-inline: 18px;
+	border: 1px solid var(--s-line);
+	border-radius: 18px;
+	background: var(--s-soft);
+}
+
+.s-pick-title {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	margin: 0;
+	color: var(--s-text);
+	font-size: 0.9375rem;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.s-pick-mark {
+	flex: none;
+	color: var(--s-accent);
+}
+
+.s-pick-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: var(--space-16) 28px;
+}
+
+.s-pick-column {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	min-inline-size: 0;
+}
+
+.s-pick-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-8);
+	margin: 0;
+	color: var(--s-accent-hover);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.s-pick-head::before {
+	inline-size: 7px;
+	block-size: 7px;
+	border-radius: 50%;
+	background: var(--s-accent);
+	content: "";
+}
+
+.s-pick-auto {
+	padding-block: 1px;
+	padding-inline: var(--space-8);
+	border-radius: var(--radius-pill);
+	background: var(--s-right);
+	color: var(--s-on-right);
+	font-size: 0.65625rem;
+	font-weight: 700;
+	line-height: 16px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.s-pick-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-pick-skill {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	line-height: 1.4;
+}
+
+.s-pick-skill[aria-current] {
+	color: var(--s-text);
+	font-weight: 600;
+}
+
+.s-pick-bar {
+	display: block;
+	block-size: 6px;
+	overflow: hidden;
+	border-radius: 3px;
+	background: var(--s-tech);
+}
+
+.s-pick-bar > span {
+	display: block;
+	block-size: 100%;
+	border-radius: 3px;
+	background: var(--s-idle);
+}
+
+.s-pick-skill[aria-current] .s-pick-bar > span {
+	background: var(--s-accent);
+}
+
+.s-pick-zone {
+	position: relative;
+	display: block;
+	block-size: 8px;
+	margin-block: var(--space-4) 2px;
+	border-radius: 4px;
+	background: var(--s-tech);
+}
+
+.s-pick-corridor {
+	position: absolute;
+	inset-block: 0;
+	border-radius: 2px;
+	background: var(--s-right);
+}
+
+.s-pick-chance {
+	position: absolute;
+	inset-block-start: -3px;
+	inline-size: 2px;
+	block-size: 14px;
+	border-radius: 1px;
+	background: var(--s-text);
+}
+
+.s-pick-reasons {
+	color: var(--s-quiet);
+	font-size: 0.8125rem;
+	line-height: 1.45;
+}
+
+.s-pick-reasons strong {
+	color: var(--s-text);
+	font-weight: 600;
 }
 
 /* The line over a section's heading that says what part of the page it is. */
@@ -5199,6 +5407,417 @@ a:hover {
 	.s-walk-stage > .s-walk-card {
 		transition: none;
 	}
+}
+
+/* Why not just ask the chat: the words beside a chat asked alone, one under
+   the other on a narrow screen; the chat alone against the chat with
+   MathTrail, side by side where both fit; then three tinted tiles, and under
+   a smaller heading three white ones. A tile rises a little when pointed at,
+   and stays put for a reader who asks for less motion. */
+.s-why-head {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	align-items: center;
+	gap: var(--space-32) var(--space-64);
+}
+
+@media (min-width: 960px) {
+	.s-why-head {
+		grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+	}
+
+	.s-why-head .s-alone {
+		justify-self: end;
+	}
+}
+
+/* The chat alone: a white window under a grey bar with its name, the parent's
+   message at the end of the line and the chat's task at its start, the right
+   options ringed in red, and a red flag under them. */
+.s-alone {
+	inline-size: 100%;
+	max-inline-size: 380px;
+	margin: 0;
+	overflow: hidden;
+	border: 1px solid var(--s-line);
+	border-radius: 24px;
+	background: var(--s-page);
+	box-shadow:
+		0 1px 2px rgb(60 64 67 / 6%),
+		0 16px 40px rgb(60 64 67 / 12%);
+}
+
+.s-alone-bar {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	padding-block: var(--space-12);
+	padding-inline: var(--space-16);
+	border-block-end: 1px solid var(--s-plain-edge);
+	background: var(--s-plain);
+	color: var(--s-quiet);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-alone-bar::before {
+	inline-size: 8px;
+	block-size: 8px;
+	border-radius: 50%;
+	background: var(--s-idle);
+	content: "";
+}
+
+.s-alone-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	padding: var(--space-16);
+	font-size: 0.875rem;
+	line-height: 1.43;
+}
+
+.s-alone-ask {
+	align-self: flex-end;
+	margin: 0;
+	padding-block: var(--space-8);
+	padding-inline: 14px;
+	border-radius: 18px;
+	border-end-end-radius: 4px;
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-alone-task {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-self: flex-start;
+	max-inline-size: 92%;
+	padding-block: var(--space-12);
+	padding-inline: 14px;
+	border-radius: 18px;
+	border-start-start-radius: 4px;
+	background: var(--s-tint);
+	color: var(--s-text);
+}
+
+.s-alone-task p {
+	margin: 0;
+}
+
+.s-alone-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-8);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-alone-options li {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding-block: var(--space-4);
+	padding-inline: 10px;
+	border: 1px solid var(--s-line-soft);
+	border-radius: 10px;
+	background: var(--s-page);
+}
+
+.s-alone-options b {
+	color: var(--s-outline);
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+.s-alone-options li[data-right] {
+	border-color: var(--s-wrong);
+	box-shadow: 0 0 0 1px var(--s-wrong);
+}
+
+.s-alone-flag {
+	align-self: flex-start;
+	margin: 0;
+	padding-block: 5px;
+	padding-inline: var(--space-12);
+	border-radius: var(--radius-pill);
+	background: var(--s-trap);
+	color: var(--s-on-trap);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+/* Point against point: the chat alone on warm grey, its points crossed in
+   red, and the chat with MathTrail on white under a blue edge, its points
+   ticked in green; a faint line between two points. */
+.s-versus {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+	gap: var(--space-16);
+	margin-block: var(--space-64) var(--space-24);
+}
+
+.s-versus-side {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding-block: var(--space-24);
+	padding-inline: 26px;
+	border-radius: 28px;
+}
+
+.s-versus-alone {
+	border: 1px solid var(--s-plain-edge);
+	background: var(--s-plain);
+}
+
+.s-versus-ours {
+	border: 1.5px solid var(--s-bar-more);
+	background: var(--s-page);
+	box-shadow:
+		0 1px 2px rgb(60 64 67 / 6%),
+		0 12px 32px rgb(11 87 208 / 10%);
+}
+
+.s-versus-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-8) var(--space-12);
+	margin: 0;
+}
+
+.s-versus-tag {
+	padding-block: var(--space-4);
+	padding-inline: var(--space-12);
+	border-radius: var(--radius-pill);
+	background: var(--s-plain-edge);
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.s-versus-ours .s-versus-tag {
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-versus-ask {
+	color: var(--s-quiet);
+	font-size: 0.875rem;
+	line-height: 1.43;
+}
+
+.s-versus-points {
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-versus-points li {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-12);
+	padding-block: var(--space-12);
+	border-block-start: 1px solid rgb(0 0 0 / 6%);
+	font-size: 1rem;
+	line-height: 1.5;
+}
+
+.s-versus-points li:first-child {
+	padding-block-start: var(--space-4);
+	border-block-start: 0;
+}
+
+.s-versus-alone .s-versus-points li {
+	color: var(--s-quiet);
+}
+
+.s-versus-mark {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 24px;
+	block-size: 24px;
+	border-radius: 50%;
+	background: var(--s-trap);
+	color: var(--s-wrong);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.s-versus-ours .s-versus-mark {
+	background: var(--s-right);
+	color: var(--s-on-free);
+}
+
+/* The tiles: three in a row on a wide screen, one under another on a narrow
+   one; a tile's mark in a white square and its number in blue over its
+   heading, and the short things that show what it says at its foot. */
+.s-why-tiles {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--space-24);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+@media (min-width: 960px) {
+	.s-why-tiles {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+.s-why-tile {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 26px;
+	border-radius: 28px;
+	background: var(--s-tint);
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+.s-why-tile:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 12px 28px rgb(60 64 67 / 12%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.s-why-tile {
+		transition: none;
+	}
+
+	.s-why-tile:hover {
+		transform: none;
+	}
+}
+
+.s-why-tile h3,
+.s-why-tile h4 {
+	margin: 0;
+	font-size: 1.0625rem;
+	font-weight: 600;
+	line-height: 1.65;
+}
+
+.s-why-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.s-why-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 44px;
+	block-size: 44px;
+	border-radius: 14px;
+	background: var(--s-page);
+	color: var(--s-accent);
+}
+
+.s-why-number {
+	color: var(--s-accent);
+	font-size: 0.9375rem;
+	font-weight: 600;
+}
+
+.s-why-text {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 1.0625rem;
+	line-height: 1.65;
+}
+
+.s-why-mini {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0;
+	margin-block-start: auto;
+	padding-block-start: 6px;
+}
+
+.s-mini,
+.s-mini-said {
+	padding-block: 3px;
+	padding-inline: 10px;
+	font-size: 0.78125rem;
+	line-height: 18px;
+}
+
+.s-mini {
+	border: 1px solid var(--s-line-soft);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-muted);
+}
+
+.s-mini-trap {
+	border-color: var(--s-trap-edge);
+	background: var(--s-trap);
+	color: var(--s-on-trap);
+}
+
+.s-mini-topic {
+	border-color: var(--s-bar-more);
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+	font-weight: 600;
+}
+
+.s-mini-formula {
+	border-color: var(--s-text);
+	background: var(--s-text);
+	color: var(--s-right);
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+}
+
+/* What the parent says, as the chat sets the parent's message. */
+.s-mini-said {
+	border-radius: 12px;
+	border-end-end-radius: 4px;
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+/* The arrow between two short things points the way a language reads, or
+   back, which a language written from right to left turns round. */
+.s-mini-arrow {
+	display: inline-block;
+	align-self: center;
+	transform: scaleX(var(--s-reading, 1));
+	color: var(--s-outline);
+	font-size: 0.8125rem;
+}
+
+.s-why-band {
+	margin-block: 48px 20px;
+	font-size: 1.375rem;
+	font-weight: 500;
+	line-height: 1.27;
+	letter-spacing: -0.01em;
+}
+
+.s-why-tiles-plain .s-why-tile {
+	border: 1px solid var(--s-line);
+	background: var(--s-page);
+}
+
+.s-why-tiles-plain .s-why-icon {
+	background: var(--s-accent-soft);
 }
 
 /* Connecting: Claude's steps on a tinted panel, and ChatGPT's on a white one

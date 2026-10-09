@@ -1,9 +1,8 @@
 import type { ComponentChildren } from "preact";
 import { type DemoData, DemoDataScript } from "../demo/data";
-import { cardWords, dictionaries } from "../widget/dictionaries";
+import { dictionaries } from "../widget/dictionaries";
 import type { Section } from "../widget/folds";
 import { lessonStart } from "../widget/lesson";
-import { trapName } from "../widget/names";
 import type { HandedTask, ProgressReport } from "../widget/payload";
 import { sectionAddress } from "./addresses";
 import {
@@ -26,6 +25,8 @@ import {
 	homeTaskOf,
 	lessonSection,
 } from "./home";
+import { Pick } from "./HomePick";
+import { Why } from "./HomeWhy";
 import { Phone } from "./Phone";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
@@ -50,11 +51,12 @@ const progressOpen: ReadonlySet<Section> = new Set(["topics", "mistakes"]);
 const demoScript = "/assets/demo.js";
 
 /**
- * HomePage is the site's front page, for a parent: what MathTrail is, beside
- * the card of a task as a chat draws it, in a phone; why asking the chat
- * alone is not enough; how a lesson goes, step by step, each step beside the
- * card as it stands at that step; how to connect MathTrail; and a last call
- * to start. Every card is drawn when the site is built, and the page reads in
+ * HomePage is the site's front page, for a parent: what MathTrail is and how
+ * it picked the task, beside the card of that task as a chat draws it, in a
+ * phone; how a lesson goes, step by step, each step beside the card as it
+ * stands at that step; why asking the chat alone is not enough; how to
+ * connect MathTrail; and a last call to start. Every card is drawn when the
+ * site is built, and the page reads in
  * full as it is drawn. Its demo, when it runs, brings the card on the first
  * screen alive and, on a wide window, moves the chat in the phone with the
  * page's scroll; it gives the steps one card on a wide window and the
@@ -77,14 +79,15 @@ export function HomePage({ page, data }: PageProps) {
 				page={page}
 				grades={gradesOfAll(data.topics)}
 				handed={lesson.handed}
+				home={home}
 			/>
-			<Pillars page={page} home={home} />
 			<Steps
 				page={page}
 				home={home}
 				lesson={lesson}
 				progress={progressOf(data, lesson.handed.child.pseudonym)}
 			/>
+			<Why page={page} home={home} />
 			<Connect page={page} />
 			<Ask page={page} />
 			<DemoDataScript data={demoOf(page, lesson)} />
@@ -142,19 +145,22 @@ function lessonOf(page: PageReader, home: Home): LessonCards {
 	};
 }
 
-// Hero is the first screen: what MathTrail is and for which grades, the way to
-// add it and the way to see a lesson first, where it works, and beside them
-// the card of a task as a chat draws it once the task has arrived, in a phone.
+// Hero is the first screen: what MathTrail is and for which grades, how it
+// picked the task on the card, the way to add it and the way to see a lesson
+// first, and a line for the parent while the child solves; beside them the
+// card of that task as a chat draws it once the task has arrived, in a phone.
 // The track around it is the room the page's scroll runs through while the
 // demo holds the first screen in place and moves the chat in the phone.
 function Hero({
 	page,
 	grades,
 	handed,
+	home,
 }: {
 	page: PageReader;
 	grades: readonly [number, number];
 	handed: HandedTask;
+	home: Home;
 }) {
 	const words = useSiteWords();
 	return (
@@ -165,6 +171,9 @@ function Hero({
 						<span class="s-chip s-chip-free">{page.text("hero.free")}</span>
 						<SourceChip label={page.text("hero.open")} />
 						<span class="s-chip">{gradesText(words, grades)}</span>
+						<span class="s-chip s-chip-laissez" lang="fr">
+							{page.text("hero.laissez")}
+						</span>
 					</p>
 					<h1>{page.text("hero.title")}</h1>
 					<p class="s-lead">
@@ -172,6 +181,7 @@ function Hero({
 							range: gradesRange(page.locale, grades),
 						})}
 					</p>
+					<Pick page={page} pick={home.pick} picked={home.card.topic} />
 					<p class="s-choices s-hero-actions">
 						<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
 							{words.text("nav.add")}
@@ -183,7 +193,10 @@ function Hero({
 							{page.text("hero.see")}
 						</a>
 					</p>
-					<p class="s-hero-note">{page.text("hero.note")}</p>
+					<p class="s-hero-note s-tea">
+						<span class="s-cup" aria-hidden="true" />
+						{page.text("hero.note")}
+					</p>
 				</div>
 				<figure class="s-hero-card s-hero-phone">
 					<Phone>
@@ -217,41 +230,6 @@ function Chat({
 		<ChatFrame title={page.text("chat.title")} ask={page.text(ask)}>
 			{children}
 		</ChatFrame>
-	);
-}
-
-// Pillars are why asking the chat alone is not enough, and what MathTrail puts
-// behind the chat's model, pillar by pillar. The traps a pillar names are the
-// catalog's, under the names the card gives them.
-function Pillars({ page, home }: { page: PageReader; home: Home }) {
-	const card = cardWords(page.locale, undefined);
-	const [first, second, third] = home.traps;
-	const traps = {
-		first: trapName(card, first),
-		second: trapName(card, second),
-		third: trapName(card, third),
-	};
-	const numbers = new Intl.NumberFormat(page.locale, {
-		minimumIntegerDigits: 2,
-	});
-	return (
-		<section class="s-wrap s-section">
-			<div class="s-intro">
-				<h2>{page.text("pillars.title")}</h2>
-				<p class="s-intro-line">{page.text("pillars.lead")}</p>
-			</div>
-			<ol class="s-tiles">
-				{page.list("pillars.items").map((key, at) => (
-					<li key={key} class="s-tile">
-						<span class="s-tip-number" aria-hidden="true">
-							{numbers.format(at + 1)}
-						</span>
-						<h3>{page.text(`${key}.title`)}</h3>
-						<p class="s-tile-text">{page.text(`${key}.text`, traps)}</p>
-					</li>
-				))}
-			</ol>
-		</section>
 	);
 }
 
