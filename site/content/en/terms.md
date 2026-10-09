@@ -5,7 +5,7 @@ description: What MathTrail promises, what it deliberately does not promise, and
 
 # Terms of use
 
-Last updated: 6 October 2026.
+Last updated: 9 October 2026.
 
 By adding MathTrail to your chat you accept what is written here. If you do not, do not add it. Questions go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com), and how to connect it and what to do when something looks wrong is on the [help page](../help/).
 
@@ -29,9 +29,9 @@ Every task is written by the chat's own model and then checked by a program befo
 - a solver program reproduces that answer by brute force;
 - the wording is readable for the grade;
 - the task is not a near-duplicate of an earlier one;
-- any text drawing follows the required format.
+- any picture follows the required format, is labelled as the question names it, and has no answer written on it.
 
-Whether the wording, the drawing and the solution agree **in meaning** is checked by the model itself, not by the program. So MathTrail does not promise that every task is flawless, and you should not treat it as a source of authoritative answers. If a task looks wrong, it may be wrong — tell us.
+Whether the wording, the picture and the solution agree **in meaning**, and whether a picture gives the answer away some other way, is checked by the model itself, not by the program. So MathTrail does not promise that every task is flawless, and you should not treat it as a source of authoritative answers. If a task looks wrong, it may be wrong — tell us.
 
 ## Availability
 

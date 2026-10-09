@@ -4,20 +4,20 @@ Everything an application for MathTrail draws on, in one place: what the product
 
 ## MathTrail in brief
 
-As of 5 October 2026.
+As of 9 October 2026.
 
 - **What it is.** A free, open-source (MIT) app of olympiad-style maths for children in grades 1–6, used inside Claude and ChatGPT as an MCP app. An adult, a parent or a tutor, runs the lesson in their own chat, and the child answers on a card in it.
 - **How a lesson works.**
   - The service picks the topic and the difficulty by a deterministic rule from the child's ratings: a learner model of the Elo and IRT family keeps practice in a band of likely success.
   - The chat's own model writes each task from the brief and reference examples the service hands it.
-  - The service checks every task before the child sees it: its structure, a solver program that tries every option, the model's own check, readability, near-duplicates of earlier tasks, and the text drawing.
+  - The service checks every task before the child sees it: its structure, a solver program that tries every option, the model's own check, readability, near-duplicates of earlier tasks, and the picture, where the task has one.
   - The card shows the task without the answer, which stays sealed until the child answers, and the hint comes only when asked for.
   - A wrong answer is explained from the trap behind the option chosen, the mistake of reasoning it stands for. A topic counts as mastered cautiously, and the mastery can be taken back.
 - **The child's data.** The child is known by a pseudonym alone. The profile is one file in the adult's own Google Drive, and the service keeps no database. The counts kept for grant applications hold no identifier ([privacy policy](https://mathtrail.app/en/privacy/), [data inventory](data-inventory.md)).
 - **Schools.** A pilot in a school means families using MathTrail at home on the school's recommendation: the school hands over no student data and receives none, and the free app has no school or class accounts.
 - **Content.** 603 reference tasks in 17 topics, each with a worked solution and every wrong option labelled with one of 20 catalogued traps; 33 solver programs in Starlark; 25 skills.
 - **Reach.** The card speaks 22 languages, the site English and Russian.
-- **Status.** Live since the first release, v0.1.0, on 22 September 2026; the current release is v0.3.0, of 5 October 2026. The service answers at `mcp.mathtrail.app` and the site is [mathtrail.app](https://mathtrail.app). Use has been counted since 4 October 2026, and the first month with public numbers can be November 2026.
+- **Status.** Live since the first release, v0.1.0, on 22 September 2026; the release the service runs is v0.4.4, of 9 October 2026. The service answers at `mcp.mathtrail.app` and the site is [mathtrail.app](https://mathtrail.app). Use has been counted since 4 October 2026, and the first month with public numbers can be November 2026.
 - **Public goods.** The code, the reference tasks with their solvers and trap labels, and the SQL of the views that publish the counts, all under MIT; and the public report of the counts, once it is published.
 - **Contact.** [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
 

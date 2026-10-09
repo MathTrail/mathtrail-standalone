@@ -3,12 +3,14 @@ import { type Drawn, Label, Plate, r1, sizes, towards } from "./shapes";
 import { widthOf, written } from "./text";
 
 // The face, in the card's pixels: its middle, its rim, the ring its numbers
-// stand on, and how long its hands are.
+// stand on, and how long its hands are. The minute hand stops short of the
+// numbers, with room between its tip and each of them at every minute: the
+// two digits of 10, which it points across at ten to the hour, come nearest.
 const middle = 100;
 const rim = 94;
 const numerals = 72;
 const hourHand = 46;
-const minuteHand = 66;
+const minuteHand = 56;
 const hourWidth = 6;
 const minuteWidth = 3.5;
 // handLabelAside is how far a hand's label stands from its hand.

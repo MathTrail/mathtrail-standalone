@@ -26,7 +26,7 @@ The active ingredients, each a decision of the product's design:
 |---|---|---|
 | C1 | A learner model of the Elo and IRT family holds practice in a band of likely success, neither so easy that it teaches little nor so hard that the child gives up | S1 |
 | C2 | Olympiad-style problems with five options, every wrong option a catalogued trap: a mistake of reasoning, named | No work read yet (see [sources](sources.md#waiting-for-a-copy)) |
-| C3 | A program checks every problem the chat's model writes before the child sees it: its structure, a solver that tries every option, the model's own check, readability, near-duplicates and the drawing | S2, S3 |
+| C3 | A program checks every problem the chat's model writes before the child sees it: its structure, a solver that tries every option, the model's own check, readability, near-duplicates and the picture | S2, S3 |
 | C4 | The answer stays sealed until the child answers, and a hint comes only when asked for | S3 |
 | C5 | Right after a wrong answer, the explanation starts from the trap behind the option chosen, and then goes through the solution | S4, S3 |
 | C6 | A topic counts as mastered cautiously, from an estimate, and the mastery can be taken back | S5 |

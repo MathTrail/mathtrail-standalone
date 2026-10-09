@@ -1,6 +1,6 @@
 # The home page, for a parent: what MathTrail is, why not just ask the chat,
 # how a lesson goes — the card of the widget at every step — and how to
-# connect. The grades, the names of the traps, the card's drawing, options and
+# connect. The grades, the names of the traps, the card's picture, options and
 # rating, the connector's address and the card's own words are not here: they
 # are the catalog's numbers, the site's data, the widget's words and the
 # site's own.
@@ -32,7 +32,7 @@ pillars:
     - title: Задачи не кончаются.
       text: Каждая задача пишется заново под тему, сложность, интересы и ошибки вашего ребёнка и на языке вашего чата, а не берётся из готового банка на одном языке.
     - title: Программа проверяет модель.
-      text: "Задача доходит до ребёнка, только если прошла все проверки: верный вариант ровно один, решатель перебрал все случаи и подтвердил ответ, текст по силам классу, задача не повторяет прежние, а текстовый рисунок оформлен правильно."
+      text: "Задача доходит до ребёнка, только если прошла все проверки: верный вариант ровно один, решатель перебрал все случаи и подтвердил ответ, текст по силам классу, задача не повторяет прежние, а картинка, если она есть, оформлена правильно: подписи на ней те же, что в условии, и ответ на ней не написан."
     - title: Ошибка — это диагноз.
       # The traps are the catalog's, under the names the card gives them.
       text: За каждым неверным вариантом стоит названная ловушка, например «{first}», «{second}» или «{third}». Объяснение начинается с того, как рассуждал ребёнок, а не с правильного ответа.

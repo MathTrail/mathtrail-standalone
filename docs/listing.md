@@ -37,7 +37,7 @@ The description, at most 2,000 characters. Anthropic does not edit it; after pub
 ```text claude-description
 MathTrail is for parents and tutors who want to give a child in grades 1 to 6 olympiad-style maths: tasks that ask for an idea rather than a drill.
 
-How a lesson goes. You ask Claude for a task. Claude writes it, and MathTrail checks it with a program before your child sees it: exactly one of the five options is right, a solver that tries every case reproduces the answer, the wording suits the grade, the task is not a near copy of an earlier one, and any text drawing is well formed. The task then appears on a card, and your child, sitting beside you, answers by tapping an option. Whether the wording and the solution agree in meaning is checked by Claude itself.
+How a lesson goes. You ask Claude for a task. Claude writes it, and MathTrail checks it with a program before your child sees it: exactly one of the five options is right, a solver that tries every case reproduces the answer, the wording suits the grade, the task is not a near copy of an earlier one, and any picture is well formed, labelled as the question names it and has no answer written on it. The task then appears on a card, and your child, sitting beside you, answers by tapping an option. Whether the wording, the picture and the solution agree in meaning is checked by Claude itself.
 
 After an answer. A wrong answer is explained from the mistake behind it, then step by step. The first five tasks find where your child stands; after them, MathTrail chooses each task's topic and difficulty from the answers. Ask how your child is doing to see the rank in each topic, what moved over the past week, the mistakes that repeat and what to practise next.
 

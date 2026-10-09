@@ -44,7 +44,7 @@ theses:
     title: The answer is sealed
     text: The answer, the solution, the explanations and the solver are encrypted and kept in the child's profile in the parent's Google Drive. Until the child answers, they are in nothing the service hands the card or the chat's model, and in none of its logs.
     sees: What the child sees
-    seen: the question · the drawing · the options · the hint
+    seen: the question · the picture · the options · the hint
     hidden: Sealed until the answer
     kept: the answer · the solution · the explanations
     cipher: XChaCha20-Poly1305 · bound to the child and the task
