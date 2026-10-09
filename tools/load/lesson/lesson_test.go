@@ -296,7 +296,8 @@ func TestNoWrittenTaskIsANearCopyOfAnotherOrOfAReferenceTask(t *testing.T) {
 }
 
 // Every written task is handed in as the model writes one: the parts of the
-// task under the names the service reads them by.
+// task under the names the service reads them by, the picture of the first
+// among them.
 func TestAWrittenTaskIsHandedInUnderTheNamesTheServiceReads(t *testing.T) {
 	t.Parallel()
 
@@ -309,7 +310,7 @@ func TestAWrittenTaskIsHandedInUnderTheNamesTheServiceReads(t *testing.T) {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
 	for _, name := range []string{
-		"core_idea", "question", "options", "correct_answer", "hint", "solution", "distractors",
+		"core_idea", "question", "picture", "options", "correct_answer", "hint", "solution", "distractors",
 	} {
 		if _, found := parts[name]; !found {
 			t.Errorf("the task carries no %q: %s", name, written)

@@ -106,6 +106,29 @@ func parse(raw []byte, chain map[int]migration) (*Profile, error) {
 	return &p, nil
 }
 
+// inOrder is a picture's description with the keys of every object in order,
+// as the file writes the rest of itself, and its numbers as they were written;
+// none stays none. The profile never reads the picture, and keeps it as it
+// came but for the order of its keys.
+func inOrder(picture json.RawMessage) (json.RawMessage, error) {
+	if len(bytes.TrimSpace(picture)) == 0 {
+		return nil, nil
+	}
+	decoder := json.NewDecoder(bytes.NewReader(picture))
+	decoder.UseNumber()
+	var value any
+	if err := decoder.Decode(&value); err != nil {
+		return nil, fmt.Errorf("profile: read the picture: %w", err)
+	}
+	var out bytes.Buffer
+	encoder := json.NewEncoder(&out)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(value); err != nil {
+		return nil, fmt.Errorf("profile: write the picture: %w", err)
+	}
+	return bytes.TrimRight(out.Bytes(), "\n"), nil
+}
+
 // MaxSize is the most a profile may be as a file. A store reads no more than
 // this back, so none is ever written larger: a file the store could not read
 // again would be taken for damage and rolled back. The caps keep a profile far

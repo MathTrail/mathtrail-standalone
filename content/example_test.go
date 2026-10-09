@@ -140,104 +140,19 @@ func TestBrokenReferenceTaskStopsTheService(t *testing.T) {
 			want: `trap "forgot_a_case", which is not in the catalog`,
 		},
 		{
-			name:   "a drawing nothing describes",
-			change: func(task *Example) { task.Drawing = "o--o--o--o" },
-			want:   "a drawing without its structure cannot be checked against the wording",
+			name:   "a picture of no kind the format has",
+			change: func(task *Example) { task.Picture = json.RawMessage(`{"kind":"star"}`) },
+			want:   "picture.kind is no kind of picture",
 		},
 		{
-			name: "a description of a drawing that is not there",
-			change: func(task *Example) {
-				task.DrawingStructure = &DrawingStructure{
-					Kind:    "number_line",
-					Objects: []DrawingObject{{ID: "A", Label: "A"}},
-				}
-			},
-			want: "a drawing structure describes a drawing, and there is none",
+			name:   "a picture past its kind's limits",
+			change: func(task *Example) { task.Picture = json.RawMessage(`{"kind":"ring","count":30}`) },
+			want:   "picture.count must be a whole number from 3 to 24",
 		},
 		{
-			name: "a drawing that does not say what it draws",
-			change: func(task *Example) {
-				task.Drawing = "o--o"
-				task.DrawingStructure = &DrawingStructure{Objects: []DrawingObject{{ID: "A", Label: "A"}}}
-			},
-			want: "the drawing structure does not say what is drawn",
-		},
-		{
-			name: "a drawing that names nothing in it",
-			change: func(task *Example) {
-				task.Drawing = "o--o"
-				task.DrawingStructure = &DrawingStructure{Kind: "number_line"}
-			},
-			want: "the drawing structure names nothing that is drawn",
-		},
-		{
-			name: "the same drawn object twice",
-			change: func(task *Example) {
-				task.Drawing = "o--o"
-				task.DrawingStructure = &DrawingStructure{
-					Kind:    "number_line",
-					Objects: []DrawingObject{{ID: "A", Label: "A"}, {ID: "A", Label: "B"}},
-				}
-			},
-			want: `drawn object "A" appears twice`,
-		},
-		{
-			name: "a drawn object with no id",
-			change: func(task *Example) {
-				task.Drawing = "o--o"
-				task.DrawingStructure = &DrawingStructure{
-					Kind:    "number_line",
-					Objects: []DrawingObject{{Label: "A"}},
-				}
-			},
-			want: "drawn object 1 has no id",
-		},
-		{
-			name: "a drawn object with no label to look for",
-			change: func(task *Example) {
-				task.Drawing = "o--o"
-				task.DrawingStructure = &DrawingStructure{
-					Kind:    "number_line",
-					Objects: []DrawingObject{{ID: "A"}},
-				}
-			},
-			want: "drawn object 1 has no label",
-		},
-		{
-			name: "a relation that is not a triple",
-			change: func(task *Example) {
-				task.Drawing = "o--o"
-				task.DrawingStructure = &DrawingStructure{
-					Kind:      "number_line",
-					Objects:   []DrawingObject{{ID: "A", Label: "A"}},
-					Relations: []DrawingRelation{{Type: "left_of", From: "A"}},
-				}
-			},
-			want: "relation 1 is not a type, a from and a to",
-		},
-		{
-			name: "a relation that starts at something nobody drew",
-			change: func(task *Example) {
-				task.Drawing = "o--o"
-				task.DrawingStructure = &DrawingStructure{
-					Kind:      "number_line",
-					Objects:   []DrawingObject{{ID: "A", Label: "A"}},
-					Relations: []DrawingRelation{{Type: "left_of", From: "Z", To: "A"}},
-				}
-			},
-			want: `relation 1 starts at "Z", which is not drawn`,
-		},
-		{
-			name: "a relation that ends at something nobody drew",
-			change: func(task *Example) {
-				task.Drawing = "o--o"
-				task.DrawingStructure = &DrawingStructure{
-					Kind:      "number_line",
-					Objects:   []DrawingObject{{ID: "A", Label: "A"}},
-					Relations: []DrawingRelation{{Type: "left_of", From: "A", To: "B"}},
-				}
-			},
-			want: `relation 1 ends at "B", which is not drawn`,
+			name:   "a picture that is no description",
+			change: func(task *Example) { task.Picture = json.RawMessage(`"o--o--o"`) },
+			want:   "picture must be an object",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -310,38 +225,19 @@ func TestATaskWithAFieldTheFormatDoesNotHaveStopsTheService(t *testing.T) {
 	wantProblem(t, src, `unknown field "answer"`)
 }
 
-// The branch that copies a drawing is the deepest thing in a reference task: a
-// pointer, two slices and a value behind a pointer of its own.
-func TestCloningATaskCopiesItsDrawing(t *testing.T) {
+// A reference task's picture is copied with the task, so that what a caller
+// rewrites of its copy never reaches the content.
+func TestCloningATaskCopiesItsPicture(t *testing.T) {
 	t.Parallel()
 
-	value := 3
 	original := validExample()
-	original.Drawing = "A--B"
-	original.DrawingStructure = &DrawingStructure{
-		Kind:      "number_line",
-		Objects:   []DrawingObject{{ID: "A", Label: "A", Value: &value}},
-		Relations: []DrawingRelation{{Type: "left_of", From: "A", To: "B"}},
-	}
+	original.Picture = json.RawMessage(`{"kind":"ring","count":9}`)
 
 	copied := original.clone()
-	copied.DrawingStructure.Kind = "grid"
-	copied.DrawingStructure.Objects[0].Label = "Z"
-	*copied.DrawingStructure.Objects[0].Value = 7
-	copied.DrawingStructure.Relations[0].Type = "right_of"
+	copy(copied.Picture, `{"kind":"grid"`)
 
-	structure := original.DrawingStructure
-	if structure.Kind != "number_line" {
-		t.Errorf("kind = %q, want it untouched at %q", structure.Kind, "number_line")
-	}
-	if got := structure.Objects[0].Label; got != "A" {
-		t.Errorf("label = %q, want it untouched at %q", got, "A")
-	}
-	if got := *structure.Objects[0].Value; got != 3 {
-		t.Errorf("value = %d, want it untouched at %d", got, 3)
-	}
-	if got := structure.Relations[0].Type; got != "left_of" {
-		t.Errorf("relation = %q, want it untouched at %q", got, "left_of")
+	if got := string(original.Picture); got != `{"kind":"ring","count":9}` {
+		t.Errorf("picture = %s, want it untouched", got)
 	}
 }
 

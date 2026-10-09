@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 )
 
 // events are the lines the service writes, each with the fields its event may
@@ -83,13 +85,14 @@ var events = map[string][]string{
 	// are counted from, and each names its child by the name it is counted
 	// under that month, which leads back to no child.
 	"task_accepted": {
-		"topic", "level", "difficulty", "attempts", "seconds_since_request", "drawing", "ready", "by_card",
+		"topic", "level", "difficulty", "attempts", "seconds_since_request", "picture", "drawing", "ready", "by_card",
 		"instructions_version", "user", "learner", "host", "language", "grade", "cohort", "country", "region", "signin_country",
 	},
 	// A task written ahead, kept until the child asks for the next one, and one
 	// written ahead and let go once the lesson moved away from it, with why.
 	"task_kept": {
-		"topic", "level", "difficulty", "attempts", "seconds_since_request", "drawing", "instructions_version", "user",
+		"topic", "level", "difficulty", "attempts", "seconds_since_request", "picture", "drawing", "instructions_version",
+		"user",
 	},
 	"task_dropped": {"reason", "written", "topic", "level", "difficulty", "instructions_version", "user"},
 	// The chance beside the user is the child's rating, answer by answer, as
@@ -173,6 +176,18 @@ var shapes = map[string]*regexp.Regexp{
 	"country":        regexp.MustCompile(`^([A-Z]{2}|unknown|other)$`),
 	"signin_country": regexp.MustCompile(`^([A-Z]{2}|unknown|other)$`),
 	"region":         regexp.MustCompile(`^([A-Z]{2}-[A-Z0-9]{1,3}|unknown|other)$`),
+	"picture":        pictureShape(),
+}
+
+// pictureShape is what a line may say of a task's picture: its kind, none, or
+// another, which only a file edited by hand holds — and never the picture
+// itself, whose labels may be the task's answer.
+func pictureShape() *regexp.Regexp {
+	words := []string{picture.None, picture.Other}
+	for _, kind := range picture.Kinds() {
+		words = append(words, string(kind))
+	}
+	return regexp.MustCompile(`^(` + strings.Join(words, "|") + `)$`)
 }
 
 // The numbers those events carry, each a whole number in its range: the grade
@@ -196,9 +211,10 @@ func Fits(event, field string, value any) bool {
 	case "topics_mastered":
 		return wholeWithin(value, 0, mostTopicsMastered)
 	case "drawing", "ready", "by_card":
-		// Whether the task came with a drawing, and never the drawing itself,
-		// which is the task's text; whether it was written ahead and kept; and
-		// whether a card took it.
+		// Whether the task came with a drawing, which a line written before
+		// pictures says, and never the drawing itself, which is the task's
+		// text; whether it was written ahead and kept; and whether a card took
+		// it.
 		_, isBool := value.(bool)
 		return isBool
 	}

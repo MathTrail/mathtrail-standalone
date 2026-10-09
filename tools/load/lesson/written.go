@@ -1,5 +1,7 @@
 package lesson
 
+import "encoding/json"
+
 // Task is a task as the chat's model writes it, with what it was asked for and
 // a letter the child gets it wrong with.
 type Task struct {
@@ -19,6 +21,7 @@ type Task struct {
 type Body struct {
 	CoreIdea    string                `json:"core_idea"`
 	Question    string                `json:"question"`
+	Picture     json.RawMessage       `json:"picture,omitempty"`
 	Options     map[string]string     `json:"options"`
 	Correct     string                `json:"correct_answer"`
 	Hint        string                `json:"hint"`
@@ -74,6 +77,7 @@ func race() Task {
 		Body: Body{
 			CoreIdea: "Order three runners from two comparisons.",
 			Question: "Ann, Ben and Kim ran a race. Ben finished before Kim. Ann finished after Kim. Who finished first?",
+			Picture:  json.RawMessage(`{"kind":"row","items":[{"label":"1"},{"label":"2"},{"label":"3"}]}`),
 			Options:  map[string]string{"A": "Ann", "B": "Kim", "C": "Ben", "D": "Nobody", "E": "All at once"},
 			Correct:  "C",
 			Hint:     "Who finished before Kim?",

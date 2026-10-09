@@ -69,18 +69,18 @@ func TestATaskHandedOutIsCountedWhereTheFamilyIs(t *testing.T) {
 	}
 }
 
-// A task handed out says whether it came with a drawing, as a yes or a no and
-// never as the drawing, which is the task's own text.
-func TestATaskHandedOutSaysWhetherItCameWithADrawing(t *testing.T) {
+// A task handed out names the kind of its picture, or none, and never the
+// picture itself, whose labels may be the task's answer.
+func TestATaskHandedOutNamesTheKindOfItsPicture(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
 		name string
 		hand func(*profile.OpenRequest) map[string]any
-		want bool
+		want string
 	}{
-		{"in words alone", raceOn, false},
-		{"with a drawing", drawnRaceOn, true},
+		{"in words alone", raceOn, "none"},
+		{"with a picture", picturedRaceOn, "row"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -93,27 +93,49 @@ func TestATaskHandedOutSaysWhetherItCameWithADrawing(t *testing.T) {
 			h.settle()
 
 			fields := theOnlyLine(t, h, "task_accepted")
-			if got := fields["drawing"]; got != tc.want {
-				t.Errorf("task_accepted drawing = %v, want %v", got, tc.want)
+			if got := fields["picture"]; got != tc.want {
+				t.Errorf("task_accepted picture = %v, want %v", got, tc.want)
 			}
 			wantCounted(t, "task_accepted", fields)
 		})
 	}
 }
 
-// drawnRaceOn is the race handed in with its three runners drawn, each named
-// in the question by the label the drawing gives it.
-func drawnRaceOn(request *profile.OpenRequest) map[string]any {
+// A task written ahead and kept names the kind of its picture, as a task
+// handed out does.
+func TestATaskKeptNamesTheKindOfItsPicture(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	h, session := lesson(t, kept)
+	if handed := call(t, session, "submit_task", raceOn(askForTheRace(t, session, kept))); handed.IsError {
+		t.Fatalf("submit_task failed: %s", textOf(t, handed))
+	}
+	prepared(t, session, aheadChoice)
+	relay := relayOn(aheadOpen(t, kept))
+	task, _ := relay["task"].(map[string]any)
+	task["picture"] = map[string]any{
+		"kind": "row", "items": []map[string]string{{"label": "1"}, {"label": "2"}, {"label": "3"}},
+	}
+	if keptAs := call(t, session, "submit_task", relay); keptAs.IsError {
+		t.Fatalf("submit_task of the task written ahead failed: %s", textOf(t, keptAs))
+	}
+	h.settle()
+
+	if got := theOnlyLine(t, h, "task_kept")["picture"]; got != "row" {
+		t.Errorf("task_kept picture = %v, want row", got)
+	}
+}
+
+// picturedRaceOn is the race handed in with its three runners in a row, each
+// named in the question by the label the picture gives it.
+func picturedRaceOn(request *profile.OpenRequest) map[string]any {
 	race := raceOn(request)
 	task, _ := race["task"].(map[string]any)
 	task["question"] = "Ann (A), Ben (B) and Kim (K) ran a race. Ben finished before Kim. Ann finished after Kim. " +
 		"Who finished first?"
-	task["drawing"] = "A  B  K\n●  ●  ●"
-	task["drawing_structure"] = map[string]any{
-		"kind": "runners",
-		"objects": []map[string]string{
-			{"id": "ann", "label": "A"}, {"id": "ben", "label": "B"}, {"id": "kim", "label": "K"},
-		},
+	task["picture"] = map[string]any{
+		"kind": "row", "items": []map[string]string{{"label": "A"}, {"label": "B"}, {"label": "K"}},
 	}
 	return race
 }

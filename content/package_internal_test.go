@@ -1,6 +1,7 @@
 package content
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"slices"
@@ -64,12 +65,12 @@ func TestTheExamplesAreTheNearestToTheDifficulty(t *testing.T) {
 	}
 }
 
-// drawnCell is a cell whose tasks of these ids carry a drawing.
+// drawnCell is a cell whose tasks of these ids carry a picture.
 func drawnCell(counts map[int]int, drawn ...string) []Example {
 	pool := cell(counts)
 	for i := range pool {
 		if slices.Contains(drawn, pool[i].ID) {
-			pool[i].Drawing = "●──●"
+			pool[i].Picture = json.RawMessage(`{"kind":"ring","count":9}`)
 		}
 	}
 	return pool
@@ -109,9 +110,9 @@ func TestAPackageShowsATaskThatDrawsWhereThePoolHasOne(t *testing.T) {
 	}
 }
 
-// drawingPool is a pool with so many tasks at each difficulty from 1 on, the
-// tasks whose flag is set carrying a drawing.
-func drawingPool(counts []int, drawn []bool) []Example {
+// drawnPool is a pool with so many tasks at each difficulty from 1 on, the
+// tasks whose flag is set carrying a picture.
+func drawnPool(counts []int, drawn []bool) []Example {
 	sizes := map[int]int{}
 	for i, count := range counts {
 		sizes[i+1] = count
@@ -119,7 +120,7 @@ func drawingPool(counts []int, drawn []bool) []Example {
 	pool := cell(sizes)
 	for i := range pool {
 		if i < len(drawn) && drawn[i] {
-			pool[i].Drawing = "●──●"
+			pool[i].Picture = json.RawMessage(`{"kind":"ring","count":9}`)
 		}
 	}
 	return pool
@@ -132,7 +133,7 @@ func TestATaskThatDrawsIsShownWheneverThePoolHasOne(t *testing.T) {
 	t.Parallel()
 
 	shown := func(counts []int, drawn []bool, difficulty, answers int) (picked, got []Example, pool []Example) {
-		pool = drawingPool(counts, drawn)
+		pool = drawnPool(counts, drawn)
 		picked = nearest(pool, difficulty, answers)
 		return picked, withADrawnTask(picked, pool, difficulty, answers), pool
 	}

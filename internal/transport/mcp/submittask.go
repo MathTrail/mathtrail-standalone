@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -160,18 +161,26 @@ func childLineOf(s *profile.Student) *childLine {
 	return &childLine{Pseudonym: s.Pseudonym, Grade: s.Grade, UILanguage: s.UILanguage}
 }
 
-// cardOut is the task as the child's card shows it: the wording, the drawing,
-// the five options and the hint, which the card keeps folded until the child
-// opens it. What would give the answer away is sealed in the profile and never
-// here.
+// cardOut is the task as the child's card shows it: the wording, the picture
+// the card draws, the five options and the hint, which the card keeps folded
+// until the child opens it. What would give the answer away is sealed in the
+// profile and never here.
 type cardOut struct {
-	ID       string            `json:"id"`
-	Topic    string            `json:"topic"`
-	Language string            `json:"language"`
-	Question string            `json:"question"`
-	Drawing  string            `json:"drawing"`
-	Options  map[string]string `json:"options"`
-	Hint     string            `json:"hint"`
+	ID       string `json:"id"`
+	Topic    string `json:"topic"`
+	Language string `json:"language"`
+	Question string `json:"question"`
+	// Picture is the description of the picture the card draws, or null. It
+	// is held as any value rather than as raw JSON because the protocol's
+	// library derives the result's schema from this type and holds every
+	// result to it, and would describe raw JSON as a list of bytes.
+	Picture any `json:"picture"`
+	// Drawing is always empty. A card of the release before pictures requires
+	// it, and shows no task at all without it, for as long as a host may keep
+	// that card's page.
+	Drawing string            `json:"drawing"`
+	Options map[string]string `json:"options"`
+	Hint    string            `json:"hint"`
 }
 
 func cardOf(task *profile.CurrentTask) *cardOut {
@@ -180,10 +189,22 @@ func cardOf(task *profile.CurrentTask) *cardOut {
 		Topic:    task.Topic,
 		Language: task.Language,
 		Question: task.Wording,
-		Drawing:  task.Drawing,
+		Picture:  pictureOf(task.Picture, task.Language),
 		Options:  task.Options,
 		Hint:     task.Hint,
 	}
+}
+
+// pictureOf is the picture a card is handed: the description the profile
+// keeps, where it is one the format reads with no problem in the lesson's
+// language, and nothing otherwise — a file edited by hand may hold anything
+// there, and a card is never handed what it cannot draw.
+func pictureOf(kept json.RawMessage, language string) any {
+	if kind := picture.KindOf(kept); kind == picture.None || kind == picture.Other ||
+		len(checks.PictureFormat(&checks.Task{Picture: kept}, language)) > 0 {
+		return nil
+	}
+	return kept
 }
 
 func (s *Service) submitTaskTool() Tool {
@@ -462,7 +483,7 @@ func (s *Service) keep(ctx context.Context, done *reviewed, program string) (Rep
 		zap.Int("difficulty", kept.Difficulty),
 		zap.Int("attempts", done.attempt),
 		zap.Int64("seconds_since_request", int64(done.now.Sub(request.OpenedAt.Time)/time.Second)),
-		zap.Bool("drawing", strings.TrimSpace(kept.Drawing) != ""),
+		zap.String("picture", picture.KindOf(kept.Picture)),
 	)
 	reply := s.keptReply(p, fmt.Sprintf("Accepted at attempt %d and kept: task %s is written ahead.", done.attempt, kept.ID))
 	reply.Payload.Attempt = done.attempt
@@ -496,7 +517,7 @@ func (s *Service) keptReply(p *profile.Profile, lead string) Reply[handedInOut] 
 func (s *Service) writtenOf(task *checks.Task, language string) *profile.Written {
 	return &profile.Written{
 		Wording:             task.Question,
-		Drawing:             task.Drawing,
+		Picture:             task.Picture,
 		Options:             task.Options,
 		Hint:                task.Hint,
 		Fingerprint:         checks.Fingerprint(task.Question, language),
@@ -532,37 +553,19 @@ func onTheCard(p *profile.Profile, task *profile.CurrentTask, lead string) Reply
 	}
 }
 
-// taskWords is the task in words, for the model to read out: the question, the
-// drawing, the five options and the hint, as the model wrote them. The texts
-// stand in quotes, and the drawing in a block of its own, as it is to be shown.
+// taskWords is the task in words, for the model to read out: the question,
+// the five options and the hint, as the model wrote them, the texts in quotes.
+// The picture is the card's alone: the question carries every fact the task
+// needs, and words could only redraw the picture crooked.
 func taskWords(task *profile.CurrentTask) string {
 	var words strings.Builder
 	fmt.Fprintf(&words, "Question: %s\n", quoted(task.Wording))
-	if drawing := strings.TrimSuffix(task.Drawing, "\n"); drawing != "" {
-		fence := fenceFor(drawing)
-		fmt.Fprintf(&words, "Drawing:\n%s\n%s\n%s\n", fence, drawing, fence)
-	}
 	words.WriteString("Options:")
 	for _, letter := range solver.Letters() {
 		fmt.Fprintf(&words, " %s) %s", letter, quoted(task.Options[letter]))
 	}
 	fmt.Fprintf(&words, "\nHint, only when asked for: %s", quoted(task.Hint))
 	return words.String()
-}
-
-// fenceFor is a fence no drawing can close early: longer than any run of
-// backticks inside it, and never shorter than three.
-func fenceFor(drawing string) string {
-	longest, run := 0, 0
-	for _, r := range drawing {
-		if r != '`' {
-			run = 0
-			continue
-		}
-		run++
-		longest = max(longest, run)
-	}
-	return strings.Repeat("`", max(3, longest+1))
 }
 
 // reasonsOf are the checks a task failed, each with everything it found.

@@ -1,6 +1,23 @@
 // @vitest-environment node
 import { describe, expect, test } from "vitest";
-import { addressOf, unsettled } from "./drive.ts";
+import { addressOf, served, unsettled } from "./drive.ts";
+
+describe("the preview the cards are driven in", () => {
+	test("lets the browser keep the widget's page and its modules for the run", async () => {
+		const preview = await served();
+		try {
+			for (const path of ["widget.html", "src/widget/main.ts"]) {
+				const response = await fetch(new URL(path, preview.base));
+				expect(response.status, path).toBe(200);
+				expect(response.headers.get("cache-control"), path).toBe(
+					"max-age=31536000, immutable",
+				);
+			}
+		} finally {
+			await preview.close();
+		}
+	}, 60_000);
+});
 
 describe("what kept the cards from settling", () => {
 	test("names by scene the cards with nothing drawn and those still changing", () => {

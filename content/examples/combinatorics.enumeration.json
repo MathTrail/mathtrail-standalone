@@ -1880,23 +1880,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "A robot walks on a board of 4 by 4 squares from square A1 to square D4. Rows are A to D from the top, columns 1 to 4 from the left. Each step takes it to the next square to the right or the next square down. Square B2 is blocked. How many different routes can the robot take?",
-    "drawing": "    1   2   3   4\n  ┌───┬───┬───┬───┐\nA │   │   │   │   │\n  ├───┼───┼───┼───┤\nB │   │███│   │   │\n  ├───┼───┼───┼───┤\nC │   │   │   │   │\n  ├───┼───┼───┼───┤\nD │   │   │   │   │\n  └───┴───┴───┴───┘",
-    "drawing_structure": {
-      "kind": "grid",
-      "objects": [
-        {"id": "A", "label": "A"},
-        {"id": "B", "label": "B"},
-        {"id": "C", "label": "C"},
-        {"id": "D", "label": "D"},
-        {"id": "1", "label": "1"},
-        {"id": "2", "label": "2"},
-        {"id": "3", "label": "3"},
-        {"id": "4", "label": "4"}
-      ],
-      "relations": [
-        {"type": "filled", "from": "B", "to": "2"}
-      ]
-    },
+    "picture": {"kind": "grid", "rows": ["A", "B", "C", "D"], "cols": ["1", "2", "3", "4"], "filled": ["B2"]},
     "options": {
       "A": "20",
       "B": "8",

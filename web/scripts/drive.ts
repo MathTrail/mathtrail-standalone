@@ -34,7 +34,11 @@ export async function stillClock(context: BrowserContext): Promise<void> {
 
 /**
  * served starts the preview, and says where it is. It watches no file: a
- * source changed while the cards are driven would reload them halfway.
+ * source changed while the cards are driven would reload them halfway. And
+ * since nothing it serves changes while it runs, the browser may keep every
+ * file it was sent, as Vite lets it keep the packages it bundles: every card
+ * of a page loads the same hundred modules, which Chromium would otherwise ask
+ * the server after again for each card, some seven thousand requests a page.
  */
 export async function served(): Promise<{
 	base: string;
@@ -49,6 +53,7 @@ export async function served(): Promise<{
 			strictPort: false,
 			hmr: false,
 			watch: null,
+			headers: { "Cache-Control": "max-age=31536000, immutable" },
 		},
 	});
 	await server.listen();

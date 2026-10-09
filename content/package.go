@@ -10,6 +10,7 @@ import (
 	"slices"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
@@ -67,8 +68,8 @@ type Request struct {
 // Package is everything the model is handed to write one task from, as the
 // JSON it receives: the brief, the idea of the topic the task is built on, the
 // corridor, the topic, every trap, what the task may not use, the child, three
-// reference tasks, the solver templates and the drawing frames of the topic,
-// the limits it is held to and the page on how to write it. The version of
+// reference tasks, the solver templates and the examples of the pictures of
+// the topic, the limits it is held to and the page on how to write it. The version of
 // what it is told is not among them: the model has no use for it, and the
 // service, which records it with every task, knows it already.
 //
@@ -105,7 +106,7 @@ type packageContents struct {
 	Child        packageChild     `json:"child"`
 	Examples     []packageExample `json:"examples"`
 	Templates    []string         `json:"solver_templates"`
-	Frames       []packageFrame   `json:"drawing_frames"`
+	Pictures     []packagePicture `json:"pictures"`
 	Limits       packageLimits    `json:"limits"`
 	Guide        string           `json:"guide"`
 }
@@ -180,40 +181,24 @@ type packageChild struct {
 // id, its topic and level, which the package says already, and its solver,
 // which the model is not shown.
 type packageExample struct {
-	Difficulty       int                   `json:"difficulty"`
-	Question         string                `json:"question"`
-	Drawing          string                `json:"drawing,omitempty"`
-	DrawingStructure *DrawingStructure     `json:"drawing_structure,omitempty"`
-	Options          map[string]string     `json:"options"`
-	CorrectAnswer    string                `json:"correct_answer"`
-	Hint             string                `json:"hint,omitempty"`
-	Solution         string                `json:"solution"`
-	Distractors      map[string]Distractor `json:"distractors"`
+	Difficulty    int                   `json:"difficulty"`
+	Question      string                `json:"question"`
+	Picture       json.RawMessage       `json:"picture,omitempty"`
+	Options       map[string]string     `json:"options"`
+	CorrectAnswer string                `json:"correct_answer"`
+	Hint          string                `json:"hint,omitempty"`
+	Solution      string                `json:"solution"`
+	Distractors   map[string]Distractor `json:"distractors"`
 }
 
-// packageFrame is a drawing frame as the model is shown it: what it is for and
-// how it is filled, the drawing, and the structure that describes it.
-type packageFrame struct {
-	Purpose   string            `json:"purpose"`
-	Drawing   string            `json:"drawing"`
-	Structure *DrawingStructure `json:"drawing_structure"`
-}
-
-// packageLimits are what the task is held to when it is handed in.
+// packageLimits are what the task is held to when it is handed in: how long a
+// sentence may be, and how long a label and a note of its picture.
 type packageLimits struct {
-	SentenceWords      int           `json:"sentence_words"`
-	SentenceCharacters int           `json:"sentence_characters"`
-	FleschKincaidGrade int           `json:"flesch_kincaid_grade"`
-	Drawing            drawingLimits `json:"drawing"`
-}
-
-// drawingLimits are how large a drawing may be, and the characters it may use
-// besides ASCII.
-type drawingLimits struct {
-	Width      int    `json:"width"`
-	Height     int    `json:"height"`
-	SpaceRun   int    `json:"space_run"`
-	Characters string `json:"characters"`
+	SentenceWords      int `json:"sentence_words"`
+	SentenceCharacters int `json:"sentence_characters"`
+	FleschKincaidGrade int `json:"flesch_kincaid_grade"`
+	LabelCharacters    int `json:"label_characters"`
+	NoteCharacters     int `json:"note_characters"`
 }
 
 // contentsFor gathers every part of a package for one request.
@@ -231,7 +216,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 	if err != nil {
 		return packageContents{}, err
 	}
-	readable, drawn := checks.ReadabilityLimitsFor(level), checks.DefaultDrawingLimits()
+	readable := checks.ReadabilityLimitsFor(level)
 
 	contents := packageContents{
 		Language:     request.Language,
@@ -246,12 +231,11 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 			SentenceWords:      readable.SentenceWords,
 			SentenceCharacters: readable.SentenceCharacters,
 			FleschKincaidGrade: readable.FleschKincaid,
-			Drawing: drawingLimits{
-				Width: drawn.Width, Height: drawn.Height, SpaceRun: drawn.SpaceRun, Characters: checks.DrawingCharacters,
-			},
+			LabelCharacters:    picture.MaxLabelCharacters,
+			NoteCharacters:     picture.MaxNoteCharacters,
 		},
 		Templates: c.templatePrograms(topic.ID),
-		Frames:    c.framesFor(topic.ID),
+		Pictures:  c.picturesFor(topic.ID),
 		Guide:     c.instructions[guideName],
 	}
 	examples := c.examplesFor(request.Brief.TargetConcept, level, request.Brief.Difficulty, request.Answers)
@@ -259,9 +243,8 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 	for i := range examples {
 		task := &examples[i]
 		contents.Examples = append(contents.Examples, packageExample{
-			Difficulty: task.Difficulty, Question: task.Question, Drawing: task.Drawing,
-			DrawingStructure: task.DrawingStructure, Options: task.Options, CorrectAnswer: task.CorrectAnswer,
-			Hint: task.Hint, Solution: task.Solution, Distractors: task.Distractors,
+			Difficulty: task.Difficulty, Question: task.Question, Picture: task.Picture, Options: task.Options,
+			CorrectAnswer: task.CorrectAnswer, Hint: task.Hint, Solution: task.Solution, Distractors: task.Distractors,
 		})
 	}
 	return contents, nil
@@ -326,11 +309,11 @@ func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty,
 }
 
 // withADrawnTask is the tasks picked for a package with one that draws among
-// them, where the pool has one: a model shown no drawing writes none, even in
-// a topic with frames to draw from. When none of those picked draws, the last
-// of them gives way to the task that draws nearest the difficulty, and tasks
-// that draw at one difficulty take turns by the answer count, as all tasks of
-// a difficulty do.
+// them, where the pool has one: a model shown no picture describes none, even
+// in a topic with examples of pictures. When none of those picked draws, the
+// last of them gives way to the task that draws nearest the difficulty, and
+// tasks that draw at one difficulty take turns by the answer count, as all
+// tasks of a difficulty do.
 func withADrawnTask(picked, pool []Example, difficulty, answers int) []Example {
 	if len(picked) == 0 || anyDraws(picked) {
 		return picked
@@ -349,7 +332,7 @@ func withADrawnTask(picked, pool []Example, difficulty, answers int) []Example {
 	return shown
 }
 
-// anyDraws says whether any of some reference tasks carries a drawing.
+// anyDraws says whether any of some reference tasks carries a picture.
 func anyDraws(tasks []Example) bool {
 	for i := range tasks {
 		if tasks[i].draws() {
@@ -399,8 +382,8 @@ func levelBelow(level rating.GradeLevel) (rating.GradeLevel, bool) {
 }
 
 // encode is a package as the model receives it. Text keeps its own characters:
-// an arrow in a drawing or a quote in a question reads as itself, not as an
-// escape.
+// a sign in a picture's note or a quote in a question reads as itself, not as
+// an escape.
 func encode(contents *packageContents) ([]byte, error) {
 	var buffer bytes.Buffer
 	encoder := json.NewEncoder(&buffer)

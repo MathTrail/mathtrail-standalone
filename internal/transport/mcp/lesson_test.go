@@ -123,7 +123,7 @@ func lessonService(t *testing.T, h *harness, kept store.Storage, moving *clock, 
 	parts := &mcpserver.Parts{
 		Store:       kept,
 		Content:     loaded,
-		Reviewer:    checks.NewReviewer(loaded, observed, checks.DefaultDrawingLimits()),
+		Reviewer:    checks.NewReviewer(loaded, observed),
 		Sealer:      sealer(t),
 		Window:      config.DefaultRequestWindow,
 		Daily:       mcpserver.Daily{Tasks: config.DefaultDailyTasks, Failed: config.DefaultDailyFailed},

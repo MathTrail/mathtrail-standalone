@@ -66,6 +66,96 @@ func TestARetiredMemberIsReadPast(t *testing.T) {
 	}
 }
 
+// A text drawing is the picture as the format once had it, in characters: one
+// that holds a drawing is refused in words of its own, which say where a
+// picture goes now and where the guide to it is, and never quote the drawing.
+// One that holds nothing is read past, as a retired member is.
+func TestATextDrawingIsRefusedInWordsOfItsOwn(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name    string
+		members map[string]any
+		want    string
+	}{
+		{"a drawing and its structure", map[string]any{
+			"drawing": "A──B", "drawing_structure": map[string]any{"kind": "row", "objects": []any{"ship"}},
+		}, "task.drawing and task.drawing_structure draw the picture in characters"},
+		{"a drawing alone", map[string]any{"drawing": "A──B"}, "task.drawing draws the picture in characters"},
+		{"a structure in words", map[string]any{"drawing_structure": "a row of four ships"},
+			"task.drawing_structure draws the picture in characters"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			submitted := validParts(t)
+			task := submitted.task
+			for name, value := range test.members {
+				task = withMember(t, task, name, value)
+			}
+			_, problems := checks.Decode(task, submitted.selfCheck)
+			if len(problems) != 1 || problems[0].Code != checks.CodeBadStructure ||
+				!strings.HasPrefix(problems[0].Message, test.want) {
+				t.Fatalf("Decode() problems = %v, want one refusal that %s", problems, test.want)
+			}
+			message := problems[0].Message
+			if !strings.Contains(message, "task.picture") || !strings.Contains(message, "get_package") ||
+				strings.Contains(message, "A──B") || strings.Contains(message, "ships") {
+				t.Errorf("message = %q, want it to point at task.picture and get_package and quote nothing", message)
+			}
+		})
+	}
+}
+
+func TestATextDrawingThatHoldsNothingIsReadPast(t *testing.T) {
+	t.Parallel()
+
+	for _, members := range []map[string]any{
+		{"drawing": ""},
+		{"drawing": "  \n"},
+		{"drawing": nil, "drawing_structure": nil},
+		{"drawing": "", "drawing_structure": map[string]any{}},
+	} {
+		submitted := validParts(t)
+		task := submitted.task
+		for name, value := range members {
+			task = withMember(t, task, name, value)
+		}
+		draft, problems := checks.Decode(task, submitted.selfCheck)
+		if len(problems) != 0 || len(draft.Retired) == 0 {
+			t.Errorf("Decode(%v) = %v, retired %v, want it read past and named", members, problems, draft.Retired)
+		}
+	}
+}
+
+// A picture written as null, the way a card's payload writes no picture, or
+// as an empty text, is no picture: it is mended and named, not refused.
+func TestAPictureWrittenAsNothingIsNoPicture(t *testing.T) {
+	t.Parallel()
+
+	for _, written := range []any{nil, "", " "} {
+		submitted := validParts(t)
+		draft, problems := checks.Decode(withMember(t, submitted.task, "picture", written), submitted.selfCheck)
+		problems = append(problems, checks.Structure(draft, testCatalog)...)
+		if len(problems) != 0 || draft.Task.Picture != nil || !slices.Contains(draft.Mended, "task.picture") {
+			t.Errorf("picture %#v: problems %v, picture %s, mended %v, want no picture and the mend named",
+				written, problems, draft.Task.Picture, draft.Mended)
+		}
+	}
+}
+
+// What a picture holds is its own check's to judge, member by member: a
+// member its kind does not have is no stray of the task.
+func TestThePicturesMembersAreNotStraysOfTheTask(t *testing.T) {
+	t.Parallel()
+
+	submitted := validParts(t)
+	task := withMember(t, submitted.task, "picture", map[string]any{"kind": "clock", "colour": "red", "time": 430})
+	if _, problems := checks.Decode(task, submitted.selfCheck); len(problems) != 0 {
+		t.Errorf("Decode() problems = %v, want the picture left to its own check", problems)
+	}
+}
+
 // A retired member is read past where the format had it, and nowhere else: by
 // any other path, the same name is a stray like any other.
 func TestARetiredMemberIsAStrayAnywhereElse(t *testing.T) {
@@ -121,12 +211,6 @@ func TestASubmissionOutOfTheFormatIsRefusedByName(t *testing.T) {
 		{"a number where a string belongs", func(p *parts) {
 			p.task = json.RawMessage(strings.Replace(string(p.task), `"trap":"missed_case"`, `"trap":5`, 1))
 		}, []string{"task.distractors.*.trap must be a string"}},
-		{"a string where a number belongs", func(p *parts) {
-			p.task = withDrawnValue(t, p.task, "3")
-		}, []string{"task.drawing_structure.objects.0.value must be a whole number"}},
-		{"a fraction where a whole number belongs", func(p *parts) {
-			p.task = withDrawnValue(t, p.task, 3.5)
-		}, []string{"task.drawing_structure.objects.0.value must be a whole number"}},
 		{"an object where a list belongs", func(p *parts) {
 			p.selfCheck = json.RawMessage(strings.Replace(string(p.selfCheck), `"issues":[]`, `"issues":{}`, 1))
 		}, []string{"self_check.issues must be a list"}},
@@ -172,12 +256,6 @@ func TestAWrongShapeWhereAnObjectBelongsIsRefusedOnce(t *testing.T) {
 		{"an issue written as a number", func(p *parts) {
 			p.selfCheck = json.RawMessage(strings.Replace(string(p.selfCheck), `"issues":[]`, `"issues":[5]`, 1))
 		}, "self_check.issues.0 must be an object"},
-		{"a drawn object written as its name", func(p *parts) {
-			p.task = withMember(t, p.task, "drawing_structure", map[string]any{"kind": "row", "objects": []any{"ship"}})
-		}, "task.drawing_structure.objects.0 must be an object"},
-		{"a drawing's structure written in words", func(p *parts) {
-			p.task = withMember(t, p.task, "drawing_structure", "a row of four ships")
-		}, "task.drawing_structure must be an object"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -220,7 +298,8 @@ func TestAMistypedPartIsStillChecked(t *testing.T) {
 	t.Parallel()
 
 	submitted := validParts(t)
-	task := withDrawnValue(t, withMember(t, submitted.task, "hint", ""), "3")
+	task := json.RawMessage(strings.Replace(string(withMember(t, submitted.task, "hint", "")),
+		`"trap":"missed_case"`, `"trap":5`, 1))
 	draft, problems := checks.Decode(task, submitted.selfCheck)
 	if draft.Task == nil {
 		t.Fatal("the task was dropped over one mistyped member")
@@ -229,15 +308,6 @@ func TestAMistypedPartIsStillChecked(t *testing.T) {
 	if !mentions(problems, "task.hint") {
 		t.Errorf("got %v, want the empty hint found in the same pass", problems)
 	}
-}
-
-// withDrawnValue gives a task a drawing structure whose one object holds value.
-func withDrawnValue(t *testing.T, raw json.RawMessage, value any) json.RawMessage {
-	t.Helper()
-
-	return withMember(t, raw, "drawing_structure", map[string]any{
-		"kind": "row", "objects": []any{map[string]any{"id": "ship", "label": "S", "value": value}},
-	})
 }
 
 // withMember adds one member to a JSON object.
@@ -261,7 +331,8 @@ func FuzzDecode(f *testing.F) {
 	f.Add([]byte(valid.task), []byte(valid.selfCheck))
 	f.Add([]byte(`{"options":{"A":1}}`), []byte(`null`))
 	f.Add([]byte(`{"distractors":{"B":{"trap":[]}}}`), []byte(`{"issues":[{"type":5}]}`))
-	f.Add([]byte(`{"drawing_structure":{"objects":[{"value":"x"}]}}`), []byte(`"`))
+	f.Add([]byte(`{"drawing_structure":{"objects":[{"value":"x"}]},"picture":{"kind":7}}`), []byte(`"`))
+	f.Add([]byte(`{"drawing":"","drawing_structure":{},"picture":null}`), []byte(`{}`))
 	f.Add([]byte(`{"design_thought_process":"a plan","question":"?"}`), []byte(`{"design_thought_process":1}`))
 	f.Add([]byte(`{"options":{"a":4," B ":5.5,"c":"-1","D":1e3},"correct_answer":" e"}`), []byte(`{"issues":null,"final_answer":"unsolvable","option_check":{"a":"x","A":"y"}}`))
 
@@ -307,14 +378,15 @@ func wantEveryUnreadPartNamed(t *testing.T, draft *checks.Draft, problems []chec
 func wantOnlyTheFormatsNames(t *testing.T, draft *checks.Draft) {
 	t.Helper()
 
+	retired := []string{"task.design_thought_process", "task.drawing", "task.drawing_structure"}
 	for _, path := range draft.Retired {
-		if path != "task.design_thought_process" {
+		if !slices.Contains(retired, path) {
 			t.Errorf("Retired names %q, which the format never retired", path)
 		}
 	}
 	mendable := []string{
 		"task.correct_answer", "task.options", "task.distractors", "self_check.option_check",
-		"self_check.final_answer", "self_check.issues",
+		"self_check.final_answer", "self_check.issues", "task.picture",
 	}
 	for i, field := range draft.Mended {
 		if !slices.Contains(mendable, field) || slices.Contains(draft.Mended[:i], field) {

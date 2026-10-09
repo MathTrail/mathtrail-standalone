@@ -75,13 +75,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "A loop railway has 20 stations, numbered 1 to 20 in the order the train goes, and after station 20 comes station 1 again. The train starts at station 1, marked S, and moves on to the next station 47 times. At which station is it now?",
-    "drawing": " S\n ▼\n 1→ 2→ 3→ 4→ 5→ 6→ 7\n ↑                 ↓\n20                 8\n ↑                 ↓\n19                 9\n ↑                 ↓\n18                10\n ↑                 ↓\n17←16←15←14←13←12←11",
-    "drawing_structure": {
-      "kind": "ring",
-      "objects": [
-        {"id": "S", "label": "S", "value": 1}
-      ]
-    },
+    "picture": {"kind": "ring", "count": 20, "start": {"at": 1, "label": "S"}},
     "options": {
       "A": "2",
       "B": "7",
@@ -117,14 +111,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "The seats in a hall are numbered row by row, with 18 seats in each row. Row 1 has seats 1 to 18, row 2 has seats 19 to 36, and so on. In which row is seat 97?",
-    "drawing": "1 │ 1  2  3 ... 18\n2 │19 20 21 ... 36\n...\n? │ ... 97 ...",
-    "drawing_structure": {
-      "kind": "rows",
-      "objects": [
-        {"id": "1", "label": "1"},
-        {"id": "2", "label": "2"}
-      ]
-    },
+    "picture": {"kind": "table", "rows": [["1", "1", "2", "3", "…", "18"], ["2", "19", "20", "21", "…", "36"], ["…", "…", "…", "…", "…", "…"], ["?", "…", "97", "…", "", ""]]},
     "options": {
       "A": "5",
       "B": "7",

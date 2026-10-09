@@ -1,0 +1,5 @@
+{
+  "purpose": "A timetable or any small table: rows of cells, with a header row where the columns need naming. A cell is a label, a time, … for cells left out, or empty; the question says what each row and each column means, since a table holds no words.",
+  "topics": ["time.clocks", "time.calendar", "number.divisibility"],
+  "picture": {"kind": "table", "rows": [["A", "22:35", "6:10"], ["B", "23:50", "7:05"]]}
+}

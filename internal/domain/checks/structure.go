@@ -1,6 +1,7 @@
 package checks
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"slices"
@@ -54,7 +55,7 @@ func checkTask(task *Task, catalog TrapDescriber) []Problem {
 	problems = append(problems, bounded("task.solution", task.Solution, longestSolution)...)
 	problems = append(problems, checkOptions(task)...)
 	problems = append(problems, checkDistractors(task, catalog)...)
-	problems = append(problems, checkDrawing(task)...)
+	problems = append(problems, checkPicture(task)...)
 	return problems
 }
 
@@ -163,41 +164,15 @@ func wrongKeys(correct string) []string {
 	return slices.DeleteFunc(slices.Clone(optionKeys), func(key string) bool { return key == correct })
 }
 
-// checkDrawing checks that a picture and its description arrive together, and
-// that the description is well formed. Whether the two agree with the wording
-// is a later check's; here it only has to be readable as data.
-func checkDrawing(task *Task) []Problem {
-	hasDrawing, hasStructure := strings.TrimSpace(task.Drawing) != "", task.DrawingStructure != nil
-	switch {
-	case hasDrawing && !hasStructure:
-		return []Problem{structural("task.drawing comes with task.drawing_structure, and it is missing")}
-	case hasStructure && !hasDrawing:
-		return []Problem{structural("task.drawing_structure describes task.drawing, and it is missing")}
-	case !hasStructure:
+// checkPicture checks that a picture, when the task has one, is an object:
+// what the object holds is the picture's own check to judge, member by member.
+func checkPicture(task *Task) []Problem {
+	var members map[string]json.RawMessage
+	if task.Picture == nil || json.Unmarshal(task.Picture, &members) == nil {
 		return nil
 	}
-
-	var problems []Problem
-	structure := task.DrawingStructure
-	problems = append(problems, required("task.drawing_structure.kind", structure.Kind)...)
-	if len(structure.Objects) == 0 {
-		problems = append(problems, structural("task.drawing_structure.objects must name at least one object"))
-	}
-	for i, object := range structure.Objects {
-		if strings.TrimSpace(object.ID) == "" {
-			problems = append(problems, structural("task.drawing_structure.objects.%d has no id", i))
-		}
-		if strings.TrimSpace(object.Label) == "" {
-			problems = append(problems, structural("task.drawing_structure.objects.%d has no label to look for in the drawing", i))
-		}
-	}
-	for i, relation := range structure.Relations {
-		if strings.TrimSpace(relation.Type) == "" || strings.TrimSpace(relation.From) == "" ||
-			strings.TrimSpace(relation.To) == "" {
-			problems = append(problems, structural("task.drawing_structure.relations.%d needs a type, a from and a to", i))
-		}
-	}
-	return problems
+	return []Problem{structural("task.picture must be an object: the description of one of the kinds of picture, " +
+		"or left out")}
 }
 
 // checkSelfCheck checks that the model's own pass over its task is complete:

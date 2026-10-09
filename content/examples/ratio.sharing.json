@@ -40,17 +40,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "Two boxes, A and B, hold 56 shells between them. For every 3 shells in box A, there are 4 in box B. How many shells are in box A?",
-    "drawing": "A │▒▒│▒▒│▒▒│\nB │▒▒│▒▒│▒▒│▒▒│\nA + B = 56\nA = ?",
-    "drawing_structure": {
-      "kind": "bars",
-      "objects": [
-        {"id": "A", "label": "A", "value": 3},
-        {"id": "B", "label": "B", "value": 4}
-      ],
-      "relations": [
-        {"type": "ratio", "from": "A", "to": "B"}
-      ]
-    },
+    "picture": {"kind": "bars", "bars": [{"label": "A", "parts": 3, "shaded": 3}, {"label": "B", "parts": 4, "shaded": 4}], "notes": ["A + B = 56", "A = ?"]},
     "options": {
       "A": "42",
       "B": "24",
@@ -86,17 +76,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "In a fish tank, there are 3 gold fish (G) for every 5 silver fish (S), and every fish is gold or silver. There are 20 silver fish. How many fish are in the tank?",
-    "drawing": "G │▒▒│▒▒│▒▒│\nS │▒▒│▒▒│▒▒│▒▒│▒▒│\nS = 20\nG + S = ?",
-    "drawing_structure": {
-      "kind": "bars",
-      "objects": [
-        {"id": "G", "label": "G", "value": 3},
-        {"id": "S", "label": "S", "value": 5}
-      ],
-      "relations": [
-        {"type": "ratio", "from": "G", "to": "S"}
-      ]
-    },
+    "picture": {"kind": "bars", "bars": [{"label": "G", "parts": 3, "shaded": 3}, {"label": "S", "parts": 5, "shaded": 5}], "notes": ["S = 20", "G + S = ?"]},
     "options": {
       "A": "50",
       "B": "38",
@@ -132,19 +112,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "Three baskets, A, B and C, hold 90 walnuts in the ratio 3 : 5 : 7. How many more walnuts are in basket C than in basket A?",
-    "drawing": "A │▒▒│▒▒│▒▒│\nB │▒▒│▒▒│▒▒│▒▒│▒▒│\nC │▒▒│▒▒│▒▒│▒▒│▒▒│▒▒│▒▒│\nA + B + C = 90\nC - A = ?",
-    "drawing_structure": {
-      "kind": "bars",
-      "objects": [
-        {"id": "A", "label": "A", "value": 3},
-        {"id": "B", "label": "B", "value": 5},
-        {"id": "C", "label": "C", "value": 7}
-      ],
-      "relations": [
-        {"type": "ratio", "from": "A", "to": "B"},
-        {"type": "ratio", "from": "B", "to": "C"}
-      ]
-    },
+    "picture": {"kind": "bars", "bars": [{"label": "A", "parts": 3, "shaded": 3}, {"label": "B", "parts": 5, "shaded": 5}, {"label": "C", "parts": 7, "shaded": 7}], "notes": ["A + B + C = 90", "C - A = ?"]},
     "options": {
       "A": "24",
       "B": "36",
@@ -250,19 +218,7 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "A flower stall sells only roses (R), tulips (T) and daisies (D). It has 2 roses for every 3 tulips, and 4 tulips for every 5 daisies. There are 30 daisies. How many flowers does the stall have?",
-    "drawing": "R │▒▒▒│▒▒▒│\nT │▒▒▒│▒▒▒│▒▒▒│\n\nT │▒▒│▒▒│▒▒│▒▒│\nD │▒▒│▒▒│▒▒│▒▒│▒▒│\nD = 30\nR + T + D = ?",
-    "drawing_structure": {
-      "kind": "bars",
-      "objects": [
-        {"id": "R", "label": "R"},
-        {"id": "T", "label": "T"},
-        {"id": "D", "label": "D"}
-      ],
-      "relations": [
-        {"type": "ratio", "from": "R", "to": "T"},
-        {"type": "ratio", "from": "T", "to": "D"}
-      ]
-    },
+    "picture": {"kind": "bars", "bars": [{"label": "R", "parts": 2, "shaded": 2, "length": 6}, {"label": "T", "parts": 3, "shaded": 3, "length": 9}, {"label": "T", "parts": 4, "shaded": 4, "length": 8}, {"label": "D", "parts": 5, "shaded": 5, "length": 10}], "notes": ["D = 30", "R + T + D = ?"]},
     "options": {
       "A": "60",
       "B": "66",

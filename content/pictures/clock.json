@@ -1,0 +1,5 @@
+{
+  "purpose": "A time on a clock face. Give the time as H:MM; the card draws the face, its numbers and the hands where that time puts them, the hour hand moved on by the minutes. Label the tips of the hands only where the question calls the hands so.",
+  "topics": ["time.clocks"],
+  "picture": {"kind": "clock", "time": "4:30"}
+}

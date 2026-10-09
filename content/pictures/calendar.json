@@ -1,0 +1,5 @@
+{
+  "purpose": "A month's page: the weekday its 1st falls on, 1 for Monday to 7 for Sunday, how many days it has, and the days the question names marked with their labels; the card writes the weekdays' names. A page from which the day or the date asked for can be read is the answer: do not draw it.",
+  "topics": ["time.calendar"],
+  "picture": {"kind": "calendar", "first": 3, "days": 30, "marks": {"12": "A"}}
+}

@@ -310,7 +310,7 @@ const onTheCardText = "Where the card next_task drew shows it, the child answers
 	"answer itself: do not ask for the answer in the chat, which would cost the adult a message, and add nothing " +
 	"of your own about the task — not its topic, not why it came, not how to solve it — until the child has " +
 	"answered or the adult asks about it. Without a card, or if the adult says the card shows no task, read out " +
-	"the question, the drawing and the options A to E below and nothing else, for the adult to read to the child; " +
+	"the question and the options A to E below and nothing else, for the adult to read to the child; " +
 	"give the hint only when it is asked for, and record with submit_answer the child's answer the adult gives " +
 	"in the chat."
 

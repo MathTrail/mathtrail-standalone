@@ -1,0 +1,5 @@
+{
+  "purpose": "The piles of a game as it starts — stones, coins, counters — each a row of counters, dark or light, round or square, in groups, with its label before it and a value after it; a long pile is cut short to the counters it shows.",
+  "topics": ["games.strategy"],
+  "picture": {"kind": "piles", "piles": [{"label": "A", "count": 10, "group": 5}, {"label": "B", "count": 13, "shown": 6, "value": "13"}]}
+}

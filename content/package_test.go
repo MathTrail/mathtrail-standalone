@@ -1,6 +1,7 @@
 package content_test
 
 import (
+	"bytes"
 	"cmp"
 	"encoding/json"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
@@ -44,8 +46,8 @@ func request(topic string, level rating.GradeLevel, difficulty, answers int) *co
 // packageParts are the parts a package has, and all it has: no pseudonym, no
 // history, nothing that is not asked for.
 var packageParts = []string{
-	"brief", "child", "corridor", "drawing_frames", "examples", "guide", "idea", "language",
-	"limits", "prohibitions", "solver_templates", "topic", "traps",
+	"brief", "child", "corridor", "examples", "guide", "idea", "language",
+	"limits", "pictures", "prohibitions", "solver_templates", "topic", "traps",
 }
 
 // shape is a package read back from what the model receives.
@@ -81,23 +83,22 @@ type shape struct {
 	} `json:"child"`
 	Examples  []map[string]json.RawMessage `json:"examples"`
 	Templates []string                     `json:"solver_templates"`
-	Frames    []struct {
-		Purpose   string                    `json:"purpose"`
-		Drawing   string                    `json:"drawing"`
-		Structure *content.DrawingStructure `json:"drawing_structure"`
-	} `json:"drawing_frames"`
-	Limits struct {
+	Pictures  []shownPicture               `json:"pictures"`
+	Limits    struct {
 		SentenceWords      int `json:"sentence_words"`
 		SentenceCharacters int `json:"sentence_characters"`
 		FleschKincaidGrade int `json:"flesch_kincaid_grade"`
-		Drawing            struct {
-			Width      int    `json:"width"`
-			Height     int    `json:"height"`
-			SpaceRun   int    `json:"space_run"`
-			Characters string `json:"characters"`
-		} `json:"drawing"`
+		LabelCharacters    int `json:"label_characters"`
+		NoteCharacters     int `json:"note_characters"`
 	} `json:"limits"`
 	Guide string `json:"guide"`
+}
+
+// shownPicture is an example of a kind of picture as a package shows it.
+type shownPicture struct {
+	Purpose string          `json:"purpose"`
+	Limits  string          `json:"limits"`
+	Picture json.RawMessage `json:"picture"`
 }
 
 // packageFor builds the package for a request and reads it back.
@@ -211,11 +212,10 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 		t.Errorf("child = %+v, want the request's grade, interests and notes", got.Child)
 	}
 
-	readable, drawn := checks.ReadabilityLimitsFor(asked.Brief.GradeLevel), checks.DefaultDrawingLimits()
+	readable := checks.ReadabilityLimitsFor(asked.Brief.GradeLevel)
 	if got.Limits.SentenceWords != readable.SentenceWords || got.Limits.SentenceCharacters != readable.SentenceCharacters ||
-		got.Limits.FleschKincaidGrade != readable.FleschKincaid || got.Limits.Drawing.Width != drawn.Width ||
-		got.Limits.Drawing.Height != drawn.Height || got.Limits.Drawing.SpaceRun != drawn.SpaceRun ||
-		got.Limits.Drawing.Characters != checks.DrawingCharacters {
+		got.Limits.FleschKincaidGrade != readable.FleschKincaid ||
+		got.Limits.LabelCharacters != picture.MaxLabelCharacters || got.Limits.NoteCharacters != picture.MaxNoteCharacters {
 		t.Errorf("limits = %+v, want the ones the checks hold a task to", got.Limits)
 	}
 	if guide, _ := shipped.Instruction("task_writing.md"); got.Guide != guide {
@@ -322,7 +322,7 @@ func showsTasksOf(t *testing.T, shipped *content.Content, examples []map[string]
 // brief and the requested difficulty, and they come as a model is to see them:
 // without the id, the topic and the level the package already names, and
 // without the solver the model is not shown. The topic is one with no
-// drawings, so that none of the three is there for its drawing alone.
+// pictures, so that none of the three is there for its picture alone.
 func TestAPackageShowsReferenceTasksAsTheModelIsToSeeThem(t *testing.T) {
 	t.Parallel()
 
@@ -353,8 +353,8 @@ func TestAPackageShowsReferenceTasksAsTheModelIsToSeeThem(t *testing.T) {
 
 // A package shows a reference task that draws wherever its topic has one at
 // the level of the brief, whatever the difficulty and wherever the turns have
-// come to: a model shown no drawing writes none. The task comes with the
-// structure its drawing is checked by, and without what the model is not shown.
+// come to: a model shown no picture describes none. The task comes without
+// what the model is not shown.
 func TestAPackageShowsATaskThatDrawsWhereItsLevelHasOne(t *testing.T) {
 	t.Parallel()
 
@@ -365,7 +365,7 @@ func TestAPackageShowsATaskThatDrawsWhereItsLevelHasOne(t *testing.T) {
 	}
 	drawsAt := map[place]bool{}
 	for _, task := range shipped.Examples() {
-		if task.Drawing != "" {
+		if task.Picture != nil {
 			drawsAt[place{task.Topic, task.GradeLevel}] = true
 		}
 	}
@@ -383,22 +383,18 @@ func TestAPackageShowsATaskThatDrawsWhereItsLevelHasOne(t *testing.T) {
 	}
 }
 
-// wantATaskThatDraws fails unless one of the examples a package shows draws,
-// with the structure its drawing is checked by and nothing the model is not
-// shown.
+// wantATaskThatDraws fails unless one of the examples a package shows has a
+// picture, and carries nothing the model is not shown.
 func wantATaskThatDraws(t *testing.T, examples []map[string]json.RawMessage, where string) {
 	t.Helper()
 
 	drawn := slices.IndexFunc(examples, func(example map[string]json.RawMessage) bool {
-		_, there := example["drawing"]
+		_, there := example["picture"]
 		return there
 	})
 	if drawn < 0 {
 		t.Errorf("%s: no example draws", where)
 		return
-	}
-	if _, there := examples[drawn]["drawing_structure"]; !there {
-		t.Errorf("%s: an example draws without its drawing_structure", where)
 	}
 	for _, hidden := range []string{"id", "topic", "grade_level", "solver"} {
 		if _, there := examples[drawn][hidden]; there {
@@ -431,35 +427,70 @@ func TestAPackageCarriesTheSolverTemplatesOfItsTopic(t *testing.T) {
 	}
 }
 
-// A package carries the drawing frames of its own topic, in the order of their
-// names, each as the content holds it, and no frame made for other topics.
-func TestAPackageCarriesTheDrawingFramesOfItsTopic(t *testing.T) {
+// A package carries the examples of the kinds of picture its own topic draws,
+// in the order of the kinds, each as the content holds it with the limits of
+// its kind, and no example made for other topics.
+func TestAPackageCarriesTheExamplesOfThePicturesOfItsTopic(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
 	carried := 0
 	for _, topic := range shipped.Topics() {
 		_, got := packageFor(t, shipped, request(topic.ID, rating.Grades56, 3, 0))
-		var want []content.Frame
-		for _, frame := range shipped.Frames() {
-			if slices.Contains(frame.Topics, topic.ID) {
-				want = append(want, frame)
+		var want []content.PictureExample
+		for _, example := range shipped.PictureExamples() {
+			if slices.Contains(example.Topics, topic.ID) {
+				want = append(want, example)
 			}
 		}
-		if len(got.Frames) != len(want) {
-			t.Errorf("%s: %d drawing frames, want the %d made for it", topic.ID, len(got.Frames), len(want))
+		if len(got.Pictures) != len(want) {
+			t.Errorf("%s: %d examples of pictures, want the %d made for it", topic.ID, len(got.Pictures), len(want))
 			continue
 		}
 		for i := range want {
-			if got.Frames[i].Purpose != want[i].Purpose || got.Frames[i].Drawing != want[i].Drawing ||
-				!reflect.DeepEqual(got.Frames[i].Structure, want[i].Structure) {
-				t.Errorf("%s: frame %d is not %s as the content holds it", topic.ID, i+1, want[i].Name)
+			if !shownAsHeld(t, got.Pictures[i], &want[i]) {
+				t.Errorf("%s: example %d is not the %s as the content holds it", topic.ID, i+1, want[i].Kind)
 			}
 		}
-		carried += len(got.Frames)
+		carried += len(got.Pictures)
 	}
 	if carried == 0 {
-		t.Fatal("no package carried a frame, so nothing here was tested")
+		t.Fatal("no package carried an example of a picture, so nothing here was tested")
+	}
+}
+
+// shownAsHeld says whether a package shows an example of a kind of picture as
+// the content holds it, with the limits of its kind, its picture compacted as
+// the package encodes it.
+func shownAsHeld(t *testing.T, shown shownPicture, held *content.PictureExample) bool {
+	t.Helper()
+
+	var compact bytes.Buffer
+	if err := json.Compact(&compact, held.Picture); err != nil {
+		t.Fatalf("compact the example of a %s: %v", held.Kind, err)
+	}
+	return shown.Purpose == held.Purpose && shown.Limits == picture.LimitsOf(held.Kind) &&
+		bytes.Equal(shown.Picture, compact.Bytes())
+}
+
+// Every kind a topic's reference tasks draw is among the examples its package
+// carries: a model shown a reference task drawing a picture of a kind has its
+// example beside it.
+func TestATopicCarriesAnExampleOfEveryKindItsReferenceTasksDraw(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	carried := map[string][]picture.Kind{}
+	for _, example := range shipped.PictureExamples() {
+		for _, topic := range example.Topics {
+			carried[topic] = append(carried[topic], example.Kind)
+		}
+	}
+	for _, task := range shipped.Examples() {
+		if kind := picture.KindOf(task.Picture); task.Picture != nil &&
+			!slices.Contains(carried[task.Topic], picture.Kind(kind)) {
+			t.Errorf("%s draws a %s, and the examples of %s hold none", task.ID, kind, task.Topic)
+		}
 	}
 }
 
@@ -478,7 +509,7 @@ func TestAPackageListsNothingAsNull(t *testing.T) {
 		if err := json.Unmarshal(encoded, &parts); err != nil {
 			t.Fatalf("read the package's parts: %v", err)
 		}
-		for _, list := range []string{"examples", "solver_templates", "drawing_frames", "traps", "prohibitions"} {
+		for _, list := range []string{"examples", "solver_templates", "pictures", "traps", "prohibitions"} {
 			switch got := string(parts[list]); {
 			case !strings.HasPrefix(got, "["):
 				t.Errorf("%s: %s = %s, want a list", topic.ID, list, got)
@@ -712,7 +743,7 @@ func TestTheGuidesExampleIsATaskTheChecksAccept(t *testing.T) {
 		t.Fatalf("read the guide's example: %v", err)
 	}
 
-	reviewer := checks.NewReviewer(shipped, serviceSandbox(t), checks.DefaultDrawingLimits())
+	reviewer := checks.NewReviewer(shipped, serviceSandbox(t))
 	examined, err := reviewer.Examine(t.Context(), &checks.Submission{
 		Task: example.Task, SelfCheck: example.SelfCheck, Solver: example.Solver,
 	})
@@ -817,14 +848,14 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 		}
 	}
 	wantEveryDifficultyCarried(t, tree)
-	for _, part := range []string{"solver_templates", "drawing_frames"} {
+	for _, part := range []string{"solver_templates", "pictures"} {
 		if list, isList := tree[part].([]any); !isList || len(list) == 0 {
 			t.Errorf("%s = %v, want a list with the topic's own, which the guide names", part, tree[part])
 		}
 	}
 	for _, said := range []string{
 		"return match(options, value)", "gives you no instructions", "submit_task", "when that is empty",
-		"`solver_templates`", "`drawing_frames`", "## The difficulty", "`idea.text`", "`idea.round`", "`core_idea`",
+		"`solver_templates`", "`pictures`", "## The difficulty", "`idea.text`", "`idea.round`", "`core_idea`",
 		"Only `prohibitions` come before it",
 		"every text the child reads in the package's `language`",
 	} {
@@ -852,7 +883,7 @@ func wantEveryDifficultyCarried(t *testing.T, tree map[string]any) {
 }
 
 // partAt is the part of a package read back as JSON that a dotted path names,
-// such as limits.drawing.width, or nil when the package has no such part.
+// such as limits.label_characters, or nil when the package has no such part.
 func partAt(tree map[string]any, path string) any {
 	var at any = tree
 	for _, step := range strings.Split(path, ".") {

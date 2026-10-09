@@ -1,6 +1,8 @@
 package profile
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"maps"
 	"slices"
@@ -34,8 +36,6 @@ type ReadyTask struct {
 	// Difficulty is the difficulty of the task inside its level, from
 	// MinDifficulty to MaxDifficulty.
 	Difficulty int `json:"difficulty"`
-	// Drawing is the picture in text, when the task has one.
-	Drawing string `json:"drawing,omitempty"`
 	// ExcludedSkills are the skills the task was asked to keep out.
 	ExcludedSkills []string `json:"excluded_skills"`
 	// Fingerprint is the sketch that joins the list of past tasks once the
@@ -60,6 +60,11 @@ type ReadyTask struct {
 	OpenedAt Time `json:"opened_at"`
 	// Options are the ones the child will choose between, keyed by letter.
 	Options map[string]string `json:"options"`
+	// Picture is the description of the picture the card draws, as the checks
+	// accepted it, its keys in order, and none for a task with none. The
+	// profile keeps it and does not read it: a file edited by hand never fails
+	// to read for a picture.
+	Picture json.RawMessage `json:"picture,omitempty"`
 	// Sealed is everything that would give the answer away, sealed as the
 	// answer of a task on the card is.
 	Sealed string `json:"sealed"`
@@ -107,6 +112,10 @@ func (p *Profile) Keep(written *Written, secret TaskSecret, sealer Sealer, now t
 		return nil, ErrNoRequest
 	}
 	id := TaskIDFor(request.ID)
+	picture, err := inOrder(written.Picture)
+	if err != nil {
+		return nil, err
+	}
 	sealed, err := sealSecret(sealer, secret, unansweredBinding(p.StudentID, id))
 	if err != nil {
 		return nil, err
@@ -114,7 +123,6 @@ func (p *Profile) Keep(written *Written, secret TaskSecret, sealer Sealer, now t
 	p.ReadyTask = &ReadyTask{
 		Attempts:            request.Attempts + 1,
 		Difficulty:          request.Brief.Difficulty,
-		Drawing:             written.Drawing,
 		ExcludedSkills:      append([]string{}, request.Brief.ExcludedSkills...),
 		Fingerprint:         written.Fingerprint,
 		GradeLevel:          request.Brief.GradeLevel,
@@ -125,6 +133,7 @@ func (p *Profile) Keep(written *Written, secret TaskSecret, sealer Sealer, now t
 		LessonTopic:         request.LessonTopic,
 		OpenedAt:            request.OpenedAt,
 		Options:             maps.Clone(written.Options),
+		Picture:             picture,
 		Sealed:              sealed,
 		Topic:               request.Brief.TargetConcept,
 		TutorMode:           request.TutorMode,
@@ -147,7 +156,6 @@ func (p *Profile) HandOutReady(now time.Time) (*CurrentTask, error) {
 	}
 	p.handOut(&CurrentTask{
 		Difficulty:          ready.Difficulty,
-		Drawing:             ready.Drawing,
 		Fingerprint:         ready.Fingerprint,
 		GradeLevel:          ready.GradeLevel,
 		Hint:                ready.Hint,
@@ -156,6 +164,7 @@ func (p *Profile) HandOutReady(now time.Time) (*CurrentTask, error) {
 		IssuedAt:            At(now),
 		Language:            ready.Language,
 		Options:             maps.Clone(ready.Options),
+		Picture:             bytes.Clone(ready.Picture),
 		Sealed:              ready.Sealed,
 		Topic:               ready.Topic,
 		TutorMode:           ready.TutorMode,

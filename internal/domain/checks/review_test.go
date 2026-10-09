@@ -83,8 +83,7 @@ func (s *scenario) askedFor(level rating.GradeLevel) {
 func (s *scenario) review(t *testing.T) checks.Outcome {
 	t.Helper()
 
-	reviewer := checks.NewReviewer(shipped{catalog: testCatalog, references: s.references}, s.runner,
-		checks.DefaultDrawingLimits())
+	reviewer := checks.NewReviewer(shipped{catalog: testCatalog, references: s.references}, s.runner)
 	examined, err := reviewer.Examine(t.Context(), submissionOf(t, s.draft))
 	if err != nil {
 		t.Fatalf("Examine() error = %v", err)
@@ -165,8 +164,7 @@ func TestAGoodTaskIsAccepted(t *testing.T) {
 func TestNothingIsJudgedWithoutItsInput(t *testing.T) {
 	t.Parallel()
 
-	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &working{value: "six pairs"},
-		checks.DefaultDrawingLimits())
+	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &working{value: "six pairs"})
 	examined, err := reviewer.Examine(t.Context(), submissionOf(t, validDraft()))
 	if err != nil {
 		t.Fatalf("Examine() error = %v", err)
@@ -198,8 +196,7 @@ func TestNothingIsJudgedWithoutItsInput(t *testing.T) {
 func TestTheRunsOfTheSolverAreHandedOutByWhatTheyCost(t *testing.T) {
 	t.Parallel()
 
-	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &working{value: "six pairs"},
-		checks.DefaultDrawingLimits())
+	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &working{value: "six pairs"})
 	examined, err := reviewer.Examine(t.Context(), submissionOf(t, validDraft()))
 	if err != nil {
 		t.Fatalf("Examine() error = %v", err)
@@ -236,10 +233,10 @@ var refusals = []struct {
 	{"two explanations saying the same", func(s *scenario) {
 		s.draft.Task.Distractors["D"] = checks.Distractor{Trap: "wrong_operation", Text: "You missed one pair."}
 	}, checks.CodeDistractorExplanations, "say the same thing"},
-	{"a drawing with a space at the end of a line", func(s *scenario) { draw(s, "P───Q \n│", "P", "Q") },
-		checks.CodeDrawingFormat, "spaces at the end of line 1"},
-	{"a drawing without a label it declares", func(s *scenario) { draw(s, "P───Q", "P", "Q", "R") },
-		checks.CodeDrawingMismatch, `does not show "R"`},
+	{"a picture out of its format", func(s *scenario) { picture(s, pictureOf(3, "P", "Q"), "P", "Q") },
+		checks.CodeDrawingFormat, "task.picture.copies must be a whole number from 1 to 2"},
+	{"a picture with a label the wording does not name", func(s *scenario) { picture(s, pictureOf(1, "P", "Q", "R"), "P", "Q") },
+		checks.CodeDrawingMismatch, "does not name 1 of the labels"},
 	{"a sentence too long for the level", func(s *scenario) {
 		s.draft.Task.Question += longSentence
 		s.askedFor(rating.Grades12)
@@ -264,16 +261,25 @@ var refusals = []struct {
 	}, checks.CodeNearDuplicate, "already been given"},
 }
 
-// draw gives a scenario's task a drawing, a structure declaring these labels,
-// and a sentence of its question naming them, as a task that draws must.
-func draw(s *scenario, drawing string, labels ...string) {
-	s.draft.Task.Question += " The drawing marks " + strings.Join(labels, ", ") + "."
-	s.draft.Task.Drawing = drawing
-	s.draft.Task.DrawingStructure = &checks.DrawingStructure{Kind: "number_line"}
+// picture gives a scenario's task a picture, and a sentence of its question
+// naming these labels, as a task with a picture names its labels.
+func picture(s *scenario, description json.RawMessage, named ...string) {
+	s.draft.Task.Question += " The picture marks " + strings.Join(named, " and ") + "."
+	s.draft.Task.Picture = description
+}
+
+// pictureOf is a row of these labels, drawn as many times as copies says:
+// once or twice in the format, and three times out of it.
+func pictureOf(copies int, labels ...string) json.RawMessage {
+	items := make([]map[string]string, 0, len(labels))
 	for _, label := range labels {
-		s.draft.Task.DrawingStructure.Objects = append(s.draft.Task.DrawingStructure.Objects,
-			checks.DrawingObject{ID: label, Label: label})
+		items = append(items, map[string]string{"label": label})
 	}
+	raw, err := json.Marshal(map[string]any{"kind": "row", "items": items, "copies": copies})
+	if err != nil {
+		panic(err)
+	}
+	return raw
 }
 
 func TestEachRefusalHasItsCode(t *testing.T) {
@@ -315,7 +321,7 @@ func TestAMendedTaskIsJudgedAsTheTaskItMeant(t *testing.T) {
 	task["options"] = map[string]any{"A": 4, "B": 5, "C": 6, "D": 8, "E": 12}
 	task["correct_answer"] = "c"
 
-	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &working{value: "6"}, checks.DefaultDrawingLimits())
+	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &working{value: "6"})
 	examined, err := reviewer.Examine(t.Context(), &checks.Submission{
 		Task: jsonOf(t, task), SelfCheck: jsonOf(t, draft.SelfCheck), Solver: program,
 	})
@@ -346,7 +352,7 @@ func TestEveryFailedCheckIsReportedInItsOrder(t *testing.T) {
 			test.change(&broken)
 		}
 	}
-	draw(&broken, "P───Q \n│", "P", "Q", "R")
+	picture(&broken, pictureOf(3, "P", "Q", "R"), "P", "Q")
 	broken.references = []string{broken.draft.Task.Question}
 	outcome := broken.review(t)
 
@@ -441,23 +447,24 @@ func TestWhatCouldNotBeReadIsNotChecked(t *testing.T) {
 	}
 }
 
-// A drawing handed in without the structure that describes it cannot be held
-// against the wording: the structure check refuses the missing part, and the
-// match is noted as not checked rather than passed.
-func TestADrawingWithoutItsStructureIsNotMatched(t *testing.T) {
+// A picture out of its format is still held to the wording where it could be
+// read, but the labels the wording names are not looked for in it: a label
+// left out for breaking a rule would be reported missing. That part is noted
+// as not checked rather than passed.
+func TestAPictureOutOfItsFormatIsHeldToTheWordingInPart(t *testing.T) {
 	t.Parallel()
 
-	undescribed := accepted()
-	undescribed.draft.Task.Drawing = "P───Q"
-	outcome := undescribed.review(t)
+	broken := accepted()
+	picture(&broken, pictureOf(3, "P", "Q"), "D", "P", "Q")
+	outcome := broken.review(t)
 
-	if codes := codesOf(&outcome); !slices.Equal(codes, []checks.Code{checks.CodeBadStructure}) {
-		t.Errorf("codes = %v, want only %q", codes, checks.CodeBadStructure)
+	if codes := codesOf(&outcome); !slices.Equal(codes, []checks.Code{checks.CodeDrawingFormat}) {
+		t.Errorf("codes = %v, want only %q", codes, checks.CodeDrawingFormat)
 	}
 	if !slices.ContainsFunc(outcome.Unchecked, func(note string) bool {
-		return strings.Contains(note, "the drawing was not checked against the wording")
+		return strings.Contains(note, "the labels the question names were not looked for in the picture")
 	}) {
-		t.Errorf("unchecked = %v, want the match noted as not checked", outcome.Unchecked)
+		t.Errorf("unchecked = %v, want the labels the question names noted as not looked for", outcome.Unchecked)
 	}
 }
 
@@ -685,7 +692,7 @@ func TestTheSandboxFailingIsNotTheTasks(t *testing.T) {
 	t.Parallel()
 
 	down := errors.New("no slot in the sandbox")
-	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &scripted{err: down}, checks.DefaultDrawingLimits())
+	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &scripted{err: down})
 	if _, err := reviewer.Examine(t.Context(), submissionOf(t, validDraft())); !errors.Is(err, down) {
 		t.Fatalf("Examine() error = %v, want it to wrap %v", err, down)
 	}

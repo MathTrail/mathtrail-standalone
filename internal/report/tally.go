@@ -6,6 +6,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
 
@@ -50,8 +51,9 @@ type tasks struct {
 	attempts []int
 	seconds  []int64
 	// told counts the tasks accepted whose line says whether they came with a
-	// drawing, and drawn those of them that did.
-	told, drawn int
+	// picture, or with a text drawing before pictures, and pictured those of
+	// them that did.
+	told, pictured int
 	// ahead counts the requests opened for a task written ahead, kept the
 	// tasks written ahead and kept, and letGo those let go, kept or still being
 	// written, once the lesson moved away from them. ready counts the tasks
@@ -92,13 +94,21 @@ type letGoFor struct {
 	written         bool
 }
 
-// drawnOn is a topic as the tasks of one version of the instructions were
+// topicOf is a topic as the tasks of one version of the instructions were
 // written on it.
-type drawnOn struct{ version, topic string }
+type topicOf struct{ version, topic string }
 
-// drawings is how many tasks of a topic were accepted with a line that says
-// whether they came with a drawing, and how many of them did.
-type drawings struct{ accepted, drawn int }
+// pictures is how many tasks of a topic were accepted with a line that says
+// whether they came with a picture, and how many of them did.
+type pictures struct{ accepted, pictured int }
+
+// kindOf is a kind of picture as the tasks of one version of the instructions
+// drew it.
+type kindOf struct{ version, kind string }
+
+// textDrawing is the kind a line written before pictures gives a task that
+// came with a drawing: it says only that there was one.
+const textDrawing = "(a text drawing)"
 
 // refusedBy is a check that refused attempts, under a version of the
 // instructions.
@@ -132,7 +142,8 @@ type counts struct {
 	tasks    map[group]*tasks
 	handIns  map[handInOf]*handIns
 	mends    map[mendOf]int
-	drawings map[drawnOn]*drawings
+	pictures map[topicOf]*pictures
+	kinds    map[kindOf]int
 	refusals map[refusedBy]*refusals
 	letGo    map[letGoFor]int
 	limits   map[string]int
@@ -174,7 +185,7 @@ func tally(in *input) *counts {
 	c := &counts{
 		lines: len(lines), others: in.others, unreadable: in.unreadable,
 		tasks: map[group]*tasks{}, handIns: map[handInOf]*handIns{}, mends: map[mendOf]int{},
-		drawings: map[drawnOn]*drawings{}, refusals: map[refusedBy]*refusals{},
+		pictures: map[topicOf]*pictures{}, kinds: map[kindOf]int{}, refusals: map[refusedBy]*refusals{},
 		letGo:  map[letGoFor]int{},
 		limits: map[string]int{}, tools: map[toolOf]*calls{}, handOuts: map[group]*handOuts{},
 		promises: map[promisedIn]*cameTrue{}, keptUp: map[keptUpIn]*keptUp{}, answersLeftOut: map[string]int{},
@@ -319,7 +330,7 @@ func (c *counts) task(l *line, counted *tasks) {
 	case eventTaskAccepted:
 		counted.attempts = append(counted.attempts, int(l.Attempts))
 		counted.seconds = append(counted.seconds, int64(l.SecondsSinceRequest))
-		c.drawing(l, counted)
+		c.picture(l, counted)
 		if l.Ready {
 			counted.ready++
 		}
@@ -334,25 +345,44 @@ func (c *counts) task(l *line, counted *tasks) {
 	}
 }
 
-// drawing counts whether an accepted task came with a drawing, for its group
-// and for its topic. A line that does not say is counted neither way, so that
-// the tasks accepted before the service said so read as unknown rather than
-// as drawn by none.
-func (c *counts) drawing(l *line, counted *tasks) {
-	if l.Drawing == nil {
+// picture counts whether an accepted task came with a picture, for its group,
+// for its topic and by its kind. A line written before pictures counts its
+// text drawing so, under its own version of the instructions, and a line that
+// says neither is counted neither way, so that the tasks accepted before the
+// service said so read as unknown rather than as pictured by none.
+func (c *counts) picture(l *line, counted *tasks) {
+	kind, told := pictureOf(l)
+	if !told {
 		return
 	}
-	key := drawnOn{version: l.InstructionsVersion, topic: l.Topic}
-	onTopic, found := c.drawings[key]
+	key := topicOf{version: l.InstructionsVersion, topic: l.Topic}
+	onTopic, found := c.pictures[key]
 	if !found {
-		onTopic = &drawings{}
-		c.drawings[key] = onTopic
+		onTopic = &pictures{}
+		c.pictures[key] = onTopic
 	}
 	counted.told++
 	onTopic.accepted++
-	if *l.Drawing {
-		counted.drawn++
-		onTopic.drawn++
+	if kind == picture.None {
+		return
+	}
+	counted.pictured++
+	onTopic.pictured++
+	c.kinds[kindOf{version: l.InstructionsVersion, kind: kind}]++
+}
+
+// pictureOf is the kind of picture a line says its task came with, or none,
+// and whether it says at all.
+func pictureOf(l *line) (kind string, told bool) {
+	switch {
+	case l.Picture != "":
+		return l.Picture, true
+	case l.Drawing == nil:
+		return "", false
+	case *l.Drawing:
+		return textDrawing, true
+	default:
+		return picture.None, true
 	}
 }
 

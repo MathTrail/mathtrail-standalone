@@ -420,10 +420,6 @@
           "type": "boolean"
         },
         "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
-        "drawing": {
-          "description": "The picture in text, when the task has one.",
-          "type": "string"
-        },
         "fingerprint": { "type": "string" },
         "grade_level": { "$ref": "#/$defs/gradeLevel" },
         "hint": { "type": "string" },
@@ -436,6 +432,10 @@
           "type": "object",
           "required": ["A", "B", "C", "D", "E"],
           "additionalProperties": { "type": "string" }
+        },
+        "picture": {
+          "description": "The description of the picture the card draws, as the checks accepted it, its keys in order; absent for a task with none. Its format is the task's, and the profile does not read it.",
+          "type": "object"
         },
         "sealed": {
           "description": "The answer, the explanation behind every wrong option, the solution and the solver, as one opaque string. Nothing about it changes shape with the answer.",
@@ -480,10 +480,6 @@
           "maximum": 3
         },
         "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
-        "drawing": {
-          "description": "The picture in text, when the task has one.",
-          "type": "string"
-        },
         "excluded_skills": {
           "description": "The skills the task was asked to keep out.",
           "type": "array",
@@ -513,6 +509,10 @@
           "type": "object",
           "required": ["A", "B", "C", "D", "E"],
           "additionalProperties": { "type": "string" }
+        },
+        "picture": {
+          "description": "The description of the picture the card draws, as the checks accepted it, its keys in order; absent for a task with none. Its format is the task's, and the profile does not read it.",
+          "type": "object"
         },
         "sealed": {
           "description": "The answer, the explanation behind every wrong option, the solution and the solver, sealed as those of the task on the card are.",

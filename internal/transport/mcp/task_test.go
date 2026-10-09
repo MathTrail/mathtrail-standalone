@@ -1,6 +1,7 @@
 package mcpserver_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -1326,7 +1327,7 @@ func TestTheAnswerStaysSealed(t *testing.T) {
 			t.Errorf("the task %s draws the %q screen, want the task's card", card.name, payload.Screen)
 		}
 		if keys := slices.Sorted(maps.Keys(payload.Task)); !slices.Equal(keys,
-			[]string{"drawing", "hint", "id", "language", "options", "question", "topic"}) {
+			[]string{"drawing", "hint", "id", "language", "options", "picture", "question", "topic"}) {
 			t.Errorf("the card of the task %s has %v, want what a child may see and nothing else", card.name, keys)
 		}
 	}
@@ -1745,29 +1746,151 @@ func TestATaskWrittenAheadThatCannotBeSealedIsNotKept(t *testing.T) {
 	}
 }
 
-// Where no card is drawn the drawing is read out as it is to be shown: in a
-// block of its own, fenced by more backticks than any run of them inside it.
-func TestTheDrawingIsReadOutInABlockOfItsOwn(t *testing.T) {
+// Where no card is drawn the task is read out in words, and its picture is
+// not: the card alone draws it, and the question carries every fact the task
+// needs.
+func TestTheWordsOfATaskCarryNoPicture(t *testing.T) {
 	t.Parallel()
 
-	const drawing = "+---+\n|```|\n+---+\n"
 	on := fuzzProfile(t)
 	on.CurrentTask = &profile.CurrentTask{
-		Difficulty: 2, Drawing: drawing, Fingerprint: "sketch", GradeLevel: "1-2", Hint: "Look at the box.",
-		ID: "tsk_boxed", InstructionsVersion: "test", IssuedAt: profile.At(lessonDay), Language: "en",
+		Difficulty: 2, Fingerprint: "sketch", GradeLevel: "1-2", Hint: "Look at the hands.",
+		ID: "tsk_hours", InstructionsVersion: "test", IssuedAt: profile.At(lessonDay), Language: "en",
 		Options: map[string]string{"A": "1", "B": "2", "C": "3", "D": "4", "E": "5"},
-		Sealed:  "mt1.t.kid.sealed", Topic: "logic.ordering", Wording: "How many boxes are drawn?",
+		Picture: json.RawMessage(`{"kind":"clock","time":"7:45"}`),
+		Sealed:  "mt1.t.kid.sealed", Topic: "time.clocks", Wording: "How many hours until noon?",
 	}
 	_, session := lesson(t, keptAsIs(t, on))
 
 	race := raceOn(on.OpenRequest)
 	race["request_id"] = "req_another"
 	text := textOf(t, call(t, session, "submit_task", race))
-	if want := "Drawing:\n````\n+---+\n|```|\n+---+\n````\n"; !strings.Contains(text, want) {
-		t.Errorf("the words are %q, want the drawing fenced as %q", text, want)
+	if strings.Contains(text, "7:45") || strings.Contains(text, "clock") {
+		t.Errorf("the words are %q, want no picture in them", text)
 	}
 	if want := `Options: A) "1" B) "2" C) "3" D) "4" E) "5"`; !strings.Contains(text, want) {
 		t.Errorf("the words are %q, want the options read out in order as %q", text, want)
+	}
+}
+
+// A picture reaches every card that shows its task as it was handed in, its
+// keys in order, beside the empty drawing a card of the release before
+// requires; and the protocol's library, which holds every result to the
+// schema it derives, lets the payload through.
+func TestAPictureReachesTheCardAsItWasHandedIn(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+	handed := call(t, session, "submit_task", picturedRaceOn(request))
+	shown := call(t, session, "read_task", map[string]any{"request_id": request.ID})
+
+	const want = `{"items":[{"label":"A"},{"label":"B"},{"label":"K"}],"kind":"row"}`
+	for _, card := range []struct {
+		name   string
+		result *mcp.CallToolResult
+	}{{"accepted", handed}, {"read by the card that waits for it", shown}} {
+		if card.result.IsError {
+			t.Fatalf("the task %s failed: %s", card.name, textOf(t, card.result))
+		}
+		var payload struct {
+			Task struct {
+				Picture json.RawMessage `json:"picture"`
+				Drawing *string         `json:"drawing"`
+			} `json:"task"`
+		}
+		if err := json.Unmarshal(rawPayload(t, card.result), &payload); err != nil {
+			t.Fatalf("the payload of the task %s does not read: %v", card.name, err)
+		}
+		if got := string(payload.Task.Picture); got != want {
+			t.Errorf("the picture of the task %s is %s, want %s", card.name, got, want)
+		}
+		if payload.Task.Drawing == nil || *payload.Task.Drawing != "" {
+			t.Errorf("the drawing of the task %s is %v, want an empty one", card.name, payload.Task.Drawing)
+		}
+	}
+	p, _ := loadKept(t, kept)
+	var compact bytes.Buffer
+	if err := json.Compact(&compact, p.CurrentTask.Picture); err != nil || compact.String() != want {
+		t.Errorf("the profile keeps the picture as %s, want %s", p.CurrentTask.Picture, want)
+	}
+}
+
+// A picture the format refuses, which only a file edited by hand can hold,
+// reaches no card: the card shows the task with no picture rather than one it
+// cannot draw.
+func TestAPictureTheFormatRefusesReachesNoCard(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct{ name, picture string }{
+		{"a kind the format does not have", `{"kind":"pie","slices":3}`},
+		{"a kind out of its format", `{"kind":"clock","time":"99:99"}`},
+		{"no object", `"a clock at half past four"`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := fuzzProfile(t)
+			request := p.OpenRequest.ID
+			handOutTheRace(t, p, lessonDay)
+			p.CurrentTask.Picture = json.RawMessage(test.picture)
+			_, session := lesson(t, keptAsIs(t, p))
+
+			shown := call(t, session, "read_task", map[string]any{"request_id": request})
+			if shown.IsError {
+				t.Fatalf("read_task failed: %s", textOf(t, shown))
+			}
+			var payload struct {
+				Task *struct {
+					ID      string          `json:"id"`
+					Picture json.RawMessage `json:"picture"`
+				} `json:"task"`
+			}
+			if err := json.Unmarshal(rawPayload(t, shown), &payload); err != nil {
+				t.Fatalf("the payload does not read: %v", err)
+			}
+			if payload.Task == nil || payload.Task.ID == "" {
+				t.Fatalf("read_task shows no task: %s", rawPayload(t, shown))
+			}
+			if got := string(payload.Task.Picture); got != "null" {
+				t.Errorf("the picture on the card is %s, want null", got)
+			}
+		})
+	}
+}
+
+// A task handed in with a drawing in characters, as the format once asked for,
+// is refused in words that send the model to the picture and to the guide,
+// and a drawing that holds nothing costs nothing.
+func TestATextDrawingIsRefusedAndAnEmptyOneReadPast(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name     string
+		drawing  any
+		accepted bool
+	}{
+		{"a drawing", "A  B  K\n●  ●  ●", false},
+		{"an empty drawing", "", true},
+		{"a drawing of null", nil, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept := racer(t)
+			_, session := lesson(t, kept)
+			race := raceOn(askForTheRace(t, session, kept))
+			task, _ := race["task"].(map[string]any)
+			task["drawing"] = test.drawing
+			text := textOf(t, call(t, session, "submit_task", race))
+			if accepted := strings.HasPrefix(text, "Accepted"); accepted != test.accepted {
+				t.Fatalf("the words are %q, want accepted = %v", text, test.accepted)
+			}
+			if !test.accepted && (!strings.Contains(text, "task.picture") || !strings.Contains(text, "get_package")) {
+				t.Errorf("the words are %q, want them to send the model to task.picture and get_package", text)
+			}
+		})
 	}
 }
 

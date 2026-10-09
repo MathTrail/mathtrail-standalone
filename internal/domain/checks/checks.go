@@ -33,11 +33,15 @@ const (
 	// cannot tell a child what went wrong: a copy of another, of the solution
 	// or the hint, of the catalog, or too short to say anything.
 	CodeDistractorExplanations Code = "distractor_explanations"
-	// CodeDrawingFormat is a drawing a phone would not show as it was drawn:
-	// too wide, too tall, or made of characters that fonts draw differently.
+	// CodeDrawingFormat is a picture's description that is not one: no kind
+	// the format has, a member its kind does not have or of the wrong type, or
+	// a number outside its kind's limits. The code keeps the name it had when
+	// pictures were drawn in characters, as the log has always counted it.
 	CodeDrawingFormat Code = "drawing_format"
-	// CodeDrawingMismatch is a drawing that does not show what its structure
-	// declares, or a structure that leaves out a label the wording names.
+	// CodeDrawingMismatch is a picture that disagrees with its wording: a label
+	// the wording names that the picture does not show, a label in capitals the
+	// picture shows that the wording does not name, or a right answer the
+	// picture shows and the wording does not give.
 	CodeDrawingMismatch Code = "drawing_mismatch"
 	// CodeReadability is a question that does not read as a task of its level
 	// should: a sentence too long for the level, or, in English, words and

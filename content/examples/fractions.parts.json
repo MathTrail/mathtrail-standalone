@@ -5,13 +5,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "Two thirds of a number N is 24. What is three quarters of N?",
-    "drawing": "N │▒▒▒│▒▒▒│   │\n  └──24───┘\nN │▒▒│▒▒│▒▒│  │\n  └── ? ───┘",
-    "drawing_structure": {
-      "kind": "bars",
-      "objects": [
-        {"id": "N", "label": "N"}
-      ]
-    },
+    "picture": {"kind": "bars", "bars": [{"label": "N", "parts": 3, "shaded": 2, "length": 12, "braces": [{"from": 0, "to": 2, "label": "24"}]}, {"label": "N", "parts": 4, "shaded": 3, "length": 12, "braces": [{"from": 0, "to": 3, "label": "?"}]}]},
     "options": {
       "A": "18",
       "B": "36",

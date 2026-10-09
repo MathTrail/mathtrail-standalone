@@ -25,23 +25,21 @@ type Sandbox struct {
 	Site string
 }
 
-// AddWidget serves page as the widget's resource at uri: the service's own
-// page at WidgetURI, or a copy another server draws its cards with, at an
-// address of its own, so that it is drawn as the service's cards are.
+// addWidget serves page as the widget's resource at WidgetURI.
 //
 // What a host needs to know about the page travels twice: with the resource
 // where it is listed, and with the page where it is read. A host takes what
 // came with the page and falls back to the listing, and the library copies
 // neither onto the other.
-func AddWidget(server *mcp.Server, uri, page string, sandbox Sandbox) {
+func addWidget(server *mcp.Server, page string, sandbox Sandbox) {
 	server.AddResource(&mcp.Resource{
-		URI:      uri,
+		URI:      WidgetURI,
 		Name:     "widget",
 		Title:    "MathTrail",
 		MIMEType: widgetMIME,
 		Meta:     widgetMeta(sandbox),
 	}, func(context.Context, *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
-		return widgetRead(uri, page, sandbox), nil
+		return widgetRead(page, sandbox), nil
 	})
 }
 
@@ -50,10 +48,10 @@ func AddWidget(server *mcp.Server, uri, page string, sandbox Sandbox) {
 // library writes into whatever a handler returns — the address, the type, the
 // cache hint, the server's own name — so a result shared between reads would
 // be written by several of them at once.
-func widgetRead(uri, page string, sandbox Sandbox) *mcp.ReadResourceResult {
+func widgetRead(page string, sandbox Sandbox) *mcp.ReadResourceResult {
 	return &mcp.ReadResourceResult{
 		Contents: []*mcp.ResourceContents{{
-			URI:      uri,
+			URI:      WidgetURI,
 			MIMEType: widgetMIME,
 			Text:     page,
 			Meta:     widgetMeta(sandbox),

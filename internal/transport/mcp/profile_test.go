@@ -994,7 +994,7 @@ func allParts(t *testing.T) *mcpserver.Parts {
 	return &mcpserver.Parts{
 		Store:       memory.New(),
 		Content:     loaded,
-		Reviewer:    checks.NewReviewer(loaded, runner, checks.DefaultDrawingLimits()),
+		Reviewer:    checks.NewReviewer(loaded, runner),
 		Sealer:      sealer(t),
 		Window:      time.Minute,
 		Daily:       mcpserver.Daily{Tasks: config.DefaultDailyTasks, Failed: config.DefaultDailyFailed},

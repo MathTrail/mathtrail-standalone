@@ -5,17 +5,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "A class has 25 pupils. 15 of them are in the football club (F), 12 are in the chess club (C), and 5 are in both clubs. How many pupils are in neither club?",
-    "drawing": "┌─────────────────── 25 ──┐\n│     F 15                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │  5│     │   ?  │\n│ └──────┼───┘     │      │\n│        └─────────┘ C 12 │\n└─────────────────────────┘",
-    "drawing_structure": {
-      "kind": "venn",
-      "objects": [
-        {"id": "F", "label": "F", "value": 15},
-        {"id": "C", "label": "C", "value": 12}
-      ],
-      "relations": [
-        {"type": "overlap", "from": "F", "to": "C"}
-      ]
-    },
+    "picture": {"kind": "venn", "total": "25", "sets": [{"label": "F", "count": "15"}, {"label": "C", "count": "12"}], "both": "5", "neither": "?"},
     "options": {
       "A": "22",
       "B": "5",
@@ -51,17 +41,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "Every child in a group likes apples, pears or both. 18 of the children like apples (A), 14 like pears (P), and 7 like both fruits. How many children are in the group?",
-    "drawing": "┌───────────────────  ? ──┐\n│     A 18                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │  7│     │   0  │\n│ └──────┼───┘     │      │\n│        └─────────┘ P 14 │\n└─────────────────────────┘",
-    "drawing_structure": {
-      "kind": "venn",
-      "objects": [
-        {"id": "A", "label": "A", "value": 18},
-        {"id": "P", "label": "P", "value": 14}
-      ],
-      "relations": [
-        {"type": "overlap", "from": "A", "to": "P"}
-      ]
-    },
+    "picture": {"kind": "venn", "total": "?", "sets": [{"label": "A", "count": "18"}, {"label": "P", "count": "14"}], "both": "7", "neither": "0"},
     "options": {
       "A": "25",
       "B": "32",
@@ -97,17 +77,7 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "A class of 30 children had a free afternoon, and each child went to at least one of two places: the museum (M) or the zoo (Z). 20 children went to the museum and 16 went to the zoo. How many went to both places?",
-    "drawing": "┌─────────────────── 30 ──┐\n│     M 20                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │  ?│     │   0  │\n│ └──────┼───┘     │      │\n│        └─────────┘ Z 16 │\n└─────────────────────────┘",
-    "drawing_structure": {
-      "kind": "venn",
-      "objects": [
-        {"id": "M", "label": "M", "value": 20},
-        {"id": "Z", "label": "Z", "value": 16}
-      ],
-      "relations": [
-        {"type": "overlap", "from": "M", "to": "Z"}
-      ]
-    },
+    "picture": {"kind": "venn", "total": "30", "sets": [{"label": "M", "count": "20"}, {"label": "Z", "count": "16"}], "both": "?", "neither": "0"},
     "options": {
       "A": "36",
       "B": "4",
@@ -143,17 +113,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "In a group of 20 children, 12 have a dog (D) and 10 have a cat (C). What is the smallest number of children who could have both a dog and a cat?",
-    "drawing": "┌─────────────────── 20 ──┐\n│     D 12                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │  ?│     │      │\n│ └──────┼───┘     │      │\n│        └─────────┘ C 10 │\n└─────────────────────────┘",
-    "drawing_structure": {
-      "kind": "venn",
-      "objects": [
-        {"id": "D", "label": "D", "value": 12},
-        {"id": "C", "label": "C", "value": 10}
-      ],
-      "relations": [
-        {"type": "overlap", "from": "D", "to": "C"}
-      ]
-    },
+    "picture": {"kind": "venn", "total": "20", "sets": [{"label": "D", "count": "12"}, {"label": "C", "count": "10"}], "both": "?"},
     "options": {
       "A": "0",
       "B": "2",
@@ -189,17 +149,7 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "There are 30 pupils in a class. 18 of them like maths (M) and 21 like art (A). At most how many pupils could like neither subject?",
-    "drawing": "┌─────────────────── 30 ──┐\n│     M 18                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │   │     │   ?  │\n│ └──────┼───┘     │      │\n│        └─────────┘ A 21 │\n└─────────────────────────┘",
-    "drawing_structure": {
-      "kind": "venn",
-      "objects": [
-        {"id": "M", "label": "M", "value": 18},
-        {"id": "A", "label": "A", "value": 21}
-      ],
-      "relations": [
-        {"type": "overlap", "from": "M", "to": "A"}
-      ]
-    },
+    "picture": {"kind": "venn", "total": "30", "sets": [{"label": "M", "count": "18"}, {"label": "A", "count": "21"}], "neither": "?"},
     "options": {
       "A": "0",
       "B": "12",
@@ -340,17 +290,7 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "A year has 50 pupils. 32 of them read comics (C) and 25 read magazines (M). Twice as many pupils read both as read neither. How many pupils read neither?",
-    "drawing": "┌─────────────────── 50 ──┐\n│     C 32                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │   │     │   ?  │\n│ └──────┼───┘     │      │\n│        └─────────┘ M 25 │\n└─────────────────────────┘",
-    "drawing_structure": {
-      "kind": "venn",
-      "objects": [
-        {"id": "C", "label": "C", "value": 32},
-        {"id": "M", "label": "M", "value": 25}
-      ],
-      "relations": [
-        {"type": "overlap", "from": "C", "to": "M"}
-      ]
-    },
+    "picture": {"kind": "venn", "total": "50", "sets": [{"label": "C", "count": "32"}, {"label": "M", "count": "25"}], "neither": "?"},
     "options": {
       "A": "14",
       "B": "7",

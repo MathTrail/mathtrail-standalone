@@ -175,13 +175,7 @@
     "grade_level": "1-2",
     "difficulty": 2,
     "question": "A fence has 8 posts in a straight line. Each post is 2 metres from the next one. How many metres is it from the first post to the last?",
-    "drawing": "●─────●─────●─ ... ─●\n    2     2",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "gap", "label": "2", "value": 2}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{}, {}, {}, {"skip": true}, {}], "gaps": "2"},
     "options": {
       "A": "7",
       "B": "8",
@@ -658,13 +652,7 @@
     "grade_level": "1-2",
     "difficulty": 4,
     "question": "12 fence posts stand in a row, 1 metre apart. A cat walks from the 3rd post to the 10th post. How many metres does it walk?",
-    "drawing": "●─────●─────●─ ... ─●\n    1     1",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "gap", "label": "1", "value": 1}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{}, {}, {}, {"skip": true}, {}], "gaps": "1"},
     "options": {
       "A": "8",
       "B": "10",
@@ -801,14 +789,7 @@
     "grade_level": "1-2",
     "difficulty": 5,
     "question": "A straight fence is 20 metres long. There is a post every 2 metres, and there are posts at both ends. How many posts are there?",
-    "drawing": "●─────●─────●─ ... ─●\n    2     2\n←──────── 20 ───────→",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "gap", "label": "2", "value": 2},
-        {"id": "fence", "label": "20", "value": 20}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{}, {}, {}, {"skip": true}, {}], "gaps": "2", "span": "20"},
     "options": {
       "A": "9",
       "B": "10",
@@ -877,13 +858,7 @@
     "grade_level": "3-4",
     "difficulty": 1,
     "question": "Trees grow along one side of a road, 5 metres apart. There are 21 trees from the first to the last. How many metres is it from the first tree to the last?",
-    "drawing": "●─────●─────●─ ... ─●\n    5     5",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "gap", "label": "5", "value": 5}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{}, {}, {}, {"skip": true}, {}], "gaps": "5"},
     "options": {
       "A": "21",
       "B": "26",
@@ -986,15 +961,7 @@
     "grade_level": "3-4",
     "difficulty": 1,
     "question": "A block of flats has 9 floors. Each flight of stairs between two floors has 18 steps. How many steps are there from floor 1 to floor 9?",
-    "drawing": "1     2     3       9\n●─────●─────●─ ... ─●\n   18    18",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "floor_1", "label": "1"},
-        {"id": "floor_9", "label": "9"},
-        {"id": "flight", "label": "18", "value": 18}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{"label": "1"}, {"label": "2"}, {"label": "3"}, {"skip": true}, {"label": "9"}], "gaps": "18"},
     "options": {
       "A": "18",
       "B": "144",
@@ -1165,14 +1132,7 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "Along one side of a 60-metre fence, posts stand every 4 metres, with a post at each end. How many posts are there?",
-    "drawing": "●─────●─────●─ ... ─●\n    4     4\n←──────── 60 ───────→",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "gap", "label": "4", "value": 4},
-        {"id": "fence", "label": "60", "value": 60}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{}, {}, {}, {"skip": true}, {}], "gaps": "4", "span": "60"},
     "options": {
       "A": "14",
       "B": "15",
@@ -1377,15 +1337,7 @@
     "grade_level": "3-4",
     "difficulty": 3,
     "question": "A path is made of 21 square slabs in a row. A boy stands on the first slab and jumps along the path, always skipping one slab: he lands on slabs 3, 5, 7 and so on. How many jumps does he need to reach the last slab?",
-    "drawing": "1  2  3  4  5     21\n●──●──●──●──●─...─●",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "slab_3", "label": "3"},
-        {"id": "slab_5", "label": "5"},
-        {"id": "last_slab", "label": "21"}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{"label": "1"}, {"label": "2"}, {"label": "3"}, {"label": "4"}, {"label": "5"}, {"skip": true}, {"label": "21"}]},
     "options": {
       "A": "9",
       "B": "11",
@@ -1488,14 +1440,7 @@
     "grade_level": "3-4",
     "difficulty": 4,
     "question": "A path is 90 metres long. On each side of the path there is a post every 10 metres, including both ends. How many posts are there on both sides together?",
-    "drawing": "●─────●─────●─ ... ─●\n   10    10\n←──────── 90 ───────→\n●─────●─────●─ ... ─●",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "gap", "label": "10", "value": 10},
-        {"id": "path", "label": "90", "value": 90}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{}, {}, {}, {"skip": true}, {}], "gaps": "10", "span": "90", "copies": 2},
     "options": {
       "A": "9",
       "B": "10",
@@ -1564,13 +1509,7 @@
     "grade_level": "3-4",
     "difficulty": 4,
     "question": "11 lamps stand in a row along a road, 30 metres apart. A new lamp is put exactly in the middle between every two neighbouring lamps. How many lamps are there now?",
-    "drawing": "●─────●─────●─ ... ─●\n   30    30",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "gap", "label": "30", "value": 30}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{}, {}, {}, {"skip": true}, {}], "gaps": "30"},
     "options": {
       "A": "21",
       "B": "10",
@@ -1639,15 +1578,7 @@
     "grade_level": "3-4",
     "difficulty": 5,
     "question": "The cells of a strip are numbered from 1 to 50. Tanya colours every third cell: 3, 6, 9 and so on. How many uncoloured cells are there between the first coloured cell and the last one?",
-    "drawing": "1  2  3  4  5  6     50\n○──○──●──○──○──●─...─○",
-    "drawing_structure": {
-      "kind": "row",
-      "objects": [
-        {"id": "cell_3", "label": "3"},
-        {"id": "cell_6", "label": "6"},
-        {"id": "cell_50", "label": "50"}
-      ]
-    },
+    "picture": {"kind": "row", "items": [{"mark": "ring", "label": "1"}, {"mark": "ring", "label": "2"}, {"label": "3"}, {"mark": "ring", "label": "4"}, {"mark": "ring", "label": "5"}, {"label": "6"}, {"skip": true}, {"mark": "ring", "label": "50"}]},
     "options": {
       "A": "15",
       "B": "28",
