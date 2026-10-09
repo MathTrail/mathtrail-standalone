@@ -1,9 +1,9 @@
 # The page of the topic of weighing and pouring, for a parent, in Russian. The
 # topic's name, its group, its grades and its traps' names are not here: they
-# are the card's words and the catalog's numbers. Each example's level, and the
-# answer its solver proves, are the site's data; an example here is worked
-# through to that answer. The traps are the topic's commonest, counted in its
-# reference tasks.
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Взвешивания и переливания
 description: Что такое задачи на взвешивания и переливания, как их решают, где ошибаются дети и как помочь дома.
@@ -17,15 +17,8 @@ hero:
     есть планами, которые работают, что бы ни случилось.
   method: Записывать каждое состояние и искать самый короткий путь
   teaches: Планировать шаги наперёд и продумывать каждый исход взвешивания
-  # Measuring 4 litres with a 5-litre jug and a 3-litre jug, step by step.
-  drawing: |2
-    5 л  3 л
-     5    0
-     2    3
-     2    0
-     0    2
-     5    2
-     4    3
+  # Its drawing is the site's data: measuring 4 litres with a 5-litre jug and a
+  # 3-litre jug: what each holds, step by step.
 
 basis:
   title: Правила взвешиваний и переливаний
@@ -94,13 +87,7 @@ examples:
       вылить его или переливать из одного сосуда в другой, пока первый не
       опустеет или второй не наполнится. За какое наименьшее число шагов можно
       получить ровно 1 литр в одном из сосудов?
-    # What the two jugs hold after each step.
-    drawing: |2
-      3 л  5 л
-       3    0
-       0    3
-       3    3
-       1    5
+    # Its drawing is the site's data: what the two jugs hold after each step.
     steps:
       - "Наполним сосуд на 3 литра и перельём в сосуд на 5 литров: теперь в нём 3 литра."
       - >-
@@ -119,9 +106,8 @@ examples:
       Есть 8 одинаковых на вид монет. Одна из них фальшивая и легче остальных,
       а настоящие весят одинаково. За какое наименьшее число взвешиваний на
       весах без гирь можно наверняка найти фальшивую?
-    # The first weighing: three coins on each pan and two aside.
-    drawing: |2
-      [●●●] [●●●]  ●●
+    # Its drawing is the site's data: the first weighing: three coins for each
+    # pan, and two aside.
     steps:
       - Положим по 3 монеты на каждую чашку, а 2 отложим.
       - >-

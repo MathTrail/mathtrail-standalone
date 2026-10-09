@@ -1,8 +1,9 @@
 # The page of the topic of gaps and boundaries, for a parent. The topic's name,
 # its group, its grades and its traps' names are not here: they are the card's
-# words and the catalog's numbers. Each example's level, and the answer its
-# solver proves, are the site's data; an example here is worked through to that
-# answer. The traps are the topic's commonest, counted in its reference tasks.
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
 
 title: Gaps and boundaries
 description: What problems about gaps and boundaries are, how they are solved, where children go wrong, and how to help at home.
@@ -16,12 +17,8 @@ hero:
     it right.
   method: Draw a small case and count on it
   teaches: To tell the things from the gaps between them, and to check a rule on a picture
-  # Four posts in a row, numbered above, and the three gaps between them,
-  # numbered below.
-  drawing: |2
-    1     2     3     4
-    |-----|-----|-----|
-       1     2     3
+  # Its drawing is the site's data: four posts in a row, numbered, and the three
+  # gaps between them.
 
 basis:
   title: The rules of gaps
@@ -87,11 +84,8 @@ examples:
     question: >-
       A bus route has 6 stops. The bus takes 3 minutes to get from one stop to
       the next. How many minutes does it take from the first stop to the last?
-    # Six stops, and the five gaps between them, 3 minutes each.
-    drawing: |2
-      1   2   3   4   5   6
-      ●---●---●---●---●---●
-        3   3   3   3   3
+    # Its drawing is the site's data: six stops, and the five gaps between them,
+    # 3 minutes each.
     steps:
       - Draw the 6 stops as dots. The bus drives along the gaps between them.
       - Between 6 stops there are 5 gaps, one fewer than stops.

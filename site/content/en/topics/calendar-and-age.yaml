@@ -1,9 +1,9 @@
-# The page of the topic of the calendar and age, for a parent. The topic's
-# name, its group, its grades and its traps' names are not here: they are the
-# card's words and the catalog's numbers. Each example's level, and the answer
-# its solver proves, are the site's data; an example here is worked through to
-# that answer. The traps are the topic's commonest, counted in its reference
-# tasks.
+# The page of the topic of the calendar and age, for a parent. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
 
 title: Calendar and age
 description: What problems about days of the week, dates and ages are, how they are solved, where children go wrong, and how to help at home.
@@ -17,12 +17,8 @@ hero:
     changes.
   method: Drop the whole weeks, keep the difference of ages
   teaches: To count days and years without counting them one by one
-  # A month that starts on a Wednesday: dates 7 apart stand in one column.
-  drawing: |2
-    Mo Tu We Th Fr Sa Su
-           1  2  3  4  5
-     6  7  8  9 10 11 12
-    13 14 15 16 17 18 19
+  # Its drawing is the site's data: a month that starts on a Wednesday, where
+  # dates 7 apart stand in one column.
 
 basis:
   title: The rules of the calendar
@@ -87,11 +83,8 @@ examples:
     question: >-
       Kate waters the flowers every 3 days. The first time she waters them on a
       Monday. On which day of the week does she water them for the 4th time?
-    # Two weeks, and the four waterings in them, numbered, 3 days apart.
-    drawing: |2
-      Mo Tu We Th Fr Sa Su
-       1        2        3
-             4
+    # Its drawing is the site's data: the month from a Monday, and the four
+    # waterings marked on it, 3 days apart.
     steps:
       - >-
         From the 1st watering to the 4th there are 3 gaps of 3 days, not 4:
@@ -108,12 +101,8 @@ examples:
     question: >-
       Dad is 28 years older than Vera. In 4 years he will be 3 times as old as
       she will be. How old is Vera now?
-    # Their ages in 4 years: Dad's is three of Vera's, and the two extra are
-    # the 28 years between them.
-    drawing: |2
-      Vera [  ]
-      Dad  [  ][  ][  ]
-               └─ 28 ─┘
+    # Its drawing is the site's data: their ages in 4 years, Dad's three parts
+    # of Vera's one, and the two extra parts the 28 years between them.
     steps:
       - "The difference never changes: in 4 years Dad is still 28 years older."
       - >-

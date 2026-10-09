@@ -3,12 +3,14 @@ import { cardWords } from "../widget/dictionaries";
 import { topicName, trapName } from "../widget/names";
 import type { Key } from "../widget/words";
 import { address } from "./addresses";
-import type { Example, SiteData } from "./data";
+import type { SiteData, TopicExample } from "./data";
+import type { Drawing } from "./drawings";
 import { connectAddress } from "./home";
 import type { Page, PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { Solution } from "./Solution";
 import { TableFrame } from "./TableFrame";
+import { TopicDrawing } from "./TopicDrawings";
 import { TopicFoot } from "./TopicFoot";
 import type { Group, Topic } from "./topics";
 import { gradesText, groupKey, type SiteKey, useSiteWords } from "./words";
@@ -20,10 +22,22 @@ const shownTraps = 3;
 
 /**
  * topicPage is the page of topic, drawn by the template every topic's page
- * shares.
+ * shares, which loads the card's styles when it draws a picture.
  */
-export function topicPage(topic: Topic): Page {
-	return { draw: (props) => <TopicPage {...props} topic={topic} /> };
+export function topicPage(topic: Topic, data: SiteData): Page {
+	return {
+		draw: (props) => <TopicPage {...props} topic={topic} />,
+		card: drawsPicture(data, topic),
+	};
+}
+
+// drawsPicture says whether the topic's page draws a picture: on its first
+// screen, or beside an example.
+function drawsPicture(data: SiteData, topic: Topic): boolean {
+	return [
+		data.drawings.get(topic.id)?.hero,
+		...examplesOf(data, topic).map((example) => example.drawing),
+	].some((drawing) => drawing !== undefined && "picture" in drawing);
 }
 
 // TopicPage is a topic's page for a parent. It opens with the path to it, the
@@ -47,12 +61,12 @@ function TopicPage({
 		<>
 			<section class="s-wrap s-subject">
 				<Path page={page} group={group} name={name} />
-				<Hero page={page} topic={topic} group={group} name={name} />
+				<Hero page={page} data={data} topic={topic} group={group} name={name} />
 				<Contents page={page} />
 			</section>
 			<Basis page={page} />
 			<Idea page={page} />
-			<Solving page={page} examples={examplesOf(data, topic)} />
+			<Solving page={page} topic={topic} examples={examplesOf(data, topic)} />
 			<Traps page={page} traps={trapsOf(data, topic)} card={card} />
 			<Home page={page} />
 			<Related
@@ -85,8 +99,20 @@ function groupOf(data: SiteData, topic: Topic): Group {
 }
 
 // examplesOf are the examples of the topic's page, as the site's data has them.
-function examplesOf(data: SiteData, topic: Topic): readonly Example[] {
+function examplesOf(data: SiteData, topic: Topic): readonly TopicExample[] {
 	return data.examples.get(topic.id) ?? [];
+}
+
+// heroDrawingOf is the drawing the first screen of the topic's page shows:
+// every published page has one, or it does not build.
+function heroDrawingOf(data: SiteData, topic: Topic): Drawing {
+	const hero = data.drawings.get(topic.id)?.hero;
+	if (hero === undefined) {
+		throw new Error(
+			`site/data.json gives the first screen of ${topic.id} no drawing`,
+		);
+	}
+	return hero;
 }
 
 // trapsOf are the traps the topic's page explains: the most frequent in its
@@ -133,11 +159,13 @@ function Path({
 // its main move and what it teaches, beside its drawing.
 function Hero({
 	page,
+	data,
 	topic,
 	group,
 	name,
 }: {
 	page: PageReader;
+	data: SiteData;
 	topic: Topic;
 	group: Group;
 	name: string;
@@ -164,9 +192,12 @@ function Hero({
 				</dl>
 			</div>
 			<div class="s-panel s-subject-panel">
-				<pre class="s-drawing" dir="ltr">
-					{page.plain("hero.drawing")}
-				</pre>
+				<TopicDrawing
+					drawing={heroDrawingOf(data, topic)}
+					page={page}
+					at="hero.drawing"
+					where={`the first screen of ${topic.id}`}
+				/>
 			</div>
 		</div>
 	);
@@ -277,14 +308,16 @@ function Note({ page, at }: { page: PageReader; at: string }) {
 
 // Solving is how such tasks are solved: the steps of the move, then examples
 // worked through to their answers, from the simplest to an olympiad's. Each
-// example's level is data, which says its grades, and the words give as many
-// examples as the data does.
+// example's level and drawing are data, the level saying its grades, and the
+// words give as many examples as the data does.
 function Solving({
 	page,
+	topic,
 	examples,
 }: {
 	page: PageReader;
-	examples: readonly Example[];
+	topic: Topic;
+	examples: readonly TopicExample[];
 }) {
 	const words = useSiteWords();
 	const numbers = new Intl.NumberFormat(page.locale);
@@ -323,6 +356,8 @@ function Solving({
 							number: at + 1,
 							grades: gradesText(words, example.grades),
 						})}
+						drawing={example.drawing}
+						where={`example ${at + 1} of ${topic.id}`}
 					/>
 				);
 			})}
@@ -332,15 +367,20 @@ function Solving({
 
 // WorkedExample is one example: its number and grades, its title, its task,
 // the steps of its solution beside a drawing where the example has one, its
-// answer, and a note where it has one.
+// answer, and a note where it has one. A picture that cannot be drawn stops
+// the build under the name where gives the example.
 function WorkedExample({
 	page,
 	at,
 	label,
+	drawing,
+	where,
 }: {
 	page: PageReader;
 	at: string;
 	label: string;
+	drawing: Drawing | undefined;
+	where: string;
 }) {
 	return (
 		<article class="s-example">
@@ -351,10 +391,13 @@ function WorkedExample({
 				page={page}
 				at={at}
 				drawing={
-					page.has(`${at}.drawing`) && (
-						<pre class="s-drawing" dir="ltr">
-							{page.plain(`${at}.drawing`)}
-						</pre>
+					drawing !== undefined && (
+						<TopicDrawing
+							drawing={drawing}
+							page={page}
+							at={`${at}.drawing`}
+							where={where}
+						/>
 					)
 				}
 			/>

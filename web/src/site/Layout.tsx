@@ -21,7 +21,8 @@ export type Head = {
 
 /**
  * cardStylesheet is where the styles of the widget's cards are served: the
- * very styles a chat draws a card with, loaded only by a page that draws one.
+ * very styles a chat draws a card and its picture with, loaded only by a page
+ * that draws one or the other.
  */
 export const cardStylesheet = "/assets/card.css";
 
@@ -29,10 +30,10 @@ export const cardStylesheet = "/assets/card.css";
  * Layout is a whole page: its head, and a body drawn from its children. The
  * page is always light, whatever the reader's system prefers: the site has one
  * look. It loads the design's tokens before its own styles, which read them,
- * then the cards' styles when it draws a card, then the rules of its own a
- * page's data writes. It runs no script of its own: a page reads the same
- * with JavaScript off, and the one page with a script, the home page, names
- * it itself. The rules are the site's own, written when it is built, and
+ * then the cards' styles when it draws a card or a picture, then the rules of
+ * its own a page's data writes. It runs no script of its own: a page reads the
+ * same with JavaScript off, and the one page with a script, the home page,
+ * names it itself. The rules are the site's own, written when it is built, and
  * carried as they are.
  */
 export function Layout({

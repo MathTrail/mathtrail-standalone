@@ -1,8 +1,9 @@
 # The page of the topic of clocks, for a parent. The topic's name, its group,
 # its grades and its traps' names are not here: they are the card's words and
-# the catalog's numbers. Each example's level, and the answer its solver
-# proves, are the site's data; an example here is worked through to that
-# answer. The traps are the topic's commonest, counted in its reference tasks.
+# the catalog's numbers. The page's drawings, each example's level, and the
+# answer its solver proves, are the site's data; an example here is worked
+# through to that answer. The traps are the topic's commonest, counted in its
+# reference tasks.
 
 title: Clocks
 description: What problems about clocks and time are, how they are solved, where children go wrong, and how to help at home.
@@ -15,10 +16,10 @@ hero:
     is where most mistakes happen.
   method: Step to the whole hour, then go on
   teaches: To count time across the hour and across midnight, and to tell a time on the clock from a length of time
-  # Adding 25 minutes in two steps, through the whole hour.
-  drawing: |2
-    4:50 + 10 min = 5:00
-    5:00 + 15 min = 5:15
+  # Adding 25 minutes in two steps, through the whole hour. The drawing is the
+  # site's own, and each step's minutes are written in these words.
+  drawing:
+    step: "+{count} min"
 
 basis:
   title: The rules of the clock
@@ -95,10 +96,8 @@ examples:
       A chess tournament has 5 rounds. Each round lasts 50 minutes, and there
       is a 15-minute break between every two rounds. The first round starts at
       10:00. At what time does the last round end?
-    # Five rounds and the four breaks between them.
-    drawing: |2
-      ■ ■ ■ ■ ■  rounds
-       □ □ □ □   breaks
+    # Its drawing is the site's data: five rounds of 50 minutes and the four
+    # breaks of 15 between them.
     steps:
       - "5 rounds of 50 minutes: 5 × 50 = 250 minutes of play."
       - >-
@@ -119,10 +118,8 @@ examples:
       at 8:00 by the clocks of Grandma's city and lands at 8:30 by the clocks
       of Ann's. The clocks in Ann's city show 4 hours less than in Grandma's.
       How long is the flight?
-    # The take-off and the landing on the clocks of both cities.
-    drawing: |2
-      Grandma 8:00 → 12:30
-      Ann     4:00 →  8:30
+    # Its drawing is the site's data: the take-off and the landing on the clocks
+    # of both cities, Grandma's first.
     steps:
       - >-
         8:00 and 8:30 are read on different clocks, so first put both times on

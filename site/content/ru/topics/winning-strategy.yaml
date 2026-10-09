@@ -1,9 +1,9 @@
 # The page of the topic of games with a winning strategy, for a parent, in
 # Russian. The topic's name, its group, its grades and its traps' names are not
-# here: they are the card's words and the catalog's numbers. Each example's
-# level, and the answer its solver proves, are the site's data; an example here
-# is worked through to that answer. The traps are the topic's commonest,
-# counted in its reference tasks.
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
 
 title: Игры с выигрышной стратегией
 description: Что такое задачи на игры и выигрышные стратегии, как их решают, где ошибаются дети и как помочь дома.
@@ -16,11 +16,8 @@ hero:
     нужно с конца игры, отмечая позиции, проигрышные для того, кто из них ходит.
   method: Идти от конца и найти проигрышные позиции
   teaches: Находить план, который выигрывает при любых ходах соперника
-  # Piles of 0 to 8 matches when a move takes 1, 2 or 3: those marked lose
-  # for the player about to move.
-  drawing: |2
-    спичек    0 1 2 3 4 5 6 7 8
-    проигрыш  ●       ●       ●
+  # Its drawing is the site's data: piles of 0 to 8 matches when a move takes 1,
+  # 2 or 3: those marked lose for the player about to move.
 
 basis:
   title: Правила игр
@@ -114,14 +111,8 @@ examples:
       передвигают его на одну клетку вверх, вправо или по диагонали вверх и
       вправо. Кто поставит короля в правый верхний угол, тот выиграл. Кто
       выиграет при правильной игре?
-    # The squares that lose for the player about to move, from the king's
-    # start at the bottom left to the corner at the top right.
-    drawing: |2
-      ● · ● · ●
-      · · · · ·
-      ● · ● · ●
-      · · · · ·
-      ● · ● · ●
+    # Its drawing is the site's data: the squares that lose for the player about
+    # to move, from the king's start in one corner to the corner opposite.
     steps:
       - >-
         Посчитаем, сколько рядов и столбцов королю ещё осталось пройти. С
@@ -145,14 +136,8 @@ examples:
       обрывают либо один лепесток, либо два соседних, между которыми нет
       промежутка. Кто оборвёт последний лепесток, тот выиграл. Кто выиграет
       при правильной игре?
-    # The daisy after the first two moves: one petal torn by each player,
-    # opposite each other, and two rows of five left.
-    drawing: |2
-         ○ ● ●
-       ●       ●
-      ●         ●
-       ●       ●
-         ● ● ○
+    # Its drawing is the site's data: the daisy after the first two moves: one
+    # petal torn by each player, opposite each other, and two rows of five left.
     steps:
       - >-
         Что бы ни оборвал первый игрок, один лепесток или два, круг

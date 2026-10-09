@@ -1,8 +1,9 @@
 # The page of the topic of ratios and sharing, for a parent. The topic's name,
 # its group, its grades and its traps' names are not here: they are the card's
-# words and the catalog's numbers. Each example's level, and the answer its
-# solver proves, are the site's data; an example here is worked through to that
-# answer. The traps are the topic's commonest, counted in its reference tasks.
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
 
 title: Ratios and sharing
 description: What problems about ratios and sharing in parts are, how they are solved, where children go wrong, and how to help at home.
@@ -15,11 +16,8 @@ hero:
     turns every ratio task into a division.
   method: Count the parts, then find one part
   teaches: To see a ratio as equal parts, and to scale a recipe up or down
-  # 35 sweets shared in the ratio 3 to 4: seven equal parts.
-  drawing: |2
-    Ann □ □ □
-    Ben □ □ □ □
-    7 parts = 35
+  # Its drawing is the site's data: 35 shared in the ratio 3 to 4, seven equal
+  # parts.
 
 basis:
   title: The rules of ratios
@@ -81,10 +79,8 @@ examples:
     question: >-
       Max and Lena pick 45 mushrooms together. For every 4 mushrooms Max picks,
       Lena picks 5. How many mushrooms does Lena pick?
-    # A box for every part: four for Max and five for Lena.
-    drawing: |2
-      Max  □ □ □ □
-      Lena □ □ □ □ □
+    # Its drawing is the site's data: a part for every box, four for Max and
+    # five for Lena.
     steps:
       - 4 to 5 means 4 parts for Max and 5 for Lena, 9 equal parts in all.
       - "One part is 45 : 9 = 5 mushrooms."
@@ -99,12 +95,8 @@ examples:
     question: >-
       A choir has 4 boys for every 7 girls, and there are 9 more girls than
       boys. How many children sing in the choir?
-    # The boys' parts and the girls' parts: the girls' three extra parts are
-    # the 9.
-    drawing: |2
-      boys  □ □ □ □
-      girls □ □ □ □ □ □ □
-                    └ 9 ┘
+    # Its drawing is the site's data: the boys' parts and the girls', the girls'
+    # three extra parts the 9.
     steps:
       - >-
         The boys are 4 parts and the girls 7 parts, so the girls have 3 parts
@@ -124,10 +116,8 @@ examples:
       Two boxes hold marbles in the ratio 3 to 1. After 10 marbles are moved
       from the first box to the second, the boxes hold as many marbles each.
       How many marbles are there in all?
-    # The boxes in parts of the same total, before and after the move.
-    drawing: |2
-      before  A □ □ □  B □
-      after   A □ □    B □ □
+    # Its drawing is the site's data: the boxes in parts of the same total,
+    # before the move and after it.
     steps:
       - >-
         Moving marbles from one box to the other does not change the total: it

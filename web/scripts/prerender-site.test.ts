@@ -64,7 +64,7 @@ const fontFiles = [
 // brings their cards alive. The English one is the bare domain's.
 const scripted: readonly string[] = ["index.html", "ru/index.html"];
 
-// carded are the pages that draw a card of the widget, and load its styles.
+// carded are the pages that draw a card of the widget.
 const carded: readonly string[] = [
 	"en/topics/index.html",
 	"en/why/index.html",
@@ -517,11 +517,12 @@ describe("the site built from this repository", () => {
 		expect(urlsIn(style)).toEqual(fontFiles.map((file) => `/assets/${file}`));
 	});
 
-	test("loads on every page of a language the tokens, then the styles, and a script only on a page allowed one", async () => {
+	test("loads on every page of a language the tokens, then the styles, the card's styles where it draws a card or a picture, and a script only on a page allowed one", async () => {
 		const pages = await localePages(out);
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
 			const html = await readFile(join(out, page), "utf8");
+			const pictured = html.includes('class="mt-picture"');
 
 			expect(
 				[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(
@@ -530,7 +531,7 @@ describe("the site built from this repository", () => {
 			).toEqual([
 				"/assets/tokens.css",
 				"/assets/style.css",
-				...(carded.includes(page) ? ["/assets/card.css"] : []),
+				...(carded.includes(page) || pictured ? ["/assets/card.css"] : []),
 			]);
 			expect(html.includes("<script")).toBe(scripted.includes(page));
 			expect(
@@ -539,6 +540,26 @@ describe("the site built from this repository", () => {
 				),
 			).toEqual(scripted.includes(page) ? ["/assets/demo.js"] : []);
 			expect(html.includes('class="mt mt-widget')).toBe(carded.includes(page));
+		}
+	});
+
+	test("draws a drawing on the first screen of every topic's page, and no drawing of text on any page of the topics", async () => {
+		const pages = (await localePages(out)).filter((page) =>
+			/(^|\/)topics\//.test(page),
+		);
+		const topics = pages.filter((page) =>
+			/\/topics\/[^/]+\/index\.html$/.test(page),
+		);
+		expect(topics.length).toBeGreaterThan(0);
+		for (const page of pages) {
+			const html = await readFile(join(out, page), "utf8");
+
+			expect(html, page).not.toContain("<pre");
+			if (topics.includes(page)) {
+				expect(html, page).toMatch(
+					/<div class="s-panel s-subject-panel"><div class="s-(picture|art)" aria-hidden="true"/,
+				);
+			}
 		}
 	});
 
@@ -653,7 +674,7 @@ describe("the site built from this repository", () => {
 				"utf8",
 			);
 			const cards = [
-				...html.matchAll(/<article id="([^"]+)" class="s-topic"/g),
+				...html.matchAll(/<article id="([^"]+)" class="s-topic s-topic-card"/g),
 			];
 			const lines = [
 				...html.matchAll(/<g id="line-[^"]+" class="s-map-line"/g),

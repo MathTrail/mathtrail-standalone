@@ -1,8 +1,9 @@
-# The page of the topic of parts and shares, for a parent. The topic's name,
-# its group, its grades and its traps' names are not here: they are the card's
-# words and the catalog's numbers. Each example's level, and the answer its
-# solver proves, are the site's data; an example here is worked through to that
-# answer. The traps are the topic's commonest, counted in its reference tasks.
+# The page of the topic of parts and shares, for a parent. The topic's name, its
+# group, its grades and its traps' names are not here: they are the card's words
+# and the catalog's numbers. The page's drawings, each example's level, and the
+# answer its solver proves, are the site's data; an example here is worked
+# through to that answer. The traps are the topic's commonest, counted in its
+# reference tasks.
 
 title: Parts and shares
 description: What problems about parts of a whole are, how they are solved, where children go wrong, and how to help at home.
@@ -15,10 +16,8 @@ hero:
     strip of paper cut into equal parts shows it better than any rule.
   method: Draw the whole as a strip and cut it into equal parts
   teaches: To ask “a part of what?”, and to find the whole from its part
-  # Twelve in four equal groups: three of the groups are three quarters.
-  drawing: |2
-    ●●● ●●● ●●● ○○○
-    3/4 of 12 = 9
+  # Its drawing is the site's data: twelve as a strip of four equal parts, three
+  # of which, three quarters, are 9.
 
 basis:
   title: The rules of parts
@@ -99,10 +98,8 @@ examples:
     question: >-
       On Monday Tom reads 2/7 of a book, and on Tuesday 3/7 of it. Then 40
       pages are left. How many pages are in the book?
-    # The book in sevenths: five read, and the two left are 40 pages.
-    drawing: |2
-      ■ ■ ■ ■ ■ □ □
-                40 pages
+    # Its drawing is the site's data: the book in sevenths, five read, and the
+    # two left the 40 pages.
     steps:
       - In two days Tom reads 2/7 + 3/7 = 5/7 of the book, so 2/7 of it are left.
       - "Those 2/7 are the 40 pages: one seventh is 40 : 2 = 20 pages."
@@ -120,9 +117,8 @@ examples:
       and half an egg more. The second takes half of the eggs left and half an
       egg more, and so does the third. Then all the eggs are sold, and nobody
       broke an egg. How many eggs did Granny have?
-    # The eggs Granny has before each buyer, and after the last.
-    drawing: |2
-      7 → 3 → 1 → 0
+    # Its drawing is the site's data: the eggs Granny has before each buyer, and
+    # after the last.
     steps:
       - >-
         Work from the end. The third buyer took half of the eggs and half an

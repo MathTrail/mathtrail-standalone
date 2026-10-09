@@ -1,9 +1,9 @@
 # The page of the topic of arithmetic with a trick, for a parent, in Russian.
 # The topic's name, its group, its grades and its traps' names are not here:
-# they are the card's words and the catalog's numbers. Each example's level,
-# and the answer its solver proves, are the site's data; an example here is
-# worked through to that answer. The traps are the topic's commonest, counted
-# in its reference tasks.
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Арифметика с подвохом
 description: Что такое задачи на быстрый счёт и «задумал число», как их решают, где ошибаются дети и как помочь дома.
@@ -17,10 +17,7 @@ hero:
     умение — сначала посмотреть, а потом считать.
   method: Найти удобный порядок, прежде чем считать
   teaches: Перегруппировывать сумму или произведение и распутывать цепочку действий с конца
-  # The sum regrouped into two easy hundreds.
-  drawing: |2
-    (19 + 81) + (23 + 77)
-       100    +    100
+  # Its drawing is the site's data: the sum regrouped into two easy hundreds.
 
 basis:
   title: Правила быстрого счёта

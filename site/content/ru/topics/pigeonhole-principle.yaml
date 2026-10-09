@@ -1,9 +1,9 @@
 # The page of the topic of the pigeonhole principle, for a parent, in Russian.
 # The topic's name, its group, its grades and its traps' names are not here:
-# they are the card's words and the catalog's numbers. Each example's level,
-# and the answer its solver proves, are the site's data; an example here is
-# worked through to that answer. The traps are the topic's commonest, counted
-# in its reference tasks.
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Принцип Дирихле
 description: Что такое задачи на принцип Дирихле, как их решают, где ошибаются дети и как помочь дома.
@@ -17,10 +17,8 @@ hero:
     а не о счастливом.
   method: Довести невезение до конца и добавить ещё один
   teaches: Доказывать, что что-то обязательно случится, а не просто может
-  # Five pigeons in four holes: however they spread, one hole holds two.
-  drawing: |2
-         ● ● ● ● ●
-      [● ●] [●] [●] [●]
+  # Its drawing is the site's data: five pigeons in four holes, one of which
+  # holds two.
 
 basis:
   title: Правила худшего случая
@@ -115,10 +113,8 @@ examples:
       В каждой ячейке таблицы 2 × 2 стоит 1, 2 или 3. Сложим два числа каждой
       строки, каждого столбца и каждой диагонали. Верно ли, что среди этих
       шести сумм всегда найдутся две равные?
-    # One way to fill the grid, to show what the sums are taken over.
-    drawing: |2
-          1   3
-          2   2
+    # Its drawing is the site's data: one way to fill the grid, to show what the
+    # sums are taken over.
     steps:
       - >-
         Посчитаем клетки: сумма двух чисел из 1, 2 и 3 — одно из чисел 2, 3,

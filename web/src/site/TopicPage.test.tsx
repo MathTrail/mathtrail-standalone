@@ -19,13 +19,25 @@ afterAll(async () => {
 	await browser.happyDOM.close();
 });
 
+// drawings are the drawings of the three topics' cards, and of the first
+// screens of the two whose pages are published: that of knights and liars is
+// the site's own drawing of two islanders.
+const drawings = {
+	"logic.ordering": { card: { markup: "daisy" }, hero: { markup: "daisy" } },
+	"logic.knights_liars": {
+		card: { markup: "daisy" },
+		hero: { markup: "islanders" },
+	},
+	"logic.sets": { card: { markup: "daisy" } },
+};
+
 // dataWith is the site's data over a catalog of three topics of the service:
 // knights and liars builds on ordering and opens sets; the pages of ordering
 // and of knights and liars are published, and knights and liars has these
-// examples. Its reference tasks name trusted_statement three times, and
-// stopped_early and ignored_condition twice each, which the catalog's order
-// puts in that order, and missed_case once.
-const dataWith = (examples: unknown) =>
+// examples, and these drawings. Its reference tasks name trusted_statement
+// three times, and stopped_early and ignored_condition twice each, which the
+// catalog's order puts in that order, and missed_case once.
+const dataWith = (examples: unknown, drawn: unknown = drawings) =>
 	readSiteData(
 		{
 			topics: [
@@ -84,18 +96,31 @@ const dataWith = (examples: unknown) =>
 					topics: ["logic.ordering", "logic.knights_liars", "logic.sets"],
 				},
 			],
+			drawings: drawn,
 			examples: { "logic.knights_liars": examples },
 			progress: file.progress,
 		},
 	);
 
-const data = dataWith([
-	{ level: "3-4", solver: "first", answer: "A liar" },
+// examples are the examples of knights and liars: the first with a picture,
+// the second with none.
+const examples = [
+	{
+		level: "3-4",
+		solver: "first",
+		answer: "A liar",
+		drawing: {
+			picture: { kind: "row", items: [{ label: "K" }, { label: "L" }] },
+		},
+	},
 	{ level: "5-6", solver: "second", answer: "2" },
-]);
+];
 
-// words are the page's words for that catalog, the same in each language: its
-// first example has a drawing and a note, its second neither.
+const data = dataWith(examples);
+
+// words are the page's words for that catalog, the same in each language: the
+// words of the drawing of its first screen, its first example with a note and
+// its second with none.
 const words = [
 	"title: Knights",
 	"description: About knights.",
@@ -103,8 +128,11 @@ const words = [
 	"  lead: Who is who.",
 	"  method: Suppose.",
 	"  teaches: Reasoning.",
-	"  drawing: |",
-	"    A  B",
+	"  drawing:",
+	"    first: A",
+	"    first-says: “B is a liar”",
+	"    second: B",
+	"    second-says: “A is a liar”",
 	"basis:",
 	"  title: The rules",
 	"  cards:",
@@ -135,8 +163,6 @@ const words = [
 	"examples:",
 	"  - title: First",
 	"    question: Who is who?",
-	"    drawing: |",
-	"      K L",
 	"    steps:",
 	"      - Suppose A is a knight.",
 	"      - Then A is a liar.",
@@ -286,17 +312,30 @@ describe("a topic's page", () => {
 		).toEqual([["1", "2"], ["1"]]);
 	});
 
-	test("draws an example's drawing and note only where the example has them", () => {
-		const examples = [...knights.querySelectorAll(".s-example")];
+	test("draws the drawing of its first screen in the page's words, which a screen reader passes over", () => {
+		const drawing = knights.querySelector(".s-subject-panel > .s-art");
+
+		expect(drawing?.getAttribute("aria-hidden")).toBe("true");
+		expect(
+			[...(drawing?.querySelectorAll(".s-speech-line") ?? [])].map(
+				(line) => line.textContent,
+			),
+		).toEqual(["A“B is a liar”", "B“A is a liar”"]);
+	});
+
+	test("draws an example's picture and note only where the example has them", () => {
+		const worked = [...knights.querySelectorAll(".s-example")];
 
 		expect(
-			examples.map((example) => [
-				example.querySelector(".s-drawing")?.textContent,
+			worked.map((example) => [
+				example.querySelectorAll(
+					'.s-example-work > .s-picture[aria-hidden="true"] > svg.mt-picture',
+				).length,
 				example.querySelector(".s-note-title")?.textContent,
 			]),
 		).toEqual([
-			["K L", "Why so"],
-			[undefined, undefined],
+			[1, "Why so"],
+			[0, undefined],
 		]);
 	});
 
@@ -345,11 +384,29 @@ describe("a topic's page", () => {
 		expect(all(".s-ask .s-btn-filled")).toEqual(["Add to Claude"]);
 	});
 
-	test("reads in full with no script, and loads no card's stylesheet", () => {
+	test("reads in full with no script, and loads the card's stylesheet its pictures are drawn with", () => {
 		expect(knights.querySelector("script")).toBeNull();
-		expect(all('link[rel="stylesheet"]', "href")).not.toContain(
-			"/assets/card.css",
+		expect(all('link[rel="stylesheet"]', "href")).toContain("/assets/card.css");
+	});
+
+	test("loads no card's stylesheet where it draws no picture", () => {
+		const unpictured = dataWith([
+			{ ...examples[0], drawing: { markup: "daisy" } },
+			examples[1],
+		]);
+		const page = new browser.DOMParser().parseFromString(
+			render(sourcesWith(words), unpictured).find(
+				({ path }) => path === "en/topics/knights/index.html",
+			)?.data ?? "",
+			"text/html",
 		);
+
+		expect(page.querySelector(".s-petal")).not.toBeNull();
+		expect(
+			[...page.querySelectorAll('link[rel="stylesheet"]')].map((link) =>
+				link.getAttribute("href"),
+			),
+		).not.toContain("/assets/card.css");
 	});
 });
 
@@ -393,6 +450,41 @@ describe("a topic's page is refused when", () => {
 			}),
 		).toThrow(
 			"no reference task of logic.ordering names a trap, and its page explains the most frequent",
+		);
+	});
+
+	test("the data gives its first screen no drawing", () => {
+		const bare = dataWith(examples, {
+			...drawings,
+			"logic.knights_liars": { card: { markup: "daisy" } },
+		});
+
+		expect(() => render(sourcesWith(words), bare)).toThrow(
+			"site/data.json gives the first screen of logic.knights_liars no drawing",
+		);
+	});
+
+	test("its words hold words for a drawing the data gives as a picture", () => {
+		const pictured = dataWith(examples, {
+			...drawings,
+			"logic.knights_liars": {
+				card: { markup: "daisy" },
+				hero: { picture: { kind: "clock", time: "4:50" } },
+			},
+		});
+
+		expect(() => render(sourcesWith(words), pictured)).toThrow(
+			"the page never shows hero.drawing.first, hero.drawing.first-says, hero.drawing.second, hero.drawing.second-says",
+		);
+	});
+
+	test("its words lack the words of its drawing", () => {
+		expect(() =>
+			render(
+				sourcesWith(words.replace("    second-says: “A is a liar”\n", "")),
+			),
+		).toThrow(
+			"en/topics/knights.yaml: the page reads hero.drawing.second-says, which the file does not have",
 		);
 	});
 

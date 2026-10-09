@@ -40,12 +40,21 @@ const drawings: { [K in Kind]: Drawing<K> } = {
 	calendar: drawCalendar,
 };
 
+/**
+ * drawPicture is a picture laid out in a language: its shapes and words, and
+ * the room they take. It throws where the picture cannot be drawn, and what
+ * to draw in its place, if anything, is for the caller to decide.
+ */
+export function drawPicture(picture: Picture, locale: string): Drawn {
+	return drawings[picture.kind](picture as never, locale);
+}
+
 // drawnOf is a picture laid out, or undefined where it cannot be: a picture
 // that fails to draw is left out, and the task stands on its words, rather
 // than take the card down with it.
 function drawnOf(picture: Picture, locale: string): Drawn | undefined {
 	try {
-		return drawings[picture.kind](picture as never, locale);
+		return drawPicture(picture, locale);
 	} catch (error) {
 		console.error("widget: the picture could not be drawn", error);
 		return undefined;
@@ -72,13 +81,30 @@ export function Diagram({
 	if (drawn === undefined) {
 		return null;
 	}
+	return <PictureFrame drawn={drawn} label={label} />;
+}
+
+/**
+ * PictureFrame is a picture already laid out, drawn as Diagram draws one: in
+ * the colours of the theme, left to right, and no wider than its own size or
+ * its room. A screen reader is told what it shows by its label, and passes
+ * over one with no label, which stands beside words that say it already.
+ */
+export function PictureFrame({
+	drawn,
+	label,
+}: {
+	drawn: Drawn;
+	label?: string;
+}) {
 	const width = r1(drawn.width + 2 * clearance);
 	const height = r1(drawn.height + 2 * clearance);
 	return (
 		<svg
 			class="mt-picture"
-			role="img"
+			role={label === undefined ? undefined : "img"}
 			aria-label={label}
+			aria-hidden={label === undefined ? "true" : undefined}
 			direction="ltr"
 			width={width}
 			height={height}

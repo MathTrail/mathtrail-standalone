@@ -1,9 +1,9 @@
 # The page of the topic of divisibility and remainders, for a parent. The
 # topic's name, its group, its grades and its traps' names are not here: they
-# are the card's words and the catalog's numbers. Each example's level, and the
-# answer its solver proves, are the site's data; an example here is worked
-# through to that answer. The traps are the topic's commonest, counted in its
-# reference tasks.
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
 
 title: Divisibility and remainders
 description: What problems about divisibility and remainders are, how they are solved, where children go wrong, and how to help at home.
@@ -17,10 +17,8 @@ hero:
     at all.
   method: Write the number as full groups and what is left over
   teaches: To read a remainder in the task's own words, and to test divisibility without dividing
-  # Fourteen counted out in threes: four full groups and two left over.
-  drawing: |2
-    ●●● ●●● ●●● ●●● ●●
-    14 = 4 × 3 + 2
+  # Its drawing is the site's data: fourteen counted out in threes: four full
+  # groups and two left over.
 
 basis:
   title: The rules of division
@@ -85,9 +83,8 @@ examples:
     question: >-
       150 pupils go on a school trip, and each bus has 40 seats. How many buses
       are needed?
-    # Four buses: three full, and one with the 30 pupils left over.
-    drawing: |2
-      [40] [40] [40] [30]
+    # Its drawing is the site's data: four buses, three full, and one with the
+    # 30 pupils left over.
     steps:
       - "Count the pupils out by 40: 150 = 3 × 40 + 30. Three buses are full, and 30 pupils are left."
       - The 30 pupils need a bus too, even though it will not be full.
@@ -118,11 +115,8 @@ examples:
     question: >-
       A hundred twos are multiplied together: 2 × 2 × 2 × … × 2. What is the
       last digit of the answer?
-    # How many twos are multiplied, above, and the last digit of the answer,
-    # below.
-    drawing: |2
-      1 2 3 4   5 6 7 8
-      2 4 8 6   2 4 8 6
+    # Its drawing is the site's data: how many twos are multiplied, above, and
+    # the last digit of the product, below.
     steps:
       - >-
         Watch the last digit as the twos are multiplied one by one: 2, 4, 8,

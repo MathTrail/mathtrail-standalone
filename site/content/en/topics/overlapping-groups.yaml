@@ -1,8 +1,9 @@
 # The page of the topic of overlapping groups, for a parent. The topic's name,
 # its group, its grades and its traps' names are not here: they are the card's
-# words and the catalog's numbers. Each example's level, and the answer its
-# solver proves, are the site's data; an example here is worked through to that
-# answer. The traps are the topic's commonest, counted in its reference tasks.
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
 
 title: Overlapping groups
 description: What problems about overlapping groups are, how they are solved, where children go wrong, and how to help at home.
@@ -15,10 +16,8 @@ hero:
     question into four numbers.
   method: Draw the circles and start from the middle
   teaches: To count without counting twice, and to say what each number means
-  # Two clubs that overlap: 7 in chess only, 3 in both, 9 in football only.
-  drawing: |2
-          chess     football
-      (   7   (   3   )   9   )
+  # Its drawing is the site's data: two clubs that overlap, 10 in one and 12 in
+  # the other, 3 of them in both.
 
 basis:
   title: The rules of two circles
@@ -88,15 +87,12 @@ examples:
     question: >-
       In a group of 24 children, 15 have a sister, 11 have a brother, and 6
       have both a sister and a brother. How many children have neither?
-    # The two circles filled in, and those outside them.
-    drawing: |2
-           sister     brother
-         (  9  (  6  )  5  )
-             outside: 4
+    # Its drawing is the site's data: the two circles filled in, A for a sister
+    # and B for a brother, and those outside them.
     steps:
       - >-
-        Draw two circles, “sister” and “brother”, that overlap. In the middle:
-        the 6 children who have both.
+        Draw two circles that overlap, A for a sister and B for a brother. In
+        the middle: the 6 children who have both.
       - "A sister only: 15 − 6 = 9. A brother only: 11 − 6 = 5."
       - "In the circles: 9 + 6 + 5 = 20 children. Outside them: 24 − 20 = 4."
     answer: 4 children.

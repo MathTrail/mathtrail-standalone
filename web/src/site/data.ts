@@ -3,6 +3,13 @@ import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
 import { type ProgressReport, readScreen } from "../widget/payload";
+import {
+	type Drawing,
+	drawingFile,
+	readDrawings,
+	type TopicDrawings,
+	topicDrawingsFile,
+} from "./drawings";
 import { type Home, homeFile, readHome } from "./home";
 import { type Research, readResearch, researchSources } from "./research";
 import { readTechniques, type Techniques } from "./techniques";
@@ -27,19 +34,27 @@ export type Catalog = {
 export type Example = { readonly grades: readonly [number, number] };
 
 /**
+ * TopicExample is an example a topic's page works through: an example, and
+ * the drawing beside its steps where it has one.
+ */
+export type TopicExample = Example & { readonly drawing?: Drawing };
+
+/**
  * SiteData is what the site's pages draw that no language changes: the
  * catalog's topics with the groups they are shown in, each topic's traps, the
- * examples its page works through, the progress of the child the site's
- * cards are drawn for, an invented one, what the page "Why" shows — its card
- * and the works it cites — the techniques of the page of the techniques, and
- * the numbers of the page "Research".
+ * drawings of its card and its page, the examples its page works through, the
+ * progress of the child the site's cards are drawn for, an invented one, what
+ * the page "Why" shows — its card and the works it cites — the techniques of
+ * the page of the techniques, and the numbers of the page "Research".
  */
 export type SiteData = {
 	readonly topics: Topics;
 	/** traps are each topic's traps, the most frequent in its reference tasks first. */
 	readonly traps: ReadonlyMap<string, readonly string[]>;
+	/** drawings are the drawings of each topic's card and page, by the topic's id. */
+	readonly drawings: ReadonlyMap<string, TopicDrawings>;
 	/** examples are the examples of each topic's page, by the topic's id. */
-	readonly examples: ReadonlyMap<string, readonly Example[]>;
+	readonly examples: ReadonlyMap<string, readonly TopicExample[]>;
 	/** progress is a progress as the service sends it, but for the child's name. */
 	readonly progress: Sample;
 	/** why is what the page "Why" draws, when the data has it. */
@@ -74,6 +89,15 @@ const exampleFile = z.object({
 	answer: z.string().min(1),
 });
 
+// topicExampleFile is an example of a topic's page as the site's data writes
+// it: an example, and its drawing where it has one. Nothing else may stand
+// beside them, so that a drawing under a misspelt name stops the build rather
+// than leaving the example drawn without it.
+const topicExampleFile = z.strictObject({
+	...exampleFile.shape,
+	drawing: drawingFile.optional(),
+});
+
 // techniquesFile is what the page of the techniques takes from the site's
 // data: its groups, each with its techniques in order — a technique's name,
 // the topics it leads to and its example — and the rows of its hint, each
@@ -101,13 +125,14 @@ const techniquesFile = z.object({
 /** TechniquesFile is what the page of the techniques takes from the site's data. */
 export type TechniquesFile = z.infer<typeof techniquesFile>;
 
-// dataFile is the shape of the site's data file: its groups, the examples of
-// the topics' pages, the progress its cards are drawn from, what the page
-// "Why" draws, the techniques of the page of the techniques, and the authors
-// the page "Research" names.
+// dataFile is the shape of the site's data file: its groups, the drawings and
+// the examples of the topics' cards and pages, the progress its cards are
+// drawn from, what the page "Why" draws, the techniques of the page of the
+// techniques, and the authors the page "Research" names.
 const dataFile = z.object({
 	groups: z.array(z.object({ id: z.string(), topics: z.array(z.string()) })),
-	examples: z.record(z.string(), z.array(exampleFile)),
+	drawings: z.record(z.string(), topicDrawingsFile).optional(),
+	examples: z.record(z.string(), z.array(topicExampleFile)),
 	progress: sample,
 	why: whyFile.optional(),
 	home: homeFile.optional(),
@@ -118,9 +143,11 @@ const dataFile = z.object({
 /**
  * readSiteData reads the site's data beside the catalog it speaks of. A file
  * of another shape is refused, and so is a progress the widget could not draw
- * whatever the child's name, and an example of a topic whose page is not
- * published, or at a level the topic is not taught at, so that a mistake in
- * the file stops the build rather than drawing a page with a part missing.
+ * whatever the child's name, a drawing of a topic the catalog does not have,
+ * a first screen's drawing or an example of a topic whose page is not
+ * published, and an example at a level the topic is not taught at, so that a
+ * mistake in the file stops the build rather than drawing a page with a part
+ * missing.
  * What the home page and the page "Why" draw, and the techniques, are held
  * to the catalog as well, and so are the numbers of the page "Research", when
  * the build is given them.
@@ -151,6 +178,7 @@ function readParts(catalog: Catalog, data: z.infer<typeof dataFile>): SiteData {
 		const site = {
 			topics: readTopics(catalog.topics, data.groups),
 			traps: ranked,
+			drawings: readDrawings(catalog.topics, data.drawings ?? {}),
 			examples: readExamples(catalog.topics, data.examples),
 			progress: data.progress,
 			why: data.why === undefined ? undefined : readWhy(catalog, data.why),
@@ -189,11 +217,14 @@ export function siteData(research?: unknown): SiteData {
 }
 
 // readExamples reads the examples of the topics' pages: each of a topic of the
-// catalog whose page is published, set at a level the topic is taught at.
+// catalog whose page is published, set at a level the topic is taught at, with
+// its drawing where it has one.
 function readExamples(
 	catalog: readonly CatalogTopic[],
-	examples: Readonly<Record<string, readonly { level: string }[]>>,
-): ReadonlyMap<string, readonly Example[]> {
+	examples: Readonly<
+		Record<string, readonly { level: string; drawing?: Drawing }[]>
+	>,
+): ReadonlyMap<string, readonly TopicExample[]> {
 	const byId = new Map(catalog.map((topic) => [topic.id, topic]));
 	return new Map(
 		Object.entries(examples).map(([id, listed]) => {
@@ -208,7 +239,13 @@ function readExamples(
 					`the examples of ${id} are for a page the catalog does not publish`,
 				);
 			}
-			return [id, listed.map(({ level }) => exampleAt(topic, level))];
+			return [
+				id,
+				listed.map(({ level, drawing }): TopicExample => {
+					const example = exampleAt(topic, level);
+					return drawing === undefined ? example : { ...example, drawing };
+				}),
+			];
 		}),
 	);
 }
