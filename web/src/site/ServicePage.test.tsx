@@ -460,7 +460,7 @@ describe("the page of the service", () => {
 
 	test("is refused when its words lack a step the service has", () => {
 		const lacking = english.replace(
-			"      - text · drawing · five options · hint — no answer\n",
+			"      - text · picture · five options · hint — no answer\n",
 			"",
 		);
 
@@ -472,8 +472,8 @@ describe("the page of the service", () => {
 
 	test("is refused when its words give a step the service lacks", () => {
 		const more = english.replace(
-			"      - text · drawing · five options · hint — no answer\n",
-			"      - text · drawing · five options · hint — no answer\n      - one more\n",
+			"      - text · picture · five options · hint — no answer\n",
+			"      - text · picture · five options · hint — no answer\n      - one more\n",
 		);
 
 		expect(more).not.toBe(english);

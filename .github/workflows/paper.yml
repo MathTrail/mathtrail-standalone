@@ -76,6 +76,7 @@ jobs:
           go-version-file: research/go.mod
           cache-dependency-path: research/go.sum
       - uses: ./.github/actions/just
+      - uses: ./.github/actions/docker-mirror
       # The anonymous artifact masks every commit the research names, and a
       # commit of a branch since deleted is reached only through its pull
       # request, in this repository and in the prototype's.

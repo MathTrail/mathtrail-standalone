@@ -1,6 +1,6 @@
 # The home page, for a parent: what MathTrail is, why not just ask the chat,
 # how a lesson goes — the card of the widget at every step — and how to
-# connect. The grades, the names of the traps, the card's drawing, options and
+# connect. The grades, the names of the traps, the card's picture, options and
 # rating, the connector's address and the card's own words are not here: they
 # are the catalog's numbers, the site's data, the widget's words and the
 # site's own.
@@ -32,7 +32,7 @@ pillars:
     - title: Tasks do not run out.
       text: Every task is written for your child — the topic, the difficulty, their interests, the mistakes they make — in the language of your chat, not drawn from a fixed bank in one language.
     - title: A program checks the model.
-      text: A task reaches the child only after it passes the checks — exactly one correct option, the answer reproduced by a solver that tries every case, readability for the grade, no near copy of the text of earlier tasks, a well-formed text drawing.
+      text: A task reaches the child only after it passes the checks — exactly one correct option, the answer reproduced by a solver that tries every case, readability for the grade, no near copy of the text of earlier tasks, a well-formed picture, where there is one, labelled as the question names it, with no answer written on it.
     - title: A wrong answer is a diagnosis.
       # The traps are the catalog's, under the names the card gives them.
       text: Every wrong option is tied to a named trap — “{first}”, “{second}”, “{third}” — and the explanation starts from how the child reasoned, not from the right answer.

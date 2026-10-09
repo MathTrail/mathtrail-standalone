@@ -24,11 +24,11 @@ It is neither a homework solver nor a drill of the school syllabus. It turns an 
 
 The screens below are the widget itself, photographed by every release from the scenes of its preview, at a large phone's width, so the version on the card is the one the service runs. The card follows the chat's light or dark theme, and the screens show the dark one. The fence task, its options and its traps are an example.
 
-<img src="https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/task-dark.png" width="428" alt="The MathTrail card with a task. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach · Grade 3, beside the release it runs: the word version over the number, in a small frame. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, two square buttons drawn by their icons, a bulb on amber for the hint and two arrows in a circle on blue for another task, and at the end of the row a green button with a spark, Coach, and an arrow that opens the choice of the topic.">
+<img src="https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/task-dark.png" width="428" alt="The MathTrail card with a task. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach · Grade 3, beside the release it runs: the word version over the number, in a small frame. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a picture of the fence: three posts as dots on a line, 3 under the gap between the first two, the rest of the line dotted where it is cut short, and a two-headed arrow marked 12 under the whole length; then five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, two square buttons drawn by their icons, a bulb on amber for the hint and two arrows in a circle on blue for another task, and at the end of the row a green button with a spark, Coach, and an arrow that opens the choice of the topic.">
 
 The adult asks in the chat for a new task, and it arrives as a card for the child beside them:
 
-- **The task.** The chat's model wrote it, and the service let it through only after its checks. The drawing is plain text, laid out left to right in any language.
+- **The task.** The chat's model wrote it, and the service let it through only after its checks. Where the task has something to see, the model describes a picture and the card draws it, left to right in any language.
 - **Five options, A to E.** The answer is not in the card: it is sealed in the parent's Drive until the child picks one.
 - **Help that stays the child's own.** Hint shows a leading question or a first step, which the model wrote with the task. Another task skips this one. A question about the task is asked in the chat by the adult, and the model helps without giving the answer away; when the child does not know, the adult says so there, the solution comes, and it counts as a wrong answer.
 - **The next one, at once.** While the child solves, the chat's model writes the next task ahead, sealed in the same file. Another task asks the chat for it, and the new card the chat draws below shows it at once.
@@ -88,7 +88,7 @@ MathTrail connects to Claude or ChatGPT as an app over the [Model Context Protoc
 
 1. The service picks a topic and difficulty for the child and gives the chat's model a brief, reference examples and formats.
 2. The chat's model writes the task.
-3. The service checks the task: structure, a solver program that brute-forces the answer options, readability, near-duplicates and text drawings.
+3. The service checks the task: structure, a solver program that brute-forces the answer options, readability, near-duplicates and the picture.
 4. The child sees the task in a widget, answers with a button, and gets an explanation of the mistake. Ratings are updated.
 
 The unusual part is step 2: the task is written by the chat's own model, and the service is what decides whether it reaches the child.
@@ -107,7 +107,7 @@ sequenceDiagram
     T-->>M: topic, difficulty, reference tasks, formats
     Note over M: the model writes the task,<br/>a solver program and a self-check
     M->>T: here is the task
-    Note over T: structure · the solver runs · readability ·<br/>near-duplicates · the drawing
+    Note over T: structure · the solver runs · readability ·<br/>near-duplicates · the picture
     T->>D: store it, with the answer sealed
     T-->>C: the task card, without the answer
     C->>T: presses an option
@@ -128,10 +128,10 @@ The paper about the service, and how its student model stands against its goals,
 Ask a chat model for "an olympiad task for grade 2" and it will cheerfully hand you a task with no solution, with two correct options, or with the arithmetic wrong. MathTrail leaves the writing to the model and puts a program behind it:
 
 - **Tasks do not run out.** Every task is written for the child's topic, difficulty, interests and yesterday's mistake, in the language of the chat — not drawn from a fixed bank in one language.
-- **A program checks the model.** A task reaches the child only after it passes the checks: exactly one correct option, the answer reproduced by a brute-force solver, readability for the grade, no near-duplicate of an earlier task, a well-formed text drawing.
+- **A program checks the model.** A task reaches the child only after it passes the checks: exactly one correct option, the answer reproduced by a brute-force solver, readability for the grade, no near-duplicate of an earlier task, and a picture, where there is one, in the required format, labelled as the question names it and with no answer written on it.
 - **A wrong answer is a diagnosis.** Every wrong option is tied to a named trap — off-by-one in gaps, a missed case while enumerating, double counting — and the explanation starts from how the child reasoned, not from the right answer.
 
-"Checked" means exactly what the program checks. Whether the wording, the drawing and the solution agree in meaning is checked by the model's own self-check, so this is not a promise of a flawless task every time.
+"Checked" means exactly what the program checks. Whether the wording, the picture and the solution agree in meaning, and whether a picture gives the answer away some other way, is checked by the model's own self-check, so this is not a promise of a flawless task every time.
 
 ## Run your own copy
 

@@ -126,7 +126,7 @@ map:
     checks:
       name: Checks
       sub: What a handed-in task must pass
-      about: "What a handed-in task must pass: its structure and five different options, the letters of the lesson's language, distinct explanations, the solver, the self-check, readability, near-duplicates and the text drawing. Every failure is reported at once."
+      about: "What a handed-in task must pass: its structure and five different options, the letters of the lesson's language, distinct explanations, the solver, the self-check, readability, near-duplicates and the picture: its format, its labels against the question, and no answer written on it. Every failure is reported at once."
     solver:
       name: Solver
       sub: Starlark sandbox, step limit
@@ -134,7 +134,7 @@ map:
     content:
       name: Content
       sub: Catalogs, reference tasks, instructions
-      about: "Everything built into the binary that is not code: the catalogs of topics, traps and skills, the reference tasks, the schemas, the solver templates, the drawing frames and the model's instructions with their version."
+      about: "Everything built into the binary that is not code: the catalogs of topics, traps and skills, the reference tasks, the schemas, the solver templates, an example of each kind of picture and the model's instructions with their version."
     widget:
       name: Widget
       sub: The card · one HTML file
@@ -259,13 +259,13 @@ flow:
       - write the open request
       - the request is open — fetch the package
       - get_package
-      - brief · 3 reference tasks · traps · templates · frames
+      - brief · 3 reference tasks · traps · templates · picture examples
       - The model writes the task, a Starlark solver and a self-check
       - submit_task — up to 3 attempts
       - checks · the solver must find exactly one right option
       - the task becomes the current one, its answer sealed
       - read_task — the card asks every 4 s
-      - text · drawing · five options · hint — no answer
+      - text · picture · five options · hint — no answer
     caption: "Every call reads the profile from Drive as well — those reads are left out. The card that waits never sees the package: its reference tasks carry their answers. While the child solves, the model writes the next task ahead with prepare_task, and when another is asked for, next_task puts it on a new card at once — without this wait."
   answer:
     rows:
@@ -416,7 +416,7 @@ profile:
       holds: The answer, the trap behind each wrong option, the solution and the solver — one opaque string
     open:
       name: Current task, open
-      holds: "What the card shows: the text, the drawing, five options, the hint — and, after the answer, the answer itself"
+      holds: "What the card shows: the text, the picture, five options, the hint — and, after the answer, the answer itself"
     request:
       name: Open request
       holds: "While the task is being written: its id, the brief, the attempts used and who picked the topic"

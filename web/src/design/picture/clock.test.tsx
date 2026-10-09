@@ -1,9 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { hands } from "./clock";
 import {
+	type Box,
 	drawn as clock,
 	numberOf,
 	overlap,
+	type Point,
 	pointsOfPath,
 	textBox,
 	textsOf,
@@ -18,6 +20,25 @@ function directionOf(point: { x: number; y: number }): number {
 	const degrees =
 		(Math.atan2(point.x - face.x, face.y - point.y) * 180) / Math.PI;
 	return (degrees + 360) % 360;
+}
+
+// between is the least room a hand leaves between itself and a number of the
+// face.
+const between = 1.5;
+
+// distanceToBox is how near a segment comes to a box, measured at its ends and
+// at points a fraction of a unit apart between them: nothing where they meet.
+function distanceToBox(from: Point, to: Point, box: Box): number {
+	const steps = 400;
+	let least = Number.POSITIVE_INFINITY;
+	for (let step = 0; step <= steps; step++) {
+		const x = from.x + ((to.x - from.x) * step) / steps;
+		const y = from.y + ((to.y - from.y) * step) / steps;
+		const dx = Math.max(box.left - x, 0, x - box.right);
+		const dy = Math.max(box.top - y, 0, y - box.bottom);
+		least = Math.min(least, Math.hypot(dx, dy));
+	}
+	return least;
 }
 
 describe("a clock's hands", () => {
@@ -51,6 +72,32 @@ describe("a clock's hands", () => {
 		).toBeLessThan(
 			Math.hypot((minute?.x ?? 0) - face.x, (minute?.y ?? 0) - face.y),
 		);
+	});
+});
+
+describe("a clock's minute hand", () => {
+	test("stops short of every number of the face, with room between, at every minute", () => {
+		for (let minute = 0; minute < 60; minute++) {
+			const time = `3:${String(minute).padStart(2, "0")}`;
+			const drawing = clock({ kind: "clock", time });
+			const drawnHands = drawing.shapes.filter(
+				(shape) =>
+					shape.tag === "path" &&
+					shape.attributes["stroke-linecap"] === "round",
+			);
+			const hand = drawnHands[1];
+			const [from, tip] = pointsOfPath(hand?.attributes.d ?? "");
+			if (drawnHands.length !== 2 || hand === undefined || !from || !tip) {
+				throw new Error(`${time}: the clock draws no minute hand to measure`);
+			}
+			const reach = numberOf(hand, "stroke-width") / 2;
+			for (const numeral of textsOf(drawing)) {
+				expect(
+					distanceToBox(from, tip, textBox(numeral)) - reach,
+					`${time}: the minute hand and ${numeral.text}`,
+				).toBeGreaterThanOrEqual(between);
+			}
+		}
 	});
 });
 

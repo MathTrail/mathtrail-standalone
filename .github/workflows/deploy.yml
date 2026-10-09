@@ -122,6 +122,7 @@ jobs:
           # by how far past a release it is, which a shallow clone cannot say.
           fetch-depth: 0
       - uses: ./.github/actions/just
+      - uses: ./.github/actions/docker-mirror
       - uses: ./.github/actions/deployment-target
       # A narrower identity than the one that applied the configuration: it may
       # push an image and roll a revision, and nothing else.
@@ -146,7 +147,11 @@ jobs:
           if [ -n "$RELEASE" ]; then
               version=(--set VERSION "$RELEASE")
           fi
-          echo "reference=$(just "${version[@]}" ci-image-push "$REPOSITORY/server")" >> "$GITHUB_OUTPUT"
+          # Read into a variable first: inside the echo, a build that failed
+          # would leave the step green, and the next one would roll out an
+          # empty reference.
+          reference="$(just "${version[@]}" ci-image-push "$REPOSITORY/server")"
+          echo "reference=$reference" >> "$GITHUB_OUTPUT"
       - name: Roll out the revision
         env:
           SERVICE: ${{ needs.infra.outputs.service }}

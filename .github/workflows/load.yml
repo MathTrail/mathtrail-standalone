@@ -51,6 +51,7 @@ jobs:
           cache: false
 
       - uses: ./.github/actions/just
+      - uses: ./.github/actions/docker-mirror
 
       # Under bash the pipe keeps the recipe's exit as the step's own, so the
       # summary gets every report and the step still fails on a hard fact.

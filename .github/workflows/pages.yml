@@ -76,7 +76,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: image
-        run: echo "reference=$(just ci-toolchain-image)" >> "$GITHUB_OUTPUT"
+        # Read into a variable first: inside the echo, a recipe that failed
+        # would leave the step green and the reference empty.
+        run: |
+          reference="$(just ci-toolchain-image)"
+          echo "reference=$reference" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build the site
