@@ -30,6 +30,8 @@
 	"topics.grades": "{range} класс",
 	"topics.more": "Подробнее →",
 	"topics.soon": "Скоро",
+	"thumb.knight": "Р",
+	"thumb.liar": "Л",
 	"techniques.count": {
 		"one": "{count} приём",
 		"few": "{count} приёма",
@@ -119,6 +121,8 @@
 	"topic.traps_lead": "MathTrail разбирает каждый неверный ответ по названной ловушке. Вот главные в этой теме — и что можно сказать ребёнку.",
 	"topic.trap": "Ловушка",
 	"topic.say": "Что сказать",
+	"topic.child": "Ребёнок",
+	"topic.right": "Верно",
 	"topic.home": "Как помочь дома",
 	"topic.before": "Сначала",
 	"topic.after": "Открывает",

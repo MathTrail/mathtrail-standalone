@@ -19,9 +19,9 @@ const talks = [
 /**
  * Parent is what a parent needs to prepare a child, up to the last grade
  * MathTrail is for: a note on what MathTrail does not replace; what the parent
- * does not need, crossed out, beside what MathTrail takes on, ticked; what it
- * takes from the parent, each under its mark and number; and how to answer a
- * child at three moments of a lesson, as a few lines of a talk.
+ * does not need, each by a cross, beside what MathTrail takes on, ticked;
+ * what it takes from the parent, each under its mark and number; and how to
+ * answer a child at three moments of a lesson, as a few lines of a talk.
  */
 export function Parent({ page, last }: { page: PageReader; last: number }) {
 	const numbers = new Intl.NumberFormat(page.locale);
@@ -40,7 +40,7 @@ export function Parent({ page, last }: { page: PageReader; last: number }) {
 										<span class="s-why-mark-no" aria-hidden="true">
 											✕
 										</span>
-										<s>{page.text(key)}</s>
+										{page.text(key)}
 									</li>
 								))}
 							</ul>

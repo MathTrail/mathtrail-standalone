@@ -4,9 +4,10 @@ import { address } from "./addresses";
 import type { SiteData } from "./data";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
-import { StepPicture, TaskLegend } from "./TechniqueSteps";
+import { StepDrawing, TaskLegend } from "./TechniqueSteps";
 import { allTechniques, type Technique, type Techniques } from "./techniques";
 import { gradesText, useSiteWords } from "./words";
+import { Answer, WorkedSteps } from "./WorkedSteps";
 
 /**
  * TechniquesPage is the page of the techniques of problem solving. It opens
@@ -206,43 +207,22 @@ function TechniqueCard({
 					<span class="s-solution-hide">{page.text("labels.hide")}</span>
 				</summary>
 				<div class="s-solution-body">
-					<Steps page={page} technique={technique.id} />
+					<WorkedSteps
+						page={page}
+						at={`${at}.steps`}
+						name={technique.id}
+						pictureOf={(step) => (
+							<StepDrawing page={page} technique={technique.id} step={step} />
+						)}
+					/>
 					<p class="s-technique-caption">{page.text(`${at}.caption`)}</p>
-					<p class="s-technique-answer">
-						<span class="s-technique-answer-label">
-							{words.text("topic.answer")}
-						</span>{" "}
-						<span class="s-technique-answer-pill">
-							<span class="s-technique-badge" aria-hidden="true">
-								{technique.badge}
-							</span>
-							<span>{page.text(`${at}.answer`)}</span>
-						</span>
-					</p>
+					<Answer label={words.text("topic.answer")} badge={technique.badge}>
+						{page.text(`${at}.answer`)}
+					</Answer>
 				</div>
 			</details>
 			<TopicChips page={page} data={data} ids={technique.topics} />
 		</article>
-	);
-}
-
-// Steps are a technique's steps on white, numbered, each beside its picture.
-function Steps({ page, technique }: { page: PageReader; technique: string }) {
-	const numbers = new Intl.NumberFormat(page.locale);
-	return (
-		<ol class="s-technique-steps">
-			{page.list(`techniques.${technique}.steps`).map((key, step) => (
-				<li key={key} class="s-technique-step">
-					<p class="s-technique-step-text">
-						<span class="s-technique-step-number" aria-hidden="true">
-							{numbers.format(step + 1)}
-						</span>
-						<span>{page.text(key)}</span>
-					</p>
-					<StepPicture page={page} technique={technique} step={step} />
-				</li>
-			))}
-		</ol>
 	);
 }
 

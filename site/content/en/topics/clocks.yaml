@@ -8,6 +8,12 @@
 title: Clocks
 description: What problems about clocks and time are, how they are solved, where children go wrong, and how to help at home.
 
+# The words the page's drawings write a length of time in.
+art:
+  minutes: "{count} min"
+  hours: "{count} h"
+  both: "{hours} h {minutes} min"
+
 hero:
   lead: >-
     A walk starts at 4:50 and lasts 25 minutes: when does it end? In these
@@ -16,29 +22,29 @@ hero:
     is where most mistakes happen.
   method: Step to the whole hour, then go on
   teaches: To count time across the hour and across midnight, and to tell a time on the clock from a length of time
-  # Adding 25 minutes in two steps, through the whole hour. The drawing is the
-  # site's own, and each step's minutes are written in these words.
-  drawing:
-    step: "+{count} min"
+  # The words of its drawing: the walk over it, and what its line of time
+  # shows under it.
+  art:
+    line: A walk from 4:50, 25 minutes long
+    whole: to the whole hour first, then on
 
 basis:
   title: The rules of the clock
   cards:
-    - mark: "60"
-      title: An hour is 60 minutes
+    - title: An hour is 60 minutes
       text: >-
         Not 100. So 8:50 and 20 minutes more is 9:10, not 8:70, and 110
         minutes is 1 hour 50 minutes, not 1 hour 10.
-    - mark: ":00"
-      title: Through the whole hour
+    - title: Through the whole hour
       text: >-
         To add time across an hour, step to the whole hour first and add the
         rest after it: from 8:50, 10 minutes to 9:00, then 10 more.
-    - mark: "24"
-      title: A day is 24 hours
+    - title: A day is 24 hours
       text: >-
         After 23:59 comes 0:00 of the next day. From 22:00 to 6:00 is 2 hours
         to midnight and 6 hours after it.
+      art:
+        midnight: "0:00 is midnight, the start of the next day"
 
 idea:
   title: Through the whole hour
@@ -75,6 +81,10 @@ method:
     - Put the times on a line, the earlier first
     - Step to the whole hour, then go on
     - Add the steps up, and check the answer is earlier or later as it should be
+  # The key under the steps: what the drawings' boxes and arrows mean.
+  legend:
+    whole: a whole hour
+    lasts: how long
 
 examples:
   - title: The swimming lesson
@@ -91,13 +101,16 @@ examples:
       text: >-
         45 + 40 = 85, but a clock has no 85 minutes: at 60 the hour turns over.
         Stepping to the whole hour first never makes such a time.
+    art:
+      start: the lesson starts, 40 minutes long
+      split: 40 minutes = 15 to 4:00 + 25 after
+      never: no such time
+      right: right
   - title: The chess tournament
     question: >-
       A chess tournament has 5 rounds. Each round lasts 50 minutes, and there
       is a 15-minute break between every two rounds. The first round starts at
       10:00. At what time does the last round end?
-    # Its drawing is the site's data: five rounds of 50 minutes and the four
-    # breaks of 15 between them.
     steps:
       - "5 rounds of 50 minutes: 5 × 50 = 250 minutes of play."
       - >-
@@ -112,14 +125,19 @@ examples:
       text: >-
         310 minutes is not 3 hours 10 minutes: an hour has 60 minutes, not 100.
         310 = 5 × 60 + 10.
+    art:
+      round: a round, 50 min
+      break: a break, 15 min
+      rounds: 5 × 50 = 250 minutes
+      breaks: "one break fewer than rounds: 4 × 15 = 60"
+      total: 310 min = 5 × 60 + 10
+      hours: 5 hours of 60 minutes, and 10 more
   - title: Two cities
     question: >-
       Grandma flies to see Ann, who lives in another city. The plane takes off
       at 8:00 by the clocks of Grandma's city and lands at 8:30 by the clocks
       of Ann's. The clocks in Ann's city show 4 hours less than in Grandma's.
       How long is the flight?
-    # Its drawing is the site's data: the take-off and the landing on the clocks
-    # of both cities, Grandma's first.
     steps:
       - >-
         8:00 and 8:30 are read on different clocks, so first put both times on
@@ -127,12 +145,23 @@ examples:
       - "When the clocks in Ann's city show 8:30, Grandma's show 4 hours more: 12:30."
       - "From 8:00 to 12:30 on one clock is 4 hours 30 minutes."
     answer: 4 hours 30 minutes.
+    badge: "4:30"
     note:
       title: Half an hour?
       text: >-
         8:30 − 8:00 is half an hour only when both times are on one clock.
         Times from two cities are compared after one of them is moved onto the
         other's clock.
+    art:
+      take-off: take-off, at Grandma's
+      landing: landing, at Ann's
+      grandma-clock: Grandma's clock
+      ann-clock: Ann's clock
+      at-ann: at Ann's
+      at-grandma: at Grandma's
+      grandma: Grandma
+      ann: Ann
+      other: different clocks
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -143,17 +172,24 @@ traps:
       multiplies where the times only need counting on. A time on the clock is
       a point on a line, not an amount.
     say: “Is this a time on the clock or a length of time?”
+    art:
+      question: "From 3:00 to 5:00: how long?"
   time_unit_mixup:
     shows: >-
       Minutes are counted as if an hour had 100 of them: 3:45 and 40 minutes
       more becomes 3:85, or 310 minutes becomes 3 hours 10 minutes.
     say: “How many minutes are there in an hour?”
+    art:
+      question: "3:45 and 40 minutes more"
   reversed_relation:
     shows: >-
       Earlier and later change places: the child counts back when the question
       goes forward, or adds a time difference that should be taken away, and
       the plane lands before it takes off.
     say: “Should the answer be earlier or later than the start?”
+    art:
+      question: Take-off at 8:00 on Grandma's clock
+      before: landing before take-off?
 
 home:
   - title: A clock with hands

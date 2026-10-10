@@ -1,16 +1,23 @@
 import type { VNode } from "preact";
-import type { DrawingProps } from "./Art";
-import type { Thumb } from "./drawings";
+import type { Drawing, Thumb } from "./drawings";
+import { thumbs } from "./drawings";
+import { useSiteWords } from "./words";
+
+/**
+ * ThumbProps are what a card's small drawing is drawn from: the way the page's
+ * language writes numbers.
+ */
+type ThumbProps = { readonly numbers: Intl.NumberFormat };
 
 /**
  * thumbDrawings are the cards' small drawings, by their names: every name has
  * one, or the site does not build. Each is a sign of its topic drawn in
  * coloured shapes, and holds no words but the letters of a knight and a liar,
- * which the page's words give, and numbers written the way the page's
+ * which the site's words give, and numbers written the way the page's
  * language writes them.
  */
 export const thumbDrawings: {
-	readonly [T in Thumb]: (props: DrawingProps) => VNode;
+	readonly [T in Thumb]: (props: ThumbProps) => VNode;
 } = {
 	"lined-up": LinedUp,
 	"knight-and-liar": KnightAndLiar,
@@ -30,6 +37,33 @@ export const thumbDrawings: {
 	matches: Matches,
 	balance: Balance,
 };
+
+/**
+ * TopicThumb is a topic's small drawing where a link to the topic shows it,
+ * if its card's drawing is one: a sign the screen reader passes over, since
+ * the link's words name the topic.
+ */
+export function TopicThumb({
+	drawing,
+	numbers,
+}: {
+	drawing: Drawing | undefined;
+	numbers: Intl.NumberFormat;
+}) {
+	if (
+		drawing === undefined ||
+		!("markup" in drawing) ||
+		!(thumbs as readonly string[]).includes(drawing.markup)
+	) {
+		return null;
+	}
+	const Thumb = thumbDrawings[drawing.markup as Thumb];
+	return (
+		<span class="s-thumb-frame" aria-hidden="true" dir="ltr">
+			<Thumb numbers={numbers} />
+		</span>
+	);
+}
 
 // Paint is a colour of a thumb's shapes, which its stylesheet names.
 type Paint =
@@ -86,14 +120,15 @@ function LinedUp() {
 
 // KnightAndLiar draws a knight in green and a liar in red, each by the first
 // letter of what they are.
-function KnightAndLiar({ page, at }: DrawingProps) {
+function KnightAndLiar() {
+	const words = useSiteWords();
 	return (
 		<span class="s-thumb">
 			<span class="s-thumb-islander" data-role="knight">
-				{page.text(`${at}.knight`)}
+				{words.text("thumb.knight")}
 			</span>
 			<span class="s-thumb-islander" data-role="liar">
-				{page.text(`${at}.liar`)}
+				{words.text("thumb.liar")}
 			</span>
 		</span>
 	);
@@ -119,7 +154,7 @@ const digitPaints: Readonly<Record<number, Paint>> = {
 
 // DigitPairs draws the first two-digit numbers of the digits 1, 2 and 3 with
 // no digit twice, in the order they are listed.
-function DigitPairs({ numbers }: DrawingProps) {
+function DigitPairs({ numbers }: ThumbProps) {
 	const pairs = [
 		[1, 2],
 		[1, 3],
@@ -205,7 +240,7 @@ function TwoWeeks() {
 }
 
 // HundredProduct draws the product of 25 and 4, which makes a hundred.
-function HundredProduct({ numbers }: DrawingProps) {
+function HundredProduct({ numbers }: ThumbProps) {
 	return (
 		<span class="s-thumb">
 			<span class="s-thumb-sum">

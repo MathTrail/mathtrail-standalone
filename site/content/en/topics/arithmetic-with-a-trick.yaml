@@ -17,26 +17,30 @@ hero:
     to look before counting.
   method: Look for the easy order before counting
   teaches: To regroup a sum or a product, and to undo a chain of steps from the end
-  # Its drawing is the site's data: the sum regrouped into two easy hundreds.
+  # The words of its drawing: the sum's numbers paired colour by colour into
+  # two easy hundreds.
+  art:
+    pairs: add up the pairs of one colour
+    look: look first, then count
 
 basis:
   title: The rules of clever counting
   cards:
-    - mark: "↔"
-      title: Any order
+    - title: Any order
       text: >-
         Numbers can be added or multiplied in any order and grouped any way:
         25 × 9 × 4 is 25 × 4 × 9, which is 100 × 9.
-    - mark: "10"
-      title: Round numbers
+    - title: Round numbers
       text: >-
         Look for pairs that make 10, 100 or 1000: 36 + 64, 25 × 4, 125 × 8. A
         round number is easy to carry on with.
-    - mark: "←"
-      title: Undo from the end
+    - title: Undo from the end
       text: >-
         In “I thought of a number”, go back from the result and undo each step:
         what was added is taken away, and what was doubled is halved.
+      art:
+        undoes: undoes
+        back: go back from the result
 
 idea:
   title: Look before you count
@@ -56,6 +60,9 @@ idea:
       - - 1 + 2 + 3 + … + 10
         - five pairs of 11, such as 1 + 10 and 2 + 9
         - "55"
+  # The words of the drawings of the easy way, all rows' in one place.
+  art:
+    pairs: five pairs of 11
   note:
     title: Why it matters
     text: >-
@@ -74,6 +81,10 @@ method:
     - Look at the whole task first
     - Regroup into round numbers, or undo from the end
     - Check the answer another way
+  # The key under the steps: what the drawings' colours mean.
+  legend:
+    pair: one colour, one pair
+    undo: a step that undoes
 
 examples:
   - title: Pairs that make ten
@@ -89,6 +100,8 @@ examples:
       text: >-
         6 + 7 = 13, then 21, 23, 26 and 30. The answer is the same, but it takes
         five steps instead of one, and every step is a chance to slip.
+    art:
+      tens: one colour, a pair that makes ten
   - title: A number to find
     question: >-
       Masha thought of a number. She doubled it, added 7 and divided the result
@@ -106,6 +119,14 @@ examples:
         The last step done is the first one undone, as shoes come off before
         socks. Undoing the steps in the order they were done gives a wrong
         number.
+    art:
+      masha: Masha
+      back: from the end
+      check: check
+      "on": put on
+      "off": take off
+      socks: socks
+      shoes: shoes
   - title: Two big products
     question: >-
       What is 2026 × 2026 − 2027 × 2025? Find it without multiplying the big
@@ -122,6 +143,8 @@ examples:
       text: >-
         The same works for any numbers: 5 × 5 − 6 × 4 = 25 − 24 = 1. Trying a
         trick on small numbers first is the surest way to trust it.
+    art:
+      cancel: the equal parts cancel out, and the strips are left
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -137,11 +160,17 @@ traps:
       added again instead of taken away, or 9 is divided by 3 instead of
       multiplied.
     say: “What undoes adding? What undoes dividing?”
+    art:
+      undo: Undo “+ 7” from 27
   number_from_text:
     shows: >-
       A number from the task becomes the answer: the 9 Masha got, or the 7 she
       added, instead of the number she thought of.
     say: “Is this the number she got, or the one she thought of?”
+    art:
+      question: What number did Masha think of?
+      got: what Masha got
+      thought: what she thought of
 
 home:
   - title: Pairs to ten

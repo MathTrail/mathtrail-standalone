@@ -17,27 +17,36 @@ hero:
     it right.
   method: Draw a small case and count on it
   teaches: To tell the things from the gaps between them, and to check a rule on a picture
-  # Its drawing is the site's data: four posts in a row, numbered, and the three
-  # gaps between them.
+  # The words of its drawing: the fence and the rule over it, and the two
+  # counts under it.
+  art:
+    line: Four fence posts
+    rule: count the posts, then the spans between them
+    posts: "**4** posts"
+    spans: "**3** spans"
 
 basis:
   title: The rules of gaps
   cards:
-    - mark: "−1"
-      title: In a row, one fewer
+    - title: In a row, one fewer
       text: >-
         Gaps sit between things, so a row always has one gap fewer than
         things: six trees, five gaps; five pieces of a log, four cuts.
-    - mark: "="
-      title: In a ring, as many
+      art:
+        trees: 6 trees, 5 gaps
+    - title: In a ring, as many
       text: >-
         When the row closes into a ring, as bushes round a flowerbed do, the
         last one has a gap to the first: there are as many gaps as things.
-    - mark: "+1"
-      title: Both ends count
+      art:
+        bushes: 8 bushes, 8 gaps
+    - title: Both ends count
       text: >-
         From page 3 to page 7 is 7 − 3 = 4 steps, but 5 pages, because the
         first page is read too. Counting “from … to …” with both ends adds one.
+      art:
+        steps: 4 steps
+        pages: 4 steps, but 5 pages
 
 idea:
   title: Things or gaps?
@@ -78,14 +87,16 @@ method:
     - Draw the things and the gaps
     - Find which of them the question counts
     - Work it out, and check the rule on a small case
+  # The key under the steps: what the drawings' blue and red mean.
+  legend:
+    counted: "in blue: what is counted"
+    cut: a cut
 
 examples:
   - title: The bus route
     question: >-
       A bus route has 6 stops. The bus takes 3 minutes to get from one stop to
       the next. How many minutes does it take from the first stop to the last?
-    # Its drawing is the site's data: six stops, and the five gaps between them,
-    # 3 minutes each.
     steps:
       - Draw the 6 stops as dots. The bus drives along the gaps between them.
       - Between 6 stops there are 5 gaps, one fewer than stops.
@@ -96,6 +107,11 @@ examples:
       text: >-
         6 × 3 = 18 gives every stop a gap of its own, but after the last stop
         the bus goes nowhere: the minutes are spent between the stops.
+    art:
+      stops: 6 stops, 3 minutes between neighbours
+      minutes: "{count} min"
+      total: 5 × 3 = 15 minutes
+      end: no road after the 6th stop
   - title: Floor 9 and floor 3
     question: >-
       Lena lives on floor 9 and Masha on floor 3 of the same house, and both
@@ -115,6 +131,19 @@ examples:
       text: >-
         9 : 3 = 3 divides the floors, but the steps are on the flights between
         floors, and nobody climbs up to floor 1.
+    art:
+      masha: M
+      lena: L
+      third: floor 3
+      ninth: floor 9
+      from: both walk up from floor 1
+      masha-name: Masha
+      lena-name: Lena
+      two: flights
+      eight: flights
+      times: Lena's 8 flights are 4 times Masha's 2
+      floors: floors
+      flights: flights
   - title: How many logs?
     question: >-
       Woodcutters sawed some logs, and every log was cut at least once. They
@@ -131,6 +160,14 @@ examples:
       text: >-
         No. Five logs with 9 cuts give 14 pieces whether one log took most of
         the cuts or they were shared nearly evenly: each cut turns one piece into two.
+    art:
+      cuts: 9 cuts
+      pieces: 14 pieces
+      logs: "logs: ?"
+      one: 1 cut, 2 pieces
+      two: 2 cuts, 3 pieces
+      sum: "pieces = cuts + logs: 9 = 6 + 3"
+      all: 9 cuts · 14 pieces · 5 logs
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -152,6 +189,10 @@ traps:
       question asks for minutes, or floor 9 when it asks for flights of
       stairs.
     say: "“What does this number count: stops or gaps?”"
+    art:
+      question: "The question: how many minutes?"
+      stops: stops
+      minutes: minutes
 
 home:
   - title: Fingers and gaps

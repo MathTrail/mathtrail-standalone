@@ -34,10 +34,14 @@ export type Catalog = {
 export type Example = { readonly grades: readonly [number, number] };
 
 /**
- * TopicExample is an example a topic's page works through: an example, and
- * the drawing beside its steps where it has one.
+ * TopicExample is an example a topic's page works through: an example, the
+ * answer its solver proves, and the drawing beside its steps where it has
+ * one.
  */
-export type TopicExample = Example & { readonly drawing?: Drawing };
+export type TopicExample = Example & {
+	readonly answer: string;
+	readonly drawing?: Drawing;
+};
 
 /**
  * SiteData is what the site's pages draw that no language changes: the
@@ -220,11 +224,14 @@ export function siteData(research?: unknown): SiteData {
 
 // readExamples reads the examples of the topics' pages: each of a topic of the
 // catalog whose page is published, set at a level the topic is taught at, with
-// its drawing where it has one.
+// the answer its solver proves and its drawing where it has one.
 function readExamples(
 	catalog: readonly CatalogTopic[],
 	examples: Readonly<
-		Record<string, readonly { level: string; drawing?: Drawing }[]>
+		Record<
+			string,
+			readonly { level: string; answer: string; drawing?: Drawing }[]
+		>
 	>,
 ): ReadonlyMap<string, readonly TopicExample[]> {
 	const byId = new Map(catalog.map((topic) => [topic.id, topic]));
@@ -243,8 +250,8 @@ function readExamples(
 			}
 			return [
 				id,
-				listed.map(({ level, drawing }): TopicExample => {
-					const example = exampleAt(topic, level);
+				listed.map(({ level, answer, drawing }): TopicExample => {
+					const example = { ...exampleAt(topic, level), answer };
 					return drawing === undefined ? example : { ...example, drawing };
 				}),
 			];

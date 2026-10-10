@@ -5,14 +5,14 @@ import type { Tone, Tones } from "../design/picture/tones";
 import type { PageReader } from "./reader";
 
 /**
- * StepPicture is the picture beside one step of a technique's solution, the
+ * StepDrawing is the drawing beside one step of a technique's solution, the
  * step counted from 0. Where a kind of picture the card draws shows what the
  * step does, it is that picture, its parts lit in the step's tones, and the
  * words a picture holds none of stand under it; elsewhere it is a drawing of
  * the site's own in markup. Its numbers are in its code and its words in the
- * page's YAML. A screen reader passes it over: the step's words say it.
+ * page's YAML.
  */
-export function StepPicture({
+export function StepDrawing({
 	page,
 	technique,
 	step,
@@ -25,13 +25,7 @@ export function StepPicture({
 	if (draw === undefined) {
 		throw new Error(`the page of the techniques has no pictures for ${technique}`);
 	}
-	return (
-		<div class="s-step-picture" data-technique={technique} aria-hidden="true">
-			<div class="s-step-drawn">
-				{draw(page, `techniques.${technique}.pictures`, step)}
-			</div>
-		</div>
-	);
+	return <>{draw(page, `techniques.${technique}.pictures`, step)}</>;
 }
 
 /**

@@ -1,8 +1,11 @@
+import type { ComponentChildren } from "preact";
 import type { Words } from "../i18n/words";
 import { cardWords } from "../widget/dictionaries";
 import { topicName, trapName } from "../widget/names";
 import type { Key } from "../widget/words";
 import { address } from "./addresses";
+import type { Art, ExampleArt, TopicArt } from "./art/art";
+import { topicArt } from "./art";
 import type { SiteData, TopicExample } from "./data";
 import type { Drawing } from "./drawings";
 import { connectAddress } from "./home";
@@ -11,9 +14,10 @@ import type { PageReader } from "./reader";
 import { Solution } from "./Solution";
 import { TableFrame } from "./TableFrame";
 import { TopicDrawing } from "./TopicDrawings";
-import { TopicFoot } from "./TopicFoot";
+import { TopicThumb } from "./TopicThumbs";
 import type { Group, Topic } from "./topics";
 import { gradesText, groupKey, type SiteKey, useSiteWords } from "./words";
+import { Answer, StepFrame, WorkedSteps } from "./WorkedSteps";
 
 // shownTraps is how many of a topic's traps its page explains: the most
 // frequent in its reference tasks, which between them take most of the wrong
@@ -31,13 +35,17 @@ export function topicPage(topic: Topic, data: SiteData): Page {
 	};
 }
 
-// drawsPicture says whether the topic's page draws a picture: on its first
-// screen, or beside an example.
+// drawsPicture says whether the topic's page may draw a picture: wherever
+// the topic has drawings of its own, which draw pictures of the card's kinds
+// among their parts, and else on its first screen or beside an example.
 function drawsPicture(data: SiteData, topic: Topic): boolean {
-	return [
-		data.drawings.get(topic.id)?.hero,
-		...examplesOf(data, topic).map((example) => example.drawing),
-	].some((drawing) => drawing !== undefined && "picture" in drawing);
+	return (
+		topicArt.has(topic.slug) ||
+		[
+			data.drawings.get(topic.id)?.hero,
+			...examplesOf(data, topic).map((example) => example.drawing),
+		].some((drawing) => drawing !== undefined && "picture" in drawing)
+	);
 }
 
 // TopicPage is a topic's page for a parent. It opens with the path to it, the
@@ -57,17 +65,35 @@ function TopicPage({
 	const card = cardWords(page.locale, undefined);
 	const name = topicName(card, topic.id);
 	const group = groupOf(data, topic);
+	const art = topicArt.get(topic.slug);
 	return (
 		<>
 			<section class="s-wrap s-subject">
 				<Path page={page} group={group} name={name} />
-				<Hero page={page} data={data} topic={topic} group={group} name={name} />
+				<Hero
+					page={page}
+					data={data}
+					topic={topic}
+					group={group}
+					name={name}
+					art={art}
+				/>
 				<Contents page={page} />
 			</section>
-			<Basis page={page} />
-			<Idea page={page} />
-			<Solving page={page} topic={topic} examples={examplesOf(data, topic)} />
-			<Traps page={page} traps={trapsOf(data, topic)} card={card} />
+			<Basis page={page} art={art?.basis} />
+			<Idea page={page} art={art?.idea} />
+			<Solving
+				page={page}
+				topic={topic}
+				examples={examplesOf(data, topic)}
+				art={art}
+			/>
+			<Traps
+				page={page}
+				traps={trapsOf(data, topic)}
+				card={card}
+				art={art?.traps}
+			/>
 			<Home page={page} />
 			<Related
 				heading="topic.before"
@@ -156,19 +182,22 @@ function Path({
 }
 
 // Hero is the first screen: the topic's group and grades, its name, what it is,
-// its main move and what it teaches, beside its drawing.
+// its main move and what it teaches, beside its drawing: the topic's own on a
+// white box, with the line over it where it has one, or the site's data's.
 function Hero({
 	page,
 	data,
 	topic,
 	group,
 	name,
+	art,
 }: {
 	page: PageReader;
 	data: SiteData;
 	topic: Topic;
 	group: Group;
 	name: string;
+	art: TopicArt | undefined;
 }) {
 	const words = useSiteWords();
 	return (
@@ -191,14 +220,33 @@ function Hero({
 					</div>
 				</dl>
 			</div>
-			<div class="s-panel s-subject-panel">
-				<TopicDrawing
-					drawing={heroDrawingOf(data, topic)}
-					page={page}
-					at="hero.drawing"
-					where={`the first screen of ${topic.id}`}
-				/>
-			</div>
+			{art === undefined ? (
+				<div class="s-panel s-subject-panel">
+					<TopicDrawing
+						drawing={heroDrawingOf(data, topic)}
+						page={page}
+						at="hero.drawing"
+						where={`the first screen of ${topic.id}`}
+					/>
+				</div>
+			) : (
+				<div
+					class="s-panel s-subject-panel s-subject-sketch"
+					aria-hidden="true"
+					dir="ltr"
+				>
+					{art.heroLine !== undefined && (
+						<p class="s-subject-line">
+							{art.heroLine({ page, at: "hero.art" })}
+						</p>
+					)}
+					<div class="s-sketch s-topic-art">
+						<div class="s-sketch-drawn">
+							{art.hero({ page, at: "hero.art" })}
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
@@ -219,17 +267,16 @@ function Contents({ page }: { page: PageReader }) {
 }
 
 // Basis is the ground the topic stands on, card by card: on the island of the
-// knights and the liars, its rules.
-function Basis({ page }: { page: PageReader }) {
+// knights and the liars, its rules. A card shows its drawing on a white box
+// where the topic has one, and its mark otherwise.
+function Basis({ page, art }: { page: PageReader; art?: readonly Art[] }) {
 	return (
 		<section id="basics" class="s-wrap s-section">
 			<h2 class="s-title">{page.text("basis.title")}</h2>
 			<ul class="s-tiles">
-				{page.list("basis.cards").map((key) => (
+				{page.list("basis.cards").map((key, at) => (
 					<li key={key} class="s-tile">
-						<span class="s-mark" aria-hidden="true">
-							{page.plain(`${key}.mark`)}
-						</span>
+						<CardMark page={page} at={key} art={art?.[at]} />
 						<h3>{page.text(`${key}.title`)}</h3>
 						<p class="s-tile-text">{page.text(`${key}.text`)}</p>
 					</li>
@@ -239,10 +286,42 @@ function Basis({ page }: { page: PageReader }) {
 	);
 }
 
+// CardMark is what a card of the ground shows over its title: its drawing on
+// a white box, or its mark.
+function CardMark({
+	page,
+	at,
+	art,
+}: {
+	page: PageReader;
+	at: string;
+	art: Art | undefined;
+}) {
+	if (art === undefined) {
+		return (
+			<span class="s-mark" aria-hidden="true">
+				{page.plain(`${at}.mark`)}
+			</span>
+		);
+	}
+	return (
+		<div class="s-tile-sketch s-topic-art" aria-hidden="true" dir="ltr">
+			{art({ page, at: `${at}.art` })}
+		</div>
+	);
+}
+
 // Idea is the topic's key idea: a table, and a note on why it matters. A
 // narrow screen scrolls the table sideways inside its frame, which the
-// keyboard can reach for that.
-function Idea({ page }: { page: PageReader }) {
+// keyboard can reach for that. Where the topic draws a column, a cell of it
+// shows its drawing and keeps its words for a screen reader.
+function Idea({
+	page,
+	art,
+}: {
+	page: PageReader;
+	art?: TopicArt["idea"];
+}) {
 	const head = page.list("idea.table.head");
 	return (
 		<section id="idea" class="s-wrap s-section">
@@ -251,7 +330,7 @@ function Idea({ page }: { page: PageReader }) {
 				<p class="s-intro-line">{page.text("idea.lead")}</p>
 			</div>
 			<TableFrame labelledBy="idea-title">
-				<table class="s-table">
+				<table class="s-table s-idea-table">
 					<thead>
 						<tr>
 							{head.map((key) => (
@@ -262,17 +341,28 @@ function Idea({ page }: { page: PageReader }) {
 						</tr>
 					</thead>
 					<tbody>
-						{page.list("idea.table.rows").map((row) => (
+						{page.list("idea.table.rows").map((row, line) => (
 							<tr key={row}>
-								{cellsOf(page, row, head.length).map((key, at) =>
-									at === 0 ? (
-										<th key={key} scope="row">
-											{page.text(key)}
-										</th>
-									) : (
-										<td key={key}>{page.text(key)}</td>
-									),
-								)}
+								{cellsOf(page, row, head.length).map((key, at) => {
+									const drawn = art?.find((one) => one.column === at);
+									if (at === 0) {
+										return (
+											<th key={key} scope="row">
+												<RowName page={page} at={key} art={drawn?.rows[line]} />
+											</th>
+										);
+									}
+									return (
+										<td key={key}>
+											<Cell
+												page={page}
+												at={key}
+												art={drawn?.rows[line]}
+												shown={drawn?.showWords ?? false}
+											/>
+										</td>
+									);
+								})}
 							</tr>
 						))}
 					</tbody>
@@ -280,6 +370,58 @@ function Idea({ page }: { page: PageReader }) {
 			</TableFrame>
 			<Note page={page} at="idea.note" />
 		</section>
+	);
+}
+
+// RowName is the name of a row of the key idea's table, after its drawing
+// where it has one, the words of the table's drawings under idea.art.
+function RowName({
+	page,
+	at,
+	art,
+}: {
+	page: PageReader;
+	at: string;
+	art: Art | undefined;
+}) {
+	if (art === undefined) {
+		return <>{page.text(at)}</>;
+	}
+	return (
+		<span class="s-row-name">
+			<span class="s-cell-sketch s-topic-art" aria-hidden="true" dir="ltr">
+				{art({ page, at: "idea.art" })}
+			</span>
+			<span>{page.text(at)}</span>
+		</span>
+	);
+}
+
+// Cell is what a cell of the key idea's table shows: its words, or its
+// drawing, the words of the table's drawings under idea.art, with the cell's
+// own words under it where they are shown, and for a screen reader alone
+// where they are not.
+function Cell({
+	page,
+	at,
+	art,
+	shown,
+}: {
+	page: PageReader;
+	at: string;
+	art: Art | undefined;
+	shown: boolean;
+}) {
+	if (art === undefined) {
+		return <>{page.text(at)}</>;
+	}
+	return (
+		<>
+			<span class="s-cell-sketch s-topic-art" aria-hidden="true" dir="ltr">
+				{art({ page, at: "idea.art" })}
+			</span>
+			<span class={shown ? "s-cell-words" : "s-hidden"}>{page.text(at)}</span>
+		</>
 	);
 }
 
@@ -296,12 +438,24 @@ function cellsOf(page: PageReader, row: string, columns: number): string[] {
 	return cells;
 }
 
-// Note is a note on what precedes it: a title, and a line or two.
-function Note({ page, at }: { page: PageReader; at: string }) {
+// Note is a note on what precedes it: a title, and a line or two, beside its
+// picture where it has one.
+function Note({
+	page,
+	at,
+	picture,
+}: {
+	page: PageReader;
+	at: string;
+	picture?: ComponentChildren;
+}) {
 	return (
 		<aside class="s-note">
-			<p class="s-note-title">{page.text(`${at}.title`)}</p>
-			<p class="s-note-text">{page.text(`${at}.text`)}</p>
+			<div class="s-note-words">
+				<p class="s-note-title">{page.text(`${at}.title`)}</p>
+				<p class="s-note-text">{page.text(`${at}.text`)}</p>
+			</div>
+			{picture !== undefined && <StepFrame>{picture}</StepFrame>}
 		</aside>
 	);
 }
@@ -314,10 +468,12 @@ function Solving({
 	page,
 	topic,
 	examples,
+	art,
 }: {
 	page: PageReader;
 	topic: Topic;
 	examples: readonly TopicExample[];
+	art: TopicArt | undefined;
 }) {
 	const words = useSiteWords();
 	const numbers = new Intl.NumberFormat(page.locale);
@@ -345,6 +501,11 @@ function Solving({
 					</li>
 				))}
 			</ol>
+			{art?.legend !== undefined && (
+				<p class="s-legend s-topic-art" aria-hidden="true" dir="ltr">
+					{art.legend({ page, at: "method.legend" })}
+				</p>
+			)}
 			{examples.map((example, at) => {
 				const key = `examples.${at + 1}`;
 				return (
@@ -356,7 +517,9 @@ function Solving({
 							number: at + 1,
 							grades: gradesText(words, example.grades),
 						})}
+						answer={example.answer}
 						drawing={example.drawing}
+						art={art?.examples?.[at]}
 						where={`example ${at + 1} of ${topic.id}`}
 					/>
 				);
@@ -365,45 +528,99 @@ function Solving({
 	);
 }
 
-// WorkedExample is one example: its number and grades, its title, its task,
-// the steps of its solution beside a drawing where the example has one, its
-// answer, and a note where it has one. A picture that cannot be drawn stops
-// the build under the name where gives the example.
+// WorkedExample is one example: its number and grades, its title, its task
+// with its drawing under it where it has one, the steps of its solution,
+// each beside its picture where the topic draws them and beside the
+// example's one drawing otherwise, a note where it has one, and its answer
+// behind its badge. A picture that cannot be drawn stops the build under the
+// name where gives the example.
 function WorkedExample({
 	page,
 	at,
 	label,
+	answer,
 	drawing,
+	art,
 	where,
 }: {
 	page: PageReader;
 	at: string;
 	label: string;
+	answer: string;
 	drawing: Drawing | undefined;
+	art: ExampleArt | undefined;
 	where: string;
 }) {
+	const words = useSiteWords();
+	const own = `${at}.art`;
 	return (
 		<article class="s-example">
-			<p class="s-example-label">{label}</p>
-			<h3>{page.text(`${at}.title`)}</h3>
-			<p class="s-example-task">{page.text(`${at}.question`)}</p>
-			<Solution
-				page={page}
-				at={at}
-				drawing={
-					drawing !== undefined && (
-						<TopicDrawing
-							drawing={drawing}
-							page={page}
-							at={`${at}.drawing`}
-							where={where}
-						/>
-					)
-				}
-			/>
-			{page.has(`${at}.note`) && <Note page={page} at={`${at}.note`} />}
+			<div class="s-example-head">
+				<p class="s-example-label">{label}</p>
+				<h3>{page.text(`${at}.title`)}</h3>
+			</div>
+			<div class="s-example-task">
+				<p class="s-example-question">{page.text(`${at}.question`)}</p>
+				{art?.task !== undefined && (
+					<div class="s-task-sketch s-topic-art" aria-hidden="true" dir="ltr">
+						{art.task({ page, at: own })}
+					</div>
+				)}
+			</div>
+			{art?.steps !== undefined ? (
+				<WorkedSteps
+					page={page}
+					at={`${at}.steps`}
+					pictureOf={(step) => art.steps?.[step]?.({ page, at: own })}
+				/>
+			) : (
+				<Solution
+					page={page}
+					at={at}
+					drawing={
+						drawing !== undefined && (
+							<TopicDrawing
+								drawing={drawing}
+								page={page}
+								at={`${at}.drawing`}
+								where={where}
+							/>
+						)
+					}
+				/>
+			)}
+			{page.has(`${at}.note`) && (
+				<Note
+					page={page}
+					at={`${at}.note`}
+					picture={art?.note?.({ page, at: own })}
+				/>
+			)}
+			{art?.steps !== undefined && (
+				<Answer
+					label={words.text("topic.answer")}
+					badge={badgeOf(page, at, answer)}
+				>
+					{page.text(`${at}.answer`)}
+				</Answer>
+			)}
 		</article>
 	);
+}
+
+// badgeOf is the badge of an example's answer: the one its words give, or
+// the answer its solver proves where that is a number or a time, which reads
+// the same in every language; an answer in words with no badge in the words
+// has none.
+function badgeOf(
+	page: PageReader,
+	at: string,
+	answer: string,
+): string | undefined {
+	if (page.has(`${at}.badge`)) {
+		return page.plain(`${at}.badge`);
+	}
+	return /^\d+(:\d\d)?$/.test(answer) ? answer : undefined;
 }
 
 // Traps are the traps the topic's page explains, each under the name the card
@@ -412,10 +629,12 @@ function Traps({
 	page,
 	traps,
 	card,
+	art,
 }: {
 	page: PageReader;
 	traps: readonly string[];
 	card: Words<Key>;
+	art?: Readonly<Record<string, Art>>;
 }) {
 	const words = useSiteWords();
 	return (
@@ -430,6 +649,11 @@ function Traps({
 						<span class="s-trap-badge">{words.text("topic.trap")}</span>
 						<h3>{trapName(card, id)}</h3>
 						<p class="s-tile-text">{page.text(`traps.${id}.shows`)}</p>
+						{art?.[id] !== undefined && (
+							<div class="s-trap-sketch s-topic-art" aria-hidden="true" dir="ltr">
+								{art[id]({ page, at: `traps.${id}.art` })}
+							</div>
+						)}
 						<div class="s-say">
 							<p class="s-note-title">{words.text("topic.say")}</p>
 							<p class="s-tile-text">{page.text(`traps.${id}.say`)}</p>
@@ -488,14 +712,23 @@ function Related({
 	if (related.length === 0) {
 		return null;
 	}
+	const numbers = new Intl.NumberFormat(words.locale);
 	return (
 		<section class="s-wrap s-section">
 			<h2 class="s-title">{words.text(heading)}</h2>
-			<ul class="s-topics s-related">
+			<ul class="s-related">
 				{related.map((topic) => (
-					<li key={topic.id} class="s-topic">
-						<h3>{topicName(card, topic.id)}</h3>
-						<TopicFoot topic={topic} />
+					<li key={topic.id}>
+						<RelatedCard
+							topic={topic}
+							name={topicName(card, topic.id)}
+							thumb={
+								<TopicThumb
+									drawing={data.drawings.get(topic.id)?.card}
+									numbers={numbers}
+								/>
+							}
+						/>
 					</li>
 				))}
 			</ul>
@@ -503,15 +736,63 @@ function Related({
 	);
 }
 
+// RelatedCard is a related topic: its small drawing, its name and its
+// grades, the whole card a link to its page once the page is published, and
+// word that it is coming until then.
+function RelatedCard({
+	topic,
+	name,
+	thumb,
+}: {
+	topic: Topic;
+	name: string;
+	thumb: ComponentChildren;
+}) {
+	const words = useSiteWords();
+	const body = (
+		<>
+			{thumb}
+			<span class="s-related-foot">
+				<span class="s-related-words">
+					<span class="s-related-name">{name}</span>
+					<span class="s-related-grades">
+						{gradesText(words, topic.grades)}
+					</span>
+				</span>
+				{topic.sitePage ? (
+					<span class="s-related-arrow" aria-hidden="true">
+						→
+					</span>
+				) : (
+					<span class="s-soon">{words.text("topics.soon")}</span>
+				)}
+			</span>
+		</>
+	);
+	return topic.sitePage ? (
+		<a
+			class="s-related-card"
+			href={address(words.locale, `topics/${topic.slug}`)}
+		>
+			{body}
+		</a>
+	) : (
+		<span class="s-related-card">{body}</span>
+	);
+}
+
 // Ask is how to ask for a task on the topic: the words to write in the chat,
-// the way to add MathTrail to a chat first, and the way back to every topic.
+// the way to add MathTrail to a chat first, and the way back to every topic,
+// in one low row.
 function Ask({ page }: { page: PageReader }) {
 	const words = useSiteWords();
 	return (
-		<section class="s-section s-ask-wrap">
-			<div class="s-ask">
-				<h2 class="s-ask-title">{words.text("topic.ask")}</h2>
-				<p class="s-ask-phrase">{page.text("ask")}</p>
+		<section class="s-section s-ask-wrap s-topic-ask">
+			<div class="s-ask s-ask-row">
+				<div class="s-ask-copy">
+					<h2 class="s-ask-title">{words.text("topic.ask")}</h2>
+					<p class="s-ask-phrase">{page.text("ask")}</p>
+				</div>
 				<p class="s-choices">
 					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
 						{words.text("nav.add")}
