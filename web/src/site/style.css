@@ -5810,9 +5810,12 @@ a.s-related-card:hover {
 	gap: 2px;
 }
 
+/* A drop is turned a quarter round: the room around it keeps its corners
+   inside the drawing. */
 .s-cal-drop {
 	inline-size: 18px;
 	block-size: 18px;
+	margin: 4px;
 	border-radius: 50% 0 50% 50%;
 	background: var(--s-paint-sky);
 	transform: rotate(-45deg);
@@ -5838,7 +5841,7 @@ a.s-related-card:hover {
 	flex: none;
 	align-self: flex-start;
 	inline-size: 40px;
-	margin-block-start: 9px;
+	margin-block-start: 13px;
 	border-block-start: 3px solid var(--s-accent);
 }
 
@@ -8284,6 +8287,7 @@ a.s-related-card:hover {
 	position: relative;
 	display: block;
 	flex: none;
+	padding-inline-start: 16px;
 }
 
 .s-par-cube svg {
@@ -8294,7 +8298,7 @@ a.s-related-card:hover {
 .s-par-start-name {
 	position: absolute;
 	inset-block-start: 14px;
-	inset-inline-start: -14px;
+	inset-inline-start: 0;
 	color: var(--s-accent);
 	font-size: 0.625rem;
 	font-weight: 700;
@@ -8377,6 +8381,82 @@ a.s-related-card:hover {
 	block-size: 9px;
 	border-radius: 50%;
 	background: var(--s-warm-edge);
+}
+
+/* Parts and shares: the samples of the strips' colours for a key, in the
+   tones the strips are lit in; eggs, orange where a buyer takes them; a sum
+   written out large; and a book of seven parts, all of them found. */
+.s-pts-swatch {
+	flex: none;
+	inline-size: 26px;
+	block-size: 16px;
+	box-sizing: border-box;
+	border: 1.5px solid var(--s-trap-edge);
+	border-radius: 4px;
+	background: var(--s-trap);
+}
+
+.s-pts-swatch[data-paint="green"] {
+	border-color: var(--s-green-ring);
+	background: var(--s-right);
+}
+
+.s-pts-swatch[data-paint="cool"] {
+	border-color: var(--s-accent-line);
+	background: var(--s-cool);
+}
+
+.s-pts-swatch[data-paint="warm"] {
+	border-color: var(--s-warm-edge);
+	background: var(--s-warm);
+}
+
+.s-pts-egg {
+	display: block;
+	flex: none;
+	inline-size: 16px;
+	block-size: 21px;
+	box-sizing: border-box;
+	border: 1.5px solid var(--s-amber-soft);
+	border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+	background: var(--s-warm-wash);
+}
+
+.s-pts-egg[data-taken] {
+	border-color: var(--s-warm-edge);
+	background: var(--s-warm);
+}
+
+.s-pts-big {
+	flex: none;
+	font-size: 1.25rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.s-pts-total {
+	flex: none;
+	font-size: 1rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.s-pts-book {
+	display: flex;
+	flex: none;
+	overflow: hidden;
+	border: 1.5px solid var(--s-green-ring);
+	border-radius: 5px;
+}
+
+.s-pts-book > span {
+	inline-size: 14px;
+	block-size: 22px;
+	background: var(--s-right);
+}
+
+.s-pts-book > span + span {
+	border-inline-start: 1px solid var(--s-green-ring);
 }
 
 /* Arithmetic with a trick: a big product as a rectangle, the grey block two

@@ -10,6 +10,7 @@ import { art as knightsAndLiars } from "./knights-and-liars";
 import { art as ordering } from "./ordering";
 import { art as overlappingGroups } from "./overlapping-groups";
 import { art as parityAndAlternation } from "./parity-and-alternation";
+import { art as partsAndShares } from "./parts-and-shares";
 
 /**
  * topicArt are the drawings of the topics' pages, by the slug of the topic. A
@@ -27,4 +28,5 @@ export const topicArt: ReadonlyMap<string, TopicArt> = new Map([
 	["ordering", ordering],
 	["overlapping-groups", overlappingGroups],
 	["parity-and-alternation", parityAndAlternation],
+	["parts-and-shares", partsAndShares],
 ]);
