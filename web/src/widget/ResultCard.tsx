@@ -10,6 +10,7 @@ import { Button, type Said } from "../design/controls";
 import { PageLink } from "../design/links";
 import { Diagram } from "../design/picture/diagram";
 import { directionOf } from "../i18n/lookup";
+import type { Words } from "../i18n/words";
 import type { Host } from "./bridge";
 import { CardFrame } from "./CardFrame";
 import { CardHeader } from "./CardRoot";
@@ -32,14 +33,14 @@ import { type Key, ratingText, useWords } from "./words";
 
 /**
  * ResultCard is the card of how an answer went, drawn below the task's card
- * once the model asks for it: whether the answer was right, the trap behind a
- * wrong option, the solution step by step, the topic the task was on, linked
- * to its page where the chat opens links, and how the rating in the topic
- * moved — or how far the trial series has got. Under it are the next task to
- * ask for and the topic to choose, as the task's card had them before the
- * answer; once the chat has the ask, this card is done with, as a task's card
- * is. A card with nothing to show says why: the task has no answer yet, or is
- * no longer on the card.
+ * when the model shows how an answer given in the chat went: whether it was
+ * right, the trap behind a wrong option, the solution step by step, the topic
+ * the task was on, linked to its page where the chat opens links, and how the
+ * rating in the topic moved — or how far the trial series has got. Under it
+ * are the next task to ask for and the topic to choose, as the task's card
+ * had them before the answer; once the chat has the ask, this card is done
+ * with, as a task's card is. A card with nothing to show says why: the task
+ * has no answer yet, or is no longer on the card.
  */
 export function ResultCard({ shown, host }: { shown: Shown; host: Host }) {
 	const words = useWords();
@@ -85,9 +86,108 @@ function ResultInCard({
 	grade: number;
 }) {
 	const words = useWords();
-	const { task, result } = shown;
-	const another = useChatRequest(host);
 	const tell = useModelLines(host);
+	return (
+		<>
+			<article aria-label={words.text("result.label")}>
+				<CardHeader grade={grade} wide={wide} />
+				<ResultBody shown={shown} host={host} />
+			</article>
+			<div class="mt-foot">
+				<ResultFoot
+					shown={shown}
+					host={host}
+					wide={wide}
+					grade={grade}
+					tell={tell}
+					answeredHere={false}
+				/>
+			</div>
+		</>
+	);
+}
+
+/**
+ * ResultBody is how an answer went, as a card shows it under its header: the
+ * verdict, the trap behind a wrong option, the picture of the solution with
+ * its total, the solution step by step, and the topic the task was on with how
+ * the rating in it moved — or how far the trial series has got.
+ */
+export function ResultBody({
+	shown,
+	host,
+}: {
+	shown: ResultShown;
+	host: Host;
+}) {
+	const words = useWords();
+	const { task, result } = shown;
+	// The texts of the task are in the language it was written in, which need
+	// not be the card's: a screen reader reads them in their own voice, and
+	// they run their own way.
+	const inTask: Said = { lang: task.language, dir: directionOf(task.language) };
+	const [tone, verdict] = verdictOf(result, (letter) => task.options[letter]);
+	// The card redraws as an ask goes to the chat; the steps are cut once for
+	// each solution.
+	const steps = useMemo(
+		() => stepsOf(result.solution, task.language),
+		[result.solution, task.language],
+	);
+	return (
+		<div class="mt-body">
+			<Verdict tone={tone}>{words.text(verdict.key, verdict.slots)}</Verdict>
+			{result.trap !== null && (
+				<Note
+					tone="trap"
+					label={words.text("result.trap")}
+					said={inTask}
+					detail={
+						result.trap.repeated ? words.text("result.trap_again") : undefined
+					}
+				>
+					{result.trap.text}
+				</Note>
+			)}
+			<SolutionPicture result={result} task={task} />
+			<SolutionSteps
+				label={words.text("result.solution")}
+				steps={steps}
+				said={inTask}
+			/>
+			<Facts shown={shown} host={host} />
+		</div>
+	);
+}
+
+/**
+ * ResultFoot is what a card offers under how an answer went: the next task to
+ * ask for and the topic to choose, which ask the chat as a task's card does,
+ * and once the chat has the ask, where the next task comes, the card done
+ * with, the focus on it if the card has lost its own. answeredHere says the
+ * answer was given on this very card, whose option pressed went with the task:
+ * a focus lost with it goes to the next task to ask for. A card drawn for an
+ * answer given elsewhere takes no focus as it is drawn. tell is how the card
+ * tells the model a line, so that the line of a topic chosen here goes with
+ * those the card told before it.
+ */
+export function ResultFoot({
+	shown,
+	host,
+	wide,
+	grade,
+	tell,
+	answeredHere,
+}: {
+	shown: ResultShown;
+	host: Host;
+	wide: boolean;
+	grade: number;
+	tell: (line: string) => Promise<void>;
+	answeredHere: boolean;
+}) {
+	const words = useWords();
+	const another = useChatRequest(host);
+	const anotherButton = useRef<HTMLButtonElement>(null);
 	const note = useRef<HTMLParagraphElement>(null);
 	// A choice asks for a task, so it waits for an ask already on its way,
 	// even one pressed in the same moment. Where a choice cannot be acted on,
@@ -101,99 +201,71 @@ function ResultInCard({
 	const saving = choosing.said === "saving";
 	const asking = another.state === "sending";
 	const asked = another.state === "sent";
-	// Once the chat has the ask, the button pressed for it is gone: the focus
-	// goes to what the card says of the task to come.
+	useFocusKeptOnTheCard(answeredHere && !asked, anotherButton);
 	useFocusKeptOnTheCard(asked, note);
 
-	// The texts of the task are in the language it was written in, which need
-	// not be the card's: a screen reader reads them in their own voice, and
-	// they run their own way.
-	const inTask: Said = { lang: task.language, dir: directionOf(task.language) };
-	const [tone, verdict] = verdictOf(result, (letter) => task.options[letter]);
-	// The card redraws as an ask goes to the chat; the steps are cut once for
-	// each solution.
-	const steps = useMemo(
-		() => stepsOf(result.solution, task.language),
-		[result.solution, task.language],
-	);
 	const offered = shown.topic_choice;
 	const topicLocked = !choosesTopic || asking || saving;
 	return (
 		<>
-			<article aria-label={words.text("result.label")}>
-				<CardHeader grade={grade} wide={wide} />
-				<div class="mt-body">
-					<Verdict tone={tone}>
-						{words.text(verdict.key, verdict.slots)}
-					</Verdict>
-					{result.trap !== null && (
-						<Note
-							tone="trap"
-							label={words.text("result.trap")}
-							said={inTask}
-							detail={
-								result.trap.repeated
-									? words.text("result.trap_again")
-									: undefined
-							}
+			{!asked && (
+				<>
+					<div class="mt-btns">
+						<Button
+							variant="primary"
+							locked={asking || saving}
+							onClick={() => {
+								if (!choosing.busy()) {
+									another.send(words.text("task.another"));
+								}
+							}}
+							buttonRef={anotherButton}
 						>
-							{result.trap.text}
-						</Note>
-					)}
-					<SolutionPicture result={result} task={task} />
-					<SolutionSteps
-						label={words.text("result.solution")}
-						steps={steps}
-						said={inTask}
-					/>
-					<Facts shown={shown} host={host} />
-				</div>
-			</article>
-			<div class="mt-foot">
-				{!asked && (
-					<>
-						<div class="mt-btns">
-							<Button
-								variant="primary"
-								locked={asking || saving}
-								onClick={() => {
-									if (!choosing.busy()) {
-										another.send(words.text("task.another"));
-									}
-								}}
-							>
-								{words.text("task.another")}
-							</Button>
-							{offered !== undefined && (
-								<TopicButton
-									choosing={choosing}
-									wide={wide}
-									locked={topicLocked}
-								/>
-							)}
-						</div>
+							{words.text("task.another")}
+						</Button>
 						{offered !== undefined && (
-							<>
-								<TopicPanel
-									choosing={choosing}
-									offered={offered}
-									grade={grade}
-									host={host}
-									locked={topicLocked}
-								/>
-								<TopicNote said={choosing.said} />
-							</>
+							<TopicButton
+								choosing={choosing}
+								wide={wide}
+								locked={topicLocked}
+							/>
 						)}
-					</>
-				)}
-				<RequestNote
-					state={another.state}
-					taken="task.another_coming"
-					noteRef={note}
-				/>
-			</div>
+					</div>
+					{offered !== undefined && (
+						<>
+							<TopicPanel
+								choosing={choosing}
+								offered={offered}
+								grade={grade}
+								host={host}
+								locked={topicLocked}
+							/>
+							<TopicNote said={choosing.said} />
+						</>
+					)}
+				</>
+			)}
+			<RequestNote
+				state={another.state}
+				taken="task.another_coming"
+				noteRef={note}
+			/>
 		</>
 	);
+}
+
+/**
+ * verdictText is the verdict on result in the words given, the options named
+ * by their texts: what a screen reader hears once a card turns into how the
+ * answer went.
+ */
+export function verdictText(
+	words: Words<Key>,
+	result: AnswerResult,
+	options: Readonly<Record<Letter, string>>,
+): string {
+	const [, verdict] = verdictOf(result, (letter) => options[letter]);
+	return words.text(verdict.key, verdict.slots);
 }
 
 // SolutionPicture is the picture of the solution, laid out as the task's own
@@ -230,13 +302,11 @@ function SolutionPicture({
 					) : (
 						pieces(
 							words.text("result.total_not", { total: firstMark, picked }),
-						).map((piece, at) =>
+						).map((piece) =>
 							piece === firstMark ? (
-								<TotalSum key={at} total={total} />
+								<TotalSum key="total" total={total} />
 							) : (
-								<span key={at} class="mt-total-not">
-									{piece}
-								</span>
+								piece
 							),
 						)
 					)}
@@ -334,18 +404,18 @@ function RatingMove({ before, after }: { before: number; after: number }) {
 	});
 	return (
 		<span class="mt-rating-move">
-			{pieces(line).map((piece, at) => {
+			{pieces(line).map((piece) => {
 				switch (piece) {
 					case firstMark:
 						return (
-							<span key={at} class="mt-rating-before">
+							<span key="before" class="mt-rating-before">
 								{ratingText(words, before)}
 							</span>
 						);
 					case secondMark:
 						return (
 							<span
-								key={at}
+								key="after"
 								class={classes(
 									"mt-rating-after",
 									after > before && "mt-rating-gain",
@@ -366,7 +436,7 @@ function RatingMove({ before, after }: { before: number; after: number }) {
 // pieces are a wording cut where its marks stand, each mark a piece of its
 // own, with no empty piece where a mark opens or closes it.
 function pieces(line: string): string[] {
-	return line.split(/(\uE000|\uE001)/).filter((piece) => piece !== "");
+	return line.split(/([\uE000\uE001])/).filter((piece) => piece !== "");
 }
 
 // verdictOf is how the verdict line reads for result: its tone, and the words

@@ -383,7 +383,7 @@ export function Round({
 				const turn = (at / count) * 2 * Math.PI;
 				return (
 					<span
-						key={at}
+						key={turn}
 						class="s-sk-seat"
 						style={{
 							"--s-x": `${(50 + 42 * Math.sin(turn)).toFixed(2)}%`,

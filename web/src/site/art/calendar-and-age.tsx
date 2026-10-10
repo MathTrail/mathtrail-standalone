@@ -18,24 +18,27 @@ function Weeks({
 	);
 }
 
-// Rest is whole weeks, then, a little apart, the days left over, ringed
-// where the step finds them; a wide block holds many weeks at once.
+// Rest is so many blocks of whole weeks, each with the same label, then, a
+// little apart, the days left over, ringed where the step finds them; a wide
+// block holds many weeks at once.
 function Rest({
 	weeks,
+	label,
 	days,
 	picked = false,
 	wide = false,
 }: {
-	weeks: readonly ComponentChildren[];
+	weeks: number;
+	label: ComponentChildren;
 	days: number;
 	picked?: boolean;
 	wide?: boolean;
 }) {
 	return (
 		<Line gap={3}>
-			{weeks.map((week, at) => (
+			{Array.from({ length: weeks }, (_, at) => (
 				<Weeks key={at} wide={wide}>
-					{week}
+					{label}
 				</Weeks>
 			))}
 			<span class="s-cal-apart" />
@@ -194,11 +197,7 @@ export const art: TopicArt = {
 	basis: [
 		({ page, at }) => (
 			<Stack gap={10}>
-				<Rest
-					weeks={Array.from({ length: 4 }, () => page.text(`${at}.week`))}
-					days={2}
-					picked
-				/>
+				<Rest weeks={4} label={page.text(`${at}.week`)} days={2} picked />
 				<Say>{page.text(`${at}.month`)}</Say>
 			</Stack>
 		),
@@ -230,21 +229,17 @@ export const art: TopicArt = {
 			column: 1,
 			words: "under",
 			rows: [
-				({ page, at }) => <Rest weeks={[page.text(`${at}.week`)]} days={3} />,
 				({ page, at }) => (
-					<Rest
-						weeks={[page.text(`${at}.week`), page.text(`${at}.week`)]}
-						days={1}
-					/>
+					<Rest weeks={1} label={page.text(`${at}.week`)} days={3} />
 				),
 				({ page, at }) => (
-					<Rest
-						weeks={Array.from({ length: 4 }, () => page.text(`${at}.week`))}
-						days={2}
-					/>
+					<Rest weeks={2} label={page.text(`${at}.week`)} days={1} />
 				),
 				({ page, at }) => (
-					<Rest weeks={[page.text(`${at}.weeks`)]} days={2} wide />
+					<Rest weeks={4} label={page.text(`${at}.week`)} days={2} />
+				),
+				({ page, at }) => (
+					<Rest weeks={1} label={page.text(`${at}.weeks`)} days={2} wide />
 				),
 			],
 		},
@@ -277,7 +272,7 @@ export const art: TopicArt = {
 				),
 				({ page, at }) => (
 					<>
-						<Rest weeks={[page.text(`${at}.week`)]} days={2} picked />
+						<Rest weeks={1} label={page.text(`${at}.week`)} days={2} picked />
 						<Say>9 = 7 + 2</Say>
 					</>
 				),
@@ -491,7 +486,7 @@ export const art: TopicArt = {
 					}
 					right={
 						<>
-							<Rest weeks={[page.text(`${at}.weeks`)]} days={1} wide />
+							<Rest weeks={1} label={page.text(`${at}.weeks`)} days={1} wide />
 							<Chip tone="green">{page.text(`${at}.tuesday`)}</Chip>
 						</>
 					}

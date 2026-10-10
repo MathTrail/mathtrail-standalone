@@ -1,6 +1,7 @@
 // The pictures of the widget the README shows: a task, how a wrong answer
-// went, with the picture of its solution, and the progress, in the dark theme, as a phone 428 px wide shows them
-// at twice its density. They are the preview's own scenes — the widget's page,
+// went, with the picture of its solution, and the progress with its topics
+// open, in the dark theme, as a phone 428 px wide shows them at twice its
+// density. They are the preview's own scenes — the widget's page,
 // driven as a chat host drives it — photographed in Chromium, so that the
 // README shows the cards as they are rather than as they were designed. The
 // README shows the dark theme to a reader of either, and the corners round the
@@ -26,8 +27,8 @@ export type Shot = { scene: string; file: string };
  */
 export const shots: readonly Shot[] = [
 	{ scene: "task after the trial series", file: "task" },
-	{ scene: "result card, the picture of the solution, wrong", file: "wrong" },
-	{ scene: "progress, the model's card", file: "progress" },
+	{ scene: "answered, the picture of the solution, wrong", file: "wrong" },
+	{ scene: "progress, the topics open", file: "progress" },
 ];
 
 /** theme is the theme every scene is photographed in. */

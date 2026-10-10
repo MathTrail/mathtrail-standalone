@@ -431,17 +431,64 @@ func TestTheGradeIsNeverRead(t *testing.T) {
 	}
 }
 
-// The settings go round the interests, counted by the answers behind the
-// child — a number that never goes backwards, unlike the window.
-func TestTheSettingGoesRoundTheInterests(t *testing.T) {
+// One task in three is dressed in an interest, the first of each three, and
+// the interests take their turns; the others are left to the model. The tasks
+// are counted by the answers behind the child — a number that never goes
+// backwards, unlike the window.
+func TestOneTaskInThreeIsDressedInAnInterest(t *testing.T) {
 	t.Parallel()
 
-	for answers, want := range map[int]string{0: "cats", 1: "trains", 2: "cats", 57: "trains"} {
+	for answers, want := range map[int]string{
+		0: "cats", 1: "", 2: "", 3: "trains", 4: "", 5: "", 6: "cats", 57: "trains",
+	} {
 		p := child(t)
 		p.Ratings.Answers = answers
 
 		if got := brief(t, p, threeTopics()); got.Setting != want {
 			t.Errorf("after %d answers the setting is %q, want %q", answers, got.Setting, want)
+		}
+	}
+}
+
+// A task the child skipped is behind them as much as one they answered: a
+// task leafed past for its interest is not followed by another in one.
+func TestASkippedTaskCountsLikeAnAnsweredOne(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		answers, skipped int
+		want             string
+	}{
+		{answers: 2, skipped: 0, want: ""},
+		{answers: 2, skipped: 1, want: "trains"},
+		{answers: 0, skipped: 3, want: "trains"},
+		{answers: 3, skipped: 1, want: ""},
+	} {
+		p := child(t)
+		p.Ratings.Answers = tc.answers
+		p.Topics["counting.gaps"] = profile.Topic{Skipped: tc.skipped, Traps: map[string]int{}}
+
+		if got := brief(t, p, threeTopics()); got.Setting != tc.want {
+			t.Errorf("after %d answers and %d skipped the setting is %q, want %q",
+				tc.answers, tc.skipped, got.Setting, tc.want)
+		}
+	}
+}
+
+// A task asked for while the one on the card still waits for its answer comes
+// in its place and leaves it behind, skipped: it is dressed as the task after
+// that one, although the skip is recorded only once the task is asked for.
+func TestATaskAskedForInPlaceOfAnUnansweredOneIsDressedAfterIt(t *testing.T) {
+	t.Parallel()
+
+	for answers, want := range map[int]string{0: "", 2: "trains", 5: "cats"} {
+		p := child(t)
+		p.Ratings.Answers = answers
+		p.CurrentTask = onTheCard(cardAwaited)
+
+		if got := brief(t, p, threeTopics()); got.Setting != want {
+			t.Errorf("after %d answers, the task on the card unanswered, the setting is %q, want %q",
+				answers, got.Setting, want)
 		}
 	}
 }

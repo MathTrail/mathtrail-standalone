@@ -4,7 +4,6 @@ import { letters } from "./choices";
 import {
 	type Answer,
 	canAnswer,
-	isOver,
 	isSettled,
 	type Lesson,
 	type LessonEvent,
@@ -13,7 +12,7 @@ import {
 	next,
 	optionStateOf,
 } from "./lesson";
-import type { AnswerResult } from "./payload";
+import type { AnswerResult, ResultShown } from "./payload";
 import {
 	answered,
 	dontKnowAnswer,
@@ -27,6 +26,8 @@ function resultOf(tool: CallToolResult): AnswerResult {
 }
 
 const wrong = resultOf(answered());
+// wrongShown is how the wrong answer went, as the service tells it whole.
+const wrongShown = answered().structuredContent as ResultShown;
 
 // lessonAfter is the lesson after events, from a card as a task arrives on it.
 function lessonAfter(...events: LessonEvent[]): Lesson {
@@ -44,6 +45,12 @@ describe("an answer", () => {
 				outcome: { kind: "answered", result: wrong },
 			}).answer,
 		).toEqual({ state: "answered", result: wrong });
+		expect(
+			next(checking, {
+				type: "told",
+				outcome: { kind: "answered", result: wrong, shown: wrongShown },
+			}).answer,
+		).toEqual({ state: "answered", result: wrong, shown: wrongShown });
 		expect(
 			next(checking, { type: "told", outcome: { kind: "closed" } }).answer,
 		).toEqual({
@@ -114,19 +121,15 @@ describe("the hint", () => {
 });
 
 describe("an answer's state", () => {
-	test.each<[Answer, boolean, boolean]>([
-		[{ state: "open" }, false, false],
-		[{ state: "checking", choice: "B" }, false, false],
-		[{ state: "failed" }, false, true],
-		[{ state: "closed" }, true, true],
-		[{ state: "answered", result: wrong }, true, true],
-	])(
-		"%o is settled %s and has something to say %s",
-		(answer, settled, over) => {
-			expect(isSettled(answer)).toBe(settled);
-			expect(isOver(answer)).toBe(over);
-		},
-	);
+	test.each<[Answer, boolean]>([
+		[{ state: "open" }, false],
+		[{ state: "checking", choice: "B" }, false],
+		[{ state: "failed" }, false],
+		[{ state: "closed" }, true],
+		[{ state: "answered", result: wrong }, true],
+	])("%o is settled %s", (answer, settled) => {
+		expect(isSettled(answer)).toBe(settled);
+	});
 });
 
 describe("an option", () => {
@@ -145,21 +148,6 @@ describe("an option", () => {
 			["default", "selected", "default", "default", "default"],
 		],
 		[
-			"after a wrong B",
-			{ state: "answered", result: wrong },
-			["muted", "wrong", "correct", "muted", "muted"],
-		],
-		[
-			"after a right C",
-			{ state: "answered", result: resultOf(rightAnswer) },
-			["muted", "muted", "correct", "muted", "muted"],
-		],
-		[
-			'after "I don\'t know"',
-			{ state: "answered", result: resultOf(dontKnowAnswer) },
-			["muted", "muted", "correct", "muted", "muted"],
-		],
-		[
 			"of a closed task",
 			{ state: "closed" },
 			["default", "default", "default", "default", "default"],
@@ -170,12 +158,10 @@ describe("an option", () => {
 });
 
 describe("the line for the model", () => {
-	// asked is what the line says of an answer just recorded, which the card
-	// asks the chat to go over; toldAgainLine of one recorded before.
-	const asked =
-		"The card asks the chat, as the adult's message, to go over the answer: then call show_result with task_id task_fence, which draws below the card of how the answer went, with the trap and the solution step by step, and explain in two or three short sentences beside it. If show_result is not among your tools, this chat has an earlier list of MathTrail's tools: explain in words, and offer another task.";
-	const toldAgainLine =
-		"The card asks nothing more of it: if the adult asks to go over the answer, call show_result with task_id task_fence, which draws below the card of how the answer went.";
+	// onTheCard is what the line says the card does with an answer it shows,
+	// and what it leaves the model.
+	const onTheCard =
+		"The card has turned into how the answer went — the verdict, the trap, the solution step by step and the rating — with the buttons for another task and for the topic, and it sends nothing to the chat: never call show_result for it, and say nothing of the answer unless the adult asks; asked, add to what the card shows rather than retell it.";
 	const aboutTheStep =
 		"Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.";
 
@@ -183,30 +169,30 @@ describe("the line for the model", () => {
 		[
 			"a right answer",
 			resultOf(rightAnswer),
-			`Task task_fence has its answer recorded: C, which is right. ${asked} ${aboutTheStep}`,
+			`Task task_fence has its answer recorded: C, which is right. ${onTheCard} ${aboutTheStep}`,
 		],
 		[
 			"a wrong answer",
 			wrong,
-			`Task task_fence has its answer recorded: B, which is wrong; the right option is C. ${asked} ${aboutTheStep}`,
+			`Task task_fence has its answer recorded: B, which is wrong; the right option is C. ${onTheCard} ${aboutTheStep}`,
 		],
 		[
 			'"I don\'t know", recorded before',
 			resultOf(dontKnowAnswer),
-			`Task task_fence has its answer recorded: "I don't know", which counts as a wrong answer; the right option is C. ${toldAgainLine} ${aboutTheStep}`,
+			`Task task_fence has its answer recorded: "I don't know", which counts as a wrong answer; the right option is C. ${onTheCard} ${aboutTheStep}`,
 		],
 		[
 			"a wrong answer the service told no trap for",
 			{ ...wrong, trap: null },
-			`Task task_fence has its answer recorded: B, which is wrong; the right option is C. ${asked} ${aboutTheStep}`,
+			`Task task_fence has its answer recorded: B, which is wrong; the right option is C. ${onTheCard} ${aboutTheStep}`,
 		],
 		[
 			"a mistake the child has made before",
 			resultOf(repeatedAnswer),
-			`Task task_fence has its answer recorded: B, which is wrong; the right option is C. The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time. ${asked} ${aboutTheStep}`,
+			`Task task_fence has its answer recorded: B, which is wrong; the right option is C. The child has made this mistake before among the latest answers, and the card says so. ${onTheCard} ${aboutTheStep}`,
 		],
 	])(
-		"after %s says what is recorded, and what comes next",
+		"after %s says what is recorded, and that the card shows the rest",
 		(_, result, want) => {
 			expect(modelLineOf(result)).toBe(want);
 		},

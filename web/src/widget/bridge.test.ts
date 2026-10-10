@@ -13,6 +13,11 @@ afterEach(() => {
 	document.documentElement.removeAttribute("style");
 });
 
+// inset is the room the page keeps at a side of the screen, as the bridge
+// gives it to the page's padding, and nothing where it gives none.
+const inset = (side: string) =>
+	document.documentElement.style.getPropertyValue(`--safe-area-${side}`);
+
 describe("the bridge", () => {
 	// The card subscribes as it is drawn, before the handshake, and hears the
 	// handshake itself and then the result; the arguments that come before the
@@ -118,27 +123,50 @@ describe("the bridge", () => {
 		await vi.waitFor(() => expect(sizes).toHaveBeenCalled());
 	});
 
-	test("gives the page the room the host keeps at the screen's edges, and follows it", async () => {
+	test("gives the page the room the host keeps at the screen's sides, and follows it", async () => {
 		const { host, widgetSide } = await openTestHost({
-			safeAreaInsets: { top: 12, right: 0, bottom: 34, left: 4 },
+			safeAreaInsets: { top: 12, right: 6, bottom: 34, left: 4 },
 		});
 		const bridge = openBridge();
 		await bridge.connect(widgetSide);
-		const inset = (side: string) =>
-			document.documentElement.style.getPropertyValue(`--safe-area-${side}`);
 
 		expect(["top", "right", "bottom", "left"].map(inset)).toEqual([
-			"12px",
-			"0px",
-			"34px",
+			"",
+			"6px",
+			"",
 			"4px",
 		]);
 
 		await host.sendHostContextChange({
-			safeAreaInsets: { top: 0, right: 0, bottom: 0, left: 0 },
+			safeAreaInsets: { top: 0, right: 0, bottom: 0, left: 8 },
 		});
 
-		await vi.waitFor(() => expect(inset("bottom")).toBe("0px"));
+		await vi.waitFor(() => expect(inset("left")).toBe("8px"));
+		expect(inset("right")).toBe("0px");
+	});
+
+	test("never takes the room a host keeps below the card, however it grows", async () => {
+		const { host, widgetSide } = await openTestHost({
+			safeAreaInsets: { top: 0, right: 0, bottom: 0, left: 0 },
+		});
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		// A host grows the room it keeps for its message box a frame at a time
+		// while a reply comes in under the card. The theme told after it is
+		// heard after it, so once the theme is in, so are the insets.
+		for (const bottom of [138.4, 187.2, 452.6, 454.6]) {
+			await host.sendHostContextChange({
+				safeAreaInsets: { top: 0, right: 0, bottom, left: 0 },
+			});
+		}
+		await host.sendHostContextChange({ theme: "dark" });
+
+		await vi.waitFor(() =>
+			expect(document.documentElement.getAttribute("data-theme")).toBe("dark"),
+		);
+		expect(inset("bottom")).toBe("");
+		expect(inset("top")).toBe("");
 	});
 });
 

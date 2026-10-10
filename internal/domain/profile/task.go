@@ -57,8 +57,9 @@ type Brief struct {
 	PedagogicalGoal Goal `json:"pedagogical_goal"`
 	// Rationale is the rule's own account of the choice, in words.
 	Rationale string `json:"rationale"`
-	// Setting is what the task is dressed in, taken from the child's
-	// interests.
+	// Setting is what the task is dressed in: one of the child's interests on
+	// one task in three, and empty on the others, which the model dresses in
+	// a setting of its own.
 	Setting string `json:"setting"`
 	// TargetConcept is the topic, by catalog id.
 	TargetConcept string `json:"target_concept"`

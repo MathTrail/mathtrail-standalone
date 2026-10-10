@@ -147,7 +147,7 @@ describe("a card a task asked for comes to", () => {
 		expect(card.asked()).toHaveLength(5);
 	});
 
-	test("ticks off the checks and the task ready at once when the task is on the card, then turns into it, asks no more, and the task is answered on it", async () => {
+	test("ticks off the checks and the task ready at once when the task is on the card, then turns into it, asks no more, and turns into how its answer went", async () => {
 		const card = await drawn(answering(writing(), onTheCard));
 
 		await pass(first + moments.ask);
@@ -171,9 +171,8 @@ describe("a card a task asked for comes to", () => {
 			name: "submit_answer",
 			arguments: { task_id: fence.task.id, answer: "C", hint_used: false },
 		});
-		expect(
-			root.querySelector(".mt-option[data-state='correct']")?.textContent,
-		).toBe("C 5 Correct answer");
+		expect(text(".mt-verdict-line")).toBe("Correct! It's 5.");
+		expect(root.querySelector(".mt-option")).toBeNull();
 	});
 
 	test("ticks off the course for a task that comes after questions that went unanswered", async () => {

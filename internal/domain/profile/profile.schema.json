@@ -121,7 +121,7 @@
           "maximum": 6
         },
         "interests": {
-          "description": "The settings a task is dressed in.",
+          "description": "The settings one task in three is dressed in, taken in turn.",
           "type": "array",
           "maxItems": 10,
           "items": { "type": "string", "minLength": 1, "maxLength": 40 }

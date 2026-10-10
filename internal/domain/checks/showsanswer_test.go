@@ -168,3 +168,45 @@ func TestTheAnswerShownIsNotQuoted(t *testing.T) {
 		}
 	}
 }
+
+// A lesson written in Greek names its points with Greek capitals, and a label
+// the wording names so is given by the wording, whichever of the two alphabets
+// the picture and the right option write it in: a picture of point B, in a
+// task whose wording names it, shows no answer. In a lesson in any other
+// language a Greek capital names no Latin label.
+func TestAGreekWordingGivesTheLatinLabelItLooksLike(t *testing.T) {
+	t.Parallel()
+
+	question := "Το σημείο \u0392 απέχει 5 cm από το \u0391. Ποιο σημείο απέχει 5 cm από το \u0391;"
+	picture := `{"kind":"table","rows":[["A"],["B"]]}`
+	if showsTheAnswer(t, question, picture, "B", "el") {
+		t.Errorf("PictureMatch() refuses a picture of B in a Greek lesson whose wording names it, want it let through")
+	}
+	if !showsTheAnswer(t, question, picture, "B", "ru") {
+		t.Errorf("PictureMatch() lets a picture of B through in a lesson in Russian whose wording names a Greek capital, want it refused")
+	}
+}
+
+// A Greek lesson's right option written in a Greek capital drawn as a Latin
+// one is the Latin label a picture shows: a picture of B, in a task whose
+// right option is Β and whose wording does not give it, shows the answer.
+func TestAGreekOptionIsTheLatinLabelItLooksLike(t *testing.T) {
+	t.Parallel()
+
+	if !showsTheAnswer(t, "Ποιο σημείο απέχει 5 cm από το \u0391;", `{"kind":"table","rows":[["A"],["B"]]}`,
+		"\u0392", "el") {
+		t.Errorf("PictureMatch() lets a picture of B through in a Greek lesson whose right option is Greek Beta, want it refused")
+	}
+}
+
+// A Greek lesson's wording that names a cell Β2 in Greek gives the cell B2 a
+// picture marks: every reading of the wording takes the Greek cell for the
+// Latin one, and the right option too.
+func TestAGreekCellGivesTheLatinCellItLooksLike(t *testing.T) {
+	t.Parallel()
+
+	picture := `{"kind":"grid","rows":["A","B"],"cols":["1","2"],"filled":["B2"]}`
+	if showsTheAnswer(t, "Το κελί \u03922 είναι γεμάτο. Ποιο κελί είναι γεμάτο;", picture, "\u03922", "el") {
+		t.Errorf("PictureMatch() refuses a grid with B2 filled in a Greek lesson whose wording names that cell, want it let through")
+	}
+}

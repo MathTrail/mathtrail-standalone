@@ -232,16 +232,20 @@ function followTheme(context: McpUiHostContext | undefined): void {
 	}
 }
 
-// followInsets gives the page the room the host keeps at each edge of the
-// screen, as the custom properties --safe-area-top, -right, -bottom and -left
-// the page's padding reads. A change of context names them only when they
-// changed.
+// followInsets gives the page the room the host keeps at the screen's sides,
+// as the custom properties --safe-area-left and -right the page's padding
+// reads, so that a card drawn edge to edge keeps clear of a phone's edges. The
+// room above and below is never the card's: a card in a chat is as tall as
+// what it shows, and the room a host keeps below it for its own message box —
+// which it grows while a reply comes in under the card — would become empty
+// height under the card, which the chat scrolls to. A change of context names
+// the insets only when they changed.
 function followInsets(context: McpUiHostContext | undefined): void {
 	const insets = context?.safeAreaInsets;
 	if (insets === undefined) {
 		return;
 	}
-	for (const side of ["top", "right", "bottom", "left"] as const) {
+	for (const side of ["right", "left"] as const) {
 		document.documentElement.style.setProperty(
 			`--safe-area-${side}`,
 			`${insets[side]}px`,

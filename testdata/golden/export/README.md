@@ -68,7 +68,7 @@ The prototype is not v1, and three of these numbers are history rather than a sp
 
 - **β updates.** `ratings.json` carries `beta_after` because the prototype updated task difficulty. v1 does not: every task is written for one child and never reused (SPEC 2.2).
 - **The goal `motivate`.** It appears nowhere in `rule_briefs.json` as it happens, but the prototype could produce it; v1 has two goals (О-34, SPEC 3.1).
-- **The setting rotation.** The prototype rotates the interests by the number of history rows; v1 rotates by the total answer count, because a bounded history window would make the row count go backwards (SPEC 3.2).
+- **The setting rotation.** The prototype dresses every task in one of the interests, rotated by the number of history rows. v1 dresses one task in three, counted by the tasks behind the child, answered or skipped: a bounded history window would make the row count go backwards, and an interest met in every task wears thin (SPEC 3.2, R283). Of the five seed profiles, two briefs depart for it: olya's, five tasks in, whose sixth is dressed in no interest, and masha's, whose card holds a task with no answer, so the brief is for the one asked for in its place, the fifth.
 
 The prototype's third answer, `"?"`, is taken as it stands: it is worth S = 0 there, and v1's "I don't know" is a wrong answer too (R93, SPEC 2.2). Only the record differs — the prototype wrote `correct: null`, v1 writes a wrong answer marked `confused`, with no option chosen and no trap (04-profile) — and the vectors do not read the record.
 

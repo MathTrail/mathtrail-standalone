@@ -457,9 +457,10 @@ web-preview: web-install
 # and text that runs out of its box or is cut short. The browsers run in their
 # image, as this user, over the repository as it is; what they find, and a
 # picture of every card written right to left, are left in web/layout/.
-# Arguments narrow the run: --engine chromium --language ar --width 320; and
+# Arguments narrow the run: --engine chromium --language ar --width 320;
 # --shard 2/6 measures the second of six parts of it, for machines that share
-# one run between them.
+# one run between them; and --sample <commit> measures three languages, the
+# pseudo-language, English and one the commit picks.
 # Measure the widget's layout in real browsers, in every language, at every width a card must fit
 [working-directory('web')]
 web-layout *args: _playwright-pinned
@@ -468,6 +469,16 @@ web-layout *args: _playwright-pinned
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
         {{ PLAYWRIGHT_IMAGE }} node scripts/layout.ts {{ args }}
+
+# Whether the files a change touches, one a line on standard input as paths
+# from the repository's root, include one the widget's cards are drawn from:
+# a file the preview's build reads or one beside it, or one the measuring is
+# made of. It writes card=true or card=false, as a step of a workflow sets an
+# output, to the end of the file --to names, or else to its standard output.
+# Say whether the files changed touch what the widget's cards are drawn from
+[working-directory('web')]
+web-layout-scope *args: web-install
+    node scripts/scope.ts {{ args }}
 
 # The README's pictures of a task, a wrong answer and the progress, in the dark
 # theme: the preview's own scenes, photographed in Chromium from the image the

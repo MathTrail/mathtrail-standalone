@@ -97,7 +97,8 @@ function Child({
 }
 
 // Children are children side by side, as one case of a list: a row, a pair,
-// or a leader and a helper; ringed where the order does not count.
+// or a leader at the size given and a helper drawn small; ringed where the
+// order does not count.
 function Children({
 	page,
 	who,
@@ -118,7 +119,7 @@ function Children({
 					key={one}
 					page={page}
 					who={one}
-					size={leader ? (at === 0 ? "md" : "sm") : size}
+					size={leader && at > 0 ? "sm" : size}
 				/>
 			))}
 		</span>

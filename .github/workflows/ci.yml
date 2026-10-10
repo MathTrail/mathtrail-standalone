@@ -223,30 +223,50 @@ jobs:
   layout:
     name: Widget layout ${{ matrix.part }}/${{ strategy.job-total }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # A part takes up to eight minutes, a page whose browser stopped answering
+    # is tried once more, and every wait has a limit of its own that names what
+    # it waited for; this one is the last resort.
+    timeout-minutes: 15
     # This job stays on the runner: the browsers run in an image of their own,
     # which needs a Docker daemon. The widget's packages are installed here, by
     # the Node the development image pins, and the image runs over them.
     #
-    # On one runner the pages take well over an hour, nearly all of it the
-    # browser drawing each page's cards on a single thread, and the two engines
-    # slow each other down; twelve runners measure a twelfth of them each, at
-    # once, each well within its limit. Every part runs to its end, so that a
-    # card that fails in one hides nothing the others find.
+    # On one runner the pages of every language take over an hour, nearly all
+    # of it the browser drawing each page's cards on a single thread; ten
+    # runners on the main branch measure a tenth of them each, at once. A pull
+    # request measures three languages, the pseudo-language, English and one
+    # its commit picks, in two parts, and none at all where it changes nothing
+    # the cards are drawn from. Every part runs to its end, so that a card
+    # that fails in one hides nothing the others find.
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        part: ${{ fromJSON(github.event_name == 'pull_request' && '[1, 2]' || '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # A pull request's merge and the commit of the main branch it is
+          # made on, between which lies what the pull request changes.
+          fetch-depth: 2
       - uses: ./.github/actions/just
       - uses: ./.github/actions/node
-      - run: just web-layout --shard ${{ matrix.part }}/${{ strategy.job-total }}
+      - name: Does the pull request touch the cards
+        id: scope
+        if: github.event_name == 'pull_request'
+        run: git diff --name-only HEAD^1 HEAD | just web-layout-scope --to "$GITHUB_OUTPUT"
+      - name: Measure the cards
+        if: steps.scope.outputs.card != 'false'
+        env:
+          SAMPLE: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
+        run: just web-layout --shard ${{ matrix.part }}/${{ strategy.job-total }} ${SAMPLE:+--sample "$SAMPLE"}
+      - name: Say which languages were measured
+        if: always() && hashFiles('web/layout/languages.txt') != ''
+        run: cat web/layout/languages.txt >> "$GITHUB_STEP_SUMMARY"
       # What the browsers found, and a picture of every card written right to
       # left, are kept whether the run passed or not: they are what is looked
       # at either way.
       - name: Keep what the layout showed
-        if: always()
+        if: always() && steps.scope.outputs.card != 'false'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: widget-layout-${{ matrix.part }}

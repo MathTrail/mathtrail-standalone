@@ -43,14 +43,17 @@ afterEach(() => {
 
 // wrongInArabic is the Arabic fence answered with the wrong B: the trap
 // behind it, and the solution, in the task's language.
-const wrongInArabic = answered({
-	trap: {
-		id: "fence_gaps",
-		text: "عُدّت المسافات بدلًا من الأعمدة.",
-		repeated: false,
+const wrongInArabic = answered(
+	{
+		trap: {
+			id: "fence_gaps",
+			text: "عُدّت المسافات بدلًا من الأعمدة.",
+			repeated: false,
+		},
+		solution: fenceSolutionInArabic,
 	},
-	solution: fenceSolutionInArabic,
-});
+	fenceInArabic,
+);
 
 // service answers the card's calls as the service would for the Arabic fence,
 // a try at which the checks have turned down once.
@@ -133,7 +136,7 @@ describe("the screens in Arabic", () => {
 		expect(markupOf(root)).toMatchSnapshot();
 	});
 
-	test("the task answered wrong, the chat asked to go over it", async () => {
+	test("the task answered wrong, the card turned into how it went", async () => {
 		const root = await draw(fenceInArabic);
 		const wrong = [...root.querySelectorAll<HTMLElement>(".mt-option")].find(
 			(row) => row.querySelector(".mt-option-letter")?.textContent === "B",
@@ -143,7 +146,7 @@ describe("the screens in Arabic", () => {
 		}
 		press(wrong);
 		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-answer-note")?.textContent).not.toBe(""),
+			expect(root.querySelector(".mt-verdict-line")).not.toBeNull(),
 		);
 
 		expect(markupOf(root)).toMatchSnapshot();

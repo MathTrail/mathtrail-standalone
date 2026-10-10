@@ -22,6 +22,10 @@ func words(n int) string {
 // characters is a Chinese sentence of n characters.
 func characters(n int) string { return strings.Repeat("猫", n) + "。" }
 
+// greekQuestionMark is the Greek question mark, which looks like a semicolon
+// and is one character of its own.
+const greekQuestionMark = "\u037e"
+
 // The limits of each level, in one place for the check and for the package
 // that tells the model them: a level that is none of the three is held to
 // the youngest's.
@@ -163,6 +167,16 @@ func TestSentencesEndWhereTheirMarksSay(t *testing.T) {
 		{"Arabic ends a question with its own mark", strings.Repeat("قط ", 20) + "؟ " + strings.Repeat("قط ", 20), "ar", rating.Grades12, false},
 		{"French sets a question mark apart, and it is no word", strings.Repeat("chat ", 20) + "? " + strings.Repeat("chat ", 20), "fr", rating.Grades12, false},
 		{"Hindi ends a sentence with a danda", strings.Repeat("बिल्ली ", 20) + "। " + strings.Repeat("बिल्ली ", 20), "hi", rating.Grades12, false},
+		{"Greek ends a question with a semicolon", strings.Repeat("γάτα ", 20) + "; " + strings.Repeat("γάτα ", 20), "el", rating.Grades12, false},
+		{"and with the Greek question mark that looks like one", strings.Repeat("γάτα ", 20) + greekQuestionMark + " " + strings.Repeat("γάτα ", 20), "el", rating.Grades12, false},
+		{"a semicolon ends no sentence outside Greek", strings.Repeat("кот ", 20) + "; " + strings.Repeat("кот ", 20), "ru", rating.Grades12, true},
+		{"Armenian ends a sentence with its full stop", strings.Repeat("կատու ", 20) + "։ " + strings.Repeat("կատու ", 20), "hy", rating.Grades12, false},
+		{"Amharic ends a sentence with its full stop", strings.Repeat("ድመት ", 20) + "። " + strings.Repeat("ድመት ", 20), "am", rating.Grades12, false},
+		{"and a question with its question mark", strings.Repeat("ድመት ", 20) + "፧ " + strings.Repeat("ድመት ", 20), "am", rating.Grades12, false},
+		{"Armenian typed on a Latin keyboard ends a sentence with a colon", strings.Repeat("կատու ", 20) + ": " + strings.Repeat("կատու ", 20), "hy", rating.Grades12, false},
+		{"a colon ends no sentence elsewhere", strings.Repeat("кот ", 20) + ": " + strings.Repeat("кот ", 20), "ru", rating.Grades12, true},
+		{"Amharic may write its full stop as two word spaces", strings.Repeat("ድመት ", 20) + "፡፡ " + strings.Repeat("ድመት ", 20), "am", rating.Grades12, false},
+		{"Amharic may set its old word space between words", strings.Repeat("ድመት፡", 21) + "።", "am", rating.Grades12, true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()

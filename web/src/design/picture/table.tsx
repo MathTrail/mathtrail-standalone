@@ -59,7 +59,7 @@ export function drawTable(
 	const widths = widthsOf(rows, size);
 	const edges = [0];
 	for (const column of widths) {
-		edges.push((edges[edges.length - 1] ?? 0) + column);
+		edges.push((edges.at(-1) ?? 0) + column);
 	}
 	const tall = size * 1.4 + 2 * above;
 	const width = total(widths);

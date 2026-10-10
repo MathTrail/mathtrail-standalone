@@ -33,7 +33,7 @@
       "enum": [1, 2, 3, 4, 5]
     },
     "setting": {
-      "description": "The plot of the task: one of the child's interests, or empty when there are none, and the model then chooses one.",
+      "description": "The plot of the task: one of the child's interests on one task in three, taken in turn, and empty on the others or when there are none; the model then chooses a plot of its own, none of the interests.",
       "type": "string"
     },
     "traps_to_use": {

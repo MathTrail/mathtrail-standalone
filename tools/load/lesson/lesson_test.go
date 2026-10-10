@@ -268,9 +268,6 @@ func walkTask(t *testing.T, child *session.Child, task *lesson.Task, letter stri
 	if answered := lesson.AnswerTask(t.Context(), child, card, letter); answered.Kind != session.Answered {
 		t.Errorf("submit_answer %q, %s, want it recorded", answered.Kind, answered.Text())
 	}
-	if shown := lesson.ShowResult(t.Context(), child, card); shown.Kind != session.Answered {
-		t.Errorf("show_result %q, %s, want how the answer went", shown.Kind, shown.Text())
-	}
 }
 
 // No written task is a near-copy of another, or of a reference task of its

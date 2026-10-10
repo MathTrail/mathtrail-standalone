@@ -75,7 +75,7 @@ const handedTask = z.object({
 		// draw all read as none, and the task stands on its words. The empty
 		// text drawing the service still sends for those earlier cards is
 		// read past.
-		picture: pictureFormat.optional().catch(undefined),
+		picture: z.optional(pictureFormat).catch(undefined),
 		options,
 		hint: z.string(),
 	}),
@@ -129,10 +129,11 @@ const answerResult = z.object({
 		.nullable(),
 	already_answered: z.boolean(),
 	// The picture of the solution and the equality written large under it,
-	// which only the card of how the answer went is handed. A task with
-	// none, and a picture the card cannot draw, read as none, and the
-	// solution stands on its words; a total stands under its picture alone.
-	solution_picture: pictureFormat.optional().catch(undefined),
+	// which an earlier service handed the card of how the answer went alone.
+	// A task with none, and a picture the card cannot draw, read as none, and
+	// the solution stands on its words; a total stands under its picture
+	// alone.
+	solution_picture: z.optional(pictureFormat).catch(undefined),
 	solution_total: z
 		.string()
 		.max(pictureLimits.MaxTotalCharacters)
@@ -157,17 +158,19 @@ const stale = z.object({ status: z.literal("stale") });
 
 /**
  * AnswerOutcome is how an answer sent from the card ended: recorded, with its
- * result; refused because the task is no longer the one being solved; or not
+ * result and, from a service that tells it whole, how it went as the card
+ * shows it; refused because the task is no longer the one being solved; or not
  * recorded at all, and worth sending again.
  */
 export type AnswerOutcome =
-	| { kind: "answered"; result: AnswerResult }
+	| { kind: "answered"; result: AnswerResult; shown?: ResultShown }
 	| { kind: "closed" }
 	| { kind: "failed" };
 
 /**
  * readAnswer is the outcome of an answer to the task taskId, read from the
- * result the service returned. A result for another task, a refusal of the
+ * result the service returned: how the answer went whole, or, from an earlier
+ * service, its result alone. A result for another task, a refusal of the
  * answer itself, a failure of the service and anything that does not read are
  * all an answer not recorded.
  */
@@ -177,6 +180,14 @@ export function readAnswer(
 ): AnswerOutcome {
 	if (result.isError === true) {
 		return { kind: "failed" };
+	}
+	const whole = shownResult.safeParse(result.structuredContent);
+	if (
+		whole.success &&
+		whole.data.result.task_id === taskId &&
+		whole.data.task.id === taskId
+	) {
+		return { kind: "answered", result: whole.data.result, shown: whole.data };
 	}
 	const answered = recorded.safeParse(result.structuredContent);
 	if (answered.success && answered.data.result.task_id === taskId) {
@@ -241,8 +252,7 @@ const nothingShownBy: Readonly<Record<string, "not_yet" | "untold">> = {
 };
 
 // readShown is the card of how an answer went a payload draws, or undefined
-// when it does not read as one: the result a card's own answer is told, which
-// names no child and no task, among them.
+// when it does not read as one.
 function readShown(payload: unknown): Shown | undefined {
 	const shown = shownResult.safeParse(payload);
 	if (shown.success) {

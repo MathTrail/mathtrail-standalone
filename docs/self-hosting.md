@@ -144,7 +144,7 @@ A deployment with no domain of its own instead sets `create_domain_mapping = fal
 
 ## 10. Connect it
 
-Add the service to a chat the way the [README](../README.md#add-it-to-your-chat) describes, with your own address — `https://mcp.example.com/mcp` — and ask for a task. The first connection goes through your consent page, your Google client and your site, and the first task through every check: nothing else proves the whole path at once.
+Add the service to a chat the way the [help page](https://mathtrail.app/en/help/) describes, with your own address — `https://mcp.example.com/mcp` — and ask for a task. The first connection goes through your consent page, your Google client and your site, and the first task through every check: nothing else proves the whole path at once.
 
 ## The first delivery, as a checklist
 

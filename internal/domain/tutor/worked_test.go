@@ -74,9 +74,11 @@ func TestTheWorkedExampleOfTheSpecification(t *testing.T) {
 		t.Errorf("difficulty %d of %s, want difficulty 3 of %s", got.Difficulty, got.GradeLevel, rating.Grades34)
 	}
 
-	// Fifty-seven answers over three interests lands on the first.
-	if got.Setting != "space" {
-		t.Errorf("setting = %q, want space", got.Setting)
+	// Fifty-seven tasks behind the child make the next the first of three,
+	// dressed in an interest: the twentieth so dressed, which lands on the
+	// second of three interests.
+	if got.Setting != "dinosaurs" {
+		t.Errorf("setting = %q, want dinosaurs", got.Setting)
 	}
 
 	if want := []string{"missed_case", "double_count"}; !slices.Equal(got.TrapsToUse, want) {

@@ -27,7 +27,8 @@ type Student struct {
 	// later it is a label, and the tasks follow the ratings rather than the
 	// grade. The model is still told it, as the child's age.
 	Grade int `json:"grade"`
-	// Interests are the settings a task is dressed in, rotated through.
+	// Interests are the settings one task in three is dressed in, taken in
+	// turn; the model dresses the others in settings of its own.
 	Interests []string `json:"interests"`
 	// LessonTopic is the topic of the catalog the child or the adult chose to
 	// keep the lessons to, by its id, or empty while the rule chooses. Once the

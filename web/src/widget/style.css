@@ -6,12 +6,12 @@
 }
 
 /* The host may keep part of a phone's screen for itself — a notch, a bar —
-   and says how much on each side; the card keeps clear of it. Those sides are
-   the screen's own, so they are not mirrored for a language written right to
-   left. */
+   and says how much on each side; the card keeps clear of the screen's sides.
+   Those sides are the screen's own, so they are not mirrored for a language
+   written right to left. The room above and below is not the card's to take:
+   a card in a chat is as tall as what it shows. */
 body {
 	margin: 0;
-	padding: var(--safe-area-top, 0) var(--safe-area-right, 0)
-		var(--safe-area-bottom, 0) var(--safe-area-left, 0);
+	padding: 0 var(--safe-area-right, 0) 0 var(--safe-area-left, 0);
 	font-family: system-ui, sans-serif;
 }

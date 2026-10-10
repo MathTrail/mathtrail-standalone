@@ -75,7 +75,7 @@ export function Answer({
 	children,
 }: {
 	label: ComponentChildren;
-	badge?: string | undefined;
+	badge?: string;
 	children: ComponentChildren;
 }) {
 	return (

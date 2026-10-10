@@ -273,15 +273,12 @@ flow:
       - submit_answer — the chat spends no turn
       - the first answer alone · the seal is opened now · θ and δ move only on whether it is right
       - write the ratings and the history
-      - right or not · the options marked
-      - ui/update-model-context — one line on what happened
-      - ui/message — “Go over the answer”, as the adult's message
-      - sends it — in Claude, with Enter
-      - show_result
-      - the trap behind C · the solution · the rating before → after
-      - The host draws the card of how the answer went, below the task's
-      - explains in two or three sentences, starting from the trap
-    caption: The press records the answer before anything is explained, and the card asks the chat to go over it in the adult's words. The model draws the card of how the answer went with show_result and says a few words beside it. If the host's line to the model is lost, the model catches up at its next call.
+      - right or not · the trap behind C · the picture of the solution · the steps · the rating before → after
+      - The card turns into how the answer went, in the task's place
+      - ui/update-model-context — one line, read with the adult's next message
+      - “why one more post?”
+      - answers about this very task, adding to the card
+    caption: The press records the answer before anything is explained, and the card turns into how it went at once. The chat spends no turn, and the model draws nothing. It reads the card's line with the adult's next message, and answers a question about the task without retelling the card. If the host's line to the model is lost, the model catches up at its next call.
   signin:
     rows:
       - POST /mcp, no token

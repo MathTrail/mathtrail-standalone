@@ -1,6 +1,7 @@
 package checks_test
 
 import (
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -74,6 +75,8 @@ func TestATextIsHeldToTheLettersOfItsLesson(t *testing.T) {
 		{"English", "en", liveEnglish, false},
 		{"Russian in a lesson in English", "en", russianQuestion, true},
 		{"Russian naming its points in Latin capitals, in a lesson in English", "en", "AB = 3, BC = 4. Найди AC.", true},
+		{"Greek with its articles of one letter among Latin names", "el", "Ο Tom και η Mary;", false},
+		{"Greek in a lesson in Russian, its single letters symbols", "ru", "Ο Tom και η Mary;", true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -85,40 +88,68 @@ func TestATextIsHeldToTheLettersOfItsLesson(t *testing.T) {
 	}
 }
 
-// A lesson in a language that names no script, or none the check can be sure
-// of, holds a task to nothing: Serbian is written in two alphabets, and a
-// guess at one would refuse every task written in the other. A script the tag
-// names is held to, whichever of the two it is.
+// A lesson in a language that names no script, or one the check can be sure
+// of in no language of the cards, holds a task to nothing: Mongolian is
+// written in two alphabets, and a guess at one would refuse every task written
+// in the other.
 func TestALessonHeldToNoScriptRefusesNothing(t *testing.T) {
 	t.Parallel()
 
+	for _, test := range []struct{ name, language string }{
+		{"no tag", ""},
+		{"a language not determined", "und"},
+		{"several languages", "mul"},
+		{"no language at all", "zxx"},
+		{"private words alone", "x-abc"},
+		{"several scripts in common use", "und-Zyyy"},
+		{"no tag at all", "not a tag"},
+		{"Mongolian, its script not named", "mn"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if refusedIn(asking(liveEnglish), test.language) {
+				t.Errorf("Language(%q) refused, want nothing refused", test.language)
+			}
+		})
+	}
+}
+
+// A language of the cards written in several scripts in common use, its tag
+// naming none, is held to any of them, and to the one its place is written in
+// as well: a task in its other script is no fault. A script the tag names is
+// held to alone, whichever of the two it is, and a task in letters none of its
+// scripts has is refused.
+func TestALanguageWrittenInSeveralScriptsIsHeldToAnyOfThem(t *testing.T) {
+	t.Parallel()
+
 	serbianInLatin := "Koliko parova mogu da naprave četiri broda?"
-	serbianInCyrillic := "Колико парова могу да направе четири брода?"
+	serbianInCyrillic := languagesOfTheCards["sr"]
 	kazakhInLatin := "Tört kemeden neshe jup quraluǵa bolady?"
+	punjabiInShahmukhi := "چار جہاز کِنّے جوڑے بنا سکدے نیں؟"
 	for _, test := range []struct {
 		name, language, question string
 		refused                  bool
 	}{
-		{"no tag", "", liveEnglish, false},
-		{"a language not determined", "und", liveEnglish, false},
-		{"several languages", "mul", liveEnglish, false},
-		{"no language at all", "zxx", liveEnglish, false},
-		{"private words alone", "x-abc", liveEnglish, false},
-		{"several scripts in common use", "und-Zyyy", liveEnglish, false},
-		{"no tag at all", "not a tag", liveEnglish, false},
-		{"Greek, a script of no language of the cards", "el", liveEnglish, false},
-		{"Hebrew, a script of no language of the cards", "he", liveEnglish, false},
 		{"Serbian in Latin, its script not named", "sr", serbianInLatin, false},
 		{"Serbian in Cyrillic, its script not named", "sr", serbianInCyrillic, false},
-		{"Uzbek, its script not named", "uz", serbianInCyrillic, false},
-		{"Azerbaijani, its script not named", "az", serbianInCyrillic, false},
-		{"Mongolian, its script not named", "mn", liveEnglish, false},
-		{"Punjabi of Pakistan", "pa-PK", liveEnglish, false},
-		{"Kazakh of China", "kk-CN", liveEnglish, false},
-		{"Kazakh in Latin, its script not named", "kk", kazakhInLatin, false},
-		{"Kazakh in Latin, Cyrillic named", "kk-Cyrl", kazakhInLatin, true},
+		{"Hebrew in a lesson in Serbian", "sr", languagesOfTheCards["he"], true},
 		{"Bosnian in Cyrillic, its script not named", "bs", serbianInCyrillic, false},
-		{"Malay, its script not named", "ms", "كاڤل ايمڤت", false},
+		{"Uzbek in Cyrillic, its script not named", "uz", "Тўртта кема нечта жуфт ҳосил қила олади?", false},
+		{"Uzbek of Afghanistan in Arabic letters", "uz-AF", "تورتته کېمه نېچته جفت جوړولی شي؟", false},
+		{"Azerbaijani in Cyrillic, its script not named", "az", "Дөрд ҝәми нечә ҹүт јарада биләр?", false},
+		{"Kazakh in Latin, its script not named", "kk", kazakhInLatin, false},
+		{"Kazakh of China in Arabic letters", "kk-CN", "تورت كەمە نەشە جۇپ قۇراي الادى؟", false},
+		{"Kazakh in Latin, Cyrillic named", "kk-Cyrl", kazakhInLatin, true},
+		{"Malay in Jawi, its script not named", "ms", "كاڤل ايمڤت", false},
+		{"Hausa in Ajami, its script not named", "ha", "جِرَاغٍ هُدُ زَا سُ اِيَا", false},
+		{"Kurmanji in Arabic letters, its script not named", "ku", "چار گەمی دشێن چەند جۆت چێکەن؟", false},
+		{"Punjabi in Gurmukhi", "pa", languagesOfTheCards["pa"], false},
+		{"Punjabi in Shahmukhi, its script not named", "pa", punjabiInShahmukhi, false},
+		{"Punjabi of Pakistan in Shahmukhi", "pa-PK", punjabiInShahmukhi, false},
+		{"English in a lesson in Punjabi", "pa", liveEnglish, true},
+		{"English in a lesson in Punjabi of Pakistan", "pa-PK", liveEnglish, true},
+		{"English in a lesson in Sorani", "ckb", liveEnglish, true},
 		{"Serbian in Latin, as named", "sr-Latn", serbianInLatin, false},
 		{"Serbian in Cyrillic, Latin named", "sr-Latn", serbianInCyrillic, true},
 		{"Serbian in Cyrillic, as named", "sr-Cyrl", serbianInCyrillic, false},
@@ -162,33 +193,75 @@ func TestATextWithNothingToCountIsNotRefused(t *testing.T) {
 // languagesOfTheCards are the languages the cards speak, each with a question
 // written in it.
 var languagesOfTheCards = map[string]string{
+	"am":      "አራት መርከቦች ስንት ጥንዶች መፍጠር ይችላሉ?",
 	"ar":      "كم زوجًا يمكن أن تكوّن أربع سفن؟",
+	"az":      "Dörd gəmi neçə cüt yarada bilər?",
+	"bg":      "Колко двойки могат да образуват четири кораба?",
 	"bn":      "চারটি জাহাজ কতগুলো জোড়া তৈরি করতে পারে?",
+	"bs":      "Koliko parova mogu formirati četiri broda?",
+	"ca":      "Quantes parelles poden formar quatre naus?",
+	"ckb":     "چوار کەشتی دەتوانن چەند جووت دروست بکەن؟",
+	"cs":      "Kolik dvojic mohou vytvořit čtyři lodě?",
+	"da":      "Hvor mange par kan fire skibe danne?",
 	"de":      "Wie viele Paare können vier Schiffe bilden?",
+	"el":      "Πόσα ζευγάρια μπορούν να σχηματίσουν τέσσερα πλοία;",
 	"en":      "How many pairs can four ships make?",
 	"es":      "¿Cuántas parejas pueden formar cuatro naves?",
 	"fa":      "چهار کشتی چند جفت می\u200cسازند؟",
+	"fi":      "Kuinka monta paria neljä alusta voi muodostaa?",
+	"fil":     "Ilang pares ang mabubuo ng apat na barko?",
 	"fr":      "Combien de paires quatre vaisseaux peuvent-ils former ?",
+	"gu":      "ચાર જહાજો કેટલી જોડીઓ બનાવી શકે?",
+	"ha":      "Jirage huɗu za su iya yin ma'aurata nawa?",
+	"he":      "כמה זוגות יכולות ארבע ספינות ליצור?",
 	"hi":      "चार जहाज़ कितने जोड़े बना सकते हैं?",
+	"hr":      "Koliko parova mogu napraviti četiri broda?",
+	"hu":      "Hány párt alkothat négy hajó?",
+	"hy":      "Քանի՞ զույգ կարող են կազմել չորս նավերը։",
 	"id":      "Berapa pasangan yang bisa dibentuk empat kapal?",
+	"ig":      "Ụgbọ mmiri anọ nwere ike ịmepụta abụọ abụọ ole?",
 	"it":      "Quante coppie possono formare quattro navi?",
 	"ja":      "四せきの船で何組のペアができますか？",
+	"ka":      "რამდენ წყვილს შეადგენს ოთხი ხომალდი?",
+	"kk":      "Төрт кеме неше жұп құрай алады?",
+	"kn":      "ನಾಲ್ಕು ಹಡಗುಗಳು ಎಷ್ಟು ಜೋಡಿಗಳನ್ನು ರಚಿಸಬಹುದು?",
 	"ko":      "우주선 네 대로 몇 쌍을 만들 수 있나요?",
+	"ku":      "Çar keştî dikarin çend cot çêbikin?",
+	"lt":      "Kiek porų gali sudaryti keturi laivai?",
+	"mai":     "चारि टा जहाज कतेक जोड़ी बना सकैत अछि?",
+	"ml":      "നാല് കപ്പലുകൾക്ക് എത്ര ജോടികൾ ഉണ്ടാക്കാം?",
+	"mr":      "चार जहाजे किती जोड्या बनवू शकतात?",
+	"ms":      "Berapa pasangan yang boleh dibentuk oleh empat kapal?",
+	"nb":      "Hvor mange par kan fire skip danne?",
 	"nl":      "Hoeveel paren kunnen vier schepen vormen?",
+	"or":      "ଚାରିଟି ଜାହାଜ କେତୋଟି ଯୋଡ଼ି ତିଆରି କରିପାରିବ?",
+	"pa":      "ਚਾਰ ਜਹਾਜ਼ ਕਿੰਨੇ ਜੋੜੇ ਬਣਾ ਸਕਦੇ ਹਨ?",
 	"pl":      "Ile par mogą utworzyć cztery statki?",
+	"ps":      "څلور کښتۍ څو جوړې جوړولی شي؟",
 	"pt":      "Quantos pares quatro naves podem formar?",
+	"ro":      "Câte perechi pot forma patru nave?",
 	"ru":      "Сколько пар могут составить четыре корабля?",
+	"sk":      "Koľko dvojíc môžu vytvoriť štyri lode?",
+	"sr":      "Колико парова могу да направе четири брода?",
+	"sv":      "Hur många par kan fyra skepp bilda?",
+	"sw":      "Meli nne zinaweza kuunda jozi ngapi?",
+	"ta":      "நான்கு கப்பல்கள் எத்தனை ஜோடிகளை உருவாக்க முடியும்?",
+	"te":      "నాలుగు ఓడలు ఎన్ని జతలు ఏర్పరచగలవు?",
 	"th":      "เรือสี่ลำจับคู่กันได้กี่คู่",
 	"tr":      "Dört gemi kaç çift oluşturabilir?",
 	"uk":      "Скільки пар можуть утворити чотири кораблі?",
 	"ur":      "چار جہاز کتنے جوڑے بنا سکتے ہیں؟",
+	"uz":      "To'rtta kema nechta juft hosil qila oladi?",
 	"vi":      "Bốn con tàu có thể tạo thành bao nhiêu cặp?",
+	"yo":      "Ọkọ̀ ojú omi mẹ́rin lè ṣe méjì-méjì mélòó?",
 	"zh-Hans": "四艘飞船两两对接，可以组成几对？",
+	"zh-Hant": "四艘太空船兩兩對接，可以組成幾對？",
+	"zu":      "Imikhumbi emine ingakha amapheya amangaki?",
 }
 
-// georgian is a question in a script none of the languages of the cards is
+// sinhala is a question in a script none of the languages of the cards is
 // written in.
-const georgian = "რამდენ წყვილს შეადგენს ოთხი ხომალდი?"
+const sinhala = "නැව් හතරකට යුගල කීයක් සෑදිය හැකිද?"
 
 // Every language the cards speak holds a task to its own letters: a question
 // written in it passes, and one in letters it is not written in is refused.
@@ -202,10 +275,44 @@ func TestEveryLanguageTheCardsSpeakIsHeldToItsLetters(t *testing.T) {
 			if refusedIn(asking(question), language) {
 				t.Errorf("a question in %s is refused in a lesson in %s, want it let through", language, language)
 			}
-			if !refusedIn(asking(georgian), language) {
-				t.Errorf("a question in Georgian is let through in a lesson in %s, want it refused", language)
+			if !refusedIn(asking(sinhala), language) {
+				t.Errorf("a question in Sinhala is let through in a lesson in %s, want it refused", language)
 			}
 		})
+	}
+}
+
+// A lesson in a language written in no Latin letters refuses a task written in
+// English, as the model may write one when it copies the reference tasks.
+func TestEnglishIsRefusedInEveryLessonWrittenInOtherLetters(t *testing.T) {
+	t.Parallel()
+
+	for _, language := range append(slices.Clone(lessonsInOtherLetters), "el") {
+		t.Run(language, func(t *testing.T) {
+			t.Parallel()
+
+			if !refusedIn(asking(liveEnglish), language) {
+				t.Errorf("a task in English is let through in a lesson in %s, want it refused", language)
+			}
+		})
+	}
+}
+
+// Every dictionary of the cards is in a language the check holds a task to:
+// one added for a language the check did not know would offer the lessons a
+// language whose tasks no one reads for their letters.
+func TestEveryDictionaryOfTheCardsIsInALanguageTheCheckKnows(t *testing.T) {
+	t.Parallel()
+
+	files, err := filepath.Glob(filepath.Join("..", "..", "..", "web", "locales", "*.json"))
+	if err != nil || len(files) == 0 {
+		t.Fatalf("the cards' dictionaries are %v, %v; want some", files, err)
+	}
+	for _, file := range files {
+		language := strings.TrimSuffix(filepath.Base(file), ".json")
+		if _, known := languagesOfTheCards[language]; !known {
+			t.Errorf("the cards speak %s, and languagesOfTheCards has no question in it to hold the check to", language)
+		}
 	}
 }
 
@@ -337,6 +444,9 @@ func FuzzLanguage(f *testing.F) {
 	f.Add("Tom和Mary谁高？", "ー", "ＡＢ", "\xff", "e\u0301", "zh")
 	f.Add("x", "π", "2x", "I", "", "zh-Hant-TW")
 	f.Add(russianQuestion, "Kim", "", "", "", "sr-Latn")
+	f.Add("Ο Tom και η Mary;", "π", "ή", "α", "", "el")
+	f.Add(languagesOfTheCards["pa"], "چار جہاز", "", "", "", "pa-PK")
+	f.Add(languagesOfTheCards["am"], "ድመት፡ድመት", "", "", "", "am")
 	f.Add("", "", "", "", "", "")
 
 	f.Fuzz(func(t *testing.T, question, hint, solution, first, second, language string) {

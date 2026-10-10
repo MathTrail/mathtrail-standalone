@@ -45,12 +45,12 @@ func aheadBrief(t *testing.T, p *profile.Profile, c tutor.Catalog) profile.Brief
 }
 
 // A task written ahead while the child works on the task on the card is
-// dressed in the interest after the one that task was dressed in: its turn
-// comes once the child has answered that one.
-func TestATaskWrittenAheadIsDressedOneInterestOn(t *testing.T) {
+// dressed as the task after that one: its turn comes once the child has left
+// that one behind.
+func TestATaskWrittenAheadIsDressedAsTheTaskAfterTheCard(t *testing.T) {
 	t.Parallel()
 
-	for answers, want := range map[int]string{0: "trains", 1: "cats", 2: "trains", 57: "cats"} {
+	for answers, want := range map[int]string{0: "", 1: "", 2: "trains", 5: "cats", 56: "trains"} {
 		p := child(t)
 		p.Ratings.Answers = answers
 		p.CurrentTask = onTheCard(cardAwaited)
@@ -112,27 +112,28 @@ func TestATaskWrittenAheadOnceTheCardIsAnsweredIsTheNextOne(t *testing.T) {
 }
 
 // A task written ahead is chosen as the next one would be now: the same
-// topic, level, difficulty, goal, traps and prohibitions, chosen by the same —
-// only said to be written ahead, and, while the child works on the task on the
-// card, dressed one interest on.
+// topic, level, difficulty, goal, traps, prohibitions and setting, chosen by
+// the same — only said to be written ahead. While the child works on the task
+// on the card, both are dressed as the task after that one.
 func TestATaskWrittenAheadIsChosenAsTheNextOneNow(t *testing.T) {
 	t.Parallel()
 
 	c := stepped()
 	properties := gopter.NewProperties(nil)
-	properties.Property("ahead is next, one interest on while the card's answer is awaited", prop.ForAll(
+	properties.Property("ahead is next, dressed as the task after the card's while its answer is awaited", prop.ForAll(
 		func(s *seed, card int) bool {
 			p := s.build()
 			p.CurrentTask = onTheCard(card)
 			next, nextMode, err := tutor.Next(p, c, tutor.Choice{})
 			ahead, aheadMode, err2 := tutor.Ahead(p, c, tutor.Choice{})
-			if err != nil || err2 != nil || nextMode != aheadMode {
+			after, err3 := dressedOnceBehind(s, c, card == cardAwaited)
+			if err != nil || err2 != nil || err3 != nil || nextMode != aheadMode {
 				return false
 			}
-			if !strings.HasPrefix(ahead.Rationale, "Written ahead") || ahead.Setting != dressedAhead(p, card == cardAwaited) {
+			if !strings.HasPrefix(ahead.Rationale, "Written ahead") || ahead.Setting != after {
 				return false
 			}
-			ahead.Rationale, ahead.Setting = next.Rationale, next.Setting
+			ahead.Rationale = next.Rationale
 			return reflect.DeepEqual(ahead, next)
 		},
 		genSeed(),
@@ -142,19 +143,17 @@ func TestATaskWrittenAheadIsChosenAsTheNextOneNow(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// dressedAhead is the interest a task written ahead is dressed in: the one
-// after the interest a task now would be dressed in while the answer to the
-// task on the card is awaited, and that one otherwise.
-func dressedAhead(p *profile.Profile, awaited bool) string {
-	interests := p.Student.Interests
-	if len(interests) == 0 {
-		return ""
-	}
-	answers := p.Ratings.Answers
+// dressedOnceBehind is what the next task of a seed's child is dressed in once
+// the task on the card is behind the child, answered or skipped, when its
+// answer is awaited, and now otherwise: what a task written ahead has to be
+// dressed in.
+func dressedOnceBehind(s *seed, c tutor.Catalog, awaited bool) (string, error) {
+	p := s.build()
 	if awaited {
-		answers++
+		p.Ratings.Answers++
 	}
-	return interests[answers%len(interests)]
+	next, _, err := tutor.Next(p, c, tutor.Choice{})
+	return next.Setting, err
 }
 
 // The task on the card counts as behind the child only for a task written

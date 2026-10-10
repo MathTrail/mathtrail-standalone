@@ -29,12 +29,14 @@ const (
 )
 
 // pictured is a picture of a task as it was read, once, for both its checks,
-// and the member of the task it was read from.
+// the member of the task it was read from, and how the lesson's wording names
+// its labels.
 type pictured struct {
 	field    string
 	read     picture.Picture
 	broken   []picture.Problem
 	decimals picture.Decimals
+	by       labelling
 }
 
 // readPicture reads the picture a task describes, its numbers written with the
@@ -66,7 +68,7 @@ func readDescribed(described json.RawMessage, field, lesson string) *pictured {
 	}
 	decimals := decimalsOf(lesson)
 	read, broken := picture.Parse(described, decimals)
-	return &pictured{field: field, read: read, broken: broken, decimals: decimals}
+	return &pictured{field: field, read: read, broken: broken, decimals: decimals, by: labellingOf(lesson)}
 }
 
 // PictureFormat checks that the picture of a task written in a lesson's
@@ -130,7 +132,7 @@ func (p *pictured) match(task *Task) (problems []Problem, unchecked string) {
 		unchecked = "the labels the question names were not looked for in the picture: that needs task.picture " +
 			"in the format"
 	}
-	if unnamed := unnamedLabels(task.Question, labels); unnamed > 0 {
+	if unnamed := unnamedLabels(task.Question, labels, p.by); unnamed > 0 {
 		problems = append(problems, mismatch("task.question does not name %d of the labels task.picture shows in "+
 			"Latin capitals; name each in the question — the football club (F), segment PQ, cell K2, rows P to S — "+
 			"or leave it out of the picture", unnamed))
@@ -140,7 +142,7 @@ func (p *pictured) match(task *Task) (problems []Problem, unchecked string) {
 			"a word in its colors; give each the word the question writes, in its form there, or leave the colour "+
 			"out of the picture", unnamed))
 	}
-	if right, named := rightOption(task); named && showsTheAnswer(p.read, task.Question, right, p.decimals) {
+	if right, named := rightOption(task); named && showsTheAnswer(p.read, task.Question, p.by.asLatin(right), p.decimals, p.by) {
 		problems = append(problems, mismatch("task.picture shows the right answer, which the question does not "+
 			"give: show what the question gives and nothing it asks for, and mark the unknown with ?"))
 	}
@@ -166,12 +168,13 @@ func (p *pictured) matchSolution(task *Task) (problems []Problem, unchecked stri
 			problems = append(problems, Problem{Code: CodeDrawingFormat, Message: "task." + rule.Path + " " + rule.Rule})
 		}
 		labels = append(labels, total.Labels...)
-		if right, named := rightOption(task); named && len(broken) == 0 && !endsInTheAnswer(total, right, p.decimals) {
+		if right, named := rightOption(task); named && len(broken) == 0 &&
+			!endsInTheAnswer(total, p.by.asLatin(right), p.decimals) {
 			problems = append(problems, mismatch("task.solution_total does not end in the right answer: end it in "+
 				"the right option's number or label, or leave it out"))
 		}
 	}
-	if unnamed := unnamedLabels(task.Question+" "+task.Solution, labels); unnamed > 0 {
+	if unnamed := unnamedLabels(task.Question+" "+task.Solution, labels, p.by); unnamed > 0 {
 		problems = append(problems, mismatch("neither task.question nor task.solution names %d of the labels "+
 			"task.solution_picture and its total show in Latin capitals; name each, or leave it out of the picture",
 			unnamed))

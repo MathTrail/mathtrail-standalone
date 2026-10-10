@@ -12,9 +12,10 @@ import { extremes } from "../design/picture/testing/extremes";
 import type { CallStage } from "../widget/bridge";
 import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
-import type { AnswerResult } from "../widget/payload";
+import type { AnswerResult, TopicChoice } from "../widget/payload";
 import {
 	answered,
+	answeredByAnEarlierService,
 	atTheTop,
 	editGone,
 	editRefused,
@@ -219,18 +220,30 @@ function longestTopicIn(language: string): string {
 export function scenesIn(language: string): Scene[] {
 	const words = fences[language] ?? fenceInEnglish;
 	const handed = words.handed;
-	const result = (fields: Partial<AnswerResult> = {}) =>
+	// result is how an answer to the fence went, told to the card that took
+	// it in the card's language: the wrong B unless fields say otherwise, and
+	// with the choice of the topic given offered.
+	const result = (
+		fields: Partial<AnswerResult> = {},
+		offered?: Partial<TopicChoice>,
+	) =>
 		Promise.resolve(
-			answered({
-				trap: { id: "fence_gaps", text: words.gaps, repeated: false },
-				solution: words.solution,
-				...fields,
-			}),
+			answered(
+				{
+					trap: { id: "fence_gaps", text: words.gaps, repeated: false },
+					solution: words.solution,
+					...fields,
+				},
+				handed,
+				offered,
+			),
 		);
 	const service =
-		(fields: Partial<AnswerResult> = {}) =>
+		(fields: Partial<AnswerResult> = {}, offered?: Partial<TopicChoice>) =>
 		(tool: string) =>
-			tool === "read_progress" ? Promise.resolve(progress) : result(fields);
+			tool === "read_progress"
+				? Promise.resolve(progress)
+				: result(fields, offered);
 	// offering is the task once the trial series is over, with the choice of
 	// the topic it offers.
 	const offering = withTopicChoice(handed);
@@ -333,18 +346,19 @@ export function scenesIn(language: string): Scene[] {
 			play: option("B"),
 		},
 		{ name: "hint", payload: handed, play: button(0) },
-		// The task's card once its answer is in: the options marked, and the
-		// chat asked to go over the answer, whose card comes below; an answer
-		// given before, which the card offers to go over rather than asking;
-		// and an ask the chat did not take, offered again.
+		// The task's card once its answer is in, turned into how the answer
+		// went in the task's place: a wrong answer, a right one, one given
+		// before, one with the picture of the solution and the choice of the
+		// topic, and one an earlier service told by its result alone; and the
+		// next task asked for under it, the card done with.
 		{
-			name: "answered, the review asked for",
+			name: "answered, the card turned into how it went",
 			payload: handed,
 			answers: service(),
 			play: option("B"),
 		},
 		{
-			name: "answered right, the review asked for",
+			name: "answered right, the card turned into how it went",
 			payload: handed,
 			answers: service({
 				choice: "C",
@@ -355,7 +369,7 @@ export function scenesIn(language: string): Scene[] {
 			play: option("C"),
 		},
 		{
-			name: "answered before, the review to ask for",
+			name: "answered before, the card turned into how it went",
 			payload: handed,
 			answers: service({
 				choice: "D",
@@ -365,11 +379,31 @@ export function scenesIn(language: string): Scene[] {
 			play: option("B"),
 		},
 		{
-			name: "answered, the review not sent",
+			name: "answered, the picture of the solution, wrong",
+			payload: offering,
+			answers: service(
+				{ solution_picture: fenceSolutionRow, solution_total: fenceTotal },
+				{},
+			),
+			play: option("B"),
+		},
+		{
+			name: "answered, told by an earlier service",
+			payload: handed,
+			answers: () =>
+				Promise.resolve(
+					answeredByAnEarlierService({
+						trap: { id: "fence_gaps", text: words.gaps, repeated: false },
+						solution: words.solution,
+					}),
+				),
+			play: option("B"),
+		},
+		{
+			name: "answered, another task asked, the card done with",
 			payload: handed,
 			answers: service(),
-			refuseMessages: true,
-			play: option("B"),
+			play: inTurn(option("B"), button(0)),
 		},
 		{
 			name: "closed",
@@ -604,6 +638,9 @@ export function scenesIn(language: string): Scene[] {
 		},
 		{ name: "limit reached", payload: limited },
 		{ name: "progress, the model's card", payload: moving, play: everyFold },
+		// The model's card as it first opens, its topics alone open: a card short
+		// enough to take in at once.
+		{ name: "progress, the topics open", payload: moving },
 		{
 			name: "progress since the last task",
 			payload: moving,
@@ -754,8 +791,10 @@ export function scenesIn(language: string): Scene[] {
 		{ name: "first sign-in, a profile refused", payload: firstRunRefused },
 		{ name: "a card it cannot show", payload: { screen: "result" } },
 		{ name: "long texts", payload: longTexts },
+		// Room the host keeps above and below the card, which is the chat's to
+		// scroll past and none of the card's.
 		{
-			name: "room kept at the edges",
+			name: "room kept above and below, left to the chat",
 			payload: handed,
 			insets: { top: 24, right: 0, bottom: 34, left: 0 },
 		},

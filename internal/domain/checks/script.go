@@ -100,32 +100,84 @@ func scriptOf(tag string) (string, language.Confidence) {
 	return script.String(), confidence
 }
 
-// severalScripts are languages written in more than one script in common use
-// that the tag library reports as sure of one, since the registry of tags
-// suppresses their script: Kazakh in Cyrillic and in Latin, Malay in Latin and
-// in Jawi, Punjabi in Gurmukhi and in Shahmukhi, Bosnian in Latin and in
-// Cyrillic.
-var severalScripts = []string{"kk", "ms", "pa", "bs"}
+// usualScripts are the scripts a language of the cards is written in where its
+// tag alone does not tell the tag library which, in the order a refusal names
+// them: the library only guesses at the script of Serbian, Uzbek, Azerbaijani,
+// Filipino, Kurdish, Hausa, Yoruba and Igbo, and is sure of one script of
+// Kazakh, Malay, Punjabi and Bosnian, which are written in two. Kazakh is
+// written in Cyrillic and in Latin, Malay in Latin and in Jawi, Punjabi in
+// Gurmukhi and in Shahmukhi, Hausa in Latin and in Ajami, and Kurmanji in Latin
+// and, in Iraq, in Arabic letters.
+var usualScripts = map[string][]string{
+	"pa":  {"Guru", "Arab"},
+	"ms":  {"Latn", "Arab"},
+	"ha":  {"Latn", "Arab"},
+	"ku":  {"Latn", "Arab"},
+	"sr":  {"Cyrl", "Latn"},
+	"kk":  {"Cyrl", "Latn"},
+	"bs":  {"Latn", "Cyrl"},
+	"uz":  {"Latn", "Cyrl"},
+	"az":  {"Latn", "Cyrl"},
+	"ckb": {"Arab"},
+	"fil": {"Latn"},
+	"yo":  {"Latn"},
+	"ig":  {"Latn"},
+}
 
-// heldScript is the script the texts of a task are held to in its language,
-// and whether there is one: the script its tag names, or the one its language
-// is written in as a rule. A language written in several scripts in common use
-// and named without one has only a likely script, and a task in another of
-// them is no fault, so it is held to none: Serbian, Uzbek, Azerbaijani and
-// Mongolian, whose script the library only guesses, and the languages of
-// severalScripts, whose script it reports as sure. A guess is enough where the
-// lettering says so: Chinese, whose likely scripts, Simplified and
-// Traditional, are one set of characters.
-func heldScript(tag string) (string, bool) {
+// lessonLetters are the letters the texts of a task are held to in its
+// language, and whether there are any: those of the script its tag names, or
+// of the one its language is written in as a rule. A language of the cards
+// written in several scripts in common use, named without one, is held to any
+// of them — a task in its other script is no fault — and to the one its place
+// is written in too: Punjabi of Pakistan, Kazakh of China, Uzbek of Afghanistan
+// and Azerbaijani of Iran in Arabic letters. Any other language whose script
+// the library only guesses at is held to nothing, but where the lettering says
+// a guess is enough: Chinese, whose likely scripts, Simplified and Traditional,
+// are one set of characters.
+func lessonLetters(tag string) (lettering, bool) {
 	script, confidence := scriptOf(tag)
-	base, _ := language.Make(tag).Base()
-	held := confidence == language.Exact ||
-		confidence == language.High && !slices.Contains(severalScripts, base.String()) ||
-		confidence == language.Low && letterings[script].guessIsEnough
-	if !held {
-		return "", false
+	switch confidence {
+	case language.No:
+		return lettering{}, false
+	case language.Exact:
+		named, known := letterings[script]
+		return named, known
 	}
-	return script, true
+	if usual, listed := usualScripts[languageOf(tag)]; listed {
+		if !slices.Contains(usual, script) {
+			usual = append(slices.Clip(usual), script)
+		}
+		return letteringOf(usual), true
+	}
+	likely, known := letterings[script]
+	if !known || confidence == language.Low && !likely.guessIsEnough {
+		return lettering{}, false
+	}
+	return likely, true
+}
+
+// writtenIn is the script a lesson's language is written in, as its tag names
+// it or as its language is written as a rule, or nothing where the tag tells
+// none.
+func writtenIn(tag string) string {
+	script, _ := scriptOf(tag)
+	return script
+}
+
+// languageOf is the language a tag names, as the tag library writes it — "fil"
+// of "tl", "he" of "iw" — or nothing where the tag names none it can be sure
+// of: "und", whose language the library would only guess at, and a tag that is
+// none.
+func languageOf(tag string) string {
+	parsed, err := language.Parse(tag)
+	if err != nil {
+		return ""
+	}
+	base, confidence := parsed.Base()
+	if confidence < language.High {
+		return ""
+	}
+	return base.String()
 }
 
 // primarySubtag is the language a tag names, lowercased: "zh" of "zh-Hant-TW",
@@ -137,10 +189,11 @@ func primarySubtag(tag string) string {
 }
 
 // lengthIn is how long a text is in a unit. Words are counted as a child reads
-// them; characters are the letters and digits. A mark rides on the letter it
-// is written over — the vowels and tones of Thai, Lao, Khmer, Myanmar and
-// Tibetan are marks — and counting it too would make a syllable three
-// characters long where a child reads one. Punctuation is not counted either.
+// them, between spaces or the word spaces of Ethiopic; characters are the
+// letters and digits. A mark rides on the letter it is written over — the
+// vowels and tones of Thai, Lao, Khmer, Myanmar and Tibetan are marks — and
+// counting it too would make a syllable three characters long where a child
+// reads one. Punctuation is not counted either.
 func lengthIn(text, unit string) int {
 	count := 0
 	if unit == unitCharacters {
@@ -151,13 +204,21 @@ func lengthIn(text, unit string) int {
 		}
 		return count
 	}
-	for _, token := range strings.Fields(text) {
+	for _, token := range strings.FieldsFunc(text, betweenWords) {
 		if strings.IndexFunc(token, readAloud) >= 0 {
 			count++
 		}
 	}
 	return count
 }
+
+// ethiopicWordspace is the mark Ethiopic once set between words, and Amharic
+// still sets there in place of a space.
+const ethiopicWordspace = '\u1361'
+
+// betweenWords says whether a character stands between two words: whitespace,
+// or the word space of Ethiopic.
+func betweenWords(r rune) bool { return unicode.IsSpace(r) || r == ethiopicWordspace }
 
 // readAloud says whether a character is read out, which is what makes a token
 // between spaces a word: "5-litre" is one word, and so are the "+", "=" and

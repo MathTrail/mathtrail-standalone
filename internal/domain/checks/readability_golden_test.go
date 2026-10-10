@@ -160,7 +160,7 @@ func TestSentencesAreMeasuredAsThePrototypeMeasuredThem(t *testing.T) {
 	t.Parallel()
 
 	for _, reference := range readGoldenReadability(t) {
-		found := sentences(reference.question)
+		found := sentences(reference.question, sentenceEndsIn("en"))
 		tokens, words := 0, 0
 		for _, sentence := range found {
 			tokens = max(tokens, len(strings.Fields(sentence)))

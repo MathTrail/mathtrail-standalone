@@ -4,7 +4,13 @@ import { cardWords } from "../widget/dictionaries";
 import { topicName, trapName } from "../widget/names";
 import type { Key } from "../widget/words";
 import { address } from "./addresses";
-import type { Art, CellWords, ExampleArt, TopicArt } from "./art/art";
+import type {
+	Art,
+	CellWords,
+	ExampleArt,
+	IdeaColumn,
+	TopicArt,
+} from "./art/art";
 import type { SiteData, TopicExample } from "./data";
 import { connectAddress } from "./home";
 import type { Page, PageProps } from "./pages";
@@ -278,7 +284,7 @@ function Idea({
 	legend,
 }: {
 	page: PageReader;
-	art?: TopicArt["idea"];
+	art?: readonly IdeaColumn[];
 	answers?: number;
 	legend?: Art;
 }) {

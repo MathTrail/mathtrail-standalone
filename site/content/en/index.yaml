@@ -72,7 +72,7 @@ pillars:
     # The languages are named each in itself; this follows them.
     endless:
       title: Tasks do not run out.
-      text: Each task is written fresh for your child's topic, level, interests and latest mistake — in your chat's language, not pulled from a fixed bank.
+      text: Each task is written fresh for your child's topic, level and latest mistake — in your chat's language, not pulled from a fixed bank. Every third is built around their interests.
       more: + any
     checked:
       title: A program checks the model.
@@ -121,7 +121,7 @@ lesson:
       text: The hint points to a way in — draw a smaller fence — and the answer stays hidden until your child commits to one.
     wrong:
       title: A wrong answer becomes a lesson
-      text: Each wrong option hides a known trap. A card of its own, below the task, names it from your child's side — “counted the gaps instead of the posts” — then walks through the solution.
+      text: Each wrong option hides a known trap. Once your child answers, the card turns into how the answer went, names the trap from your child's side — “counted the gaps instead of the posts” — then walks through the solution.
     question:
       title: Ask why, in your own words
       text: Once the answer is in, ask in the chat — “why one more post?” — and the model answers about this very task.
@@ -161,8 +161,8 @@ connect:
   title: A few steps to the first task.
   claude:
     pill: Works now · the free plan too
-    # The steps of Claude's own help on custom connectors, as the README gives
-    # them; the address follows the third.
+    # The steps of Claude's own help on custom connectors; the address follows
+    # the third.
     steps:
       open: In Claude, open {connectors}.
       add: Press **+** and choose **Add custom connector**.

@@ -24,10 +24,10 @@ import (
 // a word of its own or as a time naming the same moment, is no answer shown.
 
 // showsTheAnswer says whether a picture shows the right option where the
-// wording does not give it.
-func showsTheAnswer(read picture.Picture, question, right string, decimals picture.Decimals) bool {
+// wording, in a lesson labelled so, does not give it.
+func showsTheAnswer(read picture.Picture, question, right string, decimals picture.Decimals, by labelling) bool {
 	option := answerOf(right, decimals)
-	given := wordingOf(question, decimals, read.Labels())
+	given := wordingOf(question, decimals, read.Labels(), by)
 	for _, shown := range read.Shown() {
 		if shown.Face != nil && showsOnTheFace(*shown.Face, option, given) {
 			return true
@@ -105,8 +105,10 @@ type wording struct {
 }
 
 // wordingOf is what a question gives of itself, beside a picture with these
-// labels.
-func wordingOf(question string, decimals picture.Decimals, labels []string) *wording {
+// labels, in a lesson labelled so: the question is read as the soft reading of
+// the labels reads it, a Greek Β2 as the cell B2 throughout.
+func wordingOf(question string, decimals picture.Decimals, labels []string, by labelling) *wording {
+	question = by.asLatin(question)
 	given := &wording{
 		numbers:  numbersIn(question, decimals, true),
 		folded:   solver.Key(question),
@@ -117,7 +119,7 @@ func wordingOf(question string, decimals picture.Decimals, labels []string) *wor
 		given.moments = append(given.moments, read)
 		given.faces = append(given.faces, read.OnTheFace())
 	}
-	given.ranges = rangesOf(given.runes, given.declared)
+	given.ranges = rangesOf(given.runes, given.declared, by.listing)
 	return given
 }
 

@@ -88,13 +88,14 @@ export function StaticTask({
 }
 
 /**
- * StaticResult draws the widget's card of how an answer to the task handed
- * went, as a chat draws it once the service has recorded result and the model
- * has asked for the card: the verdict, the trap, the solution step by step,
- * the topic and the rating, in the page's language as the widget's
- * dictionaries say it. Like the others, it is drawn at the narrow width and is
- * inert: its next task and its topic are shown rather than pressed, and its
- * topic is named with no link, since nothing on the page opens one.
+ * StaticResult draws how an answer to the task handed went, as the widget's
+ * card shows it once the service has recorded result — the card that took the
+ * answer turned into it, or the card the model draws for an answer given in
+ * the chat: the verdict, the trap, the solution step by step, the topic and
+ * the rating, in the page's language as the widget's dictionaries say it.
+ * Like the others, it is drawn at the narrow width and is inert: its next task
+ * and its topic are shown rather than pressed, and its topic is named with no
+ * link, since nothing on the page opens one.
  */
 export function StaticResult({
 	handed,

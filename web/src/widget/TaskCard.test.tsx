@@ -20,6 +20,7 @@ import {
 import type { ToolCall } from "./testing/host";
 import {
 	answered,
+	answeredByAnEarlierService,
 	dontKnowAnswer,
 	editSaved,
 	failure,
@@ -34,6 +35,9 @@ import {
 	rightAnswer,
 	staleAnswer,
 	toldAgain,
+	topicSaved,
+	topicWords,
+	withTopicChoice,
 } from "./testing/lesson";
 import { WordsContext } from "./words";
 
@@ -112,9 +116,15 @@ const runSpans = () =>
 	);
 // answerNote is what the card says of its answer, under the task.
 const answerNote = () => text(".mt-answer-note");
-const reviewComing =
-	"Once the ask reaches the chat, how the answer went will come below, in a new card.";
 const answeredBefore = "This task already has its answer.";
+const anotherComing =
+	"Once the ask reaches the chat, the new task will come below, in a new card.";
+// verdict is the verdict of how the answer went, once the card shows it.
+const verdict = () => text(".mt-verdict-line");
+// wrongVerdict is the verdict on the wrong B, which counted the gaps.
+const wrongVerdict = "Not quite — it's 5, not 4.";
+// heardVerdict is what the card tells a screen reader of how the answer went.
+const heardVerdict = () => text("output.mt-vh");
 const shownButtons = () =>
 	[...root.querySelectorAll<HTMLButtonElement>(".mt-btns .mt-btn")].map(
 		(shown) => shown.textContent,
@@ -271,7 +281,9 @@ describe("a task card", () => {
 		press(button("Hint"));
 		press(option("B"));
 
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-verdict-line")).not.toBeNull(),
+		);
 		expect(root.querySelector("img")).toBeNull();
 		expect(root.textContent).toContain(trick);
 	});
@@ -314,7 +326,7 @@ describe("an answer", () => {
 		expect(option("C").getAttribute("aria-disabled")).toBe("true");
 		expect(button("Hint").getAttribute("aria-disabled")).toBe("true");
 		reply.arrive(answered());
-		await vi.waitFor(() => expect(option("B").dataset.state).toBe("wrong"));
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
 		expect(heard.calls).toHaveLength(1);
 	});
 
@@ -326,121 +338,135 @@ describe("an answer", () => {
 			option("C").click();
 		});
 
-		await vi.waitFor(() => expect(option("B").dataset.state).toBe("wrong"));
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
 		expect(heard.calls).toHaveLength(1);
 		expect(heard.calls[0]?.arguments.answer).toBe("B");
 	});
 
-	test("that is wrong is marked, told to the model, and gone over in the chat, below", async () => {
+	test("that is wrong turns the card into how it went, in the task's place, tells the model, and asks the chat for nothing", async () => {
 		const heard = await drawCard();
 
 		press(option("B"));
 
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
-		expect(states()).toEqual(["muted", "wrong", "correct", "muted", "muted"]);
-		expect(option("B").textContent).toBe("B 4 Your answer");
-		expect(option("C").textContent).toBe("C 5 Correct answer");
-		expect(text(".mt-options legend")).toBe("Answers");
-		// How the answer went is the card's of its own, below: this one shows
-		// the task and the options marked, and nothing more to press.
-		expect(root.querySelector(".mt-verdict-line")).toBeNull();
-		expect(root.querySelector(".mt-steps")).toBeNull();
-		expect(shownButtons()).toEqual([]);
-		for (const letter of ["A", "B", "C", "D", "E"]) {
-			expect(option(letter).getAttribute("aria-disabled")).toBe("true");
-		}
-		expect(heard.messages).toEqual(["Go over the answer"]);
-		// The model reads the line with the message, so the line goes first.
-		expect(heard.order).toEqual(["call", "model line", "message"]);
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
+		// How the answer went takes the task's place under the same header:
+		// the task and its options are gone, and the card is one card.
+		expect(root.querySelector(".mt-task-text")).toBeNull();
+		expect(root.querySelector(".mt-option")).toBeNull();
+		expect(root.querySelectorAll(".mt-head")).toHaveLength(1);
+		expect(root.querySelector("article")?.getAttribute("aria-label")).toBe(
+			"How the answer went",
+		);
+		expect(text(".mt-note-trap")).toContain(
+			"Counted the gaps instead of the posts.",
+		);
+		expect(root.querySelectorAll(".mt-steps li")).toHaveLength(3);
+		expect(shownButtons()).toEqual(["Another task"]);
+		expect(heard.messages).toEqual([]);
+		expect(heard.order).toEqual(["call", "model line"]);
 		expect(heard.modelLines).toEqual([
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card asks the chat, as the adult's message, to go over the answer: then call show_result with task_id task_fence, which draws below the card of how the answer went, with the trap and the solution step by step, and explain in two or three short sentences beside it. If show_result is not among your tools, this chat has an earlier list of MathTrail's tools: explain in words, and offer another task. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
+			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card has turned into how the answer went — the verdict, the trap, the solution step by step and the rating — with the buttons for another task and for the topic, and it sends nothing to the chat: never call show_result for it, and say nothing of the answer unless the adult asks; asked, add to what the card shows rather than retell it. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
 		]);
 	});
 
-	test("that repeats a mistake made before asks the model for a reminder", async () => {
-		const heard = await drawCard(fence, () => repeatedAnswer);
-
-		press(option("B"));
-
-		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
-		expect(heard.modelLines[0]).toContain(
-			"The child has made this mistake before among the latest answers: end your explanation with one short reminder of it",
-		);
-	});
-
-	test("that is right is marked, and gone over in the chat as any other", async () => {
+	test("that is right turns the card into how it went as any other", async () => {
 		const heard = await drawCard(fence, () => rightAnswer);
 
 		press(option("C"));
 
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
-		expect(states()).toEqual(["muted", "muted", "correct", "muted", "muted"]);
-		expect(heard.messages).toEqual(["Go over the answer"]);
+		await vi.waitFor(() => expect(verdict()).toBe("Correct! It's 5."));
+		expect(root.querySelector(".mt-note-trap")).toBeNull();
+		expect(heard.messages).toEqual([]);
 		expect(heard.modelLines[0]).toContain(
 			"Task task_fence has its answer recorded: C, which is right.",
 		);
 	});
 
-	test("keeps the focus on the option pressed", async () => {
-		await drawCard();
+	test("that repeats a mistake made before says so on the card, and tells the model so", async () => {
+		const heard = await drawCard(fence, () => repeatedAnswer);
 
 		press(option("B"));
 
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
-		expect(document.activeElement).toBe(option("B"));
+		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
+		expect(text(".mt-note-trap")).toContain("This mistake has come up before.");
+		expect(heard.modelLines[0]).toContain(
+			"The child has made this mistake before among the latest answers, and the card says so.",
+		);
 	});
 
-	test("that takes away the button holding the focus hands the focus to what the card says of the review", async () => {
+	test("offers under how it went the choice of the topic the service offers once it is in", async () => {
+		// The fifth answer of the trial series ends it: the task was handed out
+		// with no choice, and the answer brings one.
+		await drawCard(fence, () => answered({}, fence, { chosen: "time.clocks" }));
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
+		expect(text(".mt-topic-button")).toContain("Clocks");
+	});
+
+	test("told by an earlier service by its result alone still turns the card into how it went", async () => {
+		await drawCard(fence, () => answeredByAnEarlierService());
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
+		expect(root.querySelectorAll(".mt-steps li")).toHaveLength(3);
+		expect(root.querySelector(".mt-solution-picture")).toBeNull();
+		expect(root.querySelector(".mt-facts a")).toBeNull();
+	});
+
+	test("is told to a screen reader, which hears the verdict once the card turns into how it went", async () => {
+		await drawCard();
+		expect(heardVerdict()).toBe("");
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(heardVerdict()).toBe(wrongVerdict));
+	});
+
+	test("hands a focus lost with the option pressed to the next task to ask for", async () => {
 		await drawCard();
 		const hint = button("Hint");
 
 		// A browser that gives a pressed option no focus leaves it where it
-		// was, on a button that goes once the answer is in.
+		// was, on a button that goes once the answer is in; one that gives it
+		// focus loses it with the option.
 		act(() => {
 			hint.focus();
 			option("B").click();
 		});
 
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
 		expect(hint.isConnected).toBe(false);
 		await vi.waitFor(() =>
-			expect(document.activeElement).toBe(
-				root.querySelector(".mt-answer-note"),
-			),
+			expect(document.activeElement).toBe(button("Another task")),
 		);
 	});
 
-	test.each<[string, CallToolResult, string[]]>([
+	test.each<[string, CallToolResult, string]>([
 		[
 			'of "I don\'t know", said in the chat, to an option pressed after it',
 			dontKnowAnswer,
-			["muted", "muted", "correct", "muted", "muted"],
+			"Here's how to solve it.",
 		],
 		[
 			"with D, given before, to an option pressed after it",
 			toldAgain,
-			["muted", "muted", "correct", "wrong", "muted"],
+			"Not quite — it's 5, not 6.",
 		],
 	])(
-		"recorded before is marked as it was recorded, %s, and offers to go over it rather than asking",
-		async (_, recorded, marked) => {
+		"recorded before is shown as it was recorded, %s, and says so",
+		async (_, recorded, verdictOfIt) => {
 			const heard = await drawCard(fence, () => recorded);
 
 			press(option("B"));
 
-			await vi.waitFor(() => expect(answerNote()).toBe(answeredBefore));
-			expect(states()).toEqual(marked);
+			await vi.waitFor(() => expect(verdict()).toBe(verdictOfIt));
+			expect(answerNote()).toBe(answeredBefore);
 			await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
-			expect(heard.modelLines[0]).toContain(
-				"The card asks nothing more of it: if the adult asks to go over the answer, call show_result with task_id task_fence",
-			);
+			expect(heard.modelLines[0]).toContain("never call show_result for it");
 			expect(heard.messages).toEqual([]);
-
-			press(button("Go over the answer"));
-
-			await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
-			expect(heard.messages).toEqual(["Go over the answer"]);
-			expect(() => button("Go over the answer")).toThrow();
 		},
 	);
 
@@ -483,7 +509,7 @@ describe("an answer", () => {
 	])("that is not recorded because %s can be given again", async (_, fails) => {
 		let calls = 0;
 		const heard = await drawCard(fence, () =>
-			calls++ === 0 ? fails() : answered({ choice: "C", correct: true }),
+			calls++ === 0 ? fails() : rightAnswer,
 		);
 
 		press(option("B"));
@@ -501,7 +527,8 @@ describe("an answer", () => {
 		expect(heard.messages).toEqual([]);
 		press(option("C"));
 		await vi.waitFor(() => expect(heard.calls).toHaveLength(2));
-		await vi.waitFor(() => expect(option("C").dataset.state).toBe("correct"));
+		await vi.waitFor(() => expect(verdict()).toBe("Correct! It's 5."));
+		expect(answerNote()).toBe("");
 	});
 });
 
@@ -510,7 +537,7 @@ describe("a card whose host lets it down", () => {
 		vi.restoreAllMocks();
 	});
 
-	test("still marks the answer, and asks to go over it, when the model cannot be told of it", async () => {
+	test("still turns into how the answer went when the model cannot be told of it", async () => {
 		const logged = vi.spyOn(console, "error").mockImplementation(() => {});
 		const heard = await drawCard(fence, service, { refuseModelLines: true });
 
@@ -518,33 +545,8 @@ describe("a card whose host lets it down", () => {
 
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		await vi.waitFor(() => expect(logged).toHaveBeenCalled());
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
-		expect(option("B").dataset.state).toBe("wrong");
-		expect(heard.messages).toEqual(["Go over the answer"]);
-	});
-
-	test("says the ask to go over the answer did not reach the chat, and offers it again", async () => {
-		const logged = vi.spyOn(console, "error").mockImplementation(() => {});
-		const heard = await drawCard(fence, service, { refuseMessages: 1 });
-
-		press(option("B"));
-
-		await vi.waitFor(() => expect(answerNote()).toBe("Not sent — try again"));
-		expect(logged).toHaveBeenCalled();
-		expect(heard.messages).toEqual(["Go over the answer"]);
-		// The answer stays recorded and marked: only the ask is made again.
-		expect(option("B").dataset.state).toBe("wrong");
-		expect(shownButtons()).toEqual(["Go over the answer"]);
-
-		press(button("Go over the answer"));
-
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
-		expect(heard.messages).toEqual([
-			"Go over the answer",
-			"Go over the answer",
-		]);
-		expect(heard.calls).toHaveLength(1);
-		expect(shownButtons()).toEqual([]);
+		expect(verdict()).toBe(wrongVerdict);
+		expect(heard.messages).toEqual([]);
 	});
 
 	test("says the ask for another task did not reach the chat, gives the card back, and takes it again", async () => {
@@ -571,11 +573,7 @@ describe("a card whose host lets it down", () => {
 		await vi.waitFor(() =>
 			expect(heard.messages).toEqual(["Another task", "Another task"]),
 		);
-		await vi.waitFor(() =>
-			expect(text(".mt-action-note")).toBe(
-				"Once the ask reaches the chat, the new task will come below, in a new card.",
-			),
-		);
+		await vi.waitFor(() => expect(text(".mt-action-note")).toBe(anotherComing));
 		expect(root.querySelector(".mt-btns")).toBeNull();
 		expect(option("A").getAttribute("aria-disabled")).toBe("true");
 	});
@@ -654,7 +652,7 @@ describe("the hint", () => {
 
 		press(option("B"));
 
-		await vi.waitFor(() => expect(option("B").dataset.state).toBe("wrong"));
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
 		expect(root.querySelector(".mt-note-hint")).toBeNull();
 	});
 });
@@ -735,10 +733,9 @@ describe("another task", () => {
 			button("Another task").click();
 		});
 
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
-		expect(heard.messages).toEqual(["Go over the answer"]);
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
+		expect(heard.messages).toEqual([]);
 		expect(root.querySelector(".mt-gen")).toBeNull();
-		expect(option("B").dataset.state).toBe("wrong");
 	});
 
 	test("keeps the top line to the progress, and the card as it was", async () => {
@@ -769,14 +766,44 @@ describe("another task", () => {
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Другая задача"]));
 	});
 
-	test("is not offered once the answer is in: the card of how it went offers it", async () => {
-		await drawCard();
-
+	test("is offered under how the answer went, and the card, its ask taken, is done with", async () => {
+		const heard = await drawCard();
 		press(option("B"));
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
 
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
-		expect(() => button("Another task")).toThrow();
-		expect(root.querySelector(".mt-topic-button")).toBeNull();
+		press(button("Another task"));
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		await vi.waitFor(() => expect(text(".mt-action-note")).toBe(anotherComing));
+		// How the answer went stays as it was, with nothing left to press, and
+		// what the card says of the task to come holds the focus.
+		expect(verdict()).toBe(wrongVerdict);
+		expect(root.querySelector(".mt-btns")).toBeNull();
+		await vi.waitFor(() =>
+			expect(document.activeElement).toBe(
+				root.querySelector(".mt-foot .mt-action-note"),
+			),
+		);
+	});
+
+	test("chosen as a topic under how the answer went tells the model its line beside the answer's", async () => {
+		const heard = await drawCard(withTopicChoice(fence), ({ name }) =>
+			name === "edit_profile"
+				? topicSaved("time.clocks")
+				: answered({}, fence, {}),
+		);
+		press(option("B"));
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
+
+		press(root.querySelector<HTMLElement>(".mt-topic-button") as HTMLElement);
+		press(
+			root.querySelector<HTMLElement>(
+				'.mt-topic-rows .mt-topic-option[aria-pressed="false"]',
+			) as HTMLElement,
+		);
+
+		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(2));
+		expect(heard.modelLines[1]).toBe(`${heard.modelLines[0]}\n\n${topicWords}`);
 	});
 });
 
@@ -785,7 +812,7 @@ describe("the progress", () => {
 		const heard = await drawCard();
 		press(button("Hint"));
 		press(option("B"));
-		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
 		const task = root.querySelector(".mt-widget > div")?.innerHTML;
 
 		press(topLine());
@@ -963,7 +990,7 @@ describe("what the card says of its answer", () => {
 });
 
 describe("a lesson begun with its answer in", () => {
-	test("marks the answer as one recorded on the card is marked, and asks the host nothing", () => {
+	test("shows how the answer went as a card that took it does, and asks the host nothing", () => {
 		const recorded = readAnswer(answered(), fence.task.id);
 		if (recorded.kind !== "answered") {
 			throw new Error("the example is no answer recorded");
@@ -991,7 +1018,11 @@ describe("a lesson begun with its answer in", () => {
 						host={host}
 						start={{
 							hint: { open: false, used: false },
-							answer: { state: "answered", result: recorded.result },
+							answer: {
+								state: "answered",
+								result: recorded.result,
+								shown: recorded.shown,
+							},
 						}}
 					/>
 				</WordsContext.Provider>,
@@ -999,9 +1030,9 @@ describe("a lesson begun with its answer in", () => {
 			),
 		);
 
-		expect(states()).toEqual(["muted", "wrong", "correct", "muted", "muted"]);
-		expect(text(".mt-options legend")).toBe("Answers");
-		expect(shownButtons()).toEqual([]);
+		expect(verdict()).toBe(wrongVerdict);
+		expect(root.querySelector(".mt-option")).toBeNull();
+		expect(shownButtons()).toEqual(["Another task"]);
 		expect(answerNote()).toBe("");
 		expect(asked).toEqual([]);
 	});
@@ -1051,7 +1082,7 @@ describe("a card drawn where a page answers for the service", () => {
 
 		press(option("B"));
 
-		await vi.waitFor(() => expect(option("B").dataset.state).toBe("wrong"));
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
 		expect(answers).toEqual([["task_fence", "B", false]]);
 		expect(tools).toEqual([]);
 	});

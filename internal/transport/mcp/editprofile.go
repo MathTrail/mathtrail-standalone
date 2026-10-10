@@ -24,7 +24,7 @@ const codeStaleProfile = "stale_profile"
 type editProfileIn struct {
 	Pseudonym        *string  `json:"pseudonym,omitempty" jsonschema:"what the child is called: a pseudonym, never a real name"`
 	Grade            *int     `json:"grade,omitempty" jsonschema:"the school year, 1 to 6"`
-	Interests        []string `json:"interests,omitempty" jsonschema:"what tasks may be dressed in. The list replaces the one kept; an empty list clears it"`
+	Interests        []string `json:"interests,omitempty" jsonschema:"what one task in three is dressed in, in turn. The list replaces the one kept; an empty list clears it"`
 	ExcludedSkills   []string `json:"excluded_skills,omitempty" jsonschema:"ids of the skills the child has not met at school yet. The list replaces the one kept; an empty list clears it"`
 	UILanguage       *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons, as a BCP 47 tag. An empty text makes them follow the chat's language"`
 	Country          *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code. An empty text clears it, and the state with it"`

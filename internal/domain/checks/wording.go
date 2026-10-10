@@ -31,8 +31,17 @@ func inWords(items []string, more int) string {
 	if more > 0 {
 		items = append(slices.Clip(items), strconv.Itoa(more)+" more")
 	}
+	return joinedWith(items, "and")
+}
+
+// eitherOf joins items the way a sentence offers a choice of them — "Latin",
+// "Cyrillic or Latin", "Latin, Cyrillic or Arabic".
+func eitherOf(items []string) string { return joinedWith(items, "or") }
+
+// joinedWith joins items as a sentence does, the last two with a conjunction.
+func joinedWith(items []string, conjunction string) string {
 	if len(items) < 2 {
 		return strings.Join(items, "")
 	}
-	return strings.Join(items[:len(items)-1], ", ") + " and " + items[len(items)-1]
+	return strings.Join(items[:len(items)-1], ", ") + " " + conjunction + " " + items[len(items)-1]
 }

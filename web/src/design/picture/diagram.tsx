@@ -94,8 +94,8 @@ export function Diagram({
 	picture: Picture;
 	label: string;
 	locale: string;
-	keyLabel?: string | undefined;
-	said?: Said | undefined;
+	keyLabel?: string;
+	said?: Said;
 }) {
 	const drawn = drawnOf(picture, locale);
 	if (drawn === undefined) {

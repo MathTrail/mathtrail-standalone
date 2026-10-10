@@ -45,7 +45,7 @@ func Readability(question, language string, level rating.GradeLevel) []Problem {
 	if unit == unitCharacters {
 		allowed = limits.SentenceCharacters
 	}
-	for i, sentence := range sentences(question) {
+	for i, sentence := range sentences(question, sentenceEndsIn(language)) {
 		if length := lengthIn(sentence, unit); length > allowed {
 			problems = append(problems, Problem{Code: CodeReadability, Message: fmt.Sprintf(
 				"sentence %d of task.question is %s long, and a task of grades %s has sentences of at most %d %s; "+
@@ -104,7 +104,18 @@ func english(language string) bool { return primarySubtag(language) == "en" }
 
 // sentenceEnds are the marks that end a sentence, in the scripts a task may be
 // written in.
-const sentenceEnds = ".!?…。！？؟۔।॥።፨។៕။།༎"
+const sentenceEnds = ".!?…。！？؟۔।॥։።፧፨។៕။།༎"
+
+// scriptEnds are the marks a language ends a sentence with that end none in
+// any other, by the script it is written in. Greek ends a question with the
+// semicolon, which is how it writes its question mark, and with the Greek
+// question mark, which looks the same and which no one normalises a task's
+// text to; Armenian typed on a Latin keyboard ends a sentence with a colon in
+// place of its full stop.
+var scriptEnds = map[string]string{"Grek": ";\u037e", "Armn": ":"}
+
+// sentenceEndsIn are the marks that end a sentence in a lesson's language.
+func sentenceEndsIn(lesson string) string { return sentenceEnds + scriptEnds[writtenIn(lesson)] }
 
 // closers are what may stand between a sentence's last mark and the space
 // after it: closing quotes and brackets.
@@ -121,16 +132,16 @@ const wideEnds = "。！？។៕။།༎"
 // their letters is where a sentence, or a clause read as one, ends.
 var spacedEnds = []*unicode.RangeTable{unicode.Thai, unicode.Lao}
 
-// sentences splits a text into its sentences. A run of ending marks, with any
-// closing quotes or brackets after it, ends a sentence when whitespace or the
-// end of the text follows — or at once, for the marks that end one alone. In
-// Thai and Lao, a space between two letters ends one too.
-func sentences(text string) []string {
+// sentences splits a text into its sentences at these ending marks. A run of
+// them, with any closing quotes or brackets after it, ends a sentence when
+// whitespace or the end of the text follows — or at once, for the marks that
+// end one alone. In Thai and Lao, a space between two letters ends one too.
+func sentences(text, marks string) []string {
 	runes := []rune(text)
 	var found []string
 	start := 0
 	for i := 0; i < len(runes); i++ {
-		end, next, ends := sentenceEnd(runes, i)
+		end, next, ends := sentenceEnd(runes, i, marks)
 		if !ends {
 			// Past a run of marks that ends nothing at once: looked at again
 			// from each of its marks, a long run would cost its length squared.
@@ -148,21 +159,21 @@ func sentences(text string) []string {
 	return found
 }
 
-// sentenceEnd says whether a sentence ends at the character at i: where it
-// ends, where the next one begins, and whether it ends there at all. Where it
-// does not, next is where to look again.
-func sentenceEnd(runes []rune, i int) (end, next int, ends bool) {
+// sentenceEnd says whether a sentence ends at the character at i, with these
+// ending marks: where it ends, where the next one begins, and whether it ends
+// there at all. Where it does not, next is where to look again.
+func sentenceEnd(runes []rune, i int, marks string) (end, next int, ends bool) {
 	if unicode.IsSpace(runes[i]) {
 		if next, ends = spacedEnd(runes, i); ends {
 			return i, next, true
 		}
 		return 0, i + 1, false
 	}
-	if !strings.ContainsRune(sentenceEnds, runes[i]) {
+	if !endingMark(runes, i, marks) {
 		return 0, i + 1, false
 	}
 	end = i + 1
-	for end < len(runes) && strings.ContainsRune(sentenceEnds, runes[end]) {
+	for end < len(runes) && endingMark(runes, end, marks) {
 		end++
 	}
 	for end < len(runes) && strings.ContainsRune(closers, runes[end]) {
@@ -173,6 +184,18 @@ func sentenceEnd(runes []rune, i int) (end, next int, ends bool) {
 		return 0, end, false
 	}
 	return end, end, true
+}
+
+// endingMark says whether the character at i is a mark that ends a sentence,
+// among these: one of them, or one of the two word spaces of Ethiopic that
+// Amharic, on a keyboard without its full stop, writes in its place. A single
+// word space stands between two words, and ends nothing.
+func endingMark(runes []rune, i int, marks string) bool {
+	if strings.ContainsRune(marks, runes[i]) {
+		return true
+	}
+	doubled := i+1 < len(runes) && runes[i+1] == ethiopicWordspace || i > 0 && runes[i-1] == ethiopicWordspace
+	return runes[i] == ethiopicWordspace && doubled
 }
 
 // spacedEnd says whether the whitespace at i stands between two letters of a

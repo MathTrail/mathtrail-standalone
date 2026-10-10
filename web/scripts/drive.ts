@@ -1,17 +1,21 @@
-// The preview of the widget, driven in a real browser: served from the widget's
-// sources as they are, its cards found frame by frame, and each waited for until
-// it has become what its scene makes of it, on a clock that moves only when it
-// is moved. What measures the cards and what photographs them share it.
+// The preview of the widget, driven in a real browser: built from the widget's
+// sources as they are and served, its cards found frame by frame, and each
+// waited for until it has become what its scene makes of it, on a clock that
+// moves only when it is moved. What measures the cards and what photographs
+// them share it.
 
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import {
 	type BrowserContext,
 	chromium,
 	type ElementHandle,
+	errors,
 	type Frame,
 	type Page,
 } from "playwright-core";
-import { createServer } from "vite";
+import { build, type Plugin, preview } from "vite";
 
 const web = join(import.meta.dirname, "..");
 
@@ -32,36 +36,185 @@ export async function stillClock(context: BrowserContext): Promise<void> {
 	await context.clock.pauseAt(clockStarts + 3_600_000);
 }
 
+// previewConfig is the preview's own configuration, which builds it as it
+// serves it.
+const previewConfig = join(web, "vite.config.preview.ts");
+
+/** previewFolder begins the name of the folder a built preview is served from. */
+export const previewFolder = "mathtrail-preview-";
+
 /**
- * served starts the preview, and says where it is. It watches no file: a
- * source changed while the cards are driven would reload them halfway. And
- * since nothing it serves changes while it runs, the browser may keep every
- * file it was sent, as Vite lets it keep the packages it bundles: every card
- * of a page loads the same hundred modules, which Chromium would otherwise ask
- * the server after again for each card, some seven thousand requests a page.
+ * builtPreview builds the preview and the widget's page it frames into
+ * outDir, or writes nothing where outDir is not given, and lets plugins watch
+ * the build. The build is one for development, as the preview's server is: it
+ * speaks the pseudo-language, and a mistake in the words stops it.
  */
-export async function served(): Promise<{
+export async function builtPreview({
+	outDir,
+	plugins = [],
+}: {
+	outDir?: string;
+	plugins?: Plugin[];
+}): Promise<void> {
+	// The build reads whether it is one for development from the environment,
+	// as a build run from the command line would; the environment is given
+	// back as it was once the build is over.
+	const environment = process.env.NODE_ENV;
+	process.env.NODE_ENV = "development";
+	try {
+		await build({
+			configFile: previewConfig,
+			mode: "development",
+			logLevel: "warn",
+			plugins,
+			build: {
+				outDir,
+				write: outDir !== undefined,
+				emptyOutDir: true,
+				// The preview's build ships nowhere, and carries every dictionary.
+				chunkSizeWarningLimit: 4096,
+				rolldownOptions: {
+					input: {
+						preview: join(web, "preview.html"),
+						widget: join(web, "widget.html"),
+					},
+				},
+			},
+		});
+	} finally {
+		if (environment === undefined) {
+			delete process.env.NODE_ENV;
+		} else {
+			process.env.NODE_ENV = environment;
+		}
+	}
+}
+
+/**
+ * served builds the preview, with plugins watching the build, and serves what
+ * was built, and says where it is. A card then loads the widget as a few built
+ * files rather than as the hundred modules of its sources, which takes a
+ * browser a fraction of the time, every card of a page over, and lays it out
+ * to the pixel as the preview's server does. Since nothing served changes
+ * while it runs, the browser may keep every file it was sent. A build that
+ * fails leaves no folder behind.
+ */
+export async function served({
+	plugins = [],
+}: {
+	plugins?: Plugin[];
+} = {}): Promise<{
 	base: string;
 	close: () => Promise<void>;
 }> {
-	const server = await createServer({
-		configFile: join(web, "vite.config.preview.ts"),
-		logLevel: "warn",
-		server: {
-			host: "127.0.0.1",
-			port: 5173,
-			strictPort: false,
-			hmr: false,
-			watch: null,
-			headers: { "Cache-Control": "max-age=31536000, immutable" },
-		},
-	});
-	await server.listen();
-	const base = server.resolvedUrls?.local[0];
-	if (base === undefined) {
-		throw new Error("drive: the preview names no address");
+	const folder = await mkdtemp(join(tmpdir(), previewFolder));
+	const removed = () => rm(folder, { recursive: true, force: true });
+	try {
+		await builtPreview({ outDir: folder, plugins });
+		const server = await preview({
+			configFile: previewConfig,
+			mode: "development",
+			logLevel: "warn",
+			build: { outDir: folder },
+			preview: {
+				host: "127.0.0.1",
+				port: 5173,
+				strictPort: false,
+				headers: { "Cache-Control": "max-age=31536000, immutable" },
+			},
+		});
+		const base = server.resolvedUrls?.local[0];
+		if (base === undefined) {
+			await server.close();
+			throw new Error("drive: the preview names no address");
+		}
+		return {
+			base,
+			close: async () => {
+				await server.close();
+				await removed();
+			},
+		};
+	} catch (error) {
+		await removed();
+		throw error;
 	}
-	return { base, close: () => server.close() };
+}
+
+/**
+ * readWait is how long a page or a card is waited on for one answer, in
+ * milliseconds. A page's first answers wait on its cards loading, which keeps
+ * a browser busy for some ten seconds on four cores, and on a slower machine
+ * for twice as long and more; a browser that takes longer than this to answer
+ * has stopped answering.
+ */
+export const readWait = 60_000;
+
+/** Late is the refusal of a wait on the browser that took longer than it was given. */
+export class Late extends Error {}
+
+/**
+ * within is what promise comes to, unless it takes longer than ms: then it is
+ * refused as Late, naming what was waited for. The browser's own waits on a
+ * page or a frame have no end, so a browser that stops answering would hold a
+ * run for as long as its machine is lent; every such wait is given one here.
+ * What was waited for may go on in the browser: only the waiting for it ends.
+ */
+export async function within<T>(
+	ms: number,
+	what: string,
+	promise: Promise<T>,
+): Promise<T> {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const late = new Promise<never>((_, refuse) => {
+		timer = setTimeout(
+			() => refuse(new Late(`drive: ${what} took longer than ${ms / 1000} s`)),
+			ms,
+		);
+	});
+	try {
+		return await Promise.race([promise, late]);
+	} finally {
+		clearTimeout(timer);
+	}
+}
+
+/**
+ * lateIn is the refusal error is, or was caused by, that says a browser did
+ * not answer in time: a Late, or Playwright's own refusal of a wait it gives a
+ * time to, such as opening a page.
+ */
+export function lateIn(error: unknown): Error | undefined {
+	for (let cause = error; cause instanceof Error; cause = cause.cause) {
+		if (cause instanceof Late || cause instanceof errors.TimeoutError) {
+			return cause;
+		}
+	}
+	return undefined;
+}
+
+/**
+ * againIfLate is what attempt comes to. An attempt refused because the
+ * browser stopped answering is made once more, after renew has given it a
+ * browser that answers; the second refusal stands. A browser under load may
+ * stop answering of itself, and a second browser does what the first did not;
+ * a card that stops every browser that draws it stops the second one too,
+ * and is not hidden. Any other refusal stands at once.
+ */
+export async function againIfLate<T>(
+	attempt: () => Promise<T>,
+	renew: (late: Error) => Promise<void>,
+): Promise<T> {
+	try {
+		return await attempt();
+	} catch (error) {
+		const late = lateIn(error);
+		if (late === undefined) {
+			throw error;
+		}
+		await renew(late);
+		return attempt();
+	}
 }
 
 /** Card is the frame of one scene in the preview's page. */
@@ -83,19 +236,22 @@ async function cardsOf(page: Page): Promise<Card[]> {
 	return cards;
 }
 
-// markupOf is what a card's page holds, or nothing while it has no card: a
-// card whose markup stays the same has done what its scene does to it.
-async function markupOf({ frame }: Card): Promise<string> {
-	try {
-		return await frame.evaluate(async () => {
+/**
+ * markupOf is what a card's page holds, or nothing while it has no card or
+ * its frame is between pages: a card whose markup stays the same has done
+ * what its scene does to it. A card that does not answer within readWait is
+ * refused by its scene's name.
+ */
+export function markupOf({ frame, scene }: Pick<Card, "frame" | "scene">) {
+	const reading = frame
+		.evaluate(async () => {
 			await document.fonts.ready;
 			return document.querySelector(".mt-widget") === null
 				? ""
 				: document.body.innerHTML;
-		});
-	} catch {
-		return "";
-	}
+		})
+		.catch(() => "");
+	return within(readWait, `reading the card ${scene}`, reading);
 }
 
 /** Settled is a card that has become what its scene makes of it. */
@@ -107,18 +263,27 @@ export type Settled = Card & { markup: string };
 const mostTicks = 280;
 
 /**
+ * settleWait is how long the cards of a page are waited on to settle, in
+ * milliseconds, however few ticks that is: a page's cards settle in well under
+ * a minute, and on a slow machine 280 ticks would take longer than a page has.
+ */
+export const settleWait = 4 * 60_000;
+
+/**
  * settled waits until every card of the page has been drawn and has become
  * what its scene makes of it, and says what the cards are. The page's clock
  * stands still but for what this moves it on by, a tick at a time, so that the
  * timers a card is drawn with fire, and a card is caught at the moment it is
- * meant to be, however long the machine takes to draw it.
+ * meant to be, however long the machine takes to draw it. Cards that have not
+ * settled in their ticks, or in settleWait, are named in its refusal.
  */
 export async function settled(page: Page): Promise<Settled[]> {
+	const ends = Date.now() + settleWait;
 	let before: string[] = [];
 	let why = "";
-	for (let tick = 0; tick < mostTicks; tick++) {
-		await page.clock.runFor(100);
-		const cards = await cardsOf(page);
+	for (let tick = 0; tick < mostTicks && Date.now() < ends; tick++) {
+		await within(readWait, "moving the clock on", page.clock.runFor(100));
+		const cards = await within(readWait, "finding the cards", cardsOf(page));
 		const markups = await Promise.all(cards.map(markupOf));
 		why = unsettled(
 			cards.map(({ scene }) => scene),
@@ -167,7 +332,11 @@ export function unsettled(
 
 /** letGo lets go of the elements the cards held on to. */
 export async function letGo(cards: Card[]): Promise<void> {
-	await Promise.all(cards.map(({ element }) => element.dispose()));
+	await within(
+		readWait,
+		"letting go of the cards",
+		Promise.all(cards.map(({ element }) => element.dispose())),
+	);
 }
 
 /** density is how many pixels of a picture stand for one of the page. */
@@ -210,34 +379,39 @@ export async function photograph(
 	hidden = "",
 ): Promise<void> {
 	const preview = await served();
-	const browser = await chromium.launch();
 	try {
-		// The spinner of a card that checks an answer turns; a card shown to a
-		// reader who asks for no motion holds it still for the picture.
-		const context = await browser.newContext({
-			viewport: { width: 1280, height: 900 },
-			deviceScaleFactor: density,
-			reducedMotion: "reduce",
-		});
-		await stillClock(context);
-		const page = await context.newPage();
-		for (const picture of pictures) {
-			await page.goto(addressOf(preview.base, picture));
-			const cards = await settled(page);
-			const card = cards.find((found) => found.scene === picture.scene);
-			if (card === undefined) {
-				throw new Error(`${who}: the preview shows no scene ${picture.scene}`);
-			}
-			await card.element.screenshot({
-				path: picture.path,
-				omitBackground: true,
-				style: `.preview-bar { visibility: hidden; } .preview { background: transparent !important; } ${hidden}`,
+		const browser = await chromium.launch();
+		try {
+			// The spinner of a card that checks an answer turns; a card shown to a
+			// reader who asks for no motion holds it still for the picture.
+			const context = await browser.newContext({
+				viewport: { width: 1280, height: 900 },
+				deviceScaleFactor: density,
+				reducedMotion: "reduce",
 			});
-			console.log(`${who}: ${basename(picture.path)}`);
-			await letGo(cards);
+			await stillClock(context);
+			const page = await context.newPage();
+			for (const picture of pictures) {
+				await page.goto(addressOf(preview.base, picture));
+				const cards = await settled(page);
+				const card = cards.find((found) => found.scene === picture.scene);
+				if (card === undefined) {
+					throw new Error(
+						`${who}: the preview shows no scene ${picture.scene}`,
+					);
+				}
+				await card.element.screenshot({
+					path: picture.path,
+					omitBackground: true,
+					style: `.preview-bar { visibility: hidden; } .preview { background: transparent !important; } ${hidden}`,
+				});
+				console.log(`${who}: ${basename(picture.path)}`);
+				await letGo(cards);
+			}
+		} finally {
+			await browser.close();
 		}
 	} finally {
-		await browser.close();
 		await preview.close();
 	}
 }

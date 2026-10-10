@@ -21,15 +21,15 @@ import (
 // produced from the same answers.
 //
 // The file names what v1 changed, and the vectors do not cover it: the goal
-// "motivate" is gone, the setting rotates by a different count, and grades 5-6
-// exist. Everything checked below is what did not change, except where the
-// ladder parts from the prototype on purpose: those students are named in
-// departures, each with the brief v1 gives instead and why.
+// "motivate" is gone, the setting dresses one task in three, by a different
+// count, and grades 5-6 exist. Everything checked below is what did not
+// change, except where v1 parts from the prototype on purpose: those students
+// are named in departures, each with the brief v1 gives instead and why.
 
 // departures are the reference briefs v1 departs from on purpose, as the
 // fields that change and why. The prototype had no trial series and no ladder:
 // a failure was always worked over, and a child was only ever set the tasks of
-// their own grade.
+// their own grade. It dressed every task in one of the child's interests.
 var departures = map[string]struct {
 	change func(*goldenBrief)
 	why    string
@@ -38,9 +38,16 @@ var departures = map[string]struct {
 		change: func(b *goldenBrief) {
 			b.Goal, b.Topic, b.Difficulty = "new_topic", "logic.ordering", 2
 			b.Traps = []string{"ignored_condition", "reversed_relation"}
+			b.Setting = ""
 		},
 		why: "three answers in, she is still in her trial series, which moves to a topic she has not met " +
-			"rather than going over the one she failed",
+			"rather than going over the one she failed; and the task on the card has no answer, so the brief " +
+			"is for the one asked for in its place, the fifth, which no interest dresses",
+	},
+	"olya": {
+		change: func(b *goldenBrief) { b.Setting = "" },
+		why: "five tasks in, the sixth is not the first of three, which alone is dressed in an interest: " +
+			"the model dresses it in a setting of its own",
 	},
 	"petya": {
 		change: func(b *goldenBrief) {
@@ -147,10 +154,14 @@ func TestTheRuleReproducesTheReferenceBriefs(t *testing.T) {
 
 // checkBrief holds one brief to one row of the reference.
 //
-// The setting is checked although v1 rotates by another count: these profiles
-// have answered every task in their window and nothing has been pruned yet, so
-// the two counts are the same number here. That is a property of the fixtures
-// rather than of the rule, and it is why the agreement is worth stating.
+// The setting is checked although v1 counts the tasks by another number and
+// dresses only one task in three. These profiles have skipped no task,
+// answered every task in their window and pruned nothing yet, so the two
+// counts are the same number here; and where v1 dresses a task, it takes the
+// interest the prototype took, as it always does for a child of two
+// interests. Those are properties of the fixtures rather than of the rule —
+// with three interests the two would part — and they are why the agreement is
+// worth stating.
 func checkBrief(t *testing.T, got *profile.Brief, want *goldenBrief) {
 	t.Helper()
 
