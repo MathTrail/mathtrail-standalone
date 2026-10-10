@@ -7,6 +7,9 @@ import { art as enumeration } from "./enumeration";
 import { art as figuresOnAGrid } from "./figures-on-a-grid";
 import { art as gapsAndBoundaries } from "./gaps-and-boundaries";
 import { art as knightsAndLiars } from "./knights-and-liars";
+import { art as ordering } from "./ordering";
+import { art as overlappingGroups } from "./overlapping-groups";
+import { art as parityAndAlternation } from "./parity-and-alternation";
 
 /**
  * topicArt are the drawings of the topics' pages, by the slug of the topic. A
@@ -21,4 +24,7 @@ export const topicArt: ReadonlyMap<string, TopicArt> = new Map([
 	["figures-on-a-grid", figuresOnAGrid],
 	["gaps-and-boundaries", gapsAndBoundaries],
 	["knights-and-liars", knightsAndLiars],
+	["ordering", ordering],
+	["overlapping-groups", overlappingGroups],
+	["parity-and-alternation", parityAndAlternation],
 ]);

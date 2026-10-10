@@ -354,6 +354,50 @@ export function Stretch({
 	);
 }
 
+/**
+ * Round is parts of a drawing set evenly round a circle of a size, in
+ * pixels, the first at its top and the rest clockwise: on a table drawn in
+ * its middle, or on the line of the circle itself; with what is written in
+ * its middle, if anything.
+ */
+export function Round({
+	size,
+	track = "table",
+	middle,
+	children,
+}: {
+	size: number;
+	track?: "table" | "line";
+	middle?: ComponentChildren;
+	children: readonly ComponentChildren[];
+}) {
+	const count = children.length;
+	return (
+		<span
+			class="s-sk-round"
+			data-track={track}
+			style={{ "--s-size": `${size}px` }}
+		>
+			{middle !== undefined && <span class="s-sk-round-middle">{middle}</span>}
+			{children.map((child, at) => {
+				const turn = (at / count) * 2 * Math.PI;
+				return (
+					<span
+						key={at}
+						class="s-sk-seat"
+						style={{
+							"--s-x": `${(50 + 42 * Math.sin(turn)).toFixed(2)}%`,
+							"--s-y": `${(50 - 42 * Math.cos(turn)).toFixed(2)}%`,
+						}}
+					>
+						{child}
+					</span>
+				);
+			})}
+		</span>
+	);
+}
+
 /** Chip is a short word on a pill of a tone, such as a weekday or a yes. */
 export function Chip({
 	tone = "plain",

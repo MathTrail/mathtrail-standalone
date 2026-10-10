@@ -414,6 +414,7 @@ export const art: TopicArt = {
 	idea: [
 		{
 			column: 0,
+			words: "beside",
 			rows: [
 				() => <Figure cells={["c"]} size={18} marks={{ "0.0": "4" }} border />,
 				() => (

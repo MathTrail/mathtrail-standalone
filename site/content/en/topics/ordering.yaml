@@ -8,6 +8,18 @@
 title: Ordering
 description: What ordering problems are, how they are solved, where children go wrong, and how to help at home.
 
+# The words every drawing of the page writes its four children in: the
+# initial of each, and the name.
+art:
+  ann: A
+  ann-name: Ann
+  ben: B
+  ben-name: Ben
+  kate: K
+  kate-name: Kate
+  dan-name: Dan
+  taller: taller
+
 hero:
   lead: >-
     Who is taller, who is older, who came first? In these tasks a few
@@ -16,33 +28,45 @@ hero:
     of reasoning, in which every clue is a link and none may be left out.
   method: Draw a line and put everyone on it
   teaches: To join clues into one picture, and to read a comparison both ways
-  # Its drawing is the site's data: four bars from the tallest to the shortest,
-  # as the solutions line them up.
+  # The words of its drawing: the clues and the rule over it, and the line's
+  # two ends in it.
+  art:
+    line: Clues
+    clue-1: “Ann is taller than Ben”
+    clue-2: “Kate is shorter than Ben”
+    clue-3: “Dan is shorter than Kate”
+    rule: put them on one line
+    top: the tallest
+    bottom: the shortest
 
 basis:
   title: The rules of a line
   cards:
-    - mark: ">"
-      title: Every clue is an arrow
+    - title: Every clue is an arrow
       text: >-
         “Ann is taller than Ben” puts Ann before Ben on the line. Whatever a
         clue compares, height, age or a place in a race, it says who comes
         first.
-    - mark: "<"
-      title: Read it both ways
+      art:
+        clue: “Ann is taller than Ben”
+    - title: Read it both ways
       text: >-
         “Ben is shorter than Ann” says the same as “Ann is taller than Ben”.
         Turn every clue round so that all of them point the same way before
         they go on the line.
-    - mark: "…"
-      title: A chain goes on
+      art:
+        clue: “Ann is taller than Ben”
+        turned: “Ben is shorter than Ann”
+    - title: A chain goes on
       text: >-
         If Ann is taller than Ben and Ben is taller than Kate, then Ann is
         taller than Kate as well, though no clue says so.
+      art:
+        implied: Ann is taller than Kate
 
 idea:
   title: Turn every clue the same way
-  lead: Build the line clue by clue, after turning each one into “taller than”.
+  lead: Build the line clue by clue, after turning each one into “taller than”. Each step adds one new person to the line.
   table:
     head:
       - The clue
@@ -50,14 +74,17 @@ idea:
       - The line so far
     rows:
       - - “Ann is taller than Ben”
-        - Ann is taller than Ben
+        - Ann is **taller** than Ben
         - Ann > Ben
       - - “Kate is shorter than Ben”
-        - Ben is taller than Kate
+        - Ben is **taller** than Kate
         - Ann > Ben > Kate
       - - “Dan is shorter than Kate”
-        - Kate is taller than Dan
+        - Kate is **taller** than Dan
         - Ann > Ben > Kate > Dan
+  # The words of the drawings of the table: the note on a clue turned round.
+  art:
+    turned: turned round
   note:
     title: Why it matters
     text: >-
@@ -76,6 +103,11 @@ method:
     - Turn every clue the same way
     - Put the clues on the line, the certain ones first
     - Read the answer, and check every clue against it
+  # The key under the steps: what the drawings' rings and outlines mean.
+  legend:
+    added: "a blue ring: what this step adds"
+    free: a place still free
+    block: "a block: two always side by side"
 
 examples:
   - title: Three boats
@@ -95,6 +127,13 @@ examples:
         The first on the line is the green boat. Check: red after blue, yes;
         green before blue, yes.
     answer: The green boat won.
+    badge: "1"
+    art:
+      red: red
+      blue: blue
+      green: green
+      before: before
+      waits: waits
   - title: The canteen queue
     question: >-
       Five children stand in a queue at the canteen: Lena, Max, Nina, Oleg and
@@ -111,11 +150,26 @@ examples:
         The only place left, the fifth, is Pavel's. Check every clue: they all
         hold.
     answer: Pavel stands last.
+    badge: P
     note:
       title: Every clue counts
       text: >-
         Without “Lena is not last”, Lena could stand last as well: the short
         clue with “not” is the one that settles the queue.
+    art:
+      lena: L
+      lena-name: Lena
+      max: M
+      max-name: Max
+      nina: N
+      nina-name: Nina
+      oleg: O
+      oleg-name: Oleg
+      pavel: P
+      pavel-name: Pavel
+      wait: wait
+      waits: waits
+      other: Without that clue, this queue would fit too
   - title: Six runners
     question: >-
       Six runners finished a race with no ties: Ada, Bob, Cid, Dot, Eli and
@@ -135,12 +189,31 @@ examples:
         So Fay-Eli opens the race: Fay, Eli, Dot, Cid, Ada, Bob. Eli is not
         last, as the clue says. Every clue holds.
     answer: Fay won.
+    badge: F
     note:
       title: Blocks move together
       text: >-
         When a clue says “right after”, the two runners stand side by side
         wherever they go. Treat them as one block, and six runners become four
         things to place.
+    art:
+      ada: A
+      ada-name: Ada
+      bob: B
+      bob-name: Bob
+      cid: C
+      cid-name: Cid
+      dot: D
+      dot-name: Dot
+      eli: E
+      eli-name: Eli
+      fay: F
+      fay-name: Fay
+      blocks: blocks
+      order: order
+      only: only these can take the “?”
+      six: 6 runners
+      four: 4 blocks
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -149,17 +222,25 @@ traps:
       The child uses one clue and passes over another, often a short one with
       “not”, and the line has room for a wrong answer.
     say: “Which clue have you not used yet?”
+    art:
+      question: The clue “Lena is not last” is missed
   reversed_relation:
     shows: >-
       “Kate is shorter than Ben” goes on the line as if Kate were taller: the
       clue is read from the wrong end, and the answer comes out reversed.
     say: “Who is taller, then? Say it the other way round.”
+    art:
+      clue: “Kate is shorter than Ben”
   stopped_early:
     shows: >-
       The child finds that one is shorter than another and answers with that,
       though the chain goes on: Ben is shorter than Ann, but Kate is shorter
       still.
     say: “Is there anyone further along the line?”
+    art:
+      clue-1: “Ben is shorter than Ann”
+      clue-2: “Kate is shorter than Ben”
+      who: Who is the shortest?
 
 home:
   - title: Line up the family

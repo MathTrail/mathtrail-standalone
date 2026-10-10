@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import type { PageReader } from "../reader";
-import { Line, Say, Stack, Then } from "../Sketch";
+import { Line, Round, Say, Stack, Then } from "../Sketch";
 import type { TopicArt } from "./art";
 
 // Who is one of the islanders, A, B and C.
@@ -156,27 +156,22 @@ function Table({
 	middle?: ComponentChildren;
 }) {
 	return (
-		<span class="s-kl-table">
-			{middle !== undefined && <span class="s-kl-middle">{middle}</span>}
+		<Round size={220} middle={middle}>
 			{Array.from({ length: seats }, (_, seat) => {
-				const turn = (seat / seats) * 2 * Math.PI;
 				const is: Kind = seat % 2 === 0 ? "knight" : "liar";
 				const clash = seats % 2 === 1 && (seat === 0 || seat === seats - 1);
 				return (
 					<span
 						key={seat}
-						class="s-kl-seat"
+						class="s-kl-islander s-kl-seated"
+						data-is={is}
 						data-clash={clash ? "" : undefined}
-						style={{
-							"--s-x": `${(50 + 42 * Math.sin(turn)).toFixed(2)}%`,
-							"--s-y": `${(50 - 42 * Math.cos(turn)).toFixed(2)}%`,
-						}}
 					>
-						<Sign page={page} is={is} />
+						{page.text(`art.${is}`)}
 					</span>
 				);
 			})}
-		</span>
+		</Round>
 	);
 }
 
@@ -369,7 +364,7 @@ export const art: TopicArt = {
 							middle={
 								<>
 									<span class="s-kl-half">{page.text(`${at}.half`)}</span>
-									<span>{page.text(`${at}.kinds`)}</span>
+									{page.text(`${at}.kinds`)}
 								</>
 							}
 						/>

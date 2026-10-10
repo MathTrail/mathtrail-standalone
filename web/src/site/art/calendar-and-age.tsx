@@ -237,7 +237,7 @@ export const art: TopicArt = {
 	idea: [
 		{
 			column: 1,
-			showWords: true,
+			words: "under",
 			rows: [
 				({ page, at }) => <Rest weeks={[page.text(`${at}.week`)]} days={3} />,
 				({ page, at }) => (

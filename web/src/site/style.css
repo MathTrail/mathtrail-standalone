@@ -1448,31 +1448,41 @@ a:hover {
 	font-variant-numeric: tabular-nums;
 }
 
-.s-idea-table td:last-child {
+.s-idea-table:not([data-answers]) td:last-child,
+.s-idea-table[data-answers="1"] td:nth-child(2) {
 	font-size: 1.125rem;
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
 }
 
-.s-cell-sketch {
-	display: flex;
+.s-idea-table[data-answers] td:last-child {
+	color: var(--s-muted);
+	font-size: 0.9375rem;
 }
 
-.s-row-name {
+/* A drawn cell: its drawing, and its own words under it or beside it. The
+   words kept for a screen reader alone are placed inside it, so that they
+   stay inside the frame the table scrolls in. */
+.s-cell-drawn {
+	position: relative;
 	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--space-8);
+}
+
+.s-cell-drawn[data-words="beside"] {
+	flex-direction: row;
 	align-items: center;
 	gap: var(--space-12);
-	font-size: 0.875rem;
-	font-weight: 400;
 }
 
-.s-row-name > .s-cell-sketch {
+.s-cell-sketch {
+	display: flex;
 	flex: none;
 }
 
 .s-cell-words {
-	display: block;
-	margin-block-start: var(--space-8);
 	color: var(--s-muted);
 	font-size: 0.875rem;
 	font-weight: 400;
@@ -1573,6 +1583,10 @@ a:hover {
 	color: var(--s-muted);
 	font-size: 0.875rem;
 	line-height: 1.43;
+}
+
+.s-idea-legend {
+	margin-block: 0 var(--space-16);
 }
 
 .s-number {
@@ -5457,6 +5471,53 @@ a.s-related-card:hover {
 	color: var(--s-on-free);
 }
 
+/* Parts set round a circle: on a table in its middle, or on the line of
+   the circle itself, each part centred on its place. */
+.s-sk-round {
+	position: relative;
+	display: block;
+	flex: none;
+	inline-size: var(--s-size);
+	block-size: var(--s-size);
+}
+
+.s-sk-round::before {
+	position: absolute;
+	border-radius: 50%;
+	content: "";
+}
+
+.s-sk-round[data-track="table"]::before {
+	inset: 22%;
+	border: 1px solid var(--s-line);
+	background: var(--s-soft);
+}
+
+.s-sk-round[data-track="line"]::before {
+	inset: 8%;
+	border: 2px solid var(--s-line);
+}
+
+.s-sk-seat {
+	position: absolute;
+	inset-block-start: var(--s-y);
+	inset-inline-start: var(--s-x);
+	display: flex;
+	translate: -50% -50%;
+}
+
+.s-sk-round-middle {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	color: var(--s-muted);
+	font-size: 0.6875rem;
+	text-align: center;
+}
+
 .s-sk-chip {
 	display: inline-flex;
 	flex: none;
@@ -5643,6 +5704,10 @@ a.s-related-card:hover {
 /* A trap's drawing reads from the start of its panel. */
 .s-trap-sketch .s-sk-say {
 	text-align: start;
+}
+
+.s-trap-sketch > .s-sk-line {
+	justify-content: flex-start;
 }
 
 /* The calendar and age: blocks of whole weeks with the days left over, two
@@ -7285,58 +7350,1033 @@ a.s-related-card:hover {
 	font-weight: 700;
 }
 
-.s-kl-table {
-	position: relative;
-	display: block;
-	flex: none;
-	inline-size: 220px;
-	block-size: 220px;
-}
-
-.s-kl-table::before {
-	position: absolute;
-	inset: 22%;
-	border: 1px solid var(--s-line);
-	border-radius: 50%;
-	background: var(--s-soft);
-	content: "";
-}
-
-.s-kl-seat {
-	position: absolute;
-	inset-block-start: var(--s-y);
-	inset-inline-start: var(--s-x);
-	translate: -50% -50%;
-}
-
-.s-kl-seat .s-kl-islander {
+.s-kl-seated {
 	inline-size: 34px;
 	block-size: 34px;
 	font-size: 0.8125rem;
 }
 
-.s-kl-seat[data-clash] .s-kl-islander {
+.s-kl-seated[data-clash] {
 	box-shadow:
 		0 0 0 2px var(--s-page),
 		0 0 0 4px var(--s-wrong);
-}
-
-.s-kl-middle {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	color: var(--s-muted);
-	font-size: 0.6875rem;
-	text-align: center;
 }
 
 .s-kl-half {
 	color: var(--s-text);
 	font-size: 1.375rem;
 	font-weight: 700;
+}
+
+/* Ordering: people as beads of their colours with their initials, ringed as
+   a step finds them, and the places still free; blocks of two who stand side
+   by side; arrows with their words; places numbered over a line, the
+   winner's in gold, and those who wait apart; people standing from the
+   tallest on one floor, pale where they stood before the step; sailing
+   boats; clues on pills; and the ends of the line. */
+:is(.s-ord-bead, .s-ord-figure, .s-ord-boat)[data-paint="red"] {
+	--s-paint: var(--s-paint-red);
+}
+
+:is(.s-ord-bead, .s-ord-figure, .s-ord-boat)[data-paint="blue"] {
+	--s-paint: var(--s-paint-blue);
+}
+
+:is(.s-ord-bead, .s-ord-figure, .s-ord-boat)[data-paint="green"] {
+	--s-paint: var(--s-paint-green);
+}
+
+:is(.s-ord-bead, .s-ord-figure, .s-ord-boat)[data-paint="violet"] {
+	--s-paint: var(--s-paint-violet);
+}
+
+:is(.s-ord-bead, .s-ord-figure, .s-ord-boat)[data-paint="orange"] {
+	--s-paint: var(--s-paint-orange);
+}
+
+:is(.s-ord-bead, .s-ord-figure, .s-ord-boat)[data-paint="teal"] {
+	--s-paint: var(--s-paint-teal);
+}
+
+.s-ord-bead,
+.s-ord-slot {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 30px;
+	block-size: 30px;
+	border-radius: 50%;
+	font-weight: 700;
+}
+
+.s-ord-bead {
+	background: var(--s-paint);
+	color: var(--s-page);
+	font-size: 0.8125rem;
+}
+
+.s-ord-bead[data-size="sm"] {
+	inline-size: 22px;
+	block-size: 22px;
+	font-size: 0.625rem;
+}
+
+.s-ord-bead[data-ring="picked"] {
+	box-shadow:
+		0 0 0 2px var(--s-page),
+		0 0 0 4px var(--s-accent);
+}
+
+.s-ord-bead[data-ring="wrong"] {
+	outline: 2px dashed var(--s-wrong);
+	outline-offset: 2px;
+}
+
+.s-ord-bead[data-ring="right"] {
+	outline: 2px solid var(--s-on-free);
+	outline-offset: 2px;
+}
+
+.s-ord-slot {
+	box-sizing: border-box;
+	border: 1.5px dashed var(--s-dim);
+	color: var(--s-muted);
+	font-size: 0.75rem;
+}
+
+.s-ord-block {
+	display: flex;
+	flex: none;
+	gap: 2px;
+	padding: 2px;
+	border: 1.5px solid var(--s-text);
+	border-radius: var(--radius-pill);
+}
+
+.s-ord-block[data-picked] {
+	box-shadow:
+		0 0 0 2px var(--s-page),
+		0 0 0 4px var(--s-accent);
+}
+
+.s-ord-arrow {
+	position: relative;
+	display: flex;
+	flex: none;
+	align-items: center;
+	inline-size: 52px;
+	padding-block: 14px;
+}
+
+.s-ord-arrow::before {
+	flex: 1;
+	border-block-start: 1.5px solid var(--s-outline);
+	content: "";
+}
+
+.s-ord-arrow::after {
+	border-block: 4px solid transparent;
+	border-inline-start: 6px solid var(--s-outline);
+	content: "";
+}
+
+.s-ord-arrow-word {
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline: 0;
+	color: var(--s-muted);
+	font-size: 0.6875rem;
+	line-height: 12px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.s-ord-places {
+	display: flex;
+	align-self: stretch;
+	justify-content: space-around;
+	gap: 2px;
+}
+
+.s-ord-place {
+	min-inline-size: 14px;
+	color: var(--s-muted);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	line-height: 14px;
+	text-align: center;
+}
+
+.s-ord-place[data-gold] {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 18px;
+	block-size: 18px;
+	border-radius: 50%;
+	background: var(--s-beta);
+	color: var(--s-on-beta);
+}
+
+.s-ord-waiting {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+}
+
+.s-ord-between {
+	display: flex;
+	flex: none;
+	padding-block-end: 17px;
+}
+
+.s-ord-apart {
+	flex: none;
+	align-self: stretch;
+	border-inline-start: 1px dashed var(--s-line-strong);
+}
+
+.s-ord-lineup {
+	--s-scale: 1.1px;
+	display: flex;
+	flex: none;
+	align-items: flex-end;
+}
+
+.s-ord-lineup[data-size="sm"] {
+	--s-scale: 0.62px;
+}
+
+.s-ord-stander,
+.s-ord-than-column {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.s-ord-floor {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	padding-inline: 8px;
+	border-block-end: 2px solid var(--s-line-strong);
+}
+
+.s-ord-than-column .s-ord-floor {
+	padding-inline: 4px;
+}
+
+.s-ord-name,
+.s-ord-than {
+	padding-block-start: 6px;
+	font-size: 0.8125rem;
+	line-height: 16px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.s-ord-name {
+	color: var(--s-text);
+	font-weight: 700;
+}
+
+.s-ord-than {
+	color: var(--s-muted);
+}
+
+.s-ord-stander[data-before] .s-ord-name {
+	color: var(--s-muted);
+	font-weight: 400;
+}
+
+.s-ord-stander[data-before] .s-ord-figure {
+	opacity: 0.35;
+}
+
+.s-ord-lineup[data-size="sm"] :is(.s-ord-name, .s-ord-than) {
+	padding-block-start: 4px;
+	font-size: 0.6875rem;
+	line-height: 14px;
+}
+
+.s-ord-lineup[data-size="sm"] .s-ord-floor {
+	padding-inline: 6px;
+}
+
+.s-ord-lineup[data-size="sm"] .s-ord-than-column .s-ord-floor {
+	padding-inline: 2px;
+}
+
+.s-ord-figure {
+	position: relative;
+	display: block;
+	inline-size: 30px;
+	block-size: calc(var(--s-height) * var(--s-scale));
+}
+
+.s-ord-figure::before,
+.s-ord-figure::after {
+	position: absolute;
+	background: var(--s-paint);
+	content: "";
+}
+
+.s-ord-figure::before {
+	inset-block-start: 0;
+	inset-inline-start: calc(50% - 7px);
+	inline-size: 14px;
+	block-size: 14px;
+	border-radius: 50%;
+}
+
+.s-ord-figure::after {
+	inset: 16px 0 0;
+	border-radius: 15px 15px 0 0;
+}
+
+.s-ord-lineup[data-size="sm"] .s-ord-figure {
+	inline-size: 18px;
+}
+
+.s-ord-lineup[data-size="sm"] .s-ord-figure::before {
+	inset-inline-start: calc(50% - 5px);
+	inline-size: 10px;
+	block-size: 10px;
+}
+
+.s-ord-lineup[data-size="sm"] .s-ord-figure::after {
+	inset-block-start: 11px;
+	border-radius: 9px 9px 0 0;
+}
+
+.s-ord-boat {
+	position: relative;
+	display: block;
+	flex: none;
+	inline-size: 56px;
+	block-size: 42px;
+	border-radius: 10px;
+}
+
+.s-ord-boat[data-framed] {
+	background: var(--s-page);
+	box-shadow: inset 0 0 0 2px var(--s-accent);
+}
+
+.s-ord-boat[data-waiting] {
+	opacity: 0.35;
+}
+
+.s-ord-boat::before {
+	position: absolute;
+	inset-block-start: 5px;
+	inset-inline-start: calc(50% - 1px);
+	inline-size: 2px;
+	block-size: 24px;
+	background: var(--s-quiet);
+	content: "";
+}
+
+.s-ord-sail {
+	position: absolute;
+	inset-block-start: 7px;
+	inset-inline-start: calc(50% + 1px);
+	inline-size: 16px;
+	block-size: 20px;
+	background: var(--s-paint);
+	clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+.s-ord-hull {
+	position: absolute;
+	inset-block-end: 6px;
+	inset-inline: 7px;
+	block-size: 9px;
+	border-radius: 0 0 12px 12px;
+	background: var(--s-paint);
+}
+
+.s-ord-clues {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-block-start: 12px;
+}
+
+.s-ord-clue {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	padding: 4px 12px;
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	box-shadow: inset 0 0 0 1px var(--s-line);
+	color: var(--s-text);
+	font-size: 0.8125rem;
+	font-weight: 400;
+	line-height: 20px;
+}
+
+.s-ord-axis {
+	display: flex;
+	align-items: center;
+	align-self: stretch;
+	gap: 10px;
+}
+
+.s-ord-axis-line {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	min-inline-size: clamp(40px, 18vw, 180px);
+}
+
+.s-ord-axis-line::before {
+	flex: 1;
+	border-block-start: 1.5px solid var(--s-outline);
+	content: "";
+}
+
+.s-ord-axis-line::after {
+	border-block: 4px solid transparent;
+	border-inline-start: 6px solid var(--s-outline);
+	content: "";
+}
+
+.s-ord-chain {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 4px;
+}
+
+.s-ord-leap {
+	margin-inline: 15px;
+	padding-block-end: 8px;
+	border: 1.5px dashed var(--s-accent);
+	border-block-end: none;
+	border-radius: 10px 10px 0 0;
+	color: var(--s-accent);
+	font-size: 0.75rem;
+	font-weight: 700;
+	line-height: 16px;
+	text-align: center;
+	translate: 0 -8px;
+}
+
+.s-ord-turned strong {
+	color: var(--s-accent);
+	font-weight: 700;
+}
+
+.s-ord-mark {
+	flex: none;
+	font-weight: 700;
+}
+
+.s-ord-mark[data-way="wrong"] {
+	color: var(--s-wrong);
+}
+
+.s-ord-mark[data-way="right"] {
+	color: var(--s-on-free);
+}
+
+.s-ord-stop {
+	flex: none;
+	align-self: stretch;
+	min-block-size: 22px;
+	margin-inline-start: 4px;
+	border-inline-start: 2px dashed var(--s-wrong);
+}
+
+/* Overlapping groups: two circles that overlap, blue on the left and orange
+   on the right, their names over them, the number of each part on a white
+   disc, ringed as a step rings it and pale where it is not the step's; the
+   box of all with its name, and those in neither on a disc in its corner;
+   the children of a group in a row of cells between the bars of those who
+   like apples and of those who like pears; three circles; and pupils
+   counted by the subjects they like. */
+.s-ovl-venn {
+	position: relative;
+	display: inline-flex;
+	flex: none;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	max-inline-size: 100%;
+}
+
+.s-ovl-venn[data-boxed] {
+	padding: 8px 10px 24px;
+	border: 1.5px solid var(--s-line-strong);
+	border-radius: 12px;
+	background: var(--s-page);
+}
+
+.s-ovl-venn[data-boxed][data-shape="sm"] {
+	padding: 4px 6px 18px;
+	border-radius: 10px;
+}
+
+.s-ovl-venn[data-scale="hero"] .s-ovl-circles {
+	inline-size: 230px;
+}
+
+.s-ovl-names {
+	display: flex;
+	align-self: stretch;
+	justify-content: space-around;
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+:is(.s-ovl-names > span, .s-ovl-three-name, .s-ovl-row-name)[data-set="left"] {
+	color: var(--s-on-tint);
+}
+
+:is(.s-ovl-names > span, .s-ovl-three-name, .s-ovl-row-name)[data-set="right"] {
+	color: var(--s-on-warm);
+}
+
+.s-ovl-three-name[data-set="third"] {
+	color: var(--s-on-right);
+}
+
+.s-ovl-circles {
+	display: block;
+	max-inline-size: 100%;
+	block-size: auto;
+	overflow: visible;
+}
+
+.s-ovl-set {
+	stroke-width: 2;
+}
+
+.s-ovl-set[data-set="left"] {
+	fill: rgb(57 134 228 / 16%);
+	stroke: var(--s-paint-sky);
+}
+
+.s-ovl-set[data-set="right"] {
+	fill: rgb(235 136 59 / 16%);
+	stroke: var(--s-warm-edge);
+}
+
+.s-ovl-set[data-set="third"] {
+	fill: rgb(41 134 70 / 14%);
+	stroke: var(--s-paint-green);
+}
+
+.s-ovl-count circle {
+	fill: var(--s-page);
+	stroke: var(--s-line);
+	stroke-width: 1;
+}
+
+.s-ovl-count text {
+	fill: var(--s-text);
+	font-weight: 700;
+}
+
+.s-ovl-count[data-pale] text {
+	fill: var(--s-dim);
+}
+
+.s-ovl-count[data-ring] circle {
+	stroke-width: 2;
+}
+
+.s-ovl-count[data-ring="picked"] circle {
+	stroke: var(--s-accent);
+}
+
+.s-ovl-count[data-ring="wrong"] circle {
+	stroke: var(--s-wrong);
+}
+
+.s-ovl-count[data-ring="right"] circle {
+	stroke: var(--s-on-free);
+}
+
+.s-ovl-all {
+	position: absolute;
+	inset-block-end: 5px;
+	inset-inline-start: 9px;
+	color: var(--s-muted);
+	font-size: 0.625rem;
+	font-weight: 700;
+}
+
+.s-ovl-out {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 22px;
+	block-size: 22px;
+	box-sizing: border-box;
+	border: 1px solid var(--s-line);
+	border-radius: 50%;
+	background: var(--s-page);
+	color: var(--s-text);
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-ovl-venn .s-ovl-out {
+	position: absolute;
+	inset-block-end: 4px;
+	inset-inline-end: 6px;
+}
+
+.s-ovl-venn[data-shape="sm"] .s-ovl-out {
+	inset-block-end: 3px;
+	inset-inline-end: 4px;
+	inline-size: 18px;
+	block-size: 18px;
+	font-size: 0.5625rem;
+}
+
+.s-ovl-out[data-pale] {
+	color: var(--s-dim);
+}
+
+.s-ovl-out[data-ring] {
+	border-width: 2px;
+}
+
+.s-ovl-out[data-ring="picked"] {
+	border-color: var(--s-accent);
+}
+
+.s-ovl-out[data-ring="wrong"] {
+	border-color: var(--s-wrong);
+}
+
+.s-ovl-out[data-ring="right"] {
+	border-color: var(--s-on-free);
+}
+
+.s-ovl-kids {
+	display: grid;
+	grid-template-columns: auto repeat(25, minmax(5px, 9px));
+	align-items: center;
+	gap: 4px 2px;
+	max-inline-size: 100%;
+}
+
+.s-ovl-row-name {
+	grid-column: 1;
+	padding-inline-end: 6px;
+	color: var(--s-muted);
+	font-size: 0.625rem;
+	font-weight: 700;
+}
+
+.s-ovl-bar {
+	block-size: 8px;
+	border-radius: 3px;
+	background: var(--s-paint-sky);
+}
+
+.s-ovl-bar[data-set="right"] {
+	background: var(--s-warm-edge);
+}
+
+.s-ovl-kid {
+	block-size: 13px;
+	border-radius: 3px;
+	background: var(--s-tech);
+}
+
+.s-ovl-kid[data-both] {
+	background: var(--s-violet-soft);
+}
+
+.s-ovl-kid[data-framed] {
+	background: var(--s-paint-violet);
+	box-shadow: 0 0 0 1.5px var(--s-accent);
+}
+
+.s-ovl-three {
+	display: grid;
+	grid-template-columns: auto auto;
+	justify-items: center;
+	gap: 2px 24px;
+}
+
+.s-ovl-three .s-ovl-circles,
+.s-ovl-three-name[data-set="third"] {
+	grid-column: 1 / -1;
+}
+
+.s-ovl-three-name {
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-ovl-tally {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	inline-size: 12px;
+	block-size: 22px;
+	border-radius: 3px;
+	background: var(--s-tech);
+}
+
+.s-ovl-tally > span {
+	inline-size: 5px;
+	block-size: 5px;
+	border-radius: 50%;
+	background: var(--s-paint-sky);
+}
+
+.s-ovl-tally[data-likes="2"] > span {
+	background: var(--s-warm-edge);
+}
+
+.s-ovl-gap {
+	flex: none;
+	inline-size: 6px;
+}
+
+.s-ovl-sum {
+	flex: none;
+	font-size: 1rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+/* Parity and alternation: boys and girls as dots of their colours, ringed
+   where two of a kind stand side by side; the key of the colours; the word
+   for even or odd on its pill; counters in pairs and the one left over; a
+   river between its banks with the ferry at one of them; the target of the
+   darts and the darts; the wire cube with its corners white and black; and
+   the counts and marks beside them. */
+.s-par-child {
+	display: block;
+	flex: none;
+	inline-size: 22px;
+	block-size: 22px;
+	border-radius: 50%;
+	background: var(--s-paint-blue);
+}
+
+.s-par-child[data-girl] {
+	background: var(--s-paint-orange);
+}
+
+.s-par-child[data-size="sm"] {
+	inline-size: 12px;
+	block-size: 12px;
+}
+
+.s-par-child[data-clash] {
+	outline: 2px dashed var(--s-wrong);
+	outline-offset: 3px;
+}
+
+.s-par-key {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 18px;
+	margin-block-start: 12px;
+	font-weight: 400;
+}
+
+.s-par-parity {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	padding: 2px 10px;
+	border-radius: var(--radius-pill);
+	background: var(--s-beta);
+	color: var(--s-on-beta);
+	font-size: 0.75rem;
+	font-weight: 700;
+	line-height: 18px;
+	white-space: nowrap;
+}
+
+.s-par-parity[data-even] {
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-par-place {
+	color: var(--s-muted);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	line-height: 14px;
+}
+
+.s-par-pair {
+	display: flex;
+	flex: none;
+	gap: 2px;
+	padding: 2px;
+	border: 1.5px solid var(--s-idle);
+	border-radius: var(--radius-pill);
+}
+
+.s-par-dot {
+	display: block;
+	flex: none;
+	inline-size: 14px;
+	block-size: 14px;
+	border-radius: 50%;
+	background: var(--s-paint-sky);
+}
+
+.s-par-dot[data-alone] {
+	margin-inline-start: 4px;
+	background: var(--s-warm-edge);
+	outline: 2px dashed var(--s-wrong);
+	outline-offset: 2px;
+}
+
+.s-par-river {
+	position: relative;
+	display: block;
+	flex: none;
+	inline-size: 160px;
+	block-size: 28px;
+	border-radius: 6px;
+	background:
+		linear-gradient(
+			90deg,
+			var(--s-green-soft) 0 20px,
+			transparent 20px calc(100% - 20px),
+			var(--s-green-soft) calc(100% - 20px)
+		),
+		repeating-linear-gradient(
+			90deg,
+			var(--s-accent-tint) 0 8px,
+			var(--s-cool) 8px 16px
+		);
+}
+
+.s-par-river[data-size="sm"] {
+	inline-size: 120px;
+	block-size: 24px;
+}
+
+.s-par-ferry {
+	position: absolute;
+	inset-block-start: calc(50% - 6px);
+	inset-inline-start: 22px;
+	inline-size: 28px;
+	block-size: 12px;
+	border-radius: 0 0 8px 8px;
+	background: var(--s-text);
+}
+
+.s-par-ferry::before {
+	position: absolute;
+	inset-block-end: 100%;
+	inset-inline-start: calc(50% - 5px);
+	inline-size: 10px;
+	block-size: 5px;
+	border-radius: 2px 2px 0 0;
+	background: var(--s-paint-yellow);
+	content: "";
+}
+
+.s-par-ferry[data-at="right"] {
+	inset-inline: auto 22px;
+}
+
+.s-par-river[data-size="sm"] .s-par-ferry {
+	inset-inline-start: 21px;
+	inline-size: 24px;
+}
+
+.s-par-river[data-size="sm"] .s-par-ferry[data-at="right"] {
+	inset-inline: auto 21px;
+}
+
+.s-par-ferry[data-ring] {
+	outline: 2px dashed var(--s-wrong);
+	outline-offset: 2px;
+}
+
+.s-par-ferry[data-ring="right"] {
+	outline: 2px solid var(--s-on-free);
+}
+
+.s-par-target {
+	display: block;
+	flex: none;
+}
+
+.s-par-ring {
+	fill: var(--s-page);
+	stroke: var(--s-idle);
+	stroke-width: 1.5;
+}
+
+.s-par-bull {
+	fill: var(--s-paint-red);
+}
+
+.s-par-score {
+	fill: var(--s-text);
+	font-size: 9px;
+	font-weight: 700;
+}
+
+.s-par-score[data-bull] {
+	fill: var(--s-page);
+	font-size: 10px;
+}
+
+.s-par-dart {
+	position: relative;
+	display: block;
+	flex: none;
+	inline-size: 30px;
+	block-size: 10px;
+}
+
+.s-par-dart::before {
+	position: absolute;
+	inset-block-start: calc(50% - 1px);
+	inset-inline: 4px 0;
+	border-block-start: 2px solid var(--s-text);
+	content: "";
+}
+
+.s-par-dart::after {
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline-start: 0;
+	border-block: 5px solid transparent;
+	border-inline-end: 7px solid var(--s-text);
+	content: "";
+}
+
+.s-par-pairing {
+	display: flex;
+	flex: none;
+	gap: 3px;
+	padding: 3px;
+	border: 1.5px solid var(--s-idle);
+	border-radius: 10px;
+}
+
+.s-par-sign {
+	flex: none;
+	color: var(--s-muted);
+	font-weight: 600;
+	line-height: 30px;
+}
+
+.s-par-cube {
+	position: relative;
+	display: block;
+	flex: none;
+}
+
+.s-par-cube svg {
+	display: block;
+	overflow: visible;
+}
+
+.s-par-start-name {
+	position: absolute;
+	inset-block-start: 14px;
+	inset-inline-start: -14px;
+	color: var(--s-accent);
+	font-size: 0.625rem;
+	font-weight: 700;
+}
+
+.s-par-edge {
+	stroke: var(--s-quiet);
+	stroke-width: 1.5;
+}
+
+.s-par-edge[data-back] {
+	stroke: var(--s-idle);
+}
+
+.s-par-corner {
+	fill: var(--s-page);
+	stroke: var(--s-quiet);
+	stroke-width: 2;
+}
+
+.s-par-corner[data-corner="white"] {
+	stroke: var(--s-text);
+}
+
+.s-par-corner[data-corner="black"] {
+	fill: var(--s-text);
+	stroke: var(--s-text);
+}
+
+.s-par-start {
+	fill: none;
+	stroke: var(--s-accent);
+	stroke-width: 2;
+}
+
+.s-par-spot {
+	display: block;
+	flex: none;
+	inline-size: 12px;
+	block-size: 12px;
+	box-sizing: border-box;
+	border: 2px solid var(--s-text);
+	border-radius: 50%;
+	background: var(--s-page);
+}
+
+.s-par-spot[data-black] {
+	background: var(--s-text);
+}
+
+.s-par-mark {
+	flex: none;
+	font-size: 1.125rem;
+	font-weight: 700;
+}
+
+.s-par-mark[data-way="wrong"] {
+	color: var(--s-wrong);
+}
+
+.s-par-mark[data-way="right"] {
+	color: var(--s-on-free);
+}
+
+.s-par-count {
+	flex: none;
+	font-size: 1rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.s-par-odds {
+	display: flex;
+	flex: none;
+	gap: 3px;
+}
+
+.s-par-odds > span {
+	inline-size: 9px;
+	block-size: 9px;
+	border-radius: 50%;
+	background: var(--s-warm-edge);
 }
 
 /* Arithmetic with a trick: a big product as a rectangle, the grey block two

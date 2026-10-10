@@ -16,28 +16,40 @@ hero:
     question into four numbers.
   method: Draw the circles and start from the middle
   teaches: To count without counting twice, and to say what each number means
-  # Its drawing is the site's data: two clubs that overlap, 10 in one and 12 in
-  # the other, 3 of them in both.
+  # The words of its drawing: what the two circles are, and what their middle
+  # means.
+  art:
+    line: The class's clubs
+    chess: chess
+    football: football
+    middle: in the middle, those who go to both
 
 basis:
   title: The rules of two circles
   cards:
-    - mark: "2×"
-      title: Added, counted twice
+    - title: Added, counted twice
       text: >-
         Adding the two groups counts the children in both of them twice, once
         in each. Take them away once, and everyone is counted once.
-    - mark: "0"
-      title: Some are in neither
+      art:
+        choir: choir 14
+        art: art 11
+        twice: "14 + 11 = 25, but 4 of them are counted twice: 25 − 4 = 21"
+    - title: Some are in neither
       text: >-
         Nobody has to be in a group. The whole class is those in at least one
         group and those in none.
-    - mark: "≤"
-      title: When the middle is not given
+      art:
+        class: the whole class
+        none: 9 in neither group
+    - title: When the middle is not given
       text: >-
         If nobody says how many are in both groups, that number can only be
         bounded: the more the groups share, the fewer children are in at least
         one of them.
+      art:
+        little: little shared
+        much: much shared
 
 idea:
   title: Four parts of the picture
@@ -81,21 +93,28 @@ method:
     - Draw the circles
     - Fill the middle, then the rest
     - Check that the parts add up to everyone
+  # The key under the steps: what a ring on a number means.
+  legend:
+    filled: "a blue ring: what this step fills in"
 
 examples:
   - title: Sisters and brothers
     question: >-
       In a group of 24 children, 15 have a sister, 11 have a brother, and 6
       have both a sister and a brother. How many children have neither?
-    # Its drawing is the site's data: the two circles filled in, A for a sister
-    # and B for a brother, and those outside them.
     steps:
       - >-
-        Draw two circles that overlap, A for a sister and B for a brother. In
-        the middle: the 6 children who have both.
+        Draw two circles that overlap, “sister” and “brother”. In the middle:
+        the 6 children who have both.
       - "A sister only: 15 − 6 = 9. A brother only: 11 − 6 = 5."
       - "In the circles: 9 + 6 + 5 = 20 children. Outside them: 24 − 20 = 4."
     answer: 4 children.
+    art:
+      sister: sister
+      brother: brother
+      all: "all: 24"
+      only: 15 − 6 = 9 · 11 − 6 = 5
+      out: 24 − 20 = 4 outside
   - title: Apples and pears
     question: >-
       In a group of 25 children, 18 like apples and 16 like pears. What is the
@@ -116,6 +135,14 @@ examples:
       text: >-
         At most, all 16 pear lovers could like apples as well. The middle lies
         between 9 and 16, and the question asked for the smaller end.
+    art:
+      apples: apples
+      kids: children
+      pears: pears
+      ends: apples from the left end, pears from the right
+      violet: "violet, those who like both: 9"
+      all: "all: 25"
+      inside: all 16 pear lovers inside the apples
   - title: Three subjects
     question: >-
       Each of 20 pupils likes at least one of three subjects: maths, reading
@@ -138,6 +165,13 @@ examples:
         Here the trick is not the circles but the sum: each pupil adds one to it
         for every subject they like. Olympiad tasks about groups often turn on
         counting one thing in two ways.
+    art:
+      maths: maths 12
+      reading: reading 10
+      drawing: art 9
+      once: once
+      twice: twice
+      each: one for each, 20; extra, 31 − 20 = 11
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -146,18 +180,24 @@ traps:
       The child adds the two groups, 15 and 11, and takes the sum for the
       number of children: those in both groups are counted twice.
     say: “Is anybody counted in both circles?”
+    art:
+      question: Sister 15, brother 11, both 6
   answered_other_question:
     shows: >-
       The child finds a part of the picture and gives it as the answer, though
       the question asked about another: “in both” instead of “in neither”, or
       “choir only” instead of the whole choir.
     say: “Point to the part of the picture the question asks about.”
+    art:
+      question: "The question: how many have neither?"
   missed_case:
     shows: >-
       A part of the picture is left out: one group is taken away from everyone
       and the other forgotten, or those in all three groups are not added
       back.
     say: “Is every part of the picture filled in?”
+    art:
+      question: "24 children: sister 15, brother 11, both 6"
 
 home:
   - title: Two hoops on the floor

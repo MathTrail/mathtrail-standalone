@@ -266,7 +266,7 @@ export const art: TopicArt = {
 	idea: [
 		{
 			column: 1,
-			showWords: true,
+			words: "under",
 			rows: [
 				() => <Packs groups={7} size={4} rest={1} picked={["groups", "rest"]} />,
 				() => <Packs groups={7} size={4} rest={1} picked={["groups"]} />,

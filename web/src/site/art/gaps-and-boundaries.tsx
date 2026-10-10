@@ -285,6 +285,7 @@ export const art: TopicArt = {
 	idea: [
 		{
 			column: 0,
+			words: "beside",
 			rows: [
 				() => <Track thing="tree" count={6} gaps={numbers} lit size="sm" />,
 				() => <Log pieces={5} />,

@@ -4,7 +4,7 @@ import { cardWords } from "../widget/dictionaries";
 import { topicName, trapName } from "../widget/names";
 import type { Key } from "../widget/words";
 import { address } from "./addresses";
-import type { Art, ExampleArt, TopicArt } from "./art/art";
+import type { Art, CellWords, ExampleArt, TopicArt } from "./art/art";
 import { topicArt } from "./art";
 import type { SiteData, TopicExample } from "./data";
 import type { Drawing } from "./drawings";
@@ -81,7 +81,12 @@ function TopicPage({
 				<Contents page={page} />
 			</section>
 			<Basis page={page} art={art?.basis} />
-			<Idea page={page} art={art?.idea} />
+			<Idea
+				page={page}
+				art={art?.idea}
+				answers={art?.ideaAnswers}
+				legend={art?.ideaLegend}
+			/>
 			<Solving
 				page={page}
 				topic={topic}
@@ -314,13 +319,19 @@ function CardMark({
 // Idea is the topic's key idea: a table, and a note on why it matters. A
 // narrow screen scrolls the table sideways inside its frame, which the
 // keyboard can reach for that. Where the topic draws a column, a cell of it
-// shows its drawing and keeps its words for a screen reader.
+// shows its drawing and keeps its words for a screen reader, and the key of
+// the drawings, where the topic draws one, stands over the table. The column
+// of the answers is in bold: the one the topic names, or else the last.
 function Idea({
 	page,
 	art,
+	answers,
+	legend,
 }: {
 	page: PageReader;
 	art?: TopicArt["idea"];
+	answers?: number;
+	legend?: Art;
 }) {
 	const head = page.list("idea.table.head");
 	return (
@@ -329,8 +340,13 @@ function Idea({
 				<h2 id="idea-title">{page.text("idea.title")}</h2>
 				<p class="s-intro-line">{page.text("idea.lead")}</p>
 			</div>
+			{legend !== undefined && (
+				<p class="s-legend s-idea-legend s-topic-art" aria-hidden="true" dir="ltr">
+					{legend({ page, at: "idea.art" })}
+				</p>
+			)}
 			<TableFrame labelledBy="idea-title">
-				<table class="s-table s-idea-table">
+				<table class="s-table s-idea-table" data-answers={answers}>
 					<thead>
 						<tr>
 							{head.map((key) => (
@@ -345,22 +361,20 @@ function Idea({
 							<tr key={row}>
 								{cellsOf(page, row, head.length).map((key, at) => {
 									const drawn = art?.find((one) => one.column === at);
-									if (at === 0) {
-										return (
-											<th key={key} scope="row">
-												<RowName page={page} at={key} art={drawn?.rows[line]} />
-											</th>
-										);
-									}
-									return (
-										<td key={key}>
-											<Cell
-												page={page}
-												at={key}
-												art={drawn?.rows[line]}
-												shown={drawn?.showWords ?? false}
-											/>
-										</td>
+									const cell = (
+										<Cell
+											page={page}
+											at={key}
+											art={drawn?.rows[line]}
+											words={drawn?.words ?? "hidden"}
+										/>
+									);
+									return at === 0 ? (
+										<th key={key} scope="row">
+											{cell}
+										</th>
+									) : (
+										<td key={key}>{cell}</td>
 									);
 								})}
 							</tr>
@@ -373,55 +387,33 @@ function Idea({
 	);
 }
 
-// RowName is the name of a row of the key idea's table, after its drawing
-// where it has one, the words of the table's drawings under idea.art.
-function RowName({
-	page,
-	at,
-	art,
-}: {
-	page: PageReader;
-	at: string;
-	art: Art | undefined;
-}) {
-	if (art === undefined) {
-		return <>{page.text(at)}</>;
-	}
-	return (
-		<span class="s-row-name">
-			<span class="s-cell-sketch s-topic-art" aria-hidden="true" dir="ltr">
-				{art({ page, at: "idea.art" })}
-			</span>
-			<span>{page.text(at)}</span>
-		</span>
-	);
-}
-
 // Cell is what a cell of the key idea's table shows: its words, or its
 // drawing, the words of the table's drawings under idea.art, with the cell's
-// own words under it where they are shown, and for a screen reader alone
-// where they are not.
+// own words under it, beside it or for a screen reader alone, as the topic
+// draws the column.
 function Cell({
 	page,
 	at,
 	art,
-	shown,
+	words,
 }: {
 	page: PageReader;
 	at: string;
 	art: Art | undefined;
-	shown: boolean;
+	words: CellWords;
 }) {
 	if (art === undefined) {
 		return <>{page.text(at)}</>;
 	}
 	return (
-		<>
+		<span class="s-cell-drawn" data-words={words}>
 			<span class="s-cell-sketch s-topic-art" aria-hidden="true" dir="ltr">
 				{art({ page, at: "idea.art" })}
 			</span>
-			<span class={shown ? "s-cell-words" : "s-hidden"}>{page.text(at)}</span>
-		</>
+			<span class={words === "hidden" ? "s-hidden" : "s-cell-words"}>
+				{page.text(at)}
+			</span>
+		</span>
 	);
 }
 
