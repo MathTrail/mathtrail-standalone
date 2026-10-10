@@ -1,4 +1,5 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
+import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
 	buttonIn,
@@ -419,6 +420,25 @@ describe("the topic, chosen on the card of how an answer went", () => {
 		press(button("Another task"));
 
 		expect(button("Another task").getAttribute("aria-disabled")).toBe("true");
+		saved.arrive(topicSaved("percent.basic"));
+		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
+		expect(heard.messages[0]).toContain("Percentages");
+	});
+
+	test("turns away the next task pressed in the moment a topic is chosen, before the card is drawn again", async () => {
+		const saved = pending();
+		const heard = await drawCard(shown(fence, {}, {}), {
+			tools: () => saved.result,
+		});
+
+		press(button("Topic: Coach"));
+		const percentages = choice("Percentages");
+		const another = button("Another task");
+		act(() => {
+			percentages.click();
+			another.click();
+		});
+
 		saved.arrive(topicSaved("percent.basic"));
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
 		expect(heard.messages[0]).toContain("Percentages");

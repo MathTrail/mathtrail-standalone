@@ -57,9 +57,11 @@ export function drawTable(
 	const rows = [...header, ...table.rows.map((row) => row.map(written))];
 	const size = fitted(squeezed, (one) => total(widthsOf(rows, one)) <= room);
 	const widths = widthsOf(rows, size);
-	const edges = [0];
+	let edge = 0;
+	const edges = [edge];
 	for (const column of widths) {
-		edges.push((edges.at(-1) ?? 0) + column);
+		edge += column;
+		edges.push(edge);
 	}
 	const tall = size * 1.4 + 2 * above;
 	const width = total(widths);

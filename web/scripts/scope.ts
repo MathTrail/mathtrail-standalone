@@ -64,11 +64,18 @@ export async function drawnFrom(): Promise<Set<string>> {
 	return new Set(
 		[...read]
 			.filter((id) => !id.startsWith("\0"))
-			.map((id) => relative(repository, id.split("?")[0] ?? id))
+			.map((id) => relative(repository, withoutQuery(id)))
 			.filter(
 				(path) => !path.startsWith("..") && !path.includes("node_modules/"),
 			),
 	);
+}
+
+// withoutQuery is a module's id without the query a plugin may have added to
+// it, which names the same file: all of it up to its first question mark, or
+// the whole of an id that has none.
+function withoutQuery(id: string): string {
+	return id.slice(0, `${id}?`.indexOf("?"));
 }
 
 /**
@@ -89,26 +96,36 @@ export function touching(
 	);
 }
 
-async function main(): Promise<void> {
-	const { values } = parseArgs({ options: { to: { type: "string" } } });
-	const changed = (await text(process.stdin))
+/**
+ * scope answers for a change whose files are listed one a line, against the
+ * files the cards are drawn from: it writes card=true or card=false to the end
+ * of the file named, or else to the standard output, and says on the error
+ * stream which file decided it.
+ */
+export async function scope(
+	listed: string,
+	drawn: ReadonlySet<string>,
+	to?: string,
+): Promise<void> {
+	const changed = listed
 		.split("\n")
 		.map((line) => line.trim())
 		.filter((line) => line !== "");
-	const touched = touching(changed, await drawnFrom());
+	const touched = touching(changed, drawn);
 	console.error(
 		touched === undefined
 			? `scope: none of the ${changed.length} files changed is one the cards are drawn from`
 			: `scope: the cards are drawn from ${touched}, which changed`,
 	);
 	const answer = `card=${touched !== undefined}\n`;
-	if (values.to === undefined) {
+	if (to === undefined) {
 		process.stdout.write(answer);
 	} else {
-		await appendFile(values.to, answer);
+		await appendFile(to, answer);
 	}
 }
 
 if (import.meta.main) {
-	await main();
+	const { values } = parseArgs({ options: { to: { type: "string" } } });
+	await scope(await text(process.stdin), await drawnFrom(), values.to);
 }

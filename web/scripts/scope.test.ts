@@ -3,8 +3,8 @@ import { spawnSync } from "node:child_process";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, test } from "vitest";
-import { drawnFrom, measuring, touching } from "./scope.ts";
+import { describe, expect, test, vi } from "vitest";
+import { drawnFrom, measuring, scope, touching } from "./scope.ts";
 
 describe("the files the cards are drawn from", () => {
 	test("are those the preview's build reads, the data and words outside the widget's sources among them", async () => {
@@ -65,6 +65,44 @@ describe("a change", () => {
 });
 
 describe("the answer", () => {
+	// drawn are some of the files the cards are drawn from.
+	const drawn = new Set(["web/src/widget/main.ts", "site/data.json"]);
+
+	test("is written to the end of the file named, and names the file that decided it", async () => {
+		const folder = await mkdtemp(join(tmpdir(), "scope-"));
+		const told = vi.spyOn(console, "error").mockImplementation(() => {});
+		try {
+			const to = join(folder, "output");
+			await scope("README.md\n  site/data.json  \n\n", drawn, to);
+
+			expect(await readFile(to, "utf8")).toBe("card=true\n");
+			expect(told).toHaveBeenCalledWith(
+				"scope: the cards are drawn from site/data.json, which changed",
+			);
+		} finally {
+			told.mockRestore();
+			await rm(folder, { recursive: true, force: true });
+		}
+	});
+
+	test("is written to the standard output where no file is named, and says none of the files touched the cards", async () => {
+		const told = vi.spyOn(console, "error").mockImplementation(() => {});
+		const written = vi
+			.spyOn(process.stdout, "write")
+			.mockImplementation(() => true);
+		try {
+			await scope("README.md\ndocs/decisions.md\n", drawn);
+
+			expect(written).toHaveBeenCalledWith("card=false\n");
+			expect(told).toHaveBeenCalledWith(
+				"scope: none of the 2 files changed is one the cards are drawn from",
+			);
+		} finally {
+			written.mockRestore();
+			told.mockRestore();
+		}
+	});
+
 	test("is written to the end of the file named, whatever the build prints", async () => {
 		const folder = await mkdtemp(join(tmpdir(), "scope-"));
 		try {
