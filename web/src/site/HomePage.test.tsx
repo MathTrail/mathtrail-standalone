@@ -273,9 +273,7 @@ describe("the home page", () => {
 
 		test("from a release, names it on every card MathTrail heads, as a chat does", () => {
 			const page = homeBuiltWith("v0.2.1");
-			const heads = [
-				...page.querySelectorAll(".mt-head:not(.mt-head-compact)"),
-			].filter(
+			const heads = [...page.querySelectorAll(".mt-head")].filter(
 				(head) => head.querySelector(".mt-name")?.textContent === "MathTrail",
 			);
 
@@ -420,18 +418,24 @@ describe("the home page", () => {
 		expect(statesIn(step(3))).not.toContain("C correct");
 	});
 
-	test("shows the wrong answer told, with its trap and the solution step by step, at the third", () => {
-		expect(statesIn(step(4))).toEqual([
-			"A muted",
-			"B wrong",
-			"C correct",
-			"D muted",
-			"E muted",
-		]);
+	test("shows the wrong answer gone over at the third: the card's ask in the chat, and the card of how it went, with its trap, the picture of the solution and the solution step by step", () => {
+		expect(step(4).querySelector(".s-message-adult")?.textContent).toBe(
+			"Go over the answer",
+		);
+		expect(step(4).querySelector(".mt-verdict-line")?.textContent).toBe(
+			"Not quite — it's 5, not 4.",
+		);
 		expect(step(4).querySelector(".mt-note-trap")?.textContent).toContain(
 			"Counted the gaps.",
 		);
+		expect(
+			step(4).querySelector(".mt-solution-picture svg.mt-picture"),
+		).not.toBeNull();
+		expect(step(4).querySelector(".mt-total")?.textContent).toBe(
+			"12 ÷ 3 + 1 = 5, not 4",
+		);
 		expect(step(4).querySelectorAll(".mt-steps li")).toHaveLength(3);
+		expect(statesIn(step(4))).toEqual([]);
 	});
 
 	test("puts the question the child asks once the answer is in under the card, as messages of the chat labelled an illustration", () => {
@@ -441,7 +445,7 @@ describe("the home page", () => {
 		);
 
 		expect(parts).toEqual(["s-message s-message-adult", "s-card", "s-chat"]);
-		expect(statesIn(step(5))).toContain("B wrong");
+		expect(step(5).querySelector(".mt-note-trap")).not.toBeNull();
 		expect(step(5).querySelector(".s-chat figcaption")?.textContent).toBe(
 			"An illustration",
 		);

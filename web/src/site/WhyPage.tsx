@@ -6,7 +6,7 @@ import { AdultAsks } from "./Chat";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { SourceChip } from "./SourceChip";
-import { StaticAnswer } from "./StaticCard";
+import { StaticResult } from "./StaticCard";
 import { gradesOfAll } from "./topics";
 import { answerOf, type Why } from "./why";
 import { App } from "./WhyApp";
@@ -97,6 +97,7 @@ function Hero({
 						picture={card.picture}
 						label={said.text(`picture.${card.picture.kind}`)}
 						locale={said.locale}
+						keyLabel={said.text("picture.colors")}
 					/>
 					<p class="s-chips">
 						<span class="s-chip s-chip-right">
@@ -163,7 +164,7 @@ function Thinking({ page, why }: { page: PageReader; why: Why }) {
 				</div>
 				<div class="s-panel s-lesson">
 					<figure class="s-hero-card">
-						<StaticAnswer
+						<StaticResult
 							handed={shown.handed}
 							result={shown.result}
 							locale={page.locale}

@@ -4,6 +4,7 @@ package picture
 // counters of one shape and fill, cut short where a count is long, with its
 // label before it and a value after it.
 type piles struct {
+	noWords
 	piles []pile
 }
 

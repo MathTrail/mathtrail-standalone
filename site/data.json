@@ -854,6 +854,13 @@
 				"span": "12"
 			},
 			"options": { "A": "3", "B": "4", "C": "5", "D": "6", "E": "12" },
+			"solution_picture": {
+				"kind": "row",
+				"items": [{}, {}, {}, {}, {}],
+				"gaps": "3",
+				"span": "12"
+			},
+			"solution_total": "12 ÷ 3 + 1 = 5",
 			"choice": "B",
 			"correct": "C",
 			"trap": "off_by_one",
@@ -983,6 +990,13 @@
 				"span": "12"
 			},
 			"options": { "A": "3", "B": "4", "C": "5", "D": "36", "E": "12" },
+			"solution_picture": {
+				"kind": "row",
+				"items": [{}, {}, {}, {}, {}],
+				"gaps": "3",
+				"span": "12"
+			},
+			"solution_total": "12 ÷ 3 + 1 = 5",
 			"correct": "C",
 			"traps": {
 				"A": "ignored_condition",

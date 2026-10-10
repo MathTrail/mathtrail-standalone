@@ -145,7 +145,7 @@ type Written struct {
 //
 // Nothing changes if the task cannot be sealed: a task on the card with its
 // answer in the open is worse than none.
-func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now time.Time) (*CurrentTask, error) {
+func (p *Profile) Issue(written *Written, secret *TaskSecret, sealer Sealer, now time.Time) (*CurrentTask, error) {
 	request := p.OpenRequest
 	if request == nil {
 		return nil, ErrNoRequest

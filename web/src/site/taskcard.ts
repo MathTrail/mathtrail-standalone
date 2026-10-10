@@ -13,15 +13,17 @@ import type { CatalogTrap } from "./traps";
 /**
  * CardFacts are a card of a task the site draws, as far as no language changes
  * it: the topic and the grade it is set in, its picture, its five options, the
- * option a child picks on it — a wrong one — and the right one, the catalog's
- * trap behind the option picked, and the rating in the topic before and after
- * the answer.
+ * picture of its solution and the equality under it, the option a child picks
+ * on it — a wrong one — and the right one, the catalog's trap behind the
+ * option picked, and the rating in the topic before and after the answer.
  */
 export type CardFacts = {
 	readonly topic: string;
 	readonly grade: number;
 	readonly picture: Picture;
 	readonly options: Readonly<Record<string, string>>;
+	readonly solution_picture: Picture;
+	readonly solution_total: string;
 	readonly choice: string;
 	readonly correct: string;
 	readonly trap: string;
@@ -192,6 +194,8 @@ export function answerOf(
 			rating: card.rating,
 			trial: null,
 			already_answered: false,
+			solution_picture: card.solution_picture,
+			solution_total: card.solution_total,
 		},
 		where,
 	);
@@ -214,6 +218,22 @@ export function recordedOf(
 	if (told.kind !== "answered") {
 		throw new Error(
 			`${where} holds no answer the widget can draw: its choice and its right option are letters A to E`,
+		);
+	}
+	if (
+		told.result.solution_picture === undefined &&
+		result.solution_picture !== undefined
+	) {
+		throw new Error(
+			`${where} has a picture of its solution the widget cannot draw`,
+		);
+	}
+	if (
+		told.result.solution_total === undefined &&
+		result.solution_total !== undefined
+	) {
+		throw new Error(
+			`${where} writes under the picture of its solution a total the widget does not read`,
 		);
 	}
 	return told.result;

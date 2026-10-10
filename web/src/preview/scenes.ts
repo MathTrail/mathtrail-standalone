@@ -1,7 +1,13 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
 import topics from "../../../content/catalogs/topics.json";
-import { kinds, type Picture } from "../design/picture/model";
+import {
+	type Colors,
+	type Flags,
+	kinds,
+	type Paint,
+	type Picture,
+} from "../design/picture/model";
 import { extremes } from "../design/picture/testing/extremes";
 import type { CallStage } from "../widget/bridge";
 import { cardWords } from "../widget/dictionaries";
@@ -21,18 +27,27 @@ import {
 	fenceSolution,
 	fenceSolutionInArabic,
 	fenceSolutionInRussian,
+	fenceSolutionRow,
+	fenceTotal,
 	firstRun,
 	firstRunRefused,
+	flagsPicture,
+	flagsSolution,
+	flagsSolutionPicture,
+	flagsTask,
+	flagsTotal,
 	type Handed,
 	inTrial,
 	limited,
 	longTexts,
 	moving,
 	notComing,
+	nothingShown,
 	profileRead,
 	profileRefused,
 	progress,
 	refused,
+	shown,
 	staleAnswer,
 	staleWait,
 	standing,
@@ -100,6 +115,84 @@ const fences: Readonly<Record<string, Fence>> = {
 	},
 };
 
+// longestTotal is an equality as long as the total under a picture of a
+// solution may be.
+const longestTotal = "(12 + 12 + 12 + 12) ÷ 12 + 1 = 5";
+
+// Flagged is the flags in one language: the task as it is handed to a card,
+// the trap behind 5, the solution, and the picture of the solution, its
+// colours called as the language calls them.
+type Flagged = {
+	handed: typeof flagsTask;
+	lost: string;
+	solution: string;
+	picture: Flags;
+};
+
+// colouredIn is a picture of flags with its colours called by the words of a
+// language.
+function colouredIn(picture: Flags, words: Colors): Flags {
+	const colors = Object.fromEntries(
+		Object.keys(picture.colors ?? {}).map((paint) => [
+			paint,
+			words[paint as Paint],
+		]),
+	);
+	return { ...picture, colors };
+}
+
+const flagsInEnglish: Flagged = {
+	handed: flagsTask,
+	lost: "One flag got lost while counting.",
+	solution: flagsSolution,
+	picture: flagsSolutionPicture,
+};
+
+// The flags in the languages they are written in; a card in any other
+// language is handed the English ones.
+const flaggedIn: Readonly<Record<string, Flagged>> = {
+	en: flagsInEnglish,
+	ru: flaggedAs(
+		"ru",
+		"Флажок из двух полос, одна над другой. Каждая полоса красная, синяя или жёлтая, и полосы разного цвета. Сколько разных флажков можно сделать?",
+		"Один флажок потерялся при переборе.",
+		"Пусть верхняя полоса красная: нижняя синяя или жёлтая, 2 флажка. Если сверху синяя, снизу красная или жёлтая: ещё 2. Если сверху жёлтая, снизу красная или синяя: ещё 2. Всего 2 + 2 + 2 = 6 флажков.",
+		{ red: "красная", blue: "синяя", yellow: "жёлтая" },
+	),
+	ar: flaggedAs(
+		"ar",
+		"علم من شريطين، أحدهما فوق الآخر. كل شريط أحمر أو أزرق أو أصفر، والشريطان من لونين مختلفين. كم علمًا مختلفًا يمكن صنعه؟",
+		"ضاع علم أثناء العد.",
+		"ليكن الشريط العلوي أحمر: السفلي أزرق أو أصفر، علمان. إذا كان الأزرق في الأعلى فالسفلي أحمر أو أصفر: علمان آخران. إذا كان الأصفر في الأعلى فالسفلي أحمر أو أزرق: علمان آخران. المجموع 2 + 2 + 2 = 6 أعلام.",
+		{ red: "أحمر", blue: "أزرق", yellow: "أصفر" },
+	),
+};
+
+// flaggedAs is the flags written in a language: the question, the trap behind
+// 5, the solution and the words of the three colours.
+function flaggedAs(
+	language: string,
+	question: string,
+	lost: string,
+	solution: string,
+	words: Colors,
+): Flagged {
+	return {
+		handed: {
+			...flagsTask,
+			task: {
+				...flagsTask.task,
+				language,
+				question,
+				picture: colouredIn(flagsPicture, words),
+			},
+		},
+		lost,
+		solution,
+		picture: colouredIn(flagsSolutionPicture, words),
+	};
+}
+
 // A reply that never comes, for a card caught while it waits for one: an
 // answer being checked, a form being saved, a progress being read.
 const never = new Promise<CallToolResult>(() => {});
@@ -141,15 +234,37 @@ export function scenesIn(language: string): Scene[] {
 	// offering is the task once the trial series is over, with the choice of
 	// the topic it offers.
 	const offering = withTopicChoice(handed);
+	// flagged is how the flags went in the card's language: the wrong 5 unless
+	// fields say otherwise, with every flag drawn in the picture of the
+	// solution.
+	const flags = flaggedIn[language] ?? flagsInEnglish;
+	const flagged = (fields: Partial<AnswerResult> = {}) =>
+		shown(flags.handed, {
+			choice: "C",
+			correct_answer: "D",
+			trap: { id: "missed_case", text: flags.lost, repeated: false },
+			solution: flags.solution,
+			solution_picture: flags.picture,
+			solution_total: flagsTotal,
+			rating: { before: 1430, after: 1412 },
+			...fields,
+		});
+	// told is the card of how an answer to the fence went, in the card's
+	// language: the wrong B unless fields say otherwise, and with the choice of
+	// the topic once the trial series is over.
+	const told = (fields: Partial<AnswerResult> = {}) =>
+		shown(
+			handed,
+			{
+				trap: { id: "fence_gaps", text: words.gaps, repeated: false },
+				solution: words.solution,
+				...fields,
+			},
+			fields.trial ? undefined : {},
+		);
 	return [
 		{ name: "task", payload: handed },
 		{ name: "task after the trial series", payload: offering },
-		{
-			name: "wrong after the trial series",
-			payload: offering,
-			answers: service(),
-			play: option("B"),
-		},
 		// The hint opened once the trial series is over; and the progress with
 		// its review alone open, a card short enough to take in at once.
 		{
@@ -218,17 +333,18 @@ export function scenesIn(language: string): Scene[] {
 			play: option("B"),
 		},
 		{ name: "hint", payload: handed, play: button(0) },
-		{ name: "wrong", payload: handed, answers: service(), play: option("B") },
+		// The task's card once its answer is in: the options marked, and the
+		// chat asked to go over the answer, whose card comes below; an answer
+		// given before, which the card offers to go over rather than asking;
+		// and an ask the chat did not take, offered again.
 		{
-			name: "wrong, a mistake made before",
+			name: "answered, the review asked for",
 			payload: handed,
-			answers: service({
-				trap: { id: "fence_gaps", text: words.gaps, repeated: true },
-			}),
+			answers: service(),
 			play: option("B"),
 		},
 		{
-			name: "right",
+			name: "answered right, the review asked for",
 			payload: handed,
 			answers: service({
 				choice: "C",
@@ -239,36 +355,20 @@ export function scenesIn(language: string): Scene[] {
 			play: option("C"),
 		},
 		{
-			name: "I don't know, said in the chat",
-			payload: handed,
-			answers: service({
-				choice: "?",
-				trap: null,
-				rating: { before: 1502, after: 1488 },
-				already_answered: true,
-			}),
-			play: option("B"),
-		},
-		{
-			name: "trial series, 3 of 5",
-			payload: handed,
-			answers: service({ rating: null, trial: { answered: 3, of: 5 } }),
-			play: option("B"),
-		},
-		{
-			name: "trial series, 5 of 5",
-			payload: handed,
-			answers: service({ rating: null, trial: { answered: 5, of: 5 } }),
-			play: option("B"),
-		},
-		{
-			name: "answered before, with D",
+			name: "answered before, the review to ask for",
 			payload: handed,
 			answers: service({
 				choice: "D",
 				trap: { id: "fence_ends", text: words.ends, repeated: false },
 				already_answered: true,
 			}),
+			play: option("B"),
+		},
+		{
+			name: "answered, the review not sent",
+			payload: handed,
+			answers: service(),
+			refuseMessages: true,
 			play: option("B"),
 		},
 		{
@@ -286,6 +386,145 @@ export function scenesIn(language: string): Scene[] {
 		{
 			name: "handed out again",
 			payload: { ...handed, status: "stale", code: "stale_request" },
+		},
+		// The card of how an answer went, drawn by the model's call below the
+		// task's card: each way an answer goes, the choice of the topic and the
+		// next task it offers once the trial series is over, the topic's page,
+		// and a card with nothing to show.
+		{ name: "result card, wrong", payload: told() },
+		{
+			name: "result card, wrong, a mistake made before",
+			payload: told({
+				trap: { id: "fence_gaps", text: words.gaps, repeated: true },
+			}),
+		},
+		{
+			name: "result card, right",
+			payload: told({
+				choice: "C",
+				correct: true,
+				trap: null,
+				rating: { before: 1502, after: 1519 },
+			}),
+		},
+		{
+			name: "result card, I don't know",
+			payload: told({
+				choice: "?",
+				trap: null,
+				rating: { before: 1502, after: 1488 },
+			}),
+		},
+		// The picture of the solution, the equality it comes to under it: after
+		// a wrong option, which adds the option it was not, and after the right
+		// one.
+		{
+			name: "result card, the picture of the solution, wrong",
+			payload: told({
+				solution_picture: fenceSolutionRow,
+				solution_total: fenceTotal,
+			}),
+		},
+		{
+			name: "result card, the picture of the solution, right",
+			payload: told({
+				choice: "C",
+				correct: true,
+				trap: null,
+				rating: { before: 1502, after: 1519 },
+				solution_picture: fenceSolutionRow,
+				solution_total: fenceTotal,
+			}),
+		},
+		// A task whose pictures paint: its card, with the key of its colours
+		// under its picture, and how it went, every flag drawn.
+		{ name: "task, a picture that paints", payload: flags.handed },
+		{
+			name: "result card, the picture of the solution that paints, wrong",
+			payload: flagged(),
+		},
+		{
+			name: "result card, the picture of the solution that paints, right",
+			payload: flagged({
+				choice: "D",
+				correct: true,
+				trap: null,
+				rating: { before: 1430, after: 1446 },
+			}),
+		},
+		{
+			name: "result card, trial series 3 of 5",
+			payload: told({ rating: null, trial: { answered: 3, of: 5 } }),
+		},
+		{
+			name: "result card, trial series 5 of 5",
+			payload: told({ rating: null, trial: { answered: 5, of: 5 } }),
+		},
+		{
+			name: "result card, the topic choice open",
+			payload: told(),
+			play: inThePanel(),
+		},
+		{
+			name: "result card, another task asked, the card done with",
+			payload: told(),
+			play: button(0),
+		},
+		{
+			name: "result card, another task not sent",
+			payload: told(),
+			refuseMessages: true,
+			play: button(0),
+		},
+		{
+			name: "result card, a chat that opens no links",
+			payload: told(),
+			links: "none",
+		},
+		{
+			name: "result card, a topic page the chat did not open",
+			payload: told(),
+			links: "refuse",
+			play: linkPressed("gaps-and-boundaries"),
+		},
+		{
+			name: "result card, no answer yet",
+			payload: nothingShown(handed, "not_answered"),
+		},
+		{
+			name: "result card, the task left the card",
+			payload: nothingShown(handed, "stale_task"),
+		},
+		{
+			name: "result card, an answer whose telling is lost",
+			payload: nothingShown(handed, "told_no_more"),
+		},
+		// Every text of the card at its longest: the pseudonym, the options the
+		// verdict names, the trap, the equality under the picture of the
+		// solution, the option it was not after it, a step of a word with no
+		// place to break, the topic whose name is the longest in the card's
+		// language, and a rating of four digits.
+		{
+			name: "result card, long texts",
+			payload: shown(
+				{
+					...longTexts,
+					task: { ...longTexts.task, topic: longestTopicIn(language) },
+				},
+				{
+					choice: "B",
+					trap: {
+						id: "fence_gaps",
+						text: "A trap explained at length, ".repeat(12).trim(),
+						repeated: true,
+					},
+					solution: `Supercalifragilisticexpialidociousandthensomemore. ${"A step of the solution that goes on and on. ".repeat(6).trim()}`,
+					solution_picture: fenceSolutionRow,
+					solution_total: longestTotal,
+					rating: { before: 2048, after: 1999 },
+				},
+				{ chosen: longestTopicIn(language) },
+			),
 		},
 		{ name: "progress", payload: handed, answers: service(), play: topLine },
 		// The progress opened over a task and still being read: the outline of
@@ -307,12 +546,7 @@ export function scenesIn(language: string): Scene[] {
 			payload: handed,
 			play: button(1),
 		},
-		{
-			name: "another task asked once the answer is in, the card done with",
-			payload: handed,
-			answers: service(),
-			play: inTurn(option("B"), onceAnswered(button(0))),
-		},
+
 		{
 			name: "another task, the ask not sent",
 			payload: handed,
@@ -1046,23 +1280,6 @@ function inTurn(...steps: ((card: Document) => void)[]) {
 		steps.forEach((step, at) => {
 			setTimeout(() => step(card), (at + 1) * 100);
 		});
-	};
-}
-
-// onceAnswered does step once the card shows the result of the answer pressed
-// before it, which the service sends back a moment later, and the buttons
-// under the task with it. It gives up after ten seconds, the scene left as
-// the answer leaves it.
-function onceAnswered(step: (card: Document) => void) {
-	return (card: Document) => {
-		const tried = (left: number) => {
-			if (card.querySelector(".mt-verdict-line") !== null) {
-				step(card);
-			} else if (left > 0) {
-				setTimeout(() => tried(left - 1), 50);
-			}
-		};
-		tried(200);
 	};
 }
 

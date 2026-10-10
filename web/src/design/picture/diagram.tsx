@@ -1,11 +1,14 @@
+import type { Said } from "../controls";
 import { drawBalance } from "./balance";
 import { drawBars } from "./bars";
 import { drawCalendar } from "./calendar";
 import { drawClock } from "./clock";
 import { drawContainers } from "./containers";
+import { drawFlags } from "./flags";
 import { drawGrid } from "./grid";
 import type { Kind, Picture } from "./model";
 import { drawNumberLine } from "./numberline";
+import { type Painted, paintedOf } from "./paint";
 import { drawPiles } from "./piles";
 import { drawRing } from "./ring";
 import { drawRow } from "./row";
@@ -41,6 +44,7 @@ const drawings: { [K in Kind]: Drawing<K> } = {
 	containers: drawContainers,
 	piles: drawPiles,
 	calendar: drawCalendar,
+	flags: drawFlags,
 };
 
 /**
@@ -75,21 +79,66 @@ function drawnOf(picture: Picture, locale: string): Drawn | undefined {
  * label, laid out left to right in every language, and no wider than its own
  * size or the card, whichever is narrower — it shrinks to fit and never
  * scrolls. The words of a task carry every fact its picture shows.
+ *
+ * A picture that paints has its key under it: each colour's paint with its
+ * letters, beside the word the lesson calls it by, written as the task's
+ * words are said and listed under keyLabel for a screen reader.
  */
 export function Diagram({
 	picture,
 	label,
 	locale,
+	keyLabel,
+	said,
 }: {
 	picture: Picture;
 	label: string;
 	locale: string;
+	keyLabel?: string | undefined;
+	said?: Said | undefined;
 }) {
 	const drawn = drawnOf(picture, locale);
 	if (drawn === undefined) {
 		return null;
 	}
-	return <PictureFrame drawn={drawn} label={label} />;
+	const painted = "colors" in picture ? paintedOf(picture.colors, locale) : [];
+	if (painted.length === 0) {
+		return <PictureFrame drawn={drawn} label={label} />;
+	}
+	return (
+		<div class="mt-picture-keyed">
+			<PictureFrame drawn={drawn} label={label} />
+			<PictureKey painted={painted} label={keyLabel} said={said} />
+		</div>
+	);
+}
+
+// PictureKey is the key under a picture that paints: each colour's paint,
+// with the letters it carries in the picture, beside its word.
+function PictureKey({
+	painted,
+	label,
+	said,
+}: {
+	painted: readonly Painted[];
+	label: string | undefined;
+	said: Said | undefined;
+}) {
+	return (
+		<ul class="mt-pic-key" aria-label={label} lang={said?.lang} dir={said?.dir}>
+			{painted.map(({ paint, word, letters }) => (
+				<li key={paint}>
+					<span
+						class={`mt-pic-swatch mt-paint mt-paint-${paint}`}
+						aria-hidden="true"
+					>
+						<span class={`mt-paint-ink mt-paint-ink-${paint}`}>{letters}</span>
+					</span>
+					<span>{word}</span>
+				</li>
+			))}
+		</ul>
+	);
 }
 
 /**

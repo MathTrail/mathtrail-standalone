@@ -133,7 +133,10 @@ function outOfTheCard(element: HTMLElement, edges: DOMRect): Finding[] {
 // downwards, where the box does not scroll: cut short where the box ends it
 // with an ellipsis, spilling over what is around it otherwise.
 function outOfItsBox(element: HTMLElement): Finding[] {
-	if (element.clientWidth === 0) {
+	// A part of a picture has no box its words could run out of: a word's own
+	// box is its font's, which a mark above a Thai letter runs past, and where
+	// the words of a picture stand is what the picture's findings measure.
+	if (element.clientWidth === 0 || element instanceof SVGElement) {
 		return [];
 	}
 	const style = getComputedStyle(element);

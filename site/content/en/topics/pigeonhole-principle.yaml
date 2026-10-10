@@ -17,27 +17,35 @@ hero:
     than the lucky one.
   method: Play the worst luck through, then add one
   teaches: To prove that something must happen, not just that it can
-  # Its drawing is the site's data: five pigeons in four holes, one of which
-  # holds two.
+  # The words of its drawing: the pigeons and the cages over it, and what the
+  # seating always comes to.
+  art:
+    line: Five pigeons, four holes
+    seat: seat them as you like
+    two: two
+    always: however they sit, some hole holds two
 
 basis:
   title: The rules of the worst case
   cards:
-    - mark: "●●"
-      title: More pigeons than holes
+    - title: More pigeons than holes
       text: >-
         If there are more pigeons than holes, some hole holds at least two.
         Spread them as evenly as you like: one is always left over.
-    - mark: "?"
-      title: To be sure
+    - title: To be sure
       text: >-
         “To be sure” means whatever comes out of the bag. So imagine everything
         going as badly as it can, and see how far bad luck can go.
-    - mark: "+1"
-      title: One more settles it
+      art:
+        luck: good luck
+        not-counted: does not count
+        bad-luck: bad luck
+    - title: One more settles it
       text: >-
         When bad luck has run out, every colour drawn once and every hole
         filled once, the next one is bound to give what you want.
+      art:
+        eighth: one for each day; the eighth makes a pair
 
 idea:
   title: The worst luck, then one more
@@ -75,6 +83,10 @@ method:
     - Find the holes and the pigeons
     - Play the worst luck to the end
     - Add one, and check that it settles it
+  # The key under the steps: what the drawings' bracket and ring mean.
+  legend:
+    bad-luck: bad luck
+    decides: the one more that settles it
 
 examples:
   - title: Sweets in a jar
@@ -88,6 +100,12 @@ examples:
         left in the jar.
       - "The 9th sweet is bound to be orange: 8 + 1 = 9."
     answer: 9 sweets.
+    art:
+      lemon: lemon, 8
+      orange: orange, 2
+      unlucky: unlucky
+      all-lemons: all 8 lemon
+      lemons: 8 lemon
   - title: Two black socks
     question: >-
       A drawer holds 8 black socks, 6 white ones and 2 striped ones, all mixed
@@ -109,13 +127,19 @@ examples:
       text: >-
         After all 6 white and 2 striped socks, bad luck has one more turn: a
         single black sock. Two black ones are only sure with the 10th.
+    art:
+      black: black, 8
+      white: white, 6
+      striped: striped, 2
+      no-black: 8 with no black
+      not-black: 8 not black
+      one: one
+      only-one: 9 socks, and only one black
   - title: Sums in a grid
     question: >-
       Each cell of a 2 by 2 grid holds 1, 2 or 3. Add up the two numbers of
       each row, each column and each diagonal. Is it true that two of these six
       sums are always equal?
-    # Its drawing is the site's data: one way to fill the grid, to show what the
-    # sums are taken over.
     steps:
       - >-
         Count the holes: a sum of two numbers from 1, 2 and 3 is one of 2, 3,
@@ -125,12 +149,23 @@ examples:
         Six sums and only five values: two of the sums must be equal, whatever
         the numbers in the grid.
     answer: Yes, always.
+    badge: "Yes"
     note:
       title: The holes are not always boxes
       text: >-
         Here the holes are the values a sum can take, and the pigeons are the
         lines of the grid. The art of these tasks is seeing what plays the
         holes.
+    art:
+      example: "for instance: 1, 2 or 3 in each cell"
+      cages: 5 holes, the sums there can be
+      row: row
+      column: col.
+      diagonal: diag.
+      pigeons: 6 sums, 6 pigeons
+      two: "6 pigeons in 5 holes: some hole holds two"
+      cages-name: holes
+      pigeons-name: pigeons
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -139,16 +174,23 @@ traps:
       The child counts on luck: “If the first two socks are black, two are
       enough.” The question says “to be sure”, and luck is what it rules out.
     say: “And if you are as unlucky as can be?”
+    art:
+      question: Two black ones, to be sure
   ignored_condition:
     shows: >-
       One word of the question gets lost: “two black socks” is read as “two
       socks of one colour”, or “one of each colour” as “one colour”.
     say: “Read the question again. What exactly must you be sure of?”
+    art:
+      question: "Wanted: two **black** socks"
+      black-pair: a pair that is black
   off_by_one:
     shows: >-
       The child plays the worst luck through and stops there, forgetting the
       one more that settles it, or adds one too many.
     say: “After the worst luck, what does the next one give?”
+    art:
+      question: 8 lemon and 2 orange
 
 home:
   - title: Socks in the dark

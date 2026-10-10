@@ -125,6 +125,20 @@
   --mark-dark: block;
 }
 :root {
+  /* The palette a picture paints with, the same in every theme, as the colour
+     of a flag is, and the ink each paint's letters are written in. */
+  --paint-red: #cc3430;
+  --paint-red-ink: #ffffff;
+  --paint-yellow: #f0c630;
+  --paint-yellow-ink: #1f1e1b;
+  --paint-green: #218041;
+  --paint-green-ink: #ffffff;
+  --paint-blue: #186bc5;
+  --paint-blue-ink: #ffffff;
+  --paint-white: #ffffff;
+  --paint-white-ink: #1f1e1b;
+  --paint-black: #262322;
+  --paint-black-ink: #ffffff;
   --space-4: 4px;
   --space-8: 8px;
   --space-12: 12px;

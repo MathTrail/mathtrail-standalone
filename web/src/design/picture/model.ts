@@ -1,5 +1,5 @@
 /**
- * The format of a task's picture, as the card draws it: one of twelve kinds,
+ * The format of a task's picture, as the card draws it: one of thirteen kinds,
  * each with the members of its kind and no other. The service holds every
  * picture to the format before it hands it out, so what reaches a drawing is
  * a description it can draw; the reader in widget/picture.ts holds it to the
@@ -23,6 +23,7 @@ export const kinds = [
 	"containers",
 	"piles",
 	"calendar",
+	"flags",
 ] as const;
 
 /** Kind is what a picture draws. */
@@ -228,6 +229,45 @@ export type Calendar = {
 	marks?: Record<string, string> | undefined;
 };
 
+/** paints are the colours of the palette, in the order the format lists them. */
+export const paints = [
+	"red",
+	"yellow",
+	"green",
+	"blue",
+	"white",
+	"black",
+] as const;
+
+/** Paint is a colour of the palette a picture paints with. */
+export type Paint = (typeof paints)[number];
+
+/**
+ * Colors are the colours a picture paints with, each with the word the lesson
+ * calls it by, which the card writes beside its paint under the picture.
+ */
+export type Colors = Partial<Record<Paint, string>>;
+
+/** Stripe is a stripe of a flag: a colour, or ? where its colour is the unknown. */
+export type Stripe = Paint | "?";
+
+/**
+ * FlagGroup is a group of flags, each flag its stripes from top to bottom,
+ * and what names the group under it: a label, or a colour.
+ */
+export type FlagGroup = {
+	label?: string | undefined;
+	color?: Paint | undefined;
+	flags: Stripe[][];
+};
+
+/** Flags is flags in groups, painted with the colours its colors name. */
+export type Flags = {
+	kind: "flags";
+	colors?: Colors | undefined;
+	groups: FlagGroup[];
+};
+
 /** Picture is a description of a task's picture, of one of the kinds. */
 export type Picture =
 	| Clock
@@ -241,4 +281,5 @@ export type Picture =
 	| Balance
 	| Containers
 	| Piles
-	| Calendar;
+	| Calendar
+	| Flags;

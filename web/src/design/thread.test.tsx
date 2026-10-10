@@ -3,7 +3,7 @@ import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { Icon, Mark } from "./icons";
 import { drawingAlone, drawingOf, drawnAlone } from "./testing/drawing";
-import { MessageHeader, NameBar, ReplyCard, ThreadBar } from "./thread";
+import { MessageHeader, NameBar, ThreadBar } from "./thread";
 
 const root = document.createElement("div");
 
@@ -132,55 +132,27 @@ describe("a header", () => {
 		expect(root.querySelector(".mt-head-versioned")).toBeNull();
 	});
 
-	test.each([
-		["full", false, 32, 32],
-		["compact", true, 28, 24],
-	])(
-		"says who speaks: MathTrail by its logo, the child by the avatar, in a %s header",
-		(_, compact, logo, avatar) => {
-			draw(
-				<>
-					<MessageHeader author="app" name="MathTrail" compact={compact} />
-					<MessageHeader author="person" name="Comet" compact={compact} />
-				</>,
-			);
+	test("says who speaks: MathTrail by its logo, the child by the avatar", () => {
+		draw(
+			<>
+				<MessageHeader author="app" name="MathTrail" />
+				<MessageHeader author="person" name="Comet" />
+			</>,
+		);
 
-			const [app, person] = [...root.querySelectorAll(".mt-head")].map((head) =>
-				head.querySelector("svg"),
-			);
-			expect(drawingOf(app ?? null)).toEqual(
-				drawingAlone(<Mark size={logo} />),
-			);
-			expect(person?.outerHTML).toBe(
-				drawnAlone(<Icon name="avatar" size={avatar} />),
-			);
-		},
-	);
+		const [app, person] = [...root.querySelectorAll(".mt-head")].map((head) =>
+			head.querySelector("svg"),
+		);
+		expect(drawingOf(app ?? null)).toEqual(drawingAlone(<Mark size={32} />));
+		expect(person?.outerHTML).toBe(
+			drawnAlone(<Icon name="avatar" size={32} />),
+		);
+	});
 
 	test("has no button that opens nothing", () => {
 		draw(<MessageHeader name="MathTrail" badge="Olympiad coach · Grade 3" />);
 
 		expect(root.querySelector("button")).toBeNull();
 		expect(root.querySelector("[aria-haspopup]")).toBeNull();
-	});
-});
-
-describe("a reply", () => {
-	test("is MathTrail's, headed compactly, with nothing noted beside the name", () => {
-		draw(
-			<ReplyCard name="MathTrail">
-				<p>Here's how to solve it.</p>
-			</ReplyCard>,
-		);
-
-		const reply = root.querySelector("article.mt-reply");
-		expect(reply?.querySelector(".mt-head")?.className).toBe(
-			"mt-head mt-head-compact",
-		);
-		expect(reply?.querySelector(".mt-name")?.textContent).toBe("MathTrail");
-		expect(reply?.querySelector(".mt-reply-body")?.textContent).toBe(
-			"Here's how to solve it.",
-		);
-		expect(root.querySelector(".mt-meta")).toBeNull();
 	});
 });

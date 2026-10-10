@@ -20,16 +20,16 @@ import {
  * homeFile is the shape of what the home page takes from the site's data, as
  * far as no language changes it. The card of its lesson: the topic and the
  * grade its task is set in, its picture — which holds no words, and reads
- * alike in every language — its five options and the right one, the catalog's trap
- * behind each wrong option, the wrong option the lesson's steps pick, and the
- * rating in the topic before an answer, after a wrong one and after a right
- * one. The three traps it names as examples of what a wrong option is tied
- * to. How the card's task was picked: the child's topics, each with how far
- * the child has come in it, the chance of a right answer and the corridor the
- * rule keeps that chance in. The options of the task a chat writes alone, and
- * those of them that are right, more than one. The languages a task can be
- * written in, a few of many. And the topic whose bases show what builds on
- * what.
+ * alike in every language — its five options and the right one, the picture
+ * of its solution and the equality under it, the catalog's trap behind each
+ * wrong option, the wrong option the lesson's steps pick, and the rating in
+ * the topic before an answer, after a wrong one and after a right one. The
+ * three traps it names as examples of what a wrong option is tied to. How the
+ * card's task was picked: the child's topics, each with how far the child has
+ * come in it, the chance of a right answer and the corridor the rule keeps
+ * that chance in. The options of the task a chat writes alone, and those of
+ * them that are right, more than one. The languages a task can be written in,
+ * a few of many. And the topic whose bases show what builds on what.
  */
 export const homeFile = z.object({
 	card: z.object({
@@ -37,6 +37,8 @@ export const homeFile = z.object({
 		grade: z.number().int(),
 		picture: pictureFormat,
 		options: z.record(z.string(), z.string()),
+		solution_picture: pictureFormat,
+		solution_total: z.string(),
 		correct: z.string(),
 		traps: z.record(z.string(), z.string()),
 		choice: z.custom<Letter>(
@@ -347,6 +349,8 @@ export function homeResultsOf(card: HomeCard, said: HomeWords): HomeResults {
 				},
 				trial: null,
 				already_answered: false,
+				solution_picture: card.solution_picture,
+				solution_total: card.solution_total,
 			},
 			homeCard,
 		);
@@ -389,6 +393,8 @@ function factsOf(card: HomeCard): CardFacts {
 		grade: card.grade,
 		picture: card.picture,
 		options: card.options,
+		solution_picture: card.solution_picture,
+		solution_total: card.solution_total,
 		choice: card.choice,
 		correct: card.correct,
 		trap: card.traps[card.choice] ?? "",

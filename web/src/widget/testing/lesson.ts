@@ -93,6 +93,21 @@ export function withTopicChoice(
 export const fenceSolution =
 	"12 ÷ 3 = 4 gaps. A straight fence with posts at both ends has one more post than gaps. 4 + 1 = 5 posts.";
 
+/**
+ * fenceSolutionRow is the picture of the fence's solution: all five posts, 3
+ * meters apart along 12, the row its task's picture cuts short drawn whole, so
+ * that the count the solution comes to is there to be read off it.
+ */
+export const fenceSolutionRow = {
+	kind: "row",
+	items: [{}, {}, {}, {}, {}],
+	gaps: "3",
+	span: "12",
+} satisfies Picture;
+
+/** fenceTotal is the equality the fence's solution comes to. */
+export const fenceTotal = "12 ÷ 3 + 1 = 5";
+
 /** fenceSolutionInRussian is the Russian one. */
 export const fenceSolutionInRussian =
 	"12 : 3 = 4 промежутка. У прямого забора со столбами на обоих концах столбов на один больше, чем промежутков. 4 + 1 = 5 столбов.";
@@ -117,13 +132,78 @@ export const fenceInArabic: Handed = {
 export const fenceSolutionInArabic =
 	"12 ÷ 3 = 4 مسافات. في السياج المستقيم الذي تقف أعمدته عند طرفيه يزيد عدد الأعمدة على عدد المسافات بواحد. 4 + 1 = 5 أعمدة.";
 
+/** flagsPicture is the flags' picture: one flag, in two of the colours the question names. */
+export const flagsPicture = {
+	kind: "flags",
+	colors: { red: "red", blue: "blue" },
+	groups: [{ flags: [["red", "blue"]] }],
+} satisfies Picture;
+
 /**
- * answered is the result of an answer to the fence the service recorded: by
+ * flagsTask is a task whose pictures paint — flags of two stripes in three
+ * colours — as the service hands it to a child's card in English, its
+ * picture flagsPicture.
+ */
+export const flagsTask: Handed = {
+	...fence,
+	task: {
+		id: "task_flags",
+		topic: "combinatorics.enumeration",
+		language: "en",
+		question:
+			"A flag has two stripes, one above the other. Each stripe is red, blue or yellow, and the two stripes are of different colours. How many different flags can be made?",
+		picture: flagsPicture,
+		options: { A: "3", B: "4", C: "5", D: "6", E: "9" },
+		hint: "Pick the top stripe first. How many colours are left for the bottom one?",
+	},
+};
+
+/** flagsSolution is the solution of the flags, a step to each top stripe. */
+export const flagsSolution =
+	"Let the top stripe be red: the bottom one is blue or yellow, 2 flags. With blue on top, the bottom one is red or yellow: 2 more. With yellow on top, the bottom one is red or blue: 2 more. In all, 2 + 2 + 2 = 6 flags.";
+
+/**
+ * flagsSolutionPicture is the picture of the flags' solution: every flag,
+ * gathered by its top stripe, each group named by that stripe's colour.
+ */
+export const flagsSolutionPicture = {
+	kind: "flags",
+	colors: { red: "red", blue: "blue", yellow: "yellow" },
+	groups: [
+		{
+			color: "red",
+			flags: [
+				["red", "blue"],
+				["red", "yellow"],
+			],
+		},
+		{
+			color: "blue",
+			flags: [
+				["blue", "red"],
+				["blue", "yellow"],
+			],
+		},
+		{
+			color: "yellow",
+			flags: [
+				["yellow", "red"],
+				["yellow", "blue"],
+			],
+		},
+	],
+} satisfies Picture;
+
+/** flagsTotal is the equality the flags' solution comes to. */
+export const flagsTotal = "2 + 2 + 2 = 6";
+
+/**
+ * resultOf is how an answer to the fence went, as the service tells it: by
  * default the wrong B, whose trap is counting the gaps, with the rating in the
  * topic going down. Fields given replace the default ones.
  */
-export function answered(fields: Partial<AnswerResult> = {}): CallToolResult {
-	const result: AnswerResult = {
+export function resultOf(fields: Partial<AnswerResult> = {}): AnswerResult {
+	return {
 		task_id: fence.task.id,
 		topic: fence.task.topic,
 		choice: "B",
@@ -141,6 +221,14 @@ export function answered(fields: Partial<AnswerResult> = {}): CallToolResult {
 		already_answered: false,
 		...fields,
 	};
+}
+
+/**
+ * answered is the result of an answer to the fence the service recorded, as
+ * the card that sent it is told: resultOf the fields given.
+ */
+export function answered(fields: Partial<AnswerResult> = {}): CallToolResult {
+	const result = resultOf(fields);
 	return toolResult({
 		screen: "result",
 		last_answer: {
@@ -150,6 +238,59 @@ export function answered(fields: Partial<AnswerResult> = {}): CallToolResult {
 		},
 		result,
 	});
+}
+
+/**
+ * shown is the card of how an answer to the task handed went, as show_result
+ * draws it: whose card it is, the task as it names it in its language, with
+ * its topic's page on the site published, how the answer went — resultOf the
+ * fields given — and, given offered, the choice of the topic the trial series
+ * over offers, with offered replacing its own fields.
+ */
+export function shown(
+	handed: Handed,
+	fields: Partial<AnswerResult> = {},
+	offered?: Partial<TopicChoice>,
+): object {
+	const { task } = handed;
+	return {
+		screen: "result",
+		last_answer: { task_id: task.id, topic: task.topic, correct: false },
+		child: handed.child,
+		language: task.language,
+		task: {
+			id: task.id,
+			topic: task.topic,
+			language: task.language,
+			options: task.options,
+			slug: "gaps-and-boundaries",
+			site_page: true,
+		},
+		result: resultOf({ task_id: task.id, topic: task.topic, ...fields }),
+		...(offered === undefined
+			? {}
+			: { topic_choice: { ...offeredChoice, ...offered } }),
+		site: { url: "https://mathtrail.app", languages: ["en", "ru"] },
+	};
+}
+
+/**
+ * nothingShown is the card of how an answer went with nothing to show, as
+ * show_result draws it for the task handed: the task has no answer yet, is no
+ * longer on the card, or has its answer recorded with its seal lost.
+ */
+export function nothingShown(
+	handed: Handed,
+	code: "not_answered" | "stale_task" | "told_no_more",
+): object {
+	return {
+		screen: "result",
+		status: code === "not_answered" ? "rejected" : "stale",
+		code,
+		last_answer: null,
+		child: handed.child,
+		language: handed.task.language,
+	};
 }
 
 /**

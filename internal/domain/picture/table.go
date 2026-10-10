@@ -5,6 +5,7 @@ import "fmt"
 // table is a table of cells: a header row, if it has one, and its rows. A
 // cell is a label, a time, an ellipsis for the cells left out, or nothing.
 type table struct {
+	noWords
 	cells []string
 }
 

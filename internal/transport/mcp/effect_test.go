@@ -112,7 +112,8 @@ func raceOnCard(t *testing.T, d *overDrive) string {
 }
 
 // readsChangeNothing calls every tool that says it only reads, about the
-// request given, and holds each to having asked Drive for no change.
+// request given and the task on the card, and holds each to having asked
+// Drive for no change.
 func readsChangeNothing(t *testing.T, fake *drivetest.Drive, d *overDrive, request string) {
 	t.Helper()
 
@@ -125,6 +126,7 @@ func readsChangeNothing(t *testing.T, fake *drivetest.Drive, d *overDrive, reque
 		{"read_progress", map[string]any{}},
 		{"get_package", map[string]any{"request_id": request}},
 		{"read_task", map[string]any{"request_id": request}},
+		{"show_result", map[string]any{"task_id": taskOnTheCard(t, d)}},
 	} {
 		fake.ResetCalls()
 		call(t, d.session, read.tool, read.args)
@@ -134,6 +136,18 @@ func readsChangeNothing(t *testing.T, fake *drivetest.Drive, d *overDrive, reque
 			}
 		}
 	}
+}
+
+// taskOnTheCard is the id of the task on the child's card as the store holds
+// it, or one no card holds when there is none, or no profile.
+func taskOnTheCard(t *testing.T, d *overDrive) string {
+	t.Helper()
+
+	p, _, err := d.kept.Load(t.Context(), parent)
+	if err != nil || p.CurrentTask == nil {
+		return "tsk_none"
+	}
+	return p.CurrentTask.ID
 }
 
 // A tool that says it only reads changes nothing in the parent's Drive,
@@ -160,6 +174,11 @@ func TestAToolThatReadsChangesNothing(t *testing.T) {
 		{"a task on the card", func(t *testing.T, _ *drivetest.Drive, d *overDrive) string {
 			setUp(t, d)
 			raceOnCard(t, d)
+			return "req_none"
+		}},
+		{"a task answered on the card", func(t *testing.T, _ *drivetest.Drive, d *overDrive) string {
+			setUp(t, d)
+			answerIt(t, d.session, raceOnCard(t, d), "A", false)
 			return "req_none"
 		}},
 		{"a profile in the bin", func(t *testing.T, fake *drivetest.Drive, d *overDrive) string {

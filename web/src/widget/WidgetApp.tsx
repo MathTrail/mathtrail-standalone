@@ -11,6 +11,7 @@ import { ProfileCard } from "./ProfileScreen";
 import { ProgressOverCard } from "./ProgressOverCard";
 import { ProgressCard } from "./ProgressScreen";
 import { readScreen } from "./payload";
+import { ResultCard } from "./ResultCard";
 import { ServiceContext } from "./service";
 import { TaskCard } from "./TaskCard";
 import { UnreadableCard } from "./UnreadableCard";
@@ -66,9 +67,9 @@ export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 }
 
 // Screen is the card a payload draws: a task handed to the child, a new card
-// for each task; a task on its way, a new card for each request; a card a task
-// did not come to, a new one for each payload that says so; the progress, the
-// profile or the first sign-in. A payload that names none of them, or does not
+// for each task; how an answer went; a task on its way, a new card for each
+// request; a card a task did not come to, a new one for each payload that says
+// so; the progress, the profile or the first sign-in. A payload that names none of them, or does not
 // read as the one it names, draws a card that says so.
 function Screen({ payload, host }: { payload: unknown; host: Host }) {
 	const shown = useMemo(() => readScreen(payload), [payload]);
@@ -86,6 +87,8 @@ function Screen({ payload, host }: { payload: unknown; host: Host }) {
 					host={host}
 				/>
 			);
+		case "result":
+			return <ResultCard key={said} shown={shown.shown} host={host} />;
 		case "coming":
 			return (
 				<ComingCard

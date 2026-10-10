@@ -5,7 +5,7 @@ package profile
 // or answered with the letter it was given. The service seals a task as it
 // hands it out, through Issue and Keep; the tests outside the package put a
 // task on the card by hand, under an id of their choosing, and seal it here.
-func (p *Profile) SealTask(sealer Sealer, secret TaskSecret) error {
+func (p *Profile) SealTask(sealer Sealer, secret *TaskSecret) error {
 	if p.CurrentTask == nil {
 		return ErrNoTask
 	}

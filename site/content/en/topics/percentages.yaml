@@ -17,28 +17,32 @@ hero:
     the mistakes.
   method: Ask “percent of what?” before every step
   teaches: To find what a percentage is taken of, and to notice when that changes
-  # Its drawing is the site's data: 50 as ten tenths, three of which, 30%, are
-  # 15.
+  # The words of its drawing: the whole it is drawn for.
+  art:
+    line: 100% is 50
 
 basis:
   title: The rules of percent
   cards:
-    - mark: "1%"
-      title: One hundredth
+    - title: One hundredth
       text: >-
         One percent is one hundredth of an amount. 100% is the whole amount,
         and 50% is half of it.
-    - mark: "of?"
-      title: Percent of what?
+      art:
+        half: 50% is half
+    - title: Percent of what?
       text: >-
         A percentage is always of something: the old price or the new one, all
         the guests or only the girls. The same 10% of different amounts are
         different numbers.
-    - mark: "10%"
-      title: Ten percent first
+      art:
+        tens: 10% of 200 = 20 · 10% of 50 = 5
+    - title: Ten percent first
       text: >-
         10% is the amount divided by 10. From it, 20%, 30% or 5% are one step
         away: 30% of 80 is 3 × 8 = 24.
+      art:
+        eighty: 80 is ten parts of 8
 
 idea:
   title: The base changes
@@ -75,6 +79,9 @@ method:
     - Name what is 100%
     - Find 1% or 10% of it
     - Take the percentage asked for, and check what it is of
+  # The key under the steps: what a grid of the drawings stands for.
+  legend:
+    hundred: a grid of 100 cells is 100%
 
 examples:
   - title: Sports clubs
@@ -91,12 +98,16 @@ examples:
       text: >-
         35% of 300 is 35 × 3 = 105 pupils who go, and 300 − 105 = 195. Both
         ways give the same answer; taking 65% at once saves a step.
+    art:
+      go: 35 cells of 100 go to a club
+      grid: the whole grid is 300 pupils
+      cell: one cell is 3 pupils
+      go-short: go
+      do-not: do not go
   - title: The price of a bike
     question: >-
       A bike costs 400 coins. In spring its price goes up by 25%, and in autumn
       the new price goes down by 20%. What does the bike cost now?
-    # Its drawing is the site's data: the price after each change, each change
-    # on its arrow.
     steps:
       - >-
         In spring 100% is the old price, 400 coins: 25% of it is 100 coins, so
@@ -109,6 +120,13 @@ examples:
       text: >-
         420 takes the autumn's 20% of the old price, 80 coins. But by autumn
         the price was 500, and 20% of 500 is 100.
+    art:
+      coins: coins, the price before spring
+      quarters: "100% = 400: four parts of 25%"
+      five-hundred: 500 coins
+      fifths: "100% = 500: five parts of 20%"
+      of-old: 20% of 400 = 80 →
+      of-new: 20% of 500 = 100 →
   - title: Drying watermelons
     question: >-
       A farmer has 200 kg of watermelons that are 99% water. A week later they
@@ -126,6 +144,13 @@ examples:
         Yes. The water fell only from 99% to 98%, but the part that is not
         water doubled, from 1% to 2%. Those 2 kg stayed the same, so the whole
         weight had to halve.
+    art:
+      melons: 200 kg, 99% water
+      dry: "200 kg: one cell is 1 kg; the orange ones are not water, 2 kg"
+      same: the same 2 kg are now 2 cells of 100
+      was: 200 kg before
+      became: 100 kg after
+      water: water 99%
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -134,18 +159,32 @@ traps:
       The percentage is taken of the wrong amount: the autumn's 20% of the old
       price instead of the new one, or the 98% of the watermelons' old weight.
     say: “Which amount is 100% right now?”
+    art:
+      question: In autumn the price is 500, 20% off
+      of-old: 20% of 400 =
+      of-new: 20% of 500 =
   part_whole_swap:
     shows: >-
       A part is taken for the whole, or the whole for a part: the 2 kg that are
       not water are given as the weight of the watermelons, or the whole school
       is counted where the question asks about a part of it.
     say: “Is this number a part, or the whole?”
+    art:
+      question: How much do the melons weigh?
+      dry: 2 kg
+      only-dry: only what is not water
+      all: 100 kg
+      weight: the whole weight
   answered_other_question:
     shows: >-
       A number found on the way becomes the answer: the 105 pupils who go to a
       club when the question asks about those who do not, or the 100 coins the
       price changed by instead of the price.
     say: “What exactly does the question ask for?”
+    art:
+      question: How many pupils do not go to a club?
+      go: go
+      do-not: do not go
 
 home:
   - title: Percent in a shop

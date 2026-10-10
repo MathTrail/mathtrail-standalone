@@ -192,13 +192,15 @@ type packageExample struct {
 }
 
 // packageLimits are what the task is held to when it is handed in: how long a
-// sentence may be, and how long a label and a note of its picture.
+// sentence may be, how long a label and a note of its picture, and how long
+// the total under the picture of its solution.
 type packageLimits struct {
 	SentenceWords      int `json:"sentence_words"`
 	SentenceCharacters int `json:"sentence_characters"`
 	FleschKincaidGrade int `json:"flesch_kincaid_grade"`
 	LabelCharacters    int `json:"label_characters"`
 	NoteCharacters     int `json:"note_characters"`
+	TotalCharacters    int `json:"total_characters"`
 }
 
 // contentsFor gathers every part of a package for one request.
@@ -233,6 +235,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 			FleschKincaidGrade: readable.FleschKincaid,
 			LabelCharacters:    picture.MaxLabelCharacters,
 			NoteCharacters:     picture.MaxNoteCharacters,
+			TotalCharacters:    picture.MaxTotalCharacters,
 		},
 		Templates: c.templatePrograms(topic.ID),
 		Pictures:  c.picturesFor(topic.ID),

@@ -118,6 +118,303 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
 </div>
 `;
 
+exports[`the screens in Arabic > the card of how a wrong answer went 1`] = `
+<div
+  class="mt mt-widget mt-rtl"
+>
+  <div>
+    <button
+      class="mt-bar"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="mt-icon"
+        fill="none"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+      />
+      <span
+        class="mt-bar-name"
+      >
+        مذنّب
+      </span>
+       
+      <span
+        class="mt-bar-action"
+      >
+        الملف الشخصي والتقدم
+      </span>
+      <svg
+        aria-hidden="true"
+        class="mt-icon mt-chevron"
+        fill="none"
+        height="16"
+        viewBox="0 0 24 24"
+        width="16"
+      />
+    </button>
+    <article
+      aria-label="مراجعة الإجابة"
+    >
+      <header
+        class="mt-head mt-head-versioned"
+      >
+        <svg
+          aria-hidden="true"
+          class="mt-icon mt-mark-light"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <svg
+          aria-hidden="true"
+          class="mt-icon mt-mark-dark"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <div
+          class="mt-head-text"
+        >
+          <div
+            class="mt-head-line"
+          >
+            <span
+              class="mt-name"
+            >
+              MathTrail
+            </span>
+          </div>
+          <span
+            class="mt-badge"
+          >
+            مدرب الأولمبياد · الصف 3
+          </span>
+        </div>
+        <span
+          aria-hidden="true"
+          class="mt-version"
+        >
+          <span
+            class="mt-version-label"
+          >
+            الإصدار
+          </span>
+           
+          <span
+            class="mt-version-number"
+            dir="ltr"
+          >
+            0.2.1
+          </span>
+        </span>
+      </header>
+      <div
+        class="mt-body"
+      >
+        <p
+          class="mt-verdict-line"
+        >
+          <svg
+            aria-hidden="true"
+            class="mt-icon"
+            fill="none"
+            height="20"
+            viewBox="0 0 24 24"
+            width="20"
+          />
+          <span>
+            ليس تماما: الإجابة هي 5 وليست 4.
+          </span>
+        </p>
+        <div
+          class="mt-note mt-note-trap"
+        >
+          <div
+            class="mt-note-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="mt-icon"
+              fill="none"
+              height="16"
+              viewBox="0 0 24 24"
+              width="16"
+            />
+            <span>
+              الفخ
+            </span>
+          </div>
+          <p
+            dir="rtl"
+            lang="ar"
+          >
+            عُدّت المسافات بدلًا من الأعمدة.
+          </p>
+        </div>
+        <div
+          class="mt-steps"
+        >
+          <h3
+            class="mt-section-label"
+          >
+            الحل
+          </h3>
+          <ol
+            dir="rtl"
+            lang="ar"
+          >
+            <li>
+              <span
+                class="mt-step-num"
+              >
+                1
+              </span>
+               
+              <span>
+                12 ÷ 3 = 4 مسافات.
+              </span>
+            </li>
+            <li>
+              <span
+                class="mt-step-num"
+              >
+                2
+              </span>
+               
+              <span>
+                في السياج المستقيم الذي تقف أعمدته عند طرفيه يزيد عدد الأعمدة على عدد المسافات بواحد.
+              </span>
+            </li>
+            <li>
+              <span
+                class="mt-step-num"
+              >
+                3
+              </span>
+               
+              <span>
+                4 + 1 = 5 أعمدة.
+              </span>
+            </li>
+          </ol>
+        </div>
+        <dl
+          class="mt-facts"
+        >
+          <div
+            class="mt-fact"
+          >
+            <dt>
+              نوع المسألة
+            </dt>
+            <dd>
+              الفواصل والحدود
+            </dd>
+          </div>
+          <div
+            class="mt-fact"
+          >
+            <dt>
+              التصنيف في هذا الموضوع
+            </dt>
+            <dd>
+              <span
+                class="mt-rating-move"
+              >
+                <span
+                  class="mt-rating-before"
+                >
+                  1502
+                </span>
+                 ← 
+                <span
+                  class="mt-rating-after mt-rating-loss"
+                >
+                  1480
+                </span>
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </article>
+    <div
+      class="mt-foot"
+    >
+      <div
+        class="mt-btns"
+      >
+        <button
+          class="mt-btn mt-btn-primary"
+          type="button"
+        >
+          مسألة أخرى
+        </button>
+        <button
+          aria-controls="P0-0"
+          aria-expanded="false"
+          class="mt-btn mt-topic-button"
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            class="mt-icon"
+            fill="none"
+            height="20"
+            viewBox="0 0 24 24"
+            width="20"
+          />
+          <span
+            class="mt-topic-button-text"
+          >
+            <span
+              class="mt-vh"
+            >
+              الموضوع:
+            </span>
+             
+            <span
+              class="mt-topic-button-value"
+            >
+              المدرب
+            </span>
+          </span>
+          <svg
+            aria-hidden="true"
+            class="mt-icon mt-chevron"
+            fill="none"
+            height="16"
+            viewBox="0 0 24 24"
+            width="16"
+          />
+        </button>
+      </div>
+      <section
+        aria-labelledby="P0-3"
+        class="mt-topic-panel"
+        hidden=""
+        id="P0-0"
+      />
+      <p
+        aria-live="polite"
+        class="mt-action-note mt-topic-note"
+      >
+        
+      </p>
+      <p
+        aria-live="polite"
+        class="mt-action-note"
+      >
+        
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`the screens in Arabic > the first sign-in 1`] = `
 <div
   class="mt mt-widget mt-rtl"
@@ -3786,431 +4083,6 @@ exports[`the screens in Arabic > the progress 1`] = `
 </div>
 `;
 
-exports[`the screens in Arabic > the result of a wrong answer 1`] = `
-<div
-  class="mt mt-widget mt-rtl"
->
-  <div>
-    <button
-      class="mt-bar"
-      type="button"
-    >
-      <svg
-        aria-hidden="true"
-        class="mt-icon"
-        fill="none"
-        height="24"
-        viewBox="0 0 24 24"
-        width="24"
-      />
-      <span
-        class="mt-bar-name"
-      >
-        مذنّب
-      </span>
-       
-      <span
-        class="mt-bar-action"
-      >
-        الملف الشخصي والتقدم
-      </span>
-      <svg
-        aria-hidden="true"
-        class="mt-icon mt-chevron"
-        fill="none"
-        height="16"
-        viewBox="0 0 24 24"
-        width="16"
-      />
-    </button>
-    <article
-      aria-label="مسألة"
-    >
-      <header
-        class="mt-head mt-head-versioned"
-      >
-        <svg
-          aria-hidden="true"
-          class="mt-icon mt-mark-light"
-          height="32"
-          viewBox="0 0 48 48"
-          width="32"
-        />
-        <svg
-          aria-hidden="true"
-          class="mt-icon mt-mark-dark"
-          height="32"
-          viewBox="0 0 48 48"
-          width="32"
-        />
-        <div
-          class="mt-head-text"
-        >
-          <div
-            class="mt-head-line"
-          >
-            <span
-              class="mt-name"
-            >
-              MathTrail
-            </span>
-          </div>
-          <span
-            class="mt-badge"
-          >
-            مدرب الأولمبياد · الصف 3
-          </span>
-        </div>
-        <span
-          aria-hidden="true"
-          class="mt-version"
-        >
-          <span
-            class="mt-version-label"
-          >
-            الإصدار
-          </span>
-           
-          <span
-            class="mt-version-number"
-            dir="ltr"
-          >
-            0.2.1
-          </span>
-        </span>
-      </header>
-      <div
-        class="mt-body"
-      >
-        <p
-          class="mt-task-text"
-          dir="rtl"
-          lang="ar"
-        >
-          طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟
-        </p>
-        <svg
-          aria-label="أشياء في صف"
-          class="mt-picture"
-          direction="ltr"
-          height="73.2"
-          role="img"
-          viewBox="-2 -2 160 73.2"
-          width="160"
-        />
-        <fieldset
-          class="mt-options"
-        >
-          <legend
-            class="mt-vh"
-          >
-            الإجابات
-          </legend>
-          <div
-            class="mt-options-list"
-          >
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="muted"
-              type="button"
-            >
-              <span
-                class="mt-option-letter"
-              >
-                A
-              </span>
-               
-              <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
-              >
-                3
-              </span>
-            </button>
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="wrong"
-              type="button"
-            >
-              <span
-                class="mt-option-letter"
-              >
-                B
-              </span>
-               
-              <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
-              >
-                4
-              </span>
-               
-              <span
-                class="mt-option-status"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="mt-icon"
-                  fill="none"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                />
-                إجابتك
-              </span>
-            </button>
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="correct"
-              type="button"
-            >
-              <span
-                class="mt-option-letter"
-              >
-                C
-              </span>
-               
-              <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
-              >
-                5
-              </span>
-               
-              <span
-                class="mt-option-status"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="mt-icon"
-                  fill="none"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                />
-                الإجابة الصحيحة
-              </span>
-            </button>
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="muted"
-              type="button"
-            >
-              <span
-                class="mt-option-letter"
-              >
-                D
-              </span>
-               
-              <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
-              >
-                6
-              </span>
-            </button>
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="muted"
-              type="button"
-            >
-              <span
-                class="mt-option-letter"
-              >
-                E
-              </span>
-               
-              <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
-              >
-                12
-              </span>
-            </button>
-          </div>
-        </fieldset>
-      </div>
-    </article>
-    <section
-      aria-label="الردود"
-      aria-live="polite"
-      class="mt-replies"
-    >
-      <div
-        tabindex="-1"
-      >
-        <article
-          class="mt-reply"
-        >
-          <header
-            class="mt-head mt-head-compact"
-          >
-            <svg
-              aria-hidden="true"
-              class="mt-icon mt-mark-light"
-              height="28"
-              viewBox="0 0 48 48"
-              width="28"
-            />
-            <svg
-              aria-hidden="true"
-              class="mt-icon mt-mark-dark"
-              height="28"
-              viewBox="0 0 48 48"
-              width="28"
-            />
-            <div
-              class="mt-head-text"
-            >
-              <span
-                class="mt-name"
-              >
-                MathTrail
-              </span>
-            </div>
-          </header>
-          <div
-            class="mt-reply-body"
-          >
-            <p
-              class="mt-verdict-line"
-            >
-              <svg
-                aria-hidden="true"
-                class="mt-icon"
-                fill="none"
-                height="20"
-                viewBox="0 0 24 24"
-                width="20"
-              />
-              <span>
-                ليس تماما: الإجابة هي 5 وليست 4.
-              </span>
-            </p>
-            <div
-              class="mt-note mt-note-trap"
-            >
-              <div
-                class="mt-note-label"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="mt-icon"
-                  fill="none"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                />
-                <span>
-                  الفخ
-                </span>
-              </div>
-              <p
-                dir="rtl"
-                lang="ar"
-              >
-                عُدّت المسافات بدلًا من الأعمدة.
-              </p>
-            </div>
-            <div
-              class="mt-steps"
-            >
-              <h3
-                class="mt-section-label"
-              >
-                الحل
-              </h3>
-              <ol
-                dir="rtl"
-                lang="ar"
-              >
-                <li>
-                  <span
-                    class="mt-step-num"
-                  >
-                    1
-                  </span>
-                   
-                  <span>
-                    12 ÷ 3 = 4 مسافات.
-                  </span>
-                </li>
-                <li>
-                  <span
-                    class="mt-step-num"
-                  >
-                    2
-                  </span>
-                   
-                  <span>
-                    في السياج المستقيم الذي تقف أعمدته عند طرفيه يزيد عدد الأعمدة على عدد المسافات بواحد.
-                  </span>
-                </li>
-                <li>
-                  <span
-                    class="mt-step-num"
-                  >
-                    3
-                  </span>
-                   
-                  <span>
-                    4 + 1 = 5 أعمدة.
-                  </span>
-                </li>
-              </ol>
-            </div>
-            <div
-              class="mt-note mt-note-plain"
-            >
-              <div
-                class="mt-note-label"
-              >
-                <span>
-                  التصنيف في هذا الموضوع
-                </span>
-              </div>
-              <p>
-                1502 ← 1480
-              </p>
-            </div>
-          </div>
-        </article>
-      </div>
-    </section>
-    <div
-      class="mt-foot"
-    >
-      <div
-        class="mt-btns"
-      >
-        <button
-          class="mt-btn mt-btn-primary"
-          type="button"
-        >
-          مسألة أخرى
-        </button>
-      </div>
-      <p
-        aria-live="polite"
-        class="mt-action-note"
-      >
-        
-      </p>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`the screens in Arabic > the review of the progress, a page the chat did not open 1`] = `
 <div
   class="mt-fold"
@@ -5069,11 +4941,6 @@ exports[`the screens in Arabic > the task 1`] = `
         </fieldset>
       </div>
     </article>
-    <section
-      aria-label="الردود"
-      aria-live="polite"
-      class="mt-replies"
-    />
     <div
       class="mt-foot"
     >
@@ -5125,6 +4992,288 @@ exports[`the screens in Arabic > the task 1`] = `
         class="mt-action-note"
       >
         
+      </p>
+      <p
+        aria-live="polite"
+        class="mt-action-note mt-answer-note"
+      >
+        
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`the screens in Arabic > the task answered wrong, the chat asked to go over it 1`] = `
+<div
+  class="mt mt-widget mt-rtl"
+>
+  <div>
+    <button
+      class="mt-bar"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="mt-icon"
+        fill="none"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+      />
+      <span
+        class="mt-bar-name"
+      >
+        مذنّب
+      </span>
+       
+      <span
+        class="mt-bar-action"
+      >
+        الملف الشخصي والتقدم
+      </span>
+      <svg
+        aria-hidden="true"
+        class="mt-icon mt-chevron"
+        fill="none"
+        height="16"
+        viewBox="0 0 24 24"
+        width="16"
+      />
+    </button>
+    <article
+      aria-label="مسألة"
+    >
+      <header
+        class="mt-head mt-head-versioned"
+      >
+        <svg
+          aria-hidden="true"
+          class="mt-icon mt-mark-light"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <svg
+          aria-hidden="true"
+          class="mt-icon mt-mark-dark"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <div
+          class="mt-head-text"
+        >
+          <div
+            class="mt-head-line"
+          >
+            <span
+              class="mt-name"
+            >
+              MathTrail
+            </span>
+          </div>
+          <span
+            class="mt-badge"
+          >
+            مدرب الأولمبياد · الصف 3
+          </span>
+        </div>
+        <span
+          aria-hidden="true"
+          class="mt-version"
+        >
+          <span
+            class="mt-version-label"
+          >
+            الإصدار
+          </span>
+           
+          <span
+            class="mt-version-number"
+            dir="ltr"
+          >
+            0.2.1
+          </span>
+        </span>
+      </header>
+      <div
+        class="mt-body"
+      >
+        <p
+          class="mt-task-text"
+          dir="rtl"
+          lang="ar"
+        >
+          طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟
+        </p>
+        <svg
+          aria-label="أشياء في صف"
+          class="mt-picture"
+          direction="ltr"
+          height="73.2"
+          role="img"
+          viewBox="-2 -2 160 73.2"
+          width="160"
+        />
+        <fieldset
+          class="mt-options"
+        >
+          <legend
+            class="mt-vh"
+          >
+            الإجابات
+          </legend>
+          <div
+            class="mt-options-list"
+          >
+            <button
+              aria-disabled="true"
+              class="mt-option"
+              data-state="muted"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                A
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                3
+              </span>
+            </button>
+            <button
+              aria-disabled="true"
+              class="mt-option"
+              data-state="wrong"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                B
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                4
+              </span>
+               
+              <span
+                class="mt-option-status"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="mt-icon"
+                  fill="none"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                />
+                إجابتك
+              </span>
+            </button>
+            <button
+              aria-disabled="true"
+              class="mt-option"
+              data-state="correct"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                C
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                5
+              </span>
+               
+              <span
+                class="mt-option-status"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="mt-icon"
+                  fill="none"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                />
+                الإجابة الصحيحة
+              </span>
+            </button>
+            <button
+              aria-disabled="true"
+              class="mt-option"
+              data-state="muted"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                D
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                6
+              </span>
+            </button>
+            <button
+              aria-disabled="true"
+              class="mt-option"
+              data-state="muted"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                E
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                12
+              </span>
+            </button>
+          </div>
+        </fieldset>
+      </div>
+    </article>
+    <div
+      class="mt-foot"
+    >
+      <p
+        aria-live="polite"
+        class="mt-action-note"
+      >
+        
+      </p>
+      <p
+        aria-live="polite"
+        class="mt-action-note mt-answer-note"
+        tabindex="-1"
+      >
+        عندما يصل الطلب إلى الدردشة، ستظهر مراجعة الإجابة أدناه، في بطاقة جديدة.
       </p>
     </div>
   </div>
@@ -5386,11 +5535,6 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
         </fieldset>
       </div>
     </article>
-    <section
-      aria-label="الردود"
-      aria-live="polite"
-      class="mt-replies"
-    />
     <div
       class="mt-foot"
     >
@@ -6103,6 +6247,12 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
       <p
         aria-live="polite"
         class="mt-action-note"
+      >
+        
+      </p>
+      <p
+        aria-live="polite"
+        class="mt-action-note mt-answer-note"
       >
         
       </p>

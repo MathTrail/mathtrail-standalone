@@ -40,7 +40,7 @@ export const shots: readonly Shot[] = [
 		file: "2-hint-dark",
 	},
 	{
-		scene: "wrong after the trial series",
+		scene: "result card, the picture of the solution, wrong",
 		theme: "light",
 		file: "3-wrong-light",
 	},

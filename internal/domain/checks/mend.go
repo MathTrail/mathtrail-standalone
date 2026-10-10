@@ -27,6 +27,7 @@ const (
 	mendedFinalAnswer   = "self_check.final_answer"
 	mendedIssues        = "self_check.issues"
 	mendedPicture       = "task.picture"
+	mendedSolution      = "task.solution_picture"
 )
 
 // plainNumber is an option written as a number that reads the same as text:
@@ -79,15 +80,27 @@ func optionsAsText(raw json.RawMessage) (json.RawMessage, bool) {
 // writes no picture, or as an empty text, as no picture, and says whether it
 // did.
 func mendPicture(task *Task) bool {
-	if task == nil || task.Picture == nil {
+	return task != nil && mendedNone(&task.Picture)
+}
+
+// mendSolutionPicture reads a picture of the solution written as null or as an
+// empty text as none, as mendPicture reads the task's.
+func mendSolutionPicture(task *Task) bool {
+	return task != nil && mendedNone(&task.SolutionPicture)
+}
+
+// mendedNone sets a description written as null or as an empty text to none,
+// and says whether it did.
+func mendedNone(described *json.RawMessage) bool {
+	if *described == nil {
 		return false
 	}
 	var text string
-	blank := json.Unmarshal(task.Picture, &text) == nil && strings.TrimSpace(text) == ""
-	if !absent(task.Picture) && !blank {
+	blank := json.Unmarshal(*described, &text) == nil && strings.TrimSpace(text) == ""
+	if !absent(*described) && !blank {
 		return false
 	}
-	task.Picture = nil
+	*described = nil
 	return true
 }
 

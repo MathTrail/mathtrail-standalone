@@ -10,6 +10,7 @@ import (
 // many days it has, the day its weeks start on, and the days it marks with a
 // label. The card writes the weekdays' names in its own language.
 type calendar struct {
+	noWords
 	days  int
 	marks []dayMark
 }

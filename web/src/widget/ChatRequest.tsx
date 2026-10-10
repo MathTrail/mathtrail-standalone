@@ -45,6 +45,39 @@ export function useChatRequest(host: Host): {
 }
 
 /**
+ * useModelLines is how a card tells the model a line. The host keeps one line
+ * and reads it with the next message, so a later line carries the earlier ones
+ * along. A message the chat takes is the card's last word, and one it refuses
+ * carried nothing, so no message lets a line go.
+ */
+export function useModelLines(host: Host): (line: string) => Promise<void> {
+	const held = useRef<string | undefined>(undefined);
+	return (line) => {
+		held.current =
+			held.current === undefined ? line : `${held.current}\n\n${line}`;
+		return host.tellModel(held.current);
+	};
+}
+
+/**
+ * lineWait is how long a card waits for the host to take the model's line
+ * before the card's message goes, in milliseconds: the model reads the line
+ * with the message, and a host that keeps no line, or never says so, still
+ * takes the message.
+ */
+export const lineWait = 500;
+
+/** within is promise, waited for no longer than ms. */
+export function within(ms: number, promise: Promise<void>): Promise<void> {
+	return Promise.race([
+		promise,
+		new Promise<void>((resolve) => {
+			setTimeout(resolve, ms);
+		}),
+	]);
+}
+
+/**
  * RequestNote says where an ask stands once the chat has answered it: taken,
  * in the words given for it, or not, to be asked again. A host that takes a
  * message may still hold it for the person to send, so an ask whose result

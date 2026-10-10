@@ -106,7 +106,7 @@ func (r *OpenRequest) Await(now time.Time) {
 // handed when they ask for the next one: sealed as the task on the card is,
 // under the id it will have there, and standing where the request asked. The
 // request is closed. Nothing changes if the task cannot be sealed.
-func (p *Profile) Keep(written *Written, secret TaskSecret, sealer Sealer, now time.Time) (*ReadyTask, error) {
+func (p *Profile) Keep(written *Written, secret *TaskSecret, sealer Sealer, now time.Time) (*ReadyTask, error) {
 	request := p.OpenRequest
 	if request == nil {
 		return nil, ErrNoRequest

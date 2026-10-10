@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { type Box, repliesFrom, shareTheCard, stepAtMiddle } from "./stage";
+import { type Box, shareTheCard, stepAtMiddle } from "./stage";
 import { openHome } from "./testing/home";
 
 afterEach(() => {
@@ -172,7 +172,7 @@ describe("the steps of the lesson on a wide window", () => {
 		);
 	});
 
-	test("show in each card's frame what its step speaks of: the question under a card, the replies of an answer told", () => {
+	test("show in each card's frame what its step speaks of: the question under a card, the top of the card of how an answer went", () => {
 		openHome("en");
 		standing(0);
 		const [question, wrong] = [4, 3].map(
@@ -183,21 +183,13 @@ describe("the steps of the lesson on a wide window", () => {
 			throw new Error("the lesson has no frame for its answer or question");
 		}
 		Object.defineProperty(question, "scrollHeight", { value: 900 });
-		vi.spyOn(wrong, "getBoundingClientRect").mockReturnValue({
-			top: 100,
-		} as DOMRect);
-		const replies = wrong.querySelector<HTMLElement>(".mt-replies .mt-reply");
-		if (replies === null) {
-			throw new Error("the answer's card has no replies");
-		}
-		vi.spyOn(replies, "getBoundingClientRect").mockReturnValue({
-			top: 700,
-		} as DOMRect);
+		wrong.scrollTop = 300;
 
 		shareTheCard(document, windowOf(true).window);
 
 		expect(question.scrollTop).toBe(900);
-		expect(wrong.scrollTop).toBe(700 - 100 - repliesFrom);
+		expect(wrong.scrollTop).toBe(0);
+		expect(wrong.querySelector(".mt-verdict-line")).not.toBeNull();
 	});
 });
 

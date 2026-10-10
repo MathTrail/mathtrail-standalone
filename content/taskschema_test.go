@@ -3,6 +3,7 @@ package content_test
 import (
 	"encoding/json"
 	"maps"
+	"reflect"
 	"regexp"
 	"slices"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/google/jsonschema-go/jsonschema"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 )
 
@@ -120,6 +122,9 @@ var everyMember = []string{
 	`{"kind":"piles","piles":[{"label":"A","value":"?","count":30,"shown":6,"group":5,"fill":"light",` +
 		`"shape":"square","boxed":true},{"skip":true},{"count":3}],"box":true,"across":true}`,
 	`{"kind":"calendar","first":3,"days":30,"week_starts":"sunday","marks":{"14":"?"}}`,
+	`{"kind":"flags","colors":{"red":"red","yellow":"yellow","green":"green","blue":"синяя","white":"white",` +
+		`"black":"black"},"groups":[{"label":"A","flags":[["red","yellow","?"],["green","blue"]]},` +
+		`{"color":"white","flags":[["white","black"]]}]}`,
 }
 
 // A picture with every member of its kind is one the format reads with no
@@ -257,6 +262,15 @@ func TestThePictureTheFormatRefusesTheTaskSchemaRefuses(t *testing.T) {
 		{"a line of a grid named twice", `{"kind":"grid","rows":["A","A"],"cols":["1"]}`},
 		{"a cell of a table that is a word", `{"kind":"table","rows":[["cat"]]}`},
 		{"a mark that is no dot, ring or square", `{"kind":"row","items":[{"mark":"star"},{}]}`},
+		{"colours on a kind that paints none", `{"kind":"clock","time":"4:00","colors":{"red":"red"}}`},
+		{"a colour the palette does not have", `{"kind":"flags","colors":{"purple":"purple"},` +
+			`"groups":[{"flags":[["purple","?"]]}]}`},
+		{"a colour called by digits", `{"kind":"flags","colors":{"red":"r3d"},"groups":[{"flags":[["red","?"]]}]}`},
+		{"a flag of four stripes", `{"kind":"flags","groups":[{"flags":[["?","?","?","?"]]}]}`},
+		{"a group of seven flags", `{"kind":"flags","groups":[{"flags":[` + strings.Repeat(`["?","?"],`, 6) +
+			`["?","?"]]}]}`},
+		{"a group named by a colour and a label", `{"kind":"flags","colors":{"red":"red"},` +
+			`"groups":[{"label":"A","color":"red","flags":[["red","?"]]}]}`},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -268,5 +282,97 @@ func TestThePictureTheFormatRefusesTheTaskSchemaRefuses(t *testing.T) {
 				t.Error("the schema accepts a picture the format refuses")
 			}
 		})
+	}
+}
+
+// The schema of a task names the members the service reads of a task, no
+// more, and requires those a task cannot leave out. A member the service
+// reads and the schema leaves out is one the model is never told of, and one
+// the schema names and the service does not read is refused as unknown.
+func TestTheTaskSchemaNamesTheMembersTheServiceReads(t *testing.T) {
+	t.Parallel()
+
+	root, _ := taskSchema(t)
+	var read, needed []string
+	task := reflect.TypeFor[checks.Task]()
+	for i := range task.NumField() {
+		name, options, _ := strings.Cut(task.Field(i).Tag.Get("json"), ",")
+		read = append(read, name)
+		if options != "omitempty" {
+			needed = append(needed, name)
+		}
+	}
+	slices.Sort(read)
+	slices.Sort(needed)
+	if named := slices.Sorted(maps.Keys(root.Properties)); !slices.Equal(named, read) {
+		t.Errorf("the schema names the members %v, want the ones the service reads, %v", named, read)
+	}
+	if required := slices.Sorted(slices.Values(root.Required)); !slices.Equal(required, needed) {
+		t.Errorf("the schema requires %v, want the members no task leaves out, %v", required, needed)
+	}
+}
+
+// withTotal is a task the schema accepts, with a picture of its solution
+// and the total given under it, or with neither when there is no total.
+func withTotal(t *testing.T, total string) map[string]any {
+	t.Helper()
+
+	distractors := map[string]any{}
+	for _, letter := range []string{"A", "C", "D", "E"} {
+		distractors[letter] = map[string]any{"trap": "miscount", "text": "Count again."}
+	}
+	task := map[string]any{
+		"core_idea":      "Three pairs of two make six.",
+		"question":       "How many socks are in three pairs?",
+		"options":        map[string]any{"A": "5", "B": "6", "C": "7", "D": "8", "E": "9"},
+		"correct_answer": "B",
+		"hint":           "How many socks make a pair?",
+		"solution":       "A pair is two socks. Three pairs are 2 + 2 + 2 = 6.",
+		"distractors":    distractors,
+	}
+	if total != "" {
+		task["solution_picture"] = valueOf(t, []byte(`{"kind":"piles","piles":[{"count":2},{"count":2},{"count":2}]}`))
+		task["solution_total"] = total
+	}
+	return task
+}
+
+// A total the service reads, the schema accepts; and what the service
+// refuses of a total, the schema refuses too, wherever a schema can say it:
+// no equality, the answer left open or past what ends it, a word, or a total
+// with no picture of the solution to stand under.
+func TestTheTotalTheServiceRefusesTheTaskSchemaRefuses(t *testing.T) {
+	t.Parallel()
+
+	root, _ := taskSchema(t)
+	tasks, err := root.Resolve(nil)
+	if err != nil {
+		t.Fatalf("the schema of a task does not resolve: %v", err)
+	}
+	if err := tasks.Validate(withTotal(t, "")); err != nil {
+		t.Fatalf("the schema refuses a task with no picture of its solution: %v", err)
+	}
+	for _, total := range []string{"2 + 2 + 2 = 6", "12 − 7 = B", "(3 + 2) × 2 = 10", "2 − 5 = −3", "3.5 + 1 = 4.5"} {
+		if _, problems := picture.ReadTotal(total, picture.Point); len(problems) != 0 {
+			t.Fatalf("the service refuses the total %q, so the case shows nothing", total)
+		}
+		if err := tasks.Validate(withTotal(t, total)); err != nil {
+			t.Errorf("the schema refuses the total %q, which the service reads: %v", total, err)
+		}
+	}
+	for _, total := range []string{"6", "2 + 2 + 2", "2 + 2 + 2 = ?", "2 + 2 + 2 =", "2 + 4 = 6 7", "6 > 5",
+		"2 + 2 + 2 = 6 pairs", "x = 6", "12 = ABCDEF", "1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 = 36"} {
+		if _, problems := picture.ReadTotal(total, picture.Point); len(problems) == 0 {
+			t.Fatalf("the service reads the total %q, so the case shows nothing", total)
+		}
+		if err := tasks.Validate(withTotal(t, total)); err == nil {
+			t.Errorf("the schema accepts the total %q, which the service refuses", total)
+		}
+	}
+
+	alone := withTotal(t, "2 + 2 + 2 = 6")
+	delete(alone, "solution_picture")
+	if err := tasks.Validate(alone); err == nil {
+		t.Error("the schema accepts a total with no picture of the solution to stand under")
 	}
 }

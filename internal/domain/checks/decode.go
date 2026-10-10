@@ -59,6 +59,9 @@ func Decode(task, selfCheck json.RawMessage) (Draft, []Problem) {
 	if mendPicture(draft.Task) {
 		mended = append(mended, mendedPicture)
 	}
+	if mendSolutionPicture(draft.Task) {
+		mended = append(mended, mendedSolution)
+	}
 	for _, field := range mendLetters(&draft) {
 		if !slices.Contains(mended, field) {
 			mended = append(mended, field)

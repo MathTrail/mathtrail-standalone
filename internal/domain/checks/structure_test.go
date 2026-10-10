@@ -148,6 +148,9 @@ var formatBreakages = []breakage{
 	}, "names no trap"},
 	{"a picture that is no object", func(d *checks.Draft) { d.Task.Picture = json.RawMessage(`"a clock at 4:30"`) },
 		"task.picture must be an object"},
+	{"a picture of the solution that is no object", func(d *checks.Draft) {
+		d.Task.SolutionPicture = json.RawMessage(`["six pairs"]`)
+	}, "task.solution_picture must be an object"},
 	{"a picture written as a list", func(d *checks.Draft) { d.Task.Picture = json.RawMessage(`[{"kind":"clock"}]`) },
 		"task.picture must be an object"},
 	{"issues left out", func(d *checks.Draft) { d.SelfCheck.Issues = nil }, "self_check.issues is missing"},

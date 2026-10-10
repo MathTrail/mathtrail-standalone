@@ -1,12 +1,13 @@
 // Package picture is the format of a task's picture: a description the card
-// draws, of one of twelve kinds, and what can be read from it.
+// draws, of one of thirteen kinds, and what can be read from it.
 //
 // The chat's model writes the description and the card draws it, so the
 // picture comes out the same on every device: there is nothing in it for a
 // font to draw differently. The package reads a description strictly, saying
 // what is wrong with it member by member, and tells the checks what the
-// picture shows — its labels, and the values a child reads off it — so that a
-// picture can be held to the wording and kept from showing the answer.
+// picture shows — its labels, the words of its colours, and the values a
+// child reads off it — so that a picture can be held to the wording and kept
+// from showing the answer.
 //
 // It is pure computation. Nothing here knows the task the picture belongs to.
 package picture
@@ -20,7 +21,7 @@ import (
 // Kind is what a picture draws: a clock, a row, a balance and so on.
 type Kind string
 
-// The twelve kinds of picture, in the order the format lists them.
+// The thirteen kinds of picture, in the order the format lists them.
 const (
 	Clock      Kind = "clock"
 	Table      Kind = "table"
@@ -34,6 +35,7 @@ const (
 	Containers Kind = "containers"
 	Piles      Kind = "piles"
 	Calendar   Kind = "calendar"
+	Flags      Kind = "flags"
 )
 
 // What KindOf says of a task with no picture, and of a picture of no kind the
@@ -54,7 +56,18 @@ type Picture interface {
 	// answer to its task. Names that number places alike, and numbers that
 	// only lay the picture out, are not among them: they single nothing out.
 	Shown() []Shown
+	// Words are the words the picture writes, each once, in the order the
+	// format lists the palette: the word of each colour it paints with, beside
+	// its paint in the key under the picture. The wording is held to them.
+	Words() []string
 }
+
+// noWords is what a kind that paints nothing has in place of words: of all a
+// picture draws, only a colour is written in words.
+type noWords struct{}
+
+// Words are none.
+func (noWords) Words() []string { return nil }
 
 // Shown is one value a picture shows.
 type Shown struct {
@@ -98,6 +111,7 @@ var kinds = []struct {
 	{Containers, readContainers, containersLimits},
 	{Piles, readPiles, pilesLimits},
 	{Calendar, readCalendar, calendarLimits},
+	{Flags, readFlags, flagsLimits},
 }
 
 // Kinds are every kind of picture, in the order the format lists them.

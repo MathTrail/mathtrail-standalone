@@ -33,19 +33,16 @@ describe("the preview's progress with its review open", () => {
 	});
 });
 
-describe("the preview's card asked for another task once the answer is in", () => {
-	// The scene presses an option and then the next task's button, which is
-	// there only once the answer is in: it shows the card done with, its
-	// result kept and its buttons gone. The answer comes back slowly here, as
-	// on a busy machine, and the scene waits for it.
-	test("ends on the card done with, its result above what it says, even when the answer comes slowly", async () => {
+describe("the preview's card answered, the review asked for", () => {
+	// The scene presses an option: the card marks it, and asks the chat to go
+	// over the answer. The answer comes back slowly here, as on a busy
+	// machine, and the scene waits for it.
+	test("ends on the card done with, the review asked of the chat, even when the answer comes slowly", async () => {
 		const scene = scenesIn("en").find(
-			(found) =>
-				found.name ===
-				"another task asked once the answer is in, the card done with",
+			(found) => found.name === "answered, the review asked for",
 		);
 		if (scene?.payload === undefined || scene.answers === undefined) {
-			throw new Error("the preview has no card asked for another task");
+			throw new Error("the preview has no card answered");
 		}
 		const answers = scene.answers;
 		drawn = await drawCard(scene.payload, {
@@ -60,17 +57,15 @@ describe("the preview's card asked for another task once the answer is in", () =
 		);
 		act(() => scene.play?.(document));
 
+		const words = cardWords("en", undefined);
 		await vi.waitFor(
 			() =>
-				expect(root.querySelector(".mt-action-note")?.textContent).toBe(
-					cardWords("en", undefined).text("task.another_coming"),
+				expect(root.querySelector(".mt-answer-note")?.textContent).toBe(
+					words.text("task.review_coming"),
 				),
 			{ timeout: 3000 },
 		);
-		expect(heard.messages).toEqual([
-			cardWords("en", undefined).text("task.another"),
-		]);
-		expect(root.querySelector(".mt-verdict-line")).not.toBeNull();
+		expect(heard.messages).toEqual([words.text("task.review")]);
 		expect(root.querySelector(".mt-btns")).toBeNull();
 	});
 });

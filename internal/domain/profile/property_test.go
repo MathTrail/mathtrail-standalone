@@ -3,6 +3,7 @@ package profile_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"maps"
 	"slices"
 	"strings"
@@ -215,6 +216,40 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 				last.Confused && !last.Correct && last.Chosen == "" && last.Trap == ""
 		},
 		children, levels, difficulties, gen.Bool(),
+	))
+
+	properties.TestingRun(t)
+}
+
+// How an answer went is told for a card of its own: whatever the child, the
+// choice and where the task stood, it is told as it was recorded, telling it
+// moves nothing in the file, and before the answer the task is never opened.
+func TestTellingAnAnswerHoldsItsProperties(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+	const topic = "counting.gaps"
+
+	properties.Property("told as recorded, moving nothing, and never opened before the answer", prop.ForAll(
+		func(child, choice string, level rating.GradeLevel, difficulty int) bool {
+			p := parseFixture(t, child)
+			id := answeringAt(t, p, topic, rating.Point{GradeLevel: level, Difficulty: difficulty})
+			if _, err := p.Told(id, opensNothing{Sealer: newSealer(t), t: t}); !errors.Is(err, profile.ErrNotAnswered) {
+				return false
+			}
+			recorded := give(t, p, id, choice, issued.Add(time.Minute))
+			before, err := profile.Marshal(p)
+			if err != nil {
+				return false
+			}
+			told, err := p.Told(id, newSealer(t))
+			after, marshalled := profile.Marshal(p)
+			return err == nil && told == toldOnly(&recorded) && marshalled == nil && bytes.Equal(before, after)
+		},
+		gen.OneConstOf("dima", "masha", "olya", "petya", "sasha"),
+		gen.OneConstOf("A", "B", "C", "D", "E", profile.DontKnow),
+		gen.OneConstOf(rating.Grades12, rating.Grades34, rating.Grades56),
+		gen.IntRange(profile.MinDifficulty, profile.MaxDifficulty),
 	))
 
 	properties.TestingRun(t)

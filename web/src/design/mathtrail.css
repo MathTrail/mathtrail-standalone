@@ -380,10 +380,6 @@ button.mt-bar {
 	background: var(--band);
 	border-block-end: 1px solid var(--border);
 }
-.mt-head-compact {
-	min-height: 52px;
-	padding-block: 4px;
-}
 .mt-head-text {
 	display: flex;
 	flex-direction: column;
@@ -405,13 +401,6 @@ button.mt-bar {
 	flex-wrap: wrap;
 	align-items: center;
 	column-gap: 8px;
-}
-.mt-head-compact .mt-head-text {
-	flex-direction: row;
-	flex-wrap: wrap;
-	align-items: center;
-	column-gap: 8px;
-	row-gap: 2px;
 }
 .mt-name {
 	max-width: 100%;
@@ -559,6 +548,101 @@ button.mt-bar {
 .mt-pic-fill {
 	fill: var(--picture-fill);
 }
+/* What a picture paints is a colour of the palette, filled in a drawing and
+   the ground of a swatch in its key, and the letters on a paint are written
+   in the ink that reads on it. */
+.mt-paint-red {
+	fill: var(--paint-red);
+	background: var(--paint-red);
+}
+.mt-paint-yellow {
+	fill: var(--paint-yellow);
+	background: var(--paint-yellow);
+}
+.mt-paint-green {
+	fill: var(--paint-green);
+	background: var(--paint-green);
+}
+.mt-paint-blue {
+	fill: var(--paint-blue);
+	background: var(--paint-blue);
+}
+.mt-paint-white {
+	fill: var(--paint-white);
+	background: var(--paint-white);
+}
+.mt-paint-black {
+	fill: var(--paint-black);
+	background: var(--paint-black);
+}
+.mt-paint-ink {
+	font-family: var(--font-sans);
+	font-weight: 600;
+}
+.mt-paint-ink-red {
+	fill: var(--paint-red-ink);
+	color: var(--paint-red-ink);
+}
+.mt-paint-ink-yellow {
+	fill: var(--paint-yellow-ink);
+	color: var(--paint-yellow-ink);
+}
+.mt-paint-ink-green {
+	fill: var(--paint-green-ink);
+	color: var(--paint-green-ink);
+}
+.mt-paint-ink-blue {
+	fill: var(--paint-blue-ink);
+	color: var(--paint-blue-ink);
+}
+.mt-paint-ink-white {
+	fill: var(--paint-white-ink);
+	color: var(--paint-white-ink);
+}
+.mt-paint-ink-black {
+	fill: var(--paint-black-ink);
+	color: var(--paint-black-ink);
+}
+/* The key under a picture that paints: each colour's paint, outlined so that
+   a paint of the card's own colour shows, beside its word, side by side where
+   they fit and centred under the picture. */
+.mt-picture-keyed {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.mt-pic-key {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 6px 14px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: 14px;
+	line-height: 20px;
+	color: var(--text);
+}
+.mt-pic-key li {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.mt-pic-swatch {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	min-width: 26px;
+	height: 18px;
+	padding-inline: 4px;
+	border: 1px solid var(--text);
+	border-radius: 3px;
+	font-size: 11px;
+	line-height: 1;
+}
 
 /* Notes */
 .mt-note {
@@ -638,6 +722,43 @@ button.mt-bar {
 	margin-block-start: 2px;
 }
 
+/* The picture of a solution stands in a frame of its own between the trap and
+   the solution, on the card's own colour, which its plates and bands are
+   drawn in, with the equality the solution comes to written large under a
+   rule — and, after a wrong option, the words of what it was not, muted. The
+   frame is drawn inside its box and leaves the picture its sides, so that a
+   picture has the same room here as on the task's card, and is not shrunk
+   below the size of its smallest words. */
+.mt-solution-picture {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin: 0;
+	padding-block: 14px 10px;
+	border-radius: var(--radius-control);
+	box-shadow: inset 0 0 0 1px var(--border);
+	background: var(--surface);
+}
+.mt-solution-picture .mt-pic-key {
+	padding-inline: 12px;
+}
+.mt-total {
+	margin-inline: 12px;
+	padding-block-start: 10px;
+	border-block-start: 1px solid var(--border);
+	text-align: center;
+	font-size: 15px;
+	line-height: 24px;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+.mt-total-sum {
+	font-size: 18px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	color: var(--text);
+}
+
 /* Solution steps */
 .mt-steps {
 	display: flex;
@@ -668,6 +789,11 @@ button.mt-bar {
 	color: var(--text);
 	overflow-wrap: break-word;
 }
+/* A step's words may shrink below their longest word, which then breaks where
+   it must rather than run out of the card. */
+.mt-steps li > span:last-child {
+	min-width: 0;
+}
 .mt-step-num {
 	display: flex;
 	align-items: center;
@@ -684,50 +810,53 @@ button.mt-bar {
 	color: var(--letter-text);
 }
 
-/* Replies. The list is on the page before anything is in it, so that a screen
-   reader hears each reply as it arrives; empty, it takes no room. */
-.mt-replies {
+/* What an answer leaves beside its solution: the topic the task was on and
+   how the rating in it moved, on a band of their own, side by side where they
+   fit and one under the other where they do not. */
+.mt-facts {
 	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	padding: 12px;
-	border-block-start: 1px solid var(--border);
-}
-.mt-replies:empty {
-	padding: 0;
-	border-block-start: 0;
-}
-.mt-wide .mt-replies {
-	padding: 16px;
-}
-.mt-wide .mt-replies:empty {
-	padding: 0;
-}
-.mt-reply {
-	margin-inline-start: 16px;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 8px 16px;
+	margin: 0;
+	padding: 10px 12px;
 	border: 1px solid var(--border);
-	border-radius: var(--radius-card);
-	overflow: hidden;
-	background: var(--surface);
+	border-radius: var(--radius-control);
+	background: var(--band);
 }
-.mt-wide .mt-reply {
-	margin-inline-start: 44px;
-}
-.mt-reply-body {
+.mt-fact {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
-	padding: 12px;
+	gap: 2px;
+	min-width: 0;
 }
-.mt-wide .mt-reply-body {
-	padding: 16px;
+.mt-fact dt {
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	color: var(--text-muted);
 }
-.mt-reply-body > p {
+.mt-fact dd {
 	margin: 0;
 	font-size: 15px;
 	line-height: 22px;
+	font-weight: 600;
 	color: var(--text);
 	overflow-wrap: break-word;
+}
+.mt-rating-move {
+	font-variant-numeric: tabular-nums;
+}
+.mt-rating-before {
+	font-weight: 400;
+	color: var(--text-muted);
+}
+.mt-rating-gain {
+	color: var(--gain);
+}
+.mt-rating-loss {
+	color: var(--loss);
 }
 
 /* Footer */
@@ -2034,7 +2163,7 @@ button.mt-bar {
 .mt-rtl .mt-lead {
 	line-height: 26px;
 }
-.mt-rtl .mt-reply-body > p,
+.mt-rtl .mt-fact dd,
 .mt-rtl .mt-steps li,
 .mt-rtl .mt-note p:not(.mt-note-detail),
 .mt-rtl .mt-gen li,

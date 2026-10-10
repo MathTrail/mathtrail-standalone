@@ -45,7 +45,7 @@ var screens = []string{screenTask, screenComing, screenWaiting, screenResult, sc
 // saying why it draws what it draws, as its lines may name them.
 var payloadCodes = []string{
 	codeStaleRequest, codeStaleTask, codeStaleProfile, codeAttemptsExhausted, codeTaskKept, codeInvalidArguments,
-	codeLimitReached, codeInvalidProfile, codeRestoreAlone,
+	codeLimitReached, codeInvalidProfile, codeRestoreAlone, codeNotAnswered, codeToldNoMore,
 }
 
 // wordOf is the word as it stands when the list has it, other when the list

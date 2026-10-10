@@ -27,15 +27,18 @@ import {
 	fenceInRussian,
 	fenceRow,
 	fenceSolutionInRussian,
+	fenceSolutionRow,
+	fenceTotal,
+	shown,
 	standing,
 } from "../widget/testing/lesson";
 import {
-	StaticAnswer,
 	StaticComing,
 	StaticProgress,
+	StaticResult,
 	StaticTask,
 } from "./StaticCard";
-import { handedOf } from "./taskcard";
+import { answerOf, handedOf } from "./taskcard";
 
 // browser reads the static card the way a page holds it, apart from the card
 // the widget draws in this test's own document.
@@ -134,19 +137,20 @@ describe("a progress card drawn on a page", () => {
 // service names beside the task, as it does for every task it hands out.
 const russianFence = { ...fenceInRussian, language: "ru" };
 
-// wrong is the fence answered with the wrong B, as the service records it for
-// a card in Russian.
-const wrong = answered({
+// wrongTold is how the fence answered with the wrong B went, as the service
+// records it for a card in Russian.
+const wrongTold = {
 	trap: {
 		id: "off_by_one",
 		text: "Посчитаны промежутки, а не столбы.",
 		repeated: false,
 	},
 	solution: fenceSolutionInRussian,
-});
+};
+const wrong = answered(wrongTold);
 
-// answeredStill is the static card of the fence once wrong is recorded, read
-// back as a page holds it.
+// answeredStill is the static card of how the fence went once wrong is
+// recorded, read back as a page holds it.
 function answeredStill() {
 	const handed = readHandedTask(russianFence);
 	const told = readAnswer(wrong, russianFence.task.id);
@@ -154,26 +158,17 @@ function answeredStill() {
 		throw new Error("the example is no task answered");
 	}
 	const html = renderToString(
-		<StaticAnswer handed={handed} result={told.result} locale="ru" />,
+		<StaticResult handed={handed} result={told.result} locale="ru" />,
 	);
 	return new browser.DOMParser().parseFromString(html, "text/html");
 }
 
-describe("a card of a wrong answer drawn on a page", () => {
-	test("is the card the widget draws in a chat once the same answer is recorded", async () => {
-		drawn = await drawCard(russianFence, { tools: () => wrong });
-		const pressed = [
-			...drawn.root.querySelectorAll<HTMLButtonElement>(".mt-option"),
-		].find(
-			(row) => row.querySelector(".mt-option-letter")?.textContent === "B",
-		);
-		if (pressed === undefined) {
-			throw new Error("the card has no option B");
-		}
-		press(pressed);
+describe("a card of how a wrong answer went, drawn on a page", () => {
+	test("is the card the widget draws in a chat for the same answer", async () => {
+		drawn = await drawCard(shown(russianFence, wrongTold));
 		const root = drawn.root;
 		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-replies .mt-reply")).not.toBeNull(),
+			expect(root.querySelector(".mt-verdict-line")).not.toBeNull(),
 		);
 		sameCard(answeredStill(), root);
 	});
@@ -203,19 +198,21 @@ describe("a card of a wrong answer drawn on a page", () => {
 		expect(page.querySelector(".mt-wide")).toBeNull();
 	});
 
-	test("marks the option picked wrong and the right one right, by their letters", () => {
-		const states = [...answeredStill().querySelectorAll(".mt-option")].map(
-			(row) =>
-				`${row.querySelector(".mt-option-letter")?.textContent} ${row.getAttribute("data-state")}`,
-		);
+	test("tells the verdict, the trap and the solution step by step, with the rating, and names the topic with no link", () => {
+		const page = answeredStill();
 
-		expect(states).toEqual([
-			"A muted",
-			"B wrong",
-			"C correct",
-			"D muted",
-			"E muted",
-		]);
+		expect(page.querySelector(".mt-verdict-line")?.textContent).toBe(
+			"Не совсем: ответ 5, а не 4.",
+		);
+		expect(page.querySelector(".mt-note-trap p")?.textContent).toBe(
+			"Посчитаны промежутки, а не столбы.",
+		);
+		expect(page.querySelectorAll(".mt-steps li")).toHaveLength(3);
+		expect(page.querySelector(".mt-rating-move")?.textContent).toBe(
+			"1502 → 1480",
+		);
+		expect(page.querySelector(".mt-fact a")).toBeNull();
+		expect(page.querySelector(".mt-option")).toBeNull();
 	});
 });
 
@@ -390,6 +387,8 @@ describe("a card of a task the site draws", () => {
 		grade: 3,
 		picture: fenceRow,
 		options: { A: "3", B: "4", C: "5", D: "6", E: "12" },
+		solution_picture: fenceSolutionRow,
+		solution_total: fenceTotal,
 		choice: "B",
 		correct: "C",
 		trap: "fence_gaps",
@@ -405,6 +404,38 @@ describe("a card of a task the site draws", () => {
 		expect(() =>
 			handedOf(unreadable, said, "site_card", "the card of this test"),
 		).toThrow("the card of this test has a picture the widget cannot draw");
+	});
+
+	// The picture of the solution and the equality under it are the card of
+	// how its answer went, as a task's are: one the card would leave out stops
+	// the build, as the task's own picture does.
+	test("whose picture of the solution, or its total, the card would leave out stops the build", () => {
+		const words = { ...said, trap: "?", solution: "?" };
+		const where = "the card of this test";
+
+		expect(
+			answerOf(facts, words, "site_card", where).result.solution_total,
+		).toBe(fenceTotal);
+		expect(() =>
+			answerOf(
+				{ ...facts, solution_picture: { kind: "pie" } as never },
+				words,
+				"site_card",
+				where,
+			),
+		).toThrow(
+			"the card of this test has a picture of its solution the widget cannot draw",
+		);
+		expect(() =>
+			answerOf(
+				{ ...facts, solution_total: "1".repeat(33) },
+				words,
+				"site_card",
+				where,
+			),
+		).toThrow(
+			"the card of this test writes under the picture of its solution a total the widget does not read",
+		);
 	});
 
 	// A card handed no choice of the topic, as the card of the page Why is,

@@ -53,6 +53,14 @@ type TaskSecret struct {
 	Distractors map[string]Distractor `json:"distractors"`
 	// Solution is the worked answer the child is shown afterwards.
 	Solution string `json:"solution"`
+	// SolutionPicture is the description of the picture of the solution, and
+	// SolutionTotal the equality written under it, both shown with the
+	// solution and neither when the task has none. They are optional members
+	// of the same shape: a seal made before they were is read as one with
+	// none, and one made with them opens in a build from before them, which
+	// reads past them.
+	SolutionPicture json.RawMessage `json:"solution_picture,omitempty"`
+	SolutionTotal   string          `json:"solution_total,omitempty"`
 	// Solver is the program that confirmed exactly one option is right. It is
 	// never run again: it is the record that this task was checked at all.
 	Solver string `json:"solver"`
@@ -60,16 +68,18 @@ type TaskSecret struct {
 	Version int `json:"version"`
 }
 
-// sealSecret is a task's secret sealed against a binding.
-func sealSecret(sealer Sealer, secret TaskSecret, binding []string) (string, error) {
-	secret.Version = SecretVersion
+// sealSecret is a task's secret sealed against a binding, under the shape this
+// build seals; the secret handed in is left as it was.
+func sealSecret(sealer Sealer, secret *TaskSecret, binding []string) (string, error) {
+	shaped := *secret
+	shaped.Version = SecretVersion
 	var plaintext bytes.Buffer
 	encoder := json.NewEncoder(&plaintext)
 	// Escaped for a web page, every <, > and & would take six bytes, and the
 	// sealed value a third more again; nothing sealed is ever put in a page,
 	// and the file carries the value whole.
 	encoder.SetEscapeHTML(false)
-	if err := encoder.Encode(secret); err != nil {
+	if err := encoder.Encode(shaped); err != nil {
 		return "", fmt.Errorf("profile: seal the task: %w", err)
 	}
 	value, err := sealer.Seal(plaintext.Bytes(), binding...)
@@ -80,10 +90,11 @@ func sealSecret(sealer Sealer, secret TaskSecret, binding []string) (string, err
 }
 
 // OpenTask reads that part back. Only an answer to the task opens it — the
-// first, which it judges, and any sent again, which it is told to — so it is
-// never read before the child has answered, while the answer is still a
-// secret. It opens against the task as it stands, so a task the file claims
-// was answered opens only if its answer was recorded here, with that letter.
+// first, which it judges, and any sent again, which it is told to — and the
+// telling of an answer recorded, so it is never read before the child has
+// answered, while the answer is still a secret. It opens against the task as
+// it stands, so a task the file claims was answered opens only if its answer
+// was recorded here, with that letter.
 func (p *Profile) OpenTask(sealer Sealer) (TaskSecret, error) {
 	if p.CurrentTask == nil {
 		return TaskSecret{}, ErrNoTask

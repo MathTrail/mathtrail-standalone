@@ -173,14 +173,14 @@ export const art: TopicArt = {
 				<Say>{page.text(`${at}.whole`)}</Say>
 				<Strip
 					page={page}
-					{...equal(4, 1)}
+					{...equal(4, 1.6)}
 					labels={["1/4"]}
 					paints={["cool"]}
 				/>
 				<Say>{page.text(`${at}.rest`)}</Say>
 				<Strip
 					page={page}
-					sizes={[2, 0.5, 0.5, 0.5, 0.5]}
+					sizes={[3.2, 0.8, 0.8, 0.8, 0.8]}
 					paints={["struck", "warm"]}
 				/>
 			</Stack>
@@ -254,7 +254,7 @@ export const art: TopicArt = {
 	),
 	examples: [
 		{
-			task: ({ page }) => <Strip page={page} sizes={[1]} labels={["60"]} />,
+			task: ({ page }) => <Strip page={page} sizes={[8]} labels={["60"]} />,
 			steps: [
 				({ page, at }) => (
 					<>

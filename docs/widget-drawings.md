@@ -19,6 +19,7 @@ This study asks whether the card can draw the pictures itself, and at what cost.
   - what the model writes for a drawing falls from 129 to 51 tokens;
   - with the run's own prices, that is about $0.017 a task, 8 % of the $0.205 a task cost.
 - **Not measured.** How long the model thinks over a text drawing, and how refusals change, need a live run.
+  - **Measured on 2026-10-10** ([22-pictures-live](live/22-pictures-live.md)). Against the run of 2026-10-08, the model thought 16 % less and wrote 6 % fewer output tokens, and the lessons cost 4 % less, although most tasks now draw their solution too. A task's picture took 53 tokens to write, against the 51 estimated here. Labels and values made 6 refusals before, and the pictures made 2: a label of a picture of the solution, and a picture that showed the answer.
 
 The page of the study, every picture as text, as text on Android's fonts and as graphics, side by side: https://claude.ai/artifact/Ae1JjfT9JUQ9CWUZmPeu6h (private to the author).
 
@@ -177,6 +178,20 @@ The card draws only the description, and the description is all the child sees b
 - **Thinking tokens.** The transcripts redact thinking, so only a live run can compare how long the model thinks over a text drawing and over a description.
 - **Refusals.** Each refusal costs a whole hand-in, about 2,500 output tokens with thinking.
 
+**Measured live on 2026-10-10** ([22-pictures-live](live/22-pictures-live.md)). The four lessons of 2026-10-08 were held again on the pictures and the card of how an answer went. Claude Code counts a turn's thinking tokens, so both runs could be compared:
+
+| Lessons 1 to 4 | 2026-10-08 | 2026-10-10 | Change |
+|---|---:|---:|---:|
+| Cost, $ | 7.78 | 7.47 | −4 % |
+| Output tokens | 97,843 | 91,649 | −6 % |
+| of them thinking | 32,094 | 27,100 | −16 % |
+| A task's picture, as the model writes it | — | 53 | |
+| A picture of the solution with its total | — | 90 | |
+| Hand-ins refused | 7 of 45 | 9 of 46 | |
+
+- **What the solution costs.** The second run also drew the solution in 22 of its 37 tasks, which the first did not. The guide's section on it adds 468 tokens to every package, and the card of how an answer went puts some 730 tokens into the chat. Together that is about 3 % of a turn.
+- **Refusals.** Labels and values made 6 of the 7 refusals before, and the pictures made 2 of the 9 now. Five were a total with no picture of the solution, which the guide now rules out in so many words, and a re-check of the clock lesson met none.
+
 ## The mock-up
 
 - **The pages.** The study's page, https://claude.ai/artifact/Ae1JjfT9JUQ9CWUZmPeu6h, shows every drawing three ways:
@@ -207,6 +222,8 @@ Each of these is only with the author's consent:
 
    About $8 of the subscription, the cost of that run.
 
+**What became of them, on 2026-10-10.** Check 4 ran on the series itself rather than on the prototype, as T70.6's live run: [22-pictures-live](live/22-pictures-live.md). Checks 1 and 2 gave way to the author's lesson in Claude, on Android and on the web, after the release that ships the series. With no text drawing left, what is to be seen there is the card itself, not the phone's font. Check 3 is T63's.
+
 ## Recommendation and draft tasks
 
 Draw every task picture from a description, with our own SVG functions, and keep text only for text mode. In order:
@@ -230,9 +247,11 @@ Draw every task picture from a description, with our own SVG functions, and keep
   - The solution comes on a card of its own rather than in a block nested in the task's card.
   - Its steps, its total and its traps are shown in pictures, described by the model with the task and sealed with the solution until the child answers.
   - The author's draft `draft/Картинка в разборе.html` shows four ways to place the picture.
+  - **Done on 2026-10-10** (R276, R277, R278), in the author's choices of its planning: the draft's variant 10a, one picture of the solution between the trap and the solution with its total large under it, rather than a picture for each step or each trap; the card of how the answer went drawn by a twelfth tool, `show_result`, which the task's card asks the chat for once the answer is in; and colours, from a palette of six, each named in the question's own word, for a thirteenth kind, flags. The table with crossed-out cells of variant 10c was not built.
 - **T70.6 The live run and version 0.5.0.**
   - Check 4 above, with T63 for ChatGPT.
   - Once the series is in, the release line goes to 0.5, and the release that ships it is v0.5.0.
+  - **Done on 2026-10-10:** the live run is [22-pictures-live](live/22-pictures-live.md), and the release line is 0.5. The author's lesson in Claude comes after the rollout.
 
 The tasks are queued in RUN.md, first among the tasks not done (the author's decision of 2026-10-08).
 

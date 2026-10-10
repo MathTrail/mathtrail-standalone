@@ -73,6 +73,54 @@ func TestTheRampStandsOutFromTheCard(t *testing.T) {
 	}
 }
 
+// paints are the palette a picture paints with, the four colours first and
+// white and black after them, as the tokens name them.
+var paints = []string{"red", "yellow", "green", "blue", "white", "black"}
+
+// The palette a picture paints with is one for every theme, as the colour of
+// a flag is, and the letters on each paint read as text must, at 4.5 to 1.
+func TestThePaintsCarryTheirLetters(t *testing.T) {
+	t.Parallel()
+
+	shared := tokensOf(t, widget.Tokens(), ":root {")
+	for _, paint := range paints {
+		colour, ink := shared["paint-"+paint], shared["paint-"+paint+"-ink"]
+		if got := contrast(t, colour, ink); got < 4.5 {
+			t.Errorf("--paint-%s-ink %q on --paint-%s %q is %.2f to 1, want 4.5 to 1 at least",
+				paint, ink, paint, colour, got)
+		}
+	}
+}
+
+// No two paints look alike: the four colours stand apart on the colour wheel,
+// 40° at least, and white and black stand apart from every other paint, at
+// 1.5 to 1.
+func TestThePaintsStandApart(t *testing.T) {
+	t.Parallel()
+
+	shared := tokensOf(t, widget.Tokens(), ":root {")
+	colours := paints[:4]
+	for at, one := range colours {
+		for _, other := range colours[at+1:] {
+			apart := math.Abs(hue(t, shared["paint-"+one]) - hue(t, shared["paint-"+other]))
+			if apart = min(apart, 360-apart); apart < 40 {
+				t.Errorf("--paint-%s and --paint-%s are %.1f° apart on the colour wheel, want 40° at least",
+					one, other, apart)
+			}
+		}
+	}
+	for _, plain := range paints[4:] {
+		for _, other := range paints {
+			if other == plain {
+				continue
+			}
+			if got := contrast(t, shared["paint-"+plain], shared["paint-"+other]); got < 1.5 {
+				t.Errorf("--paint-%s and --paint-%s are %.2f to 1 apart, want 1.5 to 1 at least", plain, other, got)
+			}
+		}
+	}
+}
+
 // How a rank moved is written in words beside the course as well as drawn in
 // stripes on it, so a gain and a step back stand out from the card as text
 // must, at 4.5 to 1 at least, and from the course's empty track as a part of a

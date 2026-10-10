@@ -6,6 +6,7 @@ import "fmt"
 // shaded, or of segments of their own sizes — with braces under some parts,
 // and notes under them all.
 type bars struct {
+	noWords
 	bars  []bar
 	notes []string
 	// decimals is the mark the notes write their numbers with.

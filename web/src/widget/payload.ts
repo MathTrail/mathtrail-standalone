@@ -1,7 +1,7 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import * as z from "zod";
 import { dontKnow, letters } from "./choices";
-import { pictureFormat } from "./picture";
+import { pictureFormat, pictureLimits } from "./picture";
 
 const letter = z.enum(letters);
 
@@ -53,6 +53,15 @@ const topicChoice = z
  */
 export type TopicChoice = NonNullable<z.infer<typeof topicChoice>>;
 
+// options are a task's five options, by their letters.
+const options = z.object({
+	A: z.string(),
+	B: z.string(),
+	C: z.string(),
+	D: z.string(),
+	E: z.string(),
+});
+
 const handedTask = z.object({
 	screen: z.literal("task"),
 	child,
@@ -67,13 +76,7 @@ const handedTask = z.object({
 		// text drawing the service still sends for those earlier cards is
 		// read past.
 		picture: pictureFormat.optional().catch(undefined),
-		options: z.object({
-			A: z.string(),
-			B: z.string(),
-			C: z.string(),
-			D: z.string(),
-			E: z.string(),
-		}),
+		options,
 		hint: z.string(),
 	}),
 	// The lesson's language, which the card's words are in; a card from before
@@ -125,13 +128,24 @@ const answerResult = z.object({
 		.object({ answered: z.number().int(), of: z.number().int() })
 		.nullable(),
 	already_answered: z.boolean(),
+	// The picture of the solution and the equality written large under it,
+	// which only the card of how the answer went is handed. A task with
+	// none, and a picture the card cannot draw, read as none, and the
+	// solution stands on its words; a total stands under its picture alone.
+	solution_picture: pictureFormat.optional().catch(undefined),
+	solution_total: z
+		.string()
+		.max(pictureLimits.MaxTotalCharacters)
+		.optional()
+		.catch(undefined),
 });
 
 /**
  * AnswerResult is what the service says of a recorded answer: the choice and
  * whether it was right, the right option, the trap behind a wrong option, the
- * solution, and the rating in the topic before and after — or, while the
- * trial series runs, how far it has got.
+ * solution with its picture and the equality under it where the task has one,
+ * and the rating in the topic before and after — or, while the trial series
+ * runs, how far it has got.
  */
 export type AnswerResult = z.infer<typeof answerResult>;
 
@@ -172,6 +186,76 @@ export function readAnswer(
 		return { kind: "closed" };
 	}
 	return { kind: "failed" };
+}
+
+const shownResult = z.object({
+	screen: z.literal("result"),
+	child,
+	// The task as the card of its answer names it: its options, which the
+	// verdict names by their texts, and its topic's page on the site. A page
+	// that does not read is read as none, and the topic is named with no link.
+	task: z.object({
+		id: z.string(),
+		topic: z.string(),
+		language: z.string(),
+		options,
+		slug: z.string().optional().catch(undefined),
+		site_page: z.boolean().optional().catch(undefined),
+	}),
+	result: answerResult,
+	topic_choice: topicChoice,
+	site,
+	language: z.string().optional(),
+});
+
+/**
+ * ResultShown is how an answer went, as the card of its own shows it: whose
+ * card it is, the task as it names it, how the answer went, what it offers to
+ * keep the lessons to, and the site the topic's page is on.
+ */
+export type ResultShown = z.infer<typeof shownResult>;
+
+const nothingShown = z.object({
+	screen: z.literal("result"),
+	status: z.string(),
+	code: z.string().optional(),
+	child,
+});
+
+/**
+ * Shown is what the card of how an answer went shows: the answer's result, or
+ * why there is none to show — the task has no answer yet, is no longer on the
+ * card, or has its answer recorded with how it went no longer to be told —
+ * and whose card it is.
+ */
+export type Shown =
+	| { kind: "shown"; result: ResultShown }
+	| { kind: "not_yet" | "gone" | "untold"; child: Child };
+
+// nothingShownBy is why a card shows nothing, by the code of the refusal: an
+// answer whose telling the service has lost is recorded and counts, and the
+// card says so rather than that its task is gone.
+const nothingShownBy: Readonly<Record<string, "not_yet" | "untold">> = {
+	not_answered: "not_yet",
+	told_no_more: "untold",
+};
+
+// readShown is the card of how an answer went a payload draws, or undefined
+// when it does not read as one: the result a card's own answer is told, which
+// names no child and no task, among them.
+function readShown(payload: unknown): Shown | undefined {
+	const shown = shownResult.safeParse(payload);
+	if (shown.success) {
+		return { kind: "shown", result: shown.data };
+	}
+	const nothing = nothingShown.safeParse(payload);
+	if (!nothing.success) {
+		return undefined;
+	}
+	return {
+		kind: nothingShownBy[nothing.data.code ?? ""] ?? "gone",
+		child: nothing.data.child,
+	};
 }
 
 const coming = z.object({
@@ -628,6 +712,7 @@ export type FirstRun = { refused: boolean };
  */
 export type Screen =
 	| { screen: "task"; handed: HandedTask }
+	| { screen: "result"; shown: Shown }
 	| { screen: "coming"; coming: Coming }
 	| { screen: "waiting"; waiting: Waiting }
 	| { screen: "progress"; report: ProgressReport }
@@ -646,6 +731,10 @@ export function readScreen(payload: unknown): Screen | undefined {
 		case "task": {
 			const handed = readHandedTask(payload);
 			return handed === undefined ? undefined : { screen: "task", handed };
+		}
+		case "result": {
+			const shown = readShown(payload);
+			return shown === undefined ? undefined : { screen: "result", shown };
 		}
 		case "coming": {
 			const read = coming.safeParse(payload);

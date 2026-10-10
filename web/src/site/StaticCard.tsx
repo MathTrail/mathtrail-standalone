@@ -12,6 +12,8 @@ import type {
 	HandedTask,
 	ProgressReport,
 } from "../widget/payload";
+import { ResultCard } from "../widget/ResultCard";
+import { resultShownOf } from "../widget/shown";
 import { TaskCard } from "../widget/TaskCard";
 import { ChoosesTopic } from "../widget/TopicChoice";
 import { NamesBuild, versionGiven } from "../widget/version";
@@ -86,12 +88,15 @@ export function StaticTask({
 }
 
 /**
- * StaticAnswer draws the widget's card of a task once its answer is in, as a
- * chat draws it when the service has recorded result: the options marked, the
- * trap, the solution step by step and the rating, in the page's language as
- * the widget's dictionaries say it.
+ * StaticResult draws the widget's card of how an answer to the task handed
+ * went, as a chat draws it once the service has recorded result and the model
+ * has asked for the card: the verdict, the trap, the solution step by step,
+ * the topic and the rating, in the page's language as the widget's
+ * dictionaries say it. Like the others, it is drawn at the narrow width and is
+ * inert: its next task and its topic are shown rather than pressed, and its
+ * topic is named with no link, since nothing on the page opens one.
  */
-export function StaticAnswer({
+export function StaticResult({
 	handed,
 	result,
 	locale,
@@ -101,14 +106,12 @@ export function StaticAnswer({
 	locale: string;
 }) {
 	return (
-		<StaticTask
-			handed={handed}
-			start={{
-				hint: { open: false, used: result.hint_used },
-				answer: { state: "answered", result },
-			}}
-			locale={locale}
-		/>
+		<Still locale={locale}>
+			<ResultCard
+				shown={{ kind: "shown", result: resultShownOf(handed, result) }}
+				host={stillHost}
+			/>
+		</Still>
 	);
 }
 

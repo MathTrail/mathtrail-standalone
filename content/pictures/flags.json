@@ -1,0 +1,5 @@
+{
+  "purpose": "Flags of stripes painted in the colours the question names, each flag from its top stripe to its bottom one, gathered in groups by what they share, each group named under it by a colour or a label; colors gives each colour the word the question calls it by, in the form the question writes it, and a stripe whose colour is the unknown is ?.",
+  "topics": ["combinatorics.enumeration"],
+  "picture": {"kind": "flags", "colors": {"red": "red", "blue": "blue", "yellow": "yellow"}, "groups": [{"color": "red", "flags": [["red", "blue"], ["red", "yellow"]]}, {"color": "blue", "flags": [["blue", "?"]]}]}
+}

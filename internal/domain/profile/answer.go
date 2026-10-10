@@ -24,6 +24,10 @@ var (
 	// ErrOtherTask means the answer is for a task other than the one on the
 	// card: one skipped, one left behind by the next, or one never given.
 	ErrOtherTask = errors.New("profile: the answer is for another task")
+	// ErrNotAnswered means the task on the card has no answer yet, so there is
+	// nothing to tell of how it went: everything there is to tell gives the
+	// answer away.
+	ErrNotAnswered = errors.New("profile: the task on the card has no answer yet")
 )
 
 // DontKnow is the answer "I don't know". The card shows the solution for it,
@@ -110,8 +114,13 @@ type Recorded struct {
 	// about it. It is empty for a right answer, and for DontKnow, which took
 	// no trap.
 	Trap Distractor
-	// Solution is the worked answer the child is shown.
-	Solution string
+	// Solution is the worked answer the child is shown, and SolutionPicture
+	// and SolutionTotal the description of the picture of it, as its JSON
+	// text, and the equality under that, when the task has them. Kept as text,
+	// they leave an answer one that two can be compared as.
+	Solution        string
+	SolutionPicture string
+	SolutionTotal   string
 	// HintUsed records that the hint was opened first.
 	HintUsed bool
 	// LevelBefore and LevelAfter are where the child stood in this topic
@@ -197,13 +206,35 @@ func (p *Profile) Record(answer Answered, sealer Sealer, taught []rating.GradeLe
 		told.Again = true
 		return told, nil
 	}
-	resealed, err := sealSecret(sealer, secret, answeredBinding(p.StudentID, task.ID, answer.Choice))
+	resealed, err := sealSecret(sealer, &secret, answeredBinding(p.StudentID, task.ID, answer.Choice))
 	if err != nil {
 		return Recorded{}, err
 	}
 	recorded := p.apply(task, &answer, &secret, taught)
 	task.Sealed = resealed
 	return recorded, nil
+}
+
+// Told is how the answer the task on the card was given went, told as Record
+// told it, for a card of its own to show. Every check comes before the seal is
+// touched: a task with no answer yet is never opened, so nothing of it is read
+// while its answer is still a secret. Nothing moves, and the caller has
+// nothing to write.
+func (p *Profile) Told(taskID string, sealer Sealer) (Recorded, error) {
+	task := p.CurrentTask
+	switch {
+	case task == nil:
+		return Recorded{}, ErrNoTask
+	case task.ID != taskID:
+		return Recorded{}, fmt.Errorf("%w: %s is on the card", ErrOtherTask, task.ID)
+	case task.Answered == nil:
+		return Recorded{}, ErrNotAnswered
+	}
+	secret, err := p.OpenTask(sealer)
+	if err != nil {
+		return Recorded{}, err
+	}
+	return toldOf(task, &secret), nil
 }
 
 // apply records an answer the task has not had before and keeps it with the
@@ -292,19 +323,21 @@ func toldOf(task *CurrentTask, secret *TaskSecret) Recorded {
 	given := task.Answered
 	correct, trap := judge(given.Choice, secret)
 	return Recorded{
-		Topic:       task.Topic,
-		GradeLevel:  task.GradeLevel,
-		Difficulty:  task.Difficulty,
-		TutorMode:   task.TutorMode,
-		Choice:      given.Choice,
-		Correct:     correct,
-		Right:       secret.Answer,
-		Trap:        trap,
-		Solution:    secret.Solution,
-		HintUsed:    given.HintUsed,
-		LevelBefore: given.LevelBefore,
-		LevelAfter:  given.LevelAfter,
-		Trial:       given.Trial,
+		Topic:           task.Topic,
+		GradeLevel:      task.GradeLevel,
+		Difficulty:      task.Difficulty,
+		TutorMode:       task.TutorMode,
+		Choice:          given.Choice,
+		Correct:         correct,
+		Right:           secret.Answer,
+		Trap:            trap,
+		Solution:        secret.Solution,
+		SolutionPicture: string(secret.SolutionPicture),
+		SolutionTotal:   secret.SolutionTotal,
+		HintUsed:        given.HintUsed,
+		LevelBefore:     given.LevelBefore,
+		LevelAfter:      given.LevelAfter,
+		Trial:           given.Trial,
 	}
 }
 

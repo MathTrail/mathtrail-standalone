@@ -1,6 +1,8 @@
 package profile_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -578,6 +580,128 @@ func TestOnlyAnAnswerRecordedHereIsToldAgain(t *testing.T) {
 			}
 		})
 	}
+}
+
+// opensNothing is a seal that must stay shut: whatever reads through it fails
+// the test that handed it over.
+type opensNothing struct {
+	profile.Sealer
+	t *testing.T
+}
+
+func (seal opensNothing) Open(string, ...string) ([]byte, error) {
+	seal.t.Helper()
+	seal.t.Error("the seal of a task was opened, want it shut")
+	return nil, errors.New("opened")
+}
+
+// How an answer went is told for a card of its own only of the task on the
+// card, and only once it has its answer: a task with none is never opened, so
+// nothing of it is read while its answer is a secret.
+func TestNothingIsToldOfATaskWithNoAnswer(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		card func(t *testing.T, p *profile.Profile) string
+		want error
+	}{
+		{"no task on the card", func(*testing.T, *profile.Profile) string { return "tsk_nothing" }, profile.ErrNoTask},
+		{"another task on the card", func(t *testing.T, p *profile.Profile) string {
+			answering(t, p, "counting.gaps", 3)
+			return "tsk_answered_yesterday"
+		}, profile.ErrOtherTask},
+		{"the task on the card with no answer", func(t *testing.T, p *profile.Profile) string {
+			return answering(t, p, "counting.gaps", 3)
+		}, profile.ErrNotAnswered},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := parseFixture(t, "dima")
+			id := tc.card(t, p)
+			before, err := profile.Marshal(p)
+			if err != nil {
+				t.Fatalf("Marshal() error = %v, want nil", err)
+			}
+
+			told, err := p.Told(id, opensNothing{Sealer: newSealer(t), t: t})
+			if !errors.Is(err, tc.want) || told != (profile.Recorded{}) {
+				t.Errorf("Told() = %+v, %v; want %v and nothing told", told, err, tc.want)
+			}
+			if after, err := profile.Marshal(p); err != nil || !bytes.Equal(after, before) {
+				t.Errorf("Told() changed the profile, want it as it was")
+			}
+		})
+	}
+}
+
+// How an answer went is told as the answer recorded it, word for word, and
+// tells nothing once the seal will not open.
+func TestHowAnAnswerWentIsToldAsItWasRecorded(t *testing.T) {
+	t.Parallel()
+
+	for _, choice := range []string{rightLetter, wrongLetter, profile.DontKnow} {
+		t.Run(choice, func(t *testing.T) {
+			t.Parallel()
+
+			p := parseFixture(t, "olya")
+			id := answering(t, p, "counting.gaps", 3)
+			recorded := give(t, p, id, choice, issued.Add(time.Minute))
+
+			told, err := p.Told(id, newSealer(t))
+			if err != nil {
+				t.Fatalf("Told() error = %v, want nil", err)
+			}
+			if want := toldOnly(&recorded); told != want {
+				t.Errorf("Told() = %+v, want what was recorded: %+v", told, want)
+			}
+			if told, err := p.Told(id, newOtherSealer(t)); !errors.Is(err, profile.ErrSealed) || told != (profile.Recorded{}) {
+				t.Errorf("Told() with the seal lost = %+v, %v; want %v and nothing told", told, err, profile.ErrSealed)
+			}
+		})
+	}
+}
+
+// A picture of the solution and the total under it are sealed with the
+// answer, and come back with it: when the answer is recorded, and each time it
+// is told again.
+func TestThePictureOfTheSolutionComesBackWithTheAnswer(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "olya")
+	id := answering(t, p, "counting.gaps", 3)
+	pictured := secret()
+	pictured.SolutionPicture = json.RawMessage(`{"kind":"row","items":[{},{},{}]}`)
+	pictured.SolutionTotal = "2 + 1 = 3"
+	if err := p.SealTask(newSealer(t), pictured); err != nil {
+		t.Fatalf("SealTask() error = %v", err)
+	}
+
+	recorded := give(t, p, id, rightLetter, issued.Add(time.Minute))
+	told, err := p.Told(id, newSealer(t))
+	if err != nil {
+		t.Fatalf("Told() error = %v", err)
+	}
+	for _, got := range []profile.Recorded{recorded, told} {
+		if got.SolutionPicture != string(pictured.SolutionPicture) || got.SolutionTotal != pictured.SolutionTotal {
+			t.Errorf("told the picture %s and the total %q, want %s and %q",
+				got.SolutionPicture, got.SolutionTotal, pictured.SolutionPicture, pictured.SolutionTotal)
+		}
+	}
+	// A sealed value is letters of base64 alone, and the total, with its
+	// spaces and its plus, could not stand in one by chance.
+	if strings.Contains(p.CurrentTask.Sealed, pictured.SolutionTotal) {
+		t.Error("the sealed part shows the total under the picture of the solution, want it sealed")
+	}
+}
+
+// toldOnly is an answer recorded as telling it tells it: without what only
+// recording it knew — the chance, the pace, mastery won or lost.
+func toldOnly(recorded *profile.Recorded) profile.Recorded {
+	told := *recorded
+	told.Probability, told.Pace, told.Mastered, told.Unmastered, told.Again = 0, "", false, false, false
+	return told
 }
 
 // sealsNoMore opens what the ring sealed and seals nothing new: a key ring

@@ -23,6 +23,9 @@ func FuzzParse(f *testing.F) {
 		`{"kind":"containers","items":[{"capacity":5,"amount":6}]}`,
 		`{"kind":"piles","piles":[{"count":12,"shown":6},{"skip":true},{}]}`,
 		`{"kind":"calendar","first":3,"days":30,"marks":{"14":"?","x":"A"}}`,
+		`{"kind":"flags","colors":{"red":"красная","blue":"синяя"},"groups":[{"color":"red","flags":[["red","blue"],` +
+			`["red","?"]]},{"label":"B","flags":[["blue","red","blue"]]}]}`,
+		`{"kind":"flags","colors":{"red":"\u0301x","purple":1,"blue":["b"]},"groups":[{"flags":["red",[]]}]}`,
 		`{"kind":"row","items":[{"skip":true,"label":"\u202e"}],"line":null,"copies":1e400}`,
 		`{"kind":"bars","bars":[{"parts":1e9,"segments":[{"size":-1}],"shaded":"3"}]}`,
 		`[{"kind":"clock"}]`, `{"kind":"clock","time":"9:99"}`, `{`,
@@ -43,8 +46,8 @@ func FuzzParse(f *testing.F) {
 
 // holdsItsRules fails the test where a reading breaks what every reading holds:
 // a picture or a reason there is none, every problem within the picture, and
-// a picture read without a problem labels only with labels and shows nothing
-// empty.
+// a picture read without a problem labels only with labels, writes only the
+// words a colour may be called by, and shows nothing empty.
 func holdsItsRules(t *testing.T, read Picture, problems []Problem, decimals Decimals) {
 	t.Helper()
 	if read == nil && len(problems) == 0 {
@@ -58,13 +61,25 @@ func holdsItsRules(t *testing.T, read Picture, problems []Problem, decimals Deci
 	if read == nil {
 		return
 	}
-	labels, shown := read.Labels(), read.Shown()
-	if len(problems) > 0 {
-		return
+	labels, words, shown := read.Labels(), read.Words(), read.Shown()
+	if len(problems) == 0 {
+		writesOnlyWhatItMay(t, labels, words, shown, decimals)
 	}
+}
+
+// writesOnlyWhatItMay fails the test where a picture read without a problem
+// labels with what is no label, writes a word no colour may be called by, or
+// shows a value with nothing in it.
+func writesOnlyWhatItMay(t *testing.T, labels, words []string, shown []Shown, decimals Decimals) {
+	t.Helper()
 	for _, label := range labels {
 		if !decimals.isLabel(label) {
 			t.Fatalf("Labels() holds %q, which is no label", label)
+		}
+	}
+	for _, word := range words {
+		if !isColorWord(word) {
+			t.Fatalf("Words() holds %q, which no colour may be called by", word)
 		}
 	}
 	for _, value := range shown {

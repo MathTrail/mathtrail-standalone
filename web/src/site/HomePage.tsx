@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { type DemoData, DemoDataScript } from "../demo/data";
-import { dictionaries } from "../widget/dictionaries";
+import { cardWords, dictionaries } from "../widget/dictionaries";
 import type { Section } from "../widget/folds";
 import { lessonStart } from "../widget/lesson";
 import type { HandedTask, ProgressReport } from "../widget/payload";
@@ -32,9 +32,9 @@ import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { GitHubMark, SourceChip } from "./SourceChip";
 import {
-	StaticAnswer,
 	StaticComing,
 	StaticProgress,
+	StaticResult,
 	StaticTask,
 } from "./StaticCard";
 import type { WrongAnswer } from "./taskcard";
@@ -216,14 +216,16 @@ function Hero({
 function Chat({
 	page,
 	ask = "chat.ask",
+	said,
 	children,
 }: {
 	page: PageReader;
 	ask?: string;
+	said?: string;
 	children: ComponentChildren;
 }) {
 	return (
-		<ChatFrame title={page.text("chat.title")} ask={page.text(ask)}>
+		<ChatFrame title={page.text("chat.title")} ask={said ?? page.text(ask)}>
 			{children}
 		</ChatFrame>
 	);
@@ -248,6 +250,9 @@ function Steps({
 }) {
 	const { handed, answered } = lesson;
 	const { locale } = page;
+	// The card that took the answer asks the chat, in its own words, to go over
+	// it, and the card of how it went comes below that message.
+	const goneOver = cardWords(locale, undefined).text("task.review");
 	return (
 		<section id={lessonSection} class="s-wrap s-section">
 			<div class="s-intro">
@@ -286,8 +291,8 @@ function Steps({
 					</Chat>
 				</Step>
 				<Step page={page} name="wrong" number={3}>
-					<Chat page={page}>
-						<StaticAnswer
+					<Chat page={page} said={goneOver}>
+						<StaticResult
 							handed={answered.handed}
 							result={answered.result}
 							locale={locale}
@@ -295,8 +300,8 @@ function Steps({
 					</Chat>
 				</Step>
 				<Step page={page} name="question">
-					<Chat page={page}>
-						<StaticAnswer
+					<Chat page={page} said={goneOver}>
+						<StaticResult
 							handed={answered.handed}
 							result={answered.result}
 							locale={locale}

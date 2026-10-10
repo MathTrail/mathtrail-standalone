@@ -116,6 +116,10 @@
 	--s-paint-leaf: #36a558;
 	--s-paint-wood: #c9a467;
 	--s-paint-yellow: #f2c037;
+	--s-paint-dove: #6a839d;
+	--s-paint-gold: #f3c96a;
+	--s-paint-gold-edge: #c9952e;
+	--s-paint-pink: #e670ac;
 	--s-warm: #fdc495;
 	--s-warm-edge: #eb883b;
 	--s-warm-tint: #ffe4ca;
@@ -1486,6 +1490,12 @@ a:hover {
 	color: var(--s-muted);
 	font-size: 0.875rem;
 	font-weight: 400;
+}
+
+.s-cell-drawn[data-words="beside"] .s-cell-words {
+	color: inherit;
+	font-size: inherit;
+	font-weight: inherit;
 }
 
 .s-note {
@@ -7302,9 +7312,10 @@ a.s-related-card:hover {
 
 .s-kl-supposition {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	align-self: stretch;
-	gap: 10px;
+	gap: 6px 10px;
 	padding: 10px 14px;
 	border-radius: 12px;
 	background: var(--s-trap-tint);
@@ -7316,7 +7327,7 @@ a.s-related-card:hover {
 
 .s-kl-reason {
 	display: flex;
-	flex: 1;
+	flex: 1 1 150px;
 	flex-direction: column;
 	color: var(--s-text);
 	font-size: 0.8125rem;
@@ -8457,6 +8468,1036 @@ a.s-related-card:hover {
 
 .s-pts-book > span + span {
 	border-inline-start: 1px solid var(--s-green-ring);
+}
+
+/* Percentages: a hundred cells, filled in reading order in the accent, in
+   orange and in blue, framed where it is the whole a step names; the facts
+   of the first screen; prices as strips to one scale, what is kept blue and
+   what is taken off hatched red; the changes of a price on their arrows; a
+   watermelon, and its weight as water and a sliver of what is not. */
+.s-pct-hundred {
+	display: grid;
+	flex: none;
+	grid-template-columns: repeat(10, 7px);
+	gap: 2px;
+	padding: 4px;
+	border: 1.5px solid var(--s-line-strong);
+	border-radius: 6px;
+	background: var(--s-page);
+}
+
+.s-pct-hundred > span {
+	inline-size: 7px;
+	block-size: 7px;
+	border-radius: 2px;
+	background: var(--s-tech);
+}
+
+.s-pct-hundred[data-size="sm"] {
+	grid-template-columns: repeat(10, 4px);
+	gap: 1px;
+	padding: 3px;
+	border-radius: 4px;
+}
+
+.s-pct-hundred[data-size="sm"] > span {
+	inline-size: 4px;
+	block-size: 4px;
+	border-radius: 1px;
+}
+
+.s-pct-hundred > span[data-paint="accent"] {
+	background: var(--s-accent);
+}
+
+.s-pct-hundred > span[data-paint="orange"] {
+	background: var(--s-warm);
+}
+
+.s-pct-hundred > span[data-paint="blue"] {
+	background: var(--s-cool);
+}
+
+.s-pct-hundred[data-framed] {
+	border-color: var(--s-accent);
+	box-shadow: 0 0 0 1px var(--s-accent);
+}
+
+.s-pct-facts {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 6px 20px;
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+.s-pct-facts > span[data-lit] {
+	color: var(--s-accent);
+}
+
+.s-pct-price {
+	display: flex;
+	inline-size: var(--s-length);
+	max-inline-size: 100%;
+	block-size: 26px;
+	overflow: hidden;
+	border: 1px solid var(--s-line-strong);
+	border-radius: 6px;
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-pct-kept,
+.s-pct-off {
+	display: flex;
+	flex-basis: 0;
+	align-items: center;
+	justify-content: center;
+	min-inline-size: 26px;
+}
+
+.s-pct-kept {
+	background: var(--s-cool);
+	color: var(--s-on-tint);
+}
+
+.s-pct-off {
+	border-inline-start: 2px solid var(--s-wrong);
+	background: repeating-linear-gradient(
+		-45deg,
+		var(--s-trap) 0 4px,
+		var(--s-page) 4px 8px
+	);
+	color: var(--s-on-trap);
+}
+
+.s-pct-colour {
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+}
+
+.s-pct-colour > strong[data-paint="orange"] {
+	color: var(--s-on-warm);
+}
+
+.s-pct-colour > strong[data-paint="blue"] {
+	color: var(--s-on-tint);
+}
+
+.s-pct-step[data-up] .s-sk-stretch {
+	color: var(--s-on-free);
+}
+
+.s-pct-step:not([data-up]) .s-sk-stretch {
+	color: var(--s-wrong);
+}
+
+.s-pct-melon {
+	flex: none;
+	inline-size: 44px;
+	block-size: 28px;
+	border-radius: 50%;
+	background: repeating-linear-gradient(
+		90deg,
+		var(--s-paint-green) 0 5px,
+		var(--s-paint-leaf) 5px 10px
+	);
+}
+
+.s-pct-water {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: var(--s-length);
+	max-inline-size: 100%;
+	block-size: 24px;
+	box-sizing: border-box;
+	border: 1px solid var(--s-accent-line);
+	border-inline-end: 4px solid var(--s-warm-edge);
+	border-radius: 6px;
+	background: var(--s-cool);
+	color: var(--s-on-tint);
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-pct-dry {
+	flex: none;
+	color: var(--s-muted);
+	font-size: 0.75rem;
+}
+
+/* The pigeonhole principle: a pigeon as a round bird with an eye, or with
+   the number it stands for; a cage with its bars, lit where it holds two;
+   balls, sweets in a jar and socks in a drawer; a run of bad luck over a
+   dashed red bracket; and the one more that settles it, ringed, with +1. */
+.s-pig-pigeon {
+	position: relative;
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 22px;
+	block-size: 22px;
+	border-radius: 50%;
+	background: var(--s-paint-dove);
+	color: var(--s-page);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.s-pig-pigeon:not([data-numbered])::after {
+	position: absolute;
+	inset-block-start: 6px;
+	inset-inline-end: 5px;
+	inline-size: 5px;
+	block-size: 5px;
+	border-radius: 50%;
+	background: var(--s-page);
+	content: "";
+}
+
+.s-pig-pigeon[data-size="sm"] {
+	inline-size: 16px;
+	block-size: 16px;
+}
+
+.s-pig-pigeon[data-size="sm"]::after {
+	inset-block-start: 4px;
+	inset-inline-end: 3px;
+	inline-size: 4px;
+	block-size: 4px;
+}
+
+.s-pig-pigeon[data-numbered] {
+	inline-size: 28px;
+	block-size: 28px;
+}
+
+.s-pig-pigeon[data-ringed] {
+	box-shadow:
+		0 0 0 2px var(--s-page),
+		0 0 0 4px var(--s-accent);
+}
+
+.s-pig-cage {
+	display: flex;
+	flex: none;
+	align-items: flex-end;
+	justify-content: center;
+	gap: 2px;
+	min-inline-size: 44px;
+	block-size: 40px;
+	box-sizing: border-box;
+	padding: 4px;
+	border: 1.5px solid var(--s-quiet);
+	border-radius: 6px;
+	background:
+		repeating-linear-gradient(
+			90deg,
+			transparent 0 10px,
+			var(--s-line-strong) 10px 11px
+		),
+		var(--s-page);
+}
+
+.s-pig-cage[data-size="sm"] {
+	min-inline-size: 26px;
+	block-size: 26px;
+	padding: 3px;
+	border-radius: 4px;
+}
+
+.s-pig-cage[data-plain] {
+	min-inline-size: 40px;
+	block-size: 40px;
+	border-color: var(--s-idle);
+	background: var(--s-page);
+}
+
+.s-pig-cage[data-lit] {
+	border: 2px solid var(--s-accent);
+	background: var(--s-accent-soft);
+}
+
+.s-pig-under {
+	color: var(--s-muted);
+	font-size: 0.6875rem;
+	line-height: 14px;
+	white-space: nowrap;
+}
+
+.s-pig-under[data-lit] {
+	color: var(--s-accent);
+	font-weight: 700;
+}
+
+.s-pig-day {
+	font-size: 0.5625rem;
+}
+
+.s-pig-ball {
+	display: block;
+	flex: none;
+	inline-size: 16px;
+	block-size: 16px;
+	border-radius: 50%;
+	background: var(--s-paint-sky);
+}
+
+.s-pig-ball[data-red] {
+	background: var(--s-paint-red);
+}
+
+.s-pig-ball[data-ringed] {
+	box-shadow:
+		0 0 0 2px var(--s-page),
+		0 0 0 4px var(--s-accent);
+}
+
+.s-pig-candy {
+	position: relative;
+	display: block;
+	flex: none;
+	inline-size: 26px;
+	block-size: 12px;
+}
+
+.s-pig-candy::before {
+	position: absolute;
+	inset-block: 0;
+	inset-inline: 6px;
+	border-radius: 50%;
+	background: var(--s-paint-yellow);
+	content: "";
+}
+
+.s-pig-candy::after {
+	position: absolute;
+	inset: 0;
+	background: var(--s-paint-yellow);
+	clip-path: polygon(0 10%, 30% 50%, 0 90%, 100% 10%, 70% 50%, 100% 90%);
+	content: "";
+}
+
+.s-pig-candy[data-orange]::before,
+.s-pig-candy[data-orange]::after {
+	background: var(--s-paint-orange);
+}
+
+.s-pig-candy[data-ringed] {
+	border-radius: 8px;
+	outline: 2px solid var(--s-accent);
+	outline-offset: 3px;
+}
+
+.s-pig-jar {
+	display: grid;
+	flex: none;
+	grid-template-columns: repeat(2, auto);
+	align-content: end;
+	gap: 4px 6px;
+	min-inline-size: 64px;
+	min-block-size: 70px;
+	padding: 14px 8px 8px;
+	border: 2px solid var(--s-idle);
+	border-block-start: 6px solid var(--s-idle);
+	border-radius: 6px 6px 12px 12px;
+	background: var(--s-page);
+}
+
+.s-pig-sock {
+	position: relative;
+	display: block;
+	flex: none;
+	inline-size: 14px;
+	block-size: 20px;
+}
+
+.s-pig-sock::before,
+.s-pig-sock::after {
+	position: absolute;
+	background: var(--s-text);
+	content: "";
+}
+
+.s-pig-sock::before {
+	inset-block: 0 5px;
+	inset-inline-start: 1px;
+	inline-size: 7px;
+	border-radius: 2px 2px 0 0;
+}
+
+.s-pig-sock::after {
+	inset-block-end: 0;
+	inset-inline-start: 1px;
+	inline-size: 12px;
+	block-size: 6px;
+	border-radius: 0 3px 3px 2px;
+}
+
+.s-pig-sock[data-kind="white"]::before,
+.s-pig-sock[data-kind="white"]::after {
+	background: var(--s-tech-edge);
+}
+
+.s-pig-sock[data-kind="striped"]::before,
+.s-pig-sock[data-kind="striped"]::after {
+	background: repeating-linear-gradient(
+		180deg,
+		var(--s-paint-red) 0 2px,
+		var(--s-page) 2px 4px
+	);
+}
+
+.s-pig-sock[data-ring="picked"] {
+	border-radius: 4px;
+	outline: 2px solid var(--s-accent);
+	outline-offset: 2px;
+}
+
+.s-pig-sock[data-ring="wrong"] {
+	margin-inline: 4px;
+	border-radius: 4px;
+	outline: 2px dashed var(--s-wrong);
+	outline-offset: 2px;
+}
+
+.s-pig-drawer {
+	display: grid;
+	flex: none;
+	grid-template-columns: repeat(8, auto);
+	gap: 4px 6px;
+	padding: 8px 10px;
+	border-radius: 6px;
+	background: var(--s-warm-tint);
+	box-shadow: inset 0 -4px 0 var(--s-amber-soft);
+}
+
+.s-pig-luck {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 4px;
+}
+
+.s-pig-luck-run {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	padding-block-end: 4px;
+	border: 1.5px dashed var(--s-wrong);
+	border-block-start: none;
+	border-radius: 0 0 6px 6px;
+	padding-inline: 4px;
+}
+
+.s-pig-luck-label {
+	color: var(--s-wrong);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.s-pig-more {
+	color: var(--s-muted);
+	font-weight: 700;
+}
+
+.s-pig-decides {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+}
+
+.s-pig-plus {
+	color: var(--s-accent);
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-pig-luck-sample {
+	flex: none;
+	inline-size: 30px;
+	block-size: 8px;
+	border: 1.5px dashed var(--s-wrong);
+	border-block-start: none;
+	border-radius: 0 0 4px 4px;
+}
+
+.s-pig-decides-sample {
+	flex: none;
+	inline-size: 22px;
+	block-size: 22px;
+	border: 2px solid var(--s-accent);
+	border-radius: 7px;
+}
+
+.s-pig-line {
+	color: var(--s-muted);
+	font-size: 0.625rem;
+	line-height: 12px;
+}
+
+.s-pig-count {
+	flex: none;
+	font-size: 1rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+/* Ratios and sharing: rows of parts drawn small in a table's cell, a unit
+   of each 14 px; the two who share, as circles of their colours; boxes of
+   balls and the part moved between them; the tiles of the key; and a sum
+   written out large. */
+.s-rat-small {
+	display: block;
+	flex: none;
+}
+
+.s-rat-small .mt-picture {
+	inline-size: calc(var(--s-units) * 14px + 8px);
+	block-size: auto;
+}
+
+.s-rat-person {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 26px;
+	block-size: 26px;
+	border-radius: 50%;
+	background: var(--s-paint-blue);
+	color: var(--s-page);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.s-rat-person[data-tone="warm"] {
+	background: var(--s-paint-orange);
+}
+
+.s-rat-crate {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	min-inline-size: 96px;
+	min-block-size: 40px;
+	box-sizing: border-box;
+	padding: 6px 8px;
+	border: 2px solid var(--s-quiet);
+	border-block-start-width: 4px;
+	border-radius: 6px 6px 10px 10px;
+	background: var(--s-page);
+}
+
+.s-rat-ball {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 24px;
+	block-size: 24px;
+	box-sizing: border-box;
+	border: 1px solid var(--s-accent-line);
+	border-radius: 6px;
+	background: var(--s-cool);
+	color: var(--s-on-tint);
+	font-size: 0.625rem;
+	font-weight: 700;
+}
+
+.s-rat-moved {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: center;
+	align-self: center;
+	padding-block-end: 20px;
+	color: var(--s-accent);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	line-height: 14px;
+	white-space: nowrap;
+}
+
+.s-rat-moved-arrow {
+	font-size: 1rem;
+}
+
+.s-rat-tile {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 22px;
+	block-size: 22px;
+	box-sizing: border-box;
+	border: 1px solid var(--s-accent-line);
+	border-radius: 5px;
+	background: var(--s-cool);
+	color: var(--s-on-tint);
+	font-size: 0.625rem;
+	font-weight: 700;
+}
+
+.s-rat-tile[data-framed] {
+	border: 2px solid var(--s-accent);
+	background: var(--s-warm);
+}
+
+.s-rat-big {
+	flex: none;
+	font-size: 1.125rem;
+	font-weight: 700;
+	text-align: center;
+}
+
+/* Weighing and pouring: a jug as tall as it holds, 8 px a litre, the water
+   in it and how much there is on the water, its size under it; two jugs as
+   one state, framed where it is the goal, with its step's number over it;
+   the move from state to state over its arrow; gold coins; a pan balance
+   whose heavier pan hangs lower, what it shows under it; coins set aside;
+   heaps of three, nine in a square; and the sample of the key. */
+.s-wei-jug {
+	position: relative;
+	display: block;
+	flex: none;
+	inline-size: 28px;
+	block-size: calc(var(--s-capacity) * 8px);
+	box-sizing: border-box;
+	overflow: hidden;
+	border: 2px solid var(--s-quiet);
+	border-block-start: none;
+	border-radius: 0 0 6px 6px;
+	background: var(--s-page);
+}
+
+.s-wei-water {
+	position: absolute;
+	inset-inline: 0;
+	inset-block-end: 0;
+	block-size: calc(var(--s-holds) * 8px);
+	background: var(--s-cool);
+}
+
+.s-wei-litres {
+	position: absolute;
+	inset-inline: 0;
+	inset-block-end: 1px;
+	color: var(--s-on-tint);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	text-align: center;
+}
+
+.s-wei-jug[data-wrong] {
+	overflow: visible;
+	outline: 2px dashed var(--s-wrong);
+	outline-offset: 3px;
+}
+
+.s-wei-size {
+	color: var(--s-muted);
+	font-size: 0.625rem;
+	line-height: 12px;
+	white-space: nowrap;
+}
+
+.s-wei-state {
+	display: flex;
+	flex: none;
+	align-items: flex-end;
+	gap: 5px;
+	padding: 4px;
+	border: 2px solid transparent;
+	border-radius: 10px;
+}
+
+.s-wei-state[data-goal] {
+	border-color: var(--s-accent);
+	background: var(--s-accent-soft);
+}
+
+.s-wei-step {
+	color: var(--s-muted);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	line-height: 14px;
+}
+
+.s-wei-step[data-goal] {
+	color: var(--s-accent);
+}
+
+.s-wei-move {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: center;
+	align-self: center;
+	color: var(--s-muted);
+	font-size: 0.625rem;
+	font-weight: 600;
+	line-height: 12px;
+	white-space: nowrap;
+}
+
+.s-wei-arrow,
+.s-wei-then {
+	color: var(--s-outline);
+	font-size: 0.875rem;
+	line-height: 16px;
+}
+
+.s-wei-then {
+	flex: none;
+	align-self: center;
+}
+
+.s-wei-coins {
+	display: flex;
+	flex: none;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 3px;
+}
+
+.s-wei-coin {
+	display: block;
+	flex: none;
+	inline-size: 16px;
+	block-size: 16px;
+	box-sizing: border-box;
+	border: 1.5px solid var(--s-paint-gold-edge);
+	border-radius: 50%;
+	background: var(--s-paint-gold);
+}
+
+.s-wei-coin[data-size="sm"] {
+	inline-size: 10px;
+	block-size: 10px;
+	border-width: 1.5px;
+}
+
+.s-wei-coin[data-size="xs"] {
+	inline-size: 7px;
+	block-size: 7px;
+	border-width: 1px;
+}
+
+.s-wei-balance {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: center;
+}
+
+.s-wei-beam {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+}
+
+.s-wei-pan {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	min-inline-size: 38px;
+	min-block-size: 20px;
+	padding: 2px 4px 3px;
+	border-block-end: 3px solid var(--s-quiet);
+	border-radius: 0 0 12px 12px;
+	transition: none;
+}
+
+.s-wei-balance[data-lower="left"] .s-wei-pan:first-child,
+.s-wei-balance[data-lower="right"] .s-wei-pan:last-child {
+	translate: 0 6px;
+}
+
+.s-wei-balance[data-lower="left"] .s-wei-pan:last-child,
+.s-wei-balance[data-lower="right"] .s-wei-pan:first-child {
+	translate: 0 -6px;
+}
+
+.s-wei-pan-load {
+	color: var(--s-text);
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-wei-post {
+	flex: none;
+	inline-size: 0;
+	block-size: 0;
+	border-inline: 7px solid transparent;
+	border-block-end: 16px solid var(--s-quiet);
+}
+
+.s-wei-foot {
+	inline-size: 56px;
+	block-size: 4px;
+	margin-block-start: 8px;
+	border-radius: 2px;
+	background: var(--s-quiet);
+}
+
+.s-wei-shows {
+	margin-block-start: 6px;
+	color: var(--s-muted);
+	font-size: 0.6875rem;
+	font-weight: 600;
+	line-height: 14px;
+	white-space: nowrap;
+}
+
+.s-wei-aside {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-inline-size: 28px;
+	min-block-size: 18px;
+	padding: 3px 5px;
+	border: 1.5px dashed var(--s-idle);
+	border-radius: 6px;
+	color: var(--s-muted);
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-wei-heap {
+	display: flex;
+	flex: none;
+	gap: 2px;
+}
+
+.s-wei-heap[data-square] {
+	display: grid;
+	grid-template-columns: repeat(3, auto);
+	gap: 1px;
+}
+
+.s-wei-heap-wrong {
+	display: flex;
+	padding: 3px;
+	border: 1.5px solid var(--s-wrong);
+	border-radius: 7px;
+	background: var(--s-trap);
+}
+
+.s-wei-goal-sample {
+	flex: none;
+	inline-size: 22px;
+	block-size: 18px;
+	border: 2px solid var(--s-accent);
+	border-radius: 6px;
+	background: var(--s-accent-soft);
+}
+
+/* Games with a winning strategy: the move from one position to the next
+   over its arrow, red where the rules forbid it; matches with red heads;
+   sweets as pink dots; the samples of the key; the king's board, checkered,
+   with the flag in its corner, the cells one move from it green, the losing
+   cells dotted red and the king; and the daisy, its petals plain, torn off,
+   or in the blue and the orange rows. */
+.s-win-move {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: center;
+	color: var(--s-accent);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	line-height: 13px;
+	white-space: nowrap;
+}
+
+.s-win-move[data-wrong] {
+	color: var(--s-wrong);
+}
+
+.s-win-arrow {
+	color: var(--s-outline);
+	font-size: 0.875rem;
+	line-height: 16px;
+}
+
+.s-win-tiles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	max-inline-size: 290px;
+}
+
+.s-win-line {
+	display: block;
+	inline-size: min(100%, 340px);
+}
+
+.s-win-line .mt-picture {
+	inline-size: 100%;
+	block-size: auto;
+}
+
+.s-win-matches {
+	display: flex;
+	flex: none;
+	gap: 6px;
+}
+
+.s-win-matches > span {
+	position: relative;
+	inline-size: 3px;
+	block-size: 30px;
+	border-radius: 1px;
+	background: var(--s-paint-wood);
+}
+
+.s-win-matches > span::before {
+	position: absolute;
+	inset-block-start: -3px;
+	inset-inline-start: -2px;
+	inline-size: 7px;
+	block-size: 8px;
+	border-radius: 50%;
+	background: var(--s-paint-red);
+	content: "";
+}
+
+.s-win-sweets {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 3px;
+	max-inline-size: 240px;
+}
+
+.s-win-sweets > span {
+	inline-size: 12px;
+	block-size: 12px;
+	border-radius: 50%;
+	background: var(--s-paint-pink);
+}
+
+.s-win-spot {
+	flex: none;
+	inline-size: 14px;
+	block-size: 14px;
+	box-sizing: border-box;
+	border: 1px solid var(--s-green-soft);
+	border-radius: 50%;
+	background: var(--s-right);
+}
+
+.s-win-spot[data-loses] {
+	border-color: var(--s-trap-edge);
+	background: var(--s-trap);
+}
+
+.s-win-board {
+	display: grid;
+	flex: none;
+	grid-template-columns: repeat(var(--s-cells), 30px);
+	grid-auto-rows: 30px;
+	border: 1.5px solid var(--s-idle);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.s-win-cell {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--s-page);
+}
+
+.s-win-cell[data-dark] {
+	background: var(--s-hairline);
+}
+
+.s-win-cell[data-green] {
+	background: var(--s-right);
+}
+
+.s-win-flag {
+	position: absolute;
+	inset-block-start: 6px;
+	inset-inline-start: 10px;
+	inline-size: 2px;
+	block-size: 18px;
+	background: var(--s-text);
+}
+
+.s-win-flag::after {
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline-start: 2px;
+	inline-size: 11px;
+	block-size: 8px;
+	background: var(--s-paint-leaf);
+	content: "";
+}
+
+.s-win-dot {
+	inline-size: 10px;
+	block-size: 10px;
+	border-radius: 50%;
+	background: var(--s-wrong);
+}
+
+.s-win-king {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 22px;
+	block-size: 22px;
+	border-radius: 50%;
+	background: var(--s-text);
+	box-shadow: 0 0 0 2px var(--s-trap-edge);
+	color: var(--s-page);
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-win-daisy {
+	display: block;
+	flex: none;
+}
+
+.s-win-petal {
+	fill: var(--s-page);
+	stroke: var(--s-idle);
+	stroke-width: 1.2;
+}
+
+.s-win-petal[data-petal="torn"] {
+	fill: none;
+	stroke: var(--s-wrong);
+	stroke-dasharray: 3 2;
+}
+
+.s-win-petal[data-petal="blue"] {
+	fill: var(--s-cool);
+	stroke: var(--s-accent-line);
+}
+
+.s-win-petal[data-petal="orange"] {
+	fill: var(--s-warm);
+	stroke: var(--s-warm-edge);
+}
+
+.s-win-middle {
+	fill: var(--s-paint-yellow);
 }
 
 /* Arithmetic with a trick: a big product as a rectangle, the grey block two

@@ -112,7 +112,7 @@ internal/
   widget/         the widget page as the web build left it, embedded, and the design tokens; a placeholder until a build runs
   domain/         pure logic — no I/O, no SDKs, no transport
     rating/ tutor/ checks/ solver/ profile/ progress/
-    picture/      the format of a task's picture: twelve kinds, each read strictly, and what each shows a child
+    picture/      the format of a task's picture: thirteen kinds, each read strictly, the colours a picture paints with, and what each shows a child
     country/      the countries, and the states of the United States, a family can say it lives in, by their ISO 3166 codes
   infra/          everything that talks to the outside world
     seal/

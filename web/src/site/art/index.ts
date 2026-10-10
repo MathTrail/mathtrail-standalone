@@ -11,6 +11,11 @@ import { art as ordering } from "./ordering";
 import { art as overlappingGroups } from "./overlapping-groups";
 import { art as parityAndAlternation } from "./parity-and-alternation";
 import { art as partsAndShares } from "./parts-and-shares";
+import { art as percentages } from "./percentages";
+import { art as pigeonholePrinciple } from "./pigeonhole-principle";
+import { art as ratiosAndSharing } from "./ratios-and-sharing";
+import { art as weighingAndPouring } from "./weighing-and-pouring";
+import { art as winningStrategy } from "./winning-strategy";
 
 /**
  * topicArt are the drawings of the topics' pages, by the slug of the topic. A
@@ -29,4 +34,9 @@ export const topicArt: ReadonlyMap<string, TopicArt> = new Map([
 	["overlapping-groups", overlappingGroups],
 	["parity-and-alternation", parityAndAlternation],
 	["parts-and-shares", partsAndShares],
+	["percentages", percentages],
+	["pigeonhole-principle", pigeonholePrinciple],
+	["ratios-and-sharing", ratiosAndSharing],
+	["weighing-and-pouring", weighingAndPouring],
+	["winning-strategy", winningStrategy],
 ]);

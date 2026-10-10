@@ -121,7 +121,7 @@ lesson:
       text: The hint points to a way in — draw a smaller fence — and the answer stays hidden until your child commits to one.
     wrong:
       title: A wrong answer becomes a lesson
-      text: Each wrong option hides a known trap. The card names it from your child's side — “counted the gaps instead of the posts” — then walks through the solution.
+      text: Each wrong option hides a known trap. A card of its own, below the task, names it from your child's side — “counted the gaps instead of the posts” — then walks through the solution.
     question:
       title: Ask why, in your own words
       text: Once the answer is in, ask in the chat — “why one more post?” — and the model answers about this very task.

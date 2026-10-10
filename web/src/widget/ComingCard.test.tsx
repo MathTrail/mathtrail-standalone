@@ -171,7 +171,9 @@ describe("a card a task asked for comes to", () => {
 			name: "submit_answer",
 			arguments: { task_id: fence.task.id, answer: "C", hint_used: false },
 		});
-		expect(text(".mt-verdict-line")).toBe("Correct! It's 5.");
+		expect(
+			root.querySelector(".mt-option[data-state='correct']")?.textContent,
+		).toBe("C 5 Correct answer");
 	});
 
 	test("ticks off the course for a task that comes after questions that went unanswered", async () => {

@@ -69,8 +69,7 @@ export type Version = { label: string; number: string };
  * MessageHeader says who speaks — MathTrail, with its logo, or the child, with
  * the avatar — with a badge under the name, or beside it on a wide card, and a
  * short note beside the name when there is one. A version, when there is one,
- * closes the line at its far end. A compact header heads a reply below the
- * task.
+ * closes the line at its far end.
  */
 export function MessageHeader({
 	author = "app",
@@ -78,7 +77,6 @@ export function MessageHeader({
 	badge,
 	meta,
 	version,
-	compact = false,
 	wide = false,
 }: {
 	author?: "app" | "person";
@@ -86,15 +84,10 @@ export function MessageHeader({
 	badge?: string;
 	meta?: string;
 	version?: Version;
-	compact?: boolean;
 	wide?: boolean;
 }) {
 	const picture =
-		author === "app" ? (
-			<Mark size={compact ? 28 : 32} />
-		) : (
-			<Icon name="avatar" size={compact ? 24 : 32} />
-		);
+		author === "app" ? <Mark size={32} /> : <Icon name="avatar" size={32} />;
 	const nameLine = (
 		<>
 			<span class="mt-name">{name}</span>
@@ -107,9 +100,7 @@ export function MessageHeader({
 		</>
 	);
 	let text: ComponentChildren;
-	if (compact) {
-		text = <div class="mt-head-text">{nameLine}</div>;
-	} else if (wide) {
+	if (wide) {
 		text = (
 			<div class="mt-head-text">
 				<span class="mt-name">{name}</span>
@@ -129,7 +120,6 @@ export function MessageHeader({
 		<header
 			class={classes(
 				"mt-head",
-				compact && "mt-head-compact",
 				wide && "mt-head-wide",
 				version !== undefined && "mt-head-versioned",
 			)}
@@ -150,24 +140,5 @@ export function MessageHeader({
 				</span>
 			)}
 		</header>
-	);
-}
-
-/**
- * ReplyCard is MathTrail's reply below the task — the result of an answer, or
- * why there is none — under a compact header.
- */
-export function ReplyCard({
-	name,
-	children,
-}: {
-	name: string;
-	children: ComponentChildren;
-}) {
-	return (
-		<article class="mt-reply">
-			<MessageHeader author="app" name={name} compact />
-			<div class="mt-reply-body">{children}</div>
-		</article>
 	);
 }

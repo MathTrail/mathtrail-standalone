@@ -141,6 +141,12 @@ const pressedIn = () =>
 		),
 	].map((name) => name.textContent);
 const topicNote = () => text(".mt-topic-note");
+// answerNote is what the card says of its answer.
+const answerNote = () => text(".mt-answer-note");
+const closedNote =
+	"This task is closed. The newest task is further down the chat.";
+const reviewComing =
+	"Once the ask reaches the chat, how the answer went will come below, in a new card.";
 // askNote is what the card says of its ask for another task.
 const askNote = () =>
 	root.querySelector(".mt-foot > .mt-action-note:not(.mt-topic-note)");
@@ -160,7 +166,8 @@ async function expectDoneWith() {
 	expect(root.querySelector(".mt-btns")).toBeNull();
 	expect(root.querySelector(".mt-topic-panel")).toBeNull();
 	expect(askNote()?.getAttribute("tabindex")).toBe("-1");
-	expect(document.activeElement).toBe(askNote());
+	// The focus moves in an effect, a moment after the words are drawn.
+	await vi.waitFor(() => expect(document.activeElement).toBe(askNote()));
 }
 
 // open opens the panel as a person does.
@@ -285,18 +292,18 @@ describe("the button that chooses the topic", () => {
 
 		press(option("B"));
 
-		await vi.waitFor(() => expect(root.querySelector(".mt-foot")).toBeNull());
+		await vi.waitFor(() => expect(answerNote()).toBe(closedNote));
 		expect(root.querySelector(".mt-topic-button")).toBeNull();
 	});
 
-	test("stays once the answer is in, after the next task", async () => {
+	test("goes once the answer is in: the card of how it went offers it", async () => {
 		await draw();
 
 		press(option("B"));
 
-		await vi.waitFor(() =>
-			expect(shownButtons()).toEqual(["Another task", "Topic: Coach"]),
-		);
+		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
+		expect(root.querySelector(".mt-topic-button")).toBeNull();
+		expect(shownButtons()).toEqual([]);
 	});
 
 	test("takes no press while an answer is checked", async () => {
@@ -314,7 +321,7 @@ describe("the button that chooses the topic", () => {
 		expect(panel().hidden).toBe(true);
 		answer.arrive(answered());
 		await vi.waitFor(() =>
-			expect(topicButton().getAttribute("aria-disabled")).toBeNull(),
+			expect(root.querySelector(".mt-topic-button")).toBeNull(),
 		);
 	});
 });
@@ -668,33 +675,6 @@ describe("a topic chosen", () => {
 		expect(opened.heard.order).toEqual(["call", "model line", "message"]);
 	});
 
-	test("carries to the model the line of an answer no message has carried yet", async () => {
-		const heard = await draw();
-		press(option("B"));
-		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
-		open();
-
-		press(choice("Clocks"));
-
-		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		expect(heard.modelLines[1]).toBe(`${heard.modelLines[0]}\n\n${topicWords}`);
-	});
-
-	test("carries to the model the line of an answer an ask the chat refused did not carry", async () => {
-		vi.spyOn(console, "error").mockImplementation(() => {});
-		const heard = await draw(withTopicChoice(fence), { refuseMessages: 1 });
-		press(option("B"));
-		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
-		press(button("Another task"));
-		await vi.waitFor(() => expect(requestNote()).toBe(notSent));
-		open();
-
-		press(choice("Clocks"));
-
-		await vi.waitFor(() => expect(heard.messages).toHaveLength(2));
-		expect(heard.modelLines[1]).toBe(`${heard.modelLines[0]}\n\n${topicWords}`);
-	});
-
 	test("is asked for on a host that keeps no line for the model", async () => {
 		const heard = await draw(withTopicChoice(fence), {
 			refuseModelLines: true,
@@ -790,11 +770,9 @@ describe("a topic chosen", () => {
 			choice("Clocks").click();
 		});
 
-		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-verdict-line")).not.toBeNull(),
-		);
+		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
 		expect(heard.calls.map((call) => call.name)).toEqual(["submit_answer"]);
-		expect(heard.messages).toEqual([]);
+		expect(heard.messages).toEqual(["Go over the answer"]);
 	});
 
 	test("on its way turns away an answer and another task pressed in the same moment", async () => {
@@ -825,27 +803,6 @@ describe("a topic chosen", () => {
 		expect(heard.calls).toEqual([]);
 	});
 
-	test("once the answer is in, locks the next task while it is saved", async () => {
-		const saved = pending();
-		const heard = await draw(withTopicChoice(fence), {
-			tools: ({ name }) =>
-				name === "edit_profile" ? saved.result : answered(),
-		});
-		press(option("B"));
-		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-verdict-line")).not.toBeNull(),
-		);
-		open();
-
-		press(choice("Percentages"));
-		press(button("Another task"));
-
-		expect(button("Another task").getAttribute("aria-disabled")).toBe("true");
-		saved.arrive(topicSaved("percent.basic"));
-		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		expect(heard.messages[0]).toContain("Percentages");
-	});
-
 	test("is not chosen while an ask for another task pressed in the same moment is on its way", async () => {
 		const heard = await draw();
 		open();
@@ -858,23 +815,6 @@ describe("a topic chosen", () => {
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
 		expect(heard.calls).toEqual([]);
 		await expectDoneWith();
-	});
-
-	test("can be chosen once the answer is in", async () => {
-		const heard = await draw();
-		press(option("B"));
-		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-verdict-line")).not.toBeNull(),
-		);
-		open();
-
-		press(choice("Percentages"));
-
-		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		expect(heard.calls.at(-1)).toEqual({
-			name: "edit_profile",
-			arguments: { lesson_topic: "percent.basic" },
-		});
 	});
 });
 
@@ -910,7 +850,7 @@ describe("the mark of the topic chosen", () => {
 
 		press(option("B"));
 
-		await vi.waitFor(() => expect(root.querySelector(".mt-foot")).toBeNull());
+		await vi.waitFor(() => expect(answerNote()).toBe(closedNote));
 		expect(root.querySelector(".mt-topic-chip")).toBeNull();
 	});
 
@@ -965,11 +905,9 @@ describe("the mark of the topic chosen", () => {
 
 		expect(cross.getAttribute("aria-disabled")).toBe("true");
 		answer.arrive(answered());
-		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-verdict-line")).not.toBeNull(),
-		);
+		await vi.waitFor(() => expect(answerNote()).toBe(reviewComing));
 		expect(heard.calls.map((call) => call.name)).toEqual(["submit_answer"]);
-		expect(heard.messages).toEqual([]);
+		expect(heard.messages).toEqual(["Go over the answer"]);
 	});
 
 	test("takes no press of its cross while an ask for another task is on its way, and is gone once the chat has it", async () => {

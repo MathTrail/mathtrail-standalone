@@ -87,8 +87,11 @@ describe("the pictures of the listing in Claude's directory", () => {
 		const scenes = scenesIn("en");
 		const pictures = shots.flatMap((shot) => {
 			const scene = scenes.find((found) => found.name === shot.scene);
-			const handed = scene?.payload as { task?: { picture?: Picture } };
-			return handed?.task === undefined
+			const handed = scene?.payload as {
+				screen?: string;
+				task?: { picture?: Picture };
+			};
+			return handed?.screen !== "task" || handed.task === undefined
 				? []
 				: [{ scene: shot.scene, picture: handed.task.picture }];
 		});

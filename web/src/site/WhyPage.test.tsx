@@ -213,17 +213,16 @@ describe("the page Why", () => {
 		expect(why.querySelector(".s-card .mt-bar-action")).toBeNull();
 	});
 
-	test("draws the widget's own card of a wrong answer, inert, and loads its stylesheet", () => {
+	test("draws the widget's own card of how a wrong answer went, inert, and loads its stylesheet", () => {
 		expect(why.querySelector(".s-card[inert] .mt-widget")).not.toBeNull();
 		expect(all('link[rel="stylesheet"]', "href")).toContain("/assets/card.css");
-		expect(
-			[...why.querySelectorAll(".s-card .mt-option")].map(
-				(row) =>
-					`${row.querySelector(".mt-option-letter")?.textContent} ${row.getAttribute("data-state")}`,
-			),
-		).toEqual(["A muted", "B wrong", "C correct", "D muted", "E muted"]);
+		expect(why.querySelector(".s-card .mt-verdict-line svg")).not.toBeNull();
 		expect(why.querySelector(".s-card .mt-note-trap")).not.toBeNull();
+		expect(why.querySelector(".s-card .mt-total")?.textContent).toBe(
+			"12 ÷ 3 + 1 = 5, not 4",
+		);
 		expect(why.querySelectorAll(".s-card .mt-steps li")).toHaveLength(3);
+		expect(why.querySelector(".s-card .mt-rating-move")).not.toBeNull();
 	});
 
 	test("draws its card in the page's language", () => {

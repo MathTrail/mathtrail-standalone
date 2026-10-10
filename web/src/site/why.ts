@@ -63,7 +63,8 @@ const focus = /^\d{1,3}% \d{1,3}%$/;
 
 /**
  * whyFile is the shape of what the page "Why" takes from the site's data, as
- * far as no language changes it: the card of a wrong answer it shows; the
+ * far as no language changes it: the card of a wrong answer it shows, with
+ * the picture of its solution and the equality under it; the
  * topics it names as examples of what a problem is about, by the slot of its
  * words each fills; the works its findings come from, in the order it shows
  * them, each with the colour of its card and the drawing under it; the
@@ -79,6 +80,8 @@ export const whyFile = z.object({
 		grade: z.number().int(),
 		picture: pictureFormat,
 		options: z.record(z.string(), z.string()),
+		solution_picture: pictureFormat,
+		solution_total: z.string(),
 		choice: z.string(),
 		correct: z.string(),
 		trap: z.string(),

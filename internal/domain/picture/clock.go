@@ -3,6 +3,7 @@ package picture
 // clock is a clock face: the time its hands show, and the labels at their tips
 // where the question calls the hands so.
 type clock struct {
+	noWords
 	time        *Time
 	hourLabel   string
 	minuteLabel string

@@ -6,6 +6,7 @@ import "strconv"
 // cut short where a skip stands, a label under every gap, and a label of the
 // whole length.
 type row struct {
+	noWords
 	items []rowItem
 	gaps  string
 	span  string

@@ -2,6 +2,7 @@ package checks_test
 
 import (
 	"encoding/json"
+	"slices"
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
@@ -55,5 +56,50 @@ func TestATaskWithNoPictureHasNoFormatToCheck(t *testing.T) {
 	}
 	if problems := checks.PictureFormat(nil, "en"); len(problems) != 0 {
 		t.Errorf("PictureFormat(nil) = %v, want none", problems)
+	}
+}
+
+// The picture of a solution is checked alone as the review checks it: in its
+// format, its total in its own, and against the wording and the solution;
+// a task with none has nothing to check.
+func TestThePictureOfASolutionIsCheckedAloneAsTheReviewChecksIt(t *testing.T) {
+	t.Parallel()
+
+	task := func(picture, total string) *checks.Task {
+		return &checks.Task{
+			Question: "How many posts stand along a fence of 12 metres, one every 3 metres?",
+			Solution: "12 ÷ 3 = 4 gaps, and 4 + 1 = 5 posts.", SolutionPicture: json.RawMessage(picture),
+			SolutionTotal: total, CorrectAnswer: "C",
+			Options: map[string]string{"A": "3", "B": "4", "C": "5", "D": "6", "E": "12"},
+		}
+	}
+	posts := `{"kind":"row","items":[{},{},{},{},{}],"gaps":"3","span":"12"}`
+	for _, test := range []struct {
+		name, picture, total string
+		codes                []checks.Code
+	}{
+		{"a picture and a total that ends in the answer", posts, "12 ÷ 3 + 1 = 5", nil},
+		{"no picture at all", "", "", nil},
+		{"a picture out of its format", `{"kind":"row","items":[{}]}`, "", []checks.Code{checks.CodeDrawingFormat}},
+		{"a total out of its format", posts, "12 ÷ 3 + 1 = ?", []checks.Code{checks.CodeDrawingFormat}},
+		{"a total that ends in a wrong option", posts, "12 ÷ 3 = 4", []checks.Code{checks.CodeDrawingMismatch}},
+		{"a label neither the question nor the solution names", `{"kind":"row","items":[{"label":"Q"},{}]}`, "",
+			[]checks.Code{checks.CodeDrawingMismatch}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			held := task(test.picture, test.total)
+			if test.picture == "" {
+				held.SolutionPicture = nil
+			}
+			var codes []checks.Code
+			for _, problem := range checks.SolutionPicture(held, "en") {
+				codes = append(codes, problem.Code)
+			}
+			if !slices.Equal(codes, test.codes) {
+				t.Errorf("SolutionPicture() codes = %v, want %v", codes, test.codes)
+			}
+		})
 	}
 }

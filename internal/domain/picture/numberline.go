@@ -5,6 +5,7 @@ import "slices"
 // numberLine is a line of evenly spaced ticks the card numbers itself, from
 // one end to the other, with the marks the question names standing on ticks.
 type numberLine struct {
+	noWords
 	ends  []int
 	marks []lineMark
 }
