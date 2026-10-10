@@ -19,13 +19,12 @@ afterAll(async () => {
 	await browser.happyDOM.close();
 });
 
-// drawings are the drawings of the three topics' cards: alpha's the site's own
-// drawing of two islanders, beta's a picture, and gamma's the site's own
-// drawing of a daisy, which has no words.
+// drawings are the drawings of the three topics' cards: alpha's a knight and a
+// liar, beta's a clock's face, and gamma's three people lined up by height.
 const drawings = {
-	"logic.alpha": { card: { markup: "islanders" } },
-	"logic.beta": { card: { picture: { kind: "clock", time: "11:50" } } },
-	"logic.gamma": { card: { markup: "daisy" } },
+	"logic.alpha": { card: { markup: "knight-and-liar" } },
+	"logic.beta": { card: { markup: "clock-face" } },
+	"logic.gamma": { card: { markup: "lined-up" } },
 };
 
 // dataWith is the site's data over a catalog of three topics in three layers,
@@ -73,8 +72,7 @@ const dataWith = (drawn: unknown) =>
 
 const data = dataWith(drawings);
 
-// words are the page's words for that catalog, the same in each language:
-// the words of alpha's drawing among them.
+// words are the page's words for that catalog, the same in each language.
 const words = [
 	"title: Topics",
 	"description: Every topic.",
@@ -107,11 +105,6 @@ const words = [
 	"topics:",
 	"  alpha:",
 	"    phrase: The topic alpha.",
-	"    drawing:",
-	"      first: A",
-	"      first-says: “I am a knight”",
-	"      second: B",
-	"      second-says: “A is lying”",
 	"  beta:",
 	"    phrase: The topic beta.",
 	"  gamma:",
@@ -223,7 +216,7 @@ describe("the page of the topics", () => {
 		]);
 	});
 
-	test("draws each topic's drawing, which a screen reader passes over: the site's own in the page's words, or a picture", () => {
+	test("draws each topic's drawing of the site's own, which a screen reader passes over", () => {
 		const drawn = [...topics.querySelectorAll(".s-topic")].map(
 			(card) => card.firstElementChild,
 		);
@@ -234,13 +227,12 @@ describe("the page of the topics", () => {
 			"true",
 		]);
 		expect(
-			[...(drawn[0]?.querySelectorAll(".s-speech-line") ?? [])].map(
-				(line) => line.textContent,
+			[...(drawn[0]?.querySelectorAll(".s-thumb-islander") ?? [])].map(
+				(islander) => islander.getAttribute("data-role"),
 			),
-		).toEqual(["A“I am a knight”", "B“A is lying”"]);
-		expect(drawn[1]?.matches(".s-picture")).toBe(true);
-		expect(drawn[1]?.querySelector("svg.mt-picture")).not.toBeNull();
-		expect(drawn[2]?.querySelectorAll(".s-petal")).toHaveLength(12);
+		).toEqual(["knight", "liar"]);
+		expect(drawn[1]?.querySelector(".s-thumb")).not.toBeNull();
+		expect(drawn[2]?.querySelectorAll(".s-thumb-person")).toHaveLength(3);
 	});
 
 	test("is refused when the data gives a topic's card no drawing", () => {

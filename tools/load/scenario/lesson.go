@@ -45,10 +45,10 @@ func walkLesson(ctx context.Context, o *Options, service *session.Service, name 
 }
 
 // walkLessonAs walks the child given through a lesson, and closes the child
-// after: the profile, then each task asked for, handed in and answered — right
-// and wrong in turn — and the progress at the end, with a pause before every
-// step. What the service was sent in all is the caller's to count, since the
-// service may be shared.
+// after: the profile, then each task asked for, handed in, answered — right
+// and wrong in turn — and its result shown, and the progress at the end, with
+// a pause before every step. What the service was sent in all is the caller's
+// to count, since the service may be shared.
 func walkLessonAs(ctx context.Context, o *Options, child *session.Child) report.Run {
 	run := report.Run{Scenario: Lesson, Unit: "accepted task", Began: time.Now()}
 	defer func() { _ = child.Close() }()
@@ -97,7 +97,8 @@ func (w *walk) record(answers ...session.Answer) {
 
 // task walks the child through one task: asked for, its package fetched, the
 // card it will come to told it is being written, handed in, the card told it
-// is on it and, once the service accepted it, answered with the letter given.
+// is on it and, once the service accepted it, answered with the letter given,
+// and the card of how the answer went asked for.
 // The card asks once on either side of the hand-in, as few times as says
 // whether it turned into the task. The task counts as soon as the service
 // accepted it, whether or not the run goes on to the answer.
@@ -118,8 +119,13 @@ func (w *walk) task(ctx context.Context, written *lesson.Task, letter string) {
 	}
 	w.run.Units++
 	w.record(lesson.AwaitCard(ctx, w.child, request, card))
-	if w.step(ctx) {
-		w.record(lesson.AnswerTask(ctx, w.child, card, letter))
+	if !w.step(ctx) {
+		return
+	}
+	answered := lesson.AnswerTask(ctx, w.child, card, letter)
+	w.record(answered)
+	if answered.Kind == session.Answered && w.step(ctx) {
+		w.record(lesson.ShowResult(ctx, w.child, card))
 	}
 }
 

@@ -16,25 +16,28 @@ hero:
     strip of paper cut into equal parts shows it better than any rule.
   method: Draw the whole as a strip and cut it into equal parts
   teaches: To ask “a part of what?”, and to find the whole from its part
-  # Its drawing is the site's data: twelve as a strip of four equal parts, three
-  # of which, three quarters, are 9.
+  # The words of its drawing: the share over it, and what it comes to.
+  art:
+    line: 3/4 of 12
+    sum: 3/4 of 12 = 9
+    one: "12 : 4 = 3 in one part, and 3 parts are 9"
 
 basis:
   title: The rules of parts
   cards:
-    - mark: "?"
-      title: A part of what?
+    - title: A part of what?
       text: >-
         A fraction is always a fraction of something. “A quarter of the rest”
         and “a quarter of the whole” are different numbers, so first find what
         the fraction is taken of.
-    - mark: "1/n"
-      title: Through one part
+      art:
+        whole: a quarter of the whole
+        rest: a quarter of the rest
+    - title: Through one part
       text: >-
         To find 3/4 of 20, divide by 4 and take 3 parts: 15. To find the whole
         when 3/4 of it is 15, divide by 3 for one part and take 4 parts: 20.
-    - mark: "1"
-      title: The parts make the whole
+    - title: The parts make the whole
       text: >-
         What is given away and what is left together make one whole. If 1/3 and
         1/4 are given away, 1 − 1/3 − 1/4 = 5/12 is left.
@@ -45,7 +48,7 @@ idea:
   table:
     head:
       - Given
-      - One part
+      - The strip and one part
       - Asked for
     rows:
       - - 3/4 of 20
@@ -75,6 +78,10 @@ method:
     - Draw the whole as a strip
     - Cut it into equal parts, and the rest again if needed
     - Find one part, then the parts the question asks for
+  # The key under the steps: what the strips' colours mean.
+  legend:
+    given: already given away
+    sought: what is sought
 
 examples:
   - title: Rolls at the bakery
@@ -94,12 +101,15 @@ examples:
         Two thirds of all 60 rolls would be 40, and 30 + 40 = 70 rolls is more
         than the baker baked. “Two thirds of the rest” is a share of what is
         left at that moment.
+    art:
+      rest: the rest is a new whole
+      evening: 20 sold in the evening
+      all: by noon 30 · in the evening 20 · left 10
+      over: 30 + 40 = 70 does not fit in 60
   - title: A book in sevenths
     question: >-
       On Monday Tom reads 2/7 of a book, and on Tuesday 3/7 of it. Then 40
       pages are left. How many pages are in the book?
-    # Its drawing is the site's data: the book in sevenths, five read, and the
-    # two left the 40 pages.
     steps:
       - In two days Tom reads 2/7 + 3/7 = 5/7 of the book, so 2/7 of it are left.
       - "Those 2/7 are the 40 pages: one seventh is 40 : 2 = 20 pages."
@@ -111,14 +121,17 @@ examples:
         The 40 pages are what is left, 2/7 of the book, not the 5/7 Tom read.
         Taken for the 5/7, they would make a book of 56 pages, with only 16
         pages left in it.
+    art:
+      sevenths: the book, 7 equal parts
+      monday: Monday
+      tuesday: Tuesday
+      read: 40 is not what was read
   - title: Eggs at the market
     question: >-
       Granny sells eggs at the market. The first buyer takes half of her eggs
       and half an egg more. The second takes half of the eggs left and half an
       egg more, and so does the third. Then all the eggs are sold, and nobody
       broke an egg. How many eggs did Granny have?
-    # Its drawing is the site's data: the eggs Granny has before each buyer, and
-    # after the last.
     steps:
       - >-
         Work from the end. The third buyer took half of the eggs and half an
@@ -137,6 +150,15 @@ examples:
         When each share is a part of what is left, the end is the easiest place
         to start: there the amount is known. Each step back undoes one share:
         add the half egg, then double.
+    art:
+      basket: how many eggs in the basket?
+      third: "the third buyer: there was 1"
+      third-took: took 0.5 + ½ = 1, left 0
+      second: "the second buyer: there were 3"
+      second-took: took 1.5 + ½ = 2, left 1
+      first: "the first buyer: there were 7"
+      first-took: took 3.5 + ½ = 4, left 3
+      back: "a step back: + ½, then × 2"
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -146,18 +168,28 @@ traps:
       instead of the 30 left, or the 40 pages left are taken for the part Tom
       read.
     say: “Two thirds of what? Point to it on the strip.”
+    art:
+      question: Two thirds of the rest
+      of-all: 2/3 of 60 =
+      of-rest: 2/3 of 30 =
   answered_other_question:
     shows: >-
       A number found on the way becomes the answer: the 20 rolls sold in the
       evening instead of those left, or the 100 pages Tom read instead of the
       whole book.
     say: “What exactly does the question ask for?”
+    art:
+      question: How many rolls are left?
+      evening: sold in the evening
+      left: left
   stopped_early:
     shows: >-
       The work stops one step short: one seventh of the book is found, 20
       pages, and never turned into the whole book; or the rolls sold at noon
       are taken away and the evening's are forgotten.
     say: “Is that the answer, or a step on the way to it?”
+    art:
+      question: How many pages are in the book?
 
 home:
   - title: Cut it up together

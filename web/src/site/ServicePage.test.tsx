@@ -326,13 +326,20 @@ describe("the page of the service", () => {
 		).toEqual(["Adult → The host's model: ", "The host's model → MathTrail: "]);
 	});
 
-	test("has the child answer on the card and the adult ask in the chat", () => {
+	test("has the child answer on the card, the card ask the chat to go over it as the adult, and the model answer the adult beside the card it draws", () => {
 		const answer = texts(
 			`#${stepsId("answer")} .s-service-arrow-words .s-hidden`,
 		);
-		expect(answer[0]).toBe("Child → Card: ");
-		expect(answer.slice(-2)).toEqual([
+		expect(answer).toEqual([
+			"Child → Card: ",
+			"Card → MathTrail: ",
+			"MathTrail → Drive: ",
+			"MathTrail → Card: ",
+			"Card → The host's model: ",
+			"Card → Adult: ",
 			"Adult → The host's model: ",
+			"The host's model → MathTrail: ",
+			"MathTrail → The host's model: ",
 			"The host's model → Adult: ",
 		]);
 	});

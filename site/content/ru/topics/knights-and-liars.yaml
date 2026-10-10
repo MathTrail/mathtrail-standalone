@@ -8,6 +8,15 @@
 title: Рыцари и лжецы
 description: Что такое задачи про рыцарей и лжецов, как их решают, где ошибаются дети и как помочь дома.
 
+# The words every drawing of the page writes its islanders in: the letters
+# of a knight and of a liar, and the islanders' own.
+art:
+  knight: Р
+  liar: Л
+  a: А
+  b: Б
+  c: В
+
 hero:
   lead: >-
     На острове живут рыцари, которые всегда говорят правду, и лжецы, которые
@@ -16,13 +25,17 @@ hero:
     следствие и заметить противоречие.
   method: «Предположим, что он рыцарь…»
   teaches: Рассуждать по цепочке и проверять себя
-  # Two islanders who call each other liars: one is a knight, the other a liar.
-  # The drawing is the site's own, and these are their names and what each says.
-  drawing:
-    first: А
-    first-says: «Б — лжец»
-    second: Б
-    second-says: «А — лжец»
+  # The words of its drawing: the key of the letters over it, and in it the
+  # first example's two suppositions and how each ends.
+  art:
+    knight: рыцарь — всегда правду
+    liar: лжец — всегда лжёт
+    says: «Я лжец, а Б — рыцарь»
+    rule: предположим и проверим
+    if-knight: "Пусть А — рыцарь: тогда он сам лжец"
+    contradiction: противоречие
+    if-liar: "Пусть А — лжец: значит, Б — тоже лжец"
+    fits: сходится
 
 basis:
   title: Правила острова
@@ -93,6 +106,13 @@ examples:
         Сама по себе фраза «я лжец» невозможна. Но в паре с другой, через «и»,
         её может сказать лжец: вся фраза ложна, если ложна хотя бы одна её
         часть.
+    art:
+      says: «Я лжец, а Б — рыцарь»
+      contradiction: противоречие
+      fits: всё сходится
+      alone: «Я лжец»
+      nobody: не скажет никто
+      liar-can: может сказать лжец
   - title: Цепочка обвинений
     question: >-
       Трое жителей — А, Б и В — сказали так. А: «Б — лжец». Б: «В — рыцарь».
@@ -115,15 +135,18 @@ examples:
         А: «Б — лжец» — правда, и говорит рыцарь. Б: «В — рыцарь» — неправда, и
         говорит лжец. В: «А и Б — лжецы» — неправда, ведь А — рыцарь, и говорит
         лжец. Всё сходится.
+    art:
+      a-says: «Б — лжец»
+      b-says: «В — рыцарь»
+      c-says: «А и Б — лжецы»
+      most: говорит больше всех
+      contradiction: противоречие
+      true-knight: правда, и говорит рыцарь
+      false-liar: неправда, и говорит лжец
   - title: Круглый стол
     question: >-
       За круглым столом сидят 10 жителей. Каждый сказал: «Мой сосед справа —
       лжец». Сколько за столом рыцарей?
-    # The table drawn with its answer, knights and liars taking turns. The
-    # drawing is the site's own, in the letters the third step writes.
-    drawing:
-      knight: Р
-      liar: Л
     steps:
       - >-
         Если житель — рыцарь, он сказал правду: справа от него лжец.
@@ -139,6 +162,13 @@ examples:
         Чередование по кругу из нечётного числа не замыкается: последний и
         первый окажутся одного типа. Такой стол невозможен. Здесь рыцари
         встречаются с чётностью.
+    art:
+      right-liar: сосед справа — лжец
+      right-knight: сосед справа — рыцарь
+      half: 5 и 5
+      kinds: рыцарей и лжецов
+      turns: каждый смотрит на соседа по часовой стрелке
+      clash: последний и первый — одного типа
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:

@@ -37,6 +37,13 @@ type Task struct {
 	Hint string `json:"hint"`
 	// Solution is the reasoning the child is shown after answering.
 	Solution string `json:"solution"`
+	// SolutionPicture is the description of the picture of the solution, as it
+	// came: shown with the solution, after the answer, so it may show the
+	// answer. A task with none has none.
+	SolutionPicture json.RawMessage `json:"solution_picture,omitempty"`
+	// SolutionTotal is the equality the solution comes to, written large under
+	// its picture, and nothing without one.
+	SolutionTotal string `json:"solution_total,omitempty"`
 	// Distractors explain the four wrong options, keyed by letter.
 	Distractors map[string]Distractor `json:"distractors"`
 }

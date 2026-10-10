@@ -36,8 +36,8 @@ type submitAnswerIn struct {
 
 // answeredOut is what submit_answer hands back: how the answer went, or why
 // none was recorded, and the last answer the child gave. It draws no card of
-// its own: the card that sent the answer turns to its result, and the model
-// reads the same.
+// its own: a card that sends an answer stays as it is, and the card of how the
+// answer went is show_result's, drawn when the model calls it.
 type answeredOut struct {
 	Screen     string       `json:"screen"`
 	Status     string       `json:"status,omitempty"`
@@ -47,12 +47,13 @@ type answeredOut struct {
 	Result     *resultOut   `json:"result"`
 }
 
-// resultOut is how an answer went, as the result side of the card shows it:
-// the child's choice and the right option, whether they are the same, the trap
-// behind a wrong letter with what the child is told about it, the solution,
-// and the rating in the topic before and after — or, while the trial series
-// runs, how many of its answers are in. AlreadyAnswered marks an answer
-// recorded by an earlier call and only told again.
+// resultOut is how an answer went, as a card shows it: the child's choice and
+// the right option, whether they are the same, the trap behind a wrong letter
+// with what the child is told about it, the solution, and the rating in the
+// topic before and after — or, while the trial series runs, how many of its
+// answers are in. AlreadyAnswered marks an answer recorded by an earlier call
+// and only told again. The picture of the solution and the total under it are
+// for the card of how the answer went alone, and only when the task has them.
 type resultOut struct {
 	TaskID          string    `json:"task_id"`
 	Topic           string    `json:"topic"`
@@ -65,6 +66,10 @@ type resultOut struct {
 	Rating          *movedOut `json:"rating"`
 	Trial           *trialOut `json:"trial"`
 	AlreadyAnswered bool      `json:"already_answered"`
+	// SolutionPicture is held as any value rather than as raw JSON, as the
+	// task's picture on its card is, for the protocol's library to describe.
+	SolutionPicture any    `json:"solution_picture,omitempty"`
+	SolutionTotal   string `json:"solution_total,omitempty"`
 }
 
 // trapOut is the mistake a wrong letter leads to: its catalog id, what the
@@ -91,7 +96,8 @@ func (s *Service) submitAnswerTool() Tool {
 		Description: "Records the child's answer to the task on the card, with the task's id, when the adult gives it " +
 			"in the chat: the letter of the option the child chose, A to E, or ? when the child does not know, which " +
 			"counts as a wrong answer. Where cards are shown, an answer given on the card is recorded by the card " +
-			"itself. Pass hint_used when the child opened the hint first. " +
+			"itself. Pass hint_used when the child opened the hint first. Where cards are shown, show_result draws the " +
+			"card of how the answer went once it is recorded. " +
 			"The result says whether the answer was right, which option is, what went wrong on the way " +
 			"to a wrong one and whether that mistake has come up before, the solution, and how the child's rating in the topic moved — during the trial series, " +
 			"how many of its tasks are done instead. An answer is recorded once: the same task answered again, on " +
@@ -104,9 +110,10 @@ func (s *Service) submitAnswerTool() Tool {
 }
 
 // submitAnswer records the child's answer to the task on the card, once, and
-// tells how it went: to the card that sent it, which turns to its result, and
-// to the model, which explains it in words. An answer sent again for the same
-// task is told what was recorded, and nothing is written.
+// tells how it went: to the card that sent it, which marks its options, and to
+// the model, which draws the card of how it went with show_result and explains
+// it in words. An answer sent again for the same task is told what was
+// recorded, and nothing is written.
 func (s *Service) submitAnswer(ctx context.Context, account store.Account, in submitAnswerIn) (Reply[answeredOut], error) {
 	return afresh(ctx, func() (Reply[answeredOut], error) { return s.answer(ctx, account, in) })
 }
@@ -311,43 +318,55 @@ func resultOf(taskID string, recorded *profile.Recorded, repeated bool) *resultO
 // scale.
 func shownRating(level float64) int { return rating.Shown(rating.Elo(level)) }
 
-// toldText tells how an answer went, for the model to explain it by: the
-// child's choice and the right option with their texts, what went wrong on the
-// way to a wrong one — and whether it has come up before — the solution, and
-// where the child stands now. The texts of the task stand in quotes, in the
-// task's own language, around sentences of the service's.
+// toldText tells how an answer went, for the model to explain it by once it has
+// drawn the card that shows it, where cards are shown: how it went, the
+// solution, and where the child stands now.
 func (s *Service) toldText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool) string {
 	lead := fmt.Sprintf("The answer to task %s is recorded.", task.ID)
 	if recorded.Again {
 		lead = fmt.Sprintf("Task %s was answered before, and nothing was recorded now: this is what was recorded then.", task.ID)
 	}
-	right := fmt.Sprintf("%s) %s", recorded.Right, quoted(task.Options[recorded.Right]))
-
-	var outcome string
-	switch {
-	case recorded.Choice == profile.DontKnow:
-		outcome = fmt.Sprintf("The child did not know, which counts as a wrong answer; the right option is %s. "+
-			"Go through the solution step by step, simply and kindly.", right)
-	case recorded.Correct:
-		outcome = fmt.Sprintf("The child chose %s, and it is right. Praise briefly, and go through the solution if "+
-			"the adult asks for it.", right)
-	default:
-		outcome = fmt.Sprintf("The child chose %s) %s, and it is wrong; the right option is %s. %s",
-			recorded.Choice, quoted(task.Options[recorded.Choice]), right, mistakeText(recorded.Trap, repeated))
-	}
-	return joined(lead, outcome, aboutTheStep, s.standingText(recorded)) + "\nSolution: " + quoted(recorded.Solution)
+	card := fmt.Sprintf("Where cards are shown, call show_result with task_id %s now: it draws the card of how the "+
+		"answer went, and you explain after it.", task.ID)
+	return joined(lead, card, outcomeText(task, recorded, repeated), aboutTheStep, s.standingText(recorded)) +
+		"\nSolution: " + quoted(recorded.Solution)
 }
 
+// outcomeText is how an answer went, for the model to explain it by: the
+// child's choice and the right option with their texts, what went wrong on the
+// way to a wrong one — and whether it has come up before — and how to explain
+// it: in a few words beside the card that shows the solution step by step, or
+// through the whole of it without one. The texts of the task stand in quotes,
+// in the task's own language, around sentences of the service's.
+func outcomeText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool) string {
+	right := fmt.Sprintf("%s) %s", recorded.Right, quoted(task.Options[recorded.Right]))
+	switch {
+	case recorded.Choice == profile.DontKnow:
+		return fmt.Sprintf("The child did not know, which counts as a wrong answer; the right option is %s. "+
+			"Say in two or three short sentences what the solution turns on. %s", right, withoutACard)
+	case recorded.Correct:
+		return fmt.Sprintf("The child chose %s, and it is right. Praise briefly, and go through the solution if "+
+			"the adult asks for it.", right)
+	}
+	return fmt.Sprintf("The child chose %s) %s, and it is wrong; the right option is %s. %s",
+		recorded.Choice, quoted(task.Options[recorded.Choice]), right, mistakeText(recorded.Trap, repeated))
+}
+
+// withoutACard is how a solution is told where no card shows it: the whole of
+// it, step by step, as the card would.
+const withoutACard = "Without a card, go through the solution step by step, simply and kindly."
+
 // mistakeText is how to explain a wrong letter: from what went wrong on the
-// way to it, when the task says, and then the solution — and, when the child
-// has made the same mistake before, a short reminder of it in the model's own
-// words, since the service keeps none of its own.
+// way to it, when the task says, in a few words beside the card that shows the
+// steps, or through the solution without one — and, when the child has made
+// the same mistake before, a short reminder of it in the model's own words,
+// since the service keeps none of its own.
 func mistakeText(trap profile.Distractor, repeated bool) string {
 	if trap.Text == "" {
-		return "Go through the solution step by step, kindly."
+		return "Explain in two or three short sentences the step that decides it. " + withoutACard
 	}
 	text := "Start from what went wrong on the way to it: " + quoted(trap.Text) +
-		". Then go through the solution step by step, kindly."
+		", in two or three short sentences, and leave the steps to the card. " + withoutACard
 	if repeated {
 		text += " The child has made this mistake before among the latest answers: end with one short " +
 			"reminder of it, in your own words, that the child can keep in mind next time."

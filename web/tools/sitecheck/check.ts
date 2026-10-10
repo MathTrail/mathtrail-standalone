@@ -44,12 +44,12 @@ export type Options = {
 	 */
 	maxFrameBytes: number;
 	/**
-	 * photos is the directory of the site's photographs, from its root, such
-	 * as "/assets/photos/". A photograph is worth its weight, so a page is
-	 * weighed without the ones it shows; empty weighs them with the page, as
-	 * any other file.
+	 * photos are the directories of the site's photographs and pictures, from
+	 * its root, such as "/assets/photos/". A photograph is worth its weight, so
+	 * a page is weighed without the ones it shows; none weighs them with the
+	 * page, as any other file.
 	 */
-	photos: string;
+	photos: readonly string[];
 	/**
 	 * published are the addresses the site has handed out and must keep: a
 	 * page's, or an anchor on one, such as "/ru/#connect". Every page the site
@@ -124,9 +124,10 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 	if (misread !== undefined) {
 		throw new Error(`published address "${misread}" is no page's address`);
 	}
-	if (options.photos !== "" && !directoryAddress.test(options.photos)) {
+	const astray = options.photos.find((dir) => !directoryAddress.test(dir));
+	if (astray !== undefined) {
 		throw new Error(
-			`photo directory "${options.photos}" is no directory of the site: it begins and ends with a slash`,
+			`photo directory "${astray}" is no directory of the site: it begins and ends with a slash`,
 		);
 	}
 
@@ -580,12 +581,12 @@ function frameWeight(
 // weightOf is what a document costs its reader: its own file, every file it
 // loads but for a document it frames, which is weighed on its own, and every
 // file its stylesheets load in turn — each font subset they declare, as if all
-// were fetched. A photograph below the directory photos is no part of it.
+// were fetched. A photograph below a directory of photos is no part of it.
 function weightOf(
 	document: Page,
 	files: Map<string, number>,
 	loads: Map<string, Load[]>,
-	photos: string,
+	photos: readonly string[],
 ): number {
 	const counted = new Set([document.file]);
 	for (const ref of document.references) {
@@ -610,7 +611,7 @@ function weightOf(
 	}
 	let total = 0;
 	for (const file of counted) {
-		if (photos === "" || !`/${file}`.startsWith(photos)) {
+		if (!photos.some((dir) => `/${file}`.startsWith(dir))) {
 			total += files.get(file) ?? 0;
 		}
 	}

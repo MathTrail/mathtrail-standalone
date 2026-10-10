@@ -122,22 +122,35 @@ export function optionStateOf(answer: Answer, letter: Letter): OptionState {
 }
 
 /**
- * modelLineOf is the one line the model is told once the card shows a
- * recorded answer: which task, which choice, and how it went. It says what is
- * recorded rather than what was just done, since the card also shows an
- * answer recorded before — in the chat, in another card — as it was recorded.
- * The model wrote the task, so it holds the options, the traps and the
- * solution already; after an answer, naming the letters gives nothing away.
- * A mistake the child has made before asks for a reminder of it, in the
- * model's own words, since the card keeps none. And whatever the model says
- * next is worded about the step, addressing nobody, since the model talks
- * with the adult and the child hears it as the adult reads it out; nor does it
- * show whether the child is a boy or a girl, which nothing tells the card: he
- * or she shows it, and in a language with grammatical gender so does a
- * past-tense sentence about what the child did.
+ * modelLineOf is the one line the model is told once the card marks a
+ * recorded answer: which task, which choice, and how it went, and what comes
+ * next. It says what is recorded rather than what was just done, since the
+ * card also marks an answer recorded before — in the chat, in another card —
+ * as it was recorded. The model wrote the task, so it holds the options, the
+ * traps and the solution already; after an answer, naming the letters gives
+ * nothing away. An answer just recorded is followed by the card's ask to go
+ * over it, which the model answers with the card of how it went and a few
+ * words beside it; one recorded before is gone over again only when asked. A
+ * chat begun before that card has no tool to draw it, and its model explains
+ * in words. A mistake the child has made before asks for a reminder of it, in
+ * the model's own words, since the card keeps none. And whatever the model
+ * says next is worded about the step, addressing nobody, since the model
+ * talks with the adult and the child hears it as the adult reads it out; nor
+ * does it show whether the child is a boy or a girl, which nothing tells the
+ * card: he or she shows it, and in a language with grammatical gender so does
+ * a past-tense sentence about what the child did.
  */
 export function modelLineOf(result: AnswerResult): string {
-	return `${recordedLineOf(result)} ${aboutTheStep}`;
+	return `${recordedLineOf(result)} ${nextLineOf(result)} ${aboutTheStep}`;
+}
+
+// nextLineOf is what the model is to do next of an answer the card marks.
+function nextLineOf(result: AnswerResult): string {
+	const show = `call show_result with task_id ${result.task_id}, which draws below the card of how the answer went`;
+	if (result.already_answered) {
+		return `The card asks nothing more of it: if the adult asks to go over the answer, ${show}.`;
+	}
+	return `The card asks the chat, as the adult's message, to go over the answer: then ${show}, with the trap and the solution step by step, and explain in two or three short sentences beside it. If show_result is not among your tools, this chat has an earlier list of MathTrail's tools: explain in words, and offer another task.`;
 }
 
 const aboutTheStep =
@@ -147,14 +160,12 @@ const aboutTheStep =
 function recordedLineOf(result: AnswerResult): string {
 	const task = `Task ${result.task_id} has its answer recorded`;
 	if (result.choice === dontKnow) {
-		return `${task}: "I don't know", which counts as a wrong answer; the right option is ${result.correct_answer}. The card shows the solution.`;
+		return `${task}: "I don't know", which counts as a wrong answer; the right option is ${result.correct_answer}.`;
 	}
 	if (result.correct) {
-		return `${task}: ${result.choice}, which is right. The card shows the solution.`;
+		return `${task}: ${result.choice}, which is right.`;
 	}
-	const shown =
-		result.trap === null ? "the solution" : "the trap and the solution";
-	const line = `${task}: ${result.choice}, which is wrong; the right option is ${result.correct_answer}. The card shows ${shown}.`;
+	const line = `${task}: ${result.choice}, which is wrong; the right option is ${result.correct_answer}.`;
 	if (result.trap?.repeated) {
 		return `${line} The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time.`;
 	}

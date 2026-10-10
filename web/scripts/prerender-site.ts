@@ -24,6 +24,7 @@ import { fallbackLocale } from "../src/i18n/lookup.ts";
 import {
 	coachPrototypePath,
 	coachScreenPath,
+	historyPicturePath,
 	type Photo,
 	photoPath,
 	photos,
@@ -104,7 +105,7 @@ type Made = { readonly path: string; readonly data: string | Buffer };
  * buildSite builds the site into out: the pages its texts make, the
  * stylesheet and the font files it names, the font's licence, the design's
  * tokens, the mark, the pictures a shared link shows, the family's
- * photographs, the paper the page "Research" offers, and the coach's
+ * photographs, the pictures of the history the page "Why" tells, the paper the page "Research" offers, and the coach's
  * prototype with the licence of the fonts it carries. Every file is made
  * before anything is written, so a build that fails at any step leaves the
  * last one where it was.
@@ -116,7 +117,7 @@ export async function buildSite({
 	research = join(repository, "site", "research", "research.json"),
 }: SiteOptions): Promise<void> {
 	const sources = await readSources(content);
-	const { pages, papers } = await drawPages(
+	const { pages, papers, pictures } = await drawPages(
 		base,
 		sources,
 		await readResearchData(research),
@@ -131,6 +132,16 @@ export async function buildSite({
 			photos.map(async (photo) => ({
 				path: photoPath(photo.name).slice(1),
 				data: await readFile(keptPhotoOf(photo)),
+			})),
+		)),
+		// The pictures of the history go out as they are kept, each under the
+		// name the page that shows it serves it by.
+		...(await Promise.all(
+			pictures.map(async (name) => ({
+				path: historyPicturePath(name).slice(1),
+				data: await readFile(
+					join(repository, "site", historyPicturePath(name).slice(1)),
+				),
 			})),
 		)),
 		...(await buildStyles()),
@@ -384,14 +395,18 @@ async function buildStyles(): Promise<Made[]> {
 
 // drawPages draws every page of the site in memory, from the site's data and
 // the numbers of the page "Research", and says which files of the paper that
-// page offers. The components are read through Vite, as the tests and the
+// page offers and which pictures of the history the page "Why" shows. The components are read through Vite, as the tests and the
 // widget's build read them — TSX, the dictionaries' JSON, the glob that finds
 // them — by a server that serves nothing and watches nothing.
 async function drawPages(
 	base: string,
 	sources: Map<string, Map<string, string>>,
 	research: unknown,
-): Promise<{ pages: SiteFile[]; papers: readonly PaperFile[] }> {
+): Promise<{
+	pages: SiteFile[];
+	papers: readonly PaperFile[];
+	pictures: readonly string[];
+}> {
 	const server = await createServer({
 		configFile: siteConfig,
 		logLevel: "warn",
@@ -410,6 +425,7 @@ async function drawPages(
 		return {
 			pages: renderSite({ base, sources, data }),
 			papers: data.research?.paper.files ?? [],
+			pictures: data.why?.history.flat().map(({ name }) => name) ?? [],
 		};
 	} finally {
 		await server.close();

@@ -125,9 +125,12 @@ const noteSigns = "+-−×÷=<>() ?"
 // isNote says whether a text is a note: an equality or an inequality of
 // labels and numbers, short enough to stand under a picture.
 func (d Decimals) isNote(text string) bool {
-	if utf8.RuneCountInString(text) > MaxNoteCharacters || !strings.ContainsAny(text, "=<>") {
-		return false
-	}
+	return utf8.RuneCountInString(text) <= MaxNoteCharacters && strings.ContainsAny(text, "=<>") && d.joined(text)
+}
+
+// joined says whether a text is labels, numbers and ? joined by the signs a
+// note may hold, and spaces, with no run of capitals longer than a label.
+func (d Decimals) joined(text string) bool {
 	run := 0
 	for _, r := range text {
 		switch {

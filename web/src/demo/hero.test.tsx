@@ -5,7 +5,7 @@ import { buttonIn, press } from "../widget/testing/card";
 import { type DemoData, readDemoData } from "./data";
 import { bringHeroAlive, liveScope } from "./hero";
 import { checkingTakes } from "./service";
-import { openHome } from "./testing/home";
+import { openHome } from "./testing/pages";
 
 beforeEach(() => {
 	vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
@@ -81,6 +81,9 @@ const states = () =>
 	["A", "B", "C", "D", "E"].map((letter) => option(letter).dataset.state);
 const text = (selector: string) => card()?.querySelector(selector)?.textContent;
 const button = (label: string) => buttonIn(card() as HTMLElement, label);
+// bubble is the parent's message in the chat's frame, above the card.
+const bubble = () =>
+	document.querySelector(".s-hero-card .s-bubble")?.textContent;
 
 // shape is every element under a card, in order, as its tag and its classes.
 function shape(root: Element | null | undefined): string[] {
@@ -134,26 +137,27 @@ describe("the card on the first screen, come alive", () => {
 		expect(observed).toEqual([card()?.querySelector(".mt-widget")]);
 	});
 
-	test("checks a wrong option a moment, then tells it with the trap behind it and the solution", async () => {
+	test("checks a wrong option a moment, then goes over it as a chat does: the card's ask, and the card of how it went with the trap behind it and the solution", async () => {
 		const data = alive();
 
 		press(option("B"));
 		expect(option("B").dataset.state).toBe("selected");
 		await passing(checkingTakes);
 
-		expect(states()).toEqual(["muted", "wrong", "correct", "muted", "muted"]);
+		expect(bubble()).toBe("Go over the answer");
+		expect(card()?.querySelector(".mt-option")).toBeNull();
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
 		expect(text(".mt-note-trap p")).toBe(data.results.B.trap?.text);
 		expect(card()?.querySelectorAll(".mt-steps li").length).toBeGreaterThan(0);
 	});
 
-	test("answers the right option with no trap, and the solution", async () => {
+	test("goes over the right option with no trap, and the solution", async () => {
 		alive();
 
 		press(option("C"));
 		await passing(checkingTakes);
 
-		expect(option("C").dataset.state).toBe("correct");
+		expect(text(".mt-verdict-line")).toBe("Correct! It's 5.");
 		expect(card()?.querySelector(".mt-note-trap")).toBeNull();
 		expect(card()?.querySelectorAll(".mt-steps li").length).toBeGreaterThan(0);
 	});
@@ -185,17 +189,15 @@ describe("the card on the first screen, come alive", () => {
 	});
 
 	test("asks for another task as a chat does: the parent's message, the card the task is written on, then the lesson's task again", async () => {
-		alive();
+		const { options } = alive().handed.task;
 		press(option("B"));
 		await passing(checkingTakes);
 
 		for (const ask of [1, 2]) {
 			press(button("Another task"));
 
-			expect(
-				document.querySelector(".s-hero-card .s-bubble")?.textContent,
-			).toBe("Another task");
-			expect(card()?.querySelector(".mt-option")).toBeNull();
+			expect(bubble()).toBe("Another task");
+			expect(card()?.querySelector(".mt-verdict-line")).toBeNull();
 			expect(card()?.querySelector(".mt-gen")).not.toBeNull();
 			await passing(6000);
 
@@ -208,7 +210,9 @@ describe("the card on the first screen, come alive", () => {
 			]);
 			press(option("D"));
 			await passing(checkingTakes);
-			expect(option("D").dataset.state).toBe("wrong");
+			expect(text(".mt-verdict-line")).toBe(
+				`Not quite — it's ${options.C}, not ${options.D}.`,
+			);
 		}
 	});
 

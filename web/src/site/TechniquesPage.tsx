@@ -2,12 +2,11 @@ import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
 import { address } from "./addresses";
 import type { SiteData } from "./data";
-import { connectAddress } from "./home";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
-import { Solution } from "./Solution";
-import { TechniqueDrawing } from "./TechniqueDrawings";
+import { StepDrawing, TaskLegend } from "./TechniqueSteps";
 import { allTechniques, type Technique, type Techniques } from "./techniques";
+import { Answer, WorkedSteps } from "./WorkedSteps";
 import { gradesText, useSiteWords } from "./words";
 
 /**
@@ -15,9 +14,9 @@ import { gradesText, useSiteWords } from "./words";
  * with what a technique is for and every technique by its group, each a link
  * to its part of the page; then the four steps that come before any
  * technique; then each group with its techniques, each worked through on a
- * problem whose solution, drawing and answer open on request, so that the
- * problem can be tried first; then a hint on which technique the words of a
- * problem suggest; and last, the way to the topics.
+ * problem whose solution, a picture beside each step, and answer open on
+ * request, so that the problem can be tried first; and last, a hint on which
+ * technique the words of a problem suggest.
  */
 export function TechniquesPage({ page, data }: PageProps) {
 	const techniques = data.techniques;
@@ -47,7 +46,6 @@ export function TechniquesPage({ page, data }: PageProps) {
 				</section>
 			))}
 			<Cues page={page} techniques={techniques} numbers={numbers} />
-			<End page={page} />
 		</>
 	);
 }
@@ -69,7 +67,7 @@ function numbersOf(
 }
 
 // Hero is the first screen: the page's heading, what a technique is for and
-// how to read the page, beside every technique by its group.
+// the advice on how to read the page, beside every technique by its group.
 function Hero({
 	page,
 	techniques,
@@ -91,7 +89,7 @@ function Hero({
 						}),
 					})}
 				</p>
-				<p class="s-intro-line">{page.text("hero.advice")}</p>
+				<p class="s-technique-advice">{page.text("hero.advice")}</p>
 			</div>
 			<nav class="s-panel s-overview" aria-label={words.text("topic.contents")}>
 				{techniques.groups.map((group) => (
@@ -117,8 +115,8 @@ function Hero({
 	);
 }
 
-// TechniqueLink leads to a technique's part of the page under its number and
-// its name.
+// TechniqueLink leads to a technique's part of the page: a pill with its
+// number in a circle, then its name.
 function TechniqueLink({
 	page,
 	id,
@@ -161,10 +159,11 @@ function Start({ page }: { page: PageReader }) {
 	);
 }
 
-// TechniqueCard is one technique: its number and name, what it is and when it
-// helps, the problem it is worked through on, set at its example's grades,
-// the solution — its steps, its drawing and its answer — folded until asked
-// for, and the topics it leads to.
+// TechniqueCard is one technique: its number, its name and its other name,
+// what it is and when it helps, the problem it is worked through on, set at
+// its example's grades, with the key to its pictures where they need one; the
+// solution folded until asked for, each step beside its picture, then what
+// the pictures show and the answer; and the topics it leads to.
 function TechniqueCard({
 	page,
 	data,
@@ -184,40 +183,42 @@ function TechniqueCard({
 				<span class="s-technique-number">{number}</span>
 				<h3>{page.text(`${at}.name`)}</h3>
 				{page.has(`${at}.aka`) && (
-					<p class="s-technique-aka">{page.text(`${at}.aka`)}</p>
+					<span class="s-technique-aka">{page.text(`${at}.aka`)}</span>
 				)}
+			</div>
+			<div class="s-technique-about">
 				<p class="s-technique-what">{page.text(`${at}.what`)}</p>
 				<p class="s-technique-when">
 					<strong>{page.text("labels.when")}</strong> {page.text(`${at}.when`)}
 				</p>
 			</div>
 			<div class="s-technique-task">
-				<p class="s-example-label">
+				<p class="s-technique-grades">
 					{page.text("labels.task", {
 						grades: gradesText(words, technique.example.grades),
 					})}
 				</p>
 				<p class="s-technique-question">{page.text(`${at}.task`)}</p>
+				<TaskLegend page={page} technique={technique.id} />
 			</div>
 			<details class="s-solution">
-				<summary class="s-solution-toggle">{page.text("labels.show")}</summary>
+				<summary class="s-solution-toggle">
+					<span class="s-solution-show">{page.text("labels.show")}</span>
+					<span class="s-solution-hide">{page.text("labels.hide")}</span>
+				</summary>
 				<div class="s-solution-body">
-					<Solution
+					<WorkedSteps
 						page={page}
-						at={at}
-						drawing={
-							<figure class="s-figure">
-								<div class="s-art" aria-hidden="true" dir="ltr">
-									<TechniqueDrawing
-										id={technique.id}
-										page={page}
-										at={`${at}.drawing`}
-									/>
-								</div>
-								<figcaption>{page.text(`${at}.caption`)}</figcaption>
-							</figure>
-						}
+						at={`${at}.steps`}
+						name={technique.id}
+						pictureOf={(step) => (
+							<StepDrawing page={page} technique={technique.id} step={step} />
+						)}
 					/>
+					<p class="s-technique-caption">{page.text(`${at}.caption`)}</p>
+					<Answer label={words.text("topic.answer")} badge={technique.badge}>
+						{page.text(`${at}.answer`)}
+					</Answer>
 				</div>
 			</details>
 			<TopicChips page={page} data={data} ids={technique.topics} />
@@ -315,30 +316,6 @@ function Cues({
 						</div>
 					))}
 				</dl>
-			</div>
-		</section>
-	);
-}
-
-// End closes the page: the techniques are to be tried on problems, in a chat
-// MathTrail is added to, and every topic has them.
-function End({ page }: { page: PageReader }) {
-	const words = useSiteWords();
-	return (
-		<section class="s-section s-ask-wrap">
-			<div class="s-ask s-ask-row">
-				<div class="s-ask-copy">
-					<h2 class="s-ask-title">{page.text("end.title")}</h2>
-					<p class="s-ask-lead">{page.text("end.lead")}</p>
-				</div>
-				<p class="s-choices">
-					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
-						{words.text("nav.add")}
-					</a>
-					<a class="s-btn" href={address(page.locale, "topics")}>
-						{words.text("topic.all")}
-					</a>
-				</p>
 			</div>
 		</section>
 	);

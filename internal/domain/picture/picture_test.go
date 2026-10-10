@@ -60,6 +60,21 @@ var wellMade = []struct {
 	{"a calendar", picture.Calendar,
 		`{"kind":"calendar","first":7,"days":31,"week_starts":"sunday","marks":{"1":"A","31":"?"}}`},
 	{"a calendar of February", picture.Calendar, `{"kind":"calendar","first":1,"days":28}`},
+	{"flags in groups, each group named", picture.Flags,
+		`{"kind":"flags","colors":{"red":"red","blue":"blue","yellow":"yellow"},"groups":[` +
+			`{"color":"red","flags":[["red","blue"],["red","yellow"]]},` +
+			`{"color":"blue","flags":[["blue","red"],["blue","yellow"]]},` +
+			`{"label":"C","flags":[["yellow","red"],["yellow","blue"]]}]}`},
+	{"twelve flags of three stripes in four groups", picture.Flags,
+		`{"kind":"flags","colors":{"white":"white","black":"black","green":"green"},"groups":[` +
+			strings.Repeat(`{"flags":[["white","black","green"],["green","white","black"],["black","green","white"]]},`, 3) +
+			`{"flags":[["white","green","black"],["green","black","white"],["black","white","green"]]}]}`},
+	{"a flag of unknown stripes, painted with no colour", picture.Flags,
+		`{"kind":"flags","colors":null,"groups":[{"flags":[["?","?"]],"label":null,"color":""}]}`},
+	{"six flags in one group, their colours called by the words of six languages", picture.Flags,
+		`{"kind":"flags","colors":{"red":"लाल","yellow":"पीला","green":"xanh lá","blue":"синяя","white":"白",` +
+			`"black":"أسود"},"groups":[{"flags":[["red","yellow"],["green","blue"],["white","black"],["red","?"],` +
+			`["?","green"],["yellow","blue","white"]]}]}`},
 	{"members left out as null or empty", picture.Clock,
 		`{"kind":"clock","time":"0:00","hour_label":null,"minute_label":""}`},
 	{"a whole number written with a decimal point", picture.Ring, `{"kind":"ring","count":9.0}`},
@@ -297,6 +312,58 @@ var breakages = []struct {
 		"must be a label"},
 	{"a decimal comma where decimals take a point", `{"kind":"row","items":[{},{}],"span":"2,5"}`,
 		"picture.span", "must be a label"},
+
+	{"flags with no groups", `{"kind":"flags"}`, "picture.groups", "is missing"},
+	{"five groups of flags", `{"kind":"flags","groups":[` + strings.Repeat(`{"flags":[["?","?"]]},`, 4) +
+		`{"flags":[["?","?"]]}]}`, "picture.groups", "must hold 1 to 4 groups of flags"},
+	{"a group that is no object", `{"kind":"flags","groups":["red",{"flags":[["?","?"]]}]}`,
+		"picture.groups.0", "must be an object"},
+	{"a group of no flags", `{"kind":"flags","groups":[{"flags":[]}]}`, "picture.groups.0.flags",
+		"must hold 1 to 6 flags"},
+	{"a group of seven flags", `{"kind":"flags","groups":[{"flags":[` + strings.Repeat(`["?","?"],`, 6) +
+		`["?","?"]]}]}`, "picture.groups.0.flags", "must hold 1 to 6 flags"},
+	{"thirteen flags in all", `{"kind":"flags","groups":[` + strings.Repeat(`{"flags":[`+
+		strings.Repeat(`["?","?"],`, 5)+`["?","?"]]},`, 2) + `{"flags":[["?","?"]]}]}`, "picture.groups",
+		"must hold at most 12 flags in all"},
+	{"a flag of one stripe", `{"kind":"flags","groups":[{"flags":[["?"]]}]}`, "picture.groups.0.flags.0",
+		"must be a flag: a list of 2 to 3 stripes"},
+	{"a flag of four stripes", `{"kind":"flags","groups":[{"flags":[["?","?","?","?"]]}]}`,
+		"picture.groups.0.flags.0", "must be a flag: a list of 2 to 3 stripes"},
+	{"a flag that is no list", `{"kind":"flags","colors":{"red":"red"},"groups":[{"flags":["red"]},` +
+		`{"flags":[["red","?"]]}]}`, "picture.groups.0.flags.0", "must be a flag: a list of 2 to 3 stripes"},
+	{"a stripe of a colour colors does not name", `{"kind":"flags","colors":{"red":"red"},` +
+		`"groups":[{"flags":[["red","blue"]]}]}`, "picture.groups.0.flags.0.1", "must be a colour colors names, or ?"},
+	{"a stripe of a colour the palette does not have", `{"kind":"flags","colors":{"red":"red"},` +
+		`"groups":[{"flags":[["red","purple"]]}]}`, "picture.groups.0.flags.0.1", "must be a colour colors names, or ?"},
+	{"a group named by a colour colors does not name", `{"kind":"flags","colors":{"red":"red"},` +
+		`"groups":[{"color":"blue","flags":[["red","?"]]}]}`, "picture.groups.0.color", "must be a colour colors names"},
+	{"a group named by an unknown colour", `{"kind":"flags","colors":{"red":"red"},` +
+		`"groups":[{"color":"?","flags":[["red","?"]]}]}`, "picture.groups.0.color", "must be a colour colors names"},
+	{"a group named by a colour and a label", `{"kind":"flags","colors":{"red":"red"},` +
+		`"groups":[{"label":"A","color":"red","flags":[["red","?"]]}]}`, "picture.groups.0",
+		"is named by a colour or a label, never both"},
+	{"a member a group of flags does not have", `{"kind":"flags","groups":[{"flags":[["?","?"]],"stripes":2}]}`,
+		"picture.groups.0.stripes", "is no member of a group of flags"},
+	{"a colour the palette does not have", `{"kind":"flags","colors":{"red":"red","purple":"purple"},` +
+		`"groups":[{"flags":[["red","?"]]}]}`, "picture.colors.*", "is no colour of the palette"},
+	{"colors that are no object", `{"kind":"flags","colors":["red"],"groups":[{"flags":[["?","?"]]}]}`,
+		"picture.colors", "must be an object"},
+	{"a colour called by digits", `{"kind":"flags","colors":{"red":"r3d"},"groups":[{"flags":[["red","?"]]}]}`,
+		"picture.colors.red", "must be the word the question calls the colour by"},
+	{"a colour called by three words", `{"kind":"flags","colors":{"red":"very dark red"},` +
+		`"groups":[{"flags":[["red","?"]]}]}`, "picture.colors.red", "must be the word the question calls the colour by"},
+	{"a colour called by a word past its length", `{"kind":"flags","colors":{"red":"reddishreddishred"},` +
+		`"groups":[{"flags":[["red","?"]]}]}`, "picture.colors.red", "must be the word the question calls the colour by"},
+	{"a colour called by a hyphened word", `{"kind":"flags","colors":{"red":"rosso-scuro"},` +
+		`"groups":[{"flags":[["red","?"]]}]}`, "picture.colors.red", "must be the word the question calls the colour by"},
+	{"a colour called by a number", `{"kind":"flags","colors":{"red":7},"groups":[{"flags":[["red","?"]]}]}`,
+		"picture.colors.red", "must be the word the question calls the colour by"},
+	{"two colours called by one word", `{"kind":"flags","colors":{"red":"Red","blue":"red"},` +
+		`"groups":[{"flags":[["red","blue"]]}]}`, "picture.colors", "calls two colours by one word"},
+	{"a colour that paints nothing", `{"kind":"flags","colors":{"red":"red","blue":"blue"},` +
+		`"groups":[{"flags":[["red","?"]]}]}`, "picture.colors.blue", "paints nothing in the picture"},
+	{"colours on a kind that paints none", `{"kind":"clock","time":"4:30","colors":{"red":"red"}}`,
+		"picture.colors", "is no member of a clock"},
 }
 
 func TestEachRuleIsOneProblemAtItsMember(t *testing.T) {
@@ -373,11 +440,12 @@ func TestEveryProblemOfAPictureStaysWithinIt(t *testing.T) {
 	}
 }
 
-func TestKindsAreTheTwelveTheFormatLists(t *testing.T) {
+func TestKindsAreTheThirteenTheFormatLists(t *testing.T) {
 	t.Parallel()
 	want := []picture.Kind{
 		picture.Clock, picture.Table, picture.NumberLine, picture.Row, picture.Ring, picture.Grid,
 		picture.Bars, picture.Venn, picture.Balance, picture.Containers, picture.Piles, picture.Calendar,
+		picture.Flags,
 	}
 	if got := picture.Kinds(); !slices.Equal(got, want) {
 		t.Errorf("Kinds() = %v, want %v", got, want)

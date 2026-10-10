@@ -1,5 +1,6 @@
 import type { VNode } from "preact";
 import { AboutPage } from "./AboutPage";
+import { topicArt } from "./art";
 import { CoachPage } from "./CoachPage";
 import { frontPage } from "./content";
 import type { SiteData } from "./data";
@@ -11,6 +12,7 @@ import { serviceRules } from "./service";
 import { TechniquesPage } from "./TechniquesPage";
 import { topicPage } from "./TopicPage";
 import { TopicsPage, topicsStyle } from "./TopicsPage";
+import { historyRules } from "./WhyHistory";
 import { WhyPage } from "./WhyPage";
 
 /**
@@ -47,16 +49,24 @@ export type Page = {
 export function sitePages(data: SiteData): ReadonlyMap<string, Page> {
 	return new Map<string, Page>([
 		[frontPage, { draw: HomePage, card: true }],
-		["why", { draw: WhyPage, card: true }],
+		[
+			"why",
+			{
+				draw: WhyPage,
+				card: true,
+				style: (data) =>
+					data.why === undefined ? "" : historyRules(data.why.history),
+			},
+		],
 		["topics", { draw: TopicsPage, card: true, style: topicsStyle }],
-		["techniques", { draw: TechniquesPage }],
+		["techniques", { draw: TechniquesPage, card: true }],
 		["about", { draw: AboutPage }],
 		["coach", { draw: CoachPage }],
 		["research", { draw: ResearchPage }],
 		["service", { draw: ServicePage, style: serviceRules }],
 		...data.topics.all.map((topic): [string, Page] => [
 			`topics/${topic.slug}`,
-			topicPage(topic, data),
+			topicPage(topic, topicArt.get(topic.slug)),
 		]),
 	]);
 }

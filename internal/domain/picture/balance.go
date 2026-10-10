@@ -2,6 +2,7 @@ package picture
 
 // balance is a pan balance and what stands on each of its pans.
 type balance struct {
+	noWords
 	labels []string
 }
 

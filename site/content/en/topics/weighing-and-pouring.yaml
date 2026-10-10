@@ -8,6 +8,15 @@
 title: Weighing and pouring
 description: What problems about weighing on a balance and pouring between jugs are, how they are solved, where children go wrong, and how to help at home.
 
+# The words the page's drawings write a jug's size, a step and a move in.
+art:
+  litres: "{count} l"
+  step: step
+  pour: pour
+  empty: empty
+  fill: fill
+  top: top up
+
 hero:
   lead: >-
     With a 5-litre jug and a 3-litre jug, how do you measure exactly 4 litres?
@@ -17,28 +26,38 @@ hero:
     first meeting with algorithms, plans that work whatever happens.
   method: Write down every state and look for the shortest way
   teaches: To plan steps ahead, and to think through every outcome of a weighing
-  # Its drawing is the site's data: measuring 4 litres with a 5-litre jug and a
-  # 3-litre jug: what each holds, step by step.
+  # The words of its drawing: what is measured over it, and what each pair of
+  # jugs is.
+  art:
+    line: Measure 4 litres with jugs of 5 and 3 litres
+    pair: "each pair is one state: what each jug holds"
 
 basis:
   title: The rules of weighing and pouring
   cards:
-    - mark: "→"
-      title: A state is every jug
+    - title: A state is every jug
       text: >-
         Write what each jug holds after every step: 5 and 0, then 2 and 3. A
         list of states shows where you can get to and where you have already
         been.
-    - mark: "3"
-      title: Three outcomes
+    - title: Three outcomes
       text: >-
         A balance can tip left, tip right or stay level, so every weighing has
         three outcomes. Split the coins into three groups, not two.
-    - mark: "!"
-      title: Every rule counts
+      art:
+        left: left
+        level: level
+        right: right
+    - title: Every rule counts
       text: >-
         No marks on the jugs, no water poured away, weights on one pan only:
         each rule changes which steps are allowed, and so the answer.
+      art:
+        no-marks: no marks
+        pour-out: pour away
+        unless: unless the task allows it
+        weight: a weight
+        one-pan: on one pan only
 
 idea:
   title: Three outcomes of a weighing
@@ -78,6 +97,9 @@ method:
     - Write down the state, what each jug or pan holds
     - Try every allowed step from it
     - Stop at the goal, and count the steps
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    goal: the goal reached
 
 examples:
   - title: One litre
@@ -86,7 +108,6 @@ examples:
       have no marks. In one step she fills a jug from the tap, pours a jug out,
       or pours from one jug into the other until the first is empty or the
       second is full. What is the fewest steps to get exactly 1 litre in a jug?
-    # Its drawing is the site's data: what the two jugs hold after each step.
     steps:
       - Fill the 3-litre jug and pour it into the 5-litre jug, which now holds 3 litres.
       - >-
@@ -100,13 +121,16 @@ examples:
         A table of every state reached in up to three steps has no 1 litre in
         it: the jugs hold only 0, 2, 3 or 5 litres. The first litre appears
         after the fourth step.
+    art:
+      jugs: jugs of 3 and 5 litres, no marks
+      rows: 4 steps, 4 rows after the empty jugs
+      three: "in 3 steps:"
+      no-litre: no litre
   - title: Eight coins
     question: >-
       There are 8 coins that look the same. One of them is fake and lighter
       than the others, which all weigh the same. What is the smallest number of
       weighings on a balance without weights that is sure to find the fake?
-    # Its drawing is the site's data: the first weighing: three coins for each
-    # pan, and two aside.
     steps:
       - Put 3 coins on each pan and keep 2 aside.
       - >-
@@ -123,6 +147,17 @@ examples:
         Weighing 4 against 4 leaves 4 coins after the first weighing, and 4
         coins need 2 more weighings, 3 in all. Groups of three let the outcome
         “level” do some of the work too.
+    art:
+      one-lighter: one of the 8 is lighter
+      three: 3 against 3
+      aside: set aside
+      lighter: the left is lighter
+      one: 1 against 1
+      found: the lighter is it; level, the third
+      level: level
+      of-two: of the 2 set aside
+      never-level: never level
+      four-left: 4 left → 2 more weighings
   - title: A hundred coins
     question: >-
       Among 100 coins that look the same, one is fake and lighter than the
@@ -145,6 +180,13 @@ examples:
         The answer needs both: a plan that finds the fake in 5 weighings, and
         the count of outcomes that shows 4 can never be enough. Olympiad answers
         about “the fewest” always have these two halves.
+    art:
+      aside: set aside
+      numbers: the numbers over the arrows count the weighings
+      plan: the plan
+      always: 5 weighings always find it
+      bound: the bound
+      at-most: 4 tell at most 81 cases
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -154,17 +196,30 @@ traps:
       though the task does not allow it, a jug is filled to a mark it does not
       have, or a weight goes on the load's pan.
     say: “Which steps does the task allow?”
+    art:
+      question: No marks on the jugs
+      to-mark: fill “up to 1 litre”
+      after-pouring: 1 litre, by pouring
   stopped_early:
     shows: >-
       The plan stops before it is sure: one weighing finds the group with the
       fake and the search ends there, or the pouring stops at 2 litres when the
       goal was 1.
     say: “Whatever the balance showed, do you know for certain now?”
+    art:
+      question: After the first weighing
+      here: “it is here”, but which one?
+      one-more: one more weighing
   off_by_one:
     shows: >-
       The steps are counted one off: the first filling from the tap is left
       out, or the last pouring is counted twice.
     say: "“Count again on the table: one row, one step.”"
+    art:
+      question: One row of the table, one step
+      three: 3 steps
+      four: 4 steps
+      empty: empty → 4 states
 
 home:
   - title: Jugs in the sink

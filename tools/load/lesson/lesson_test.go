@@ -268,6 +268,9 @@ func walkTask(t *testing.T, child *session.Child, task *lesson.Task, letter stri
 	if answered := lesson.AnswerTask(t.Context(), child, card, letter); answered.Kind != session.Answered {
 		t.Errorf("submit_answer %q, %s, want it recorded", answered.Kind, answered.Text())
 	}
+	if shown := lesson.ShowResult(t.Context(), child, card); shown.Kind != session.Answered {
+		t.Errorf("show_result %q, %s, want how the answer went", shown.Kind, shown.Text())
+	}
 }
 
 // No written task is a near-copy of another, or of a reference task of its
@@ -296,8 +299,8 @@ func TestNoWrittenTaskIsANearCopyOfAnotherOrOfAReferenceTask(t *testing.T) {
 }
 
 // Every written task is handed in as the model writes one: the parts of the
-// task under the names the service reads them by, the picture of the first
-// among them.
+// task under the names the service reads them by, the picture and the picture
+// of the solution of the first among them.
 func TestAWrittenTaskIsHandedInUnderTheNamesTheServiceReads(t *testing.T) {
 	t.Parallel()
 
@@ -310,7 +313,8 @@ func TestAWrittenTaskIsHandedInUnderTheNamesTheServiceReads(t *testing.T) {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
 	for _, name := range []string{
-		"core_idea", "question", "picture", "options", "correct_answer", "hint", "solution", "distractors",
+		"core_idea", "question", "picture", "options", "correct_answer", "hint", "solution", "solution_picture",
+		"distractors",
 	} {
 		if _, found := parts[name]; !found {
 			t.Errorf("the task carries no %q: %s", name, written)

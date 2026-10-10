@@ -37,9 +37,9 @@ The adult asks in the chat for a new task, and it arrives as a card for the chil
 
 ### After a wrong answer
 
-<img src="https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/wrong-dark.png" width="428" alt="The same card after the child picked B, 4. Option B is framed in red and marked Your answer; option C, 5, is framed in green and marked Correct answer. Under the options, MathTrail says: Not quite — it's 5, not 4. A red note titled The trap reads: Counted the gaps instead of the posts. The solution follows in three steps: 12 divided by 3 is 4 gaps; a straight fence with posts at both ends has one more post than gaps; 4 plus 1 is 5 posts. The rating in this topic goes from 1502 to 1480. At the bottom, Another task, and at the end of the row, the green button with a spark, Coach.">
+<img src="https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/wrong-dark.png" width="428" alt="The card of how the answer went, which the chat drew under the task's card after the child picked B, 4. The top line reads Comet and Profile & progress, and the card is signed MathTrail, Olympiad coach · Grade 3. MathTrail says: Not quite — it's 5, not 4. A red note titled The trap reads: Counted the gaps instead of the posts. Under it, in a frame, the picture of the solution: the whole fence, five posts as dots on a line, 3 under each gap and a two-headed arrow marked 12 under the whole length; under a rule, large, 12 ÷ 3 + 1 = 5, and quieter, not 4. The solution follows in three steps: 12 divided by 3 is 4 gaps; a straight fence with posts at both ends has one more post than gaps; 4 plus 1 is 5 posts. A band below names the type of task, Gaps and boundaries, and the rating in this topic, 1502 to 1480. At the bottom, Another task, and at the end of the row, the green button with a spark, Coach.">
 
-A tap records the answer at once, before any explanation, so nothing in the chat can talk it into being right. Every wrong option was written with a named trap behind it, and the card shows the trap the child fell into — here, counting the gaps instead of the posts — then the solution. The model explains in the chat starting from that trap, not from the right answer, and the child's rating in the topic moves.
+A tap records the answer at once, before any explanation, so nothing in the chat can talk it into being right. The task's card marks the right option and asks the chat to go over the answer — in Claude, the adult presses Enter to send it — and the chat draws how it went on a card of its own below. Every wrong option was written with a named trap behind it, and that card shows the trap the child fell into — here, counting the gaps instead of the posts —, a picture of the solution with the equality it comes to, then the solution step by step. Where the picture needs colours, as flags of coloured stripes do, each paint carries the first letters of its colour, and a key under the picture names each colour in the question's own word. The model explains in the chat starting from that trap, not from the right answer, and the child's rating in the topic moves.
 
 ### Progress, for the child and the parent
 
@@ -112,7 +112,10 @@ sequenceDiagram
     T-->>C: the task card, without the answer
     C->>T: presses an option
     T->>D: record the answer, update the ratings
-    T-->>C: right or wrong, the trap behind that option, the solution
+    T-->>C: the options marked, the right one among them
+    C->>M: go over the answer — the card's ask, sent in the chat
+    M->>T: show how the answer went
+    T-->>C: a card of its own: the trap, a picture of the solution, the steps
 ```
 
 Design points:

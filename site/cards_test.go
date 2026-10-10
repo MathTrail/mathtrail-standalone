@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"go.yaml.in/yaml/v3"
@@ -13,15 +14,18 @@ import (
 
 // card is what the site's data says of a card a page draws, as far as the
 // service's checks of a picture read it: the picture, the options and the
-// right one.
+// right one, and the picture of the solution with the total under it.
 type card struct {
-	Picture json.RawMessage   `json:"picture"`
-	Options map[string]string `json:"options"`
-	Correct string            `json:"correct"`
+	Picture         json.RawMessage   `json:"picture"`
+	Options         map[string]string `json:"options"`
+	Correct         string            `json:"correct"`
+	SolutionPicture json.RawMessage   `json:"solution_picture"`
+	SolutionTotal   string            `json:"solution_total"`
 }
 
 // cardPages are the pages that draw a card: the part of the site's data that
-// holds the card, and the file of a language's words that holds its question.
+// holds the card, and the file of a language's words that holds its question
+// and its solution.
 var cardPages = []struct{ part, words string }{
 	{part: "home", words: "index.yaml"},
 	{part: "why", words: "why.yaml"},
@@ -47,26 +51,32 @@ func cardOf(t *testing.T, part string) card {
 	return *holder.Card
 }
 
-// questionOf is the question of the card a page draws, in the words of a
-// language of the site.
-func questionOf(t *testing.T, language, words string) string {
+// said is what a page says of the card it draws, in a language of the site:
+// its question and its solution.
+type said struct {
+	Question string `yaml:"question"`
+	Solution string `yaml:"solution"`
+}
+
+// saidOf is what a page says of the card it draws, in the words of a language
+// of the site.
+func saidOf(t *testing.T, language, words string) said {
 	t.Helper()
 	file, err := os.ReadFile(filepath.Join("content", language, words))
 	if err != nil {
 		t.Fatalf("ReadFile(%s/%s) error = %v, want the page's words", language, words, err)
 	}
 	var page struct {
-		Task struct {
-			Question string `yaml:"question"`
-		} `yaml:"task"`
+		Task said `yaml:"task"`
 	}
 	if err := yaml.Unmarshal(file, &page); err != nil {
 		t.Fatalf("Unmarshal(%s/%s) error = %v, want nil", language, words, err)
 	}
-	if page.Task.Question == "" {
-		t.Fatalf("%s/%s says no task.question, want the question of its card", language, words)
+	if page.Task.Question == "" || page.Task.Solution == "" {
+		t.Fatalf("%s/%s says no task.question or task.solution, want the question and the solution of its card",
+			language, words)
 	}
-	return page.Task.Question
+	return page.Task
 }
 
 // languagesOf are the languages the site is written in: a folder of words each.
@@ -89,22 +99,29 @@ func languagesOf(t *testing.T) []string {
 }
 
 // pictureProblems are the problems the service's checks of a picture find in
-// a card with a question, in a language.
-func pictureProblems(held card, question, language string) []checks.Problem {
+// a card with what a page says of it, in a language: of its picture, and of
+// the picture of its solution with the total under it.
+func pictureProblems(held *card, words said, language string) []checks.Problem {
 	task := &checks.Task{
-		Question:      question,
-		Picture:       held.Picture,
-		Options:       held.Options,
-		CorrectAnswer: held.Correct,
+		Question:        words.Question,
+		Picture:         held.Picture,
+		Options:         held.Options,
+		CorrectAnswer:   held.Correct,
+		Solution:        words.Solution,
+		SolutionPicture: held.SolutionPicture,
+		SolutionTotal:   held.SolutionTotal,
 	}
-	return append(checks.PictureFormat(task, language), checks.PictureMatch(task, language)...)
+	return slices.Concat(checks.PictureFormat(task, language), checks.PictureMatch(task, language),
+		checks.SolutionPicture(task, language))
 }
 
-// A card on a page is a task the service could have handed out, picture and
+// A card on a page is a task the service could have handed out, pictures and
 // all: its picture is a description of one of the kinds, its labels are the
-// question's, and it does not show the answer. The question is the page's
-// own, in each language the site is written in, and the picture is one for
-// every language: a picture holds no words.
+// question's, and it does not show the answer; the picture of its solution is
+// one too, its labels the question's or the solution's, and the total under
+// it ends in the answer. The words are the page's own, in each language the
+// site is written in, and the pictures are one for every language: a picture
+// holds no words.
 func TestEveryCardOnTheSiteHasAPictureTheServiceWouldAccept(t *testing.T) {
 	t.Parallel()
 
@@ -114,9 +131,11 @@ func TestEveryCardOnTheSiteHasAPictureTheServiceWouldAccept(t *testing.T) {
 			t.Run(page.part+"/"+language, func(t *testing.T) {
 				t.Parallel()
 
-				question := questionOf(t, language, page.words)
-				if problems := pictureProblems(held, question, language); len(problems) > 0 {
+				if problems := pictureProblems(&held, saidOf(t, language, page.words), language); len(problems) > 0 {
 					t.Errorf("the checks of a picture found %v, want none", problems)
+				}
+				if held.SolutionPicture == nil || held.SolutionTotal == "" {
+					t.Error("the card has no picture of its solution or no total under it, want both")
 				}
 			})
 		}
@@ -129,10 +148,11 @@ func TestASpoiledCardIsRefusedByTheChecksOfAPicture(t *testing.T) {
 	t.Parallel()
 
 	held := cardOf(t, "home")
-	question := questionOf(t, "en", "index.yaml")
+	words := saidOf(t, "en", "index.yaml")
 	for _, spoiled := range []struct {
 		name    string
 		picture string
+		total   string
 		code    checks.Code
 	}{
 		{
@@ -150,13 +170,23 @@ func TestASpoiledCardIsRefusedByTheChecksOfAPicture(t *testing.T) {
 			picture: `{"kind": "row", "items": [{}, {}, {"skip": true}, {}], "gaps": "3", "span": "` + held.Options[held.Correct] + `"}`,
 			code:    checks.CodeDrawingMismatch,
 		},
+		{
+			name:  "a total under the picture of the solution that ends in a wrong option",
+			total: "12 ÷ 3 = 4",
+			code:  checks.CodeDrawingMismatch,
+		},
 	} {
 		t.Run(spoiled.name, func(t *testing.T) {
 			t.Parallel()
 
 			changed := held
-			changed.Picture = json.RawMessage(spoiled.picture)
-			problems := pictureProblems(changed, question, "en")
+			if spoiled.picture != "" {
+				changed.Picture = json.RawMessage(spoiled.picture)
+			}
+			if spoiled.total != "" {
+				changed.SolutionTotal = spoiled.total
+			}
+			problems := pictureProblems(&changed, words, "en")
 			if len(problems) == 0 || problems[0].Code != spoiled.code {
 				t.Errorf("the checks of a picture found %v, want a refusal of code %s", problems, spoiled.code)
 			}

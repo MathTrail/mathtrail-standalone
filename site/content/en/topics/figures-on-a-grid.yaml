@@ -17,27 +17,35 @@ hero:
     counted twice is the whole skill.
   method: Count the outside sides of every cell
   teaches: To tell area from perimeter, and to count cells and sides without missing or repeating one
-  # Its drawing is the site's data: an L of three cells, an area of 3 cells and
-  # a perimeter of 8 sides.
+  # The words of its drawing: the figure over it, what each of its two copies
+  # counts, and what the numbers in the cells mean.
+  art:
+    line: A figure of three cells
+    area: area, 3 cells
+    perimeter: perimeter, 8 sides
+    out: "the numbers on the right: how many sides of a cell face out, 3 + 2 + 3 = 8"
 
 basis:
   title: The rules of the grid
   cards:
-    - mark: "□"
-      title: Area is cells
+    - title: Area is cells
       text: >-
         The area of a figure on squared paper is the number of cells it covers.
         Two half cells make one whole one.
-    - mark: "|"
-      title: Perimeter is sides
+      art:
+        cells: 3 cells
+    - title: Perimeter is sides
       text: >-
         The perimeter is the number of cell sides on the border. A side that two
         cells of the figure share is inside, and does not count.
-    - mark: "≠"
-      title: Different things
+      art:
+        shared: a side shared inside does not count
+    - title: Different things
       text: >-
         Two figures of the same area can have different perimeters: four cells
         in a row have a perimeter of 10, and four in a square have 8.
+      art:
+        perimeter: perimeter {count}
 
 idea:
   title: Count the outside sides
@@ -79,13 +87,17 @@ method:
     - Draw the figure on squared paper
     - Count cells for the area, outside sides for the perimeter
     - Check with a second way of counting
+  # The key under the steps: what the drawings' lines and numbers mean.
+  legend:
+    border: the border, the perimeter
+    cut: a cut
+    count: "a number: how many sides face out"
 
 examples:
   - title: A cross
     question: >-
       A cross is made of 5 cells: one in the middle and one on each of its four
       sides. What is the perimeter of the cross, in cell sides?
-    # Its drawing is the site's data: the cross of five cells.
     steps:
       - Each of the 4 arms has 3 sides facing outside, so the arms give 4 × 3 = 12 sides.
       - The middle cell has no side outside, since each of its sides touches an arm.
@@ -97,13 +109,16 @@ examples:
         5 cells have 5 × 4 = 20 sides. The 4 sides between the middle and the
         arms are each counted twice, once from each cell, and they are inside:
         20 − 2 × 4 = 12.
+    art:
+      ends: 4 ends, 3 sides each
+      middle: the middle, 0
+      border: the border, 12 sides
+      inner: in red, the 4 inside sides
   - title: A strip in two
     question: >-
       A strip of 2 by 4 cells is cut along the grid lines into two pieces of 4
       cells each, and each piece must hold together. In how many different
       ways can it be cut?
-    # Its drawing is the site's data: the four cuts, with the two pieces of each
-    # in two shades.
     steps:
       - "A cut straight along the middle gives two rows of 4: 1 way."
       - "A cut straight across the middle gives two squares of 2 by 2: 1 way."
@@ -117,14 +132,19 @@ examples:
         Listing the pieces one at a time finds each cut twice, once for each of
         its pieces. Deciding that the first piece holds the top left cell
         counts each cut once.
+    art:
+      along: along
+      across: across
+      step: a step
+      back: the other way
+      same: one and the same cut
+      dot: the dot is the top left cell, always in the blue part
   - title: A diagonal
     question: >-
       A rectangle of 3 by 5 cells is drawn on squared paper, and a line is drawn
       from one corner to the opposite one. How many cells does the line pass
       through? A cell counts when the line crosses its inside, not when it only
       touches a corner.
-    # Its drawing is the site's data: the rectangle, and the cells the line
-    # passes through.
     steps:
       - >-
         Going from corner to corner, the line enters a new cell each time it
@@ -142,6 +162,12 @@ examples:
         where it crosses two lines at once and enters one cell, not two. It
         passes through 4 + 6 − 2 = 8 cells: 2 is the largest number that divides
         both 4 and 6.
+    art:
+      points: the dots, where the segment crosses the grid's lines
+      down: 4 that run down
+      across: 2 that run across
+      green: 1 + 4 + 2 = 7 green cells
+      node: "the red dot is a node: 8 cells"
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -151,18 +177,26 @@ traps:
       the perimeter, or each cut of the strip is listed once for each of its
       two pieces.
     say: “Is any side, or any cut, counted from both sides?”
+    art:
+      question: The perimeter of two cells side by side
   missed_case:
     shows: >-
       A case is missed: a cut whose step goes the other way, a piece of border
       in an inner corner, or the dominoes that stand upright as well as those
       that lie flat.
     say: “Is there a way not yet tried, the other way round?”
+    art:
+      question: The cuts of a strip of 2 by 4
   ignored_condition:
     shows: >-
       A condition is lost: a piece that falls apart is counted as a piece, a
       cell that touches only at a corner is counted as a neighbour, or the line
       is said to pass through a cell it only touches.
     say: “Does this piece, or this cell, really fit what the question says?”
+    art:
+      question: Each part in one piece
+      broken: the blue part fell apart
+      whole: both parts in one piece
 
 home:
   - title: Squared paper

@@ -220,7 +220,7 @@ func (s *session) issue(brief *profile.Brief, mode profile.TutorMode, draws *ans
 			wrong = append(wrong, letter)
 		}
 	}
-	task, err := s.p.Issue(written, secret, s.w.sealer, s.now)
+	task, err := s.p.Issue(written, &secret, s.w.sealer, s.now)
 	if err != nil {
 		return nil, "", err
 	}

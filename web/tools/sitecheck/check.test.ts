@@ -14,7 +14,7 @@ function options(): Options {
 		referenceLocale: "en",
 		maxPageBytes: 4096,
 		maxFrameBytes: 4096,
-		photos: "/assets/photos/",
+		photos: ["/assets/photos/", "/assets/history/"],
 		published: addresses,
 	};
 }
@@ -29,6 +29,7 @@ function showing(src: string) {
 			`<img src="${src}" alt="Us"></body>`,
 		);
 		files["assets/photos/us.webp"] = "x".repeat(8192);
+		files["assets/history/athens.webp"] = "x".repeat(8192);
 		files["assets/photos-old/us.webp"] = "x".repeat(8192);
 	};
 }
@@ -627,11 +628,14 @@ describe("check", () => {
 		},
 	);
 
-	test("weighs a page without the photographs it shows, which are worth their weight", async () => {
-		const dir = await site(showing("/assets/photos/us.webp"));
+	test.each(["/assets/photos/us.webp", "/assets/history/athens.webp"])(
+		"weighs a page without the photographs it shows, which are worth their weight: %s",
+		async (photo) => {
+			const dir = await site(showing(photo));
 
-		expect(await check(dir, options())).toEqual([]);
-	});
+			expect(await check(dir, options())).toEqual([]);
+		},
+	);
 
 	test("weighs a page with any other picture it shows, and with every one when it is given no photo directory", async () => {
 		const weighed = (findings: Finding[]) =>
@@ -649,7 +653,7 @@ describe("check", () => {
 			weighed(
 				await check(await site(showing("/assets/photos/us.webp")), {
 					...options(),
-					photos: "",
+					photos: [],
 				}),
 			),
 		).toEqual(["index.html: weight"]);
@@ -818,13 +822,13 @@ describe("check", () => {
 		{
 			name: "a photo directory with no slash at its end, which would take in its namesakes",
 			files: siteAt(addresses),
-			options: { ...options(), photos: "/assets/photos" },
+			options: { ...options(), photos: ["/assets/history/", "/assets/photos"] },
 			message: `photo directory "/assets/photos" is no directory of the site`,
 		},
 		{
 			name: "a photo directory that does not start at the site's root",
 			files: siteAt(addresses),
-			options: { ...options(), photos: "assets/photos/" },
+			options: { ...options(), photos: ["assets/photos/"] },
 			message: `photo directory "assets/photos/" is no directory of the site`,
 		},
 	];

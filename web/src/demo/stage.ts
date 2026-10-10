@@ -5,13 +5,6 @@
  */
 export const sharedFrom = "(min-width: 960px)";
 
-/**
- * repliesFrom is how far below the top of its frame the card of a wrong answer
- * shows its replies, in pixels: the verdict and the trap in sight, and the
- * options they speak of just above them.
- */
-export const repliesFrom = 180;
-
 /** Box is how a step stands in the window: its top, bottom and height. */
 export type Box = { top: number; bottom: number; height: number };
 
@@ -182,24 +175,13 @@ function alignAll(staged: Staged): void {
 
 // align shows the part of a layer's card its step speaks of, the frame of the
 // chat being shorter than the card: the question and the reply under a card,
-// the replies of a card whose answer is told, and the top of any other.
+// and the top of any other — the card of how an answer went starts with its
+// verdict and its trap.
 function align(layer: HTMLElement): void {
 	const body = layer.querySelector<HTMLElement>(".s-frame-body");
 	if (body === null) {
 		return;
 	}
-	if (layer.querySelector(".s-chat") !== null) {
-		body.scrollTop = body.scrollHeight;
-		return;
-	}
-	const replies = layer.querySelector<HTMLElement>(".mt-replies .mt-reply");
-	if (replies !== null) {
-		const from =
-			replies.getBoundingClientRect().top -
-			body.getBoundingClientRect().top +
-			body.scrollTop;
-		body.scrollTop = Math.max(0, from - repliesFrom);
-		return;
-	}
-	body.scrollTop = 0;
+	body.scrollTop =
+		layer.querySelector(".s-chat") !== null ? body.scrollHeight : 0;
 }

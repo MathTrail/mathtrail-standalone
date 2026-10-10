@@ -115,7 +115,7 @@ describe("the map of the service", () => {
 	});
 
 	test("lists every tool once", () => {
-		expect(tools).toHaveLength(11);
+		expect(tools).toHaveLength(12);
 		expect(new Set(tools).size).toBe(tools.length);
 	});
 

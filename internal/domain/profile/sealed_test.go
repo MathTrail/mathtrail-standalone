@@ -44,8 +44,8 @@ func ringNamed(t *testing.T, name string) profile.Sealer {
 	return ring.For(seal.PurposeTaskAnswer)
 }
 
-func secret() profile.TaskSecret {
-	return profile.TaskSecret{
+func secret() *profile.TaskSecret {
+	return &profile.TaskSecret{
 		Answer: "C",
 		Distractors: map[string]profile.Distractor{
 			"A": {Trap: "off_by_one", Text: "You counted the posts instead of the gaps."},

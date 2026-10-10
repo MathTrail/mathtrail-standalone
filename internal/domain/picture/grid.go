@@ -10,6 +10,7 @@ import (
 // named by its row and its column, B2: some cells filled, and some marked
 // with a label.
 type grid struct {
+	noWords
 	rows, cols []string
 	filled     []string
 	marks      []gridMark

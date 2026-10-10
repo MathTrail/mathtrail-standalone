@@ -3,6 +3,7 @@ package picture
 // containers is jugs, buckets and the like to pour between: how much each can
 // hold and how much it holds now, both written on it by the card.
 type containers struct {
+	noWords
 	items []container
 }
 

@@ -1,5 +1,5 @@
 import * as z from "zod";
-import type { Picture } from "../design/picture/model";
+import { type Picture, paints } from "../design/picture/model";
 
 /**
  * pictureLimits are the limits a picture is held to, under the names the
@@ -9,6 +9,7 @@ import type { Picture } from "../design/picture/model";
 export const pictureLimits = {
 	MaxLabelCharacters: 5,
 	MaxNoteCharacters: 24,
+	MaxTotalCharacters: 32,
 	minTableRows: 1,
 	maxTableRows: 8,
 	minTableCells: 1,
@@ -48,6 +49,15 @@ export const pictureLimits = {
 	lastWeekday: 7,
 	fewestDays: 28,
 	mostDays: 31,
+	minFlagGroups: 1,
+	maxFlagGroups: 4,
+	minFlags: 1,
+	maxFlagsInGroup: 6,
+	maxFlags: 12,
+	minStripes: 2,
+	maxStripes: 3,
+	maxColorWords: 2,
+	maxColorCharacters: 16,
 } as const;
 
 const limits = pictureLimits;
@@ -413,6 +423,75 @@ const calendar = z
 		}
 	});
 
+// The word of a colour as the card reads it: its grammar is the service's to
+// hold, and the card needs only how long it may be.
+const colorWord = z.string().min(1).max(limits.maxColorCharacters);
+const paint = z.enum(paints);
+const colors = z.strictObject({
+	red: optional(colorWord),
+	yellow: optional(colorWord),
+	green: optional(colorWord),
+	blue: optional(colorWord),
+	white: optional(colorWord),
+	black: optional(colorWord),
+});
+
+const flagGroup = z
+	.strictObject({
+		label: optional(label),
+		color: optional(paint),
+		flags: z
+			.array(
+				z
+					.array(z.union([paint, z.literal("?")]))
+					.min(limits.minStripes)
+					.max(limits.maxStripes),
+			)
+			.min(limits.minFlags)
+			.max(limits.maxFlagsInGroup),
+	})
+	.refine((read) => read.label === undefined || read.color === undefined, {
+		message: "a group is named by a colour or a label, never both",
+	});
+
+const flags = z
+	.strictObject({
+		kind: z.literal("flags"),
+		colors: optional(colors),
+		groups: z
+			.array(flagGroup)
+			.min(limits.minFlagGroups)
+			.max(limits.maxFlagGroups),
+	})
+	.superRefine((read, problems) => {
+		const painted = new Set<string>();
+		let total = 0;
+		for (const group of read.groups) {
+			total += group.flags.length;
+			for (const name of [group.color, ...group.flags.flat()]) {
+				if (name !== undefined && name !== "?") {
+					painted.add(name);
+				}
+			}
+		}
+		const named = paints.filter((name) => read.colors?.[name] !== undefined);
+		if (total > limits.maxFlags) {
+			problems.addIssue({
+				code: "custom",
+				message: "a picture holds at most 12 flags in all",
+			});
+		}
+		if (
+			named.length !== painted.size ||
+			!named.every((name) => painted.has(name))
+		) {
+			problems.addIssue({
+				code: "custom",
+				message: "every colour painted has its word, and every word paints",
+			});
+		}
+	});
+
 /**
  * pictureFormat reads a picture of one of the kinds, held to the format as
  * far as its drawing depends on it. A description it refuses is one the card
@@ -431,4 +510,5 @@ export const pictureFormat: z.ZodType<Picture> = z.discriminatedUnion("kind", [
 	containers,
 	piles,
 	calendar,
+	flags,
 ]);

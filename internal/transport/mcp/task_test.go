@@ -17,6 +17,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
@@ -1347,8 +1348,34 @@ func TestTheAnswerStaysSealed(t *testing.T) {
 	}
 	lines := h.logs.All()
 	for i := range lines {
-		wantNoneOf(t, "line "+lines[i].Message, lineTexts(t, &lines[i]), secrets)
+		wantNoneOf(t, "line "+lines[i].Message, withoutPictureOfTheSolution(t, &lines[i]), secrets)
 	}
+}
+
+// withoutPictureOfTheSolution is a line's texts with the kind and the size of
+// the picture of the solution taken out, once they are held to saying no more
+// than that: the one pair of fields named after the solution, which tell which
+// kind of picture it is and how long its description is, and nothing it shows.
+func withoutPictureOfTheSolution(t *testing.T, line *observer.LoggedEntry) []string {
+	t.Helper()
+
+	fields := line.ContextMap()
+	if kind, named := fields["solution_picture"]; named &&
+		!slices.Contains(append(picture.Kinds(), picture.None, picture.Other), picture.Kind(fmt.Sprint(kind))) {
+		t.Errorf("line %s names the picture of the solution %v, want its kind alone", line.Message, kind)
+	}
+	if size, named := fields["solution_picture_bytes"]; named {
+		if _, whole := size.(int64); !whole {
+			t.Errorf("line %s gives the picture of the solution as %v, want its size alone", line.Message, size)
+		}
+	}
+	delete(fields, "solution_picture")
+	delete(fields, "solution_picture_bytes")
+	encoded, err := json.Marshal(fields)
+	if err != nil {
+		t.Fatalf("a line does not encode: %v", err)
+	}
+	return []string{line.Message, string(encoded)}
 }
 
 // A lesson is held in the language the parent chose, whatever the chat is in:

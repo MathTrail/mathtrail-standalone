@@ -2,10 +2,13 @@ import { Window } from "happy-dom";
 import { afterAll, describe, expect, test } from "vitest";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
+import type { TopicArt } from "./art/art";
+import { Kind } from "./art/pictures";
 import { readSiteData } from "./data";
 import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
 import { renderSite } from "./render";
+import { topicPage } from "./TopicPage";
 
 const browser = new Window({
 	settings: {
@@ -19,16 +22,11 @@ afterAll(async () => {
 	await browser.happyDOM.close();
 });
 
-// drawings are the drawings of the three topics' cards, and of the first
-// screens of the two whose pages are published: that of knights and liars is
-// the site's own drawing of two islanders.
+// drawings are the drawings of the three topics' cards.
 const drawings = {
-	"logic.ordering": { card: { markup: "daisy" }, hero: { markup: "daisy" } },
-	"logic.knights_liars": {
-		card: { markup: "daisy" },
-		hero: { markup: "islanders" },
-	},
-	"logic.sets": { card: { markup: "daisy" } },
+	"logic.ordering": { card: { markup: "lined-up" } },
+	"logic.knights_liars": { card: { markup: "knight-and-liar" } },
+	"logic.sets": { card: { markup: "two-circles" } },
 };
 
 // dataWith is the site's data over a catalog of three topics of the service:
@@ -102,25 +100,30 @@ const dataWith = (examples: unknown, drawn: unknown = drawings) =>
 		},
 	);
 
-// examples are the examples of knights and liars: the first with a picture,
-// the second with none.
+// examples are the examples of knights and liars.
 const examples = [
-	{
-		level: "3-4",
-		solver: "first",
-		answer: "A liar",
-		drawing: {
-			picture: { kind: "row", items: [{ label: "K" }, { label: "L" }] },
-		},
-	},
+	{ level: "3-4", solver: "first", answer: "A liar" },
 	{ level: "5-6", solver: "second", answer: "2" },
 ];
 
 const data = dataWith(examples);
 
-// words are the page's words for that catalog, the same in each language: the
-// words of the drawing of its first screen, its first example with a note and
-// its second with none.
+// art are the drawings of the page of knights and liars: its first screen's
+// alone, which draws no picture as a card draws one and reads none of the
+// page's words.
+const art: TopicArt = { hero: () => <span>A and B</span> };
+
+// pictured are drawings of the same page whose first screen draws a picture
+// of a clock as a card draws one, and which say so.
+const pictured: TopicArt = {
+	pictures: true,
+	hero: ({ page }) => (
+		<Kind picture={{ kind: "clock", time: "4:50" }} locale={page.locale} />
+	),
+};
+
+// words are the page's words for that catalog, the same in each language: its
+// first example with a note and its second with none.
 const words = [
 	"title: Knights",
 	"description: About knights.",
@@ -128,11 +131,6 @@ const words = [
 	"  lead: Who is who.",
 	"  method: Suppose.",
 	"  teaches: Reasoning.",
-	"  drawing:",
-	"    first: A",
-	"    first-says: “B is a liar”",
-	"    second: B",
-	"    second-says: “A is a liar”",
 	"basis:",
 	"  title: The rules",
 	"  cards:",
@@ -214,29 +212,41 @@ const sourcesWith = (english: string, russian = english) =>
 // A frame with no menu, since the site drawn here has no page of the topics.
 const frame: Frame = { menu: [], footer: ["privacy", "terms"] };
 
-// pagesOf are the site's pages for the data, ordering's drawn by a stand-in.
-const pagesOf = (given: typeof data) =>
+// knightsOf is the topic of knights and liars in the data.
+function knightsOf(given: typeof data) {
+	const knights = given.topics.all.find(({ slug }) => slug === "knights");
+	if (knights === undefined) {
+		throw new Error("the test's catalog has no knights and liars");
+	}
+	return knights;
+}
+
+// pagesOf are the site's pages for the data, knights and liars drawn with
+// these drawings of its own, and ordering's page by a stand-in.
+const pagesOf = (given: typeof data, drawn: TopicArt | undefined) =>
 	new Map<string, Page>([
 		...sitePages(given),
 		["topics/ordering", { draw: () => <p>Ordering</p> }],
+		["topics/knights", topicPage(knightsOf(given), drawn)],
 	]);
 
-// render is the site built from these words and data.
-const render = (sources = sourcesWith(words), given = data) =>
+// render is the site built from these words, data and drawings.
+const render = (sources = sourcesWith(words), given = data, drawn = art) =>
 	renderSite({
 		base: "https://example.test",
 		sources,
 		frame,
 		data: given,
-		pages: pagesOf(given),
+		pages: pagesOf(given, drawn),
 	});
 
 const files = render();
 
-// pageAt is the built page at path, read as a document.
-function pageAt(path: string) {
+// pageAt is the built page at path, read as a document, of the site built
+// as given, or else of the one built here.
+function pageAt(path: string, built = files) {
 	return new browser.DOMParser().parseFromString(
-		files.find((candidate) => candidate.path === path)?.data ?? "",
+		built.find((candidate) => candidate.path === path)?.data ?? "",
 		"text/html",
 	);
 }
@@ -304,38 +314,25 @@ describe("a topic's page", () => {
 	test("numbers the steps of the move and of each example in the page's own digits", () => {
 		expect(all(".s-moves .s-number")).toEqual(["1", "2"]);
 		expect(
-			[...knights.querySelectorAll(".s-example-steps")].map((steps) =>
-				[...steps.querySelectorAll(".s-number")].map(
+			[...knights.querySelectorAll(".s-worked-steps")].map((steps) =>
+				[...steps.querySelectorAll(".s-worked-step-number")].map(
 					(number) => number.textContent,
 				),
 			),
 		).toEqual([["1", "2"], ["1"]]);
 	});
 
-	test("draws the drawing of its first screen in the page's words, which a screen reader passes over", () => {
-		const drawing = knights.querySelector(".s-subject-panel > .s-art");
-
-		expect(drawing?.getAttribute("aria-hidden")).toBe("true");
-		expect(
-			[...(drawing?.querySelectorAll(".s-speech-line") ?? [])].map(
-				(line) => line.textContent,
-			),
-		).toEqual(["A“B is a liar”", "B“A is a liar”"]);
-	});
-
-	test("draws an example's picture and note only where the example has them", () => {
+	test("draws an example's note only where the example has one, and its answer under every example", () => {
 		const worked = [...knights.querySelectorAll(".s-example")];
 
 		expect(
 			worked.map((example) => [
-				example.querySelectorAll(
-					'.s-example-work > .s-picture[aria-hidden="true"] > svg.mt-picture',
-				).length,
 				example.querySelector(".s-note-title")?.textContent,
+				example.querySelector(".s-answer-pill")?.textContent,
 			]),
 		).toEqual([
-			[1, "Why so"],
-			[0, undefined],
+			["Why so", "A is a liar."],
+			[undefined, "2Two."],
 		]);
 	});
 
@@ -349,7 +346,7 @@ describe("a topic's page", () => {
 		const related = [...knights.querySelectorAll(".s-related")].map((list) => [
 			list.parentElement?.querySelector("h2")?.textContent,
 			[...list.querySelectorAll("li")].map((topic) => [
-				topic.querySelector("h3")?.textContent,
+				topic.querySelector(".s-related-name")?.textContent,
 				topic.querySelector("a")?.getAttribute("href") ??
 					topic.querySelector(".s-soon")?.textContent,
 			]),
@@ -384,29 +381,31 @@ describe("a topic's page", () => {
 		expect(all(".s-ask .s-btn-filled")).toEqual(["Add to Claude"]);
 	});
 
-	test("reads in full with no script, and loads the card's stylesheet its pictures are drawn with", () => {
-		expect(knights.querySelector("script")).toBeNull();
-		expect(all('link[rel="stylesheet"]', "href")).toContain("/assets/card.css");
+	test("draws the topic's own drawing on its first screen, which a screen reader passes over", () => {
+		const panel = knights.querySelector(".s-subject-panel");
+
+		expect(panel?.getAttribute("aria-hidden")).toBe("true");
+		expect(all(".s-subject-panel .s-sketch-drawn")).toEqual(["A and B"]);
 	});
 
-	test("loads no card's stylesheet where it draws no picture", () => {
-		const unpictured = dataWith([
-			{ ...examples[0], drawing: { markup: "daisy" } },
-			examples[1],
-		]);
-		const page = new browser.DOMParser().parseFromString(
-			render(sourcesWith(words), unpictured).find(
-				({ path }) => path === "en/topics/knights/index.html",
-			)?.data ?? "",
-			"text/html",
+	// The drawings of the page drawn here draw no picture as a card draws one,
+	// and the clock's do.
+	test("reads in full with no script, and loads the card's stylesheet only where its drawings draw a picture", () => {
+		const clock = pageAt(
+			"en/topics/knights/index.html",
+			render(sourcesWith(words), data, pictured),
 		);
-
-		expect(page.querySelector(".s-petal")).not.toBeNull();
-		expect(
+		const sheets = (page: typeof knights) =>
 			[...page.querySelectorAll('link[rel="stylesheet"]')].map((link) =>
 				link.getAttribute("href"),
-			),
-		).not.toContain("/assets/card.css");
+			);
+
+		expect(knights.querySelector("script")).toBeNull();
+		expect(sheets(knights)).not.toContain("/assets/card.css");
+		expect(
+			clock.querySelector(".s-subject-panel svg.mt-picture"),
+		).not.toBeNull();
+		expect(sheets(clock)).toContain("/assets/card.css");
 	});
 });
 
@@ -437,8 +436,8 @@ describe("a topic's page is refused when", () => {
 		expect(() => render(sourcesWith(english))).toThrow(want);
 	});
 
-	// Ordering's page is published, and no reference task of ordering names a
-	// trap: its page would have no trap to explain.
+	// Ordering's page is published and drawn by the template, and no reference
+	// task of ordering names a trap: its page would have no trap to explain.
 	test("no reference task of its topic names a trap, the commonest of which the page explains", () => {
 		expect(() =>
 			renderSite({
@@ -446,46 +445,26 @@ describe("a topic's page is refused when", () => {
 				sources: sourcesWith(words),
 				frame,
 				data,
-				pages: sitePages(data),
+				pages: new Map([
+					...sitePages(data),
+					["topics/knights", topicPage(knightsOf(data), art)],
+				]),
 			}),
 		).toThrow(
 			"no reference task of logic.ordering names a trap, and its page explains the most frequent",
 		);
 	});
 
-	test("the data gives its first screen no drawing", () => {
-		const bare = dataWith(examples, {
-			...drawings,
-			"logic.knights_liars": { card: { markup: "daisy" } },
-		});
-
-		expect(() => render(sourcesWith(words), bare)).toThrow(
-			"site/data.json gives the first screen of logic.knights_liars no drawing",
-		);
-	});
-
-	test("its words hold words for a drawing the data gives as a picture", () => {
-		const pictured = dataWith(examples, {
-			...drawings,
-			"logic.knights_liars": {
-				card: { markup: "daisy" },
-				hero: { picture: { kind: "clock", time: "4:50" } },
-			},
-		});
-
-		expect(() => render(sourcesWith(words), pictured)).toThrow(
-			"the page never shows hero.drawing.first, hero.drawing.first-says, hero.drawing.second, hero.drawing.second-says",
-		);
-	});
-
-	test("its words lack the words of its drawing", () => {
+	test("its topic has no drawings of its own", () => {
 		expect(() =>
-			render(
-				sourcesWith(words.replace("    second-says: “A is a liar”\n", "")),
-			),
-		).toThrow(
-			"en/topics/knights.yaml: the page reads hero.drawing.second-says, which the file does not have",
-		);
+			renderSite({
+				base: "https://example.test",
+				sources: sourcesWith(words),
+				frame,
+				data,
+				pages: pagesOf(data, undefined),
+			}),
+		).toThrow("the page of logic.knights_liars has no drawings of its own");
 	});
 
 	test("its words work through another number of examples than the data gives", () => {

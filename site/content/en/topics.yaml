@@ -47,20 +47,13 @@ groups:
   games: Find the plan that works whatever the other player or the scales do.
 
 # Every topic of the catalog, by its slug: a line for the parent. Its card's
-# drawing is the site's data, the site's own illustration and never a reference
-# task's; the words of a drawing of the site's own are here.
+# drawing is the site's data, one of the site's own small drawings and never a
+# reference task's, and it reads no words of this file.
 topics:
   ordering:
     phrase: "Who is taller, older, faster: line everyone up from a few clues."
   knights-and-liars:
     phrase: Some always tell the truth, the others always lie. Work out who is who from what they say.
-    # The drawing on its card is the site's own: two islanders, and what each
-    # says.
-    drawing:
-      first: A
-      first-says: “I am a knight”
-      second: B
-      second-says: “A is lying”
   enumeration:
     phrase: List every case in order, so that none is lost and none counted twice.
   gaps-and-boundaries:

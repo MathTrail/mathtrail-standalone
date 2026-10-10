@@ -1,6 +1,6 @@
-import type { ComponentChildren, Ref } from "preact";
+import type { ComponentChildren } from "preact";
 import { useContext, useReducer, useRef } from "preact/hooks";
-import { Note, Verdict } from "../design/blocks";
+import { Note } from "../design/blocks";
 import {
 	Button,
 	type Option,
@@ -9,12 +9,18 @@ import {
 	type Said,
 } from "../design/controls";
 import { Diagram } from "../design/picture/diagram";
-import { ReplyCard } from "../design/thread";
 import { directionOf } from "../i18n/lookup";
 import type { Host } from "./bridge";
 import { CardFrame } from "./CardFrame";
 import { CardHeader } from "./CardRoot";
-import { type Request, RequestNote, useChatRequest } from "./ChatRequest";
+import {
+	lineWait,
+	type Request,
+	RequestNote,
+	useChatRequest,
+	useModelLines,
+	within,
+} from "./ChatRequest";
 import { type Letter, letters } from "./choices";
 import { useFocusKeptOnTheCard } from "./focus";
 import { LessonButtons } from "./LessonFoot";
@@ -31,7 +37,6 @@ import {
 } from "./lesson";
 import type { HandedTask } from "./payload";
 import { useService } from "./service";
-import { TaskResult } from "./TaskResult";
 import {
 	ChoosesTopic,
 	TopicButton,
@@ -81,16 +86,19 @@ export function TaskCard({
 /**
  * TaskInCard is a task inside the frame of the card it is on, under the
  * card's header with the grade given. The child answers by pressing an option,
- * which records the answer straight away, and reads the result below the
- * task, in the same card; opens the hint; and asks for another task, which
- * goes to the chat for the model to write — the new task comes in a card of
- * its own, below. Once the chat has the ask, this card is done with: it keeps
- * its task, its options locked and its buttons gone, and says where the next
- * one comes; a host that refuses the ask gives the card back, to ask again.
- * A task handed out with the choice of the topic offers it too: a topic to
- * keep the lessons to, or the coach's choice, saved and then asked for as
- * another task is. The lesson begins at start, the task just handed out unless
- * it says otherwise.
+ * which records the answer straight away: the card marks the options, tells
+ * the model, and asks the chat, in the adult's words, to go over the answer —
+ * how it went comes in a card of its own, below, which the model draws. The
+ * card is then done with: its options locked and its buttons gone, it says
+ * where the review comes, and a host that refuses the ask gives the card a
+ * button to ask again. An answer recorded before, which the chat has gone over
+ * already, asks nothing by itself, and the card offers the ask instead. Before
+ * an answer the child opens the hint, and asks for another task, which goes to
+ * the chat for the model to write, the new task in a card of its own; once the
+ * chat has that ask, the card is done with too. A task handed out with the
+ * choice of the topic offers it before an answer: a topic to keep the lessons
+ * to, or the coach's choice, saved and then asked for as another task is. The
+ * lesson begins at start, the task just handed out unless it says otherwise.
  */
 export function TaskInCard({
 	handed,
@@ -110,22 +118,20 @@ export function TaskInCard({
 	const [lesson, dispatch] = useReducer(next, start);
 	const service = useService();
 	const another = useChatRequest(host);
-	const outcome = useRef<HTMLDivElement>(null);
-	const nextTask = useRef<HTMLButtonElement>(null);
+	const review = useChatRequest(host);
+	const tell = useModelLines(host);
 	const note = useRef<HTMLParagraphElement>(null);
+	const said = useRef<HTMLParagraphElement>(null);
+	const reviewButton = useRef<HTMLButtonElement>(null);
 	// An answer is sent once. From the moment it is on its way the options are
 	// locked, and a second press that comes before the card has redrawn to lock
 	// them is turned away here.
 	const answering = useRef(false);
-	// held is every line the model was given on this card. The host keeps one
-	// line and reads it with the next message, so a later line carries the
-	// earlier ones along. A message the chat takes is the card's last word, and
-	// one it refuses carried nothing, so no message lets a line go.
-	const held = useRef<string | undefined>(undefined);
-	function tell(line: string): Promise<void> {
-		held.current =
-			held.current === undefined ? line : `${held.current}\n\n${line}`;
-		return host.tellModel(held.current);
+	// The ask to go over the answer is offered as a button once the chat has
+	// refused it, and stays offered until the chat takes it.
+	const reviewLost = useRef(false);
+	if (review.state === "lost") {
+		reviewLost.current = true;
 	}
 	// A choice asks for a task, so it waits for an answer or an ask already on
 	// its way, even one pressed in the same moment, before the card redraws.
@@ -154,10 +160,22 @@ export function TaskInCard({
 		const told = await service.recordAnswer(task.id, choice, lesson.hint.used);
 		answering.current = false;
 		dispatch({ type: "told", outcome: told });
-		if (told.kind === "answered") {
+		if (told.kind !== "answered") {
+			return;
+		}
+		// The model reads the line with the card's message, so the line goes to
+		// the host first, and the ask once the host has taken it — or a moment
+		// later, since a host that keeps no line, or never says so, still takes
+		// the message. An answer recorded before has been gone over in the chat,
+		// and the card asks nothing by itself.
+		await within(
+			lineWait,
 			tell(modelLineOf(told.result)).catch((error: unknown) => {
 				console.error("widget: the model was not told of the answer", error);
-			});
+			}),
+		);
+		if (!told.result.already_answered) {
+			review.send(words.text("task.review"));
 		}
 	}
 
@@ -173,11 +191,12 @@ export function TaskInCard({
 	}
 
 	// Once the answer is in, a focus that was lost goes to the one thing left
-	// to do, while the replies read the result out; with nothing left to do,
-	// to what the card says.
-	useFocusKeptOnTheCard(isOver(lesson.answer), nextTask, outcome);
-	// Once the chat has the ask, the button pressed for it is gone: the focus
-	// goes to what the card says of the task to come.
+	// to do, or to what the card says of the answer. Once the chat has an ask,
+	// the button pressed for it is gone: the focus goes to what the card says
+	// of what comes; and once it refuses one, to the button that asks again.
+	useFocusKeptOnTheCard(isOver(lesson.answer), reviewButton, said);
+	useFocusKeptOnTheCard(review.state === "sent", said);
+	useFocusKeptOnTheCard(review.state === "lost", reviewButton);
 	useFocusKeptOnTheCard(asked, note);
 
 	// The task is in the language it was written in, which need not be the
@@ -188,6 +207,13 @@ export function TaskInCard({
 	// where a choice cannot be acted on, its button is shown and stays locked.
 	const topicLocked =
 		!choosesTopic || lesson.answer.state === "checking" || asking || saving;
+	const answered =
+		lesson.answer.state === "answered" ? lesson.answer.result : undefined;
+	const offersReview =
+		answered !== undefined &&
+		review.state !== "sent" &&
+		(answered.already_answered || reviewLost.current);
+	const saysOfTheAnswer = saidOf(lesson.answer, review.state);
 
 	return (
 		<>
@@ -202,7 +228,7 @@ export function TaskInCard({
 					onAnswer={answer}
 					chip={
 						givenOnTheChoice(handed, choosing.chosen) &&
-						lesson.answer.state !== "closed" &&
+						!isSettled(lesson.answer) &&
 						!asked && (
 							<TopicChip
 								choosing={choosing}
@@ -213,61 +239,93 @@ export function TaskInCard({
 					}
 				/>
 			</article>
-			<section
-				class="mt-replies"
-				aria-label={words.text("task.replies")}
-				aria-live="polite"
-			>
-				{isOver(lesson.answer) && (
-					<div ref={outcome} tabIndex={-1}>
-						<Outcome answer={lesson.answer} task={task} inTask={inTask} />
+			<div class="mt-foot">
+				{!asked && !isSettled(lesson.answer) && (
+					<>
+						<div class="mt-btns">
+							<LessonButtons
+								locked={lesson.answer.state === "checking" || saving}
+								anotherSending={asking || saving}
+								hintOpen={lesson.hint.open}
+								onHint={() => dispatch({ type: "hint toggled" })}
+								onAnother={askForAnother}
+							/>
+							{offered !== undefined && (
+								<TopicButton
+									choosing={choosing}
+									wide={wide}
+									locked={topicLocked}
+								/>
+							)}
+						</div>
+						{offered !== undefined && (
+							<>
+								<TopicPanel
+									choosing={choosing}
+									offered={offered}
+									grade={grade}
+									host={host}
+									locked={topicLocked}
+								/>
+								<TopicNote said={choosing.said} />
+							</>
+						)}
+					</>
+				)}
+				{offersReview && (
+					<div class="mt-btns">
+						<Button
+							variant="primary"
+							locked={review.state === "sending"}
+							onClick={() => review.send(words.text("task.review"))}
+							buttonRef={reviewButton}
+						>
+							{words.text("task.review")}
+						</Button>
 					</div>
 				)}
-			</section>
-			{lesson.answer.state !== "closed" && (
-				<div class="mt-foot">
-					{!asked && (
-						<>
-							<div class="mt-btns">
-								<TaskActions
-									lesson={lesson}
-									another={another.state}
-									saving={saving}
-									nextTask={nextTask}
-									onHint={() => dispatch({ type: "hint toggled" })}
-									onAnother={askForAnother}
-								/>
-								{offered !== undefined && (
-									<TopicButton
-										choosing={choosing}
-										wide={wide}
-										locked={topicLocked}
-									/>
-								)}
-							</div>
-							{offered !== undefined && (
-								<>
-									<TopicPanel
-										choosing={choosing}
-										offered={offered}
-										grade={grade}
-										host={host}
-										locked={topicLocked}
-									/>
-									<TopicNote said={choosing.said} />
-								</>
-							)}
-						</>
-					)}
-					<RequestNote
-						state={another.state}
-						taken="task.another_coming"
-						noteRef={note}
-					/>
-				</div>
-			)}
+				<RequestNote
+					state={another.state}
+					taken="task.another_coming"
+					noteRef={note}
+				/>
+				<p
+					class="mt-action-note mt-answer-note"
+					aria-live="polite"
+					ref={said}
+					tabIndex={saysOfTheAnswer === undefined ? undefined : -1}
+				>
+					{saysOfTheAnswer === undefined ? "" : words.text(saysOfTheAnswer)}
+				</p>
+			</div>
 		</>
 	);
+}
+
+// saidOf is what the card says of the answer, or nothing while it has nothing
+// to say: why the answer was not recorded — the task is closed, or the answer
+// could not be checked — and, of an answer recorded, that its review comes
+// below once the chat has the ask, that the ask did not reach the chat, or
+// that the task was answered before, which the card asks nothing of by itself.
+function saidOf(answer: Answer, review: Request): Key | undefined {
+	switch (answer.state) {
+		case "closed":
+			return "task.closed";
+		case "failed":
+			return "task.answer_failed";
+		case "answered":
+			if (review === "sent") {
+				return "task.review_coming";
+			}
+			if (review === "lost") {
+				return "chat.not_sent";
+			}
+			return answer.result.already_answered && review === "idle"
+				? "task.answered_before"
+				: undefined;
+		default:
+			return undefined;
+	}
 }
 
 // givenOnTheChoice says whether the task was handed out on the topic the
@@ -314,6 +372,8 @@ function TaskBody({
 					picture={task.picture}
 					label={words.text(`picture.${task.picture.kind}`)}
 					locale={task.language}
+					keyLabel={words.text("picture.colors")}
+					said={inTask}
 				/>
 			)}
 			{lesson.hint.open && !isSettled(lesson.answer) && (
@@ -333,83 +393,6 @@ function TaskBody({
 				said={inTask}
 			/>
 		</div>
-	);
-}
-
-// TaskActions are the buttons under a task. A task answered has one thing
-// left to do, the next task. A task closed has none, and its card no foot: the
-// task being solved is on a newer card, and asking for another here would
-// skip it.
-// The next task's button is its own: the one pressed is not turned into it
-// under the focus, which a screen reader would not tell. While an ask for
-// another task is on its way to the chat its button takes no second press;
-// once the chat has it, the card is done with and its buttons are gone, and a
-// host that refuses it brings them back. While a choice of the topic is on its
-// way, every button is locked.
-function TaskActions({
-	lesson,
-	another,
-	saving,
-	nextTask,
-	onHint,
-	onAnother,
-}: {
-	lesson: Lesson;
-	another: Request;
-	saving: boolean;
-	nextTask: Ref<HTMLButtonElement>;
-	onHint: () => void;
-	onAnother: () => void;
-}) {
-	const words = useWords();
-	const anotherSending = another === "sending" || saving;
-	if (lesson.answer.state === "answered") {
-		return (
-			<Button
-				key="next"
-				variant="primary"
-				locked={anotherSending}
-				onClick={onAnother}
-				buttonRef={nextTask}
-			>
-				{words.text("task.another")}
-			</Button>
-		);
-	}
-	return (
-		<LessonButtons
-			locked={lesson.answer.state === "checking" || saving}
-			anotherSending={anotherSending}
-			hintOpen={lesson.hint.open}
-			onHint={onHint}
-			onAnother={onAnother}
-		/>
-	);
-}
-
-// Outcome is MathTrail's reply to an answer: the result of one recorded, or a
-// line saying why none was.
-function Outcome({
-	answer,
-	task,
-	inTask,
-}: {
-	answer: Answer;
-	task: HandedTask["task"];
-	inTask: Said;
-}) {
-	const words = useWords();
-	if (answer.state === "answered") {
-		return <TaskResult result={answer.result} task={task} inTask={inTask} />;
-	}
-	return (
-		<ReplyCard name={words.text("app.name")}>
-			<Verdict>
-				{words.text(
-					answer.state === "closed" ? "task.closed" : "task.answer_failed",
-				)}
-			</Verdict>
-		</ReplyCard>
 	);
 }
 

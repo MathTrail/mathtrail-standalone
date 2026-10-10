@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import type { Picture } from "../design/picture/model";
-import { kinds } from "../design/picture/model";
+import { kinds, paints } from "../design/picture/model";
 import { extremes } from "../design/picture/testing/extremes";
 import { pictureFormat, pictureLimits } from "./picture";
 import { seeded } from "./testing/seeded";
@@ -51,6 +51,23 @@ describe("the card's reading of a picture", () => {
 		].map((match) => match[1]);
 
 		expect(kinds).toEqual(listed);
+	});
+
+	test("knows the colours of the service's palette, in its order, and reads a word for each", () => {
+		const listed = [
+			...goSource("colors.go").matchAll(/^\t\w+\s+Paint = "(\w+)"$/gm),
+		].map((match) => match[1]);
+		const painted = pictureFormat.safeParse({
+			kind: "flags",
+			colors: Object.fromEntries(paints.map((paint) => [paint, paint])),
+			groups: [
+				{ flags: [["red", "yellow", "green"]] },
+				{ flags: [["blue", "white", "black"]] },
+			],
+		});
+
+		expect(paints).toEqual(listed);
+		expect(painted.success).toBe(true);
 	});
 
 	test("holds a picture to the limits the service holds it to", () => {
@@ -338,6 +355,70 @@ describe("the card's reading of a picture", () => {
 			"a week that starts on a Saturday",
 			{ kind: "calendar", first: 1, days: 30, week_starts: "saturday" },
 		],
+		[
+			"colours on a kind that paints none",
+			{ kind: "clock", time: "4:30", colors: { red: "red" } },
+		],
+		[
+			"a colour the palette does not have",
+			{
+				kind: "flags",
+				colors: { purple: "purple" },
+				groups: [{ flags: [["?", "?"]] }],
+			},
+		],
+		[
+			"a colour painted with no word for it",
+			{
+				kind: "flags",
+				colors: { red: "red" },
+				groups: [{ flags: [["red", "blue"]] }],
+			},
+		],
+		[
+			"a word for a colour that paints nothing",
+			{
+				kind: "flags",
+				colors: { red: "red", blue: "blue" },
+				groups: [{ flags: [["red", "?"]] }],
+			},
+		],
+		[
+			"a word past its length",
+			{
+				kind: "flags",
+				colors: { red: "r".repeat(17) },
+				groups: [{ flags: [["red", "?"]] }],
+			},
+		],
+		[
+			"a flag of four stripes",
+			{ kind: "flags", groups: [{ flags: [["?", "?", "?", "?"]] }] },
+		],
+		[
+			"a group of seven flags",
+			{
+				kind: "flags",
+				groups: [{ flags: Array.from({ length: 7 }, () => ["?", "?"]) }],
+			},
+		],
+		[
+			"thirteen flags in all",
+			{
+				kind: "flags",
+				groups: [6, 6, 1].map((count) => ({
+					flags: Array.from({ length: count }, () => ["?", "?"]),
+				})),
+			},
+		],
+		[
+			"a group named by a colour and a label",
+			{
+				kind: "flags",
+				colors: { red: "red" },
+				groups: [{ label: "A", color: "red", flags: [["red", "?"]] }],
+			},
+		],
 	])("refuses %s", (_, description) => {
 		expect(readPicture(description)).toBeUndefined();
 	});
@@ -357,6 +438,11 @@ describe("the card's reading of a picture", () => {
 			"bars",
 			"skip",
 			"at",
+			"colors",
+			"groups",
+			"flags",
+			"color",
+			...paints,
 			"__proto__",
 			"constructor",
 		];
@@ -367,7 +453,17 @@ describe("the card's reading of a picture", () => {
 				case 1:
 					return pick([0, -1, 2.5, 1e9, Number.NaN, 7, 40]);
 				case 2:
-					return pick(["", "A", "?", "4:30", "…", "WWWWWW", "-3", ...kinds]);
+					return pick([
+						"",
+						"A",
+						"?",
+						"4:30",
+						"…",
+						"WWWWWW",
+						"-3",
+						...kinds,
+						...paints,
+					]);
 				case 3:
 					return pick(kinds);
 				case 4:

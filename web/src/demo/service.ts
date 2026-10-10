@@ -11,18 +11,26 @@ import type { DemoData } from "./data";
 export const checkingTakes = 1100;
 
 /**
+ * DemoService is the service the home page answers for, which also says how
+ * the last answer it recorded went, for the card of how it went to show.
+ */
+export type DemoService = Service & { told: () => AnswerResult | undefined };
+
+/**
  * demoService answers for MathTrail's service on the home page, from the
  * page's own data, and calls nobody. An answer is recorded after a moment as
  * the service would record it: the result the data holds for the choice, with
  * the hint as the card says it was used, and the rating moved on from where
- * the answer before left it, as far as the data moves it. A task asked for is
- * still being written the first time its card asks, and handed out the next
- * time: the lesson's task again, under an id of its own. The page keeps no
- * profile, so no progress is read and no change to one is ever saved.
+ * the answer before left it, as far as the data moves it; the last one
+ * recorded is kept, for the card of how it went. A task asked for is still
+ * being written the first time its card asks, and handed out the next time:
+ * the lesson's task again, under an id of its own. The page keeps no profile,
+ * so no progress is read and no change to one is ever saved.
  */
-export function demoService(data: DemoData): Service {
+export function demoService(data: DemoData): DemoService {
 	const asked = new Map<string, number>();
 	let rating: number | undefined;
+	let last: AnswerResult | undefined;
 	// movedOn is the rating move of an answer, taken on from where the answer
 	// before left the rating.
 	const movedOn = (move: AnswerResult["rating"]): AnswerResult["rating"] => {
@@ -38,15 +46,13 @@ export function demoService(data: DemoData): Service {
 			new Promise((resolve) => {
 				setTimeout(() => {
 					const told = data.results[choice];
-					resolve({
-						kind: "answered",
-						result: {
-							...told,
-							task_id: taskId,
-							hint_used: hintUsed,
-							rating: movedOn(told.rating),
-						},
-					});
+					last = {
+						...told,
+						task_id: taskId,
+						hint_used: hintUsed,
+						rating: movedOn(told.rating),
+					};
+					resolve({ kind: "answered", result: last });
 				}, checkingTakes);
 			}),
 		taskStatus: (requestId) => {
@@ -60,6 +66,7 @@ export function demoService(data: DemoData): Service {
 		},
 		readProgress: () => Promise.resolve({ kind: "failed" }),
 		saveEdit: () => Promise.resolve({ kind: "failed" }),
+		told: () => last,
 	};
 }
 
@@ -71,8 +78,8 @@ function handedFor(handed: HandedTask, requestId: string): HandedTask {
 
 /**
  * demoHost is the chat around the card on the home page. A message the card
- * puts in the chat is handed to sent, which shows it as the parent's and brings
- * the next task. A line for the model goes nowhere, since no model reads the
+ * puts in the chat is handed to sent, which shows it as the parent's and
+ * brings what it asks for: the card of how an answer went, or the next task. A line for the model goes nowhere, since no model reads the
  * page, and no tool is called and no page opened: the card on the page asks
  * the service through the page, and shows no link.
  */

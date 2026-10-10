@@ -8,6 +8,13 @@
 title: Ratios and sharing
 description: What problems about ratios and sharing in parts are, how they are solved, where children go wrong, and how to help at home.
 
+# The words the page's drawings name their people and boxes in.
+art:
+  ann: Ann
+  ben: Ben
+  a: A
+  b: B
+
 hero:
   lead: >-
     Ann and Ben share 35 sweets in the ratio 3 to 4. How many does each get?
@@ -16,24 +23,29 @@ hero:
     turns every ratio task into a division.
   method: Count the parts, then find one part
   teaches: To see a ratio as equal parts, and to scale a recipe up or down
-  # Its drawing is the site's data: 35 shared in the ratio 3 to 4, seven equal
-  # parts.
+  # The words of its drawing: what is shared over it, and what the parts come
+  # to under it.
+  art:
+    line: 35 sweets in the ratio 3 to 4
+    parts: 7 parts = 35, one part = 5
+    shares: Ann 3 × 5 = 15, Ben 4 × 5 = 20
 
 basis:
   title: The rules of ratios
   cards:
-    - mark: "3:4"
-      title: A ratio is parts
+    - title: A ratio is parts
       text: >-
         3 to 4 means: for every 3 equal parts of one, 4 of the other. Together
         that is 7 equal parts, not 3 or 4.
-    - mark: "1"
-      title: One part first
+      art:
+        seven: 3 to 4 is 7 equal parts
+    - title: One part first
       text: >-
         Divide the total by the number of parts to find one part, then multiply
         by each one's number: 35 : 7 = 5, so 3 parts are 15 and 4 parts are 20.
-    - mark: "×2"
-      title: Scale both sides
+      art:
+        one: "35 : 7 = 5 in one part"
+    - title: Scale both sides
       text: >-
         A ratio stays the same when both of its numbers are multiplied by the
         same number: 3 to 4 is 6 to 8 and 30 to 40. That is how a recipe grows.
@@ -73,14 +85,16 @@ method:
     - Draw a box for every part
     - Find what one box holds
     - Fill in the shares, and check the total
+  # The key under the steps: what a tile of the drawings means.
+  legend:
+    one: one part and what it holds
+    spoken: the parts the task speaks of
 
 examples:
   - title: Mushrooms
     question: >-
       Max and Lena pick 45 mushrooms together. For every 4 mushrooms Max picks,
       Lena picks 5. How many mushrooms does Lena pick?
-    # Its drawing is the site's data: a part for every box, four for Max and
-    # five for Lena.
     steps:
       - 4 to 5 means 4 parts for Max and 5 for Lena, 9 equal parts in all.
       - "One part is 45 : 9 = 5 mushrooms."
@@ -91,12 +105,19 @@ examples:
       text: >-
         45 : 5 = 9 divides by Lena's number alone. The 45 mushrooms are all 9
         parts, Max's and Lena's together.
+    art:
+      max: M
+      lena: L
+      together: 45 mushrooms together
+      max-name: Max
+      lena-name: Lena
+      nine: 9 boxes, 45 mushrooms
+      each: "45 : 9 = 5 in each box"
+      only-lena: Lena alone
   - title: The choir
     question: >-
       A choir has 4 boys for every 7 girls, and there are 9 more girls than
       boys. How many children sing in the choir?
-    # Its drawing is the site's data: the boys' parts and the girls', the girls'
-    # three extra parts the 9.
     steps:
       - >-
         The boys are 4 parts and the girls 7 parts, so the girls have 3 parts
@@ -111,13 +132,17 @@ examples:
       text: >-
         The 9 are not the girls' 7 parts but the 3 parts the girls have over
         the boys. Dividing 9 by 7 or by 11 gives no whole number of children.
+    art:
+      boys: boys
+      girls: girls
+      nine: 9 girls
+      choir: 11 boxes × 3 = 33
+      this-nine: this is 9
   - title: Two boxes
     question: >-
       Two boxes hold marbles in the ratio 3 to 1. After 10 marbles are moved
       from the first box to the second, the boxes hold as many marbles each.
       How many marbles are there in all?
-    # Its drawing is the site's data: the boxes in parts of the same total,
-    # before the move and after it.
     steps:
       - >-
         Moving marbles from one box to the other does not change the total: it
@@ -136,6 +161,13 @@ examples:
         Ratio tasks often hide something that stays the same: here the total.
         Measuring both ratios in parts of that same total is what makes them
         comparable.
+    art:
+      box-a: box A
+      box-b: box B
+      four: 4 parts in all, before and after
+      before: before
+      after: after
+      part: 1 part
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -145,17 +177,26 @@ traps:
       read as 4 out of 5, or the 45 mushrooms are divided by 5 instead of by
       the 4 + 5 = 9 parts.
     say: “How many equal parts are there in all?”
+    art:
+      question: 45 mushrooms, 4 to 5
+      one: in one part
   wrong_operation:
     shows: >-
       The child adds where the ratio needs multiplying: a recipe for 6 more
       people gets 6 more eggs, when the eggs must grow in step with the
       people.
     say: “If there are twice as many people, what happens to the eggs?”
+    art:
+      question: 3 eggs for 2 people, and for 8?
   answered_other_question:
     shows: >-
       A share is found and the wrong one is given: Max's mushrooms instead of
       Lena's, or one part, 3 children, instead of the whole choir.
     say: “Whose share does the question ask about?”
+    art:
+      question: How many mushrooms does Lena pick?
+      max: M
+      lena: L
 
 home:
   - title: Cooking by a ratio

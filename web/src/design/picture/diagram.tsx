@@ -1,25 +1,31 @@
+import type { Said } from "../controls";
 import { drawBalance } from "./balance";
 import { drawBars } from "./bars";
 import { drawCalendar } from "./calendar";
 import { drawClock } from "./clock";
 import { drawContainers } from "./containers";
+import { drawFlags } from "./flags";
 import { drawGrid } from "./grid";
 import type { Kind, Picture } from "./model";
 import { drawNumberLine } from "./numberline";
+import { type Painted, paintedOf } from "./paint";
 import { drawPiles } from "./piles";
 import { drawRing } from "./ring";
 import { drawRow } from "./row";
 import { type Drawn, r1 } from "./shapes";
 import { drawTable } from "./table";
 import { clearance } from "./text";
+import type { Tones } from "./tones";
 import { drawVenn } from "./venn";
 
 // Drawing is how a picture of one kind is drawn, in the language of the task
 // it belongs to: the words a kind draws itself, a month's weekdays, are words
-// of the task, as its question is.
+// of the task, as its question is. A kind that names its parts lights them in
+// the tones a page gives.
 type Drawing<K extends Kind> = (
 	picture: Extract<Picture, { kind: K }>,
 	locale: string,
+	tones?: Tones,
 ) => Drawn;
 
 // drawings are how each kind of picture is drawn: every kind has one, or the
@@ -38,15 +44,21 @@ const drawings: { [K in Kind]: Drawing<K> } = {
 	containers: drawContainers,
 	piles: drawPiles,
 	calendar: drawCalendar,
+	flags: drawFlags,
 };
 
 /**
  * drawPicture is a picture laid out in a language: its shapes and words, and
- * the room they take. It throws where the picture cannot be drawn, and what
- * to draw in its place, if anything, is for the caller to decide.
+ * the room they take, its parts lit in the tones a page gives, if any. It
+ * throws where the picture cannot be drawn, and what to draw in its place, if
+ * anything, is for the caller to decide.
  */
-export function drawPicture(picture: Picture, locale: string): Drawn {
-	return drawings[picture.kind](picture as never, locale);
+export function drawPicture(
+	picture: Picture,
+	locale: string,
+	tones?: Tones,
+): Drawn {
+	return drawings[picture.kind](picture as never, locale, tones);
 }
 
 // drawnOf is a picture laid out, or undefined where it cannot be: a picture
@@ -67,21 +79,66 @@ function drawnOf(picture: Picture, locale: string): Drawn | undefined {
  * label, laid out left to right in every language, and no wider than its own
  * size or the card, whichever is narrower — it shrinks to fit and never
  * scrolls. The words of a task carry every fact its picture shows.
+ *
+ * A picture that paints has its key under it: each colour's paint with its
+ * letters, beside the word the lesson calls it by, written as the task's
+ * words are said and listed under keyLabel for a screen reader.
  */
 export function Diagram({
 	picture,
 	label,
 	locale,
+	keyLabel,
+	said,
 }: {
 	picture: Picture;
 	label: string;
 	locale: string;
+	keyLabel?: string | undefined;
+	said?: Said | undefined;
 }) {
 	const drawn = drawnOf(picture, locale);
 	if (drawn === undefined) {
 		return null;
 	}
-	return <PictureFrame drawn={drawn} label={label} />;
+	const painted = "colors" in picture ? paintedOf(picture.colors, locale) : [];
+	if (painted.length === 0) {
+		return <PictureFrame drawn={drawn} label={label} />;
+	}
+	return (
+		<div class="mt-picture-keyed">
+			<PictureFrame drawn={drawn} label={label} />
+			<PictureKey painted={painted} label={keyLabel} said={said} />
+		</div>
+	);
+}
+
+// PictureKey is the key under a picture that paints: each colour's paint,
+// with the letters it carries in the picture, beside its word.
+function PictureKey({
+	painted,
+	label,
+	said,
+}: {
+	painted: readonly Painted[];
+	label: string | undefined;
+	said: Said | undefined;
+}) {
+	return (
+		<ul class="mt-pic-key" aria-label={label} lang={said?.lang} dir={said?.dir}>
+			{painted.map(({ paint, word, letters }) => (
+				<li key={paint}>
+					<span
+						class={`mt-pic-swatch mt-paint mt-paint-${paint}`}
+						aria-hidden="true"
+					>
+						<span class={`mt-paint-ink mt-paint-ink-${paint}`}>{letters}</span>
+					</span>
+					<span>{word}</span>
+				</li>
+			))}
+		</ul>
+	);
 }
 
 /**

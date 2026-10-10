@@ -34,17 +34,20 @@ type Service struct {
 	news    *news
 	// hold is how long a card's question that would only hear what the card
 	// knows already waits for news.
-	hold     time.Duration
-	content  *content.Content
-	reviewer checks.Reviewer
-	sealer   profile.Sealer
-	window   time.Duration
-	daily    Daily
-	repeats  int
-	now      func() time.Time
-	version  string
-	events   *lessonLog
-	tracer   trace.Tracer
+	hold time.Duration
+	// answerPause is how long show_result waits before it reads the profile
+	// again for an answer not yet in it.
+	answerPause time.Duration
+	content     *content.Content
+	reviewer    checks.Reviewer
+	sealer      profile.Sealer
+	window      time.Duration
+	daily       Daily
+	repeats     int
+	now         func() time.Time
+	version     string
+	events      *lessonLog
+	tracer      trace.Tracer
 	// learners names each child in the lines that count children: one name a
 	// month, which leads back to no child.
 	learners *learner.Key
@@ -140,19 +143,21 @@ func NewService(parts *Parts) (*Service, error) {
 	later, heard := newPending(), newNews()
 	direct := telling{Storage: parts.Store, news: heard}
 	return &Service{
-		store:    settled{Storage: direct, pending: later},
-		direct:   direct,
-		pending:  later,
-		news:     heard,
-		hold:     heldForNews,
-		content:  parts.Content,
-		reviewer: parts.Reviewer,
-		sealer:   parts.Sealer,
-		window:   parts.Window,
-		daily:    parts.Daily,
-		repeats:  parts.TrapRepeats,
-		now:      parts.Now,
-		version:  parts.Version,
+		store:   settled{Storage: direct, pending: later},
+		direct:  direct,
+		pending: later,
+		news:    heard,
+		hold:    heldForNews,
+		// The pause an answer recorded takes to land in the file.
+		answerPause: answerLandsIn,
+		content:     parts.Content,
+		reviewer:    parts.Reviewer,
+		sealer:      parts.Sealer,
+		window:      parts.Window,
+		daily:       parts.Daily,
+		repeats:     parts.TrapRepeats,
+		now:         parts.Now,
+		version:     parts.Version,
 		events: &lessonLog{
 			logger:              parts.Logger,
 			projectID:           parts.ProjectID,
@@ -184,8 +189,9 @@ func (s *Service) ProfileTools() []Tool {
 // written ahead when there is one; one hands the model what to write it from;
 // one gets the next task ready, to be written ahead; one takes what the model
 // wrote through the checks and puts it on the child's card, or keeps it until
-// another is asked for; one tells a card how the task it waits for stands; and one
-// records the child's answer and tells how it went.
+// another is asked for; one tells a card how the task it waits for stands; one
+// records the child's answer and tells how it went; and one draws the card of
+// how it went.
 func (s *Service) TaskTools() []Tool {
 	return []Tool{
 		s.nextTaskTool(),
@@ -194,5 +200,6 @@ func (s *Service) TaskTools() []Tool {
 		s.submitTaskTool(),
 		s.readTaskTool(),
 		s.submitAnswerTool(),
+		s.showResultTool(),
 	}
 }

@@ -60,7 +60,7 @@ Every tool call is read → compute → write (03-flows). The cost in HTTP calls
 |---|---|---|
 | `get_profile`, `get_progress`, `read_progress` | 4 — list, get; then list and the folder's name, for where the file is | 3 — get; list and the folder's name |
 | `save_profile`, `edit_profile`, `next_task`, `prepare_task`, `submit_task`, `submit_answer` | 4 — list, get, get again, `files.update` | 3 — get, get again, update |
-| `get_package`, `read_task` — the package, and each question the card of a task asks while it waits (R152) | 2 — list, get | 1 — get |
+| `get_package`, `read_task`, `show_result` — the package, each question the card of a task asks while it waits (R152), and how an answer went, read again twice at most while the answer's write lands (R278) | 2 — list, get | 1 — get |
 | A call that writes nothing — a request already open, nothing to write ahead, an answer told again, an edit that changes nothing | as a read | as a read |
 | No profile yet: `get_profile` | 2 — list (miss), the list of the bin (miss) | — |
 | First sign-in, no file yet | 7 — list and the list of the bin (misses); then the same two again before the creation, the search for the folder, the folder, `files.create` multipart; 6 when the folder is there | — |

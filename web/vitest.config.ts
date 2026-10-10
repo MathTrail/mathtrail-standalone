@@ -12,9 +12,10 @@ export default defineConfig({
 		coverage: {
 			provider: "v8",
 			// The code, not the configurations that the build test and every run
-			// of the tests load. The entry point only finds the page's root
-			// element and starts the widget, and start is what the tests cover;
-			// what lives under testing/ serves the tests and is not the widget;
+			// of the tests load. The entry points only start what the tests
+			// cover: the widget, the home page's demo and the pictures of the
+			// page Why's history; what lives under testing/ serves the tests and
+			// is not the widget;
 			// the preview is a page for looking at the widget, which ships
 			// nowhere and is judged by eye; and the measure of the layout, the
 			// pictures of the README and the driving of the preview they share
@@ -31,6 +32,7 @@ export default defineConfig({
 				"src/preview/**",
 				"src/widget/main.ts",
 				"src/demo/main.tsx",
+				"src/demo/why.ts",
 				"scripts/drive.ts",
 				"scripts/fold.ts",
 				"scripts/icons.ts",

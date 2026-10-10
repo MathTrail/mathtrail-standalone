@@ -4,6 +4,7 @@ package picture
 // which the card numbers from 1 in the order of travel, and the place to
 // start at, if the question names one.
 type ring struct {
+	noWords
 	count int
 	start *ringStart
 }

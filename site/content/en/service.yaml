@@ -114,7 +114,7 @@ map:
       about: A pace per address before sign-in and per account after it, and an overall ceiling, all in memory — then the daily ceilings, which the profile counts. Past a limit, a plain sentence the model passes on.
     tools:
       name: Tools
-      about: "Eleven tools of one shape: read the profile, compute, write it back. The model calls most of them; the card calls its own — for the task, the answer, the progress and the profile's form. Nothing secret ever goes into a result."
+      about: "Twelve tools of one shape: read the profile, compute, write it back. The model calls most of them; the card calls its own — for the task, the answer, the progress and the profile's form. Nothing secret ever goes into a result."
     rule:
       name: The rule
       sub: Topic, goal, difficulty corridor
@@ -273,11 +273,15 @@ flow:
       - submit_answer — the chat spends no turn
       - the first answer alone · the seal is opened now · θ and δ move only on whether it is right
       - write the ratings and the history
-      - right or not · the trap behind C · the solution · the rating before → after
+      - right or not · the options marked
       - ui/update-model-context — one line on what happened
-      - “why not 6?” — a question in the chat
-      - explains, starting from the trap
-    caption: The press records the answer before anything is explained. If the host's message to the model is lost, the child still sees the result, and the model catches up at its next call.
+      - ui/message — “Go over the answer”, as the adult's message
+      - sends it — in Claude, with Enter
+      - show_result
+      - the trap behind C · the solution · the rating before → after
+      - The host draws the card of how the answer went, below the task's
+      - explains in two or three sentences, starting from the trap
+    caption: The press records the answer before anything is explained, and the card asks the chat to go over it in the adult's words. The model draws the card of how the answer went with show_result and says a few words beside it. If the host's line to the model is lost, the model catches up at its next call.
   signin:
     rows:
       - POST /mcp, no token

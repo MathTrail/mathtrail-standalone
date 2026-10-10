@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { connectorURL } from "../site/brand";
 import { addCopyButtons, copiedFor } from "./copy";
-import { openHome } from "./testing/home";
+import { openHome } from "./testing/pages";
 
 beforeEach(() => {
 	vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });

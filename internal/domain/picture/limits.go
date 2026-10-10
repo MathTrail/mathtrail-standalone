@@ -10,6 +10,10 @@ const (
 	MaxLabelCharacters = 5
 	// MaxNoteCharacters is the longest a note under bars may be.
 	MaxNoteCharacters = 24
+	// MaxTotalCharacters is the longest the total under a picture of a
+	// solution may be: written larger than a note, it holds the whole
+	// equality the solution comes to.
+	MaxTotalCharacters = 32
 
 	minTableRows, maxTableRows   = 1, 8
 	minTableCells, maxTableCells = 1, 6
@@ -46,6 +50,16 @@ const (
 
 	firstWeekday, lastWeekday = 1, 7
 	fewestDays, mostDays      = 28, 31
+
+	minFlagGroups, maxFlagGroups = 1, 4
+	minFlags, maxFlagsInGroup    = 1, 6
+	maxFlags                     = 12
+	minStripes, maxStripes       = 2, 3
+
+	// A colour is called by a word or two of the lesson's language, written
+	// beside its paint in the key under the picture.
+	maxColorWords      = 2
+	maxColorCharacters = 16
 )
 
 // The limits of each kind, in the words the model is shown them in.
@@ -101,6 +115,14 @@ func containersLimits() string {
 func pilesLimits() string {
 	return fmt.Sprintf("%d to %d piles, a skip among them as in a row; a count from 0 to %d; shown from %d to one "+
 		"less than the count; group from %d to %d", minPiles, maxPiles, maxPileCount, fewestShown, minGroup, maxGroup)
+}
+
+func flagsLimits() string {
+	return fmt.Sprintf("%d to %d groups of %d to %d flags, at most %d flags in all; a flag is %d or %d stripes from "+
+		"top to bottom, each a colour colors names or ?; a group is named under it by a colour or a label; colors "+
+		"gives each colour it paints with, of %s, the word the question calls it by, at most %d words and %d "+
+		"characters", minFlagGroups, maxFlagGroups, minFlags, maxFlagsInGroup, maxFlags, minStripes, maxStripes,
+		oneOf(paintNames()), maxColorWords, maxColorCharacters)
 }
 
 func calendarLimits() string {

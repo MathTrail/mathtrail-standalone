@@ -5,14 +5,15 @@ import type { ComponentChildren } from "preact";
  * around a screen with the status bar on top, the chat in the middle, and the
  * field a message is typed in and the bar that leads home at the bottom. The
  * chat scrolls inside the screen. All but the chat is a drawing, which a
- * screen reader skips.
+ * screen reader skips. Its clock shows a time of its own rather than the
+ * time of the build, so that every build draws the page the same.
  */
 export function Phone({ children }: { children: ComponentChildren }) {
 	return (
 		<div class="s-phone">
 			<div class="s-phone-screen">
 				<div class="s-phone-status" aria-hidden="true">
-					<span>9:41</span>
+					<span>7:04</span>
 					<span class="s-phone-island" />
 					<span class="s-phone-system">
 						<span class="s-phone-signal">

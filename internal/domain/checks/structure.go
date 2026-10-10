@@ -56,6 +56,7 @@ func checkTask(task *Task, catalog TrapDescriber) []Problem {
 	problems = append(problems, checkOptions(task)...)
 	problems = append(problems, checkDistractors(task, catalog)...)
 	problems = append(problems, checkPicture(task)...)
+	problems = append(problems, checkSolutionPicture(task)...)
 	return problems
 }
 
@@ -173,6 +174,23 @@ func checkPicture(task *Task) []Problem {
 	}
 	return []Problem{structural("task.picture must be an object: the description of one of the kinds of picture, " +
 		"or left out")}
+}
+
+// checkSolutionPicture checks that a picture of the solution, when the task has
+// one, is an object, and that a total comes with it: the total is written
+// under that picture and stands nowhere without it.
+func checkSolutionPicture(task *Task) []Problem {
+	var problems []Problem
+	var members map[string]json.RawMessage
+	if task.SolutionPicture != nil && json.Unmarshal(task.SolutionPicture, &members) != nil {
+		problems = append(problems, structural("task.solution_picture must be an object: the description of one "+
+			"of the kinds of picture, or left out"))
+	}
+	if task.SolutionTotal != "" && task.SolutionPicture == nil {
+		problems = append(problems, structural("task.solution_total comes with task.solution_picture, under which "+
+			"it stands: describe the picture of the solution, or leave the total out"))
+	}
+	return problems
 }
 
 // checkSelfCheck checks that the model's own pass over its task is complete:

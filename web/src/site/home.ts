@@ -20,11 +20,16 @@ import {
  * homeFile is the shape of what the home page takes from the site's data, as
  * far as no language changes it. The card of its lesson: the topic and the
  * grade its task is set in, its picture — which holds no words, and reads
- * alike in every language — its five options and the right one, the catalog's trap
- * behind each wrong option, the wrong option the lesson's steps pick, and the
- * rating in the topic before an answer, after a wrong one and after a right
- * one. And the three traps it names as examples of what a wrong option is
- * tied to.
+ * alike in every language — its five options and the right one, the picture
+ * of its solution and the equality under it, the catalog's trap behind each
+ * wrong option, the wrong option the lesson's steps pick, and the rating in
+ * the topic before an answer, after a wrong one and after a right one. The
+ * three traps it names as examples of what a wrong option is tied to. How the
+ * card's task was picked: the child's topics, each with how far the child has
+ * come in it, the chance of a right answer and the corridor the rule keeps
+ * that chance in. The options of the task a chat writes alone, and those of
+ * them that are right, more than one. The languages a task can be written in,
+ * a few of many. And the topic whose bases show what builds on what.
  */
 export const homeFile = z.object({
 	card: z.object({
@@ -32,6 +37,8 @@ export const homeFile = z.object({
 		grade: z.number().int(),
 		picture: pictureFormat,
 		options: z.record(z.string(), z.string()),
+		solution_picture: pictureFormat,
+		solution_total: z.string(),
 		correct: z.string(),
 		traps: z.record(z.string(), z.string()),
 		choice: z.custom<Letter>(
@@ -45,6 +52,17 @@ export const homeFile = z.object({
 		}),
 	}),
 	traps: z.tuple([z.string(), z.string(), z.string()]),
+	pick: z.object({
+		skills: z.array(z.object({ topic: z.string(), share: z.number() })).min(1),
+		chance: z.number(),
+		corridor: z.object({ low: z.number(), high: z.number() }),
+	}),
+	alone: z.object({
+		options: z.record(z.string(), z.string()),
+		right: z.array(z.string()),
+	}),
+	languages: z.array(z.string()).min(1),
+	map: z.string(),
 });
 
 type HomeFile = z.infer<typeof homeFile>;
@@ -53,13 +71,40 @@ type HomeFile = z.infer<typeof homeFile>;
 export type HomeCard = HomeFile["card"];
 
 /**
+ * HomePick is how the task on the card was picked: the child's topics, each
+ * with how far the child has come in it as a share of the way, the chance of
+ * a right answer, and the corridor the rule keeps that chance in.
+ */
+export type HomePick = HomeFile["pick"];
+
+/**
+ * HomeAlone is the task a chat writes when asked alone: its options by their
+ * letters, and the letters of those that are right.
+ */
+export type HomeAlone = HomeFile["alone"];
+
+/**
+ * HomeMap is a topic of the catalog and the two topics it builds on, in the
+ * catalog's order: what the home page shows of the map of the topics.
+ */
+export type HomeMap = {
+	readonly topic: string;
+	readonly bases: readonly [string, string];
+};
+
+/**
  * Home is what the home page draws from the site's data: the card of its
- * lesson, and the three traps it names as examples, in the order it names
- * them.
+ * lesson; the three traps it names as examples, in the order it names them;
+ * how the card's task was picked; the task a chat writes alone; the languages
+ * it names, by their tags; and a topic with what it builds on.
  */
 export type Home = {
 	readonly card: HomeCard;
 	readonly traps: readonly [string, string, string];
+	readonly pick: HomePick;
+	readonly alone: HomeAlone;
+	readonly languages: readonly string[];
+	readonly map: HomeMap;
 };
 
 /**
@@ -106,7 +151,10 @@ const coachChooses: TopicChoice = { chosen: null, recommended: [] };
  * one the catalog lacks, or gives the right option one is refused. So is a
  * card the catalog would not have set or the widget could not draw, one whose
  * steps pick the right option, and a trap named as an example that the catalog
- * does not have.
+ * does not have. So is a pick that leaves out the card's topic or names one
+ * the catalog lacks, or whose chance falls outside its corridor; a task of the
+ * chat alone with fewer than two right options; and a topic of the map that
+ * does not build on two others.
  */
 export function readHome(catalog: CardCatalog, file: HomeFile): Home {
 	const { card } = file;
@@ -125,7 +173,92 @@ export function readHome(catalog: CardCatalog, file: HomeFile): Home {
 		}
 	}
 	checkCard(catalog, factsOf(card), homeCard);
-	return { card, traps: file.traps };
+	checkPick(catalog, file.pick, card.topic);
+	checkAlone(file.alone);
+	return {
+		card,
+		traps: file.traps,
+		pick: file.pick,
+		alone: file.alone,
+		languages: file.languages,
+		map: mapOf(catalog, file.map),
+	};
+}
+
+// checkPick refuses a pick of the card's task that does not show the card's
+// topic among the child's, names a topic the catalog does not have, gives a
+// share or a chance that is no share, or puts the chance outside a corridor
+// that runs the wrong way.
+function checkPick(catalog: CardCatalog, pick: HomePick, picked: string): void {
+	const share = (value: number) => value >= 0 && value <= 1;
+	for (const { topic, share: shown } of pick.skills) {
+		if (!catalog.topics.some(({ id }) => id === topic)) {
+			throw new Error(
+				`the home page shows the child's skill in ${topic}, a topic the catalog does not have`,
+			);
+		}
+		if (!share(shown)) {
+			throw new Error(
+				`the home page fills ${shown} of the bar of ${topic}, which is no share of it`,
+			);
+		}
+	}
+	if (!pick.skills.some(({ topic }) => topic === picked)) {
+		throw new Error(
+			`the home page picks ${picked}, the topic of its card, and leaves it out of the child's skills`,
+		);
+	}
+	const { low, high } = pick.corridor;
+	if (!(share(low) && share(high) && low < high)) {
+		throw new Error(
+			`the home page's corridor runs from ${low} to ${high}: two shares, the lower first`,
+		);
+	}
+	if (pick.chance < low || pick.chance > high) {
+		throw new Error(
+			`the home page picks its task at a chance of ${pick.chance}, outside the corridor from ${low} to ${high}`,
+		);
+	}
+}
+
+// checkAlone refuses the task a chat writes alone unless more than one of its
+// options is right, which is what the page shows it for, and every right one
+// is an option.
+function checkAlone(alone: HomeAlone): void {
+	if (alone.right.length < 2) {
+		throw new Error(
+			`the task of the chat alone has ${alone.right.length} right options, and the home page shows it for having more than one`,
+		);
+	}
+	for (const letter of alone.right) {
+		if (!Object.hasOwn(alone.options, letter)) {
+			throw new Error(
+				`the task of the chat alone has ${letter} right, which is no option of it`,
+			);
+		}
+	}
+}
+
+// mapOf is topic with the two topics it builds on, in the catalog's order. A
+// topic the catalog does not have, or one that builds on other than two, is
+// refused: the page shows one base on either side of it.
+function mapOf(catalog: CardCatalog, topic: string): HomeMap {
+	const found = catalog.topics.find(({ id }) => id === topic);
+	if (found === undefined) {
+		throw new Error(
+			`the home page shows what ${topic} builds on, a topic the catalog does not have`,
+		);
+	}
+	const order = (id: string) =>
+		catalog.topics.findIndex((other) => other.id === id);
+	const bases = [...found.builds_on].sort((a, b) => order(a) - order(b));
+	const [first, second] = bases;
+	if (bases.length !== 2 || first === undefined || second === undefined) {
+		throw new Error(
+			`the home page shows ${topic} between two topics it builds on, and it builds on ${bases.length}`,
+		);
+	}
+	return { topic, bases: [first, second] };
 }
 
 // checkTraps refuses card unless a trap of the catalog stands behind each of
@@ -216,6 +349,8 @@ export function homeResultsOf(card: HomeCard, said: HomeWords): HomeResults {
 				},
 				trial: null,
 				already_answered: false,
+				solution_picture: card.solution_picture,
+				solution_total: card.solution_total,
 			},
 			homeCard,
 		);
@@ -258,6 +393,8 @@ function factsOf(card: HomeCard): CardFacts {
 		grade: card.grade,
 		picture: card.picture,
 		options: card.options,
+		solution_picture: card.solution_picture,
+		solution_total: card.solution_total,
 		choice: card.choice,
 		correct: card.correct,
 		trap: card.traps[card.choice] ?? "",

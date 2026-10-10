@@ -17,28 +17,40 @@ hero:
     at all.
   method: Write the number as full groups and what is left over
   teaches: To read a remainder in the task's own words, and to test divisibility without dividing
-  # Its drawing is the site's data: fourteen counted out in threes: four full
-  # groups and two left over.
+  # The words of its drawing: what it divides over it, and what the division
+  # comes to under it.
+  art:
+    line: 14 things in groups of 3
+    groups: 4 full groups and 2 left over
 
 basis:
   title: The rules of division
   cards:
-    - mark: "<"
-      title: The remainder is smaller
+    - title: The remainder is smaller
       text: >-
         When dividing by 7, the remainder is 0, 1, 2 and so on up to 6. If it
         comes out 7 or more, one more group fits.
-    - mark: "+1"
-      title: What the remainder means
+      art:
+        remainders: "remainders when dividing by 7: 0 to 6"
+    - title: What the remainder means
       text: >-
         29 pupils in cars of 4 are 7 full cars and 1 pupil left over, so 8
         cars are needed. The same division can be asked for 7, for 8 or for 1:
         the question decides.
-    - mark: "9"
-      title: Rules of thumb
+      art:
+        cars: 29 = 7 × 4 + 1, so 8 cars are needed
+    - title: Rules of thumb
       text: >-
         A number divides by 2 when its last digit is even, by 5 when it ends in
         0 or 5, and by 3 or by 9 when the sum of its digits does.
+      # The rules on its drawing, the digits each looks at in bold.
+      art:
+        by-two: by 2
+        even: "the last digit is even: 13**6**"
+        by-five: by 5
+        five: "it ends in 0 or 5: 24**5**"
+        by-three: by 3 and 9
+        digits: "the sum of its digits: 3 + 8 + 1 + 6 = **18**"
 
 idea:
   title: Groups and what is left over
@@ -46,7 +58,7 @@ idea:
   table:
     head:
       - The question
-      - The division
+      - The division · in blue, what is asked
       - The answer
     rows:
       - - How many cars of 4 seats do 29 pupils need?
@@ -77,14 +89,16 @@ method:
     - Split into full groups and a remainder
     - Decide what the question asks for
     - Check the answer against the words
+  # The key under the steps: what the drawings' groups mean.
+  legend:
+    group: a full group
+    rest: what is left over
 
 examples:
   - title: Buses for a trip
     question: >-
       150 pupils go on a school trip, and each bus has 40 seats. How many buses
       are needed?
-    # Its drawing is the site's data: four buses, three full, and one with the
-    # 30 pupils left over.
     steps:
       - "Count the pupils out by 40: 150 = 3 × 40 + 30. Three buses are full, and 30 pupils are left."
       - The 30 pupils need a bus too, even though it will not be full.
@@ -95,6 +109,14 @@ examples:
       text: >-
         3 is the number of full buses, and 30 is how many pupils ride in the
         last one. The question asks for every bus that is needed.
+    art:
+      seats: 40 seats
+      pupils: 150 pupils
+      left: left over
+      part: 30 of 40 seats
+      full: full
+      last: in the last
+      all: all the buses
   - title: The star in 38*6
     question: >-
       Which digit must stand in place of the star in 38*6 so that the number
@@ -111,12 +133,12 @@ examples:
       text: >-
         For 3 the sum must divide by 3: 18, 21 and 24 all do, so the star can
         be 1, 4 or 7. The rule for 9 is stricter, and here it leaves one digit.
+    art:
+      sum: does the sum of the digits divide by 9?
   - title: A hundred twos
     question: >-
       A hundred twos are multiplied together: 2 × 2 × 2 × … × 2. What is the
       last digit of the answer?
-    # Its drawing is the site's data: how many twos are multiplied, above, and
-    # the last digit of the product, below.
     steps:
       - >-
         Watch the last digit as the twos are multiplied one by one: 2, 4, 8,
@@ -132,6 +154,10 @@ examples:
         Only the remainder of 100 divided by 4 mattered: it said where in the
         pattern the hundredth two lands. Remainders answer many questions about
         things that repeat: last digits, days of the week, places in a ring.
+    art:
+      first: in blue, the first round of the pattern
+      rounds: 25 rounds of 4 twos = 100 twos
+      place: "remainder 0: the last, 4th place of a round"
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -141,16 +167,25 @@ traps:
       pupils left over when the question asks for buses, or takes 25, the
       number of full rounds of the pattern, for the place in it.
     say: “Is the question about the full groups or about what is left over?”
+    art:
+      question: How many buses are needed?
+      left: pupils left over
+      buses: buses
   off_by_one:
     shows: >-
       The answer is one group off: the bus for the last 30 pupils is forgotten,
       3 instead of 4, or places in a pattern are counted from 0 instead of 1.
     say: “Does what is left over need one more group?”
+    art:
+      question: 150 pupils, 40 seats a bus
   missed_case:
     shows: >-
       One case is found and the search stops: the star is 1, and the child
       does not check whether 4 and 7 work too when the question is about 3.
     say: “Has every digit from 0 to 9 been tried?”
+    art:
+      question: 38*6 divides by 3
+      more: and that's all?
 
 home:
   - title: Sharing with a remainder

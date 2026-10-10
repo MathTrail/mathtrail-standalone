@@ -296,4 +296,104 @@ export const extremes: readonly Extreme[] = [
 			piles: [{ label: wide, value: "MMMMM", count: 3 }],
 		},
 	},
+	{
+		name: "twelve flags of three stripes in four groups, each named as wide as labels come",
+		picture: {
+			kind: "flags",
+			colors: { red: "red", yellow: "yellow", green: "green" },
+			groups: [wide, "MMMMM", "99999", "WWWWW"].map((label) => ({
+				label,
+				flags: [
+					["red", "yellow", "green"],
+					["yellow", "green", "red"],
+					["green", "red", "?"],
+				],
+			})),
+		},
+	},
+	{
+		name: "two groups of six flags, each named by a colour whose letters run to three",
+		picture: {
+			kind: "flags",
+			colors: {
+				red: "Wwwwwwwwwwwwwwww",
+				blue: "Wwwwwwwwwwwwwwwm",
+				black: "Wwwwwwwwwwwwwwwn",
+			},
+			groups: (["red", "blue"] as const).map((color) => ({
+				color,
+				flags: [
+					["red", "blue", "black"],
+					["blue", "black", "red"],
+					["black", "red", "blue"],
+					["red", "black", "blue"],
+					["blue", "red", "black"],
+					["black", "blue", "red"],
+				],
+			})),
+		},
+	},
+	{
+		name: "a flag of two unknown stripes, alone",
+		picture: { kind: "flags", groups: [{ flags: [["?", "?"]] }] },
+	},
+	{
+		name: "six flags of three stripes, their colours called in scripts whose letters reach high and low",
+		picture: {
+			kind: "flags",
+			colors: {
+				red: "أحمر",
+				yellow: "पीला",
+				green: "সবুজ",
+				blue: "สีน้ำเงิน",
+				white: "أبيض",
+				black: "काला",
+			},
+			groups: [
+				{
+					color: "blue",
+					flags: [
+						["red", "yellow", "green"],
+						["blue", "white", "black"],
+						["white", "red", "blue"],
+						["yellow", "black", "?"],
+						["green", "blue", "red"],
+						["black", "green", "white"],
+					],
+				},
+			],
+		},
+	},
+	{
+		name: "flags of three stripes, their colours called in Chinese, Japanese and Korean",
+		picture: {
+			kind: "flags",
+			colors: {
+				red: "红色",
+				yellow: "黄色い",
+				green: "초록색",
+				blue: "青",
+				white: "白色",
+				black: "검은색",
+			},
+			groups: [
+				{
+					label: "A",
+					flags: [
+						["red", "yellow", "green"],
+						["blue", "white", "black"],
+						["white", "red", "blue"],
+					],
+				},
+				{
+					color: "red",
+					flags: [
+						["yellow", "black", "?"],
+						["green", "blue", "red"],
+						["black", "green", "white"],
+					],
+				},
+			],
+		},
+	},
 ];

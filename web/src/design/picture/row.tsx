@@ -13,6 +13,7 @@ import {
 	stackOf,
 } from "./shapes";
 import { room, widest, widthOf, written } from "./text";
+import { type Tones, toneOf } from "./tones";
 
 // The row, in the card's pixels: how big a mark is, how far apart two items
 // may stand at most, and how far below the first row its copy runs.
@@ -50,8 +51,16 @@ function spotsOf(items: readonly RowItem[]): { spots: Spot[]; width: number } {
 }
 
 // Line is the line a row's marks stand on: solid between two items, and
-// broken where a skip cuts the row short.
-function Line({ spots, y }: { spots: readonly Spot[]; y: number }) {
+// broken where a skip cuts the row short, in the tone a page lights it in.
+function Line({
+	spots,
+	y,
+	tone,
+}: {
+	spots: readonly Spot[];
+	y: number;
+	tone: string | undefined;
+}) {
 	let solid = "";
 	let broken = "";
 	for (const spot of spots.slice(1)) {
@@ -65,22 +74,36 @@ function Line({ spots, y }: { spots: readonly Spot[]; y: number }) {
 	}
 	return (
 		<>
-			{solid !== "" && <path d={solid} class="mt-pic-line" stroke-width={2} />}
+			{solid !== "" && (
+				<path d={solid} class="mt-pic-line" stroke-width={2} data-tone={tone} />
+			)}
 			{broken !== "" && (
 				<path
 					d={broken}
 					class="mt-pic-line"
 					stroke-width={2}
 					stroke-dasharray="2 5"
+					data-tone={tone}
 				/>
 			)}
 		</>
 	);
 }
 
-// Mark is one item of a row on its line: a dot, a ring or a square, or, where
-// the row is drawn with no line, the ellipsis of a skip.
-function Mark({ spot, y, line }: { spot: Spot; y: number; line: boolean }) {
+// Mark is one item of a row on its line: a dot, a ring or a square, in the
+// tone a page lights it in, or, where the row is drawn with no line, the
+// ellipsis of a skip.
+function Mark({
+	spot,
+	y,
+	line,
+	tone,
+}: {
+	spot: Spot;
+	y: number;
+	line: boolean;
+	tone: string | undefined;
+}) {
 	const { item, x } = spot;
 	if (item.skip === true) {
 		return line ? null : <Label x={x} y={y} text="…" />;
@@ -94,6 +117,7 @@ function Mark({ spot, y, line }: { spot: Spot; y: number; line: boolean }) {
 					r={markRadius}
 					class="mt-pic-ring"
 					stroke-width={2}
+					data-tone={tone}
 				/>
 			);
 		case "square":
@@ -104,10 +128,19 @@ function Mark({ spot, y, line }: { spot: Spot; y: number; line: boolean }) {
 					width={2 * markRadius}
 					height={2 * markRadius}
 					class="mt-pic-ink"
+					data-tone={tone}
 				/>
 			);
 		default:
-			return <circle cx={r1(x)} cy={r1(y)} r={markRadius} class="mt-pic-ink" />;
+			return (
+				<circle
+					cx={r1(x)}
+					cy={r1(y)}
+					r={markRadius}
+					class="mt-pic-ink"
+					data-tone={tone}
+				/>
+			);
 	}
 }
 
@@ -121,8 +154,8 @@ function above(spots: readonly Spot[]): Lined[] {
 }
 
 // under are the labels under a row: under each item, and under each gap drawn
-// between two items that are not skips.
-function under(row: Row, spots: readonly Spot[]): Lined[] {
+// between two items that are not skips, in the tone of the line.
+function under(row: Row, spots: readonly Spot[], tones?: Tones): Lined[] {
 	const labels: Lined[] = [];
 	for (const { item, place, x } of spots) {
 		if (item.below !== undefined) {
@@ -139,6 +172,7 @@ function under(row: Row, spots: readonly Spot[]): Lined[] {
 				id: `gap-${place}`,
 				x: (before.x + x) / 2,
 				text: written(row.gaps),
+				tone: toneOf(tones, "line"),
 			});
 		}
 	}
@@ -170,14 +204,14 @@ function widened(
  * the labels over them and under them on as many lines as keep them apart,
  * the label of every gap drawn, a stretch cut short where a skip stands, the
  * row again under itself as the other side of a path, and the length of the
- * whole row.
+ * whole row. An item a page lights, and the line, are drawn in their tones.
  */
-export function drawRow(row: Row): Drawn {
+export function drawRow(row: Row, _locale?: string, tones?: Tones): Drawn {
 	const laid = spotsOf(row.items);
 	const { spots, width } = widened(laid.spots, laid.width, row);
 	const line = row.line !== false;
 	const over = stackOf(above(spots), 0, width);
-	const below = stackOf(under(row, spots), 0, width);
+	const below = stackOf(under(row, spots, tones), 0, width);
 	const first = 4 + over.lines * lineHeight() + markRadius + 4;
 	const copies = Array.from(
 		{ length: row.copies ?? 1 },
@@ -208,9 +242,15 @@ export function drawRow(row: Row): Drawn {
 				/>
 				{copies.map((y) => (
 					<g key={y}>
-						{line && <Line spots={spots} y={y} />}
+						{line && <Line spots={spots} y={y} tone={toneOf(tones, "line")} />}
 						{spots.map((spot) => (
-							<Mark key={spot.place} spot={spot} y={y} line={line} />
+							<Mark
+								key={spot.place}
+								spot={spot}
+								y={y}
+								line={line}
+								tone={toneOf(tones, `item ${spot.place}`)}
+							/>
 						))}
 					</g>
 				))}

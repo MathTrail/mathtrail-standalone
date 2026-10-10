@@ -166,9 +166,11 @@ func callOn(t *testing.T, p *profile.Profile, tool, arguments string) map[string
 	if err != nil {
 		t.Fatalf("NewService() error = %v", err)
 	}
-	// A question that would only hear what the card knows waits for news no
-	// longer than a fuzzing run can spend on it.
+	// A question that would only hear what the card knows waits for news, and
+	// a card of how an answer went for an answer still on its way, no longer
+	// than a fuzzing run can spend on it.
 	mcpserver.HoldForNews(service, time.Millisecond)
+	mcpserver.PauseForAnswer(service, time.Millisecond)
 	endpoint, err := mcpserver.NewHandler(&mcpserver.Settings{
 		Instructions:        instructions,
 		InstructionsVersion: instructionsVersion,
@@ -264,6 +266,46 @@ func FuzzAnswerArguments(f *testing.F) {
 
 		if line := callOn(t, p, "submit_answer", arguments); line["outcome"] == "failed" {
 			t.Errorf("submit_answer(%q) failed as ours: %v", arguments, line)
+		}
+	})
+}
+
+// The arguments of the card of how an answer went are written by the chat's
+// model: whatever arrives is answered — shown, refused as a task with no answer
+// yet or not on the card, or arguments that do not fit — and never as a failure
+// of ours, before the answer or after it.
+func FuzzShowResultArguments(f *testing.F) {
+	for _, seed := range []string{
+		`{"task_id":"` + fuzzTask + `"}`,
+		`{"task_id":" ` + fuzzTask + ` "}`,
+		`{"task_id":"` + fuzzTask + `","answer":"C"}`,
+		`{"task_id":"tsk_another"}`,
+		`{"task_id":""}`,
+		`{"task_id":7}`,
+		`{}`,
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, arguments string) {
+		if !json.Valid([]byte(arguments)) {
+			quoted, err := json.Marshal(arguments)
+			if err != nil {
+				t.Fatalf("quoting the arguments: %v", err)
+			}
+			arguments = string(quoted)
+		}
+		waiting, answered := raceOnTheCard(t, rating.TrialAnswers), raceOnTheCard(t, rating.TrialAnswers)
+		if _, err := answered.Record(profile.Answered{TaskID: answered.CurrentTask.ID, Choice: "A", At: lessonDay},
+			sealer(t), rating.GradeLevels()); err != nil {
+			t.Fatalf("Record() error = %v", err)
+		}
+
+		for _, p := range []*profile.Profile{waiting, answered} {
+			called := strings.ReplaceAll(arguments, fuzzTask, p.CurrentTask.ID)
+			if line := callOn(t, p, "show_result", called); line["outcome"] == "failed" {
+				t.Errorf("show_result(%q) failed as ours: %v", called, line)
+			}
 		}
 	})
 }

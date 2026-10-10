@@ -170,33 +170,45 @@ describe("an option", () => {
 });
 
 describe("the line for the model", () => {
+	// asked is what the line says of an answer just recorded, which the card
+	// asks the chat to go over; toldAgainLine of one recorded before.
+	const asked =
+		"The card asks the chat, as the adult's message, to go over the answer: then call show_result with task_id task_fence, which draws below the card of how the answer went, with the trap and the solution step by step, and explain in two or three short sentences beside it. If show_result is not among your tools, this chat has an earlier list of MathTrail's tools: explain in words, and offer another task.";
+	const toldAgainLine =
+		"The card asks nothing more of it: if the adult asks to go over the answer, call show_result with task_id task_fence, which draws below the card of how the answer went.";
+	const aboutTheStep =
+		"Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.";
+
 	test.each([
 		[
 			"a right answer",
 			resultOf(rightAnswer),
-			"Task task_fence has its answer recorded: C, which is right. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
+			`Task task_fence has its answer recorded: C, which is right. ${asked} ${aboutTheStep}`,
 		],
 		[
 			"a wrong answer",
 			wrong,
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
+			`Task task_fence has its answer recorded: B, which is wrong; the right option is C. ${asked} ${aboutTheStep}`,
 		],
 		[
-			'"I don\'t know"',
+			'"I don\'t know", recorded before',
 			resultOf(dontKnowAnswer),
-			"Task task_fence has its answer recorded: \"I don't know\", which counts as a wrong answer; the right option is C. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
+			`Task task_fence has its answer recorded: "I don't know", which counts as a wrong answer; the right option is C. ${toldAgainLine} ${aboutTheStep}`,
 		],
 		[
 			"a wrong answer the service told no trap for",
 			{ ...wrong, trap: null },
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the solution. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
+			`Task task_fence has its answer recorded: B, which is wrong; the right option is C. ${asked} ${aboutTheStep}`,
 		],
 		[
 			"a mistake the child has made before",
 			resultOf(repeatedAnswer),
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time. Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.",
+			`Task task_fence has its answer recorded: B, which is wrong; the right option is C. The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time. ${asked} ${aboutTheStep}`,
 		],
-	])("after %s says what is recorded", (_, result, want) => {
-		expect(modelLineOf(result)).toBe(want);
-	});
+	])(
+		"after %s says what is recorded, and what comes next",
+		(_, result, want) => {
+			expect(modelLineOf(result)).toBe(want);
+		},
+	);
 });

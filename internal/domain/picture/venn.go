@@ -4,6 +4,7 @@ package picture
 // counts: each group's label and size, the count in both, in neither, and of
 // everyone, every count a label.
 type venn struct {
+	noWords
 	labels []string
 }
 

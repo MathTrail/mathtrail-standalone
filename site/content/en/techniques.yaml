@@ -1,8 +1,8 @@
 # The page of the techniques of olympiad problem solving, for a parent. Which
 # techniques there are, their groups and order, the topics each one leads to,
 # and each example's level and the answer its solver proves are the site's
-# data; the words here follow them, technique by technique. A technique's
-# drawing is laid out by the page, and only its labels are here.
+# data; the words here follow them, technique by technique. The pictures of a
+# technique's steps are laid out by the page, and only their words are here.
 
 title: Problem-solving techniques
 description: The techniques that crack many olympiad maths problems at once, each with a problem, a drawing and a worked solution, and a hint on which one to try.
@@ -67,12 +67,12 @@ techniques:
       - "Take away the extra 4 years: 16 − 4 = 12. That is two equal bars."
       - "One bar is 12 ÷ 2 = 6 years: that is the sister. The brother is 6 + 4 = 10."
     answer: The brother is 10.
-    drawing:
-      title: Diagram
-      sister: Sister
-      brother: Brother
-      without: Without the extra 4 years
-      count: 16 − 4 = 12 · 12 ÷ 2 = 6
+    # Under each step's picture, what it shows: the bars are the sister's age
+    # and the brother's, as the page's words name them.
+    pictures:
+      sum: "top: the sister, below: the brother; together 16 years"
+      less: 16 − 4 = 12, two equal bars
+      found: the brother is 6 + 4 = 10
     caption: >-
       The diagram shows what is hard to hold in your head: without the extra
       four years, brother and sister have the same.
@@ -92,16 +92,15 @@ techniques:
       - "Borya has one cell left: the parrot. So neither Anya nor Vera has the parrot."
       - Anya is left with the dog, and Vera with the cat.
     answer: Anya has the dog, Borya the parrot, Vera the cat.
-    drawing:
-      title: Table
+    pictures:
       children:
         anya: Anya
         borya: Borya
         vera: Vera
       pets:
-        cat: Cat
-        dog: Dog
-        parrot: Parrot
+        cat: cat
+        dog: dog
+        parrot: parrot
     caption: The small number in a cell is the step of the solution at which it was marked.
   small-numbers:
     name: Start with small numbers
@@ -119,11 +118,13 @@ techniques:
       - "For 15 and 20 m it is the same: there is always one post more than there are gaps."
       - On 100 m there are 100 ÷ 5 = 20 gaps, so there are 21 posts.
     answer: 21 posts.
-    drawing:
-      gaps: gaps
-      posts: posts
-      road: "{length} m"
-      rule: one post more
+    # Under each road, its length, its gaps and its posts; under the table,
+    # what its columns hold.
+    pictures:
+      ten: "10 m: 2 gaps, 3 posts"
+      fifteen: "15 m: 3 gaps, 4 posts"
+      twenty: "20 m: 4 gaps, 5 posts"
+      table: the road in metres, its gaps and its posts
     caption: >-
       The rule shows on a short road already; then it is enough to apply it to
       a hundred metres.
@@ -142,8 +143,8 @@ techniques:
       - The tens digit is 2, 4, 6 or 8. Each leaves three others for the units.
       - "Write them out branch by branch: 24, 26, 28, 42, 46, 48, 62, 64, 68, 82, 84, 86. None is missed, and none is repeated."
     answer: 12 numbers.
-    drawing:
-      title: Tree of options
+    pictures:
+      first: the first digit is one of four
       total: 4 branches × 3 numbers = 12
     caption: "The tree lets nothing slip: each first digit has branches of its own."
   backwards:
@@ -163,13 +164,11 @@ techniques:
       - "Before Petya: give back the one apple, 2 + 1 = 3. That was half, so there were 6."
       - "Before Tanya: 6 was half, so there were 12. Check: 12 → 6 → 6 − 3 − 1 = 2."
     answer: 12 apples.
-    drawing:
-      forward: As it happened, forwards
-      backward: As we solve it, backwards
-      tanya: "Tanya: ½"
-      petya: "Petya: ½ and 1"
-      undo-tanya: × 2
-      undo-petya: + 1, × 2
+    pictures:
+      end: at the end
+      undo-petya: +1, ×2
+      undo-tanya: ×2
+      check: "check:"
     caption: >-
       Go from right to left and do everything the other way round: “ate half”
       becomes “times 2”, “ate one more” becomes “plus 1”.
@@ -189,13 +188,14 @@ techniques:
       - "In fact there are 28 legs: 8 more."
       - "Each rabbit in place of a hen adds 2 legs: 8 ÷ 2 = 4 rabbits. Check: 4 × 4 + 6 × 2 = 28."
     answer: 4 rabbits.
-    drawing:
-      guess: Suppose all are hens
-      guess-legs: 20 legs
-      short: 8 legs short, 2 more for each of four
-      real-legs: 28 legs
-      rabbits: rabbits
-      hens: hens
+    # What each counter under the problem stands for.
+    legend:
+      hen: a hen, 2 legs
+      rabbit: a rabbit, 4 legs
+    pictures:
+      guess: "= 20 legs"
+      short: legs missing
+      fits: "4 rabbits and 6 hens: 16 + 12 = 28 legs"
     caption: >-
       First count as if they were all the same, then change exactly as many as
       it takes to fit.
@@ -213,10 +213,9 @@ techniques:
       - 23 flags are 5 whole fours, which is 20 flags, and 3 more.
       - The 23rd is the third of its four, and the third is always green.
     answer: Green.
-    drawing:
-      title: Flags in fours
+    pictures:
       sum: 23 = 4 × 5 + 3
-      note: 5 fours and three flags more
+      last: 21st, 22nd, 23rd
     caption: >-
       There is no need to draw twenty-three flags: it is enough to see which
       place in its four the flag takes.
@@ -240,14 +239,16 @@ techniques:
       - "So Borya is a liar, and his words are false: Anya and he are not both knights. That fits."
       - Anya said “Borya is a liar”, and that is true. Only a knight says true things, so Anya is a knight.
     answer: Anya is a knight, and Borya is a liar.
-    drawing:
-      knight: Suppose Borya is a knight
-      knight-then: Then Anya is a knight too
-      knight-but: But she called him a liar
-      contradiction: A contradiction
-      liar: So Borya is a liar
-      liar-then: Anya's words are true
-      fits: Anya is a knight
+    # Who said what, under the problem, each by a letter of their name.
+    legend:
+      anya: A
+      borya: B
+      anya-said: “Borya is a liar”
+      borya-said: “Anya and I are both knights”
+    pictures:
+      said: “Borya is a liar”
+      false: “both knights” is false
+      true: “Borya is a liar” is true
     caption: One path leads to a dead end, so the other one is right.
   parity:
     name: Watch the parity
@@ -265,15 +266,12 @@ techniques:
       - "Every jump changes the colour: from an even cell to an odd one, and back."
       - After 5 jumps, an odd number, the grasshopper is sure to be on an odd cell, and zero is even.
     answer: No, it cannot.
-    drawing:
-      title: The number line
-      even: even
-      odd: odd
-      start: start
-      after: The cell after each jump
-      even-short: even
-      odd-short: odd
-      end: After the 5th jump the cell is odd, and zero is even.
+    # The pictures hold no words: what their colours and pointers mean is said
+    # under them.
+    pictures:
+      colours: blue are even, orange are odd, the pointer is the start
+      jumps: each jump, and the colour of the cell after it
+      after: after the 5th jump, odd cells only
     caption: >-
       There is no need to follow where exactly the grasshopper went: it is
       enough to follow the colour of its cell.
@@ -293,10 +291,9 @@ techniques:
       - "After 6 throws the numbers can still all be different: 1, 2, 3, 4, 5, 6."
       - "The seventh throw has no free hole left: some number comes up a second time. So 7 throws."
     answer: 7 throws.
-    drawing:
-      title: 6 numbers, 6 holes
-      first: the first 6 throws
-      seventh: the 7th throw
+    pictures:
+      throw: a blue dot is a throw
+      seventh: the 7th throw lands in a cell already taken
     caption: Even if the first six throws all differ, the seventh has to repeat one of them.
   mirror:
     name: Mirror the moves
@@ -316,11 +313,14 @@ techniques:
       - "Answer every move of the opponent with its mirror: the cell opposite, across the middle."
       - If the opponent's cell was free and not next to a counter, so is its mirror. So the opponent runs out of moves first.
     answer: In the middle, the fifth cell, and then mirror every move.
-    drawing:
-      title: The strip from above
-      first: first player
-      second: opponent
-      moves: the number is the move
+    # What the colours and the numbers in the strip's cells mean.
+    legend:
+      first: the first player
+      second: the other player
+      moves: a number is the move
+    pictures:
+      answer: the other player takes the 1st, the answer the 9th
+      stuck: "every free cell is next to a taken one: the other player has lost"
     caption: >-
       A strip has one middle, and every other cell has a mirror. That is why
       the first player never runs out of moves.
@@ -329,6 +329,7 @@ labels:
   when: "When it helps:"
   task: Problem · {grades}
   show: Show the solution
+  hide: Hide the solution
   topics: "In the topics:"
 
 cues:
@@ -349,7 +350,3 @@ cues:
     - “can it happen”, “prove it is impossible”
     - “for certain”, “at least two”
     - "a game for two: “who wins”"
-
-end:
-  title: Try the techniques on problems
-  lead: They come in handy in the problems of every MathTrail topic.

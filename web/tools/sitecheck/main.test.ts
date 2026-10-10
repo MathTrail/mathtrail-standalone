@@ -120,13 +120,15 @@ describe("the checker's command line", () => {
 		);
 	});
 
-	test("weighs a page without the photographs the site keeps, and with a picture kept elsewhere", async () => {
+	test("weighs a page without the photographs and the pictures of the history the site keeps, and with a picture kept elsewhere", async () => {
 		const dir = await publishable();
 		const front = join(dir, "index.html");
 		const page = await readFile(front, "utf8");
 		const heavy = "x".repeat(defaultMaxPageBytes);
 		await mkdir(join(dir, "assets", "photos"), { recursive: true });
+		await mkdir(join(dir, "assets", "history"), { recursive: true });
 		await writeFile(join(dir, "assets", "photos", "us.webp"), heavy);
+		await writeFile(join(dir, "assets", "history", "athens.webp"), heavy);
 		await writeFile(join(dir, "assets", "us.webp"), heavy);
 		const showing = async (src: string) => {
 			await writeFile(
@@ -137,6 +139,7 @@ describe("the checker's command line", () => {
 		};
 
 		expect(await showing("/assets/photos/us.webp")).toBe(0);
+		expect(await showing("/assets/history/athens.webp")).toBe(0);
 		expect(await showing("/assets/us.webp")).toBe(1);
 	});
 

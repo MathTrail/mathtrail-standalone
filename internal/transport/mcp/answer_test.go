@@ -98,7 +98,7 @@ func handOutTheRace(t testing.TB, p *profile.Profile, at time.Time) {
 	if _, err := p.Issue(&profile.Written{
 		Wording: raceQuestion, Options: options, Hint: "Who finished before Kim?",
 		Fingerprint: "the-race", InstructionsVersion: raceInstructions,
-	}, profile.TaskSecret{Answer: "C", Distractors: distractors, Solution: raceSolution, Solver: raceSolver},
+	}, &profile.TaskSecret{Answer: "C", Distractors: distractors, Solution: raceSolution, Solver: raceSolver},
 		sealer(t), at); err != nil {
 		t.Fatalf("Issue() error = %v, want the race on the card", err)
 	}
@@ -437,7 +437,7 @@ func handOutAnother(t *testing.T, kept store.Storage) {
 	if _, err := p.Issue(&profile.Written{
 		Wording: "Who finished last?", Options: map[string]string{"A": "Ann", "B": "Kim", "C": "Ben", "D": "Nobody", "E": "All"},
 		Hint: "Who finished after Kim?", Fingerprint: "another-race", InstructionsVersion: raceInstructions,
-	}, profile.TaskSecret{Answer: "A", Solution: "Ann finished after Kim."}, sealer(t), lessonDay); err != nil {
+	}, &profile.TaskSecret{Answer: "A", Solution: "Ann finished after Kim."}, sealer(t), lessonDay); err != nil {
 		t.Fatalf("Issue() error = %v, want another task on the card", err)
 	}
 	p.Touch("test", lessonDay)
@@ -855,7 +855,7 @@ func TestAWrongLetterIsExplainedByWhatTheTaskSays(t *testing.T) {
 	}{
 		{"a trap the catalog has", "A", "reversed_relation", "Start from what went wrong on the way to it"},
 		{"a trap the catalog does not have", "B", other, "Start from what went wrong on the way to it"},
-		{"no trap at all", "D", "", "and it is wrong; the right option is C) \"Ben\". Go through the solution"},
+		{"no trap at all", "D", "", "and it is wrong; the right option is C) \"Ben\". Explain in two or three short sentences"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -895,7 +895,7 @@ func raceWithOtherTraps(t *testing.T, p *profile.Profile) {
 	if _, err := p.Issue(&profile.Written{
 		Wording: raceQuestion, Options: options, Hint: "Who finished before Kim?",
 		Fingerprint: "the-race-again", InstructionsVersion: raceInstructions,
-	}, profile.TaskSecret{Answer: "C", Solution: raceSolution, Distractors: map[string]profile.Distractor{
+	}, &profile.TaskSecret{Answer: "C", Solution: raceSolution, Distractors: map[string]profile.Distractor{
 		"A": {Trap: "reversed_relation", Text: raceExplained[0]},
 		"B": {Trap: "a_trap_nobody_named", Text: raceExplained[1]},
 	}}, sealer(t), lessonDay); err != nil {

@@ -30,6 +30,8 @@
 	"topics.grades": "Grades {range}",
 	"topics.more": "More →",
 	"topics.soon": "Soon",
+	"thumb.knight": "K",
+	"thumb.liar": "L",
 	"techniques.count": {
 		"one": "{count} technique",
 		"other": "{count} techniques"
@@ -57,6 +59,8 @@
 	"topic.traps_lead": "MathTrail explains every wrong answer by the trap it fell into. These are the commonest in this topic, with something you can say to your child.",
 	"topic.trap": "Trap",
 	"topic.say": "What to say",
+	"topic.child": "Child",
+	"topic.right": "Right",
 	"topic.home": "How to help at home",
 	"topic.before": "Learn first",
 	"topic.after": "Opens the way to",

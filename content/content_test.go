@@ -401,6 +401,7 @@ func TestInstructionsAreInTheBinary(t *testing.T) {
 // only a card calls is not among them: the model is never told of it.
 var tools = []string{
 	"get_profile", "save_profile", "get_progress", "next_task", "get_package", "prepare_task", "submit_task", "submit_answer",
+	"show_result",
 }
 
 // The instructions the server hands the model walk it through every tool it

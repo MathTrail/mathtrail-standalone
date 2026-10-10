@@ -4,7 +4,10 @@ import { IdScope } from "../design/ids";
 import { openWords } from "../i18n/words";
 import { ComingCard } from "../widget/ComingCard";
 import { CardIsTheDocument } from "../widget/focus";
+import type { AnswerResult } from "../widget/payload";
+import { ResultCard } from "../widget/ResultCard";
 import { ServiceContext } from "../widget/service";
+import { resultShownOf } from "../widget/shown";
 import { TaskCard } from "../widget/TaskCard";
 import { ChoosesTopic } from "../widget/TopicChoice";
 import { NamesBuild, versionGiven } from "../widget/version";
@@ -18,21 +21,26 @@ import { demoHost, demoService } from "./service";
  */
 export const liveScope = "live-";
 
-// Scene is what the card on the first screen shows: the lesson's task, or the
-// task asked for in the chat, on its way to a card of its own.
-type Scene = { kind: "task" } | { kind: "coming"; requestId: string };
+// Scene is what the card on the first screen shows: the lesson's task; how an
+// answer to it went, once its card asked the chat to go over it; or the task
+// asked for in the chat, on its way to a card of its own.
+type Scene =
+	| { kind: "task" }
+	| { kind: "result"; result: AnswerResult }
+	| { kind: "coming"; requestId: string };
 
 /**
  * HeroDemo is the card on the first screen come alive: the widget's own card
  * of the lesson's task, in the page's language, answering presses as a chat's
- * does — an option checked and told, the hint opened. The page answers for
- * the service, and the card, a part of the page, takes no focus back from the
- * reader. Its button of the topic, the coach choosing, takes no press: the
- * page lets no topic be chosen. Another task is asked for as a chat asks for
- * one: the parent's message in the chat's frame, under it the card the task
- * is written on, and then the lesson's task once more.
- * frame is the body of the chat's frame the card stands in, and bubble the
- * message above the card.
+ * does — an option checked and marked, the hint opened. The answer is gone
+ * over as a chat goes over it: the card's ask in the chat's frame, as the
+ * parent's message, and under it the card of how the answer went. The page
+ * answers for the service, and the card, a part of the page, takes no focus
+ * back from the reader. Its button of the topic, the coach choosing, takes no
+ * press: the page lets no topic be chosen. Another task is asked for as a chat
+ * asks for one: the parent's message, under it the card the task is written
+ * on, and then the lesson's task once more. frame is the body of the chat's
+ * frame the card stands in, and bubble the message above the card.
  */
 export function HeroDemo({
 	data,
@@ -60,13 +68,18 @@ export function HeroDemo({
 				if (bubble !== null) {
 					bubble.textContent = text;
 				}
-				asks.current += 1;
-				setScene({ kind: "coming", requestId: `demo_ask_${asks.current}` });
+				const told = service.told();
+				if (text === words.text("task.review") && told !== undefined) {
+					setScene({ kind: "result", result: told });
+				} else {
+					asks.current += 1;
+					setScene({ kind: "coming", requestId: `demo_ask_${asks.current}` });
+				}
 				if (focused) {
 					frame.focus({ preventScroll: true });
 				}
 			}),
-		[frame, bubble],
+		[frame, bubble, service, words],
 	);
 	return (
 		<NamesBuild.Provider value={versionGiven()}>
@@ -75,9 +88,20 @@ export function HeroDemo({
 					<CardIsTheDocument.Provider value={false}>
 						<ChoosesTopic.Provider value={false}>
 							<ServiceContext.Provider value={service}>
-								{scene.kind === "task" ? (
+								{scene.kind === "task" && (
 									<TaskCard handed={data.handed} host={host} />
-								) : (
+								)}
+								{scene.kind === "result" && (
+									<ResultCard
+										key={scene.result.task_id}
+										shown={{
+											kind: "shown",
+											result: resultShownOf(data.handed, scene.result),
+										}}
+										host={host}
+									/>
+								)}
+								{scene.kind === "coming" && (
 									<ComingCard
 										key={scene.requestId}
 										coming={{

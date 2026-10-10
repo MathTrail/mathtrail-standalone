@@ -84,8 +84,14 @@ const data = readSiteData(
 );
 
 // technique is the words of a technique: draw alone has a second name, and
-// each has the labels of its drawing.
-const technique = (id: string, drawing: readonly string[], aka = false) => [
+// each has three steps, the words its steps' pictures write, and the key under
+// them where its pictures have one.
+const technique = (
+	id: string,
+	pictures: readonly string[],
+	legend: readonly string[] = [],
+	aka = false,
+) => [
 	`  ${id}:`,
 	`    name: The ${id}`,
 	...(aka ? [`    aka: Also ${id}`] : []),
@@ -95,9 +101,12 @@ const technique = (id: string, drawing: readonly string[], aka = false) => [
 	"    steps:",
 	`      - First step of ${id}.`,
 	`      - Second step of ${id}.`,
+	`      - Third step of ${id}.`,
 	`    answer: The answer of ${id}.`,
-	"    drawing:",
-	...drawing.map((label) => `      ${label}: ${label} of ${id}`),
+	"    pictures:",
+	...pictures.map((label) => `      ${label}: ${label} of ${id}`),
+	...(legend.length > 0 ? ["    legend:"] : []),
+	...legend.map((label) => `      ${label}: ${label} of ${id}`),
 	`    caption: The drawing of ${id}.`,
 ];
 
@@ -125,24 +134,14 @@ const words = (rows = 2) =>
 		"    title: Prove it",
 		"    lead: Explain why.",
 		"techniques:",
-		...technique(
-			"draw",
-			["title", "sister", "brother", "without", "count"],
-			true,
-		),
-		...technique("mirror", ["title", "first", "second", "moves"]),
-		...technique("all-the-same", [
-			"guess",
-			"guess-legs",
-			"short",
-			"real-legs",
-			"rabbits",
-			"hens",
-		]),
+		...technique("draw", ["sum", "less", "found"], [], true),
+		...technique("mirror", ["answer", "stuck"], ["first", "second", "moves"]),
+		...technique("all-the-same", ["guess", "short", "fits"], ["hen", "rabbit"]),
 		"labels:",
 		'  when: "When it helps:"',
 		"  task: Problem · {grades}",
 		"  show: Show the solution",
+		"  hide: Hide the solution",
 		'  topics: "In the topics:"',
 		"cues:",
 		"  title: Which to try",
@@ -154,9 +153,6 @@ const words = (rows = 2) =>
 			{ length: rows },
 			(_, row) => `    - Words of row ${row + 1}`,
 		),
-		"end:",
-		"  title: Try them",
-		"  lead: In every topic.",
 	].join("\n");
 
 // document is a document's text under its title.
@@ -254,39 +250,47 @@ describe("the page of the techniques", () => {
 	});
 
 	test("sets each problem at its example's grades", () => {
-		expect(texts(".s-technique-task .s-example-label")).toEqual([
+		expect(texts(".s-technique-task .s-technique-grades")).toEqual([
 			"Problem · Grades 3–4",
 			"Problem · Grades 5–6",
 			"Problem · Grades 3–4",
 		]);
 	});
 
-	test("folds the solution — its steps, its drawing and its answer — and leaves the problem out of the fold", () => {
+	test("folds the solution — its steps, each with its picture, and its answer — and leaves the problem out of the fold", () => {
 		const fold = card("draw")?.querySelector("details.s-solution");
 
 		expect(fold?.hasAttribute("open")).toBe(false);
-		expect(fold?.querySelector("summary")?.textContent).toBe(
+		expect(fold?.querySelector("summary .s-solution-show")?.textContent).toBe(
 			"Show the solution",
 		);
-		expect(fold?.querySelectorAll(".s-example-steps li")).toHaveLength(2);
-		expect(fold?.querySelector(".s-example-answer")?.textContent).toContain(
+		expect(fold?.querySelector("summary .s-solution-hide")?.textContent).toBe(
+			"Hide the solution",
+		);
+		expect(fold?.querySelectorAll(".s-worked-steps li")).toHaveLength(3);
+		expect(
+			fold?.querySelectorAll(".s-worked-step .s-step-picture"),
+		).toHaveLength(3);
+		expect(fold?.querySelector(".s-answer")?.textContent).toContain(
 			"The answer of draw.",
 		);
-		expect(fold?.querySelector(".s-art .s-ages")).not.toBeNull();
 		expect(
 			card("draw")?.querySelector(".s-technique-question")?.closest("details"),
 		).toBeNull();
 	});
 
-	test("hides a drawing from a screen reader, keeping its caption", () => {
-		const figure = card("mirror")?.querySelector(".s-figure");
+	test("hides each step's picture from a screen reader, keeping the words of what they show", () => {
+		const pictures = [
+			...(card("mirror")?.querySelectorAll(".s-step-picture") ?? []),
+		];
 
-		expect(figure?.querySelector(".s-art")?.getAttribute("aria-hidden")).toBe(
-			"true",
-		);
-		expect(figure?.querySelector("figcaption")?.textContent).toBe(
-			"The drawing of mirror.",
-		);
+		expect(pictures.length).toBeGreaterThan(0);
+		expect(
+			pictures.map((picture) => picture.getAttribute("aria-hidden")),
+		).toEqual(pictures.map(() => "true"));
+		expect(
+			card("mirror")?.querySelector(".s-technique-caption")?.textContent,
+		).toBe("The drawing of mirror.");
 	});
 
 	test("gives a technique its second name only where its words have one", () => {
@@ -331,10 +335,6 @@ describe("the page of the techniques", () => {
 		expect(inside.filter((id) => !ids.includes(id))).toEqual([]);
 	});
 
-	test("closes with the way to add the app on the home page, and to every topic", () => {
-		expect(all(".s-ask .s-btn", "href")).toEqual(["/#connect", "/en/topics/"]);
-	});
-
 	test("is refused when the words give the hint another number of rows than the data", () => {
 		expect(() =>
 			renderSite({ ...site, sources: sourcesWith(words(1)) }),
@@ -359,5 +359,41 @@ describe("the page of the techniques", () => {
 				data: bare,
 			}),
 		).toThrow("site/data.json gives the page of the techniques none");
+	});
+
+	test("is refused for a technique it has no pictures for", () => {
+		const given = data.techniques;
+		if (given === undefined) {
+			throw new Error("the test's data gives the page no techniques");
+		}
+		const renamed = (id: string) => (id === "draw" ? "doodle" : id);
+		const doodle = {
+			...data,
+			techniques: {
+				groups: given.groups.map((group) => ({
+					...group,
+					techniques: group.techniques.map((one) => ({
+						...one,
+						id: renamed(one.id),
+					})),
+				})),
+				cues: given.cues.map((row) => row.map(renamed)),
+			},
+		};
+
+		expect(() =>
+			renderSite({
+				...site,
+				sources: sourcesWith(words().replaceAll("draw", "doodle")),
+				pages: new Map([
+					...pages,
+					[
+						"techniques",
+						sitePages(doodle).get("techniques") ?? { draw: () => <p /> },
+					],
+				]),
+				data: doodle,
+			}),
+		).toThrow("the page of the techniques has no pictures for doodle");
 	});
 });

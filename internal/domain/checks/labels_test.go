@@ -293,19 +293,22 @@ func TestNothingIsMatchedWithoutAPicture(t *testing.T) {
 
 // The wording, the picture and the right option all come from the chat's
 // model and are untrusted: whatever they hold, the check ends in problems of
-// its own code, at most one for each of the three ways it compares them.
+// its own code, at most one for each of the four ways it compares them.
 func FuzzPictureMatch(f *testing.F) {
 	f.Add("The triangle ABC has a right angle at B.", []byte(`{"kind":"table","rows":[["A"],["B"]]}`), "C", "en")
 	f.Add(`Ann says: "A stone lies at P."`, []byte(`{"kind":"clock","time":"4:30"}`), "16:30", "de")
 	f.Add("\xff'A-B' 3 L °C", []byte(`{"kind":"row","items":[{"label":"1"},{"skip":true},{"label":"9"}]}`), "9", "")
 	f.Add("2,5", []byte(`{"kind":"bars","bars":[{"value":"2,5"}],"notes":["A = 2,5"]}`), "2,5 kg", "ru")
+	f.Add("Сколько флажков с красной полосой?", []byte(`{"kind":"flags","colors":{"red":"красная","blue":"синяя"},`+
+		`"groups":[{"label":"Q","flags":[["red","blue"],["blue","?"]]}]}`), "2", "ru")
+	f.Add("ёЁ", []byte(`{"kind":"flags","colors":{"red":"Ё"},"groups":[{"flags":[["red","?"]]}]}`), "1", "")
 
 	f.Fuzz(func(t *testing.T, question string, picture []byte, right, lesson string) {
 		task := &checks.Task{Question: question, Picture: picture, Options: map[string]string{"A": right},
 			CorrectAnswer: "A"}
 		problems := checks.PictureMatch(task, lesson)
-		if len(problems) > 3 {
-			t.Fatalf("PictureMatch() = %d problems, want at most three", len(problems))
+		if len(problems) > 4 {
+			t.Fatalf("PictureMatch() = %d problems, want at most four", len(problems))
 		}
 		for _, problem := range problems {
 			if problem.Code != checks.CodeDrawingMismatch || problem.Message == "" {

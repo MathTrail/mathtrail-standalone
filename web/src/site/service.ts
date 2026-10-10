@@ -118,6 +118,7 @@ export const tools: readonly string[] = [
 	"submit_task",
 	"read_task",
 	"submit_answer",
+	"show_result",
 	"get_progress",
 	"read_progress",
 	"get_profile",
@@ -272,7 +273,8 @@ const note = (from: number, to: number, tone: "host" | "service"): Step => ({
 /**
  * scenarios are a lesson's three ways, call by call: a task, from the adult's
  * asking to the card that shows it; an answer, from the child's press to the
- * chat's explaining to the adult; and the parent's one sign-in.
+ * card of how it went and the chat's few words beside it; and the parent's one
+ * sign-in.
  */
 export const scenarios: readonly Scenario[] = [
 	{
@@ -305,7 +307,11 @@ export const scenarios: readonly Scenario[] = [
 			call(5, 6),
 			reply(5, 3),
 			inHost(3, 4),
+			inHost(3, 1),
 			call(1, 4),
+			call(4, 5),
+			reply(5, 4),
+			note(3, 4, "host"),
 			reply(4, 1),
 		],
 	},

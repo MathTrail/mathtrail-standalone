@@ -192,6 +192,12 @@ func AnswerTask(ctx context.Context, child *session.Child, card Card, letter str
 	return child.Call(ctx, "submit_answer", map[string]any{"task_id": card.TaskID, "answer": letter})
 }
 
+// ShowResult asks for the card of how the answer to the task on the card went,
+// as the model does once the card has recorded the answer.
+func ShowResult(ctx context.Context, child *session.Child, card Card) session.Answer {
+	return child.Call(ctx, "show_result", map[string]any{"task_id": card.TaskID})
+}
+
 // Progress reads the child's progress.
 func Progress(ctx context.Context, child *session.Child) session.Answer {
 	return child.Call(ctx, "get_progress", map[string]any{})

@@ -67,7 +67,7 @@ A solid arrow writes, a dashed arrow reads. Every write also touches the service
 ## What is deliberately not in the file
 
 - **No task texts.** Past tasks are kept as fingerprints only (О-40), so a child cannot be handed the same task twice and nobody can read back what they were asked.
-- **No answer in the open.** The answer, the explanations behind the wrong options, the solution and the solver live in one sealed block (О-25).
+- **No answer in the open.** The answer, the explanations behind the wrong options, the solution with its picture and total, and the solver live in one sealed block (О-25, R276).
 - **Nothing that identifies the parent.** No email, no Google `sub`, not even the derived identifier the limits use (02-auth): the file is found with the parent's own Drive token, so it never needs to name them. The child's UUID is random and means nothing outside this file.
 - **No rank.** The eleven ranks, and how far through its rank a rating has come, are computed from the rating when they are shown (R12, R147, О-48).
 - **No "solved today" for display.** The rhythm of practice is not shown at all (R13, О-49). The daily counters below exist only to enforce the limits and never reach a screen, and the days the history of the ratings keeps are there to measure a week's change from: nothing counts them or shows them (R165).
@@ -202,9 +202,9 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | `fingerprint` | open | Added to `task_fingerprints` when the task is handed out |
 | `asked` | open, absent when false | As the request had it: a person asked for the task (R237). A task kept takes `asked` from the ask it is handed out to |
 | `wording`, `picture`, `options`, `hint` | open | Exactly what the card shows and what the model was given back. `picture`, the description the card draws, is left out for a task with none (R269) |
-| `sealed` | sealed | `mt1.t.<kid>.<ciphertext>` — the answer, the trap id and the explanation behind each wrong option, the solution and the solver program |
+| `sealed` | sealed | `mt1.t.<kid>.<ciphertext>` — the answer, the trap id and the explanation behind each wrong option, the solution with the picture of the solution and its total where the task has them (R276), and the solver program |
 
-The sealed block's plaintext is JSON with a version of its own, sealed under the `task-answer` purpose of the key ring (02-auth). It is opened in exactly one place: inside `submit_answer`, when the child's answer arrives and again when the same answer is sent twice — never before the child has answered. If it cannot be opened — the key that sealed it has been retired, which takes two rotation periods — the tool says the task can no longer be checked and takes it off the card, recording nothing about it — it was neither an answer nor a skip — and the child is given a new one (02-auth).
+The sealed block's plaintext is JSON with a version of its own, sealed under the `task-answer` purpose of the key ring (02-auth). The picture of the solution and its total are optional members of it, so a block sealed before them opens as one with neither, and one sealed with them opens in a build from before, which reads past them: the version stays 1. It is opened in exactly two places, both after the answer: inside `submit_answer`, when the child's answer arrives and again when the same answer is sent twice, and inside `show_result`, which shows how the answer recorded went — never before the child has answered (R278). `show_result` checks that the task is the one on the card and that the service recorded its answer before it opens the block, and the block of an answered task opens only against the letter it was answered with. If it cannot be opened — the key that sealed it has been retired, which takes two rotation periods — the tool says the task can no longer be checked and takes it off the card, recording nothing about it — it was neither an answer nor a skip — and the child is given a new one (02-auth). `show_result`, which opens it only for an answer recorded, says instead that the answer counts and how it went can no longer be told, and writes nothing.
 
 The solver program is kept although it is never run again: it is the record that this task was actually verified, and it could not live in the open part in any case.
 
@@ -240,7 +240,7 @@ The acceptance question for this task is whether someone holding the file can wo
 - The **explanations behind the wrong options** are sealed too, and this is the part that is easy to get wrong: four explanations in the open, keyed by letter, would name the four wrong options and hand over the fifth by elimination. So the whole option→trap→explanation map is one sealed object, not per-option fields.
 - The **trap ids** of the current task are sealed for the same reason. The trap ids in the per-topic summary and in `recent` are about tasks already answered, and reveal nothing about this one.
 - The **brief** in the open request names the traps the task was asked to use, which is a hint about the subject, not about which option is correct.
-- The **solution** and the **solver** are sealed.
+- The **solution**, the **picture of the solution** with its **total**, and the **solver** are sealed.
 - The **history entry** with `chosen` and `trap` is written when the answer is recorded, by which time the answer is no longer a secret — and so is `current_task.answered`, whose `choice` is the right option's letter when the answer was right.
 - Nothing in the open part changes shape depending on the answer: five options, one hint, one picture or none, whatever the correct letter is. The sealed block is one opaque string, so its length says nothing that matters.
 

@@ -9,6 +9,7 @@ import {
 	stackOf,
 } from "./shapes";
 import { room, smallest, widthOf, written } from "./text";
+import { type Tones, toneOf } from "./tones";
 
 // A month's page, in the card's pixels: how wide a day's column is at most,
 // how tall the line of a week's days is, the room around a weekday's name in
@@ -84,9 +85,14 @@ export function weekdayNames(
  * language over seven columns, from the day the week starts on; the days of
  * the month in Latin digits, the 1st under its weekday; each marked day on a
  * square in the shading tone, and its label under its week's days, on as many
- * lines as keep the labels of a week apart.
+ * lines as keep the labels of a week apart. A day a page lights, as "day
+ * <number>", stands on a square of its tone, marked or not.
  */
-export function drawCalendar(calendar: Calendar, locale: string): Drawn {
+export function drawCalendar(
+	calendar: Calendar,
+	locale: string,
+	tones?: Tones,
+): Drawn {
 	const column = Math.min(widestColumn, room / 7);
 	const width = 7 * column;
 	const sunday = calendar.week_starts === "sunday";
@@ -146,9 +152,10 @@ export function drawCalendar(calendar: Calendar, locale: string): Drawn {
 				/>
 				{days.map((one) => {
 					const middle = (tops.get(one.week) ?? 0) + weekTall / 2;
+					const tone = toneOf(tones, `day ${one.day}`);
 					return (
 						<g key={one.day}>
-							{marks.has(one.day) && (
+							{(marks.has(one.day) || tone !== undefined) && (
 								<rect
 									x={r1(one.x - markedWide / 2)}
 									y={r1(middle - markedTall / 2)}
@@ -156,6 +163,7 @@ export function drawCalendar(calendar: Calendar, locale: string): Drawn {
 									height={markedTall}
 									rx={3}
 									class="mt-pic-fill"
+									data-tone={tone}
 								/>
 							)}
 							<Label
@@ -164,6 +172,7 @@ export function drawCalendar(calendar: Calendar, locale: string): Drawn {
 								text={String(one.day)}
 								size={sizes.day}
 								strong={false}
+								tone={tone}
 							/>
 						</g>
 					);

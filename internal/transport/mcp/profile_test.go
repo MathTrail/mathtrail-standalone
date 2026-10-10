@@ -126,10 +126,11 @@ type trialPayload struct {
 	Of       int `json:"of"`
 }
 
-// A host lists the eleven tools of the lesson as they are meant: two that draw
-// a card, under both keys a host reads — the progress, and the task asked for,
-// whose card shows the task written ahead at once or waits for the one being
-// written and turns into it; the two of the profile, which the model reads and
+// A host lists the twelve tools of the lesson as they are meant: three that
+// draw a card, under both keys a host reads — the progress, the task asked
+// for, whose card shows the task written ahead at once or waits for the one
+// being written and turns into it, and how an answer went, drawn below the
+// card it was given on; the two of the profile, which the model reads and
 // writes in words, drawing nothing: the profile has a section of the progress;
 // three that only a card calls, kept from the model and drawing nothing — the
 // progress opened inside a card, the change the form on it sends, and how the
@@ -140,10 +141,10 @@ type trialPayload struct {
 // the one that takes the task written, which draws nothing either, the card
 // that waits for it being already drawn; and the one that records an answer,
 // which the card calls as well as the model and which draws nothing, since the
-// card that sent the answer turns to its result. Handing a task in and asking
-// for the next one are the calls that are not the same twice: each hand-in
-// spends an attempt, and an ask skips the task left on the card. The five that
-// read change nothing; the two that write the profile replace what the adult
+// card that sent the answer asks the chat for how it went. Handing a task in
+// and asking for the next one are the calls that are not the same twice: each
+// hand-in spends an attempt, and an ask skips the task left on the card. The
+// six that read change nothing; the two that write the profile replace what the adult
 // set, and are the only ones a host may take for destroying something; the four
 // of the lesson only add to its record. None reaches anything beyond the parent's
 // file. Every description is short enough to reach the model whole.
@@ -159,8 +160,8 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	for _, tool := range listed.Tools {
 		byName[tool.Name] = tool
 	}
-	if len(byName) != 11 {
-		t.Errorf("%d tools are listed, want the eleven of the lesson", len(byName))
+	if len(byName) != 12 {
+		t.Errorf("%d tools are listed, want the twelve of the lesson", len(byName))
 	}
 
 	for _, want := range []listing{
@@ -175,6 +176,7 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 		{name: "submit_task"},
 		{name: "read_task", readOnly: true, idempotent: true, widgetOnly: true},
 		{name: "submit_answer", idempotent: true},
+		{name: "show_result", readOnly: true, idempotent: true, drawsCard: true},
 	} {
 		t.Run(want.name, func(t *testing.T) {
 			t.Parallel()

@@ -8,6 +8,11 @@
 title: Games with a winning strategy
 description: What problems about games and winning strategies are, how they are solved, where children go wrong, and how to help at home.
 
+# The words the page's drawings say of a position.
+art:
+  loses: loses for the player to move
+  wins: wins
+
 hero:
   lead: >-
     There are 20 matches on the table, and the players take turns to take 1, 2
@@ -17,29 +22,35 @@ hero:
     which positions lose for the player who has to move from them.
   method: Work back from the end and find the losing positions
   teaches: To find a plan that wins whatever the other player does
-  # Its drawing is the site's data: piles of 0 to 8 matches when a move takes 1,
-  # 2 or 3: those marked lose for the player about to move.
+  # The words of its drawing: the game it is drawn for.
+  art:
+    line: Take 1, 2 or 3 matches; whoever takes the last one wins
 
 basis:
   title: The rules of games
   cards:
-    - mark: "←"
-      title: From the end
+    - title: From the end
       text: >-
         Start from the end of the game, where the winner is clear, and go back:
         a position loses when every move from it leads to one that wins for the
         other player.
-    - mark: "●"
-      title: Hand over a losing position
+      art:
+        back: from 0, the end of the game, up to bigger numbers
+    - title: Hand over a losing position
       text: >-
         A winning move leaves the other player a losing position. If there is
         no such move, the position loses, however clever the player.
-    - mark: "="
-      title: Copy and mirror
+      art:
+        take: take 2
+        losing: a losing one for the other
+    - title: Copy and mirror
       text: >-
         In many games the winner keeps things even, answering each move so that
         the two moves add up to the same, or making the same move on the
         mirrored side.
+      art:
+        they: they take
+        answer: you take
 
 idea:
   title: Losing positions
@@ -106,14 +117,18 @@ examples:
         Taking 4 leaves 19, and Leo takes 4 to leave 15, a losing bowl for Kim.
         Only the first move to a multiple of 5 wins against a player who makes
         no mistakes.
+    art:
+      sweets: 23 sweets, 1 to 4 a move
+      kim: Kim −3
+      answer: Leo takes x, Kim takes 5 − x
+      leo: Leo −4
+      lost: a losing bowl for Kim
   - title: The king's walk
     question: >-
       A king stands in the bottom left corner of a 5 by 5 board. Two players
       take turns to move it one square up, one square right, or one square
       diagonally up and to the right. Whoever moves the king into the top right
       corner wins. Who wins if both play as well as they can?
-    # Its drawing is the site's data: the squares that lose for the player about
-    # to move, from the king's start in one corner to the corner opposite.
     steps:
       - >-
         Count how many rows and how many columns the king still has to go. From
@@ -127,19 +142,23 @@ examples:
         player loses. The second keeps answering with a move to an even square,
         and reaches the corner.
     answer: The second player.
+    badge: 2nd
     note:
       title: Going first is not enough
       text: >-
         Here the first player loses whatever they do. In every new game it is
         worth checking from the end before assuming that the first move wins.
+    art:
+      moves: "moves: up, right, diagonally up and right"
+      green: green, a win in one move
+      red: red dots, a loss for the player to move
+      start: the king starts on a losing square
   - title: The daisy
     question: >-
       A daisy has 12 petals in a ring. Two players take turns to tear off either
       one petal or two petals that grow next to each other, with no gap between
       them. Whoever tears off the last petal wins. Who wins if both play as well
       as they can?
-    # Its drawing is the site's data: the daisy after the first two moves: one
-    # petal torn by each player, opposite each other, and two rows of five left.
     steps:
       - >-
         Whatever the first player tears off, one petal or two, the ring opens
@@ -153,12 +172,17 @@ examples:
         Whenever the first player can move, so can the second, so the second
         tears off the last petal.
     answer: The second player.
+    badge: 2nd
     note:
       title: Why the middle?
       text: >-
         Splitting the row into two equal parts makes the position symmetric.
         Copying cannot lose: the copy of a move is always allowed, because the
         other row looks exactly the same.
+    art:
+      eleven: the first tore one off, leaving a row of 11
+      two-rows: two rows of 5 petals
+      mirror: the first tore in the blue row, the second copied it in the orange
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -168,17 +192,28 @@ traps:
       allowed, or the king steps left, which the rules forbid. A plan built on
       a move that is not allowed wins nothing.
     say: “Which moves do the rules allow?”
+    art:
+      question: 1 to 4 sweets a move
+      five: take 5
+      three: take 3
   first_move_assumed:
     shows: >-
       Going first is taken to win by itself: “Kim starts, so Kim wins.” In many
       games, like the king's walk, the first player loses whatever they do.
     say: “And if the other player makes no mistakes?”
+    art:
+      question: The king's walk
+      first: the first wins
+      second: the second
   best_case_not_worst:
     shows: >-
       The plan works only if the other player slips: Kim takes 4 and hopes that
       Leo then takes too few. A winning strategy has to answer the other
       player's best move.
     say: “What is the other player's best answer to that?”
+    art:
+      question: Kim's first move from 23
+      leo: Leo −4
 
 home:
   - title: Play the matches game

@@ -196,10 +196,63 @@ func genCalendar() gopter.Gen {
 	})
 }
 
+// colorWords are a word for each colour of the palette, of a different
+// language each, as a lesson may call it.
+var colorWords = map[string]string{
+	"red": "красная", "yellow": "पीला", "green": "xanh lá", "blue": "blue", "white": "白", "black": "أسود",
+}
+
+// genFlags are groups of flags, every flag's stripes picked from the palette
+// or left unknown, the groups named by a label or by a colour they paint, and
+// colors naming every colour painted, and no other.
+func genFlags() gopter.Gen {
+	return gopter.CombineGens(gen.IntRange(1, 4), gen.IntRange(1, 3), gen.IntRange(2, 3), gen.IntRange(0, 6)).
+		Map(func(values []any) description {
+			groups, _ := values[0].(int)
+			each, _ := values[1].(int)
+			stripes, _ := values[2].(int)
+			shift, _ := values[3].(int)
+			used := description{}
+			var read []any
+			for group := range groups {
+				read = append(read, flagGroup(group, each, stripes, shift, used))
+			}
+			return description{"kind": "flags", "colors": used, "groups": read}
+		})
+}
+
+// flagGroup is a group of flags of as many stripes each, painted in a turn of
+// the palette and the unknown that shift and the group's place set, named by
+// a label, or every second group by the colour of its first stripe. The words
+// of the colours it paints with are put in used.
+func flagGroup(group, each, stripes, shift int, used description) description {
+	paints := picture.Paints()
+	paint := func(at int) string {
+		if at%7 == 6 {
+			return "?"
+		}
+		name := string(paints[at%len(paints)])
+		used[name] = colorWords[name]
+		return name
+	}
+	var flags []any
+	for flag := range each {
+		var painted []any
+		for stripe := range stripes {
+			painted = append(painted, paint(shift+group+2*flag+stripe))
+		}
+		flags = append(flags, painted)
+	}
+	if first := paint(shift + group); group%2 == 1 && first != "?" {
+		return description{"flags": flags, "color": first}
+	}
+	return description{"flags": flags, "label": "A"}
+}
+
 // genDescription is a description of any kind, within every limit.
 func genDescription() gopter.Gen {
 	return gen.OneGenOf(genClock(), genTable(), genNumberLine(), genRow(), genRing(), genGrid(), genBars(),
-		genVenn(), genBalance(), genContainers(), genPiles(), genCalendar())
+		genVenn(), genBalance(), genContainers(), genPiles(), genCalendar(), genFlags())
 }
 
 // written is a description written out as JSON.

@@ -19,14 +19,15 @@ type Task struct {
 
 // Body is a task in the shape the model hands it in.
 type Body struct {
-	CoreIdea    string                `json:"core_idea"`
-	Question    string                `json:"question"`
-	Picture     json.RawMessage       `json:"picture,omitempty"`
-	Options     map[string]string     `json:"options"`
-	Correct     string                `json:"correct_answer"`
-	Hint        string                `json:"hint"`
-	Solution    string                `json:"solution"`
-	Distractors map[string]Distractor `json:"distractors"`
+	CoreIdea        string                `json:"core_idea"`
+	Question        string                `json:"question"`
+	Picture         json.RawMessage       `json:"picture,omitempty"`
+	Options         map[string]string     `json:"options"`
+	Correct         string                `json:"correct_answer"`
+	Hint            string                `json:"hint"`
+	Solution        string                `json:"solution"`
+	SolutionPicture json.RawMessage       `json:"solution_picture,omitempty"`
+	Distractors     map[string]Distractor `json:"distractors"`
 }
 
 // Distractor is a wrong option: the trap it is for, and what the child who
@@ -82,6 +83,8 @@ func race() Task {
 			Correct:  "C",
 			Hint:     "Who finished before Kim?",
 			Solution: "Ben is ahead of Kim and Kim is ahead of Ann, so Ben crosses the line first.",
+			SolutionPicture: json.RawMessage(
+				`{"kind":"row","items":[{"below":"1","mark":"ring"},{"below":"2"},{"below":"3"}]}`),
 			Distractors: map[string]Distractor{
 				"A": {Trap: reversed, Text: "Ann finished after Kim, so she came last."},
 				"B": {Trap: stopped, Text: "Kim sits in the middle: Ben beat her."},

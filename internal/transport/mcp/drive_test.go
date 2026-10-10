@@ -67,6 +67,7 @@ func instanceOverDriveReading(t *testing.T, fake *drivetest.Drive, reader mcpser
 	}
 	moving := &clock{at: lessonDay}
 	service := lessonService(t, h, kept, moving, nil)
+	mcpserver.PauseForAnswer(service, time.Millisecond)
 	h.start(t, mcpserver.BearerSignIn(reader, metadata),
 		slices.Concat(service.ProfileTools(), service.TaskTools())...)
 	session, err := h.connectWith(t, vouchedToken)
@@ -93,7 +94,8 @@ func costOf(t *testing.T, fake *drivetest.Drive, session *mcp.ClientSession, too
 // once the file is known, and a write reads the file, reads it once more to be
 // sure nothing changed it in between, and writes it. A whole task — asked for,
 // its package fetched, handed in, answered — is ten calls on a warm instance,
-// and each look the card waiting for it takes is one more. A task written
+// showing how the answer went one more, and each look the card waiting for it
+// takes one more again. A task written
 // ahead costs the same writes, and next_task hands it out for one write.
 // The profile's own tool and the progress also say where the file is, which
 // takes a search and the folder's name.
@@ -155,16 +157,30 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 	if p, _, err = warm.kept.Load(t.Context(), parent); err != nil || p.CurrentTask == nil {
 		t.Fatalf("Load() = %v, %v, want the task submit_task accepted", p, err)
 	}
-	answer := map[string]any{"task_id": p.CurrentTask.ID, "answer": "C"}
+	answerStaysWithinItsBudget(t, fake, session, p.CurrentTask.ID)
+
+	aheadStaysWithinItsBudget(t, fake, warm)
+}
+
+// answerStaysWithinItsBudget holds an answer to the task on the card to its
+// calls: recorded, a read and a write; given again, told again from a read
+// and written nowhere; and how it went, read once from the file the answer
+// left.
+func answerStaysWithinItsBudget(t *testing.T, fake *drivetest.Drive, session *mcp.ClientSession, taskID string) {
+	t.Helper()
+
+	read := drivetest.Calls{"download": 1}
+	write := drivetest.Calls{"download": 2, "update": 1}
+	answer := map[string]any{"task_id": taskID, "answer": "C"}
 	if got := costOf(t, fake, session, "submit_answer", answer); !maps.Equal(got, write) {
 		t.Errorf("submit_answer on a warm instance cost %v, want %v", got, write)
 	}
-	// The same answer again is told again, and written nowhere.
 	if got := costOf(t, fake, session, "submit_answer", answer); !maps.Equal(got, read) {
 		t.Errorf("submit_answer given again cost %v, want %v", got, read)
 	}
-
-	aheadStaysWithinItsBudget(t, fake, warm)
+	if got := costOf(t, fake, session, "show_result", map[string]any{"task_id": taskID}); !maps.Equal(got, read) {
+		t.Errorf("show_result on a warm instance cost %v, want %v", got, read)
+	}
 }
 
 // aheadStaysWithinItsBudget holds the next task, written ahead after the task

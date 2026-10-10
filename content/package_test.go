@@ -90,6 +90,7 @@ type shape struct {
 		FleschKincaidGrade int `json:"flesch_kincaid_grade"`
 		LabelCharacters    int `json:"label_characters"`
 		NoteCharacters     int `json:"note_characters"`
+		TotalCharacters    int `json:"total_characters"`
 	} `json:"limits"`
 	Guide string `json:"guide"`
 }
@@ -215,7 +216,8 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 	readable := checks.ReadabilityLimitsFor(asked.Brief.GradeLevel)
 	if got.Limits.SentenceWords != readable.SentenceWords || got.Limits.SentenceCharacters != readable.SentenceCharacters ||
 		got.Limits.FleschKincaidGrade != readable.FleschKincaid ||
-		got.Limits.LabelCharacters != picture.MaxLabelCharacters || got.Limits.NoteCharacters != picture.MaxNoteCharacters {
+		got.Limits.LabelCharacters != picture.MaxLabelCharacters || got.Limits.NoteCharacters != picture.MaxNoteCharacters ||
+		got.Limits.TotalCharacters != picture.MaxTotalCharacters {
 		t.Errorf("limits = %+v, want the ones the checks hold a task to", got.Limits)
 	}
 	if guide, _ := shipped.Instruction("task_writing.md"); got.Guide != guide {
@@ -804,6 +806,30 @@ func TestTheGuidesExampleIsBuiltOnTheIdeaItsPackageNames(t *testing.T) {
 	sentences := regexp.MustCompile(`[.!?](?:\s|$)`).FindAllString(example.Task.CoreIdea, -1)
 	if len(sentences) < 1 || len(sentences) > 2 {
 		t.Errorf("the example's core idea runs to %d sentences, want one or two: %q", len(sentences), example.Task.CoreIdea)
+	}
+}
+
+// The guide's example of a picture of a solution and its total is one the
+// checks read with no problem: an example they refused would teach the model
+// to write what is refused.
+func TestTheGuidesPictureOfASolutionMeetsTheFormat(t *testing.T) {
+	t.Parallel()
+
+	guide, _ := loaded(t).Instruction("task_writing.md")
+	_, section, found := strings.Cut(guide, "## The picture of the solution\n")
+	block := regexp.MustCompile("(?s)```json\n(.*?)\n```").FindStringSubmatch(section)
+	if !found || block == nil {
+		t.Fatal("the guide has no example of a picture of a solution in a json block")
+	}
+	var example checks.Task
+	if err := json.Unmarshal([]byte(block[1]), &example); err != nil {
+		t.Fatalf("read the guide's example of a picture of a solution: %v", err)
+	}
+	if _, broken := picture.Parse(example.SolutionPicture, picture.Point); example.SolutionPicture == nil || len(broken) != 0 {
+		t.Errorf("the guide's picture of a solution breaks %v", broken)
+	}
+	if _, problems := picture.ReadTotal(example.SolutionTotal, picture.Point); len(problems) != 0 {
+		t.Errorf("the guide's total %q is refused: %v", example.SolutionTotal, problems)
 	}
 }
 

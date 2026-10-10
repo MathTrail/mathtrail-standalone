@@ -41,7 +41,7 @@ PLAY_DIR := env("MATHTRAIL_PLAY_DIR", home_directory() / "mathtrail-play")
 PLAY_MODEL := env("MATHTRAIL_PLAY_MODEL", "claude-sonnet-5")
 # The lesson's tools as a chat's model calls them. The ones only a card calls
 # are not among them.
-PLAY_TOOLS := "mcp__mathtrail__get_profile mcp__mathtrail__save_profile mcp__mathtrail__get_progress mcp__mathtrail__next_task mcp__mathtrail__get_package mcp__mathtrail__prepare_task mcp__mathtrail__submit_task mcp__mathtrail__submit_answer"
+PLAY_TOOLS := "mcp__mathtrail__get_profile mcp__mathtrail__save_profile mcp__mathtrail__get_progress mcp__mathtrail__next_task mcp__mathtrail__get_package mcp__mathtrail__prepare_task mcp__mathtrail__submit_task mcp__mathtrail__submit_answer mcp__mathtrail__show_result"
 # The Inspector shares this environment's network, so that it reaches the local
 # server at its own address, and it listens on the loopback alone rather than on
 # every interface its image asks for. Secrets it would keep — the tokens of a

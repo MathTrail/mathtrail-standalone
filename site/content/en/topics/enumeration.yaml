@@ -8,6 +8,15 @@
 title: Enumeration
 description: What enumeration problems are, how they are solved, where children go wrong, and how to help at home.
 
+# The words every drawing of the page writes its people in: the three
+# children's letters, and Lea's and Tom's initials.
+art:
+  a: A
+  b: B
+  c: C
+  lea: L
+  tom: T
+
 hero:
   lead: >-
     How many numbers can be written with these digits? How many handshakes,
@@ -17,30 +26,38 @@ hero:
     guess.
   method: List the cases by a rule
   teaches: To work in order, and to see when cases can be counted without listing them
-  # Its drawing is the site's data: the two-digit numbers with different digits
-  # from 1, 2 and 3, grown from their first digit.
+  # The words of its drawing: the question and the rule over it, and the count
+  # under it.
+  art:
+    line: How many two-digit numbers have different digits from 1, 2 and 3?
+    rule: "listed by a rule: the first digit first"
+    count: 3 choices of the first digit × 2 of the second = 6 numbers
 
 basis:
   title: The rules of a list
   cards:
-    - mark: "→"
-      title: In order
+    - title: In order
       text: >-
         Sort the cases before writing them down: by the first letter, then by
         the second. In a list kept in order, a missing case leaves a gap you
         can see.
-    - mark: "="
-      title: Each case once
+      art:
+        on: "{child} first"
+    - title: Each case once
       text: >-
         Before counting, decide what makes two cases different. Lea and Tom
         shaking hands is one handshake, but Lea before Tom and Tom before Lea
         are two different queues.
-    - mark: "×"
-      title: Choices multiply
+      art:
+        handshake: 1 handshake
+        queues: 2 queues
+    - title: Choices multiply
       text: >-
         When a case is made of choices one after another, a cup and then a
         saucer, count by multiplying: 3 cups and 2 saucers make 3 × 2 = 6
         sets.
+      art:
+        sets: 3 × 2 = 6 sets
 
 idea:
   title: Does the order matter?
@@ -58,7 +75,7 @@ idea:
         - "No: AB and BA are one pair"
         - AB, AC, BC — 3
       - - In how many ways can a leader and a helper be chosen?
-        - "Yes: the leader comes first"
+        - "Yes: the leader comes first (larger)"
         - AB, AC, BA, BC, CA, CB — 6
   note:
     title: Why it matters
@@ -77,6 +94,9 @@ method:
     - Decide what makes two cases different
     - List the cases by a rule
     - Count them, or multiply when choices are made one after another
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    frame: "a blue frame: what this step adds"
 
 examples:
   - title: Flags of two stripes
@@ -84,8 +104,6 @@ examples:
       A flag has two stripes, one above the other. Each stripe is red, yellow
       or green, and the two stripes are different colours. How many different
       flags are there?
-    # Its drawing is the site's data: every flag, the top stripe above the
-    # bottom one, in its colours.
     steps:
       - >-
         Put the flags in order by the top stripe. With red on top, the bottom
@@ -97,6 +115,15 @@ examples:
         3 colours for the top, and each time 2 left for the bottom:
         3 × 2 = 6 flags.
     answer: 6 flags.
+    art:
+      paints: three paints, the stripes different colours
+      red-top: red on top
+      red: red
+      yellow: yellow
+      green: green
+      top: top ↓
+      bottom: bottom →
+      same: "×: one colour twice is not allowed, 9 − 3 = 6"
   - title: Digits three apart
     question: How many two-digit numbers have digits that differ by 3, like 14 or 30?
     steps:
@@ -118,6 +145,12 @@ examples:
         30 is the number children forget: a number may end in 0, though it may
         not begin with it. A list by a rule finds it, and a list from memory
         does not.
+    art:
+      given: the tens and the units are 3 apart
+      under: the tens on top, the units that fit under them
+      two: "in blue: two numbers each"
+      can: allowed
+      not: not two-digit
   - title: No two 2s side by side
     question: >-
       How many four-digit numbers can be written with the digits 1 and 2
@@ -142,6 +175,12 @@ examples:
       text: >-
         The counts 2, 3, 5, 8 go on 13, 21, 34, each the sum of the two before
         it. Olympiad tasks love a count that can be built from smaller ones.
+    art:
+      twos: two 2s side by side are not allowed
+      one: 1 digit
+      two: 2 digits
+      three: 3 digits
+      four: 4 digits
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -150,12 +189,16 @@ traps:
       The child writes the cases as they come to mind and loses one, often one
       with a 0 or one with a digit repeated.
     say: “In what order did you write them? Let's write them again by a rule.”
+    art:
+      question: Digits 3 apart
   wrong_operation:
     shows: >-
       The child adds where the choices multiply, so 3 shirts and 2 scarves
       give 5, or multiplies where a pair is chosen and nobody is paired with
       themselves.
     say: "“Take one shirt: how many sets does it make? And how many shirts are there?”"
+    art:
+      question: 3 shirts and 2 scarves
   double_count:
     shows: >-
       Lea shaking hands with Tom and Tom shaking hands with Lea are counted as

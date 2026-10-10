@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { chatAt, heldFrom, holdTheFirstScreen, idleFor } from "./phone";
-import { openHome } from "./testing/home";
+import { openHome } from "./testing/pages";
 
 afterEach(() => {
 	document.body.innerHTML = "";

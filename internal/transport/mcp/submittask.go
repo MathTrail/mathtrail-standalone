@@ -526,18 +526,20 @@ func (s *Service) writtenOf(task *checks.Task, language string) *profile.Written
 }
 
 // secretOf is everything about a task that would give its answer away, as it
-// is sealed: the letter, what every wrong option leads to, the solution and
-// the program that proved it.
-func secretOf(task *checks.Task, program string) profile.TaskSecret {
+// is sealed: the letter, what every wrong option leads to, the solution with
+// its picture and total, and the program that proved it.
+func secretOf(task *checks.Task, program string) *profile.TaskSecret {
 	distractors := make(map[string]profile.Distractor, len(task.Distractors))
 	for letter, wrong := range task.Distractors {
 		distractors[letter] = profile.Distractor{Text: wrong.Text, Trap: wrong.Trap}
 	}
-	return profile.TaskSecret{
-		Answer:      task.CorrectAnswer,
-		Distractors: distractors,
-		Solution:    task.Solution,
-		Solver:      program,
+	return &profile.TaskSecret{
+		Answer:          task.CorrectAnswer,
+		Distractors:     distractors,
+		Solution:        task.Solution,
+		SolutionPicture: task.SolutionPicture,
+		SolutionTotal:   task.SolutionTotal,
+		Solver:          program,
 	}
 }
 
@@ -604,7 +606,7 @@ func submittedFields(attempt int, event *checks.Submitted, size *handedIn, task 
 	if size.withBrief {
 		retired = append([]string{"brief"}, retired...)
 	}
-	return []zap.Field{
+	return slices.Concat([]zap.Field{
 		zap.Int("attempt", attempt),
 		zap.String("outcome", event.Outcome),
 		zap.String("primary", string(event.Primary)),
@@ -620,6 +622,20 @@ func submittedFields(attempt int, event *checks.Submitted, size *handedIn, task 
 		zap.Int("total_bytes", size.task+size.selfCheck+size.solver+size.brief),
 		zap.Strings("retired", retired),
 		zap.Strings("mended", event.Mended),
+	}, solutionPictureFields(task))
+}
+
+// solutionPictureFields are the kind of the picture of the solution a task
+// describes — none, or other for a description of no kind the format has —
+// and the bytes its description takes, or nothing when the task could not be
+// read at all. Nothing of what it shows is in them.
+func solutionPictureFields(task *checks.Task) []zap.Field {
+	if task == nil {
+		return nil
+	}
+	return []zap.Field{
+		zap.String("solution_picture", picture.KindOf(task.SolutionPicture)),
+		zap.Int("solution_picture_bytes", len(task.SolutionPicture)),
 	}
 }
 

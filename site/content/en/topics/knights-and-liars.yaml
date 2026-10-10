@@ -8,6 +8,15 @@
 title: Knights and liars
 description: What knights-and-liars problems are, how they are solved, where children go wrong, and how to help at home.
 
+# The words every drawing of the page writes its islanders in: the letters
+# of a knight and of a liar, and the islanders' own.
+art:
+  knight: K
+  liar: L
+  a: A
+  b: B
+  c: C
+
 hero:
   lead: >-
     On an island live knights, who always tell the truth, and liars, who always
@@ -16,13 +25,17 @@ hero:
     assumption, follow where it leads, and notice a contradiction.
   method: "“Suppose this one is a knight…”"
   teaches: To reason step by step, and to check yourself
-  # Two islanders who call each other liars: one is a knight, the other a liar.
-  # The drawing is the site's own, and these are their names and what each says.
-  drawing:
-    first: A
-    first-says: “B is a liar”
-    second: B
-    second-says: “A is a liar”
+  # The words of its drawing: the key of the letters over it, and in it the
+  # first example's two suppositions and how each ends.
+  art:
+    knight: a knight always tells the truth
+    liar: a liar always lies
+    says: “I am a liar, and B is a knight”
+    rule: suppose, and check
+    if-knight: "Suppose A is a knight: then A is a liar"
+    contradiction: a contradiction
+    if-liar: "Suppose A is a liar: then B is a liar too"
+    fits: it fits
 
 basis:
   title: The island's rules
@@ -95,6 +108,13 @@ examples:
         On its own, “I am a liar” is impossible. Joined to another sentence by
         “and”, a liar can say it: the whole sentence is false as soon as one of
         its parts is.
+    art:
+      says: “I am a liar, and B is a knight”
+      contradiction: a contradiction
+      fits: everything fits
+      alone: “I am a liar”
+      nobody: nobody can say it
+      liar-can: a liar can say it
   - title: A chain of accusations
     question: >-
       Three islanders, A, B and C, say this. A: “B is a liar.” B: “C is a
@@ -118,15 +138,18 @@ examples:
         A: “B is a liar” is true, and a knight says it. B: “C is a knight” is
         false, and a liar says it. C: “A and B are both liars” is false, since
         A is a knight, and a liar says it. Everything fits.
+    art:
+      a-says: “B is a liar”
+      b-says: “C is a knight”
+      c-says: “A and B are both liars”
+      most: says the most
+      contradiction: a contradiction
+      true-knight: true, and a knight says it
+      false-liar: false, and a liar says it
   - title: The round table
     question: >-
       Ten islanders sit at a round table. Each of them says: “My neighbour on
       the right is a liar.” How many knights are at the table?
-    # The table drawn with its answer, knights and liars taking turns. The
-    # drawing is the site's own, in the letters the third step writes.
-    drawing:
-      knight: K
-      liar: L
     steps:
       - >-
         If an islander is a knight, the words are true: the neighbour on the
@@ -144,6 +167,13 @@ examples:
         Taking turns round an odd number of seats never closes up: the last
         and the first would be of one kind. No such table can exist. Here
         knights and liars meet parity.
+    art:
+      right-liar: the neighbour on the right is a liar
+      right-knight: the neighbour on the right is a knight
+      half: 5 and 5
+      kinds: knights and liars
+      turns: each one looks at the neighbour clockwise
+      clash: the last and the first are of one kind
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:

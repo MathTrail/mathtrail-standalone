@@ -4,8 +4,6 @@ import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
 import { type ProgressReport, readScreen } from "../widget/payload";
 import {
-	type Drawing,
-	drawingFile,
 	readDrawings,
 	type TopicDrawings,
 	topicDrawingsFile,
@@ -35,14 +33,14 @@ export type Example = { readonly grades: readonly [number, number] };
 
 /**
  * TopicExample is an example a topic's page works through: an example, and
- * the drawing beside its steps where it has one.
+ * the answer its solver proves.
  */
-export type TopicExample = Example & { readonly drawing?: Drawing };
+export type TopicExample = Example & { readonly answer: string };
 
 /**
  * SiteData is what the site's pages draw that no language changes: the
  * catalog's topics with the groups they are shown in, each topic's traps, the
- * drawings of its card and its page, the examples its page works through, the
+ * drawing of its card, the examples its page works through, the
  * progress of the child the site's cards are drawn for, an invented one, what
  * the page "Why" shows — its card and the works it cites — the techniques of
  * the page of the techniques, and the numbers of the page "Research".
@@ -51,7 +49,7 @@ export type SiteData = {
 	readonly topics: Topics;
 	/** traps are each topic's traps, the most frequent in its reference tasks first. */
 	readonly traps: ReadonlyMap<string, readonly string[]>;
-	/** drawings are the drawings of each topic's card and page, by the topic's id. */
+	/** drawings are the drawings of each topic's card, by the topic's id. */
 	readonly drawings: ReadonlyMap<string, TopicDrawings>;
 	/** examples are the examples of each topic's page, by the topic's id. */
 	readonly examples: ReadonlyMap<string, readonly TopicExample[]>;
@@ -90,18 +88,16 @@ const exampleFile = z.object({
 });
 
 // topicExampleFile is an example of a topic's page as the site's data writes
-// it: an example, and its drawing where it has one. Nothing else may stand
-// beside them, so that a drawing under a misspelt name stops the build rather
-// than leaving the example drawn without it.
-const topicExampleFile = z.strictObject({
-	...exampleFile.shape,
-	drawing: drawingFile.optional(),
-});
+// it. Nothing else may stand beside it: the page draws its examples' pictures
+// itself, and a member it does not read stops the build rather than lying
+// unused.
+const topicExampleFile = z.strictObject(exampleFile.shape);
 
 // techniquesFile is what the page of the techniques takes from the site's
 // data: its groups, each with its techniques in order — a technique's name,
-// the topics it leads to and its example — and the rows of its hint, each
-// with the techniques it suggests.
+// the topics it leads to, its example and, where the example's answer is no
+// whole number, the mark its answer shows instead — and the rows of its hint,
+// each with the techniques it suggests.
 const techniquesFile = z.object({
 	groups: z
 		.array(
@@ -113,6 +109,7 @@ const techniquesFile = z.object({
 							id: z.string(),
 							topics: z.array(z.string()),
 							example: exampleFile,
+							badge: z.enum(["✓", "✕", "●"]).optional(),
 						}),
 					)
 					.min(1),
@@ -144,10 +141,9 @@ const dataFile = z.object({
  * readSiteData reads the site's data beside the catalog it speaks of. A file
  * of another shape is refused, and so is a progress the widget could not draw
  * whatever the child's name, a drawing of a topic the catalog does not have,
- * a first screen's drawing or an example of a topic whose page is not
- * published, and an example at a level the topic is not taught at, so that a
- * mistake in the file stops the build rather than drawing a page with a part
- * missing.
+ * an example of a topic whose page is not published, and an example at a
+ * level the topic is not taught at, so that a mistake in the file stops the
+ * build rather than drawing a page with a part missing.
  * What the home page and the page "Why" draw, and the techniques, are held
  * to the catalog as well, and so are the numbers of the page "Research", when
  * the build is given them.
@@ -218,11 +214,11 @@ export function siteData(research?: unknown): SiteData {
 
 // readExamples reads the examples of the topics' pages: each of a topic of the
 // catalog whose page is published, set at a level the topic is taught at, with
-// its drawing where it has one.
+// the answer its solver proves.
 function readExamples(
 	catalog: readonly CatalogTopic[],
 	examples: Readonly<
-		Record<string, readonly { level: string; drawing?: Drawing }[]>
+		Record<string, readonly { level: string; answer: string }[]>
 	>,
 ): ReadonlyMap<string, readonly TopicExample[]> {
 	const byId = new Map(catalog.map((topic) => [topic.id, topic]));
@@ -241,10 +237,12 @@ function readExamples(
 			}
 			return [
 				id,
-				listed.map(({ level, drawing }): TopicExample => {
-					const example = exampleAt(topic, level);
-					return drawing === undefined ? example : { ...example, drawing };
-				}),
+				listed.map(
+					({ level, answer }): TopicExample => ({
+						...exampleAt(topic, level),
+						answer,
+					}),
+				),
 			];
 		}),
 	);

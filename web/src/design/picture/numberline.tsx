@@ -18,6 +18,7 @@ import {
 	widthOf,
 	written,
 } from "./text";
+import { type Tones, toneOf } from "./tones";
 
 // A number line, in the card's pixels: how far apart two ticks may stand at
 // most, how far a tick reaches over and under the line, how far the line runs
@@ -28,6 +29,10 @@ const tickReach = 6;
 const pastTheEnd = 18;
 const pointerTall = 10;
 const pointerHalf = 6;
+
+// tilePad is how far the tile under a tick's number a page lights reaches
+// past the number on either side, where the next tick leaves it the room.
+const tilePad = 5;
 
 // everyFew are how many ticks apart a crowded line numbers its ticks: every
 // tick, every second, every fifth or every tenth.
@@ -90,9 +95,15 @@ function numbered(
  * or, where the numbers crowd, every few, with both ends and every marked tick
  * always numbered and set on a second line where they crowd each other — the
  * line running on past its last tick to an arrowhead; and each mark a pointer
- * over its tick in the shading tone, with its label over it.
+ * over its tick in the shading tone, with its label over it. A tick's number
+ * a page lights is written on a tile of its tone, and a mark it lights is
+ * drawn in its tone.
  */
-export function drawNumberLine(line: NumberLine): Drawn {
+export function drawNumberLine(
+	line: NumberLine,
+	_locale?: string,
+	tones?: Tones,
+): Drawn {
 	const step = line.step ?? 1;
 	const count = Math.round((line.to - line.from) / step) + 1;
 	const texts = Array.from({ length: count }, (_, place) =>
@@ -147,14 +158,19 @@ export function drawNumberLine(line: NumberLine): Drawn {
 	const numbersAt = axis + tickReach + 3 + lineHeight(size) / 2;
 	const height = numbersAt + (lines(numbers) - 0.5) * lineHeight(size) + 1;
 	const last = origin + (count - 1) * gap;
+	const pointerOf = (mark: { x: number }) =>
+		`M${r1(mark.x - pointerHalf)} ${r1(pointerTop)}` +
+		`L${r1(mark.x + pointerHalf)} ${r1(pointerTop)}` +
+		`L${r1(mark.x)} ${r1(pointerTop + pointerTall)}Z`;
+	const markTone = (mark: { at: number }) => toneOf(tones, `mark ${mark.at}`);
 	const pointers = marks
-		.map(
-			(mark) =>
-				`M${r1(mark.x - pointerHalf)} ${r1(pointerTop)}` +
-				`L${r1(mark.x + pointerHalf)} ${r1(pointerTop)}` +
-				`L${r1(mark.x)} ${r1(pointerTop + pointerTall)}Z`,
-		)
+		.filter((mark) => markTone(mark) === undefined)
+		.map(pointerOf)
 		.join("");
+	const lit = marks.flatMap((mark) => {
+		const tone = markTone(mark);
+		return tone === undefined ? [] : [{ mark, tone }];
+	});
 	return {
 		width,
 		height,
@@ -176,6 +192,18 @@ export function drawNumberLine(line: NumberLine): Drawn {
 						/>
 					</>
 				)}
+				{lit.map(({ mark, tone }) => (
+					<g key={mark.at}>
+						<path d={pointerOf(mark)} class="mt-pic-fill" data-tone={tone} />
+						<path
+							d={pointerOf(mark)}
+							class="mt-pic-line"
+							stroke-width={1.5}
+							stroke-linejoin="round"
+							data-tone={tone}
+						/>
+					</g>
+				))}
 				<path
 					d={`M${r1(Math.max(0, origin - 10))} ${r1(axis)}H${r1(last + pastTheEnd - 6)}`}
 					class="mt-pic-line"
@@ -195,16 +223,38 @@ export function drawNumberLine(line: NumberLine): Drawn {
 					class="mt-pic-line"
 					stroke-width={1.5}
 				/>
-				{numbers.map((number) => (
-					<Label
-						key={number.place}
-						x={number.x}
-						y={numbersAt + number.line * lineHeight(size)}
-						text={number.text}
-						size={size}
-						strong={false}
-					/>
-				))}
+				{numbers.map((number) => {
+					const y = numbersAt + number.line * lineHeight(size);
+					const tone = toneOf(tones, `tick ${line.from + number.place * step}`);
+					const text = widthOf(number.text, size);
+					const tile = Math.min(
+						text + 2 * tilePad,
+						Math.max(text + 2, gap - 2),
+					);
+					return (
+						<g key={number.place}>
+							{tone !== undefined && (
+								<rect
+									x={r1(number.x - tile / 2)}
+									y={r1(y - lineHeight(size) / 2)}
+									width={r1(tile)}
+									height={r1(lineHeight(size))}
+									rx={4}
+									class="mt-pic-fill"
+									data-tone={tone}
+								/>
+							)}
+							<Label
+								x={number.x}
+								y={y}
+								text={number.text}
+								size={size}
+								strong={false}
+								tone={tone}
+							/>
+						</g>
+					);
+				})}
 			</>
 		),
 	};

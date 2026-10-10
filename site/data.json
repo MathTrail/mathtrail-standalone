@@ -36,272 +36,55 @@
 	],
 	"drawings": {
 		"logic.ordering": {
-			"card": {
-				"picture": {
-					"kind": "bars",
-					"bars": [{ "length": 3 }, { "length": 2 }, { "length": 1 }]
-				}
-			},
-			"hero": {
-				"picture": {
-					"kind": "bars",
-					"bars": [
-						{ "length": 4 },
-						{ "length": 3 },
-						{ "length": 2 },
-						{ "length": 1 }
-					]
-				}
-			}
+			"card": { "markup": "lined-up" }
 		},
 		"logic.knights_liars": {
-			"card": { "markup": "islanders" },
-			"hero": { "markup": "islanders" }
+			"card": { "markup": "knight-and-liar" }
 		},
 		"combinatorics.enumeration": {
-			"card": {
-				"picture": {
-					"kind": "table",
-					"rows": [["12", "13", "21", "23", "31", "32"]]
-				}
-			},
-			"hero": { "markup": "number-tree" }
+			"card": { "markup": "digit-pairs" }
 		},
 		"counting.gaps": {
-			"card": {
-				"picture": { "kind": "row", "items": [{}, {}, {}, {}], "gaps": "3" }
-			},
-			"hero": {
-				"picture": {
-					"kind": "row",
-					"items": [
-						{ "label": "1" },
-						{ "label": "2" },
-						{ "label": "3" },
-						{ "label": "4" }
-					]
-				}
-			}
+			"card": { "markup": "fence" }
 		},
 		"time.clocks": {
-			"card": { "picture": { "kind": "clock", "time": "11:50" } },
-			"hero": { "markup": "through-the-hour" }
+			"card": { "markup": "clock-face" }
 		},
 		"time.calendar": {
-			"card": {
-				"picture": {
-					"kind": "bars",
-					"bars": [
-						{
-							"segments": [
-								{ "size": 30, "label": "30" },
-								{ "size": 5, "label": "5" }
-							]
-						},
-						{
-							"segments": [
-								{ "size": 6, "label": "6" },
-								{ "size": 5, "label": "5" }
-							]
-						}
-					]
-				}
-			},
-			"hero": { "picture": { "kind": "calendar", "first": 3, "days": 31 } }
+			"card": { "markup": "two-weeks" }
 		},
 		"pigeonhole.basic": {
-			"card": {
-				"picture": {
-					"kind": "piles",
-					"across": true,
-					"piles": [
-						{ "count": 2, "boxed": true },
-						{ "count": 1, "boxed": true },
-						{ "count": 1, "boxed": true }
-					]
-				}
-			},
-			"hero": {
-				"picture": {
-					"kind": "piles",
-					"across": true,
-					"piles": [
-						{ "count": 2, "boxed": true },
-						{ "count": 1, "boxed": true },
-						{ "count": 1, "boxed": true },
-						{ "count": 1, "boxed": true }
-					]
-				}
-			}
+			"card": { "markup": "hutches" }
 		},
 		"parity.alternation": {
-			"card": {
-				"picture": {
-					"kind": "row",
-					"line": false,
-					"items": [
-						{ "mark": "dot" },
-						{ "mark": "ring" },
-						{ "mark": "dot" },
-						{ "mark": "ring" },
-						{ "mark": "dot" },
-						{ "mark": "ring" }
-					]
-				}
-			},
-			"hero": {
-				"picture": {
-					"kind": "row",
-					"line": false,
-					"items": [
-						{ "mark": "dot", "below": "1" },
-						{ "mark": "ring", "below": "2" },
-						{ "mark": "dot", "below": "3" },
-						{ "mark": "ring", "below": "4" },
-						{ "mark": "dot", "below": "5" },
-						{ "mark": "ring", "below": "6" }
-					]
-				}
-			}
+			"card": { "markup": "alternating-dots" }
 		},
 		"arithmetic.tricks": {
-			"card": { "markup": "product-regrouped" },
-			"hero": { "markup": "sum-regrouped" }
+			"card": { "markup": "hundred-product" }
 		},
 		"algorithms.weighing_pouring": {
-			"card": {
-				"picture": {
-					"kind": "balance",
-					"left": ["?", "?", "?"],
-					"right": ["?", "?", "?"]
-				}
-			},
-			"hero": {
-				"picture": {
-					"kind": "table",
-					"header": ["5", "3"],
-					"rows": [
-						["5", "0"],
-						["2", "3"],
-						["2", "0"],
-						["0", "2"],
-						["5", "2"],
-						["4", "3"]
-					]
-				}
-			}
+			"card": { "markup": "balance" }
 		},
 		"fractions.parts": {
-			"card": {
-				"picture": { "kind": "bars", "bars": [{ "parts": 4, "shaded": 3 }] }
-			},
-			"hero": {
-				"picture": {
-					"kind": "bars",
-					"bars": [
-						{
-							"parts": 4,
-							"shaded": 3,
-							"value": "12",
-							"braces": [{ "from": 0, "to": 3, "label": "9" }]
-						}
-					]
-				}
-			}
+			"card": { "markup": "three-quarters" }
 		},
 		"percent.basic": {
-			"card": {
-				"picture": {
-					"kind": "bars",
-					"bars": [
-						{
-							"parts": 10,
-							"shaded": 1,
-							"value": "50",
-							"braces": [{ "from": 0, "to": 1, "label": "5" }]
-						}
-					]
-				}
-			},
-			"hero": {
-				"picture": {
-					"kind": "bars",
-					"bars": [
-						{
-							"parts": 10,
-							"shaded": 3,
-							"value": "50",
-							"braces": [{ "from": 0, "to": 3, "label": "15" }]
-						}
-					]
-				}
-			}
+			"card": { "markup": "one-in-ten" }
 		},
 		"ratio.sharing": {
-			"card": {
-				"picture": { "kind": "bars", "bars": [{ "parts": 2 }, { "parts": 3 }] }
-			},
-			"hero": {
-				"picture": {
-					"kind": "bars",
-					"bars": [{ "label": "A", "parts": 3 }, { "label": "B", "parts": 4 }],
-					"notes": ["A + B = 35"]
-				}
-			}
+			"card": { "markup": "two-to-three" }
 		},
 		"geometry.grid": {
-			"card": { "picture": { "kind": "bars", "bars": [{ "parts": 3 }] } },
-			"hero": {
-				"picture": {
-					"kind": "grid",
-					"rows": ["A", "B"],
-					"cols": ["1", "2"],
-					"filled": ["A1", "B1", "B2"]
-				}
-			}
+			"card": { "markup": "grid-cells" }
 		},
 		"number.divisibility": {
-			"card": {
-				"picture": { "kind": "piles", "piles": [{ "count": 17, "group": 3 }] }
-			},
-			"hero": {
-				"picture": { "kind": "piles", "piles": [{ "count": 14, "group": 3 }] }
-			}
+			"card": { "markup": "groups-and-remainder" }
 		},
 		"logic.sets": {
-			"card": {
-				"picture": {
-					"kind": "venn",
-					"sets": [{ "label": "A" }, { "label": "B" }],
-					"both": "3"
-				}
-			},
-			"hero": {
-				"picture": {
-					"kind": "venn",
-					"sets": [
-						{ "label": "A", "count": "10" },
-						{ "label": "B", "count": "12" }
-					],
-					"both": "3"
-				}
-			}
+			"card": { "markup": "two-circles" }
 		},
 		"games.strategy": {
-			"card": {
-				"picture": {
-					"kind": "piles",
-					"piles": [{ "count": 15, "group": 5, "shape": "square" }]
-				}
-			},
-			"hero": {
-				"picture": {
-					"kind": "number_line",
-					"from": 0,
-					"to": 8,
-					"marks": [{ "at": 0 }, { "at": 4 }, { "at": 8 }]
-				}
-			}
+			"card": { "markup": "matches" }
 		}
 	},
 	"examples": {
@@ -324,16 +107,14 @@
 			{
 				"level": "5-6",
 				"solver": "round-table",
-				"answer": "5",
-				"drawing": { "markup": "round-table" }
+				"answer": "5"
 			}
 		],
 		"combinatorics.enumeration": [
 			{
 				"level": "1-2",
 				"solver": "two-stripes",
-				"answer": "6",
-				"drawing": { "markup": "two-stripe-flags" }
+				"answer": "6"
 			},
 			{ "level": "3-4", "solver": "three-apart", "answer": "13" },
 			{ "level": "5-6", "solver": "no-two-twos", "answer": "8" }
@@ -342,21 +123,7 @@
 			{
 				"level": "1-2",
 				"solver": "bus-stops",
-				"answer": "15",
-				"drawing": {
-					"picture": {
-						"kind": "row",
-						"items": [
-							{ "label": "1" },
-							{ "label": "2" },
-							{ "label": "3" },
-							{ "label": "4" },
-							{ "label": "5" },
-							{ "label": "6" }
-						],
-						"gaps": "3"
-					}
-				}
+				"answer": "15"
 			},
 			{ "level": "3-4", "solver": "floor-nine", "answer": "4" },
 			{ "level": "5-6", "solver": "woodcutters", "answer": "5" }
@@ -366,60 +133,24 @@
 			{
 				"level": "3-4",
 				"solver": "chess-tournament",
-				"answer": "15:10",
-				"drawing": {
-					"picture": {
-						"kind": "row",
-						"items": [
-							{ "mark": "square", "below": "50" },
-							{ "mark": "square", "below": "50" },
-							{ "mark": "square", "below": "50" },
-							{ "mark": "square", "below": "50" },
-							{ "mark": "square", "below": "50" }
-						],
-						"gaps": "15"
-					}
-				}
+				"answer": "15:10"
 			},
 			{
 				"level": "5-6",
 				"solver": "two-cities",
-				"answer": "4 hours 30 minutes",
-				"drawing": {
-					"picture": {
-						"kind": "table",
-						"rows": [["8:00", "12:30"], ["4:00", "8:30"]]
-					}
-				}
+				"answer": "4 hours 30 minutes"
 			}
 		],
 		"time.calendar": [
 			{
 				"level": "1-2",
 				"solver": "watering-flowers",
-				"answer": "Wednesday",
-				"drawing": {
-					"picture": {
-						"kind": "calendar",
-						"first": 1,
-						"days": 30,
-						"marks": { "1": "1", "4": "2", "7": "3", "10": "4" }
-					}
-				}
+				"answer": "Wednesday"
 			},
 			{
 				"level": "3-4",
 				"solver": "vera-and-dad",
-				"answer": "10",
-				"drawing": {
-					"picture": {
-						"kind": "bars",
-						"bars": [
-							{ "parts": 1 },
-							{ "parts": 3, "braces": [{ "from": 1, "to": 3, "label": "28" }] }
-						]
-					}
-				}
+				"answer": "10"
 			},
 			{ "level": "5-6", "solver": "even-saturdays", "answer": "Monday" }
 		],
@@ -429,40 +160,20 @@
 			{
 				"level": "5-6",
 				"solver": "grid-sums",
-				"answer": "Yes, always",
-				"drawing": {
-					"picture": { "kind": "table", "rows": [["1", "3"], ["2", "2"]] }
-				}
+				"answer": "Yes, always"
 			}
 		],
 		"parity.alternation": [
 			{
 				"level": "1-2",
 				"solver": "ferry",
-				"answer": "right bank",
-				"drawing": {
-					"picture": {
-						"kind": "row",
-						"line": false,
-						"items": [
-							{ "label": "0", "mark": "dot" },
-							{ "label": "1", "mark": "ring" },
-							{ "label": "2", "mark": "dot" },
-							{ "label": "3", "mark": "ring" },
-							{ "label": "4", "mark": "dot" },
-							{ "label": "5", "mark": "ring" },
-							{ "label": "6", "mark": "dot" },
-							{ "label": "7", "mark": "ring" }
-						]
-					}
-				}
+				"answer": "right bank"
 			},
 			{ "level": "3-4", "solver": "four-darts", "answer": "No" },
 			{
 				"level": "5-6",
 				"solver": "spider-on-a-cube",
-				"answer": "No",
-				"drawing": { "markup": "cube-corners" }
+				"answer": "No"
 			}
 		],
 		"arithmetic.tricks": [
@@ -474,30 +185,12 @@
 			{
 				"level": "3-4",
 				"solver": "one-litre",
-				"answer": "4",
-				"drawing": {
-					"picture": {
-						"kind": "table",
-						"header": ["3", "5"],
-						"rows": [["3", "0"], ["0", "3"], ["3", "3"], ["1", "5"]]
-					}
-				}
+				"answer": "4"
 			},
 			{
 				"level": "3-4",
 				"solver": "eight-coins",
-				"answer": "2",
-				"drawing": {
-					"picture": {
-						"kind": "piles",
-						"across": true,
-						"piles": [
-							{ "count": 3, "boxed": true },
-							{ "count": 3, "boxed": true },
-							{ "count": 2 }
-						]
-					}
-				}
+				"answer": "2"
 			},
 			{ "level": "5-6", "solver": "hundred-coins", "answer": "5" }
 		],
@@ -506,25 +199,12 @@
 			{
 				"level": "5-6",
 				"solver": "book-in-sevenths",
-				"answer": "140",
-				"drawing": {
-					"picture": {
-						"kind": "bars",
-						"bars": [
-							{
-								"parts": 7,
-								"shaded": 5,
-								"braces": [{ "from": 5, "to": 7, "label": "40" }]
-							}
-						]
-					}
-				}
+				"answer": "140"
 			},
 			{
 				"level": "5-6",
 				"solver": "eggs-at-the-market",
-				"answer": "7",
-				"drawing": { "markup": "eggs-backwards" }
+				"answer": "7"
 			}
 		],
 		"percent.basic": [
@@ -532,8 +212,7 @@
 			{
 				"level": "5-6",
 				"solver": "bike-price",
-				"answer": "400",
-				"drawing": { "markup": "price-changes" }
+				"answer": "400"
 			},
 			{ "level": "5-6", "solver": "drying-watermelons", "answer": "100" }
 		],
@@ -541,139 +220,54 @@
 			{
 				"level": "5-6",
 				"solver": "mushrooms",
-				"answer": "25",
-				"drawing": {
-					"picture": {
-						"kind": "bars",
-						"bars": [{ "parts": 4 }, { "parts": 5 }]
-					}
-				}
+				"answer": "25"
 			},
 			{
 				"level": "5-6",
 				"solver": "choir",
-				"answer": "33",
-				"drawing": {
-					"picture": {
-						"kind": "bars",
-						"bars": [
-							{ "parts": 4 },
-							{ "parts": 7, "braces": [{ "from": 4, "to": 7, "label": "9" }] }
-						]
-					}
-				}
+				"answer": "33"
 			},
 			{
 				"level": "5-6",
 				"solver": "two-boxes",
-				"answer": "40",
-				"drawing": {
-					"picture": {
-						"kind": "bars",
-						"bars": [
-							{
-								"segments": [
-									{ "size": 3, "label": "A" },
-									{ "size": 1, "label": "B" }
-								]
-							},
-							{
-								"segments": [
-									{ "size": 2, "label": "A" },
-									{ "size": 2, "label": "B" }
-								]
-							}
-						]
-					}
-				}
+				"answer": "40"
 			}
 		],
 		"geometry.grid": [
 			{
 				"level": "5-6",
 				"solver": "cross",
-				"answer": "12",
-				"drawing": {
-					"picture": {
-						"kind": "grid",
-						"rows": ["A", "B", "C"],
-						"cols": ["1", "2", "3"],
-						"filled": ["A2", "B1", "B2", "B3", "C2"]
-					}
-				}
+				"answer": "12"
 			},
 			{
 				"level": "5-6",
 				"solver": "strip-in-two",
-				"answer": "4",
-				"drawing": { "markup": "strip-cuts" }
+				"answer": "4"
 			},
 			{
 				"level": "5-6",
 				"solver": "diagonal",
-				"answer": "7",
-				"drawing": {
-					"picture": {
-						"kind": "grid",
-						"rows": ["A", "B", "C"],
-						"cols": ["1", "2", "3", "4", "5"],
-						"filled": ["A4", "A5", "B2", "B3", "B4", "C1", "C2"]
-					}
-				}
+				"answer": "7"
 			}
 		],
 		"number.divisibility": [
 			{
 				"level": "5-6",
 				"solver": "buses",
-				"answer": "4",
-				"drawing": {
-					"picture": {
-						"kind": "bars",
-						"bars": [
-							{
-								"segments": [
-									{ "size": 40, "label": "40" },
-									{ "size": 40, "label": "40" },
-									{ "size": 40, "label": "40" },
-									{ "size": 30, "label": "30" }
-								]
-							}
-						]
-					}
-				}
+				"answer": "4"
 			},
 			{ "level": "5-6", "solver": "star-digit", "answer": "1" },
 			{
 				"level": "5-6",
 				"solver": "hundred-twos",
-				"answer": "6",
-				"drawing": {
-					"picture": {
-						"kind": "table",
-						"header": ["1", "2", "3", "4", "5", "6"],
-						"rows": [["2", "4", "8", "6", "2", "4"]]
-					}
-				}
+				"answer": "6"
 			}
 		],
 		"logic.sets": [
 			{
 				"level": "5-6",
 				"solver": "sisters-and-brothers",
-				"answer": "4",
-				"drawing": {
-					"picture": {
-						"kind": "venn",
-						"sets": [
-							{ "label": "A", "count": "15" },
-							{ "label": "B", "count": "11" }
-						],
-						"both": "6",
-						"neither": "4",
-						"total": "24"
-					}
-				}
+				"answer": "4"
 			},
 			{ "level": "5-6", "solver": "apples-and-pears", "answer": "9" },
 			{ "level": "5-6", "solver": "three-subjects", "answer": "11" }
@@ -683,21 +277,12 @@
 			{
 				"level": "5-6",
 				"solver": "kings-walk",
-				"answer": "The second player",
-				"drawing": {
-					"picture": {
-						"kind": "grid",
-						"rows": ["A", "B", "C", "D", "E"],
-						"cols": ["1", "2", "3", "4", "5"],
-						"filled": ["A1", "A3", "A5", "C1", "C3", "C5", "E1", "E3", "E5"]
-					}
-				}
+				"answer": "The second player"
 			},
 			{
 				"level": "5-6",
 				"solver": "daisy",
-				"answer": "The second player",
-				"drawing": { "markup": "daisy" }
+				"answer": "The second player"
 			}
 		]
 	},
@@ -722,7 +307,8 @@
 							"level": "1-2",
 							"solver": "three-pets",
 							"answer": "Anya dog, Borya parrot, Vera cat"
-						}
+						},
+						"badge": "✓"
 					},
 					{
 						"id": "small-numbers",
@@ -776,7 +362,8 @@
 							"level": "1-2",
 							"solver": "flags-in-fours",
 							"answer": "green"
-						}
+						},
+						"badge": "●"
 					}
 				]
 			},
@@ -790,7 +377,8 @@
 							"level": "3-4",
 							"solver": "anya-and-borya",
 							"answer": "Anya knight, Borya liar"
-						}
+						},
+						"badge": "✓"
 					},
 					{
 						"id": "parity",
@@ -799,7 +387,8 @@
 							"level": "3-4",
 							"solver": "five-jumps",
 							"answer": "No"
-						}
+						},
+						"badge": "✕"
 					},
 					{
 						"id": "pigeonhole",
@@ -938,6 +527,13 @@
 				"span": "12"
 			},
 			"options": { "A": "3", "B": "4", "C": "5", "D": "6", "E": "12" },
+			"solution_picture": {
+				"kind": "row",
+				"items": [{}, {}, {}, {}, {}],
+				"gaps": "3",
+				"span": "12"
+			},
+			"solution_total": "12 ÷ 3 + 1 = 5",
 			"choice": "B",
 			"correct": "C",
 			"trap": "off_by_one",
@@ -948,7 +544,34 @@
 			"parity": "parity.alternation",
 			"knights": "logic.knights_liars"
 		},
-		"findings": ["rebholz2022", "biondi2012", "agarwal2020", "nunes2007"],
+		"findings": [
+			{ "id": "rebholz2022", "hue": "blue", "mark": "rise" },
+			{ "id": "biondi2012", "hue": "green", "mark": "bars" },
+			{ "id": "agarwal2020", "hue": "violet", "mark": "chain" },
+			{ "id": "nunes2007", "hue": "amber", "mark": "span" }
+		],
+		"history": [
+			[
+				{ "name": "athens", "focus": "45% 85%" },
+				{ "name": "confucius", "focus": "55% 70%" },
+				{ "name": "aryabhata", "focus": "50% 30%" }
+			],
+			[
+				{ "name": "istanbul", "focus": "50% 40%" },
+				{ "name": "pacioli", "focus": "30% 80%" },
+				{ "name": "sangaku", "focus": "50% 40%" }
+			],
+			[
+				{ "name": "rachinsky", "focus": "70% 25%" },
+				{ "name": "st-louis", "focus": "55% 25%" },
+				{ "name": "moscow", "focus": "50% 30%" }
+			],
+			[
+				{ "name": "coach-canvas", "focus": "35% 55%" },
+				{ "name": "coach-sheet", "focus": "50% 45%" },
+				{ "name": "coach-map", "focus": "30% 40%" }
+			]
+		],
 		"apps": "radesky2022",
 		"sources": {
 			"rebholz2022": {
@@ -1040,6 +663,13 @@
 				"span": "12"
 			},
 			"options": { "A": "3", "B": "4", "C": "5", "D": "36", "E": "12" },
+			"solution_picture": {
+				"kind": "row",
+				"items": [{}, {}, {}, {}, {}],
+				"gaps": "3",
+				"span": "12"
+			},
+			"solution_total": "12 ÷ 3 + 1 = 5",
 			"correct": "C",
 			"traps": {
 				"A": "ignored_condition",
@@ -1050,7 +680,22 @@
 			"choice": "B",
 			"rating": { "before": 1502, "wrong": 1480, "right": 1524 }
 		},
-		"traps": ["off_by_one", "missed_case", "double_count"]
+		"traps": ["off_by_one", "missed_case", "double_count"],
+		"pick": {
+			"skills": [
+				{ "topic": "combinatorics.enumeration", "share": 0.82 },
+				{ "topic": "counting.gaps", "share": 0.64 },
+				{ "topic": "parity.alternation", "share": 0.58 }
+			],
+			"chance": 0.72,
+			"corridor": { "low": 0.7, "high": 0.85 }
+		},
+		"alone": {
+			"options": { "A": "12", "B": "18", "C": "20" },
+			"right": ["A", "B"]
+		},
+		"languages": ["en", "ru", "es", "zh"],
+		"map": "logic.knights_liars"
 	},
 	"research": {
 		"sources": [

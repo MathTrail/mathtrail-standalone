@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
 
-// The site's stylesheets and the home page's demo, built beside the pages the
-// site's own script draws. The pages are plain HTML and load what they need
-// from the site's own origin, so this is an ordinary build rather than one
-// page with everything inside it.
+// The site's stylesheets, the home page's demo and the page "Why"'s script,
+// built beside the pages the site's own script draws. The pages are plain HTML
+// and load what they need from the site's own origin, so this is an ordinary
+// build rather than one page with everything inside it.
 export default defineConfig({
 	root: import.meta.dirname,
 	publicDir: false,
@@ -35,6 +35,7 @@ export default defineConfig({
 				style: "src/site/style.css",
 				card: "src/design/mathtrail.css",
 				demo: "src/demo/main.tsx",
+				why: "src/demo/why.ts",
 			},
 			output: {
 				// The stylesheet's address was published with the first site and

@@ -55,6 +55,16 @@
       "type": "string",
       "minLength": 1
     },
+    "solution_picture": {
+      "description": "Optional: the picture of the solution, in the format of the task's picture, which the card of how the answer went draws between the trap and the solution. The child sees it after answering, so it may show the answer. Its Latin capitals are named in the question or the solution.",
+      "$ref": "#/$defs/picture"
+    },
+    "solution_total": {
+      "description": "Optional, and only under solution_picture: the equality the solution comes to, written large under the picture, such as 2 + 2 + 2 = 6. Labels and numbers, written with the lesson's decimal mark and no separator between thousands, joined by + − × ÷ = ( ) and spaces, ending in = and the answer: the right option's number, of any length, or its label of at most 5 Latin capitals, with no question mark.",
+      "type": "string",
+      "maxLength": 32,
+      "pattern": "^[A-Z0-9.,+−×÷()= -]*=[ ]*([A-Z]{1,5}|[-−]?[0-9]+([.,][0-9]+)?)[ ]*$"
+    },
     "distractors": {
       "description": "One entry for each of the four wrong options, and none for the correct one.",
       "type": "object",
@@ -64,6 +74,7 @@
       "additionalProperties": { "$ref": "#/$defs/distractor" }
     }
   },
+  "dependentRequired": { "solution_total": ["solution_picture"] },
   "$defs": {
     "option": {
       "type": "string",
@@ -87,7 +98,7 @@
       }
     },
     "picture": {
-      "description": "A description of one of twelve kinds of picture: its kind and the members of that kind, and no other member. The service also checks what this schema cannot say: a number in a label is written with the lesson's decimal mark, a cell lies in its grid and no two cells share a name, a mark stands on a tick of its line, a brace lies within its bar, a bar shades no more parts than it has, a container holds no more than its capacity, a skip stands between two items and never beside another, and every row of a table is as long as the header, or as the first row where there is none.",
+      "description": "A description of one of thirteen kinds of picture: its kind and the members of that kind, and no other member. The service also checks what this schema cannot say: a number in a label is written with the lesson's decimal mark, a cell lies in its grid and no two cells share a name, a mark stands on a tick of its line, a brace lies within its bar, a bar shades no more parts than it has, a container holds no more than its capacity, a skip stands between two items and never beside another, every row of a table is as long as the header, or as the first row where there is none, a picture paints with no colour its colors do not name, names no colour it does not paint with and calls no two colours by one word, and there are at most 12 flags in all.",
       "type": "object",
       "required": ["kind"],
       "properties": {
@@ -105,7 +116,8 @@
             "balance",
             "containers",
             "piles",
-            "calendar"
+            "calendar",
+            "flags"
           ]
         }
       },
@@ -121,7 +133,8 @@
         { "$ref": "#/$defs/balance" },
         { "$ref": "#/$defs/containers" },
         { "$ref": "#/$defs/piles" },
-        { "$ref": "#/$defs/calendar" }
+        { "$ref": "#/$defs/calendar" },
+        { "$ref": "#/$defs/flags" }
       ]
     },
     "label": {
@@ -625,6 +638,68 @@
           "additionalProperties": { "$ref": "#/$defs/label" }
         }
       }
+    },
+    "paint": {
+      "description": "A colour of the palette the card paints with.",
+      "enum": ["red", "yellow", "green", "blue", "white", "black"]
+    },
+    "colors": {
+      "description": "The colours a picture paints with, each under the palette's name of it, with the word the question calls it by, in the form the question writes it. The card writes each beside its paint under the picture.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "red": { "$ref": "#/$defs/color_word" },
+        "yellow": { "$ref": "#/$defs/color_word" },
+        "green": { "$ref": "#/$defs/color_word" },
+        "blue": { "$ref": "#/$defs/color_word" },
+        "white": { "$ref": "#/$defs/color_word" },
+        "black": { "$ref": "#/$defs/color_word" }
+      }
+    },
+    "color_word": {
+      "description": "The word a colour is called by: letters of any script, at most two words and 16 characters.",
+      "type": "string",
+      "maxLength": 16,
+      "pattern": "^[\\p{L}][\\p{L}\\p{M}]*( [\\p{L}][\\p{L}\\p{M}]*)?$"
+    },
+    "flags": {
+      "description": "Flags in 1 to 4 groups, gathered by what they share, each group named under it by a colour or a label.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "groups"],
+      "properties": {
+        "kind": { "const": "flags" },
+        "colors": { "$ref": "#/$defs/colors" },
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/flag_group" }
+        }
+      }
+    },
+    "flag_group": {
+      "description": "A group of flags, named under it by a colour or a label, never both.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["flags"],
+      "properties": {
+        "label": { "$ref": "#/$defs/label" },
+        "color": { "$ref": "#/$defs/paint" },
+        "flags": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "description": "One flag: its stripes from top to bottom, each a colour colors names, or ? where its colour is the unknown.",
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": { "anyOf": [{ "$ref": "#/$defs/paint" }, { "const": "?" }] }
+          }
+        }
+      },
+      "not": { "required": ["label", "color"] }
     }
   }
 }

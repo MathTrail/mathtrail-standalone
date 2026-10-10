@@ -90,6 +90,10 @@ func TestEachKindSaysWhatItLabelsAndWhatItShows(t *testing.T) {
 		{"a calendar shows its last day and the days it marks, not its first weekday",
 			`{"kind":"calendar","first":3,"days":30,"marks":{"14":"?","2":"A"}}`,
 			[]string{"A", "?"}, []string{"30", "2", "A", "14", "?"}},
+		{"flags show their groups' labels, how many flags each holds and how many in all",
+			`{"kind":"flags","colors":{"red":"red","blue":"blue"},"groups":[{"label":"A","flags":[["red","blue"],` +
+				`["blue","red"]]},{"color":"red","flags":[["red","?"],["?","red"],["red","blue","red"]]}]}`,
+			[]string{"A"}, []string{"A", "2", "3", "5"}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -102,6 +106,25 @@ func TestEachKindSaysWhatItLabelsAndWhatItShows(t *testing.T) {
 				t.Errorf("Shown() = %q, want %q", got, test.shown)
 			}
 		})
+	}
+}
+
+// The words a picture writes are those of the colours it paints with, each
+// once, in the order of the palette; a kind that paints nothing writes none.
+func TestAPictureWritesTheWordsOfItsColoursAlone(t *testing.T) {
+	t.Parallel()
+	flags := read(t, `{"kind":"flags","colors":{"yellow":"жёлтая","red":"красная","black":"чёрная"},`+
+		`"groups":[{"color":"black","flags":[["red","yellow"],["yellow","red"]]}]}`, picture.Point)
+	if got, want := flags.Words(), []string{"красная", "жёлтая", "чёрная"}; !slices.Equal(got, want) {
+		t.Errorf("Words() = %q, want %q", got, want)
+	}
+	for _, test := range wellMade {
+		if test.kind == picture.Flags {
+			continue
+		}
+		if got := read(t, test.description, picture.Point).Words(); got != nil {
+			t.Errorf("%s: Words() = %q, want none", test.name, got)
+		}
 	}
 }
 

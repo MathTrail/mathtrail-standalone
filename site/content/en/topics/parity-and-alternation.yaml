@@ -8,6 +8,12 @@
 title: Parity and alternation
 description: What problems about even and odd numbers and things that take turns are, how they are solved, where children go wrong, and how to help at home.
 
+# The words the page's drawings say of a number and of a corner of the cube.
+art:
+  even: even
+  odd: odd
+  start: start
+
 hero:
   lead: >-
     Can 15 children stand in a ring, boy, girl, boy, girl, all the way round?
@@ -17,29 +23,35 @@ hero:
     first thing they meet that stays the same however the moves go.
   method: Watch what each move does to even and odd
   teaches: To answer “can it be?” without trying every way
-  # Its drawing is the site's data: two colours taking turns, black in the odd
-  # places and white in the even ones.
+  # The words of its drawing: who takes turns, the key of the colours, and
+  # what the two circles show.
+  art:
+    line: Boys and girls take turns round a circle
+    boy: a boy
+    girl: a girl
+    six: "6 children: it works"
+    five: "5 children: it does not"
+    even: round a circle, taking turns works only for an even number of children
 
 basis:
   title: The rules of even and odd
   cards:
-    - mark: "2"
-      title: Even splits into pairs
+    - title: Even splits into pairs
       text: >-
         An even number of things splits into pairs with none left over. An odd
         number always leaves one without a pair.
-    - mark: "±"
-      title: Only the odd ones matter
+    - title: Only the odd ones matter
       text: >-
         Even plus even is even, odd plus odd is even, and even plus odd is odd.
         So whether a sum is even depends only on how many odd numbers are in
         it.
-    - mark: "●○"
-      title: Taking turns
+    - title: Taking turns
       text: >-
         When two things take turns, one stands in the odd places and the other
         in the even ones. A ring can take turns all the way round only when it
         has an even number of places.
+      art:
+        places: boys in the odd places, girls in the even ones
 
 idea:
   title: Count only the odd numbers
@@ -86,8 +98,6 @@ examples:
     question: >-
       A ferry carries cars across a river and back, again and again. It starts
       at the left bank. At which bank is it after crossing the river 7 times?
-    # Its drawing is the site's data: the crossings 0 to 7, a dot where the
-    # ferry is at the left bank and a ring at the right one, 0 being the start.
     steps:
       - After 1 crossing the ferry is at the right bank, and after 2 back at the left.
       - >-
@@ -96,11 +106,19 @@ examples:
         the right.
       - 7 is odd, so the ferry is at the right bank.
     answer: At the right bank.
+    badge: →
     note:
       title: Why not just count?
       text: >-
         For 7 crossings counting is quick. The rule answers for 100 crossings
         just as fast, and it is the rule that the harder tasks need.
+    art:
+      start: at first, at the left bank
+      none: 0 crossings
+      one: 1 crossing
+      two: 2 crossings
+      left: the left bank
+      right: the right bank
   - title: Four darts
     question: >-
       Ben throws 4 darts at a target whose rings are worth 1, 3, 5 and 7
@@ -114,18 +132,21 @@ examples:
         number.
       - 15 is odd, so Ben cannot have scored it.
     answer: No.
+    badge: ✕
     note:
       title: And with 3 darts?
       text: >-
         Three odd numbers add up to an odd one, and 15 can happen: 5 + 5 + 5,
         or 7 + 7 + 1.
+    art:
+      darts: 4 darts, all on the target
+      rings: every ring is odd
+      only-even: and 4 darts make only even scores
   - title: A spider on a cube
     question: >-
       A spider sits at a corner of a cube made of wire. Every minute it crawls
       along one edge to the next corner. Can it be back at the corner it
       started from after exactly 7 minutes?
-    # Its drawing is the site's data: a cube whose corners take turns in colour,
-    # so that every edge joins a black corner and a white one.
     steps:
       - >-
         Colour the corners: the start white, its neighbours black, their
@@ -136,12 +157,19 @@ examples:
         black, after 2 on white, and after any odd number of minutes on black.
       - 7 is odd, and the start is white. The spider cannot be back.
     answer: No.
+    badge: ✕
     note:
       title: And after 8 minutes?
       text: >-
         Yes: crawling along one edge and back four times brings it home. The
         colours say when it cannot be done; that an even number of minutes is
         enough still has to be shown.
+    art:
+      edge: one edge a minute
+      minutes: "minutes: a white corner at even ones, a black at odd ones"
+      seven: after 7 minutes
+      back: there and back × 4
+      eight: 8 minutes
 
 # The commonest traps of the topic's reference tasks, the commonest first.
 traps:
@@ -151,18 +179,26 @@ traps:
       ferry is back where it started, or that four odd numbers add up to an
       odd one.
     say: "“Try it small: where is the ferry after 1 crossing, after 2?”"
+    art:
+      question: Where is the ferry after 7 crossings?
   ignored_condition:
     shows: >-
       One condition of the task is lost: the child finds 15 points with three
       darts and forgets that Ben threw four, or picks a number that fits one
       clue and not the other.
     say: “Read the task again. Does your answer fit every word of it?”
+    art:
+      question: "Darts: 4"
+      three: 3 darts
+      always: always even
   off_by_one:
     shows: >-
       A place in a row is counted one off: the start is taken for the first
       crossing, or a row that begins and ends with a boy gets as many boys as
       girls.
     say: “Write out the first few. Which one is number 1?”
+    art:
+      equal: as many of each
 
 home:
   - title: Odd or even?

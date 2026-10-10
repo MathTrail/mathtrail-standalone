@@ -237,6 +237,23 @@ var refusals = []struct {
 		checks.CodeDrawingFormat, "task.picture.copies must be a whole number from 1 to 2"},
 	{"a picture with a label the wording does not name", func(s *scenario) { picture(s, pictureOf(1, "P", "Q", "R"), "P", "Q") },
 		checks.CodeDrawingMismatch, "does not name 1 of the labels"},
+	{"a picture of the solution out of its format", func(s *scenario) {
+		solutionPicture(s, pictureOf(3, "P", "Q"), "P", "Q")
+	}, checks.CodeDrawingFormat, "task.solution_picture.copies must be a whole number from 1 to 2"},
+	{"a picture of the solution with a label neither the question nor the solution names", func(s *scenario) {
+		solutionPicture(s, pictureOf(1, "P", "Q", "R"), "P", "Q")
+	}, checks.CodeDrawingMismatch, "neither task.question nor task.solution names 1 of the labels"},
+	{"a total with no picture of the solution", func(s *scenario) { s.draft.Task.SolutionTotal = "2 + 2 + 2 = 6" },
+		checks.CodeBadStructure, "task.solution_total comes with task.solution_picture"},
+	{"a total that is no equality", func(s *scenario) {
+		solutionPicture(s, pictureOf(1, "P", "Q"), "P", "Q")
+		s.draft.Task.SolutionTotal = "six pairs"
+	}, checks.CodeDrawingFormat, "task.solution_total must be the equality the solution comes to"},
+	{"a total that does not end in the answer", func(s *scenario) {
+		inNumbers(s)
+		solutionPicture(s, pictureOf(1, "P", "Q"), "P", "Q")
+		s.draft.Task.SolutionTotal = "2 + 2 = 4"
+	}, checks.CodeDrawingMismatch, "task.solution_total does not end in the right answer"},
 	{"a sentence too long for the level", func(s *scenario) {
 		s.draft.Task.Question += longSentence
 		s.askedFor(rating.Grades12)
@@ -266,6 +283,72 @@ var refusals = []struct {
 func picture(s *scenario, description json.RawMessage, named ...string) {
 	s.draft.Task.Question += " The picture marks " + strings.Join(named, " and ") + "."
 	s.draft.Task.Picture = description
+}
+
+// solutionPicture gives a scenario's task a picture of its solution, and a
+// sentence of its solution naming these labels.
+func solutionPicture(s *scenario, description json.RawMessage, named ...string) {
+	s.draft.Task.Solution += " The picture marks " + strings.Join(named, " and ") + "."
+	s.draft.Task.SolutionPicture = description
+}
+
+// inNumbers gives a scenario's task its options in numbers, the right one 6,
+// and a solver that finds 6.
+func inNumbers(s *scenario) {
+	s.draft.Task.Options = map[string]string{"A": "4", "B": "5", "C": "6", "D": "8", "E": "12"}
+	s.runner = &working{value: "6"}
+}
+
+// A picture of the solution is shown with the solution, after the answer, so
+// it may show what the child was asked for, and its total ends in it: the same
+// picture on the task itself shows the answer, and is refused.
+func TestAPictureOfTheSolutionMayShowTheAnswer(t *testing.T) {
+	t.Parallel()
+
+	shown := accepted()
+	inNumbers(&shown)
+	shown.draft.Task.SolutionPicture = pictureOf(1, "2", "6")
+	shown.draft.Task.SolutionTotal = "2 + 2 + 2 = 6"
+	if outcome := shown.review(t); !outcome.Accepted() {
+		t.Errorf("a picture of the solution showing 6 is refused: %v", outcome.Problems)
+	}
+
+	asked := accepted()
+	inNumbers(&asked)
+	asked.draft.Task.Picture = pictureOf(1, "2", "6")
+	outcome := asked.review(t)
+	if codes := codesOf(&outcome); !slices.Equal(codes, []checks.Code{checks.CodeDrawingMismatch}) ||
+		!mentions(outcome.Problems, "task.picture shows the right answer") {
+		t.Errorf("the same picture on the task = %v, want it refused for showing the answer", outcome.Problems)
+	}
+}
+
+// A total is held to the right option only where the two can be compared: an
+// option that is a number written in words is no number a total could end in,
+// and a total under it is not refused for that.
+func TestATotalIsNotHeldToANumberInWords(t *testing.T) {
+	t.Parallel()
+
+	inWords := accepted()
+	inWords.draft.Task.SolutionPicture = pictureOf(1, "2", "6")
+	inWords.draft.Task.SolutionTotal = "2 + 2 + 2 = 6"
+	if outcome := inWords.review(t); !outcome.Accepted() {
+		t.Errorf("a total under the option %q is refused: %v", inWords.draft.Task.Options["C"], outcome.Problems)
+	}
+}
+
+// A picture of the solution that names no kind of picture is not held to the
+// wording, and the review says what it has still to pass.
+func TestAPictureOfTheSolutionOfNoKindIsNotHeldToTheWording(t *testing.T) {
+	t.Parallel()
+
+	unread := accepted()
+	unread.draft.Task.SolutionPicture = json.RawMessage(`{"kind":"tree"}`)
+	outcome := unread.review(t)
+	if !slices.Contains(outcome.Unchecked, "the picture of the solution was not held to the wording: that needs "+
+		"task.solution_picture in the format of one of the kinds of picture") {
+		t.Errorf("unchecked = %v, want the picture of the solution named", outcome.Unchecked)
+	}
 }
 
 // pictureOf is a row of these labels, drawn as many times as copies says:

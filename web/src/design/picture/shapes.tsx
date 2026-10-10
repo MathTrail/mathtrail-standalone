@@ -26,8 +26,9 @@ export const sizes = {
 
 /**
  * Label is one text of a picture, centred on a point unless anchored at its
- * start or its end, in the colour of the card's text: a label the description
- * gives is drawn strong, a number the card writes itself plain.
+ * start or its end, in the colour of the card's text, or of the tone a page
+ * lights it in: a label the description gives is drawn strong, a number the
+ * card writes itself plain.
  */
 export function Label({
 	x,
@@ -36,6 +37,7 @@ export function Label({
 	size = sizes.label,
 	strong = true,
 	anchor = "middle",
+	tone,
 }: {
 	x: number;
 	y: number;
@@ -43,6 +45,7 @@ export function Label({
 	size?: number;
 	strong?: boolean;
 	anchor?: "middle" | "start" | "end";
+	tone?: string | undefined;
 }) {
 	return (
 		<text
@@ -52,6 +55,7 @@ export function Label({
 			text-anchor={anchor}
 			font-size={size}
 			class={strong ? "mt-pic-text mt-pic-strong" : "mt-pic-text"}
+			data-tone={tone}
 		>
 			{text}
 		</text>
@@ -202,8 +206,8 @@ export const braceHeight = 14;
 
 /**
  * Lined is a label to lay out among others on a line: what tells it apart
- * from them, where its middle wants to stand, and what it says, at what size
- * and how strongly.
+ * from them, where its middle wants to stand, and what it says, at what size,
+ * how strongly and in what tone.
  */
 export type Lined = {
 	id: string;
@@ -211,6 +215,7 @@ export type Lined = {
 	text: string;
 	size?: number;
 	strong?: boolean;
+	tone?: string | undefined;
 };
 
 /** lineHeight is how far apart the lines of a stack of labels stand, at a size. */
@@ -264,6 +269,7 @@ export function Stack({
 					text={one.text}
 					size={one.size ?? size}
 					strong={one.strong ?? true}
+					tone={one.tone}
 				/>
 			))}
 		</>

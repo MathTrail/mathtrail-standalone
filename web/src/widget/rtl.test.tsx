@@ -21,6 +21,7 @@ import {
 	profileRead,
 	progress,
 	refused,
+	shown,
 	standing,
 	withTopicChoice,
 	writing,
@@ -132,7 +133,7 @@ describe("the screens in Arabic", () => {
 		expect(markupOf(root)).toMatchSnapshot();
 	});
 
-	test("the result of a wrong answer", async () => {
+	test("the task answered wrong, the chat asked to go over it", async () => {
 		const root = await draw(fenceInArabic);
 		const wrong = [...root.querySelectorAll<HTMLElement>(".mt-option")].find(
 			(row) => row.querySelector(".mt-option-letter")?.textContent === "B",
@@ -142,7 +143,26 @@ describe("the screens in Arabic", () => {
 		}
 		press(wrong);
 		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-verdict-line")).not.toBeNull(),
+			expect(root.querySelector(".mt-answer-note")?.textContent).not.toBe(""),
+		);
+
+		expect(markupOf(root)).toMatchSnapshot();
+	});
+
+	test("the card of how a wrong answer went", async () => {
+		const root = await draw(
+			shown(
+				fenceInArabic,
+				{
+					trap: {
+						id: "fence_gaps",
+						text: "عُدّت المسافات بدلًا من الأعمدة.",
+						repeated: false,
+					},
+					solution: fenceSolutionInArabic,
+				},
+				{},
+			),
 		);
 
 		expect(markupOf(root)).toMatchSnapshot();

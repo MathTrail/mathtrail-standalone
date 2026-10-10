@@ -6,9 +6,9 @@ import type { Drawing } from "./drawings";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { StaticProgress } from "./StaticCard";
-import { TopicDrawing } from "./TopicDrawings";
 import { TopicFoot } from "./TopicFoot";
 import { TopicMap } from "./TopicMap";
+import { TopicDrawing } from "./TopicThumbs";
 import { lightRules, mapOf } from "./topicmap";
 import type { Topic } from "./topics";
 import { groupKey, useSiteWords } from "./words";
@@ -29,6 +29,7 @@ export function TopicsPage({ page, data }: PageProps) {
 	const words = useSiteWords();
 	const card = cardWords(page.locale, undefined);
 	const name = (topic: Topic) => topicName(card, topic.id);
+	const numbers = new Intl.NumberFormat(page.locale);
 	const names = (ids: readonly string[]) =>
 		listed(
 			card,
@@ -82,6 +83,7 @@ export function TopicsPage({ page, data }: PageProps) {
 												page={page}
 												topic={topic}
 												drawing={cardDrawingOf(data, topic)}
+												numbers={numbers}
 												name={name(topic)}
 												names={names}
 											/>,
@@ -119,12 +121,14 @@ function TopicCard({
 	page,
 	topic,
 	drawing,
+	numbers,
 	name,
 	names,
 }: {
 	page: PageReader;
 	topic: Topic;
 	drawing: Drawing;
+	numbers: Intl.NumberFormat;
 	name: string;
 	names: (ids: readonly string[]) => string;
 }) {
@@ -132,12 +136,7 @@ function TopicCard({
 	const key = `topics.${topic.slug}`;
 	return (
 		<article id={topic.slug} class="s-topic s-topic-card">
-			<TopicDrawing
-				drawing={drawing}
-				page={page}
-				at={`${key}.drawing`}
-				where={`the card of ${topic.id}`}
-			/>
+			<TopicDrawing drawing={drawing} numbers={numbers} />
 			<div class="s-topic-body">
 				<h3>{name}</h3>
 				<p class="s-topic-phrase">{page.text(`${key}.phrase`)}</p>
