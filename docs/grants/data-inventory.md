@@ -66,7 +66,7 @@ The child's identifier is in no result, and the pseudonym never goes into the te
 ## Limits
 
 - One address may send the sign-in's endpoints 20 requests a minute; a signed-in account may send the MCP endpoint 60 a minute; one instance takes 200 a minute from everybody for the sign-in, and 200 for the lessons; and one account's grant may be renewed at Google 12 times a minute. Each instance counts them in its own memory.
-- A child may be given 20 tasks a day, and once 5 requests of a day have ended with the model out of attempts, no more are opened that day.
+- A child may be given 50 tasks a day, and once 10 requests of a day have ended with the model out of attempts, no more are opened that day.
 
 ## When a key leaks
 

@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/config"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/lesson"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/report"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/scenario"
@@ -146,6 +148,21 @@ func TestEveryScenarioStartsFromOptionsItCanKeepTo(t *testing.T) {
 		if len(reads) == 0 || slices.ContainsFunc(reads, func(option string) bool { return !slices.Contains(set, option) }) {
 			t.Errorf("Reads(%q) = %q, want some of %q and nothing else", name, reads, set)
 		}
+	}
+}
+
+// The ceiling waits for the day by default longer than its pauses take, twice
+// over, at whatever ceiling of failed requests the service is built with: a
+// pause before every request and before each attempt handed in for it, and one
+// before the request the day refuses.
+func TestTheCeilingWaitsForTheDayTheServiceIsBuiltWith(t *testing.T) {
+	t.Parallel()
+
+	o := optionsOf(t, scenario.Ceiling)
+	pauses := 1 + config.DefaultDailyFailed*(1+profile.MaxAttempts)
+	if least := 2 * time.Duration(pauses) * o.Pace; o.Duration < least {
+		t.Errorf("the ceiling waits %v for the day, want at least %v: %d pauses of %v, twice over",
+			o.Duration, least, pauses, o.Pace)
 	}
 }
 

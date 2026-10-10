@@ -103,7 +103,7 @@ Every call to `/mcp` needs a sign-in with Google and `drive.file`. There is no d
 | Google's check | Likely: reviewers sign in from their companies' networks and devices, often in another country, and a check is the "additional login step" ChatGPT rejects | None: Google is not asked |
 | Re-reviews | Each one signs in to Google again, with the same chance of a check | It works while the secret and the Google refresh token live. Google ends a refresh token "not used for six months", and one of an app still in Testing after seven days ([OAuth 2.0](https://developers.google.com/identity/protocols/oauth2), read 2026-10-05), so the app must be In production, which T71.3 confirms |
 | If the credentials leak | The demo Google account | The demo profile; the password is changed after each review |
-| Either way | The demo profile lives in the demo account's Drive, and its 20 tasks a day (`MATHTRAIL_DAILY_TASKS`) are shared by every reviewer, which T71.3 counts | |
+| Either way | The demo profile lives in the demo account's Drive, and its 50 tasks a day (`MATHTRAIL_DAILY_TASKS`) are shared by every reviewer, which T71.3 counts | |
 
 **Recommendation: B**, off unless its secret is set. ChatGPT names extra login steps as a reason to reject, Google says it may add one without 2-Step Verification, and a rejection costs a review cycle of unknown length.
 

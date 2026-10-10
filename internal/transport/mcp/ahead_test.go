@@ -11,6 +11,7 @@ import (
 	"github.com/leanovate/gopter/prop"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -282,7 +283,7 @@ func TestNothingIsWrittenAheadOnceTheDaysTasksAreOver(t *testing.T) {
 	t.Parallel()
 
 	kept := keptAs(t, "olya", func(p *profile.Profile) {
-		p.Daily = profile.Daily{Date: profile.DateOf(lessonDay), Accepted: 20}
+		p.Daily = profile.Daily{Date: profile.DateOf(lessonDay), Accepted: config.DefaultDailyTasks}
 	})
 	_, session := lesson(t, kept)
 
@@ -670,7 +671,7 @@ func TestADayWithNoRoomHandsOutNoTaskKept(t *testing.T) {
 	h, session := lesson(t, kept)
 	race, relay := keepTheRelay(t, session, kept)
 	changeKept(t, kept, func(p *profile.Profile) {
-		p.Daily = profile.Daily{Date: profile.DateOf(lessonDay), Accepted: 20}
+		p.Daily = profile.Daily{Date: profile.DateOf(lessonDay), Accepted: config.DefaultDailyTasks}
 	})
 
 	if asked := payloadOf[requestPayload](t, call(t, session, "next_task", map[string]any{"language": "en"})); asked.Status != "limited" {

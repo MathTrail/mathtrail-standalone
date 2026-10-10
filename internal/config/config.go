@@ -70,8 +70,8 @@ const (
 	DefaultRateIPPerMin       = 20
 	DefaultRateInstancePerMin = 200
 	DefaultRateRenewalPerMin  = 12
-	DefaultDailyTasks         = 20
-	DefaultDailyFailed        = 5
+	DefaultDailyTasks         = 50
+	DefaultDailyFailed        = 10
 
 	DefaultTrapRepeats = 2
 
