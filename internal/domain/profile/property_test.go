@@ -561,3 +561,32 @@ func TestARefusalHoldsItsProperties(t *testing.T) {
 
 	properties.TestingRun(t)
 }
+
+// Whatever clock a family keeps and whenever a task is given, the counters of
+// its day hold to the family's next midnight and not a second past it: the
+// last second of the family's day still counts the task, and the first of the
+// next counts none.
+func TestTheFamilysDayHoldsItsProperties(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+
+	properties.Property("the counters hold to the family's midnight and no further", prop.ForAll(
+		func(quarters int, given int64) bool {
+			offset := time.Duration(quarters*15) * time.Minute
+			var p profile.Profile
+			p.SetClock(quarters * 15)
+			at := time.Unix(given, 0).UTC()
+			p.CountAccepted(at)
+
+			shown := at.Add(offset)
+			midnight := time.Date(shown.Year(), shown.Month(), shown.Day()+1, 0, 0, 0, 0, time.UTC).Add(-offset)
+			return p.Daily.Today(midnight.Add(-time.Second)).Accepted == 1 &&
+				p.Daily.Today(midnight).Accepted == 0
+		},
+		gen.IntRange(-12*4, 14*4),
+		gen.Int64Range(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC).Unix(), time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC).Unix()),
+	))
+
+	properties.TestingRun(t)
+}

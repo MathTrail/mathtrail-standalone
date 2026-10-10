@@ -93,11 +93,15 @@ func TestEveryPictureTheContentHoldsMeetsTheTaskSchema(t *testing.T) {
 		}
 	}
 	for _, task := range shipped.Examples() {
-		if task.Picture == nil {
-			continue
+		if task.Picture != nil {
+			if err := pictures.Validate(valueOf(t, task.Picture)); err != nil {
+				t.Errorf("%s: the picture does not meet the schema: %v", task.ID, err)
+			}
 		}
-		if err := pictures.Validate(valueOf(t, task.Picture)); err != nil {
-			t.Errorf("%s: the picture does not meet the schema: %v", task.ID, err)
+		if task.SolutionPicture != nil {
+			if err := pictures.Validate(valueOf(t, task.SolutionPicture)); err != nil {
+				t.Errorf("%s: the picture of the solution does not meet the schema: %v", task.ID, err)
+			}
 		}
 	}
 }
@@ -312,8 +316,9 @@ func TestTheTaskSchemaNamesTheMembersTheServiceReads(t *testing.T) {
 	}
 }
 
-// withTotal is a task the schema accepts, with a picture of its solution
-// and the total given under it, or with neither when there is no total.
+// withTotal is a task the schema accepts, with the picture of its solution
+// every task draws and the total given under it, or none when there is no
+// total.
 func withTotal(t *testing.T, total string) map[string]any {
 	t.Helper()
 
@@ -328,10 +333,11 @@ func withTotal(t *testing.T, total string) map[string]any {
 		"correct_answer": "B",
 		"hint":           "How many socks make a pair?",
 		"solution":       "A pair is two socks. Three pairs are 2 + 2 + 2 = 6.",
-		"distractors":    distractors,
+		"solution_picture": valueOf(t,
+			[]byte(`{"kind":"piles","piles":[{"count":2},{"count":2},{"count":2}]}`)),
+		"distractors": distractors,
 	}
 	if total != "" {
-		task["solution_picture"] = valueOf(t, []byte(`{"kind":"piles","piles":[{"count":2},{"count":2},{"count":2}]}`))
 		task["solution_total"] = total
 	}
 	return task
@@ -340,7 +346,7 @@ func withTotal(t *testing.T, total string) map[string]any {
 // A total the service reads, the schema accepts; and what the service
 // refuses of a total, the schema refuses too, wherever a schema can say it:
 // no equality, the answer left open or past what ends it, a word, or a total
-// with no picture of the solution to stand under.
+// with no picture of the solution to stand under, which every task draws.
 func TestTheTotalTheServiceRefusesTheTaskSchemaRefuses(t *testing.T) {
 	t.Parallel()
 
@@ -350,7 +356,7 @@ func TestTheTotalTheServiceRefusesTheTaskSchemaRefuses(t *testing.T) {
 		t.Fatalf("the schema of a task does not resolve: %v", err)
 	}
 	if err := tasks.Validate(withTotal(t, "")); err != nil {
-		t.Fatalf("the schema refuses a task with no picture of its solution: %v", err)
+		t.Fatalf("the schema refuses a task with no total: %v", err)
 	}
 	for _, total := range []string{"2 + 2 + 2 = 6", "12 − 7 = B", "(3 + 2) × 2 = 10", "2 − 5 = −3", "3.5 + 1 = 4.5"} {
 		if _, problems := picture.ReadTotal(total, picture.Point); len(problems) != 0 {
@@ -373,6 +379,6 @@ func TestTheTotalTheServiceRefusesTheTaskSchemaRefuses(t *testing.T) {
 	alone := withTotal(t, "2 + 2 + 2 = 6")
 	delete(alone, "solution_picture")
 	if err := tasks.Validate(alone); err == nil {
-		t.Error("the schema accepts a total with no picture of the solution to stand under")
+		t.Error("the schema accepts a task with no picture of its solution, its total standing alone")
 	}
 }

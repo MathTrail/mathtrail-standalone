@@ -205,12 +205,12 @@ describe("the card of how an answer went", () => {
 		await drawCard(
 			shown({
 				...fence,
-				task: { ...fence.task, language: "he" },
+				task: { ...fence.task, language: "yi" },
 			}),
 		);
 
 		const trap = root.querySelector(".mt-note-trap p");
-		expect(trap?.getAttribute("lang")).toBe("he");
+		expect(trap?.getAttribute("lang")).toBe("yi");
 		expect(trap?.getAttribute("dir")).toBe("rtl");
 		expect(root.querySelector(".mt-steps ol")?.getAttribute("dir")).toBe("rtl");
 		// The card's own words stay in the card's language.

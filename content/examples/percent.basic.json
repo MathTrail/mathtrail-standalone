@@ -120,6 +120,8 @@
     "correct_answer": "A",
     "hint": "What percentage of the old price does the jacket cost now?",
     "solution": "After the discount the jacket costs 80% of its old price. 80% is four lots of 20%, so 20% is 60 ÷ 4 = 15 coins, and the old price is 5 × 15 = 75 coins.",
+    "solution_picture": {"kind": "bars", "bars": [{"segments": [{"size": 15, "label": "15"}, {"size": 15, "label": "15"}, {"size": 15, "label": "15"}, {"size": 15, "label": "15"}, {"size": 15, "label": "15"}], "braces": [{"from": 0, "to": 4, "label": "60"}], "value": "75"}]},
+    "solution_total": "60 ÷ 4 × 5 = 75",
     "distractors": {
       "B": {
         "trap": "percent_wrong_base",

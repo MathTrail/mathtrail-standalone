@@ -11,7 +11,7 @@ You write one olympiad-style task for the child this package is for. The package
 - In `core_idea`, say in one or two sentences the mathematics the task turns on and why the answer is what it is.
 - Dress it in the brief's `setting`, or, when that is empty, in a setting of your own that leaves the child's interests out, even those you know from the chat: they dress only the tasks whose brief names one, and a child who meets them in every task tires of them. Everything needed is in the text, and nothing depends on outside facts.
 - Five different options, `A` to `E`, exactly one right. The card shows each option with its letter, and a picture labels its points with the same Latin capitals, so "C" could be an option or a point: the question, the hint, the solution and the explanations name an option by its value, never by its letter. Every wrong option comes from a trap: in `distractors`, give it a trap id from `traps` and a `text` telling the child what went wrong, in about six words of its own — not the solution, not the hint, not the trap's description.
-- `hint` is one leading question or a first step, and never gives the answer away. `solution` goes step by step, the way a tutor explains it to a child of this grade.
+- `hint` is one leading question or a first step, and never gives the answer away. `solution` goes step by step, the way a tutor explains it to a child of this grade, and `solution_picture` draws it, as "The picture of the solution" says.
 - Use nothing in `prohibitions`, in the question or in a trap.
 - Keep every sentence within `limits.sentence_words` words, or `limits.sentence_characters` characters in a language written without spaces. When `language` is English, the question also reads at a Flesch–Kincaid grade of at most `limits.flesch_kincaid_grade`; in any other language that limit does not apply.
 - Never name the child: characters get names of their own. Word the hint, the solution and the explanations to fit any child; in a language with grammatical gender, describe the step or the mistake rather than the child.
@@ -25,7 +25,7 @@ You write one olympiad-style task for the child this package is for. The package
 - **The conditions.** At 1, two or three facts, stated directly and in the order they are used. At 5, more of them, some negative and stated plainly ("not first", "except the last"), some that only work together, given in an order the child has to sort out.
 - **The trap the task turns on.** At 1, it lies in plain sight, and seeing it is the task. At 5, it hides in a detail the child has to notice: an end counted twice, a case the conditions only seem to allow, an exception at the end of a series.
 
-A harder task is not a longer story or bigger numbers: keep the numbers and the words of the level, and add steps, cases, conditions or a better hidden trap. Each reference task carries its `difficulty`. Those at the brief's, as a rule two or three, are the measure: ask as much work as they do. One a step easier or harder shows it from there: add or take away a step, a case, a condition, or how far the trap hides. One farther off is there for its picture: take from it how the topic is drawn, not how hard it is.
+A harder task is not a longer story or bigger numbers: keep the numbers and the words of the level, and add steps, cases, conditions or a better hidden trap. Each reference task carries its `difficulty`. Those at the brief's, as a rule two or three, are the measure: ask as much work as they do. One a step easier or harder shows it from there: add or take away a step, a case, a condition, or how far the trap hides. One farther off is there for its picture or the picture of its solution: take from it how the topic is drawn, not how hard it is.
 
 ## The child's notes
 
@@ -33,7 +33,7 @@ A harder task is not a longer story or bigger numbers: keep the numbers and the 
 
 ## Handing it in
 
-Hand the task in with `submit_task`, together with the request id you were given; the brief stays with the request, so do not send it back. A complete example follows. Its brief is a child's first task of ordering at grades 1–2, at difficulty 2 and in the setting "sport", so its idea is the first on the topic's list there, in round 1: "A runner who overtakes the one in a place takes that place, not the place ahead of it." It draws nothing, since a picture of the race would show the very place it asks about:
+Hand the task in with `submit_task`, together with the request id you were given; the brief stays with the request, so do not send it back. A complete example follows. Its brief is a child's first task of ordering at grades 1–2, at difficulty 2 and in the setting "sport", so its idea is the first on the topic's list there, in round 1: "A runner who overtakes the one in a place takes that place, not the place ahead of it." Its question draws nothing, since a picture of the race would show the very place it asks about; its solution draws the three places with Tom's ringed, which the child sees only after answering:
 
 ```json
 {
@@ -44,6 +44,7 @@ Hand the task in with `submit_task`, together with the request id you were given
     "correct_answer": "B",
     "hint": "Whose place does Tom take when he passes that runner?",
     "solution": "Tom was just behind the runner in second place, so he was third. Passing that runner puts Tom in second place. The leader is still in front of him.",
+    "solution_picture": {"kind": "row", "items": [{"below": "1"}, {"below": "2", "mark": "ring"}, {"below": "3"}]},
     "distractors": {
       "A": {"trap": "off_by_one", "text": "Tom has not passed the leader."},
       "C": {"trap": "reversed_relation", "text": "Overtaking moves Tom forward, not back."},
@@ -82,13 +83,21 @@ Draw whenever the task has something to see, even when the picture only shows wh
 
 ## The picture of the solution
 
-Draw the solution too whenever it has something to see, even when the picture only shows what the solution says: where things end up, every case it counts, the parts it cuts a whole into, the moves of a game. The card of how the answer went shows it between the trap and the solution, once the child has answered, so it may show the answer: the whole row of posts, every case of an enumeration, the bars cut into the common parts. Describe it in `solution_picture`, in the format of `picture` and within the same limits, and name each of its labels in Latin capitals in the question or the solution. Under it, `solution_total` may write large the equality the solution comes to: labels and numbers joined by + − × ÷ = ( ) and spaces, ending in = and the answer, at most `limits.total_characters` characters long, with no words, units or `?`. When the right option is a number or a label, the total ends in it. For three pairs of socks, the task's two members read:
+Every task draws its solution, even when its question draws nothing: a task without `solution_picture` is refused. The card of how the answer went shows it between the trap and the solution, once the child has answered, so it may show the answer. Draw what the solution works out, so that the child sees it at a glance:
+
+- where things end up: the row of posts, the places of a race, the cells of a grid, the time on a clock face, the day on a month's page;
+- every case it counts: each pair, way or order as a row of a table, flags of colours, piles of what it puts together, or a row with the cases that fit marked;
+- the parts it cuts a whole into: bars;
+- the moves of a game or of pouring: piles, containers, a balance, or a table of the states;
+- digits, a remainder, a price or a chain of operations: the numbers the solution goes through, in a row or a table with those that fit marked, or the groups it makes.
+
+Describe it in `solution_picture`, in the format of `picture` and within the same limits, with a kind from `pictures`, and name each of its labels in Latin capitals in the question or the solution. A reference task that draws its solution shows how this topic draws one. Under the picture, `solution_total` may write large the equality the solution comes to: labels and numbers joined by + − × ÷ = ( ) and spaces, ending in = and the answer, at most `limits.total_characters` characters long, with no words, units or `?`. When the right option is a number or a label, the total ends in it. For three pairs of socks, the task's two members read:
 
 ```json
 {"solution_picture": {"kind": "piles", "piles": [{"count": 2}, {"count": 2}, {"count": 2}]}, "solution_total": "2 + 2 + 2 = 6"}
 ```
 
-Leave both out when the solution has nothing to see, such as digits, a remainder or a chain of operations: the total stands under its picture and nowhere else, so a task with no `solution_picture` has no `solution_total` either. Leave the total out, too, when no one equality sums the solution up.
+Leave the total out when no one equality sums the solution up.
 
 ## The self-check
 

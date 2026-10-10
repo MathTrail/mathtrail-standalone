@@ -277,6 +277,21 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			wantSay: "daily counts tasks",
 		},
 		{
+			name:    "a clock further ahead than any time zone",
+			breakIt: func(p *profile.Profile) { p.Daily.UTCOffset = 14*60 + 15 },
+			wantSay: "daily.utc_offset",
+		},
+		{
+			name:    "a clock further behind than any time zone",
+			breakIt: func(p *profile.Profile) { p.Daily.UTCOffset = -12*60 - 15 },
+			wantSay: "daily.utc_offset",
+		},
+		{
+			name:    "a clock off the quarters of an hour",
+			breakIt: func(p *profile.Profile) { p.Daily.UTCOffset = -301 },
+			wantSay: "daily.utc_offset",
+		},
+		{
 			// The entry keeps the outcome it had as an answer, which a task
 			// left without one cannot have.
 			name:    "a skipped task with an outcome",

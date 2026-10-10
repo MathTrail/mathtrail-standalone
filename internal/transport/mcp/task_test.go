@@ -91,10 +91,11 @@ func raceInRussianOn(request *profile.OpenRequest) map[string]any {
 		"core_idea": "Order three runners from two comparisons.",
 		"question": "Аня, Бен и Кира бежали наперегонки. Бен прибежал раньше Киры. Аня прибежала позже Киры. " +
 			"Кто прибежал первым?",
-		"options":        map[string]string{"A": "Аня", "B": "Кира", "C": "Бен", "D": "Никто", "E": "Все вместе"},
-		"correct_answer": "C",
-		"hint":           "Кто прибежал раньше Киры?",
-		"solution":       "Бен прибежал раньше Киры, а Кира раньше Ани. Значит, первым прибежал Бен.",
+		"options":          map[string]string{"A": "Аня", "B": "Кира", "C": "Бен", "D": "Никто", "E": "Все вместе"},
+		"correct_answer":   "C",
+		"hint":             "Кто прибежал раньше Киры?",
+		"solution":         "Бен прибежал раньше Киры, а Кира раньше Ани. Значит, первым прибежал Бен.",
+		"solution_picture": racePlaces(),
 		"distractors": map[string]map[string]string{
 			"A": {"trap": raceTraps[0], "text": "Аня прибежала позже Киры, она последняя."},
 			"B": {"trap": raceTraps[1], "text": "Кира в середине: Бен её обогнал."},
@@ -114,17 +115,27 @@ func raceInRussianOn(request *profile.OpenRequest) map[string]any {
 }
 
 // raceTask is the race as the model writes it, with these explanations behind
-// its wrong options.
+// its wrong options, and the picture of its solution every task draws: the
+// three places, the first ringed.
 func raceTask(distractors map[string]map[string]string) map[string]any {
 	return map[string]any{
-		"core_idea":      "Order three runners from two comparisons.",
-		"question":       raceQuestion,
-		"options":        map[string]string{"A": "Ann", "B": "Kim", "C": "Ben", "D": "Nobody", "E": "All at once"},
-		"correct_answer": "C",
-		"hint":           "Who finished before Kim?",
-		"solution":       raceSolution,
-		"distractors":    distractors,
+		"core_idea":        "Order three runners from two comparisons.",
+		"question":         raceQuestion,
+		"options":          map[string]string{"A": "Ann", "B": "Kim", "C": "Ben", "D": "Nobody", "E": "All at once"},
+		"correct_answer":   "C",
+		"hint":             "Who finished before Kim?",
+		"solution":         raceSolution,
+		"solution_picture": racePlaces(),
+		"distractors":      distractors,
 	}
+}
+
+// racePlaces is the picture of the race's solution: the three places, the
+// first ringed.
+func racePlaces() map[string]any {
+	return map[string]any{"kind": "row", "items": []map[string]string{
+		{"below": "1", "mark": "ring"}, {"below": "2"}, {"below": "3"},
+	}}
 }
 
 // raceDistractors are the wrong options of the race, each with its trap and

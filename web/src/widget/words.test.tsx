@@ -1,8 +1,19 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import english from "../../locales/en.json";
+import { onAMachineSpeaking } from "../i18n/testing/machine";
+import { openWords } from "../i18n/words";
 import { cardWords } from "./dictionaries";
-import { languageIn, ratingText, useWords, WordsContext } from "./words";
+import {
+	countText,
+	type Key,
+	languageIn,
+	percentText,
+	ratingText,
+	useWords,
+	WordsContext,
+} from "./words";
 
 describe("a rating", () => {
 	test.each([
@@ -21,6 +32,22 @@ describe("a rating", () => {
 		};
 
 		expect(ratingText(bengali, 1573)).toBe("১৫৭৩");
+	});
+});
+
+// Numbers in Klingon, which no platform has data for.
+describe("a number in a language the platform has no data for", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	test("is written in English digits, whatever the machine speaks", () => {
+		onAMachineSpeaking("fa");
+		const inKlingon = openWords<Key>("tlh", new Map([["en", english]]));
+
+		expect(ratingText(inKlingon, 1573)).toBe("1573");
+		expect(countText(inKlingon, 21)).toBe("21");
+		expect(percentText(inKlingon, 40)).toBe("40%");
 	});
 });
 

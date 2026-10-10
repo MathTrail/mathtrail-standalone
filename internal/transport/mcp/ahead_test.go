@@ -32,12 +32,13 @@ const relaySolution = "Joe swam before Lea, and Lea swam before Ivy, so Joe swam
 func relayOn(request *profile.OpenRequest) map[string]any {
 	relay := raceOn(request)
 	relay["task"] = map[string]any{
-		"core_idea":      "Order three swimmers from two comparisons.",
-		"question":       relayQuestion,
-		"options":        map[string]string{"A": "Ivy", "B": "Lea", "C": "Joe", "D": "Nobody", "E": "All at once"},
-		"correct_answer": "C",
-		"hint":           "Who swam before Lea?",
-		"solution":       relaySolution,
+		"core_idea":        "Order three swimmers from two comparisons.",
+		"question":         relayQuestion,
+		"options":          map[string]string{"A": "Ivy", "B": "Lea", "C": "Joe", "D": "Nobody", "E": "All at once"},
+		"correct_answer":   "C",
+		"hint":             "Who swam before Lea?",
+		"solution":         relaySolution,
+		"solution_picture": racePlaces(),
 		"distractors": map[string]map[string]string{
 			"A": {"trap": raceTraps[0], "text": "Ivy swam after Lea, so she was the last to swim."},
 			"B": {"trap": raceTraps[1], "text": "Lea is in the middle: Joe swam before her."},
@@ -107,6 +108,29 @@ func keepTheRelay(t *testing.T, session *mcp.ClientSession, kept store.Storage) 
 		t.Fatalf("submit_task for the relay said %q, want it accepted and kept", text)
 	}
 	return race, profile.TaskIDFor(ahead.ID)
+}
+
+// The words that come with a package say, before the package and the guide in
+// it, that every task draws its solution and that a task without one is
+// refused: the words of get_package for a task asked for now, and those of
+// prepare_task for a task written ahead.
+func TestThePackagesWordsAskForThePictureOfTheSolution(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	race := askForTheRace(t, session, kept)
+	asked := leadOf(fetchPackage(t, session, race.ID))
+	if text := textOf(t, call(t, session, "submit_task", raceOn(race))); !strings.HasPrefix(text, "Accepted at attempt 1") {
+		t.Fatalf("submit_task for the race said %q, want it accepted", text)
+	}
+	ahead := leadOf(prepared(t, session, aheadChoice))
+	for tool, words := range map[string]string{"get_package": asked, "prepare_task": ahead} {
+		if !strings.Contains(words, "Every task draws its solution in solution_picture") ||
+			!strings.Contains(words, "a task without one is refused") {
+			t.Errorf("%s says %q, want every task to draw its solution, and one without refused", tool, words)
+		}
+	}
 }
 
 // The first task of a lesson is written when it is asked for, as ever, and its

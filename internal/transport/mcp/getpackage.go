@@ -73,7 +73,7 @@ func (s *Service) packageOfRequest(ctx context.Context, account store.Account, r
 	}
 	return Reply[any]{
 		Text: joined(fmt.Sprintf("The package of request %[1]s. Write one task to it, and hand it in with "+
-			"submit_task and request_id %[1]s.", request.ID), writtenInText(request),
+			"submit_task and request_id %[1]s.", request.ID), writtenInText(request), solutionDrawn,
 			lessonLanguageText(&p.Student), stillInText(p), forYouAlone) + packageText(pack),
 	}, nil
 }
@@ -86,6 +86,12 @@ func writtenInText(request *profile.OpenRequest) string {
 		"and the explanations, and the names in them. The package's reference tasks, solver templates and guide are "+
 		"in English whatever the language; the task is not.", request.Language)
 }
+
+// solutionDrawn is what the words of a package say of the picture of the
+// solution, before the guide the package holds: every task draws one, and the
+// checks refuse a task without it.
+const solutionDrawn = "Every task draws its solution in solution_picture, as the guide in the package says; a " +
+	"task without one is refused."
 
 // noPackage is the answer about a request that is not open, or not awaited any
 // more — handed out, out of attempts, replaced or waited for too long — whose

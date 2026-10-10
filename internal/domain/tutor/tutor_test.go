@@ -125,6 +125,21 @@ func failedAt(p *profile.Profile, topic string, failures int) {
 	}}
 }
 
+// answeredInTurn puts right answers to tasks of these topics in the window, in
+// this order, a minute apart on the day of these tests.
+func answeredInTurn(p *profile.Profile, topics ...string) {
+	for i, topic := range topics {
+		p.Recent = append(p.Recent, profile.Answer{
+			AnsweredAt: profile.At(day.Add(time.Duration(i) * time.Minute)),
+			Difficulty: 1,
+			GradeLevel: rating.Grades12,
+			Pace:       profile.PaceNormal,
+			TaskID:     "tsk_" + topic,
+			Topic:      topic,
+		})
+	}
+}
+
 func brief(t *testing.T, p *profile.Profile, c tutor.Catalog) profile.Brief {
 	t.Helper()
 
@@ -175,6 +190,48 @@ func TestNeverGivenBeatsGivenLongAgo(t *testing.T) {
 
 	if got := brief(t, p, threeTopics()); got.TargetConcept != "logic.ordering" {
 		t.Errorf("topic = %q, want the first topic never given", got.TargetConcept)
+	}
+}
+
+// Topics given on the same day share the day, which is all their summaries
+// keep, so the tasks behind the child say which came first, and catalog order,
+// which would set counting.gaps every time, decides none of these. The task on
+// the card was given after everything the window holds: a brief built while
+// it waits for its answer is for the task that takes its place. A topic given
+// today whose task the window has let go of was given before every task the
+// window still holds.
+func TestTopicsGivenOnTheSameDayGoInTurn(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name   string
+		window []string // the topics of the answers in the window, oldest first
+		card   string   // the topic of the task on the card, waiting for its answer
+		want   string
+	}{
+		{"the topic whose last task came first goes next",
+			[]string{"time.clocks", "counting.gaps", "logic.ordering"}, "", "time.clocks"},
+		{"the task on the card counts as the last given",
+			[]string{"logic.ordering", "time.clocks"}, "counting.gaps", "logic.ordering"},
+		{"a topic the window let go of waited longest",
+			[]string{"counting.gaps", "time.clocks"}, "", "logic.ordering"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := settled(t)
+			for _, topic := range threeTopics().topics {
+				issued(p, topic, day, 1)
+			}
+			answeredInTurn(p, tc.window...)
+			if tc.card != "" {
+				p.CurrentTask = &profile.CurrentTask{ID: "tsk_on_card", Topic: tc.card}
+			}
+
+			if got := brief(t, p, threeTopics()); got.TargetConcept != tc.want {
+				t.Errorf("topic = %q, want %q", got.TargetConcept, tc.want)
+			}
+		})
 	}
 }
 

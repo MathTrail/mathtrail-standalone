@@ -169,6 +169,135 @@ func TestATaskThatDrawsIsShownWheneverThePoolHasOne(t *testing.T) {
 	properties.TestingRun(t)
 }
 
+// solvedCell is a cell whose tasks of these ids carry a picture of their
+// solution, and of those ids a picture of their own.
+func solvedCell(counts map[int]int, solved, drawn []string) []Example {
+	pool := drawnCell(counts, drawn...)
+	for i := range pool {
+		if slices.Contains(solved, pool[i].ID) {
+			pool[i].SolutionPicture = json.RawMessage(`{"kind":"ring","count":8}`)
+		}
+	}
+	return pool
+}
+
+func TestAPackageShowsATaskThatDrawsItsSolutionWhereThePoolHasOne(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name                string
+		counts              map[int]int
+		solved, drawn       []string
+		difficulty, answers int
+		want                []string
+	}{
+		{"one of those picked draws its solution: they stay", map[int]int{3: 5}, []string{"d3-2"}, nil, 3, 0,
+			[]string{"d3-1", "d3-2", "d3-3"}},
+		{"none of those picked draws its solution: the last gives way", map[int]int{3: 5}, []string{"d3-5"}, nil, 3, 0,
+			[]string{"d3-1", "d3-2", "d3-5"}},
+		{"a task picked for its picture stays: the one before it leaves", map[int]int{3: 5}, []string{"d3-5"},
+			[]string{"d3-3"}, 3, 0, []string{"d3-1", "d3-3", "d3-5"}},
+		{"a task that also draws takes the last place, where a task shown for its picture stood",
+			map[int]int{3: 5, 5: 2}, []string{"d5-2"}, []string{"d5-1", "d5-2"}, 3, 0,
+			[]string{"d3-1", "d3-2", "d5-2"}},
+		{"every one picked has a picture: the last gives way", map[int]int{3: 5}, []string{"d3-5"},
+			[]string{"d3-1", "d3-2", "d3-3"}, 3, 0, []string{"d3-1", "d3-2", "d3-5"}},
+		{"the task that draws its solution nearest the difficulty", map[int]int{1: 1, 3: 5, 5: 1},
+			[]string{"d1-1", "d5-1"}, nil, 4, 0, []string{"d3-1", "d3-2", "d5-1"}},
+		{"tasks that draw their solution at one difficulty take turns", map[int]int{3: 5, 4: 2},
+			[]string{"d4-1", "d4-2"}, nil, 3, 1, []string{"d3-2", "d3-3", "d4-2"}},
+		{"nothing draws its solution: the picked stay", map[int]int{3: 5}, nil, nil, 3, 0,
+			[]string{"d3-1", "d3-2", "d3-3"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			pool := solvedCell(test.counts, test.solved, test.drawn)
+			picked := withADrawnTask(nearest(pool, test.difficulty, test.answers), pool, test.difficulty, test.answers)
+			if got := idsOf(withADrawnSolution(picked, pool, test.difficulty, test.answers)); !slices.Equal(got, test.want) {
+				t.Errorf("withADrawnSolution(%v) = %v, want %v", idsOf(picked), got, test.want)
+			}
+		})
+	}
+}
+
+// Whatever the pool and wherever the turns have come to, the tasks a package
+// shows once one that draws its solution is among them are those picked, in
+// their order, but for one at most, which leaves for a task that draws its
+// solution, last; a pick that draws its solution stays as it is, a task that
+// draws its solution is shown whenever the pool has one, a task that draws
+// stays among them whenever one was picked, and no task is shown twice.
+func TestATaskThatDrawsItsSolutionIsShownWheneverThePoolHasOne(t *testing.T) {
+	t.Parallel()
+
+	shown := func(counts, drawing []int, difficulty, answers int) (picked, got, pool []Example) {
+		pool = solvedPool(counts, drawing)
+		picked = withADrawnTask(nearest(pool, difficulty, answers), pool, difficulty, answers)
+		return picked, withADrawnSolution(picked, pool, difficulty, answers), pool
+	}
+	properties := gopter.NewProperties(nil)
+	for _, property := range []struct {
+		name  string
+		holds func(picked, got, pool []Example) bool
+	}{
+		{"as many tasks as were picked", func(picked, got, _ []Example) bool { return len(got) == len(picked) }},
+		{"those picked in their order, but one at most, which leaves for one last", func(picked, got, _ []Example) bool {
+			return slices.Equal(idsOf(got), idsOf(picked)) || oneLeft(picked, got[:len(got)-1])
+		}},
+		{"a pick that draws its solution is kept as it is", func(picked, got, _ []Example) bool {
+			return !anyDrawsItsSolution(picked) || slices.Equal(idsOf(got), idsOf(picked))
+		}},
+		{"a task that draws its solution is shown whenever the pool has one", func(_, got, pool []Example) bool {
+			return len(got) == 0 || anyDrawsItsSolution(got) == anyDrawsItsSolution(pool)
+		}},
+		{"a task that draws stays shown whenever one was picked", func(picked, got, _ []Example) bool {
+			return !anyDraws(picked) || anyDraws(got)
+		}},
+		{"no task is shown twice", func(_, got, _ []Example) bool {
+			return len(slices.Compact(slices.Sorted(slices.Values(idsOf(got))))) == len(got)
+		}},
+	} {
+		properties.Property(property.name, prop.ForAll(
+			func(counts, drawing []int, difficulty, answers int) bool {
+				return property.holds(shown(counts, drawing, difficulty, answers))
+			},
+			gen.SliceOfN(5, gen.IntRange(0, 5)),
+			gen.SliceOfN(25, gen.IntRange(0, 3)),
+			gen.IntRange(1, 5),
+			gen.IntRange(-1_000_000, 1_000_000),
+		))
+	}
+	properties.TestingRun(t)
+}
+
+// solvedPool is a pool with so many tasks at each difficulty from 1 on, each
+// task drawn by a number from 0 to 3: its first bit gives it a picture, and
+// its second a picture of its solution.
+func solvedPool(counts, drawing []int) []Example {
+	drawn := make([]bool, len(drawing))
+	for i, bits := range drawing {
+		drawn[i] = bits&1 != 0
+	}
+	pool := drawnPool(counts, drawn)
+	for i := range pool {
+		if i < len(drawing) && drawing[i]&2 != 0 {
+			pool[i].SolutionPicture = json.RawMessage(`{"kind":"ring","count":8}`)
+		}
+	}
+	return pool
+}
+
+// oneLeft says whether the tasks kept are those picked, in their order, with
+// one of them left out.
+func oneLeft(picked, kept []Example) bool {
+	for leaving := range picked {
+		if slices.Equal(idsOf(kept), idsOf(slices.Delete(slices.Clone(picked), leaving, leaving+1))) {
+			return true
+		}
+	}
+	return false
+}
+
 // A topic with nothing at the level of the brief is shown the level below; one
 // with nothing at or below it, and a level there is not, are shown nothing.
 func TestTheLevelBelowStandsInForAnEmptyOne(t *testing.T) {

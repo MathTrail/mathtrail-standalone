@@ -11,6 +11,7 @@
     "correct_answer",
     "hint",
     "solution",
+    "solution_picture",
     "distractors"
   ],
   "properties": {
@@ -56,11 +57,11 @@
       "minLength": 1
     },
     "solution_picture": {
-      "description": "Optional: the picture of the solution, in the format of the task's picture, which the card of how the answer went draws between the trap and the solution. The child sees it after answering, so it may show the answer. Its Latin capitals are named in the question or the solution.",
+      "description": "The picture of the solution, which every task draws, in the format of the task's picture: what the solution works out, which the card of how the answer went draws between the trap and the solution. The child sees it after answering, so it may show the answer. Its Latin capitals are named in the question or the solution.",
       "$ref": "#/$defs/picture"
     },
     "solution_total": {
-      "description": "Optional, and only under solution_picture: the equality the solution comes to, written large under the picture, such as 2 + 2 + 2 = 6. Labels and numbers, written with the lesson's decimal mark and no separator between thousands, joined by + − × ÷ = ( ) and spaces, ending in = and the answer: the right option's number, of any length, or its label of at most 5 Latin capitals, with no question mark.",
+      "description": "Optional: the equality the solution comes to, written large under the picture of the solution, such as 2 + 2 + 2 = 6. Labels and numbers, written with the lesson's decimal mark and no separator between thousands, joined by + − × ÷ = ( ) and spaces, ending in = and the answer: the right option's number, of any length, or its label of at most 5 Latin capitals, with no question mark.",
       "type": "string",
       "maxLength": 32,
       "pattern": "^[A-Z0-9.,+−×÷()= -]*=[ ]*([A-Z]{1,5}|[-−]?[0-9]+([.,][0-9]+)?)[ ]*$"
@@ -74,7 +75,6 @@
       "additionalProperties": { "$ref": "#/$defs/distractor" }
     }
   },
-  "dependentRequired": { "solution_total": ["solution_picture"] },
   "$defs": {
     "option": {
       "type": "string",

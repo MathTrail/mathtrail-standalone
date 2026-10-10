@@ -346,3 +346,29 @@ func TestARequestOpenedBeforeTheDayFilledUpIsHandedBack(t *testing.T) {
 			card, textOf(t, again))
 	}
 }
+
+// The day of the ceilings is the family's, by the clock its card told. For a
+// family five hours behind UTC, a day full at half past six in the evening is
+// still full at half past seven, though UTC has started the next day: nothing
+// is asked for, nothing is written ahead and nothing is written at all. The
+// day is over at the family's own midnight.
+func TestADayFullEndsAtTheFamilysMidnight(t *testing.T) {
+	t.Parallel()
+
+	familys := time.Date(2026, 10, 10, 0, 0, 0, 0, time.UTC)
+	kept := dayOf(t, profile.Daily{Date: profile.DateOf(familys), Accepted: config.DefaultDailyTasks, UTCOffset: -5 * 60})
+	moving := &clock{at: time.Date(2026, 10, 11, 0, 30, 0, 0, time.UTC)} // half past seven for the family
+	_, session := lessonWith(t, kept, moving, nil)
+	_, revision := loadKept(t, kept)
+
+	wantTheDayFull(t, call(t, session, "next_task", raceChoice))
+	if words := prepared(t, session, map[string]any{"language": "en"}); !strings.HasPrefix(words, "The child's tasks for today are over") {
+		t.Errorf("prepare_task says %q, want nothing written ahead on the family's full day", words)
+	}
+	if _, now := loadKept(t, kept); now != revision {
+		t.Error("the family's full day wrote the profile, want nothing written")
+	}
+
+	moving.advance(4*time.Hour + 30*time.Minute) // the family's midnight
+	askForTheRace(t, session, kept)
+}

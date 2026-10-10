@@ -32,16 +32,25 @@ const examples = Object.entries(
 	}),
 ).map(([file, example]) => [file, example.picture] as const);
 
+// referenceTasks are the reference tasks the content holds, with their
+// pictures.
+const referenceTasks = Object.values(
+	import.meta.glob<
+		readonly { id: string; picture?: unknown; solution_picture?: unknown }[]
+	>("../../../content/examples/*.json", { eager: true, import: "default" }),
+).flat();
+
 // references are the pictures the reference tasks carry, by the task's id.
-const references = Object.values(
-	import.meta.glob<readonly { id: string; picture?: unknown }[]>(
-		"../../../content/examples/*.json",
-		{ eager: true, import: "default" },
-	),
-).flatMap((tasks) =>
-	tasks.flatMap((task) =>
-		task.picture === undefined ? [] : [[task.id, task.picture] as const],
-	),
+const references = referenceTasks.flatMap((task) =>
+	task.picture === undefined ? [] : [[task.id, task.picture] as const],
+);
+
+// solutions are the pictures of their solution the reference tasks carry, by
+// the task's id.
+const solutions = referenceTasks.flatMap((task) =>
+	task.solution_picture === undefined
+		? []
+		: [[task.id, task.solution_picture] as const],
 );
 
 describe("the card's reading of a picture", () => {
@@ -91,6 +100,13 @@ describe("the card's reading of a picture", () => {
 	test("reads every picture the reference tasks carry", () => {
 		expect(references).toHaveLength(95);
 		for (const [id, picture] of references) {
+			expect(readPicture(picture), id).toEqual(picture);
+		}
+	});
+
+	test("reads every picture of a solution the reference tasks carry", () => {
+		expect(solutions).toHaveLength(35);
+		for (const [id, picture] of solutions) {
 			expect(readPicture(picture), id).toEqual(picture);
 		}
 	});

@@ -1,5 +1,5 @@
 {
-  "purpose": "Quantities as bars drawn to one scale, for a ratio, a fraction or a share of a whole: a bar of equal parts, some shaded, or of segments of their own sizes; a value at a bar's end, braces under some of its parts, and short equalities under them all.",
-  "topics": ["ratio.sharing", "fractions.parts", "percent.basic"],
+  "purpose": "Quantities as bars drawn to one scale, for a ratio, a fraction, a share of a whole or the parts a sum is made of: a bar of equal parts, some shaded, or of segments of their own sizes; a value at a bar's end, braces under some of its parts, and short equalities under them all.",
+  "topics": ["ratio.sharing", "fractions.parts", "percent.basic", "arithmetic.tricks", "time.calendar"],
   "picture": {"kind": "bars", "bars": [{"label": "A", "parts": 3, "shaded": 3}, {"label": "B", "parts": 4, "shaded": 4}], "notes": ["A + B = 56", "A = ?"]}
 }

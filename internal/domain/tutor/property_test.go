@@ -1,9 +1,11 @@
 package tutor_test
 
 import (
+	"math/rand/v2"
 	"reflect"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
@@ -351,4 +353,131 @@ func TestTheNotesNeverReachTheBrief(t *testing.T) {
 	if !reflect.DeepEqual(before, after) {
 		t.Errorf("the notes changed the brief:\n%+v\n%+v", before, after)
 	}
+}
+
+// A topic set anew is the one that has waited longest, within a day as much as
+// across days. A lesson gives most topics within reach a task on the same day,
+// and the summary of a topic keeps only the day: a rule that read the day
+// alone would set the first topic of the catalog for the rest of it. Simulated
+// children of every grade are set a day of tasks by the rule, from the real
+// catalogs, answering each by the chance their level gives them or leaving it
+// on the card for the next.
+func TestTopicsTakeTurnsWithinADay(t *testing.T) {
+	t.Parallel()
+
+	catalog := cached(embedded(t))
+	sealer, err := taskSeal()
+	if err != nil {
+		t.Fatalf("build the seal: %v", err)
+	}
+	properties := gopter.NewProperties(nil)
+
+	properties.Property("while the window holds the whole day, a topic set anew is the one whose last task came first",
+		prop.ForAll(func(d *daySeed) bool {
+			return !slices.ContainsFunc(playDay(t, catalog, sealer, d, profile.MaxRecent), func(s step) bool {
+				return s.anew && s.topic != s.waitedLongest
+			})
+		}, genDay()))
+
+	properties.Property("however long the day, a topic set anew is never the one just given while another waits",
+		prop.ForAll(func(d *daySeed) bool {
+			return !slices.ContainsFunc(playDay(t, catalog, sealer, d, longDay), func(s step) bool {
+				return s.anew && len(s.waiting) > 1 && s.topic == s.previous
+			})
+		}, genDay()))
+
+	properties.TestingRun(t)
+}
+
+// longDay is three times as many tasks as the window holds, so that the window
+// lets go of the first tasks of the day while the day goes on.
+const longDay = 3 * profile.MaxRecent
+
+// daySeed is the raw material of a simulated day: the child's grade, where
+// they truly stand against its start, the dice their answers are thrown with,
+// and the share of tasks they leave on the card for the next.
+type daySeed struct {
+	Grade  int
+	Offset float64
+	Dice   uint64
+	Left   float64
+}
+
+func genDay() gopter.Gen {
+	return gen.Struct(reflect.TypeOf(daySeed{}), map[string]gopter.Gen{
+		"Grade":  gen.IntRange(1, 6),
+		"Offset": gen.Float64Range(-2.5, 2.5),
+		"Dice":   gen.UInt64(),
+		"Left":   gen.Float64Range(0, 0.5),
+	}).Map(func(d daySeed) *daySeed { return &d })
+}
+
+// step is one task of a simulated day: the topic the rule set, and whether it
+// set it anew rather than to go over a failure; the topics it chose among, and
+// of them the one whose last task came first, worked out from the order the
+// day gave its tasks in; and the topic of the task before.
+type step struct {
+	topic, waitedLongest, previous string
+	anew                           bool
+	waiting                        []string
+}
+
+// playDay sets a new child of the seed so many tasks in a row, all on one day,
+// as the service would hand them out, and says what each came to.
+func playDay(t *testing.T, catalog tutor.Catalog, sealer profile.Sealer, d *daySeed, tasks int) []step {
+	t.Helper()
+
+	now := time.Date(2026, 10, 10, 8, 0, 0, 0, time.UTC)
+	p := profile.New(profile.Student{Grade: d.Grade, Pseudonym: "Otter"}, "0.0.0-test", now)
+	truth := rating.Start(d.Grade) + d.Offset
+	random := rand.New(rand.NewPCG(d.Dice, 0))
+	given := map[string]int{} // where each topic's last task stands in the day, from one
+	steps := make([]step, 0, tasks)
+	for place := 1; place <= tasks; place++ {
+		waiting := waitingFor(p, catalog)
+		next, mode, err := tutor.Next(p, catalog, tutor.Choice{})
+		if err != nil {
+			t.Fatalf("Next() error = %v, want nil", err)
+		}
+		set := step{topic: next.TargetConcept, waitedLongest: firstGiven(waiting, given),
+			anew: next.PedagogicalGoal == profile.GoalNewTopic, waiting: waiting}
+		if len(steps) > 0 {
+			set.previous = steps[len(steps)-1].topic
+		}
+		steps = append(steps, set)
+
+		task := handedOut(t, p, &next, mode, sealer, now)
+		given[task.Topic] = place
+		if random.Float64() >= d.Left {
+			answeredByChance(t, catalog, p, task, truth, sealer, random)
+		}
+		now = now.Add(3 * time.Minute)
+	}
+	return steps
+}
+
+// waitingFor is what the rule chooses a topic anew among: the topics within
+// reach that are not mastered where the child stands, or every topic within
+// reach once all of them are.
+func waitingFor(p *profile.Profile, catalog tutor.Catalog) []string {
+	open := tutor.WithinReach(p, catalog)
+	waiting := slices.DeleteFunc(slices.Clone(open), func(topic string) bool {
+		return tutor.Mastered(p, catalog, topic)
+	})
+	if len(waiting) == 0 {
+		return open
+	}
+	return waiting
+}
+
+// firstGiven is the topic whose last task came first: one never given before
+// any other, and the first in catalog order of a tie.
+func firstGiven(topics []string, given map[string]int) string {
+	first := topics[0]
+	for _, topic := range topics[1:] {
+		if given[topic] < given[first] {
+			first = topic
+		}
+	}
+	return first
 }

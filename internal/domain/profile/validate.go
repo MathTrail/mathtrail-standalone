@@ -448,5 +448,9 @@ func (d *Daily) validate() error {
 	if d.Date.IsZero() {
 		return fmt.Errorf("%w: daily has no date, and the counters belong to a day", ErrInvalid)
 	}
+	if !clockRunsAt(d.UTCOffset) {
+		return fmt.Errorf("%w: daily.utc_offset is %d, and a clock runs from %d to %d minutes from UTC, in quarters of an hour",
+			ErrInvalid, d.UTCOffset, minUTCOffset, maxUTCOffset)
+	}
 	return nil
 }

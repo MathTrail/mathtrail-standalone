@@ -1,3 +1,4 @@
+import { intlLocales } from "../i18n/lookup";
 import type { Words } from "../i18n/words";
 import type { Key } from "./words";
 
@@ -86,7 +87,7 @@ export function listed(words: Words<Key>, names: readonly string[]): string {
 		// A platform with no list formats of its own gets the commas alone.
 		return names.join(", ");
 	}
-	return new Intl.ListFormat(words.locale, {
+	return new Intl.ListFormat(intlLocales(words.locale), {
 		type: "conjunction",
 		style: "narrow",
 	}).format(names);
@@ -99,7 +100,9 @@ export function listed(words: Words<Key>, names: readonly string[]): string {
 export function countryName(words: Words<Key>, code: string): string {
 	try {
 		return (
-			new Intl.DisplayNames([words.locale], { type: "region" }).of(code) ?? code
+			new Intl.DisplayNames(intlLocales(words.locale), { type: "region" }).of(
+				code,
+			) ?? code
 		);
 	} catch {
 		// A code the platform cannot read names no country it can say.
@@ -115,8 +118,9 @@ export function languageName(words: Words<Key>, tag: string): string {
 	let name: string;
 	try {
 		name =
-			new Intl.DisplayNames([words.locale], { type: "language" }).of(tag) ??
-			tag;
+			new Intl.DisplayNames(intlLocales(words.locale), { type: "language" }).of(
+				tag,
+			) ?? tag;
 	} catch {
 		// A tag the platform cannot read names no language it can say.
 		return tag;

@@ -320,6 +320,7 @@
     },
     "correct_answer": "B",
     "solution": "He can use no 2-cent coins and five 1-cent coins, one 2-cent coin and three 1-cent coins, or two 2-cent coins and one 1-cent coin. That is 3 ways.",
+    "solution_picture": {"kind": "table", "rows": [["1", "1", "1", "1", "1"], ["2", "1", "1", "1", ""], ["2", "2", "1", "", ""]]},
     "distractors": {
       "A": {
         "trap": "missed_case",
@@ -1305,7 +1306,9 @@
       "E": "10"
     },
     "correct_answer": "D",
-    "solution": "The numbers are 102, 111, 120, 201, 210 and 300. That is 6 numbers.",
+    "solution": "The numbers are 102, 111, 120, 201, 210 and 300: three start with 1, two with 2 and one with 3. That is 3 + 2 + 1 = 6 numbers.",
+    "solution_picture": {"kind": "table", "rows": [["102", "111", "120"], ["201", "210", ""], ["300", "", ""]]},
+    "solution_total": "3 + 2 + 1 = 6",
     "distractors": {
       "A": {
         "trap": "missed_case",
@@ -1891,6 +1894,8 @@
     "correct_answer": "B",
     "hint": "How many routes reach each square? A square can be reached only from the square above it or the square to its left.",
     "solution": "Count the routes to each square. Every square in row A and in column 1 is reached in 1 way, and B2 in none, as it is blocked. Every other square gets the routes of the square above it plus those of the square to its left: B3 gets 1, B4 2, C2 1, C3 2, C4 4, D2 2, D3 4 and D4 8.",
+    "solution_picture": {"kind": "grid", "rows": ["A", "B", "C", "D"], "cols": ["1", "2", "3", "4"], "filled": ["B2"], "marks": {"A1": "1", "A2": "1", "A3": "1", "A4": "1", "B1": "1", "B3": "1", "B4": "2", "C1": "1", "C2": "1", "C3": "2", "C4": "4", "D1": "1", "D2": "2", "D3": "4", "D4": "8"}},
+    "solution_total": "4 + 4 = 8",
     "distractors": {
       "A": {
         "trap": "ignored_condition",

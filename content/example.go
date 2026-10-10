@@ -35,9 +35,16 @@ type Example struct {
 	CorrectAnswer string            `json:"correct_answer"`
 	// Hint is a nudge that does not give the answer away. The tasks ported from
 	// the prototype have none; everything written since does.
-	Hint        string                `json:"hint,omitempty"`
-	Solution    string                `json:"solution"`
-	Distractors map[string]Distractor `json:"distractors"`
+	Hint     string `json:"hint,omitempty"`
+	Solution string `json:"solution"`
+	// SolutionPicture is the description of the picture of the solution, which
+	// the card shows with the solution once the child has answered, and
+	// SolutionTotal the equality written large under it. Every task the model
+	// writes draws its solution, and each topic at each level has a reference
+	// task that shows it how.
+	SolutionPicture json.RawMessage       `json:"solution_picture,omitempty"`
+	SolutionTotal   string                `json:"solution_total,omitempty"`
+	Distractors     map[string]Distractor `json:"distractors"`
 	// Solver is the Starlark program that brute-forces this very task, which is
 	// what makes the example re-checkable rather than merely plausible.
 	//
@@ -225,7 +232,9 @@ func (c exampleCheck) run(p *problems, i int, task *Example) {
 
 	c.checkOptions(p, where, task)
 	c.checkDistractors(p, where, task)
-	checkPicture(p, where, task.Picture)
+	checkPicture(p, where, "picture", task.Picture)
+	checkPicture(p, where, "solution_picture", task.SolutionPicture)
+	checkTotal(p, where, task)
 }
 
 // checkPlacement checks that the task is in the file of its own topic and is
@@ -306,24 +315,41 @@ func (c exampleCheck) checkDistractors(p *problems, where string, task *Example)
 	}
 }
 
-// checkPicture checks that a reference task's picture, where it has one, is a
-// description of one of the kinds of picture, in the format a task the model
-// writes is held to. A reference task is in English, whose numbers a point
-// writes. What the picture says of the wording is the business of the tests
-// of the content, which hold every reference picture to the checks a task the
-// model writes passes.
-func checkPicture(p *problems, where string, description json.RawMessage) {
+// checkPicture checks that a picture a reference task describes in a member —
+// its own, or its solution's — is, where it has one, a description of one of
+// the kinds of picture, in the format a task the model writes is held to. A
+// reference task is in English, whose numbers a point writes. What the
+// picture says of the wording is the business of the tests of the content,
+// which hold every reference picture to the checks a task the model writes
+// passes.
+func checkPicture(p *problems, where, member string, description json.RawMessage) {
 	if description == nil {
 		return
 	}
 	_, broken := picture.Parse(description, picture.Point)
+	for _, problem := range broken {
+		p.addf("%s: %s%s %s", where, member, strings.TrimPrefix(problem.Path, "picture"), problem.Rule)
+	}
+}
+
+// checkTotal checks that the total of a reference task's solution, where it
+// has one, stands under a picture of the solution and is the equality the
+// format reads.
+func checkTotal(p *problems, where string, task *Example) {
+	if task.SolutionTotal == "" {
+		return
+	}
+	if task.SolutionPicture == nil {
+		p.addf("%s: a total stands under the picture of the solution, and the task draws none", where)
+	}
+	_, broken := picture.ReadTotal(task.SolutionTotal, picture.Point)
 	for _, problem := range broken {
 		p.addf("%s: %s %s", where, problem.Path, problem.Rule)
 	}
 }
 
 // clone copies a reference task together with everything it points at: the
-// options, the explanations of the wrong ones and the picture. A task holds
+// options, the explanations of the wrong ones and the pictures. A task holds
 // maps, and a map is a reference however many times the value around it is
 // copied, so without this a caller could rewrite an option inside the binary's
 // own content for every request that follows.
@@ -332,8 +358,13 @@ func (e *Example) clone() Example {
 	copied.Options = maps.Clone(e.Options)
 	copied.Distractors = maps.Clone(e.Distractors)
 	copied.Picture = bytes.Clone(e.Picture)
+	copied.SolutionPicture = bytes.Clone(e.SolutionPicture)
 	return copied
 }
 
 // draws says whether a reference task carries a picture.
 func (e *Example) draws() bool { return len(e.Picture) > 0 }
+
+// drawsItsSolution says whether a reference task carries a picture of its
+// solution.
+func (e *Example) drawsItsSolution() bool { return len(e.SolutionPicture) > 0 }

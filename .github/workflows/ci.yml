@@ -220,10 +220,14 @@ jobs:
           path: web/coverage/lcov.info
           retention-days: 14
 
+  # A pull request measures three languages: the pseudo-language, English and
+  # one its commit picks. Every language is measured after the merge, in a
+  # workflow of its own, layout.yml, which nothing waits for.
   layout:
     name: Widget layout ${{ matrix.part }}/${{ strategy.job-total }}
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
-    # A part takes up to eight minutes, a page whose browser stopped answering
+    # A part takes some five minutes, a page whose browser stopped answering
     # is tried once more, and every wait has a limit of its own that names what
     # it waited for; this one is the last resort.
     timeout-minutes: 15
@@ -231,17 +235,13 @@ jobs:
     # which needs a Docker daemon. The widget's packages are installed here, by
     # the Node the development image pins, and the image runs over them.
     #
-    # On one runner the pages of every language take over an hour, nearly all
-    # of it the browser drawing each page's cards on a single thread; ten
-    # runners on the main branch measure a tenth of them each, at once. A pull
-    # request measures three languages, the pseudo-language, English and one
-    # its commit picks, in two parts, and none at all where it changes nothing
-    # the cards are drawn from. Every part runs to its end, so that a card
-    # that fails in one hides nothing the others find.
+    # Two parts, and none at all where the pull request changes nothing the
+    # cards are drawn from. Every part runs to its end, so that a card that
+    # fails in one hides nothing the other finds.
     strategy:
       fail-fast: false
       matrix:
-        part: ${{ fromJSON(github.event_name == 'pull_request' && '[1, 2]' || '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]') }}
+        part: [1, 2]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -252,13 +252,12 @@ jobs:
       - uses: ./.github/actions/node
       - name: Does the pull request touch the cards
         id: scope
-        if: github.event_name == 'pull_request'
         run: git diff --name-only HEAD^1 HEAD | just web-layout-scope --to "$GITHUB_OUTPUT"
       - name: Measure the cards
         if: steps.scope.outputs.card != 'false'
         env:
-          SAMPLE: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
-        run: just web-layout --shard ${{ matrix.part }}/${{ strategy.job-total }} ${SAMPLE:+--sample "$SAMPLE"}
+          SAMPLE: ${{ github.event.pull_request.head.sha }}
+        run: just web-layout --shard ${{ matrix.part }}/${{ strategy.job-total }} --sample "$SAMPLE"
       - name: Say which languages were measured
         if: always() && hashFiles('web/layout/languages.txt') != ''
         run: cat web/layout/languages.txt >> "$GITHUB_STEP_SUMMARY"

@@ -205,7 +205,7 @@ func (s *Service) packageWords(p *profile.Profile, request *profile.OpenRequest,
 		return Reply[any]{}, err
 	}
 	return Reply[any]{
-		Text: joined(lead, writtenInText(request), lessonLanguageText(&p.Student), s.lastAnswerText(p)) +
+		Text: joined(lead, writtenInText(request), solutionDrawn, lessonLanguageText(&p.Student), s.lastAnswerText(p)) +
 			packageText(pack),
 	}, nil
 }

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { onAMachineSpeaking } from "./testing/machine";
 import { type Dictionary, dictionariesByTag, openWords } from "./words";
 
 // Words in a few languages, the Brazilian ones left unfinished, to see how a
@@ -165,6 +166,28 @@ describe("in the build that ships, words", () => {
 
 		expect(openWords("ru", russianAlone).has("times")).toBe(true);
 		expect(openWords("ru", russianAlone).has("english")).toBe(false);
+	});
+});
+
+// Words in Klingon, which no platform has data for.
+describe("words in a language the platform has no data for", () => {
+	const klingon = new Map<string, Dictionary>([
+		["tlh", { times: { one: "{count} time", other: "{count} times" } }],
+	]);
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	test.each([
+		["counted", "ru"],
+		["written in digits", "fa"],
+	])("are %s as English does on a machine that speaks %s", (_, language) => {
+		onAMachineSpeaking(language);
+
+		expect(openWords("tlh", klingon).text("times", { count: 21 })).toBe(
+			"21 times",
+		);
 	});
 });
 

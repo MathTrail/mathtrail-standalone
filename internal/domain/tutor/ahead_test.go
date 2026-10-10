@@ -267,17 +267,5 @@ func onTheCardFromTheRule(t *testing.T, p *profile.Profile, c tutor.Catalog, sea
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
-	p.Ask(&next, mode, "en", day)
-	task, err := p.Issue(&profile.Written{
-		Wording: "a task", Options: map[string]string{"A": "1", "B": "2", "C": "3", "D": "4", "E": "5"},
-		Hint: "hint", Fingerprint: "sketch", InstructionsVersion: "v",
-	}, &profile.TaskSecret{
-		Answer:      "C",
-		Distractors: map[string]profile.Distractor{"B": {Trap: next.TrapsToUse[0], Text: "a slip"}},
-		Solution:    "the solution",
-	}, sealer, day)
-	if err != nil {
-		t.Fatalf("Issue() error = %v, want nil", err)
-	}
-	return task
+	return handedOut(t, p, &next, mode, sealer, day)
 }

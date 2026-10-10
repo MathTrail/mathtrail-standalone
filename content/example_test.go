@@ -154,6 +154,24 @@ func TestBrokenReferenceTaskStopsTheService(t *testing.T) {
 			change: func(task *Example) { task.Picture = json.RawMessage(`"o--o--o"`) },
 			want:   "picture must be an object",
 		},
+		{
+			name:   "a picture of the solution past its kind's limits",
+			change: func(task *Example) { task.SolutionPicture = json.RawMessage(`{"kind":"ring","count":30}`) },
+			want:   "solution_picture.count must be a whole number from 3 to 24",
+		},
+		{
+			name:   "a total with no picture of the solution to stand under",
+			change: func(task *Example) { task.SolutionTotal = "2 + 1 = 3" },
+			want:   "a total stands under the picture of the solution, and the task draws none",
+		},
+		{
+			name: "a total that is no equality",
+			change: func(task *Example) {
+				task.SolutionPicture = json.RawMessage(`{"kind":"ring","count":9}`)
+				task.SolutionTotal = "three metres"
+			},
+			want: "solution_total must be the equality the solution comes to",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -225,19 +243,25 @@ func TestATaskWithAFieldTheFormatDoesNotHaveStopsTheService(t *testing.T) {
 	wantProblem(t, src, `unknown field "answer"`)
 }
 
-// A reference task's picture is copied with the task, so that what a caller
-// rewrites of its copy never reaches the content.
-func TestCloningATaskCopiesItsPicture(t *testing.T) {
+// A reference task's pictures, its own and its solution's, are copied with
+// the task, so that what a caller rewrites of its copy never reaches the
+// content.
+func TestCloningATaskCopiesItsPictures(t *testing.T) {
 	t.Parallel()
 
 	original := validExample()
 	original.Picture = json.RawMessage(`{"kind":"ring","count":9}`)
+	original.SolutionPicture = json.RawMessage(`{"kind":"ring","count":8}`)
 
 	copied := original.clone()
 	copy(copied.Picture, `{"kind":"grid"`)
+	copy(copied.SolutionPicture, `{"kind":"grid"`)
 
 	if got := string(original.Picture); got != `{"kind":"ring","count":9}` {
 		t.Errorf("picture = %s, want it untouched", got)
+	}
+	if got := string(original.SolutionPicture); got != `{"kind":"ring","count":8}` {
+		t.Errorf("picture of the solution = %s, want it untouched", got)
 	}
 }
 

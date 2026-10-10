@@ -176,21 +176,23 @@ func checkPicture(task *Task) []Problem {
 		"or left out")}
 }
 
-// checkSolutionPicture checks that a picture of the solution, when the task has
-// one, is an object, and that a total comes with it: the total is written
-// under that picture and stands nowhere without it.
+// checkSolutionPicture checks that the task draws its solution, in an object:
+// the card of how an answer went shows every solution with its picture, so a
+// task without one is refused for it. The total under the picture needs no
+// word of its own here: it stands under the picture the refusal asks for.
 func checkSolutionPicture(task *Task) []Problem {
-	var problems []Problem
 	var members map[string]json.RawMessage
-	if task.SolutionPicture != nil && json.Unmarshal(task.SolutionPicture, &members) != nil {
-		problems = append(problems, structural("task.solution_picture must be an object: the description of one "+
-			"of the kinds of picture, or left out"))
+	switch {
+	case task.SolutionPicture == nil:
+		return []Problem{structural("task.solution_picture is missing, or holds nothing: every task draws its " +
+			"solution — what the solution works out, in the format of a picture, which the card shows once the " +
+			"child has answered. The guide in the package says how; get_package with the same request_id hands it " +
+			"back")}
+	case json.Unmarshal(task.SolutionPicture, &members) != nil:
+		return []Problem{structural("task.solution_picture must be an object: the description of one of the kinds " +
+			"of picture")}
 	}
-	if task.SolutionTotal != "" && task.SolutionPicture == nil {
-		problems = append(problems, structural("task.solution_total comes with task.solution_picture, under which "+
-			"it stands: describe the picture of the solution, or leave the total out"))
-	}
-	return problems
+	return nil
 }
 
 // checkSelfCheck checks that the model's own pass over its task is complete:

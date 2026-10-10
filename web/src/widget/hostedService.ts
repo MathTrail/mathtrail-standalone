@@ -28,9 +28,11 @@ export function serviceThrough(host: Host): Service {
 	};
 }
 
-// recordAnswer sends the child's answer to the service and reads how it went.
-// An answer whose reply never came is one the card cannot call recorded; sent
-// again, it is either recorded then or told as the service recorded it.
+// recordAnswer sends the child's answer to the service and reads how it went,
+// with the clock of the device the card runs on, which the day's tasks are
+// counted by: the family's day ends at the family's midnight. An answer whose
+// reply never came is one the card cannot call recorded; sent again, it is
+// either recorded then or told as the service recorded it.
 async function recordAnswer(
 	host: Host,
 	taskId: string,
@@ -42,12 +44,19 @@ async function recordAnswer(
 			task_id: taskId,
 			answer: choice,
 			hint_used: hintUsed,
+			utc_offset: utcOffset(),
 		});
 		return readAnswer(result, taskId);
 	} catch (error: unknown) {
 		console.error("widget: the answer did not reach the service", error);
 		return { kind: "failed" };
 	}
+}
+
+// utcOffset is how far the device's clock runs ahead of UTC now, in minutes:
+// the browser counts the other way round, and says how far UTC runs ahead.
+function utcOffset(): number {
+	return -new Date().getTimezoneOffset();
 }
 
 // taskStatus asks the service how the task of the request stands, saying the

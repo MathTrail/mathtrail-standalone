@@ -561,13 +561,20 @@
       }
     },
     "daily": {
-      "description": "What the limits count, and the UTC day they belong to.",
+      "description": "What the limits count, and the family's day they belong to: the day by the family's clock, which ends at the family's midnight.",
       "type": "object",
       "required": ["accepted", "date", "failed"],
       "properties": {
         "accepted": { "type": "integer", "minimum": 0 },
         "date": { "type": "string", "format": "date" },
-        "failed": { "type": "integer", "minimum": 0 }
+        "failed": { "type": "integer", "minimum": 0 },
+        "utc_offset": {
+          "description": "How far the family's clock runs ahead of UTC, in minutes, and behind it below zero: the clock of the device the child last answered a card on. Absent, the family's day is the UTC day.",
+          "type": "integer",
+          "minimum": -720,
+          "maximum": 840,
+          "multipleOf": 15
+        }
       }
     }
   }

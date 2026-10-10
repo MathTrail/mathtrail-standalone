@@ -482,19 +482,28 @@ func MasteredTopics(p *profile.Profile, catalog Catalog) int {
 }
 
 // oldest is the topic that has waited longest: one never given at all, or the
-// one given furthest back. Candidates arrive in catalog order and the walk
-// keeps the first of any tie, so the order of a map never reaches the answer.
+// one given furthest back. The summary of a topic keeps only the day it was
+// last given, and once a lesson has given every topic once, they all share
+// that day: were the day the last word, catalog order would settle the tie,
+// and the rest of the day would go to whichever of them the catalog lists
+// first. So within a day, the tasks behind the child say which came first.
+// Candidates arrive in catalog order and the walk keeps the first of any tie,
+// so the order of a map never reaches the answer.
 func oldest(p *profile.Profile, candidates []string) string {
+	places := lastPlaces(p)
 	best := candidates[0]
 	for _, topic := range candidates[1:] {
-		if waitedLonger(p, topic, best) {
+		if waitedLonger(p, places, topic, best) {
 			best = topic
 		}
 	}
 	return best
 }
 
-func waitedLonger(p *profile.Profile, topic, than string) bool {
+// waitedLonger reports whether a topic has waited longer than another: by the
+// day each was last given, and between two given on the same day, by the
+// place of each one's last task.
+func waitedLonger(p *profile.Profile, places map[string]int, topic, than string) bool {
 	mine, theirs := p.Topics[topic].LastIssued, p.Topics[than].LastIssued
 	switch {
 	case mine.IsZero() && theirs.IsZero():
@@ -503,9 +512,30 @@ func waitedLonger(p *profile.Profile, topic, than string) bool {
 		return true // never given beats given at any time
 	case theirs.IsZero():
 		return false
-	default:
+	case !mine.Equal(theirs.Time):
 		return mine.Before(theirs.Time)
+	default:
+		return places[topic] < places[than]
 	}
+}
+
+// lastPlaces is where each topic's last task stands among the tasks the child
+// has been through lately, counted from one: the history window, answers and
+// skipped tasks oldest first, and after all of them the task on the card while
+// it waits for its answer, since a brief built then is for the task that takes
+// its place. A topic with no task among them stands at zero, before every one
+// that has. The window lets go of its oldest entry, or, to keep its latest
+// answers, of its oldest skipped task, so such a topic was given before all
+// the window holds, or at worst among its oldest entries.
+func lastPlaces(p *profile.Profile) map[string]int {
+	places := make(map[string]int, len(p.Recent)+1)
+	for i := range p.Recent {
+		places[p.Recent[i].Topic] = i + 1
+	}
+	if flying := p.InFlight(); flying != nil {
+		places[flying.Topic] = len(p.Recent) + 1
+	}
+	return places
 }
 
 // apply lets the topic chosen for the lessons, and then the model's choice,

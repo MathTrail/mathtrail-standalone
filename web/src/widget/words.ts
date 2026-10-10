@@ -1,6 +1,7 @@
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
 import type english from "../../locales/en.json";
+import { intlLocales } from "../i18n/lookup";
 import type { Words } from "../i18n/words";
 
 /**
@@ -51,9 +52,9 @@ function fieldOf(value: unknown, name: string): unknown {
  * written the way its language writes it, a separator and all.
  */
 export function ratingText(words: Words<Key>, rating: number): string {
-	return new Intl.NumberFormat(words.locale, { useGrouping: false }).format(
-		rating,
-	);
+	return new Intl.NumberFormat(intlLocales(words.locale), {
+		useGrouping: false,
+	}).format(rating);
 }
 
 /**
@@ -61,9 +62,9 @@ export function ratingText(words: Words<Key>, rating: number): string {
  * one, in its digits and with its own sign.
  */
 export function percentText(words: Words<Key>, percent: number): string {
-	return new Intl.NumberFormat(words.locale, { style: "percent" }).format(
-		percent / 100,
-	);
+	return new Intl.NumberFormat(intlLocales(words.locale), {
+		style: "percent",
+	}).format(percent / 100);
 }
 
 /**
@@ -91,5 +92,5 @@ export function useWords(): Words<Key> {
  * digits.
  */
 export function countText(words: Words<Key>, count: number): string {
-	return new Intl.NumberFormat(words.locale).format(count);
+	return new Intl.NumberFormat(intlLocales(words.locale)).format(count);
 }

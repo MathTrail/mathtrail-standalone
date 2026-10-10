@@ -1,5 +1,5 @@
 {
-  "purpose": "The piles of a game as it starts — stones, coins, counters — each a row of counters, dark or light, round or square, in groups, with its label before it and a value after it; a long pile is cut short to the counters it shows.",
-  "topics": ["games.strategy"],
+  "purpose": "Piles of things — the stones, coins or counters of a game as it starts, or what a solution puts together, such as the children on each bench — each a row of counters, dark or light, round or square, in groups, with its label before it and a value after it; a long pile is cut short to the counters it shows.",
+  "topics": ["games.strategy", "combinatorics.enumeration", "pigeonhole.basic"],
   "picture": {"kind": "piles", "piles": [{"label": "A", "count": 10, "group": 5}, {"label": "B", "count": 13, "shown": 6, "value": "13"}]}
 }

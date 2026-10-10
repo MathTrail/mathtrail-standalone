@@ -14,45 +14,45 @@ No candidate meets every constraint and is better than the service. **The exit: 
 
 | Rule | Score | Constraints met | Not met | Unread |
 |---|---:|---:|---:|---:|
-| shrinking/both (the service) | 0.000 [0.000, 0.000] | 47 of 49 | 2 | 0 |
-| earlier/both (the service's earlier rule) | -0.108 [-0.168, -0.044] | 45 of 49 | 4 | 0 |
-| constant/both | 0.170 [0.090, 0.255] | 40 of 49 | 9 | 0 |
-| constant_slow/both | 0.080 [0.026, 0.136] | 46 of 49 | 3 | 0 |
-| floor_0.05/both | 0.000 [0.000, 0.000] | 47 of 49 | 2 | 0 |
-| no_trial/both | -0.353 [-0.510, -0.192] | 43 of 49 | 6 | 0 |
-| glicko2_floor/general | 0.084 [-0.013, 0.178] | 39 of 49 | 10 | 0 |
-| glicko2_floor/topics | — | 26 of 49 | 19 | 4 |
-| floor_0.05+cautious_z1/both | 0.000 [0.000, 0.000] | 47 of 49 | 2 | 0 |
-| oracle/both (the ceiling) | 1.000 [0.904, 1.098] | 40 of 49 | 1 | 8 |
+| shrinking/both (the service) | 0.000 [0.000, 0.000] | 46 of 49 | 3 | 0 |
+| earlier/both (the service's earlier rule) | -0.111 [-0.165, -0.059] | 46 of 49 | 3 | 0 |
+| constant/both | 0.166 [0.083, 0.250] | 39 of 49 | 10 | 0 |
+| constant_slow/both | 0.073 [0.026, 0.121] | 46 of 49 | 3 | 0 |
+| floor_0.05/both | 0.000 [0.000, 0.000] | 46 of 49 | 3 | 0 |
+| no_trial/both | -0.402 [-0.573, -0.239] | 44 of 49 | 5 | 0 |
+| glicko2_floor/general | 0.068 [-0.028, 0.163] | 40 of 49 | 9 | 0 |
+| glicko2_floor/topics | — | 27 of 49 | 18 | 4 |
+| floor_0.05+cautious_z1/both | 0.000 [0.000, 0.000] | 46 of 49 | 3 | 0 |
+| oracle/both (the ceiling) | 1.000 [0.895, 1.110] | 41 of 49 | 0 | 8 |
 
 ## Goals
 
 Every rule's value against each goal's bound, and whether its interval reaches the bound, stands on its edge or does not reach it. The goals:
 
-1. the lag at most 45 % of the service's — G2-half, r6_lag, bound 0.249
-2. the corridor a share of the way to the ceiling — G2-half, r3_inside, bound 0.440
+1. the lag at most 45 % of the service's — G2-half, r6_lag, bound 0.267
+2. the corridor a share of the way to the ceiling — G2-half, r3_inside, bound 0.441
 3. children not caught up after the jump at most 25 % — G3, r6_jump_unsettled, bound 0.250
 4. the card's move in answers 6–20 no more than the service's in answers 6–20 — G0, r8_move_p95_6_20, bound 74.000
 5. the rank's changes in answers 6–20 no more than the service's in answers 6–20 — G0, r8_rank_6_20, bound 6.667
 6. the card's move in answers 150–200 no more than the service's in answers 6–20 — G0, r8_move_p95_150_200, bound 74.000
 7. the rank's changes in answers 150–200 no more than the service's in answers 6–20 — G0, r8_rank_150_200, bound 6.667
-8. the card's move in answers 6–20 no more than the service's in answers 6–20 — G2-half, r8_move_p95_6_20, bound 72.000
+8. the card's move in answers 6–20 no more than the service's in answers 6–20 — G2-half, r8_move_p95_6_20, bound 73.000
 9. the rank's changes in answers 6–20 no more than the service's in answers 6–20 — G2-half, r8_rank_6_20, bound 2.000
-10. the card's move in answers 150–200 no more than the service's in answers 6–20 — G2-half, r8_move_p95_150_200, bound 72.000
+10. the card's move in answers 150–200 no more than the service's in answers 6–20 — G2-half, r8_move_p95_150_200, bound 73.000
 11. the rank's changes in answers 150–200 no more than the service's in answers 6–20 — G2-half, r8_rank_150_200, bound 2.000
 
 | Rule | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| shrinking/both (the service) | 0.553, not reached | 0.378, not reached | 0.100, on the edge | 74.000, on the edge | 6.667, on the edge | 41.000, reached | 3.725, on the edge | 72.000, on the edge | 2.000, on the edge | 38.000, reached | 1.961, on the edge |
-| earlier/both (the service's earlier rule) | 0.691, not reached | 0.332, not reached | 0.700, not reached | 74.000, on the edge | 6.667, on the edge | 36.000, reached | 0.392, reached | 72.000, on the edge | 2.000, on the edge | 36.000, reached | 1.176, on the edge |
-| constant/both | 0.312, on the edge | 0.404, not reached | 0.100, on the edge | 83.000, not reached | 7.333, on the edge | 83.000, not reached | 5.882, on the edge | 84.000, not reached | 6.000, on the edge | 84.000, not reached | 6.667, not reached |
-| constant_slow/both | 0.534, not reached | 0.385, on the edge | 0.100, on the edge | 42.000, reached | 4.667, on the edge | 42.000, reached | 4.118, on the edge | 42.000, reached | 1.333, on the edge | 41.000, reached | 4.510, on the edge |
-| floor_0.05/both | 0.553, not reached | 0.378, not reached | 0.100, on the edge | 74.000, on the edge | 6.667, on the edge | 41.000, reached | 3.725, on the edge | 72.000, on the edge | 2.000, on the edge | 38.000, reached | 1.961, on the edge |
-| no_trial/both | 0.653, not reached | 0.381, not reached | 0.900, not reached | 73.000, on the edge | 4.000, on the edge | 36.000, reached | 2.941, on the edge | 74.000, on the edge | 6.000, on the edge | 32.000, reached | 0.392, reached |
-| glicko2_floor/general | 0.461, not reached | 0.395, not reached | 0.300, on the edge | 86.000, on the edge | 18.000, not reached | 20.000, reached | 7.451, on the edge | 82.000, on the edge | 12.667, not reached | 20.000, reached | 5.294, on the edge |
-| glicko2_floor/topics | 0.592, not reached | 0.398, not reached | 0.400, on the edge | 324.000, not reached | — | 52.000, reached | — | 323.000, not reached | — | 38.000, reached | — |
-| floor_0.05+cautious_z1/both | 0.553, not reached | 0.378, not reached | 0.100, on the edge | 74.000, on the edge | 6.667, on the edge | 41.000, reached | 3.725, on the edge | 72.000, on the edge | 2.000, on the edge | 38.000, reached | 1.961, on the edge |
-| oracle/both (the ceiling) | 0.000, reached | 0.606, reached | 0.000, reached | — | — | — | — | — | — | — | — |
+| shrinking/both (the service) | 0.593, not reached | 0.377, on the edge | 0.400, on the edge | 74.000, on the edge | 6.667, on the edge | 42.000, reached | 1.176, reached | 73.000, on the edge | 2.000, on the edge | 37.000, reached | 0.784, on the edge |
+| earlier/both (the service's earlier rule) | 0.683, not reached | 0.321, not reached | 0.700, not reached | 74.000, on the edge | 6.667, on the edge | 37.000, reached | 2.549, reached | 73.000, on the edge | 2.000, on the edge | 35.000, reached | 1.176, on the edge |
+| constant/both | 0.369, on the edge | 0.436, on the edge | 0.100, on the edge | 83.000, not reached | 7.333, on the edge | 84.000, not reached | 8.039, on the edge | 85.000, not reached | 4.667, on the edge | 83.000, not reached | 7.451, not reached |
+| constant_slow/both | 0.484, not reached | 0.399, on the edge | 0.200, on the edge | 42.000, reached | 4.667, on the edge | 42.000, reached | 4.706, on the edge | 42.000, reached | 1.333, on the edge | 41.000, reached | 4.510, on the edge |
+| floor_0.05/both | 0.593, not reached | 0.377, on the edge | 0.400, on the edge | 74.000, on the edge | 6.667, on the edge | 42.000, reached | 1.176, reached | 73.000, on the edge | 2.000, on the edge | 37.000, reached | 0.784, on the edge |
+| no_trial/both | 0.713, not reached | 0.367, not reached | 0.600, not reached | 73.000, on the edge | 4.000, on the edge | 36.000, reached | 3.137, on the edge | 74.000, on the edge | 6.000, on the edge | 30.000, reached | 1.961, on the edge |
+| glicko2_floor/general | 0.511, not reached | 0.391, not reached | 0.100, on the edge | 86.000, on the edge | 16.667, not reached | 21.000, reached | 4.706, on the edge | 82.000, on the edge | 12.667, not reached | 20.000, reached | 3.333, on the edge |
+| glicko2_floor/topics | 0.694, not reached | 0.326, not reached | 0.400, on the edge | 324.000, not reached | — | 45.000, reached | — | 323.000, not reached | — | 32.000, reached | — |
+| floor_0.05+cautious_z1/both | 0.593, not reached | 0.377, on the edge | 0.400, on the edge | 74.000, on the edge | 6.667, on the edge | 42.000, reached | 1.176, reached | 73.000, on the edge | 2.000, on the edge | 37.000, reached | 0.784, on the edge |
+| oracle/both (the ceiling) | 0.000, reached | 0.614, reached | 0.000, reached | — | — | — | — | — | — | — | — |
 
 ## Not worse than the service
 
@@ -61,15 +61,15 @@ What of not worse each rule does not meet, or the run cannot read: its differenc
 | Rule | Checks met | Not met or unread |
 |---|---:|---|
 | shrinking/both (the service) | 38 of 38 |  |
-| earlier/both (the service's earlier rule) | 37 of 38 | G2-half r1_rms_200 0.156 [0.057, 0.244] against 0.050 |
+| earlier/both (the service's earlier rule) | 38 of 38 |  |
 | constant/both | 38 of 38 |  |
 | constant_slow/both | 38 of 38 |  |
 | floor_0.05/both | 38 of 38 |  |
-| no_trial/both | 37 of 38 | G3 r1_rms_200 0.175 [0.102, 0.259] against 0.083 |
-| glicko2_floor/general | 37 of 38 | G0-topics1 r1_rms_200 0.375 [0.196, 0.613] against 0.135 |
-| glicko2_floor/topics | 24 of 38 | G0 r1_rms_200 0.422 [0.235, 0.622] against 0.106; G1 r1_rms_200 0.524 [0.309, 0.759] against 0.213; G2 r1_rms_200 0.651 [0.419, 0.880] against 0.222; G3 r1_rms_200 0.742 [0.493, 0.984] against 0.083; G4 r1_rms_200 0.340 [0.201, 0.505] against 0.177; G7 r1_rms_200 0.293 [0.199, 0.397] against 0.124; G8 r1_rms_200 0.570 [0.446, 0.712] against 0.103; G0-exact r1_rms_200 0.534 [0.352, 0.730] against 0.170; G2-half r1_rms_200 0.734 [0.449, 1.042] against 0.050; G2-fading r1_rms_200 0.531 [0.313, 0.753] against 0.205; G0-start0.5 r1_rms_200 0.440 [0.297, 0.586] against 0.181; G0-start2 r1_rms_200 0.460 [0.264, 0.684] against 0.083; G0-topics0.3 r1_rms_200 0.509 [0.402, 0.621] against 0.092; G0-topics1 r1_rms_200 0.313 [0.149, 0.506] against 0.135 |
+| no_trial/both | 38 of 38 |  |
+| glicko2_floor/general | 36 of 38 | G0-topics1 r1_rms_200 0.350 [0.206, 0.518] against 0.155; G0-topics1 r3_inside -0.051 [-0.082, -0.024] against 0.021 |
+| glicko2_floor/topics | 25 of 38 | G0 r1_rms_200 0.541 [0.410, 0.676] against 0.100; G1 r1_rms_200 0.524 [0.297, 0.786] against 0.140; G2 r1_rms_200 0.646 [0.409, 0.877] against 0.247; G3 r1_rms_200 0.756 [0.508, 1.013] against 0.155; G8 r1_rms_200 0.573 [0.383, 0.795] against 0.105; G0-exact r1_rms_200 0.500 [0.305, 0.676] against 0.131; G2-half r1_rms_200 0.709 [0.463, 0.934] against 0.189; G2-fading r1_rms_200 0.587 [0.368, 0.814] against 0.093; G3-drop r1_rms_200 0.412 [0.201, 0.630] against 0.167; G0-start0.5 r1_rms_200 0.339 [0.235, 0.454] against 0.180; G0-start2 r1_rms_200 0.445 [0.230, 0.685] against 0.166; G0-topics0.3 r1_rms_200 0.583 [0.466, 0.701] against 0.107; G0-topics1 r1_rms_200 0.341 [0.205, 0.504] against 0.155 |
 | floor_0.05+cautious_z1/both | 38 of 38 |  |
-| oracle/both (the ceiling) | 37 of 38 | G6 r3_inside -0.146 [-0.248, -0.048] against 0.040 |
+| oracle/both (the ceiling) | 38 of 38 |  |
 
 ## What the bench resolves
 
@@ -77,41 +77,41 @@ Each check of not worse: the author's tolerance, the standard error of the paire
 
 | Generator | Measure | Author's tolerance | Standard error | Tolerance read | Passes, 10 children | Passes, 4000 children |
 |---|---|---:|---:|---:|---:|---:|
-| G0 | r1_rms_200 | 0.010 | 0.0246 | 0.106 | 100.0 % | 100.0 % |
-| G0 | r3_inside | 0.010 | 0.0103 | 0.044 | 100.0 % | 100.0 % |
-| G1 | r1_rms_200 | 0.010 | 0.0494 | 0.213 | 100.0 % | 99.0 % |
-| G1 | r3_inside | 0.010 | 0.0194 | 0.083 | 100.0 % | 100.0 % |
-| G2 | r1_rms_200 | 0.010 | 0.0516 | 0.222 | 100.0 % | 99.0 % |
-| G2 | r3_inside | 0.010 | 0.0214 | 0.092 | 100.0 % | 100.0 % |
-| G3 | r1_rms_200 | 0.010 | 0.0193 | 0.083 | 100.0 % | 100.0 % |
-| G3 | r3_inside | 0.010 | 0.0131 | 0.056 | 100.0 % | 100.0 % |
-| G4 | r1_rms_200 | 0.010 | 0.0412 | 0.177 | 100.0 % | 99.8 % |
-| G4 | r3_inside | 0.010 | 0.0129 | 0.055 | 100.0 % | 100.0 % |
-| G5 | r1_rms_200 | 0.010 | 0.0186 | 0.080 | 100.0 % | 100.0 % |
-| G5 | r3_inside | 0.010 | 0.0133 | 0.057 | 100.0 % | 100.0 % |
-| G6 | r1_rms_200 | 0.010 | 0.0530 | 0.228 | 100.0 % | 99.0 % |
-| G6 | r3_inside | 0.010 | 0.0093 | 0.040 | 100.0 % | 100.0 % |
-| G7 | r1_rms_200 | 0.010 | 0.0288 | 0.124 | 100.0 % | 100.0 % |
-| G7 | r3_inside | 0.010 | 0.0121 | 0.052 | 100.0 % | 100.0 % |
-| G8 | r1_rms_200 | 0.010 | 0.0239 | 0.103 | 100.0 % | 100.0 % |
-| G8 | r3_inside | 0.010 | 0.0130 | 0.056 | 100.0 % | 100.0 % |
-| G0-exact | r1_rms_200 | 0.010 | 0.0394 | 0.170 | 100.0 % | 99.9 % |
-| G0-exact | r3_inside | 0.010 | 0.0224 | 0.097 | 100.0 % | 100.0 % |
-| G0-miss0.25 | r1_rms_200 | 0.010 | 0.0498 | 0.214 | 100.0 % | 99.0 % |
-| G0-miss0.25 | r3_inside | 0.010 | 0.0124 | 0.053 | 100.0 % | 100.0 % |
-| G0-miss1 | r1_rms_200 | 0.010 | 0.0859 | 0.369 | 100.0 % | 99.0 % |
-| G0-miss1 | r3_inside | 0.010 | 0.0117 | 0.050 | 100.0 % | 100.0 % |
-| G2-half | r1_rms_200 | 0.010 | 0.0115 | 0.050 | 100.0 % | 100.0 % |
-| G2-half | r3_inside | 0.010 | 0.0121 | 0.052 | 100.0 % | 100.0 % |
-| G2-fading | r1_rms_200 | 0.010 | 0.0476 | 0.205 | 100.0 % | 99.0 % |
-| G2-fading | r3_inside | 0.010 | 0.0091 | 0.039 | 100.0 % | 100.0 % |
-| G3-drop | r1_rms_200 | 0.010 | 0.0421 | 0.181 | 100.0 % | 99.7 % |
-| G3-drop | r3_inside | 0.010 | 0.0121 | 0.052 | 100.0 % | 100.0 % |
-| G0-start0.5 | r1_rms_200 | 0.010 | 0.0421 | 0.181 | 100.0 % | 99.7 % |
-| G0-start0.5 | r3_inside | 0.010 | 0.0157 | 0.067 | 100.0 % | 100.0 % |
-| G0-start2 | r1_rms_200 | 0.010 | 0.0194 | 0.083 | 100.0 % | 100.0 % |
-| G0-start2 | r3_inside | 0.010 | 0.0163 | 0.070 | 100.0 % | 100.0 % |
-| G0-topics0.3 | r1_rms_200 | 0.010 | 0.0215 | 0.092 | 100.0 % | 100.0 % |
-| G0-topics0.3 | r3_inside | 0.010 | 0.0115 | 0.049 | 100.0 % | 100.0 % |
-| G0-topics1 | r1_rms_200 | 0.010 | 0.0313 | 0.135 | 100.0 % | 100.0 % |
-| G0-topics1 | r3_inside | 0.010 | 0.0139 | 0.060 | 100.0 % | 100.0 % |
+| G0 | r1_rms_200 | 0.010 | 0.0232 | 0.100 | 100.0 % | 100.0 % |
+| G0 | r3_inside | 0.010 | 0.0124 | 0.053 | 100.0 % | 100.0 % |
+| G1 | r1_rms_200 | 0.010 | 0.0325 | 0.140 | 100.0 % | 100.0 % |
+| G1 | r3_inside | 0.010 | 0.0245 | 0.105 | 100.0 % | 100.0 % |
+| G2 | r1_rms_200 | 0.010 | 0.0575 | 0.247 | 100.0 % | 99.0 % |
+| G2 | r3_inside | 0.010 | 0.0188 | 0.081 | 100.0 % | 100.0 % |
+| G3 | r1_rms_200 | 0.010 | 0.0361 | 0.155 | 100.0 % | 100.0 % |
+| G3 | r3_inside | 0.010 | 0.0181 | 0.078 | 100.0 % | 100.0 % |
+| G4 | r1_rms_200 | 0.010 | 0.0505 | 0.217 | 100.0 % | 99.0 % |
+| G4 | r3_inside | 0.010 | 0.0050 | 0.021 | 100.0 % | 100.0 % |
+| G5 | r1_rms_200 | 0.010 | 0.0132 | 0.057 | 100.0 % | 100.0 % |
+| G5 | r3_inside | 0.010 | 0.0114 | 0.049 | 100.0 % | 100.0 % |
+| G6 | r1_rms_200 | 0.010 | 0.0540 | 0.232 | 100.0 % | 99.0 % |
+| G6 | r3_inside | 0.010 | 0.0121 | 0.052 | 100.0 % | 100.0 % |
+| G7 | r1_rms_200 | 0.010 | 0.0467 | 0.201 | 100.0 % | 99.0 % |
+| G7 | r3_inside | 0.010 | 0.0133 | 0.057 | 100.0 % | 100.0 % |
+| G8 | r1_rms_200 | 0.010 | 0.0244 | 0.105 | 100.0 % | 100.0 % |
+| G8 | r3_inside | 0.010 | 0.0148 | 0.064 | 100.0 % | 100.0 % |
+| G0-exact | r1_rms_200 | 0.010 | 0.0306 | 0.131 | 100.0 % | 100.0 % |
+| G0-exact | r3_inside | 0.010 | 0.0302 | 0.130 | 100.0 % | 100.0 % |
+| G0-miss0.25 | r1_rms_200 | 0.010 | 0.0511 | 0.220 | 100.0 % | 99.0 % |
+| G0-miss0.25 | r3_inside | 0.010 | 0.0208 | 0.089 | 100.0 % | 100.0 % |
+| G0-miss1 | r1_rms_200 | 0.010 | 0.0779 | 0.335 | 100.0 % | 99.0 % |
+| G0-miss1 | r3_inside | 0.010 | 0.0131 | 0.056 | 100.0 % | 100.0 % |
+| G2-half | r1_rms_200 | 0.010 | 0.0439 | 0.189 | 100.0 % | 99.5 % |
+| G2-half | r3_inside | 0.010 | 0.0135 | 0.058 | 100.0 % | 100.0 % |
+| G2-fading | r1_rms_200 | 0.010 | 0.0216 | 0.093 | 100.0 % | 100.0 % |
+| G2-fading | r3_inside | 0.010 | 0.0126 | 0.054 | 100.0 % | 100.0 % |
+| G3-drop | r1_rms_200 | 0.010 | 0.0388 | 0.167 | 100.0 % | 99.9 % |
+| G3-drop | r3_inside | 0.010 | 0.0148 | 0.064 | 100.0 % | 100.0 % |
+| G0-start0.5 | r1_rms_200 | 0.010 | 0.0419 | 0.180 | 100.0 % | 99.8 % |
+| G0-start0.5 | r3_inside | 0.010 | 0.0151 | 0.065 | 100.0 % | 100.0 % |
+| G0-start2 | r1_rms_200 | 0.010 | 0.0386 | 0.166 | 100.0 % | 99.9 % |
+| G0-start2 | r3_inside | 0.010 | 0.0182 | 0.078 | 100.0 % | 100.0 % |
+| G0-topics0.3 | r1_rms_200 | 0.010 | 0.0248 | 0.107 | 100.0 % | 100.0 % |
+| G0-topics0.3 | r3_inside | 0.010 | 0.0073 | 0.031 | 100.0 % | 100.0 % |
+| G0-topics1 | r1_rms_200 | 0.010 | 0.0361 | 0.155 | 100.0 % | 100.0 % |
+| G0-topics1 | r3_inside | 0.010 | 0.0050 | 0.021 | 100.0 % | 100.0 % |

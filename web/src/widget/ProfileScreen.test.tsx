@@ -24,9 +24,9 @@ async function draw(payload: object): Promise<Drawn> {
 
 // A profile whose cards speak a language the widget has no words for yet:
 // the card speaks the chat's, and names the chosen one in it.
-const inSwahili = {
+const inSomali = {
 	...profileRead,
-	profile: { ...profileRead.profile, ui_language: "sw" },
+	profile: { ...profileRead.profile, ui_language: "so" },
 };
 
 // fields are the fields of the group labelled label: each its name, what it
@@ -55,7 +55,7 @@ function fields(root: HTMLElement, label: string): string[][] {
 
 describe("the profile's card", () => {
 	test("shows the child's details, and never the parent's notes", async () => {
-		const { root } = await draw(inSwahili);
+		const { root } = await draw(inSomali);
 
 		expect(root.querySelector("article")?.getAttribute("aria-label")).toBe(
 			"Profile",
@@ -65,7 +65,7 @@ describe("the profile's card", () => {
 			["Grade", "3", "Only a label: changing it moves no rating."],
 			["Interests", "space, animals, football"],
 			["Not at school yet", "Division with a remainder"],
-			["Language of the lessons", "Swahili"],
+			["Language of the lessons", "Somali"],
 			[
 				"Country",
 				"Not set",
@@ -78,8 +78,8 @@ describe("the profile's card", () => {
 
 	test("names the country by the card's words for it, and a state of the United States by its name", async () => {
 		const { root } = await draw({
-			...inSwahili,
-			profile: { ...inSwahili.profile, country: "US", region: "US-TX" },
+			...inSomali,
+			profile: { ...inSomali.profile, country: "US", region: "US-TX" },
 		});
 
 		expect(fields(root, "Profile · for the parent").slice(-2)).toEqual([
@@ -94,8 +94,8 @@ describe("the profile's card", () => {
 
 	test("shows by its code a state the file pairs with another country", async () => {
 		const { root } = await draw({
-			...inSwahili,
-			profile: { ...inSwahili.profile, country: "FR", region: "US-TX" },
+			...inSomali,
+			profile: { ...inSomali.profile, country: "FR", region: "US-TX" },
 		});
 
 		expect(fields(root, "Profile · for the parent").slice(-1)).toEqual([
@@ -104,7 +104,7 @@ describe("the profile's card", () => {
 	});
 
 	test("says where the profile's file is, and what the parent can do with it, each under the question it answers", async () => {
-		const { root } = await draw(inSwahili);
+		const { root } = await draw(inSomali);
 
 		expect(fields(root, "Your data")).toEqual([
 			[
@@ -132,8 +132,8 @@ describe("the profile's card", () => {
 
 	test("names the file alone when it lies in no folder, and no other file when there is none", async () => {
 		const { root } = await draw({
-			...inSwahili,
-			location: { ...inSwahili.location, folder: "", others: [] },
+			...inSomali,
+			location: { ...inSomali.location, folder: "", others: [] },
 		});
 
 		expect(fields(root, "Your data")[0]).toEqual([
@@ -143,7 +143,7 @@ describe("the profile's card", () => {
 	});
 
 	test("says nothing of the data when its tool does not say where the file is", async () => {
-		const { location: _, ...saved } = inSwahili;
+		const { location: _, ...saved } = inSomali;
 		const { root } = await draw(saved);
 
 		expect(fields(root, "Your data")).toEqual([]);
@@ -164,7 +164,7 @@ describe("the profile's card", () => {
 	});
 
 	test("opens the form in its place from the button at its head, and asks the chat for nothing", async () => {
-		const { root, heard } = await draw(inSwahili);
+		const { root, heard } = await draw(inSomali);
 		const edit = buttonIn(root, "Edit");
 		expect(edit.closest(".mt-fields-head")).not.toBeNull();
 

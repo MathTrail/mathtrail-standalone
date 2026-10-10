@@ -14,7 +14,8 @@ export const fallbackLocale = "en";
  * `zh-TW` is not answered in the simplified characters a bare `zh` stands
  * for. A language no tag names is never tried: `kk` is not answered in
  * Russian because many who read Kazakh read Russian too, nor `und-RU` because
- * most in Russia read Russian.
+ * most in Russia read Russian. Norwegian named as a whole, `no`, is tried as
+ * Bokmål, `nb`, the standard most of its readers write.
  */
 export function chooseLocale(
 	wanted: readonly (string | undefined)[],
@@ -29,6 +30,18 @@ export function chooseLocale(
 		}
 	}
 	return fallbackLocale;
+}
+
+/**
+ * intlLocales are the locales the platform is asked to count, write numbers,
+ * list, name and sort in for a language: its own, and English after it. A
+ * platform with no data for the language alone answers in its machine's own
+ * language instead, so that a card would count in Russian on one machine and
+ * in English on another; asked for English after it, every machine answers
+ * in English.
+ */
+export function intlLocales(locale: string): string[] {
+	return [locale, fallbackLocale];
 }
 
 /**
@@ -86,16 +99,26 @@ function candidatesOf(tag: string | undefined): string[] {
 	if (locale === undefined || locale.baseName.split("-")[0] === "und") {
 		return [];
 	}
-	const likely = locale.maximize();
+	const standard = standardOf(locale);
+	const likely = standard.maximize();
 	return writtenIn(
 		[
 			...new Set([
-				...shorterTags(locale.baseName),
+				...shorterTags(standard.baseName),
 				...shorterTags(likely.baseName),
 			]),
 		],
 		likely.script,
 	);
+}
+
+// standardOf is a locale with its language named by the standard its words
+// are written in: Norwegian named as a whole, no, is read as Bokmål, nb, which
+// most of its readers write. Nynorsk, nn, is a standard of its own.
+function standardOf(locale: Intl.Locale): Intl.Locale {
+	return locale.language === "no"
+		? new Intl.Locale(locale, { language: "nb" })
+		: locale;
 }
 
 // writtenIn are the tags among tags written in script, the one they name or

@@ -27,15 +27,18 @@ const english: Dictionary = written.get("en") ?? {};
  * can load nothing, so a language it does not carry is one it can never
  * speak. A page that draws a card in its own language alone carries only that
  * language's words, and never imports this module. The preview and the
- * widget's tests speak the pseudo-language too — English stretched as a
- * longer language stretches it, to see a card hold longer words — and a build
- * for production leaves it out, since a host could name it. It is the build's
- * mode that decides, not the environment it runs in.
+ * widget's tests speak the pseudo-language too — English stretched further
+ * than any of the languages stretches it, to see a card hold longer words —
+ * and a build for production leaves it out, since a host could name it. It is
+ * the build's mode that decides, not the environment it runs in.
  */
 export const dictionaries: ReadonlyMap<string, Dictionary> =
 	import.meta.env.MODE === "production"
 		? written
-		: new Map([...written, [pseudoLocale, pseudoWords(english)]]);
+		: new Map([
+				...written,
+				[pseudoLocale, pseudoWords(english, written.values())],
+			]);
 
 const spoken: ReadonlySet<string> = new Set(dictionaries.keys());
 

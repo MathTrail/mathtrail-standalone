@@ -124,7 +124,7 @@ func loadPicture(src fs.FS, kind picture.Kind, topics map[string]Topic) (Picture
 	} else if got := picture.KindOf(read.Picture); got != string(kind) {
 		p.addf("the picture is a %s, and the file is the example of a %s", got, kind)
 	}
-	checkPicture(p, "the picture", read.Picture)
+	checkPicture(p, "the picture", "picture", read.Picture)
 	if err := p.err(); err != nil {
 		return PictureExample{}, nil, err
 	}

@@ -1,0 +1,2150 @@
+{
+	"app.name": {
+		"reader": "both",
+		"where": "MathTrail's name beside its logo heading its cards, such as a task's, and the name a screen reader gives a card that cannot be shown.",
+		"length": "label",
+		"address": "none",
+		"mind": "A name: keep 'MathTrail' exactly as written, neither translated nor transliterated."
+	},
+	"app.badge": {
+		"reader": "both",
+		"where": "The pill by MathTrail's name heading a lesson's cards, such as a task's: what MathTrail is, and the child's grade.",
+		"length": "label",
+		"address": "none",
+		"mind": "Two parts split by a middle dot: 'coach' as topic_choice.coach_short words it, and the grade as child.grade does; {grade} is a number from 1 to 6."
+	},
+	"app.version": {
+		"reader": "parent",
+		"where": "The word over the build's number in a small box at the end of a card's header, for an adult; a screen reader skips it.",
+		"length": "label",
+		"address": "none",
+		"mind": "One short word: it sits over the number, which the card writes itself, in a box at most a third of the header wide."
+	},
+	"child.grade": {
+		"reader": "both",
+		"where": "The pill under the child's pseudonym heading the progress and the profile's card, naming the child's school year.",
+		"length": "label",
+		"address": "none",
+		"mind": "{grade} is the child's school year, a number from 1 to 6; app.badge words the grade the same way."
+	},
+	"task.profile_action": {
+		"reader": "both",
+		"where": "At the end of the line atop a lesson card, after the child's pseudonym; the line is a button that opens the profile and progress.",
+		"length": "label",
+		"address": "none",
+		"mind": "It never wraps, and a long one cuts the pseudonym short. first_run.start names it ('under Profile & progress'): use the same words."
+	},
+	"task.label": {
+		"reader": "child",
+		"where": "The name a screen reader gives the part of the card holding the task, before it turns into how the answer went.",
+		"length": "heard",
+		"address": "none"
+	},
+	"task.pick": {
+		"reader": "child",
+		"where": "The legend a screen reader alone hears over the task's five options; a press on one gives the answer at once.",
+		"length": "heard",
+		"address": "informal",
+		"mind": "Said to the child: where an imperative shows gender, a question such as 'Which answer is right?' instead."
+	},
+	"task.checking": {
+		"reader": "child",
+		"where": "The words beside the option just pressed, with a spinner, while the service checks the answer.",
+		"length": "label",
+		"address": "none",
+		"mind": "One line inside the option's button, beside its text: a word or two."
+	},
+	"task.hint": {
+		"reader": "child",
+		"where": "The Hint button under a task, a bulb alone, named to a screen reader and in a tooltip; also the label over the open hint.",
+		"length": "label",
+		"address": "none",
+		"mind": "A noun, not an order. task.hide_hint names the same button while the hint is open."
+	},
+	"task.hide_hint": {
+		"reader": "child",
+		"where": "The name of the bulb-only Hint button while the hint is open, said to a screen reader and shown in a tooltip.",
+		"length": "label",
+		"address": "none",
+		"mind": "Names the action, as an infinitive does, not an order to the child."
+	},
+	"task.another": {
+		"reader": "both",
+		"where": "The Another task button: an arrows icon under an unanswered task, its words heard and in a tooltip; a worded button under the result.",
+		"length": "label",
+		"address": "none",
+		"mind": "A press also puts these very words in the chat as the adult's message asking the model for a new task."
+	},
+	"task.another_coming": {
+		"reader": "both",
+		"where": "A note at the card's foot once the chat has taken the ask for another task, in place of the buttons; it takes the focus.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "A chat may hold the message for the adult to send, so it must not say the ask was sent. 'Below' is further down the chat."
+	},
+	"task.answered_before": {
+		"reader": "both",
+		"where": "A note at the card's foot when the task already had an answer: the card shows that one, not the option just pressed.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Not 'you already answered': its past tense would show the child's gender in some languages."
+	},
+	"picture.clock": {
+		"reader": "child",
+		"where": "The name a screen reader gives any clock-face picture, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only, the same for every task: an analogue clock face with hands."
+	},
+	"picture.table": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of a table, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: a small table of rows and cells, often a timetable, never the furniture."
+	},
+	"picture.number_line": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of a number line, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: the school term for a line of evenly spaced, numbered ticks."
+	},
+	"picture.row": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of things in a row, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: objects in a line, such as posts, trees or children in a queue."
+	},
+	"picture.ring": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of places in a ring, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: places round a circle, such as seats round a table, children in a circle or stops on a loop."
+	},
+	"picture.grid": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of a grid, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: a square grid whose rows and columns are named, so that a cell is B2."
+	},
+	"picture.bars": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of bars, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: bars drawn to one scale and cut into parts or segments, for fractions, ratios and shares."
+	},
+	"picture.venn": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of two overlapping groups, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: a Venn diagram of two groups. Plain words, as the English has, suit a child better than the term."
+	},
+	"picture.balance": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of a pan balance, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: scales with two pans, as weighing puzzles use, not a bathroom scale."
+	},
+	"picture.containers": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of containers, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: jugs, buckets or tanks of known sizes that water is poured between."
+	},
+	"picture.piles": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of piles, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: piles of stones, coins or counters, as a game starts."
+	},
+	"picture.calendar": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of a calendar page, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: the calendar page of one month, its days set out in weeks."
+	},
+	"picture.flags": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of flags, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: flags of two or three coloured stripes, top to bottom."
+	},
+	"picture.colors": {
+		"reader": "child",
+		"where": "The name a screen reader gives the key under a picture that paints, each colour beside its word; today only flags paint.",
+		"length": "heard",
+		"address": "none"
+	},
+	"chat.not_sent": {
+		"reader": "both",
+		"where": "A note under a task's buttons, or under how its answer went, when the chat did not take the card's ask for another task.",
+		"length": "line",
+		"address": "informal",
+		"mind": "Say it of the card's message, impersonally: not 'you did not send', whose past tense shows gender in some languages."
+	},
+	"task.answer_failed": {
+		"reader": "child",
+		"where": "A line under the task when the answer could not be checked; the options can be pressed again.",
+		"length": "sentence",
+		"address": "informal",
+		"mind": "'Try again' is said to the child: where an imperative shows gender, 'let's try again' or an impersonal form."
+	},
+	"task.closed": {
+		"reader": "both",
+		"where": "A line under a task pressed after a newer one was handed out: this one takes no answer, and its buttons are gone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'Closed' is said of the task. 'Further down the chat' is where the newest task's card is."
+	},
+	"topic_choice.label": {
+		"reader": "both",
+		"where": "'Topic:' before the chosen topic on the topic button under a task, and on the mark above a task given on that topic.",
+		"length": "label",
+		"address": "none",
+		"mind": "A colon, or the language's own sign, since a name follows. A narrow card's button leaves it to a screen reader."
+	},
+	"topic_choice.coach": {
+		"reader": "both",
+		"where": "The topic button's words after 'Topic:' on a wide card, with a spark icon, when the coach picks each task's topic.",
+		"length": "label",
+		"address": "none",
+		"mind": "Continues topic_choice.label, 'Topic: the coach chooses', hence the small letter. The coach is MathTrail itself, the 'Olympiad coach' of app.badge."
+	},
+	"topic_choice.coach_short": {
+		"reader": "both",
+		"where": "The topic button's one word on a narrow card when the coach picks the topic; 'Topic:' before it is heard only.",
+		"length": "label",
+		"address": "none",
+		"mind": "The same coach as topic_choice.coach and app.badge, in a single word."
+	},
+	"topic_choice.title": {
+		"reader": "both",
+		"where": "The heading of the topic choice, which the topic button opens under a task's buttons, beside a cross that closes it.",
+		"length": "label",
+		"address": "none"
+	},
+	"topic_choice.lead": {
+		"reader": "both",
+		"where": "A muted line under the topic choice's heading, saying what a press on a topic does.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "A press asks for a new task at once, and the tasks after it keep to the topic. No full stop, as in the English."
+	},
+	"topic_choice.close": {
+		"reader": "both",
+		"where": "The cross that closes the topic choice, named only to a screen reader.",
+		"length": "heard",
+		"address": "none"
+	},
+	"topic_choice.coach_option": {
+		"reader": "both",
+		"where": "The first choice in the topic panel: it hands the topic back to the coach and asks for a new task at once.",
+		"length": "label",
+		"address": "none",
+		"mind": "The same coach as topic_choice.coach; it stands alone on its button, hence the capital."
+	},
+	"topic_choice.coach_note": {
+		"reader": "parent",
+		"where": "A muted note beside the coach's choice in the topic panel, saying what the coach picks topics by.",
+		"length": "line",
+		"address": "none",
+		"mind": "Continues the choice beside it, hence the small letter and no full stop. It speaks of the child as 'the child'."
+	},
+	"topic_choice.recommended": {
+		"reader": "both",
+		"where": "The name of the topic panel's first row: up to three topics the review of the child's progress suggests.",
+		"length": "label",
+		"address": "none"
+	},
+	"topic_choice.from_grade": {
+		"reader": "both",
+		"where": "A muted note after a topic's name in the topic panel, for a topic taught from a grade above the child's.",
+		"length": "label",
+		"address": "none",
+		"mind": "{grade} is the school grade, 1 to 6, the topic is taught from; it follows the name, hence the small letter. A hint only: the topic can still be chosen."
+	},
+	"topic_choice.ask": {
+		"reader": "parent",
+		"where": "Not shown on the card: once a topic is chosen and saved, the card sends these words to the chat as the adult's message.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{topic} is the topic's name. It opens with task.another's words, as the English does, and reads as the adult's own request for a task on that topic."
+	},
+	"topic_choice.ask_coach": {
+		"reader": "parent",
+		"where": "Not shown on the card: once the coach's choice is saved, the card sends these words to the chat as the adult's message.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "It opens with task.another's words, as the English does; the coach is the one of topic_choice.coach."
+	},
+	"topic_choice.saving": {
+		"reader": "both",
+		"where": "A note under the topic choice while the topic chosen is being saved; the card takes no other press meanwhile.",
+		"length": "line",
+		"address": "none"
+	},
+	"topic_choice.not_saved": {
+		"reader": "both",
+		"where": "A note under the topic choice when the topic chosen could not be saved; nothing goes to the chat.",
+		"length": "line",
+		"address": "informal",
+		"mind": "Said to whoever pressed, who may be the child, as the Russian does; a form that speaks to nobody, as the German has, fits as well."
+	},
+	"topic_choice.clear": {
+		"reader": "both",
+		"where": "The cross on the mark above a task given on the chosen topic, named only to a screen reader.",
+		"length": "heard",
+		"address": "none",
+		"mind": "A press hands the topic back to the coach and asks for a new task. It names the action, as an infinitive does, not an order."
+	},
+	"result.answers": {
+		"reader": "child",
+		"where": "The legend a screen reader alone hears over the task's options once the chat has taken the ask for another task.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Takes task.pick's place: the options no longer ask for a pick."
+	},
+	"result.wrong": {
+		"reader": "child",
+		"where": "The verdict atop how the answer went, with a cross, after a wrong option.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{correct} is the text of the right option, {picked} of the one chosen. Not 'you chose', whose past tense shows gender in some languages."
+	},
+	"result.idk": {
+		"reader": "child",
+		"where": "The line atop how the answer went after 'I don't know', said in the chat; it has no right-or-wrong mark.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "No verdict and no reproach: it only leads into the solution below. Not 'you didn't know'."
+	},
+	"result.trap": {
+		"reader": "child",
+		"where": "The label of the note under a wrong verdict that explains the trap behind the option chosen.",
+		"length": "label",
+		"address": "none",
+		"mind": "A trap is the typical mistake a wrong option was built to catch; a word a child knows, as 'trap' is."
+	},
+	"result.solution": {
+		"reader": "child",
+		"where": "The heading over the solution's numbered steps, on how the answer went.",
+		"length": "label",
+		"address": "none"
+	},
+	"result.right": {
+		"reader": "child",
+		"where": "The verdict atop how the answer went, with a tick, after the right option.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{correct} is the text of the right option. Praise the answer, not the child: no word that agrees with the child."
+	},
+	"result.rating": {
+		"reader": "both",
+		"where": "The name of a fact in the band at the foot of how the answer went; under it, how the rating moved.",
+		"length": "label",
+		"address": "none",
+		"mind": "The rating in the task's topic, a number; the same 'rating' as progress.overall_label."
+	},
+	"result.rating_change": {
+		"reader": "both",
+		"where": "Under 'Rating in this topic': the rating before this answer, muted, then the rating after, in green or coral by the move.",
+		"length": "label",
+		"address": "none",
+		"mind": "{before} and {after} are numbers. The arrow points the way the language reads: ← in a right-to-left language."
+	},
+	"result.trial": {
+		"reader": "both",
+		"where": "During the trial series: a fact's name at the foot of how the answer went, and the large title in the progress's rank place.",
+		"length": "label",
+		"address": "none",
+		"mind": "The first five tasks, which find where the child stands before any rank is given; the same series as progress.trial_ranks. Drawn large on the progress."
+	},
+	"result.trial_progress": {
+		"reader": "both",
+		"where": "With 'Trial series', on how the answer went and on the progress: how many of the series' tasks are answered.",
+		"length": "label",
+		"address": "none",
+		"mind": "{answered} and {total} are numbers: '2 of 5'."
+	},
+	"result.trap_again": {
+		"reader": "child",
+		"where": "A muted line under the explanation of the trap when the same mistake has come up in earlier answers.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Said of the mistake, not of the child: not 'you made it before', whose past tense shows gender in some languages."
+	},
+	"result.label": {
+		"reader": "child",
+		"where": "The name a screen reader gives the part of the card showing how the answer went: verdict, trap, solution and rating.",
+		"length": "heard",
+		"address": "none",
+		"mind": "result.gone and result.untold speak of the same 'how the answer went'."
+	},
+	"result.topic": {
+		"reader": "both",
+		"where": "A fact's name at the foot of how the answer went; its value, the task's topic, links to its page where the chat opens links.",
+		"length": "label",
+		"address": "none",
+		"mind": "Its value is a topic's name, such as 'Clocks'."
+	},
+	"result.gone": {
+		"reader": "both",
+		"where": "The only line on a card the chat drew to show an answer, when a newer task has replaced that task.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'No longer on the card' means a newer task took its place."
+	},
+	"result.not_yet": {
+		"reader": "both",
+		"where": "The only line on a card the chat drew to show an answer, when the task has not been answered yet.",
+		"length": "sentence",
+		"address": "none"
+	},
+	"result.untold": {
+		"reader": "both",
+		"where": "The only line on a card the chat drew to show an answer, when the answer is kept but how it went is lost.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'Counts' means it counts in the rating. Not 'you answered', whose past tense shows gender in some languages."
+	},
+	"result.total_not": {
+		"reader": "child",
+		"where": "Under the picture of the solution, after a wrong option: the equality the solution comes to, then the option chosen.",
+		"length": "line",
+		"address": "none",
+		"mind": "{total} is the equality, drawn large and always left to right, such as '2 + 2 + 2 = 6'; {picked} is the text of the wrong option."
+	},
+	"waiting.title": {
+		"reader": "both",
+		"where": "The title over the list of steps on the card that waits for a task being prepared.",
+		"length": "line",
+		"address": "none"
+	},
+	"waiting.done": {
+		"reader": "both",
+		"where": "Said by a screen reader alone before each finished step in the list of a task being prepared.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Read before a step's words, 'Done: Writing the task', so it keeps a colon or the language's own sign."
+	},
+	"waiting.active": {
+		"reader": "both",
+		"where": "Said by a screen reader alone before the step under way in the list of a task being prepared.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Read before a step's words, 'In progress: Writing the task', so it keeps a colon or the language's own sign."
+	},
+	"waiting.waiting": {
+		"reader": "both",
+		"where": "Said by a screen reader alone before each step still to come in the list of a task being prepared.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Of a step yet to come, not of someone who waits. Read before a step's words, so it keeps a colon or the language's own sign."
+	},
+	"waiting.step.topic": {
+		"reader": "both",
+		"where": "The first step in the list of a task being prepared: a spinner while under way, a tick once done.",
+		"length": "line",
+		"address": "none",
+		"mind": "The same words stand while under way, with a spinner, and once ticked."
+	},
+	"waiting.step.writing": {
+		"reader": "both",
+		"where": "The second step in the list of a task being prepared: the chat's model writing the task.",
+		"length": "line",
+		"address": "none",
+		"mind": "The same words stand while under way, with a spinner, and once ticked."
+	},
+	"waiting.step.answers": {
+		"reader": "both",
+		"where": "The third step in the list of a task being prepared: the service checking the task.",
+		"length": "line",
+		"address": "none",
+		"mind": "'Every answer' is each of the task's five options, checked before the task comes, not the child's answers."
+	},
+	"waiting.step.ready": {
+		"reader": "both",
+		"where": "The last step in the list of a task being prepared, ticked just before the task takes the list's place.",
+		"length": "line",
+		"address": "none",
+		"mind": "Said of the task, or impersonally; one word where the language has one."
+	},
+	"waiting.label": {
+		"reader": "both",
+		"where": "The name a screen reader gives the card while it waits for a task, or says why none came.",
+		"length": "heard",
+		"address": "none"
+	},
+	"waiting.exhausted": {
+		"reader": "both",
+		"where": "The line on a card a task did not come to, after the last try at writing it failed the checks.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Blames no one. waiting.next_below follows it."
+	},
+	"waiting.refused": {
+		"reader": "both",
+		"where": "The line on a card a task did not come to, after the model's try at writing it failed the service's checks.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "A try is one attempt of the chat's model at writing the task; the same 'try' and 'checks' as waiting.rewriting."
+	},
+	"waiting.rewriting": {
+		"reader": "both",
+		"where": "News under the steps of a task being prepared: a try failed the checks, and a new one is being written.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The same 'try' and 'checks' as waiting.refused."
+	},
+	"waiting.stale": {
+		"reader": "both",
+		"where": "The line on a card a task is not coming to, whatever ended its request.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "True whatever ended the request. waiting.next_below follows it."
+	},
+	"waiting.next_below": {
+		"reader": "parent",
+		"where": "The line under a word that no task came: where the next task comes, and asking in the chat if none does.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "'The next one' is the next task, in a card of its own further down the chat; the ask speaks to the adult."
+	},
+	"waiting.cancelled": {
+		"reader": "both",
+		"where": "The line on the card of a task asked for, when the chat cancelled the call preparing it.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Blames no one. waiting.ask_in_chat follows it."
+	},
+	"waiting.ask_in_chat": {
+		"reader": "parent",
+		"where": "The line under 'This task wasn't finished.', sending the adult to ask for a task in the chat.",
+		"length": "sentence",
+		"address": "polite"
+	},
+	"waiting.slow": {
+		"reader": "both",
+		"where": "News under the steps of a task being prepared, when two minutes pass with no news of it.",
+		"length": "sentence",
+		"address": "none"
+	},
+	"waiting.slow_detail": {
+		"reader": "parent",
+		"where": "The line under 'The task is taking longer than usual.', sending the adult to the chat if the task never appears.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "'It' is the task awaited; 'here' is this card."
+	},
+	"waiting.limit": {
+		"reader": "both",
+		"where": "The first line on the card shown once the day's new tasks are used up.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "No reproach and no number: only that new tasks come again tomorrow."
+	},
+	"waiting.limit_detail": {
+		"reader": "child",
+		"where": "The line under the day's-limit line, pointing to the progress, opened from the card's top line, and to the last task above.",
+		"length": "sentence",
+		"address": "informal",
+		"mind": "'Your progress' is the child's, opened from task.profile_action. Where 'you' shows gender, an impersonal 'one can', as the Russian has."
+	},
+	"progress.label": {
+		"reader": "both",
+		"where": "Names the progress screen for a screen reader, also while it loads or when it fails to load.",
+		"length": "heard",
+		"address": "none",
+		"mind": "The same words as the line at the top of a task's card that opens this screen, task.profile_action, which writes '&' for 'and'."
+	},
+	"progress.back": {
+		"reader": "both",
+		"where": "The button at the top of the progress opened over a task's card; it closes the progress and returns to the task.",
+		"length": "label",
+		"address": "none"
+	},
+	"progress.back_plain": {
+		"reader": "both",
+		"where": "The button at the top of the progress that returns to the card under it, when that card shows no task.",
+		"length": "label",
+		"address": "none"
+	},
+	"progress.rank": {
+		"reader": "both",
+		"where": "The overall rank in large type at the top of the progress, and each topic's rank at the end of its row.",
+		"length": "label",
+		"address": "none",
+		"mind": "{rank} is a number from 1 to 11, never a title. Keep it short: it also sits at the end of each topic's row."
+	},
+	"progress.rank_of": {
+		"reader": "both",
+		"where": "Smaller text right after the large overall rank, saying how many ranks there are, so the two read 'Rank 3 of 11'.",
+		"length": "label",
+		"address": "none",
+		"mind": "{total} is the number of ranks, 11. It continues progress.rank, so the two must read as one phrase."
+	},
+	"progress.next_rank": {
+		"reader": "both",
+		"where": "The line under the bar of ranks: the next rank to reach, and how right answers and mistakes move the bar.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{rank} is the next rank's number. 'The bar' is the bar of ranks above it: use the same word wherever a text names it."
+	},
+	"progress.top_rank": {
+		"reader": "both",
+		"where": "The line under the bar of ranks, in place of the next rank, once the overall rank is the highest there is.",
+		"length": "sentence",
+		"address": "none"
+	},
+	"progress.share": {
+		"reader": "both",
+		"where": "Said by a screen reader in place of the drawn bar of ranks: how far through the current rank the child has come.",
+		"length": "heard",
+		"address": "none",
+		"mind": "{share} is a percentage the card writes in the language's own digits and sign, such as '40%': add no sign of your own."
+	},
+	"progress.grades": {
+		"reader": "parent",
+		"where": "A short label under each bracket below the bar of ranks: the school grades whose tasks that run of ranks roughly matches.",
+		"length": "label",
+		"address": "none",
+		"mind": "{from} and {to} are school years, such as 3 and 4, not marks. It stands under a bracket only about 75 px wide on a narrow card, so abbreviate as the English does."
+	},
+	"progress.grades_ranks": {
+		"reader": "parent",
+		"where": "Said by a screen reader in place of a bracket under the bar of ranks: the ranks it spans and the grades they match.",
+		"length": "heard",
+		"address": "none",
+		"mind": "{first} and {last} are rank numbers; {from} and {to} are school years."
+	},
+	"progress.grades_ranks_here": {
+		"reader": "parent",
+		"where": "Said by a screen reader in place of the bracket that holds the current rank: its ranks and the grades they match.",
+		"length": "heard",
+		"address": "none",
+		"mind": "{first} and {last} are rank numbers; {from} and {to} are school years. 'The current one' is the child's overall rank."
+	},
+	"progress.grades_note": {
+		"reader": "parent",
+		"where": "A small note under the grade brackets: what they show, and that they are a rough guide to olympiad tasks, not a school mark.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'Grades' are school years, as in progress.grades; 'a school mark' is what a teacher gives for work. The word for parents should mean neither only mothers nor only fathers."
+	},
+	"progress.next_up": {
+		"reader": "both",
+		"where": "The label of the small box under the rank that names the topic of the next task.",
+		"length": "label",
+		"address": "none"
+	},
+	"progress.next_chosen": {
+		"reader": "both",
+		"where": "A small line in the 'Next up' box, under the topic, when it is the topic chosen for the lessons.",
+		"length": "line",
+		"address": "none",
+		"mind": "Impersonal: who chose the topic is not said, so no past tense agrees with a person."
+	},
+	"progress.topics": {
+		"reader": "both",
+		"where": "The title of the folding section that lists the topics, each with its own rank and bar.",
+		"length": "label",
+		"address": "none"
+	},
+	"progress.topics_note": {
+		"reader": "both",
+		"where": "The line at the top of the list of topics, after the trial series, saying what each topic's bar shows.",
+		"length": "line",
+		"address": "none"
+	},
+	"progress.ahead": {
+		"reader": "both",
+		"where": "A small word before a topic's rank at the end of its row: the topic's rank is above the overall rank.",
+		"length": "label",
+		"address": "none",
+		"mind": "One of three words with progress.even and progress.behind. It describes the topic's rank, not the child, and sits beside 'Rank N'."
+	},
+	"progress.behind": {
+		"reader": "both",
+		"where": "A small word before a topic's rank at the end of its row: the topic's rank is below the overall rank.",
+		"length": "label",
+		"address": "none",
+		"mind": "One of three words with progress.ahead and progress.even. It describes the topic's rank, not the child: a plain fact, not a reproach."
+	},
+	"progress.no_rank": {
+		"reader": "both",
+		"where": "The word at the end of each topic's row during the trial series, while no rank is given yet; the bar is drawn dashed.",
+		"length": "label",
+		"address": "none"
+	},
+	"progress.no_answers": {
+		"reader": "both",
+		"where": "The word at the end of a topic's row when the topic has no answers yet; its bar is drawn dashed.",
+		"length": "label",
+		"address": "none"
+	},
+	"progress.recent": {
+		"reader": "both",
+		"where": "The title of the folding section listing the latest five tasks and how each went, with a coloured dot for each by the title.",
+		"length": "label",
+		"address": "none"
+	},
+	"progress.mistakes": {
+		"reader": "parent",
+		"where": "A heading over the mistakes that keep coming back: a folding section of its own during the trial series, then a part of the review.",
+		"length": "label",
+		"address": "none"
+	},
+	"progress.times": {
+		"reader": "parent",
+		"where": "At the end of a repeating mistake's row, after up to five dots: how many times the mistake came up.",
+		"length": "label",
+		"address": "none",
+		"mind": "{count} is how many times the mistake came up. It never wraps, so keep it as short as the English."
+	},
+	"progress.mastered": {
+		"reader": "both",
+		"where": "A green mark with a tick beside a topic's name in the list of topics, once the topic is mastered.",
+		"length": "label",
+		"address": "none",
+		"mind": "Said of the topic: an impersonal form or one that agrees with the topic, never with the child. The same word as review.reason_mastered."
+	},
+	"progress.right": {
+		"reader": "both",
+		"where": "The green mark with a tick at the end of a recent answer's row, and what a screen reader says for its dot.",
+		"length": "label",
+		"address": "none",
+		"mind": "Said of the answer, never of the child: not 'you were right'."
+	},
+	"progress.wrong": {
+		"reader": "both",
+		"where": "The mark with a cross at the end of a recent answer's row, and what a screen reader says for its dot.",
+		"length": "label",
+		"address": "none",
+		"mind": "Said of the answer, never of the child."
+	},
+	"progress.loading": {
+		"reader": "both",
+		"where": "Said by a screen reader while the progress loads and a faint outline of the screen stands in its place.",
+		"length": "heard",
+		"address": "none"
+	},
+	"progress.failed": {
+		"reader": "child",
+		"where": "Shown in place of the progress, under the child's name, when the progress could not be loaded.",
+		"length": "sentence",
+		"address": "informal",
+		"mind": "'Go back' means the button at the top, progress.back or progress.back_plain. Where an imperative shows gender, use 'let's' or an impersonal form."
+	},
+	"profile.label": {
+		"reader": "parent",
+		"where": "The heading of the child's profile, beside its Edit button, on a profile card of an earlier chat.",
+		"length": "label",
+		"address": "none",
+		"mind": "Made of profile.card_label and progress.for_parent, in their words, split by a middle dot; 'the parent' is any adult who runs the lessons, named with no gender."
+	},
+	"profile.edit": {
+		"reader": "parent",
+		"where": "The button at the head of the child's profile, in the progress and on the profile card, that opens the form to change it.",
+		"length": "label",
+		"address": "none"
+	},
+	"progress.overall_label": {
+		"reader": "both",
+		"where": "Names, for a screen reader, the block with the overall rank across all topics, its bar and the lines under it.",
+		"length": "heard",
+		"address": "none"
+	},
+	"progress.again": {
+		"reader": "both",
+		"where": "The text in the 'Next up' box when the next task goes back to the topic just answered wrongly.",
+		"length": "line",
+		"address": "none",
+		"mind": "{topic} is a topic's name as its own dictionary entry writes it, with a capital: keep it first, in a form that needs no other case."
+	},
+	"progress.skipped": {
+		"reader": "both",
+		"where": "The grey mark at the end of a recent task's row when it got no answer, and what a screen reader says for its dot.",
+		"length": "label",
+		"address": "none",
+		"mind": "Said of the task, never in a form that agrees with the child."
+	},
+	"progress.skipped_count": {
+		"reader": "both",
+		"where": "A small note under the list of recent answers: how many tasks in all were left without an answer.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{count} is a number of tasks. Keep it impersonal: who left them without an answer is not said."
+	},
+	"progress.trial_ranks": {
+		"reader": "both",
+		"where": "The line under the trial series' bar of five steps, in place of the next rank: ranks come once those tasks are done.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{total} is the number of tasks in the trial series, five. The text has no plural forms, so write it for that number."
+	},
+	"progress.for_parent": {
+		"reader": "both",
+		"where": "Small text beside the title of the folding section with the child's profile, saying the section is for the parent.",
+		"length": "label",
+		"address": "none",
+		"mind": "A word for 'parent' that means neither only a mother nor only a father."
+	},
+	"progress.period": {
+		"reader": "both",
+		"where": "Said by a screen reader as the name of the two-part switch above the rank, which chooses the period the changes cover.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the switch whose two parts are progress.period_task and progress.period_week."
+	},
+	"progress.period_task": {
+		"reader": "both",
+		"where": "The first part of the switch above the rank: shows the changes since the last task answered.",
+		"length": "label",
+		"address": "none",
+		"mind": "It shares one row with progress.period_week, half the card each: keep it a word or two."
+	},
+	"progress.period_week": {
+		"reader": "both",
+		"where": "The second part of the switch above the rank: shows the changes over the past seven days.",
+		"length": "label",
+		"address": "none",
+		"mind": "The last seven days up to today, not the calendar week. It shares one row with progress.period_task: keep it a word or two."
+	},
+	"progress.week_rank_up": {
+		"reader": "both",
+		"where": "A line under the bar of ranks, green after an up arrow: over the past week the overall rank went up.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{from} and {to} are rank numbers, before and now; keep the arrow between them. Nothing says who moved, so nothing agrees with the child."
+	},
+	"progress.week_forward": {
+		"reader": "both",
+		"where": "A line under the bar of ranks, green after an up arrow: over the past week the bar moved on within the rank.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The bar is the subject, so a past tense agrees with the bar, never with the child. The same word for the bar as in progress.next_rank."
+	},
+	"progress.week_same": {
+		"reader": "both",
+		"where": "A plain line under the bar of ranks: over the past week the bar did not move.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The bar is the subject, never the child. The same word for the bar as in progress.next_rank."
+	},
+	"progress.week_back": {
+		"reader": "both",
+		"where": "A line under the bar of ranks, coral after a down arrow: over the past week the bar moved back within the rank.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The bar is the subject, never the child; calm, not a reproach. The same word for the bar as in progress.next_rank."
+	},
+	"progress.week_rank_down": {
+		"reader": "both",
+		"where": "A line under the bar of ranks, coral after a down arrow: over the past week the overall rank went down.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{from} and {to} are rank numbers, before and now; keep the arrow between them. 'The rank below' says it gently."
+	},
+	"progress.week_untold": {
+		"reader": "both",
+		"where": "A plain line under the bar of ranks when there is nothing yet to measure the past week's change from.",
+		"length": "sentence",
+		"address": "none"
+	},
+	"progress.task_rank_up": {
+		"reader": "both",
+		"where": "A line under the bar of ranks, green after an up arrow: the last task answered raised the overall rank.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{from} and {to} are rank numbers, before and after the last task; keep the arrow between them."
+	},
+	"progress.task_forward": {
+		"reader": "both",
+		"where": "A line under the bar of ranks, green after an up arrow: the last task answered moved the bar on within the rank.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The task is the subject, not the child. The same word for the bar as in progress.next_rank."
+	},
+	"progress.task_same": {
+		"reader": "both",
+		"where": "A plain line under the bar of ranks: the last task answered did not move the bar.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The task is the subject, not the child. The same word for the bar as in progress.next_rank."
+	},
+	"progress.task_back": {
+		"reader": "both",
+		"where": "A line under the bar of ranks, coral after a down arrow: the last task answered moved the bar back within the rank.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The task is the subject, not the child; calm, not a reproach. The same word for the bar as in progress.next_rank."
+	},
+	"progress.task_rank_down": {
+		"reader": "both",
+		"where": "A line under the bar of ranks, coral after a down arrow: the last task answered took the overall rank down.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{from} and {to} are rank numbers, before and after the last task; keep the arrow between them. 'The rank below' says it gently."
+	},
+	"progress.task_untold": {
+		"reader": "both",
+		"where": "A plain line under the bar of ranks when there is nothing yet to measure the last task's change from.",
+		"length": "sentence",
+		"address": "none"
+	},
+	"progress.even": {
+		"reader": "both",
+		"where": "A small word before a topic's rank at the end of its row: the topic's rank equals the overall rank.",
+		"length": "label",
+		"address": "none",
+		"mind": "One of three words with progress.ahead and progress.behind: level with the overall rank."
+	},
+	"progress.note_rank_up": {
+		"reader": "both",
+		"where": "Green words after an up arrow, before a topic's rank: the topic reached a new rank in the period chosen on the switch.",
+		"length": "label",
+		"address": "none",
+		"mind": "It takes the place of ahead, even or behind, beside 'Rank N': a word or two, said of the topic."
+	},
+	"progress.note_forward": {
+		"reader": "both",
+		"where": "A green word after an up arrow, before a topic's rank: its bar moved forward within the rank in the period chosen.",
+		"length": "label",
+		"address": "none",
+		"mind": "It takes the place of ahead, even or behind, beside 'Rank N': one word, as in English."
+	},
+	"progress.note_back": {
+		"reader": "both",
+		"where": "A coral word after a down arrow, before a topic's rank: its bar moved back within the rank in the period chosen.",
+		"length": "label",
+		"address": "none",
+		"mind": "It takes the place of ahead, even or behind, beside 'Rank N': one word, as in English."
+	},
+	"progress.note_rank_down": {
+		"reader": "both",
+		"where": "Coral words after a down arrow, before a topic's rank: the topic went down a rank in the period chosen on the switch.",
+		"length": "label",
+		"address": "none",
+		"mind": "A gentle 'the rank below', as in progress.week_rank_down; a word or two, said of the topic."
+	},
+	"progress.note_new": {
+		"reader": "both",
+		"where": "Green words after an up arrow, before a topic's rank: the topic was answered for the first time in the period chosen.",
+		"length": "label",
+		"address": "none",
+		"mind": "New to the child's answers, not new in MathTrail; a word or two."
+	},
+	"progress.moved_up": {
+		"reader": "both",
+		"where": "Said by a screen reader by the title 'Topics', where only an up arrow and a number show how many topics moved forward.",
+		"length": "heard",
+		"address": "none",
+		"mind": "{count} is a number of topics; a topic answered for the first time counts too. Read with progress.moved_down as one list."
+	},
+	"progress.moved_down": {
+		"reader": "both",
+		"where": "Said by a screen reader by the title 'Topics', where only a down arrow and a number show how many topics slipped back.",
+		"length": "heard",
+		"address": "none",
+		"mind": "{count} is a number of topics. Read after progress.moved_up as one list."
+	},
+	"progress.legend_gain": {
+		"reader": "both",
+		"where": "In the key above the list of topics, beside a sample of green stripes: what green stripes on a bar mean.",
+		"length": "label",
+		"address": "none",
+		"mind": "One short word, the opposite of progress.legend_loss."
+	},
+	"progress.legend_loss": {
+		"reader": "both",
+		"where": "In the key above the list of topics, beside a sample of coral stripes: what coral stripes on a bar mean.",
+		"length": "label",
+		"address": "none",
+		"mind": "A mild word for a step back, the opposite of progress.legend_gain."
+	},
+	"progress.legend_week": {
+		"reader": "both",
+		"where": "Ends the key above the list of topics, after a dot: the stripes show the change over the past week.",
+		"length": "label",
+		"address": "none",
+		"mind": "The same period as progress.period_week: the last seven days."
+	},
+	"progress.legend_task": {
+		"reader": "both",
+		"where": "Ends the key above the list of topics, after a dot: the stripes show the change since the last task.",
+		"length": "label",
+		"address": "none",
+		"mind": "The same period as progress.period_task."
+	},
+	"progress.link_refused": {
+		"reader": "parent",
+		"where": "Under a linked name, a topic or a group of topics, when the chat did not open its page; the page's address follows to copy.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'The chat' is the chat app the card is shown in. The address follows on its own line, left to right, for the reader to copy."
+	},
+	"review.title": {
+		"reader": "parent",
+		"where": "The title of the folding section with the review of the topics, shown once the trial series is over.",
+		"length": "label",
+		"address": "none",
+		"mind": "An assessment of how the topics stand, not a revision of material."
+	},
+	"review.summary": {
+		"reader": "parent",
+		"where": "Small text beside the title 'Review', naming what the section holds.",
+		"length": "label",
+		"address": "none"
+	},
+	"review.strong": {
+		"reader": "parent",
+		"where": "A green heading in the review over the topics that go well, each with why.",
+		"length": "label",
+		"address": "none",
+		"mind": "The same idea as 'a strength' in review.step_begin."
+	},
+	"review.develop": {
+		"reader": "parent",
+		"where": "A coral heading in the review over the topics to work on, each with why.",
+		"length": "label",
+		"address": "none",
+		"mind": "A heading, not an instruction: a noun or an infinitive, as the Russian and German have it."
+	},
+	"review.early": {
+		"reader": "parent",
+		"where": "A grey heading in the review over the topics with too few answers to judge yet.",
+		"length": "label",
+		"address": "none"
+	},
+	"review.next": {
+		"reader": "parent",
+		"where": "A heading in the review over the numbered steps of the plan, the review's last part.",
+		"length": "label",
+		"address": "none",
+		"mind": "A heading with no 'you' in it."
+	},
+	"review.reason_mastered": {
+		"reader": "parent",
+		"where": "A reason under a strong topic's name in the review: the topic is mastered.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Said of the topic, never in a form that agrees with the child. Reasons are joined into one line, so it ends with its own full stop."
+	},
+	"review.reason_high": {
+		"reader": "parent",
+		"where": "A reason under a strong topic's name in the review: it stands well above the child's overall level.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Reasons are joined into one line, so it ends with its own full stop."
+	},
+	"review.reason_rose": {
+		"reader": "parent",
+		"where": "A reason under a strong topic's name in the review: it rose clearly over the past seven days.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'The past week' is the last seven days, as in progress.period_week. Reasons are joined into one line, so it ends with its own full stop."
+	},
+	"review.reason_low": {
+		"reader": "parent",
+		"where": "A reason under the name of a topic to develop: it stands well below the child's overall level.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Reasons are joined into one line, so it ends with its own full stop."
+	},
+	"review.reason_failures": {
+		"reader": "parent",
+		"where": "A reason under the name of a topic to develop: its answers were wrong several times in a row.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Said of the answers, not the child. Reasons are joined into one line, so it ends with its own full stop."
+	},
+	"review.reason_hints": {
+		"reader": "parent",
+		"where": "A reason under the name of a topic to develop: the hint was used in many of its recent answers.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Impersonal, 'the hint is often needed', as in Russian and German, so no form shows the child's gender. 'The hint' is task.hint's word."
+	},
+	"review.reason_trap": {
+		"reader": "parent",
+		"where": "A reason under the name of a topic to develop: one mistake keeps coming back in its answers.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{trap} is a mistake's name, a phrase such as 'Off by one when counting gaps' that starts with a capital: keep it first. It ends with its own full stop."
+	},
+	"review.reason_fell": {
+		"reader": "parent",
+		"where": "A reason under the name of a topic to develop: it fell back clearly over the past seven days.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'The past week' is the last seven days, as in progress.period_week. Calm, not a reproach; it ends with its own full stop."
+	},
+	"review.moving": {
+		"reader": "parent",
+		"where": "Added after the reasons under a topic to develop, when the latest answer in that topic was right.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Joined after the reasons into one line, so it ends with its own full stop."
+	},
+	"review.early_note": {
+		"reader": "parent",
+		"where": "A small line under the names of the topics too early to judge, saying why they get no verdict yet.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'These' are the topics named on the line above it."
+	},
+	"review.step_rhythm": {
+		"reader": "parent",
+		"where": "A numbered step of the plan, under the name of a topic that fell back: a little practice each day.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'The bar' is the topic's bar, the same word as in progress.next_rank. Advice with no 'you' in it."
+	},
+	"review.step_practice": {
+		"reader": "parent",
+		"where": "A numbered step of the plan, under the name of a topic that stands low or was answered wrongly in a row.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "MathTrail stays as written. 'The child' is said in general, with no pronoun after it."
+	},
+	"review.step_unaided": {
+		"reader": "parent",
+		"where": "A numbered step of the plan, under the name of a topic named only for leaning on the hint.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Russian and German give it as an infinitive, addressed to nobody: avoid an imperative, which some languages mark for gender. 'The hint' is task.hint's word."
+	},
+	"review.step_begin": {
+		"reader": "parent",
+		"where": "The last numbered step of the plan, under the name of a new topic to begin, naming the strong topic it builds on.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "{base} is a strong topic's name as its own dictionary entry writes it, with a capital: keep it first, in a form that needs no other case."
+	},
+	"profile.card_label": {
+		"reader": "parent",
+		"where": "The title of the folding section of the progress that holds the profile and the parent's data; also a screen reader's name for the profile card.",
+		"length": "label",
+		"address": "none",
+		"mind": "The same word starts profile.label."
+	},
+	"profile.grade": {
+		"reader": "parent",
+		"where": "The name of the grade among the profile's details, and the label of the grade's list on the profile's form.",
+		"length": "label",
+		"address": "none",
+		"mind": "The same word for the school year as child.grade and app.badge."
+	},
+	"profile.grade_note": {
+		"reader": "parent",
+		"where": "A note under the grade, among the profile's details and on its form, saying that changing it moves none of the ratings.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "'Only a label': the grade is kept as information alone, and changing it leaves every rating as it was."
+	},
+	"profile.interests": {
+		"reader": "parent",
+		"where": "The name of the child's interests among the profile's details, and the heading of the interests on the profile's form.",
+		"length": "label",
+		"address": "none",
+		"mind": "The child's hobbies, which tasks are themed on; the 'them' of problem.entry_length refers to this word."
+	},
+	"profile.not_yet": {
+		"reader": "parent",
+		"where": "The name of the skills the child has not met at school yet, among the profile's details and over their tick boxes on the form.",
+		"length": "label",
+		"address": "none",
+		"mind": "Tasks leave these skills out. Word it with no form that shows the child's gender: an impersonal or plural form, as the Russian has."
+	},
+	"profile.language": {
+		"reader": "parent",
+		"where": "The name of the language of the lessons among the profile's details, and the label of its list on the profile's form.",
+		"length": "label",
+		"address": "none",
+		"mind": "The language of the tasks, the cards and the model's words; first_run.fill names it the same way."
+	},
+	"profile.language_chat": {
+		"reader": "parent",
+		"where": "The first choice in the form's list of languages, and the value shown when none is chosen: the lessons then follow the chat's language.",
+		"length": "label",
+		"address": "none",
+		"mind": "Means the lessons follow the chat's own language (the Russian says 'as in the chat'); keep it short, as a narrow list cuts it."
+	},
+	"profile.country": {
+		"reader": "parent",
+		"where": "The name of the family's country among the profile's details, and the label of its list on the profile's form.",
+		"length": "label",
+		"address": "none",
+		"mind": "The country the family lives in."
+	},
+	"profile.country_note": {
+		"reader": "parent",
+		"where": "A note under the country, among the profile's details and on the form, saying it is optional and what it is used for.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Exact in meaning: giving it is optional, and it serves only to count families by country, without names."
+	},
+	"profile.region": {
+		"reader": "parent",
+		"where": "The name of the US state among the profile's details, and the label of its list on the form, shown only for the United States.",
+		"length": "label",
+		"address": "none",
+		"mind": "A state of the United States, the only country the form asks a region of; the states are listed by their English names."
+	},
+	"profile.signin_country_off": {
+		"reader": "parent",
+		"where": "A tick box at the end of the profile's form that leaves the country the parent signs in from out of what is counted.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The parent's own words, in the first person: keep 'I' free of gender, as a present tense is. The country is the one the sign-in comes from."
+	},
+	"profile.none": {
+		"reader": "parent",
+		"where": "The value of an empty detail of the profile, and the first choice, meaning none, in the form's lists of countries and states.",
+		"length": "label",
+		"address": "none",
+		"mind": "Used for the interests, the skills, the country and the state alike, so it must not agree with any one of their names."
+	},
+	"profile.not_saved": {
+		"reader": "parent",
+		"where": "The verdict at the top of a profile card of an earlier chat when the change asked for was refused, until one is saved.",
+		"length": "line",
+		"address": "none",
+		"mind": "Say it of the change, impersonally: not 'you did not save', whose past tense shows gender in some languages."
+	},
+	"profile.not_saved_detail": {
+		"reader": "parent",
+		"where": "The line under the verdict profile.not_saved on the profile card, and under first_run.not_created on the first-run card, sending the parent to the chat.",
+		"length": "line",
+		"address": "none",
+		"mind": "It must fit both a change not saved and a first profile not made."
+	},
+	"profile.form_label": {
+		"reader": "parent",
+		"where": "The name a screen reader gives the form, opened by the Edit button, in which the parent changes the child's profile.",
+		"length": "heard",
+		"address": "none",
+		"mind": "A name for the form rather than an instruction: a noun or an infinitive, as the Russian and the German have it."
+	},
+	"profile.pseudonym": {
+		"reader": "parent",
+		"where": "The label of the box on the profile's form where the child's pseudonym is typed.",
+		"length": "label",
+		"address": "none",
+		"mind": "The word first_run.pseudonym_label uses: a made-up name the child is known by, never a real one."
+	},
+	"profile.pseudonym_note": {
+		"reader": "parent",
+		"where": "The note under the pseudonym's box on the profile's form, stating the rule of the pseudonym.",
+		"length": "line",
+		"address": "none",
+		"mind": "The rule of the pseudonym, exact in meaning: never the child's real name."
+	},
+	"profile.interest_new": {
+		"reader": "parent",
+		"where": "The label of the box on the profile's form where a new interest is typed; only a screen reader says it.",
+		"length": "heard",
+		"address": "none"
+	},
+	"profile.interest_add": {
+		"reader": "parent",
+		"where": "The button beside the box for a new interest, which adds the interest typed to the child's interests.",
+		"length": "label",
+		"address": "none"
+	},
+	"profile.interest_remove": {
+		"reader": "parent",
+		"where": "What a screen reader says for the cross on each interest's chip on the form, which takes that interest out.",
+		"length": "heard",
+		"address": "none",
+		"mind": "{interest} is the interest as the parent typed it, in any language; set it in the language's own quotation marks, as the Russian does."
+	},
+	"profile.interests_full": {
+		"reader": "parent",
+		"where": "A note under the interests on the form once the list is as long as a profile allows and the box to type in shuts.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "No number in the text: it says the list is as full as a profile allows, which is ten interests."
+	},
+	"profile.save": {
+		"reader": "parent",
+		"where": "The main button at the foot of the profile's form, which saves the changes made.",
+		"length": "label",
+		"address": "none"
+	},
+	"profile.cancel": {
+		"reader": "parent",
+		"where": "The button beside Save at the foot of the profile's form, which closes it without saving anything.",
+		"length": "label",
+		"address": "none"
+	},
+	"profile.saving": {
+		"reader": "parent",
+		"where": "The note under the form's buttons while the changes are on their way to be saved.",
+		"length": "line",
+		"address": "none"
+	},
+	"profile.saved": {
+		"reader": "parent",
+		"where": "The note under the head of the child's profile, by the Edit button, once a change from the form is saved.",
+		"length": "line",
+		"address": "none"
+	},
+	"profile.saved_language": {
+		"reader": "parent",
+		"where": "The note under the head of the child's profile, by the Edit button, once a change of the lessons' language is saved.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The card itself goes on in the language it was drawn in; the new language comes with the next task's card."
+	},
+	"profile.save_failed": {
+		"reader": "parent",
+		"where": "The note under the form's buttons when a save did not go through; the form stays open, to save again.",
+		"length": "line",
+		"address": "polite",
+		"mind": "Say it of the change, impersonally: not 'you did not save', whose past tense shows gender in some languages."
+	},
+	"profile.save_refused": {
+		"reader": "parent",
+		"where": "The note under the form's buttons when the service refused the change; each refused field says why under it.",
+		"length": "line",
+		"address": "polite",
+		"mind": "'The fields marked' are those with an error under them, the problem.* texts."
+	},
+	"profile.gone": {
+		"reader": "parent",
+		"where": "Said in place of the profile's details, or under the choice of a task's topic, when the profile turns out to be deleted.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "The profile's file was deleted since the card was drawn; a new profile is made by asking in the chat."
+	},
+	"problem.required": {
+		"reader": "parent",
+		"where": "An error under a field of the profile's form that was saved empty, in practice the pseudonym.",
+		"length": "line",
+		"address": "polite"
+	},
+	"problem.too_long": {
+		"reader": "parent",
+		"where": "An error under a field of the profile's form whose text the service found longer than a profile allows.",
+		"length": "line",
+		"address": "polite",
+		"mind": "It may stand under any field, so it must not agree with one field's name; 'it' is the text in the field."
+	},
+	"problem.too_many": {
+		"reader": "parent",
+		"where": "An error under the interests, or the ticked skills, on the profile's form when they hold more than a profile allows.",
+		"length": "line",
+		"address": "polite",
+		"mind": "It stands under the interests or the ticked skills, so 'take some out' must fit removing interests and unticking skills alike."
+	},
+	"problem.entry_length": {
+		"reader": "parent",
+		"where": "An error under the interests on the profile's form when one of them is empty or longer than an interest may be.",
+		"length": "line",
+		"address": "none",
+		"mind": "'Them' are the interests listed above it: agree with the word profile.interests uses."
+	},
+	"problem.out_of_range": {
+		"reader": "parent",
+		"where": "An error under the grade on the profile's form when the grade sent is not one of those the list offers.",
+		"length": "line",
+		"address": "polite"
+	},
+	"problem.not_in_catalog": {
+		"reader": "parent",
+		"where": "An error under the ticked skills on the profile's form when one of them is a skill MathTrail no longer has.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "'These' are the ticked skills above; the unknown one shows by a code, not a name. 'Untick' is clearing its box."
+	},
+	"problem.not_a_language": {
+		"reader": "parent",
+		"where": "An error under the language of the lessons on the profile's form when the service reads no language in it.",
+		"length": "line",
+		"address": "polite"
+	},
+	"problem.other": {
+		"reader": "parent",
+		"where": "An error under a field of the profile's form for any refusal the card has no words of its own for.",
+		"length": "line",
+		"address": "polite",
+		"mind": "Generic on purpose: it must fit any field of the form."
+	},
+	"data.label": {
+		"reader": "parent",
+		"where": "The heading of the part under the profile that tells the parent where its file is, and how to delete it or cut MathTrail off.",
+		"length": "label",
+		"address": "polite",
+		"mind": "'Your' is the parent's: the profile's data, kept in the parent's own Google Drive."
+	},
+	"data.where": {
+		"reader": "parent",
+		"where": "The heading of the first item of the parent's data, over the text that says where the profile's file is.",
+		"length": "label",
+		"address": "none",
+		"mind": "A heading naming the question its text answers, never a command: nothing in this part can be pressed."
+	},
+	"data.export_where": {
+		"reader": "parent",
+		"where": "The text answering 'Where the profile is', naming the profile's file and its folder in the parent's Google Drive.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "{file} and {folder} are names in Drive, shown as they are. Name Google Drive as Google does in the language (Russian: Google Диск)."
+	},
+	"data.export_file": {
+		"reader": "parent",
+		"where": "The text answering 'Where the profile is' when no folder is named, naming the profile's file in the parent's Google Drive.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "{file} is the file's name in Drive, shown as it is; worded as data.export_where, less the folder."
+	},
+	"data.others": {
+		"reader": "parent",
+		"where": "A note under where the profile is, naming other files in the parent's Drive that hold a profile too.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "{files} are the other files' names, already joined into a list in the language's own way."
+	},
+	"data.how_delete": {
+		"reader": "parent",
+		"where": "The heading of the item of the parent's data that says how to delete the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "'It' is the profile. A heading naming the question its text answers, never a command: nothing here can be pressed."
+	},
+	"data.delete_how": {
+		"reader": "parent",
+		"where": "The text answering 'How to delete it': how to delete the profile for good.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "Exact in meaning: with the file deleted and Drive's bin emptied, no copy of the profile is left anywhere. Name the bin as Google Drive does in the language."
+	},
+	"data.how_cut_off": {
+		"reader": "parent",
+		"where": "The heading of the item of the parent's data that says how to cut MathTrail off from the parent's Google account.",
+		"length": "label",
+		"address": "none",
+		"mind": "The access is MathTrail's, to the parent's Google account. A heading naming a question, never a command: nothing here can be pressed."
+	},
+	"data.access_how": {
+		"reader": "parent",
+		"where": "The text answering 'How to cut off access': where in the Google account to take MathTrail's access away.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "Name the page as Google's account settings do in the language: the one listing third-party apps with access. 'It' is MathTrail."
+	},
+	"data.how_remove": {
+		"reader": "parent",
+		"where": "The heading of the last item of the parent's data, which says how to remove MathTrail from the chat.",
+		"length": "label",
+		"address": "none",
+		"mind": "'The app' is MathTrail in the chat. A heading naming a question, never a command: nothing here can be pressed."
+	},
+	"data.remove_how": {
+		"reader": "parent",
+		"where": "The text answering 'How to remove the app': where to disconnect MathTrail.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "'Your chat' is the chat app the lessons run in, such as Claude or ChatGPT; MathTrail is disconnected in its settings."
+	},
+	"first_run.label": {
+		"reader": "parent",
+		"where": "The name a screen reader gives the first-run card, which tells an adult with no profile yet what MathTrail is and how to start.",
+		"length": "heard",
+		"address": "none",
+		"mind": "A greeting that must not show the reader's gender (not Spanish 'Bienvenido'); MathTrail stays as written."
+	},
+	"first_run.lead": {
+		"reader": "parent",
+		"where": "The opening paragraph of the first-run card, under MathTrail's name: what MathTrail is, and who sets it up.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Name the parent and the tutor with words that show no gender where the language has them, as German 'ein Elternteil oder eine Lehrkraft'."
+	},
+	"first_run.pseudonym_label": {
+		"reader": "parent",
+		"where": "The small heading of the first-run card's note on the rule of the pseudonym.",
+		"length": "label",
+		"address": "none",
+		"mind": "The same word as profile.pseudonym."
+	},
+	"first_run.pseudonym": {
+		"reader": "parent",
+		"where": "The text of the first-run card's note on the pseudonym, under first_run.pseudonym_label.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "The privacy rule, exact in meaning: a pseudonym only, never a real name, a birth date or a school."
+	},
+	"first_run.fill_label": {
+		"reader": "parent",
+		"where": "The small heading of the first-run card's note on what the chat will ask to make the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"first_run.fill": {
+		"reader": "parent",
+		"where": "The text of the first-run card's note on what the chat will ask: the details it needs, then those it may take.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "'They' is the child: word it so no gender shows, as the Russian does. Name the details as profile.interests, profile.not_yet and profile.language do."
+	},
+	"first_run.data_label": {
+		"reader": "parent",
+		"where": "The small heading of the first-run card's note on where the profile is kept.",
+		"length": "label",
+		"address": "none"
+	},
+	"first_run.data": {
+		"reader": "parent",
+		"where": "The text of the first-run card's note on where the profile is kept.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "Exact in meaning: the profile is one file in the parent's own Google Drive, and MathTrail stores nothing itself. Name Google Drive as Google does in the language."
+	},
+	"first_run.start_label": {
+		"reader": "parent",
+		"where": "The small heading of the first-run card's last note, on how to start.",
+		"length": "label",
+		"address": "none"
+	},
+	"first_run.start": {
+		"reader": "parent",
+		"where": "The text of the first-run card's last note: how to get a profile made, and where to change it later.",
+		"length": "sentence",
+		"address": "polite",
+		"mind": "'Profile & progress' is the line at the top of a task's card: use the words of task.profile_action exactly."
+	},
+	"first_run.not_created": {
+		"reader": "parent",
+		"where": "The verdict at the top of a first-run card of an earlier chat when making the profile was refused.",
+		"length": "line",
+		"address": "none",
+		"mind": "Say it of the profile, impersonally: not 'you did not create it', whose past tense shows gender in some languages."
+	},
+	"card.unreadable": {
+		"reader": "both",
+		"where": "The only words on a card the widget cannot draw, under MathTrail's name, pointing to the chat, which says the same.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The chat's own message carries what the card would have shown, so the card points there."
+	},
+	"group.logic": {
+		"reader": "both",
+		"where": "The name of the group Logic: a heading in the topic choice, linking to its part of the site's page of topics.",
+		"length": "label",
+		"address": "none",
+		"mind": "Where the site speaks the language, it matches the group's heading on the site's page of topics."
+	},
+	"group.counting": {
+		"reader": "both",
+		"where": "The name of the group Counting and enumeration: a heading in the topic choice, linking to its part of the site's page of topics.",
+		"length": "label",
+		"address": "none",
+		"mind": "Where the site speaks the language, it matches the group's heading on the site's page of topics. 'Enumeration' is the listing of every option, as in topic.combinatorics.enumeration."
+	},
+	"group.time": {
+		"reader": "both",
+		"where": "The name of the group Time: a heading in the topic choice, linking to its part of the site's page of topics.",
+		"length": "label",
+		"address": "none",
+		"mind": "Where the site speaks the language, it matches the group's heading on the site's page of topics."
+	},
+	"group.numbers": {
+		"reader": "both",
+		"where": "The name of the group Numbers with a trick: a heading in the topic choice, linking to its part of the site's page of topics.",
+		"length": "label",
+		"address": "none",
+		"mind": "Where the site speaks the language, it matches the group's heading on the site's page of topics. Holds arithmetic with a trick, parity and divisibility: numbers with a catch to see through."
+	},
+	"group.parts": {
+		"reader": "both",
+		"where": "The name of the group Parts of a whole: a heading in the topic choice, linking to its part of the site's page of topics.",
+		"length": "label",
+		"address": "none",
+		"mind": "Where the site speaks the language, it matches the group's heading on the site's page of topics. 'Part' and 'whole' are the words of trap.part_whole_swap."
+	},
+	"group.games": {
+		"reader": "both",
+		"where": "The name of the group Strategies and games: a heading in the topic choice, linking to its part of the site's page of topics.",
+		"length": "label",
+		"address": "none",
+		"mind": "Where the site speaks the language, it matches the group's heading on the site's page of topics. Holds winning-strategy games and weighing and pouring, so 'strategies' are plans of moves."
+	},
+	"topic.logic.ordering": {
+		"reader": "both",
+		"where": "The name of the topic Ordering: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Here it is putting in order from comparisons: who is older, who stands behind whom."
+	},
+	"topic.logic.knights_liars": {
+		"reader": "both",
+		"where": "The name of the topic Knights and liars: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Knights always tell the truth, liars always lie; use these puzzles' name in the language's olympiad books."
+	},
+	"topic.combinatorics.enumeration": {
+		"reader": "both",
+		"where": "The name of the topic Enumeration: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Counting every option by listing them all, by the method's name in olympiad books."
+	},
+	"topic.counting.gaps": {
+		"reader": "both",
+		"where": "The name of the topic Gaps and boundaries: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Fence-post tasks, such as trees in a row; 'gaps' is the word of trap.off_by_one."
+	},
+	"topic.time.clocks": {
+		"reader": "both",
+		"where": "The name of the topic Clocks: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. The time of day and how long things last, as a clock shows them."
+	},
+	"topic.time.calendar": {
+		"reader": "both",
+		"where": "The name of the topic Calendar and age: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form."
+	},
+	"topic.pigeonhole.basic": {
+		"reader": "both",
+		"where": "The name of the topic Pigeonhole principle: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Use the principle's established name in the language's school maths: Dirichlet's in Russian, Schubfachprinzip in German."
+	},
+	"topic.parity.alternation": {
+		"reader": "both",
+		"where": "The name of the topic Parity and alternation: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Parity is even and odd, the words of skill.even_odd; alternation is things taking turns along a row."
+	},
+	"topic.arithmetic.tricks": {
+		"reader": "both",
+		"where": "The name of the topic Arithmetic with a trick: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Tricky sums with a short way through, and 'I thought of a number' puzzles."
+	},
+	"topic.algorithms.weighing_pouring": {
+		"reader": "both",
+		"where": "The name of the topic Weighing and pouring: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Puzzles of weighings on a balance and pourings between jugs, by the names olympiad books give them."
+	},
+	"topic.fractions.parts": {
+		"reader": "both",
+		"where": "The name of the topic Parts and shares: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. A share here is a fraction of a whole, such as a third of the class."
+	},
+	"topic.percent.basic": {
+		"reader": "both",
+		"where": "The name of the topic Percentages: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Its English is that of skill.percentages, and the two may share their words."
+	},
+	"topic.ratio.sharing": {
+		"reader": "both",
+		"where": "The name of the topic Ratios and sharing: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Sharing an amount in a given ratio; 'ratio' is the word of skill.ratios."
+	},
+	"topic.geometry.grid": {
+		"reader": "both",
+		"where": "The name of the topic Figures on a square grid: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. The squared paper of school exercise books, with figures drawn along its lines."
+	},
+	"topic.number.divisibility": {
+		"reader": "both",
+		"where": "The name of the topic Divisibility and remainders: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. The school terms, as in skill.divisibility_rules and skill.division_with_remainder."
+	},
+	"topic.logic.sets": {
+		"reader": "both",
+		"where": "The name of the topic Overlapping groups: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Two groups that overlap, drawn as overlapping circles; said in plain words, not as sets."
+	},
+	"topic.games.strategy": {
+		"reader": "both",
+		"where": "The name of the topic Games with a winning strategy: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Two players take turns; 'winning strategy' is the term of the language's olympiad books."
+	},
+	"skill.addition": {
+		"reader": "parent",
+		"where": "The skill Addition: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"skill.subtraction": {
+		"reader": "parent",
+		"where": "The skill Subtraction: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"skill.multiplication": {
+		"reader": "parent",
+		"where": "The skill Multiplication: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"skill.division": {
+		"reader": "parent",
+		"where": "The skill Division: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "Exact division, with no remainder, set apart from skill.division_with_remainder."
+	},
+	"skill.division_with_remainder": {
+		"reader": "parent",
+		"where": "The skill Division with a remainder: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "The school term; 'remainder' is the word of trap.remainder_vs_quotient."
+	},
+	"skill.fractions": {
+		"reader": "parent",
+		"where": "The skill Simple fractions: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "Fractions of an amount, such as a half, a third or a quarter, set apart from skill.fractions_arithmetic and skill.decimals."
+	},
+	"skill.order_of_operations": {
+		"reader": "parent",
+		"where": "The skill Order of operations: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "The rule of which operation comes first, by its school name (German says Punkt vor Strich)."
+	},
+	"skill.even_odd": {
+		"reader": "parent",
+		"where": "The skill Even and odd numbers: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "The even and odd of trap.wrong_parity and topic.parity.alternation."
+	},
+	"skill.numbers_above_20": {
+		"reader": "parent",
+		"where": "The skill Numbers above 20: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"skill.numbers_above_100": {
+		"reader": "parent",
+		"where": "The skill Numbers above 100: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"skill.numbers_above_1000": {
+		"reader": "parent",
+		"where": "The skill Numbers above 1000: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"skill.hours_minutes": {
+		"reader": "parent",
+		"where": "The skill Hours and minutes: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "Time on a clock, an hour being 60 minutes; the words of trap.time_unit_mixup."
+	},
+	"skill.calendar_months": {
+		"reader": "parent",
+		"where": "The skill Months of the year: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"skill.money": {
+		"reader": "parent",
+		"where": "The skill Money and change: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "'Change' is the money given back after paying."
+	},
+	"skill.unit_conversion": {
+		"reader": "parent",
+		"where": "The skill Converting units: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "Units of measurement for length, mass and capacity, not the ones place of a number."
+	},
+	"skill.fractions_arithmetic": {
+		"reader": "parent",
+		"where": "The skill Arithmetic with fractions: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "Adding, subtracting and comparing fractions with different denominators, beyond skill.fractions."
+	},
+	"skill.decimals": {
+		"reader": "parent",
+		"where": "The skill Decimals: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "Decimal fractions, by their school name."
+	},
+	"skill.percentages": {
+		"reader": "parent",
+		"where": "The skill Percentages: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "Its English is that of topic.percent.basic, and the two may share their words."
+	},
+	"skill.ratios": {
+		"reader": "parent",
+		"where": "The skill Ratios and proportion: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "'Ratio' is the word of topic.ratio.sharing."
+	},
+	"skill.negative_numbers": {
+		"reader": "parent",
+		"where": "The skill Negative numbers: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"skill.powers_squares": {
+		"reader": "parent",
+		"where": "The skill Squares and powers: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "Squares of numbers, such as 5 × 5, not the shape."
+	},
+	"skill.area_perimeter": {
+		"reader": "parent",
+		"where": "The skill Area and perimeter: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "The school terms, as in trap.area_perimeter_swap."
+	},
+	"skill.coordinates": {
+		"reader": "parent",
+		"where": "The skill Coordinates: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none"
+	},
+	"skill.averages": {
+		"reader": "parent",
+		"where": "The skill The average: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "The arithmetic mean, by its school name."
+	},
+	"skill.divisibility_rules": {
+		"reader": "parent",
+		"where": "The skill Divisibility rules: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",
+		"length": "label",
+		"address": "none",
+		"mind": "The quick tests of whether a number divides by 2, 3, 5, 9 or 10, by their school name."
+	},
+	"trap.off_by_one": {
+		"reader": "parent",
+		"where": "The mistake of counting off by one: in the progress's 'Mistakes that repeat' and review, and a heading and a quote on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' 'Gaps' is the word of topic.counting.gaps and advice.off_by_one."
+	},
+	"trap.missed_case": {
+		"reader": "parent",
+		"where": "The mistake of missing a case: in the progress's 'Mistakes that repeat' and review, and a heading and a quote on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' 'Listing' is the method of topic.combinatorics.enumeration."
+	},
+	"trap.double_count": {
+		"reader": "parent",
+		"where": "The mistake of counting twice: in the progress's 'Mistakes that repeat' and review, and a heading and a quote on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.'"
+	},
+	"trap.ignored_not": {
+		"reader": "parent",
+		"where": "The mistake of missing 'not': in the progress's 'Mistakes that repeat' and review.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' The quoted word is the language's 'not', in its own quotation marks, as in advice.ignored_not."
+	},
+	"trap.answered_other_question": {
+		"reader": "parent",
+		"where": "The mistake of answering another question: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.'"
+	},
+	"trap.stopped_early": {
+		"reader": "parent",
+		"where": "The mistake of stopping halfway: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.'"
+	},
+	"trap.wrong_operation": {
+		"reader": "parent",
+		"where": "The mistake of choosing the wrong operation: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' The operation is adding, subtracting, multiplying or dividing, by the school word."
+	},
+	"trap.reversed_relation": {
+		"reader": "parent",
+		"where": "The mistake of reversing a comparison: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.'"
+	},
+	"trap.best_case_not_worst": {
+		"reader": "parent",
+		"where": "The mistake of counting on luck: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' The worst case is the reasoning of topic.pigeonhole.basic, as in advice.best_case_not_worst."
+	},
+	"trap.trusted_statement": {
+		"reader": "parent",
+		"where": "The mistake of believing a statement unchecked: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' A statement in a knights-and-liars puzzle, which may be a lie."
+	},
+	"trap.time_unit_mixup": {
+		"reader": "parent",
+		"where": "The mistake of mixing hours and minutes: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' 'Hours and minutes' as in skill.hours_minutes."
+	},
+	"trap.number_from_text": {
+		"reader": "parent",
+		"where": "The mistake of copying the question's number: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' 'The question' is the task's text, as in advice.number_from_text."
+	},
+	"trap.wrong_parity": {
+		"reader": "parent",
+		"where": "The mistake of getting parity wrong: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' Even and odd as in skill.even_odd."
+	},
+	"trap.ignored_condition": {
+		"reader": "parent",
+		"where": "The mistake of missing a condition: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' A condition is a requirement the task states, such as 'different' or 'exactly once'."
+	},
+	"trap.percent_wrong_base": {
+		"reader": "parent",
+		"where": "The mistake of using the wrong base for a percentage: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' The amount the percentage is taken of: the base, in school terms."
+	},
+	"trap.part_whole_swap": {
+		"reader": "parent",
+		"where": "The mistake of swapping part and whole: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' 'Part' and 'whole' are the words of group.parts and advice.part_whole_swap."
+	},
+	"trap.ratio_total_confusion": {
+		"reader": "parent",
+		"where": "The mistake of confusing a ratio's parts and total: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' 'Ratio' is the word of topic.ratio.sharing; the total is the whole amount shared."
+	},
+	"trap.remainder_vs_quotient": {
+		"reader": "parent",
+		"where": "The mistake of swapping quotient and remainder: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' Quotient and remainder are the school terms, as in skill.division_with_remainder."
+	},
+	"trap.area_perimeter_swap": {
+		"reader": "parent",
+		"where": "The mistake of swapping area and perimeter: in the progress's 'Mistakes that repeat' and review.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' Area and perimeter are the school terms of skill.area_perimeter."
+	},
+	"trap.first_move_assumed": {
+		"reader": "parent",
+		"where": "The mistake of assuming the first move wins: in the progress's 'Mistakes that repeat' and review, and a heading on the site's topic pages.",
+		"length": "label",
+		"address": "none",
+		"mind": "Never says who did it, so nothing blames or genders the child; it also begins review.reason_trap, '… — again and again.' A move is a player's turn in a game of topic.games.strategy."
+	},
+	"advice.off_by_one": {
+		"reader": "parent",
+		"where": "Advice against counting off by one: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. 'Gaps' is the word of trap.off_by_one."
+	},
+	"advice.missed_case": {
+		"reader": "parent",
+		"where": "Advice against missing a case: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender."
+	},
+	"advice.double_count": {
+		"reader": "parent",
+		"where": "Advice against counting twice: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender."
+	},
+	"advice.ignored_not": {
+		"reader": "parent",
+		"where": "Advice against missing 'not': a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. The quoted word is the language's own 'not', as in trap.ignored_not."
+	},
+	"advice.answered_other_question": {
+		"reader": "parent",
+		"where": "Advice against answering another question: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender."
+	},
+	"advice.stopped_early": {
+		"reader": "parent",
+		"where": "Advice against stopping halfway: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender."
+	},
+	"advice.wrong_operation": {
+		"reader": "parent",
+		"where": "Advice against choosing the wrong operation: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender."
+	},
+	"advice.reversed_relation": {
+		"reader": "parent",
+		"where": "Advice against reversing a comparison: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender."
+	},
+	"advice.best_case_not_worst": {
+		"reader": "parent",
+		"where": "Advice against counting on luck: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. The unluckiest way is the worst case of trap.best_case_not_worst."
+	},
+	"advice.trusted_statement": {
+		"reader": "parent",
+		"where": "Advice against believing a statement unchecked: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. Speak of statements, not speakers, where a speaker's gender would show, as the Russian does."
+	},
+	"advice.time_unit_mixup": {
+		"reader": "parent",
+		"where": "Advice against mixing hours and minutes: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender."
+	},
+	"advice.number_from_text": {
+		"reader": "parent",
+		"where": "Advice against copying the question's number: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. 'The question' is the task's text, as in trap.number_from_text."
+	},
+	"advice.wrong_parity": {
+		"reader": "parent",
+		"where": "Advice against getting parity wrong: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. Keep the sums 1 + 3 and 3 + 5: each adds two odd numbers."
+	},
+	"advice.ignored_condition": {
+		"reader": "parent",
+		"where": "Advice against missing a condition: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. Quote the conditions as a task in the language would word them."
+	},
+	"advice.percent_wrong_base": {
+		"reader": "parent",
+		"where": "Advice against using the wrong base for a percentage: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender."
+	},
+	"advice.part_whole_swap": {
+		"reader": "parent",
+		"where": "Advice against swapping part and whole: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. 'Part' and 'whole' as in trap.part_whole_swap."
+	},
+	"advice.ratio_total_confusion": {
+		"reader": "parent",
+		"where": "Advice against confusing a ratio's parts and total: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. The equal boxes are the parts of the ratio, as school bar models draw them."
+	},
+	"advice.remainder_vs_quotient": {
+		"reader": "parent",
+		"where": "Advice against swapping quotient and remainder: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender."
+	},
+	"advice.area_perimeter_swap": {
+		"reader": "parent",
+		"where": "Advice against swapping area and perimeter: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. Area and perimeter are the school terms of skill.area_perimeter."
+	},
+	"advice.first_move_assumed": {
+		"reader": "parent",
+		"where": "Advice against assuming the first move wins: a numbered step of 'What to do next' in the progress's review, under its topic or alone.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "Addresses no one, as the Russian and German infinitives do; where a language must address someone, the parent, politely, showing no gender. Small positions are games near their end, with few pieces or a small number left."
+	}
+}

@@ -1,5 +1,5 @@
 {
-  "purpose": "A timetable or any small table: rows of cells, with a header row where the columns need naming. A cell is a label, a time, … for cells left out, or empty; the question says what each row and each column means, since a table holds no words.",
-  "topics": ["time.clocks", "time.calendar", "number.divisibility"],
+  "purpose": "A timetable or any small table, such as the cases a solution counts or the states of a pouring, one to a row: rows of cells, with a header row where the columns need naming. A cell is a label, a time, … for cells left out, or empty; the question or the solution says what each row and each column means, since a table holds no words.",
+  "topics": ["time.clocks", "time.calendar", "number.divisibility", "combinatorics.enumeration", "arithmetic.tricks", "algorithms.weighing_pouring", "pigeonhole.basic"],
   "picture": {"kind": "table", "rows": [["A", "22:35", "6:10"], ["B", "23:50", "7:05"]]}
 }

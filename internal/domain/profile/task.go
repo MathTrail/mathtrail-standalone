@@ -182,13 +182,43 @@ type Daily struct {
 	// Accepted is how many tasks were accepted today. Its unit is an accepted
 	// task, so a refusal costs the child nothing.
 	Accepted int `json:"accepted"`
-	// Date is the UTC day these numbers belong to. UTC costs little here: the
-	// product shows no rhythm of practice at all, so an early rollover makes
-	// the limit looser for one evening and never stricter.
+	// Date is the family's day these numbers belong to: the day by the
+	// family's clock, which UTCOffset sets, so that the tasks of a day end at
+	// the family's midnight and "more tomorrow" means tomorrow.
 	Date Date `json:"date"`
 	// Failed is how many requests ended with the model out of attempts. It
 	// exists to stop a loop, not to ration a lesson.
 	Failed int `json:"failed"`
+	// UTCOffset is how far the family's clock runs ahead of UTC, in minutes,
+	// and behind it below zero: the clock of the device the child last
+	// answered a card on, which the card tells with the answer. Until a card
+	// has told it, the family's day is the UTC day.
+	UTCOffset int `json:"utc_offset,omitempty"`
+}
+
+// The offsets a clock runs at: from twelve hours behind UTC to fourteen ahead,
+// in whole quarters of an hour, which is what every time zone keeps.
+const (
+	minUTCOffset  = -12 * 60
+	maxUTCOffset  = 14 * 60
+	utcOffsetStep = 15
+)
+
+// SetClock records how far the family's clock runs from UTC, in minutes, as
+// the card the child answered on told it. An offset no clock runs at is left
+// out, and the one before it stays: the answer it came with counts all the
+// same. A clock that moves can move the day the counters belong to once, and
+// only ever loosens the limit for it — the counters of a day the clock left
+// count as none.
+func (p *Profile) SetClock(offset int) {
+	if clockRunsAt(offset) {
+		p.Daily.UTCOffset = offset
+	}
+}
+
+// clockRunsAt reports whether a clock can run at offset minutes from UTC.
+func clockRunsAt(offset int) bool {
+	return offset >= minUTCOffset && offset <= maxUTCOffset && offset%utcOffsetStep == 0
 }
 
 // CountAccepted records that a task was accepted, which is the unit the daily
@@ -207,16 +237,16 @@ func (p *Profile) CountFailed(now time.Time) {
 	p.Daily.Failed++
 }
 
-// Today is what the counters hold for the day now falls on: the counters as
-// they stand when they are that day's, and nothing counted when they are
-// another day's. A limit reads the counters through it, so that yesterday's
-// tasks never hold back today's.
+// Today is what the counters hold for the family's day now falls on: the
+// counters as they stand when they are that day's, and nothing counted when
+// they are another day's, the family's clock kept. A limit reads the counters
+// through it, so that yesterday's tasks never hold back today's.
 func (d *Daily) Today(now time.Time) Daily {
-	today := DateOf(now)
+	today := DateOf(now.Add(time.Duration(d.UTCOffset) * time.Minute))
 	if d.Date.Equal(today.Time) {
 		return *d
 	}
-	return Daily{Date: today}
+	return Daily{Date: today, UTCOffset: d.UTCOffset}
 }
 
 // startDay moves the counters onto the day they are about to count, clearing

@@ -122,6 +122,8 @@
     "correct_answer": "E",
     "hint": "How many full rows come before seat 97?",
     "solution": "97 = 5 × 18 + 7, so 5 full rows end at seat 90, and seat 97 is the 7th seat of the next row, row 6.",
+    "solution_picture": {"kind": "table", "rows": [["1", "1", "…", "7", "…", "18"], ["2", "19", "…", "25", "…", "36"], ["…", "…", "…", "…", "…", "…"], ["5", "73", "…", "79", "…", "90"], ["6", "91", "…", "97", "…", "108"]]},
+    "solution_total": "90 ÷ 18 + 1 = 6",
     "distractors": {
       "A": {
         "trap": "off_by_one",
