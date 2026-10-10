@@ -196,6 +196,7 @@ function Big({ children }: { children: ComponentChildren }) {
  * a move and after it.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => page.text(`${at}.line`),
 	hero: ({ page, at }) => (
 		<>

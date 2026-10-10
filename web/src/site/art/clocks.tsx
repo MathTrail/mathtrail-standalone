@@ -104,6 +104,7 @@ const breaks = pieces(0, 9).filter((_, at) => at % 2 === 1);
  * arrow.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => page.text(`${at}.line`),
 	hero: ({ page, at }) => (
 		<>

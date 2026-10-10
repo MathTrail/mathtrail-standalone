@@ -260,6 +260,7 @@ function rows(changed: Readonly<Record<number, Petal>> = {}): Petal[] {
  * the daisy, torn into two rows that mirror each other.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => page.text(`${at}.line`),
 	hero: ({ page }) => (
 		<>

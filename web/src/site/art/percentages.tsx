@@ -202,6 +202,7 @@ function Step({ children, up }: { children: ComponentChildren; up: boolean }) {
  * of the melons.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => page.text(`${at}.line`),
 	hero: ({ page }) => (
 		<>

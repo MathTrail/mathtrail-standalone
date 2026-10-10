@@ -19,7 +19,7 @@ import { art as winningStrategy } from "./winning-strategy";
 
 /**
  * topicArt are the drawings of the topics' pages, by the slug of the topic. A
- * topic with none here draws its page's first screen from the site's data.
+ * topic whose page is drawn has its drawings here, or the build stops.
  */
 export const topicArt: ReadonlyMap<string, TopicArt> = new Map([
 	["arithmetic-with-a-trick", arithmeticWithATrick],

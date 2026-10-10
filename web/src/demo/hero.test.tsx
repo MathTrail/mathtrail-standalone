@@ -5,7 +5,7 @@ import { buttonIn, press } from "../widget/testing/card";
 import { type DemoData, readDemoData } from "./data";
 import { bringHeroAlive, liveScope } from "./hero";
 import { checkingTakes } from "./service";
-import { openHome } from "./testing/home";
+import { openHome } from "./testing/pages";
 
 beforeEach(() => {
 	vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });

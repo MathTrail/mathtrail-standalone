@@ -192,6 +192,7 @@ function Rule({
  * powers of two, which go round by four.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => page.text(`${at}.line`),
 	hero: ({ page, at }) => (
 		<>

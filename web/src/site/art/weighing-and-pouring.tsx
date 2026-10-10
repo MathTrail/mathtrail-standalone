@@ -227,6 +227,7 @@ function CooksTable({ page }: { page: PageReader }) {
  * three; and a table of states, as the card draws one.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => page.text(`${at}.line`),
 	hero: ({ page, at }) => (
 		<>

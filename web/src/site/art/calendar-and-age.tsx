@@ -179,6 +179,7 @@ function AgesThen({
  * and the gaps between them, and two ages whose difference stays the same.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => page.text(`${at}.line`),
 	hero: ({ page, at }) => (
 		<>

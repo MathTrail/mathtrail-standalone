@@ -1,6 +1,5 @@
 import type { VNode } from "preact";
 import type { Drawing, Thumb } from "./drawings";
-import { thumbs } from "./drawings";
 import { useSiteWords } from "./words";
 
 /**
@@ -40,8 +39,8 @@ export const thumbDrawings: {
 
 /**
  * TopicThumb is a topic's small drawing where a link to the topic shows it,
- * if its card's drawing is one: a sign the screen reader passes over, since
- * the link's words name the topic.
+ * where the site's data gives the topic one: a sign the screen reader passes
+ * over, since the link's words name the topic.
  */
 export function TopicThumb({
 	drawing,
@@ -50,18 +49,35 @@ export function TopicThumb({
 	drawing: Drawing | undefined;
 	numbers: Intl.NumberFormat;
 }) {
-	if (
-		drawing === undefined ||
-		!("markup" in drawing) ||
-		!(thumbs as readonly string[]).includes(drawing.markup)
-	) {
+	if (drawing === undefined) {
 		return null;
 	}
-	const Thumb = thumbDrawings[drawing.markup as Thumb];
+	const Thumb = thumbDrawings[drawing.markup];
 	return (
 		<span class="s-thumb-frame" aria-hidden="true" dir="ltr">
 			<Thumb numbers={numbers} />
 		</span>
+	);
+}
+
+/**
+ * TopicDrawing is the drawing a topic's card shows on the page of the topics:
+ * its small drawing on a white box, its numbers written as the page's
+ * language writes them. The words around it say what it shows, so a screen
+ * reader passes it over.
+ */
+export function TopicDrawing({
+	drawing,
+	numbers,
+}: {
+	drawing: Drawing;
+	numbers: Intl.NumberFormat;
+}) {
+	const Thumb = thumbDrawings[drawing.markup];
+	return (
+		<div class="s-art" aria-hidden="true" dir="ltr">
+			<Thumb numbers={numbers} />
+		</div>
 	);
 }
 

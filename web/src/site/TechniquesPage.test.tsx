@@ -360,4 +360,40 @@ describe("the page of the techniques", () => {
 			}),
 		).toThrow("site/data.json gives the page of the techniques none");
 	});
+
+	test("is refused for a technique it has no pictures for", () => {
+		const given = data.techniques;
+		if (given === undefined) {
+			throw new Error("the test's data gives the page no techniques");
+		}
+		const renamed = (id: string) => (id === "draw" ? "doodle" : id);
+		const doodle = {
+			...data,
+			techniques: {
+				groups: given.groups.map((group) => ({
+					...group,
+					techniques: group.techniques.map((one) => ({
+						...one,
+						id: renamed(one.id),
+					})),
+				})),
+				cues: given.cues.map((row) => row.map(renamed)),
+			},
+		};
+
+		expect(() =>
+			renderSite({
+				...site,
+				sources: sourcesWith(words().replaceAll("draw", "doodle")),
+				pages: new Map([
+					...pages,
+					[
+						"techniques",
+						sitePages(doodle).get("techniques") ?? { draw: () => <p /> },
+					],
+				]),
+				data: doodle,
+			}),
+		).toThrow("the page of the techniques has no pictures for doodle");
+	});
 });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { type Box, shareTheCard, stepAtMiddle } from "./stage";
-import { openHome } from "./testing/home";
+import { openHome } from "./testing/pages";
 
 afterEach(() => {
 	document.body.innerHTML = "";

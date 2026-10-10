@@ -123,6 +123,7 @@ const tens = [
  * and a big product as a rectangle with a strip more.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: () => "19 + 23 + 81 + 77",
 	hero: ({ page, at }) => (
 		<>

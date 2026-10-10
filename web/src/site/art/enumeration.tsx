@@ -392,6 +392,7 @@ const noTwoTwos: readonly (readonly Digit[])[] = [
  * a rule.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => (
 		<>
 			{page.text(`${at}.line`)}

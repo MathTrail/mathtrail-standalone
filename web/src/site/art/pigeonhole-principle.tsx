@@ -356,6 +356,7 @@ function Values({
  * a drawer; and the sums of a grid as pigeons in the cages of their values.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => page.text(`${at}.line`),
 	hero: ({ page, at }) => (
 		<>

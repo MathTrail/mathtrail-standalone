@@ -46,9 +46,12 @@ export type IdeaColumn = {
  * table, the column its answers stand in where that is not the last, and
  * the key over it; the key under the steps of the move; the drawings of
  * each worked example; and one for each trap the page explains, by the
- * trap's name. A place with no drawing keeps the page's own look.
+ * trap's name. A place with no drawing keeps the page's own look. Pictures
+ * says the drawings draw a picture as a card draws one among their parts,
+ * which the page then loads the card's styles for.
  */
 export type TopicArt = {
+	readonly pictures?: true;
 	readonly hero: Art;
 	readonly heroLine?: Art;
 	readonly basis?: readonly Art[];

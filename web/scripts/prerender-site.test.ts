@@ -21,7 +21,6 @@ import widgetEnglish from "../locales/en.json";
 import widgetRussian from "../locales/ru.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
 import { address, outputPath } from "../src/site/addresses.ts";
-import { topicArt } from "../src/site/art/index.ts";
 import {
 	coachScreenPath,
 	coachScreenSize,
@@ -76,14 +75,6 @@ const scripted: ReadonlyMap<string, string> = new Map([
 	["en/why/index.html", "/assets/why.js"],
 	["ru/why/index.html", "/assets/why.js"],
 ]);
-
-// drawnByItsOwn are the pages of the topics that draw drawings of their own,
-// which load the card's styles for the pictures of the card's kinds their
-// drawings may draw among their parts.
-const drawnByItsOwn = (page: string) =>
-	[...topicArt.keys()].some((slug) =>
-		page.endsWith(`/topics/${slug}/index.html`),
-	);
 
 // carded are the pages that draw a card of the widget.
 const carded: readonly string[] = [
@@ -552,8 +543,7 @@ describe("the site built from this repository", () => {
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
 			const html = await readFile(join(out, page), "utf8");
-			const pictured =
-				html.includes('class="mt-picture"') || drawnByItsOwn(page);
+			const pictured = html.includes('class="mt-picture"');
 
 			expect(
 				[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(
@@ -574,7 +564,7 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	test("draws a drawing on the first screen of every topic's page, and no drawing of text on any page of the topics", async () => {
+	test("draws the topic's own drawing on the first screen of every topic's page, and no drawing of text on any page of the topics", async () => {
 		const pages = (await localePages(out)).filter((page) =>
 			/(^|\/)topics\//.test(page),
 		);
@@ -588,7 +578,7 @@ describe("the site built from this repository", () => {
 			expect(html, page).not.toContain("<pre");
 			if (topics.includes(page)) {
 				expect(html, page).toMatch(
-					/<div class="s-panel s-subject-panel(?: s-subject-sketch)?"(?: aria-hidden="true")?[^>]*>(?:<p class="s-subject-line">.*?<\/p>)?<div class="s-(picture|art|sketch)[ "]/,
+					/<div class="s-panel s-subject-panel s-subject-sketch" aria-hidden="true" dir="ltr">(?:<p class="s-subject-line">.*?<\/p>)?<div class="s-sketch s-topic-art">/,
 				);
 			}
 		}

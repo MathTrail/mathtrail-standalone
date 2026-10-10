@@ -154,6 +154,7 @@ function Big({ children }: { children: ComponentChildren }) {
  * the eggs of a market, worked backwards.
  */
 export const art: TopicArt = {
+	pictures: true,
 	heroLine: ({ page, at }) => page.text(`${at}.line`),
 	hero: ({ page, at }) => (
 		<>

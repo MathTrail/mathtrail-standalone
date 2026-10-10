@@ -54,20 +54,9 @@ describe("the site's own data", () => {
 		);
 	});
 
-	test("draws the card of every topic of the catalog, and the first screen of every page it publishes", () => {
+	test("draws the card of every topic of the catalog", () => {
 		expect([...data.drawings.keys()].sort()).toEqual(
 			topics.map((topic) => topic.id).sort(),
-		);
-		expect(
-			[...data.drawings]
-				.filter(([, drawings]) => drawings.hero !== undefined)
-				.map(([id]) => id)
-				.sort(),
-		).toEqual(
-			topics
-				.filter((topic) => topic.site_page)
-				.map((topic) => topic.id)
-				.sort(),
 		);
 	});
 
@@ -121,43 +110,31 @@ describe("the site's data", () => {
 	// card is the site's data with this drawing on the card of knights and liars.
 	const card = (given: unknown) =>
 		drawings({ "logic.knights_liars": { card: given } });
-	// clock is a picture of a clock, which every drawing may be.
-	const clock = { kind: "clock", time: "4:50" };
+	// home is the site's data with these members of the home page's.
+	const home = (given: object) => ({
+		...knights,
+		home: { ...file.home, ...given },
+	});
+	// pick is the site's data with these members of how the home page's card
+	// was picked.
+	const pick = (given: object) =>
+		home({ pick: { ...file.home.pick, ...given } });
 
-	test("carries the drawings of each topic, and of each example, as the file writes them", () => {
+	test("carries the drawing of each topic's card as the file writes it", () => {
 		const data = readSiteData(catalog, {
 			...knights,
 			drawings: {
-				"logic.knights_liars": {
-					card: { markup: "islanders" },
-					hero: { picture: clock },
-				},
-				"logic.ordering": { card: { markup: "daisy" } },
-			},
-			examples: {
-				"logic.knights_liars": [
-					{
-						level: "5-6",
-						solver: "round-table",
-						answer: "5",
-						drawing: { markup: "round-table" },
-					},
-					{ level: "3-4", solver: "two-on-the-road", answer: "A liar" },
-				],
+				"logic.knights_liars": { card: { markup: "knight-and-liar" } },
+				"logic.ordering": { card: { markup: "lined-up" } },
 			},
 		});
 
 		expect(data.drawings.get("logic.knights_liars")).toEqual({
-			card: { markup: "islanders" },
-			hero: { picture: clock },
+			card: { markup: "knight-and-liar" },
 		});
 		expect(data.drawings.get("logic.ordering")).toEqual({
-			card: { markup: "daisy" },
+			card: { markup: "lined-up" },
 		});
-		expect(data.examples.get("logic.knights_liars")).toEqual([
-			{ grades: [5, 6], answer: "5", drawing: { markup: "round-table" } },
-			{ grades: [3, 4], answer: "A liar" },
-		]);
 	});
 
 	test("sets each example at the grades of its level, with its answer", () => {
@@ -235,28 +212,23 @@ describe("the site's data", () => {
 		],
 		[
 			"a drawing of a topic the catalog does not have",
-			drawings({ "logic.tables": { card: { markup: "islanders" } } }),
+			drawings({ "logic.tables": { card: { markup: "fence" } } }),
 			"site/data.json: the drawings of logic.tables are of a topic the catalog does not have",
 		],
 		[
-			"a drawing of the first screen of a page the catalog does not publish",
+			"a drawing of a first screen, which a topic's page draws itself",
 			drawings({
-				"logic.ordering": {
-					card: { markup: "islanders" },
-					hero: { markup: "islanders" },
+				"logic.knights_liars": {
+					card: { markup: "knight-and-liar" },
+					hero: { markup: "fence" },
 				},
 			}),
-			"site/data.json: the first screen of logic.ordering has a drawing, and the catalog does not publish its page",
+			'Unrecognized key: "hero"\n  → at drawings["logic.knights_liars"]',
 		],
 		[
 			"a topic's drawings with no card",
-			drawings({ "logic.knights_liars": { hero: { picture: clock } } }),
+			drawings({ "logic.knights_liars": {} }),
 			'→ at drawings["logic.knights_liars"].card',
-		],
-		[
-			"a picture the card's reader refuses",
-			card({ picture: { kind: "clock", time: "25:00" } }),
-			'→ at drawings["logic.knights_liars"].card.picture.time',
 		],
 		[
 			"a drawing of the site's own it does not draw",
@@ -264,47 +236,47 @@ describe("the site's data", () => {
 			'→ at drawings["logic.knights_liars"].card.markup',
 		],
 		[
-			"a drawing that is neither a picture nor one of the site's own",
+			"a card that names no drawing",
 			card({}),
-			'a drawing is a picture or a drawing of the site\'s own, one of the two\n  → at drawings["logic.knights_liars"].card',
+			'→ at drawings["logic.knights_liars"].card.markup',
 		],
 		[
-			"a drawing that is a picture and one of the site's own at once",
-			card({ picture: clock, markup: "islanders" }),
-			'a drawing is a picture or a drawing of the site\'s own, one of the two\n  → at drawings["logic.knights_liars"].card',
+			"a picture on a card, which draws the site's own drawings alone",
+			card({ markup: "fence", picture: { kind: "clock", time: "4:50" } }),
+			'Unrecognized key: "picture"\n  → at drawings["logic.knights_liars"].card',
 		],
 		[
 			"a drawing with a member no drawing has",
-			card({ markup: "islanders", words: "A" }),
+			card({ markup: "fence", words: "A" }),
 			'Unrecognized key: "words"\n  → at drawings["logic.knights_liars"].card',
 		],
 		[
-			"an example's drawing under a misspelt name",
+			"an example with a member no example has",
 			examples({
 				"logic.knights_liars": [
 					{
 						level: "3-4",
 						solver: "one",
 						answer: "1",
-						drawng: { picture: clock },
+						drawng: { markup: "fence" },
 					},
 				],
 			}),
 			'Unrecognized key: "drawng"\n  → at examples["logic.knights_liars"][0]',
 		],
 		[
-			"an example's drawing the card's reader refuses",
+			"an example's drawing, which a topic's page draws itself",
 			examples({
 				"logic.knights_liars": [
 					{
 						level: "3-4",
 						solver: "one",
 						answer: "1",
-						drawing: { picture: { kind: "clock" } },
+						drawing: { markup: "fence" },
 					},
 				],
 			}),
-			'→ at examples["logic.knights_liars"][0].drawing.picture.time',
+			'Unrecognized key: "drawing"\n  → at examples["logic.knights_liars"][0]',
 		],
 		[
 			"a work the page Why cites whose DOI is no DOI",
@@ -364,7 +336,82 @@ describe("the site's data", () => {
 			},
 			"→ at techniques.groups[0].techniques[0].example",
 		],
+		[
+			"a skill of the home page's child in a topic the catalog does not have",
+			pick({
+				skills: [
+					...file.home.pick.skills,
+					{ topic: "logic.tables", share: 0.5 },
+				],
+			}),
+			"site/data.json: the home page shows the child's skill in logic.tables, a topic the catalog does not have",
+		],
+		[
+			"a skill's bar filled past its end",
+			pick({ skills: [{ topic: "counting.gaps", share: 1.2 }] }),
+			"site/data.json: the home page fills 1.2 of the bar of counting.gaps, which is no share of it",
+		],
+		[
+			"a pick that leaves the card's topic out of the child's skills",
+			pick({ skills: [{ topic: "parity.alternation", share: 0.58 }] }),
+			"site/data.json: the home page picks counting.gaps, the topic of its card, and leaves it out of the child's skills",
+		],
+		[
+			"a corridor that runs the wrong way",
+			pick({ corridor: { low: 0.85, high: 0.7 } }),
+			"site/data.json: the home page's corridor runs from 0.85 to 0.7: two shares, the lower first",
+		],
+		[
+			"a corridor that ends past a share",
+			pick({ corridor: { low: 0.7, high: 1.5 } }),
+			"site/data.json: the home page's corridor runs from 0.7 to 1.5: two shares, the lower first",
+		],
+		[
+			"a chance below its corridor",
+			pick({ chance: 0.5 }),
+			"site/data.json: the home page picks its task at a chance of 0.5, outside the corridor from 0.7 to 0.85",
+		],
+		[
+			"a chance above its corridor",
+			pick({ chance: 0.9 }),
+			"site/data.json: the home page picks its task at a chance of 0.9, outside the corridor from 0.7 to 0.85",
+		],
+		[
+			"a task of the chat alone with one right option",
+			home({ alone: { ...file.home.alone, right: ["A"] } }),
+			"site/data.json: the task of the chat alone has 1 right options, and the home page shows it for having more than one",
+		],
+		[
+			"a task of the chat alone right in an option it does not have",
+			home({ alone: { ...file.home.alone, right: ["A", "D"] } }),
+			"site/data.json: the task of the chat alone has D right, which is no option of it",
+		],
+		[
+			"a map of a topic the catalog does not have",
+			home({ map: "logic.tables" }),
+			"site/data.json: the home page shows what logic.tables builds on, a topic the catalog does not have",
+		],
+		[
+			"a map of a topic that builds on other than two",
+			home({ map: "counting.gaps" }),
+			"site/data.json: the home page shows counting.gaps between two topics it builds on, and it builds on 0",
+		],
 	])("is refused for %s", (_, broken, want) => {
 		expect(() => readSiteData(catalog, broken)).toThrow(want);
+	});
+
+	test("is refused for a map of a topic that builds on more than two", () => {
+		const three = {
+			...catalog,
+			topics: catalog.topics.map((topic) =>
+				topic.id === file.home.map
+					? { ...topic, builds_on: [...topic.builds_on, "counting.gaps"] }
+					: topic,
+			),
+		};
+
+		expect(() => readSiteData(three, knights)).toThrow(
+			`site/data.json: the home page shows ${file.home.map} between two topics it builds on, and it builds on 3`,
+		);
 	});
 });

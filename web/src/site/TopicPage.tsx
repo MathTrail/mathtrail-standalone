@@ -4,16 +4,12 @@ import { cardWords } from "../widget/dictionaries";
 import { topicName, trapName } from "../widget/names";
 import type { Key } from "../widget/words";
 import { address } from "./addresses";
-import { topicArt } from "./art";
 import type { Art, CellWords, ExampleArt, TopicArt } from "./art/art";
 import type { SiteData, TopicExample } from "./data";
-import type { Drawing } from "./drawings";
 import { connectAddress } from "./home";
 import type { Page, PageProps } from "./pages";
 import type { PageReader } from "./reader";
-import { Solution } from "./Solution";
 import { TableFrame } from "./TableFrame";
-import { TopicDrawing } from "./TopicDrawings";
 import { TopicThumb } from "./TopicThumbs";
 import type { Group, Topic } from "./topics";
 import { Answer, StepFrame, WorkedSteps } from "./WorkedSteps";
@@ -26,26 +22,20 @@ const shownTraps = 3;
 
 /**
  * topicPage is the page of topic, drawn by the template every topic's page
- * shares, which loads the card's styles when it draws a picture.
+ * shares with the topic's own drawings, which loads the card's styles where
+ * those drawings draw a picture as a card draws one. A topic with no drawings
+ * of its own has no page to draw: drawing it stops the build.
  */
-export function topicPage(topic: Topic, data: SiteData): Page {
+export function topicPage(topic: Topic, art: TopicArt | undefined): Page {
 	return {
-		draw: (props) => <TopicPage {...props} topic={topic} />,
-		card: drawsPicture(data, topic),
+		draw: (props) => {
+			if (art === undefined) {
+				throw new Error(`the page of ${topic.id} has no drawings of its own`);
+			}
+			return <TopicPage {...props} topic={topic} art={art} />;
+		},
+		card: art?.pictures === true,
 	};
-}
-
-// drawsPicture says whether the topic's page may draw a picture: wherever
-// the topic has drawings of its own, which draw pictures of the card's kinds
-// among their parts, and else on its first screen or beside an example.
-function drawsPicture(data: SiteData, topic: Topic): boolean {
-	return (
-		topicArt.has(topic.slug) ||
-		[
-			data.drawings.get(topic.id)?.hero,
-			...examplesOf(data, topic).map((example) => example.drawing),
-		].some((drawing) => drawing !== undefined && "picture" in drawing)
-	);
 }
 
 // TopicPage is a topic's page for a parent. It opens with the path to it, the
@@ -61,43 +51,31 @@ function TopicPage({
 	page,
 	data,
 	topic,
-}: PageProps & { readonly topic: Topic }) {
+	art,
+}: PageProps & { readonly topic: Topic; readonly art: TopicArt }) {
 	const card = cardWords(page.locale, undefined);
 	const name = topicName(card, topic.id);
 	const group = groupOf(data, topic);
-	const art = topicArt.get(topic.slug);
 	return (
 		<>
 			<section class="s-wrap s-subject">
 				<Path page={page} group={group} name={name} />
-				<Hero
-					page={page}
-					data={data}
-					topic={topic}
-					group={group}
-					name={name}
-					art={art}
-				/>
+				<Hero page={page} topic={topic} group={group} name={name} art={art} />
 				<Contents page={page} />
 			</section>
-			<Basis page={page} art={art?.basis} />
+			<Basis page={page} art={art.basis} />
 			<Idea
 				page={page}
-				art={art?.idea}
-				answers={art?.ideaAnswers}
-				legend={art?.ideaLegend}
+				art={art.idea}
+				answers={art.ideaAnswers}
+				legend={art.ideaLegend}
 			/>
-			<Solving
-				page={page}
-				topic={topic}
-				examples={examplesOf(data, topic)}
-				art={art}
-			/>
+			<Solving page={page} examples={examplesOf(data, topic)} art={art} />
 			<Traps
 				page={page}
 				traps={trapsOf(data, topic)}
 				card={card}
-				art={art?.traps}
+				art={art.traps}
 			/>
 			<Home page={page} />
 			<Related
@@ -132,18 +110,6 @@ function groupOf(data: SiteData, topic: Topic): Group {
 // examplesOf are the examples of the topic's page, as the site's data has them.
 function examplesOf(data: SiteData, topic: Topic): readonly TopicExample[] {
 	return data.examples.get(topic.id) ?? [];
-}
-
-// heroDrawingOf is the drawing the first screen of the topic's page shows:
-// every published page has one, or it does not build.
-function heroDrawingOf(data: SiteData, topic: Topic): Drawing {
-	const hero = data.drawings.get(topic.id)?.hero;
-	if (hero === undefined) {
-		throw new Error(
-			`site/data.json gives the first screen of ${topic.id} no drawing`,
-		);
-	}
-	return hero;
 }
 
 // trapsOf are the traps the topic's page explains: the most frequent in its
@@ -187,22 +153,20 @@ function Path({
 }
 
 // Hero is the first screen: the topic's group and grades, its name, what it is,
-// its main move and what it teaches, beside its drawing: the topic's own on a
-// white box, with the line over it where it has one, or the site's data's.
+// its main move and what it teaches, beside the topic's own drawing on a white
+// box, with the line over it where it has one.
 function Hero({
 	page,
-	data,
 	topic,
 	group,
 	name,
 	art,
 }: {
 	page: PageReader;
-	data: SiteData;
 	topic: Topic;
 	group: Group;
 	name: string;
-	art: TopicArt | undefined;
+	art: TopicArt;
 }) {
 	const words = useSiteWords();
 	return (
@@ -225,33 +189,18 @@ function Hero({
 					</div>
 				</dl>
 			</div>
-			{art === undefined ? (
-				<div class="s-panel s-subject-panel">
-					<TopicDrawing
-						drawing={heroDrawingOf(data, topic)}
-						page={page}
-						at="hero.drawing"
-						where={`the first screen of ${topic.id}`}
-					/>
+			<div
+				class="s-panel s-subject-panel s-subject-sketch"
+				aria-hidden="true"
+				dir="ltr"
+			>
+				{art.heroLine !== undefined && (
+					<p class="s-subject-line">{art.heroLine({ page, at: "hero.art" })}</p>
+				)}
+				<div class="s-sketch s-topic-art">
+					<div class="s-sketch-drawn">{art.hero({ page, at: "hero.art" })}</div>
 				</div>
-			) : (
-				<div
-					class="s-panel s-subject-panel s-subject-sketch"
-					aria-hidden="true"
-					dir="ltr"
-				>
-					{art.heroLine !== undefined && (
-						<p class="s-subject-line">
-							{art.heroLine({ page, at: "hero.art" })}
-						</p>
-					)}
-					<div class="s-sketch s-topic-art">
-						<div class="s-sketch-drawn">
-							{art.hero({ page, at: "hero.art" })}
-						</div>
-					</div>
-				</div>
-			)}
+			</div>
 		</div>
 	);
 }
@@ -458,18 +407,16 @@ function Note({
 
 // Solving is how such tasks are solved: the steps of the move, then examples
 // worked through to their answers, from the simplest to an olympiad's. Each
-// example's level and drawing are data, the level saying its grades, and the
-// words give as many examples as the data does.
+// example's level is data, saying its grades, and the words give as many
+// examples as the data does.
 function Solving({
 	page,
-	topic,
 	examples,
 	art,
 }: {
 	page: PageReader;
-	topic: Topic;
 	examples: readonly TopicExample[];
-	art: TopicArt | undefined;
+	art: TopicArt;
 }) {
 	const words = useSiteWords();
 	const numbers = new Intl.NumberFormat(page.locale);
@@ -497,7 +444,7 @@ function Solving({
 					</li>
 				))}
 			</ol>
-			{art?.legend !== undefined && (
+			{art.legend !== undefined && (
 				<p class="s-legend s-topic-art" aria-hidden="true" dir="ltr">
 					{art.legend({ page, at: "method.legend" })}
 				</p>
@@ -514,9 +461,7 @@ function Solving({
 							grades: gradesText(words, example.grades),
 						})}
 						answer={example.answer}
-						drawing={example.drawing}
-						art={art?.examples?.[at]}
-						where={`example ${at + 1} of ${topic.id}`}
+						art={art.examples?.[at]}
 					/>
 				);
 			})}
@@ -525,27 +470,21 @@ function Solving({
 }
 
 // WorkedExample is one example: its number and grades, its title, its task
-// with its drawing under it where it has one, the steps of its solution,
-// each beside its picture where the topic draws them and beside the
-// example's one drawing otherwise, a note where it has one, and its answer
-// behind its badge. A picture that cannot be drawn stops the build under the
-// name where gives the example.
+// with its drawing under it where the topic draws one, the steps of its
+// solution, each beside its picture where the topic draws them, a note where it
+// has one, and its answer behind its badge.
 function WorkedExample({
 	page,
 	at,
 	label,
 	answer,
-	drawing,
 	art,
-	where,
 }: {
 	page: PageReader;
 	at: string;
 	label: string;
 	answer: string;
-	drawing: Drawing | undefined;
 	art: ExampleArt | undefined;
-	where: string;
 }) {
 	const words = useSiteWords();
 	const own = `${at}.art`;
@@ -563,28 +502,11 @@ function WorkedExample({
 					</div>
 				)}
 			</div>
-			{art?.steps !== undefined ? (
-				<WorkedSteps
-					page={page}
-					at={`${at}.steps`}
-					pictureOf={(step) => art.steps?.[step]?.({ page, at: own })}
-				/>
-			) : (
-				<Solution
-					page={page}
-					at={at}
-					drawing={
-						drawing !== undefined && (
-							<TopicDrawing
-								drawing={drawing}
-								page={page}
-								at={`${at}.drawing`}
-								where={where}
-							/>
-						)
-					}
-				/>
-			)}
+			<WorkedSteps
+				page={page}
+				at={`${at}.steps`}
+				pictureOf={(step) => art?.steps?.[step]?.({ page, at: own })}
+			/>
 			{page.has(`${at}.note`) && (
 				<Note
 					page={page}
@@ -592,14 +514,12 @@ function WorkedExample({
 					picture={art?.note?.({ page, at: own })}
 				/>
 			)}
-			{art?.steps !== undefined && (
-				<Answer
-					label={words.text("topic.answer")}
-					badge={badgeOf(page, at, answer)}
-				>
-					{page.text(`${at}.answer`)}
-				</Answer>
-			)}
+			<Answer
+				label={words.text("topic.answer")}
+				badge={badgeOf(page, at, answer)}
+			>
+				{page.text(`${at}.answer`)}
+			</Answer>
 		</article>
 	);
 }

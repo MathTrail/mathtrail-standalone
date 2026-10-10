@@ -1,5 +1,6 @@
 import type { VNode } from "preact";
 import { AboutPage } from "./AboutPage";
+import { topicArt } from "./art";
 import { CoachPage } from "./CoachPage";
 import { frontPage } from "./content";
 import type { SiteData } from "./data";
@@ -65,7 +66,7 @@ export function sitePages(data: SiteData): ReadonlyMap<string, Page> {
 		["service", { draw: ServicePage, style: serviceRules }],
 		...data.topics.all.map((topic): [string, Page] => [
 			`topics/${topic.slug}`,
-			topicPage(topic, data),
+			topicPage(topic, topicArt.get(topic.slug)),
 		]),
 	]);
 }
