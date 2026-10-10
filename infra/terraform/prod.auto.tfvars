@@ -39,6 +39,10 @@ disable_default_url = true
 # privacy policy at mathtrail.app says.
 analytics = true
 
+# Cloud Billing's export of the costs, turned on in the console, has made its
+# table in the dataset billing, so the daily report's view is made over it.
+billing_export = true
+
 # Who the load alert is mailed to: the company's address, which the site's
 # privacy policy and terms already publish.
 operator_email = "altedtech.info@gmail.com"
