@@ -35,13 +35,43 @@ const sourceFile = z.object({
 });
 
 /**
+ * hues are the colours a card of the page may be lit with.
+ */
+export const hues = ["blue", "green", "violet", "amber"] as const;
+
+/** Hue is the colour a card of the page is lit with. */
+export type Hue = (typeof hues)[number];
+
+/**
+ * findingMarks are the small drawings under a finding that show what it
+ * found: what rose, a row of rising bars, a chain of steps, and a span of time
+ * from one point to another.
+ */
+export const findingMarks = ["rise", "bars", "chain", "span"] as const;
+
+/** FindingMark is the small drawing under a finding. */
+export type FindingMark = (typeof findingMarks)[number];
+
+// pictureName is what a picture of the page's history may be called:
+// lowercase words joined by dashes, which an address and an id take as they
+// are.
+const pictureName = /^[a-z]+(?:-[a-z]+)*$/;
+
+// focus is the point of a picture that stays in place as it slowly grows: its
+// distance across and down, in per cent.
+const focus = /^\d{1,3}% \d{1,3}%$/;
+
+/**
  * whyFile is the shape of what the page "Why" takes from the site's data, as
  * far as no language changes it: the card of a wrong answer it shows; the
  * topics it names as examples of what a problem is about, by the slot of its
  * words each fills; the works its findings come from, in the order it shows
- * them; the work behind what it says of children's apps; and every work it
- * cites, by an id of the site's own. The letters, the trap and the rest of the card are read again
- * by the widget's own readers, which refuse a card the widget could not draw.
+ * them, each with the colour of its card and the drawing under it; the
+ * pictures of its history, era by era, each with the point it grows from; the
+ * work behind what it says of children's apps; and every work it cites, by an
+ * id of the site's own. The letters, the trap and the rest of the card are
+ * read again by the widget's own readers, which refuse a card the widget
+ * could not draw.
  */
 export const whyFile = z.object({
 	card: z.object({
@@ -55,7 +85,27 @@ export const whyFile = z.object({
 		rating: z.object({ before: z.number(), after: z.number() }),
 	}),
 	topics: z.record(z.string().regex(slotName), z.string()),
-	findings: z.array(z.string()).min(1),
+	findings: z
+		.array(
+			z.object({
+				id: z.string(),
+				hue: z.enum(hues),
+				mark: z.enum(findingMarks),
+			}),
+		)
+		.min(1),
+	history: z
+		.array(
+			z
+				.array(
+					z.object({
+						name: z.string().regex(pictureName),
+						focus: z.string().regex(focus),
+					}),
+				)
+				.min(1),
+		)
+		.min(1),
 	apps: z.string(),
 	sources: z.record(z.string(), sourceFile),
 });
@@ -81,15 +131,31 @@ export function doiAddress(source: Pick<Source, "doi">): string {
 export type WhyCard = WhyFile["card"];
 
 /**
+ * Finding is a work the page shows a finding of, with the colour of its card
+ * and the small drawing under it.
+ */
+export type Finding = Source & {
+	readonly hue: Hue;
+	readonly mark: FindingMark;
+};
+
+/**
+ * HistoryPicture is a picture of the page's history: the name it is served
+ * and spoken of by, and the point it grows from as it is shown.
+ */
+export type HistoryPicture = z.infer<typeof whyFile>["history"][number][number];
+
+/**
  * Why is what the page "Why" draws from the site's data: the card, the topics
  * it names as examples by the slot each fills, the works its findings come
- * from in the order it shows them, and the work behind what it says of
- * children's apps.
+ * from in the order it shows them, the pictures of its history era by era,
+ * and the work behind what it says of children's apps.
  */
 export type Why = {
 	readonly card: WhyCard;
 	readonly topics: Readonly<Record<string, string>>;
-	readonly findings: readonly Source[];
+	readonly findings: readonly Finding[];
+	readonly history: readonly (readonly HistoryPicture[])[];
 	readonly apps: Source;
 };
 
@@ -107,7 +173,8 @@ const whyTask = "site_why";
  * one that answers right, and one the widget could not draw. A topic named as
  * an example that the catalog does not have is refused: the page would show
  * its id. A finding of a work the data does not have is refused, and so is a
- * work no part of the page cites: it would back nothing.
+ * work no part of the page cites: it would back nothing. A picture of the
+ * history named twice is refused: the page picks a picture by its name.
  */
 export function readWhy(catalog: CardCatalog, file: WhyFile): Why {
 	checkCard(catalog, file.card, whyCard);
@@ -127,8 +194,9 @@ export function readWhy(catalog: CardCatalog, file: WhyFile): Why {
 		}
 		return { ...work, id };
 	};
-	const cited = new Set([...file.findings, file.apps]);
-	if (new Set(file.findings).size !== file.findings.length) {
+	const found = file.findings.map(({ id }) => id);
+	const cited = new Set([...found, file.apps]);
+	if (new Set(found).size !== found.length) {
 		throw new Error("the page Why shows a finding twice");
 	}
 	for (const id of Object.keys(file.sources)) {
@@ -136,10 +204,20 @@ export function readWhy(catalog: CardCatalog, file: WhyFile): Why {
 			throw new Error(`the source ${id} is cited nowhere on the page Why`);
 		}
 	}
+	const pictures = file.history.flat().map(({ name }) => name);
+	const twice = pictures.find((name, at) => pictures.indexOf(name) !== at);
+	if (twice !== undefined) {
+		throw new Error(`the page Why shows the picture ${twice} twice`);
+	}
 	return {
 		card: file.card,
 		topics: file.topics,
-		findings: file.findings.map(sourceOf),
+		findings: file.findings.map(({ id, hue, mark }) => ({
+			...sourceOf(id),
+			hue,
+			mark,
+		})),
+		history: file.history,
 		apps: sourceOf(file.apps),
 	};
 }

@@ -125,3 +125,25 @@ export const photos: readonly Photo[] = [
 	familyPhoto,
 	...familyMembers.map((name) => ({ name, ...portraitSize })),
 ];
+
+/**
+ * historyDirectory is where the pictures of the history the page "Why" tells
+ * are served from, and the directory of the site's own assets that keeps
+ * them: old paintings, a few photographs under licences of their own, which
+ * their captions name, and screens of the coach's prototype.
+ */
+export const historyDirectory = "/assets/history/";
+
+/** historyPicturePath is where the picture of the history called name is served. */
+export function historyPicturePath(name: string): string {
+	return `${historyDirectory}${name}.webp`;
+}
+
+/** historyPictureSize is the size every picture of the history is kept at: 4:3. */
+export const historyPictureSize = { width: 1200, height: 900 } as const;
+
+/**
+ * profileFileName is the name of the file in a parent's Google Drive that
+ * holds the child's profile, as the service writes it.
+ */
+export const profileFileName = "mathtrail-profile.json";

@@ -1,30 +1,39 @@
 import { Diagram } from "../design/picture/diagram";
-import type { Words } from "../i18n/words";
 import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
 import { address } from "./addresses";
-import { sourceURL } from "./brand";
 import { AdultAsks } from "./Chat";
-import { connectAddress } from "./home";
 import type { PageProps } from "./pages";
-import type { Fill, PageReader } from "./reader";
+import type { PageReader } from "./reader";
 import { SourceChip } from "./SourceChip";
 import { StaticAnswer } from "./StaticCard";
-import { TableFrame } from "./TableFrame";
 import { gradesOfAll } from "./topics";
-import { answerOf, doiAddress, type Source, type Why } from "./why";
-import { gradesText, type SiteKey, useSiteWords } from "./words";
+import { answerOf, type Why } from "./why";
+import { App } from "./WhyApp";
+import { Research } from "./WhyFindings";
+import { History } from "./WhyHistory";
+import { Parent } from "./WhyParent";
+import { NoTime, School } from "./WhySchool";
+import { gradesText, useSiteWords } from "./words";
+
+// whyScript is where the page's script is served: one module, which the
+// site's build makes of web/src/demo/why.ts, and which moves the pictures of
+// the history on by themselves.
+const whyScript = "/assets/why.js";
 
 /**
  * WhyPage is the page that tells a parent why olympiad maths is worth a
  * child's time. It opens with a school sum beside an olympiad problem; then
- * what research has found, each finding under its work and with what it does
- * not prove said plainly; how a school lesson and an olympiad problem differ,
- * and why school has no time for the second; what a parent needs and does not
- * need to prepare a child; how MathTrail goes about it, beside the widget's
- * own card of a wrong answer and the chat under it; why it is no ordinary app;
- * and how to start. The grades are the catalog's, the topics' names and the
- * card's words the widget's, and the works it cites the site's data.
+ * how long people have learned to find a way with no example, era by era in
+ * pictures; what research has found, each finding beside its work; how a
+ * school lesson and an olympiad problem differ, and why school has no time
+ * for the second; what a parent needs and does not need to prepare a child;
+ * how MathTrail goes about it, beside the widget's own card of a wrong answer
+ * and the chat under it; and why it is no ordinary app. The grades are the
+ * catalog's, the topics' names and the card's words the widget's, and the
+ * works it cites and the history's pictures the site's data. Its script,
+ * where it runs, moves the pictures on; without it a chip of an era picks
+ * each.
  */
 export function WhyPage({ page, data }: PageProps) {
 	const why = data.why;
@@ -37,13 +46,14 @@ export function WhyPage({ page, data }: PageProps) {
 	return (
 		<>
 			<Hero page={page} why={why} grades={grades} />
-			<Research page={page} why={why} />
+			<History page={page} eras={why.history} />
+			<Research page={page} findings={why.findings} />
 			<School page={page} />
-			<NoTime page={page} />
+			<NoTime page={page} answer={why.card.options[why.card.correct] ?? ""} />
 			<Parent page={page} last={grades[1]} />
 			<Thinking page={page} why={why} />
-			<App page={page} why={why} />
-			<Ask page={page} />
+			<App page={page} apps={why.apps} />
+			<script type="module" src={whyScript} />
 		</>
 	);
 }
@@ -102,165 +112,6 @@ function Hero({
 				</div>
 				<figcaption>{page.text("hero.caption")}</figcaption>
 			</figure>
-		</section>
-	);
-}
-
-// Research is what studies have found about olympiad maths, a finding for each
-// work the site's data names, in its order, each linked to its work; then a
-// note on what they do not prove.
-function Research({ page, why }: { page: PageReader; why: Why }) {
-	return (
-		<section class="s-wrap s-section">
-			<div class="s-intro">
-				<h2>{page.text("research.title")}</h2>
-				<p class="s-intro-line">{page.text("research.lead")}</p>
-			</div>
-			<ul class="s-tiles s-tiles-two">
-				{why.findings.map((source) => {
-					const at = `research.findings.${source.id}`;
-					return (
-						<li key={source.id} class="s-tile s-finding">
-							<h3>{page.text(`${at}.title`)}</h3>
-							<p class="s-tile-text">{page.text(`${at}.text`)}</p>
-							<p class="s-cite">
-								<Cite source={source} />
-							</p>
-						</li>
-					);
-				})}
-			</ul>
-			<Honest page={page} at="research.note" />
-		</section>
-	);
-}
-
-// Honest is a note that says plainly what the page does not promise.
-function Honest({
-	page,
-	at,
-	slots,
-}: {
-	page: PageReader;
-	at: string;
-	slots?: Readonly<Record<string, Fill>>;
-}) {
-	return (
-		<aside class="s-note">
-			<p class="s-note-title">{page.text("honest")}</p>
-			<p class="s-note-text">{page.text(at, slots)}</p>
-		</aside>
-	);
-}
-
-// School is how a school lesson and an olympiad problem differ, as a table
-// with the olympiad's column marked.
-function School({ page }: { page: PageReader }) {
-	return (
-		<section class="s-wrap s-section">
-			<div class="s-intro">
-				<h2 id="school-title">{page.text("school.title")}</h2>
-				<p class="s-intro-line">{page.text("school.lead")}</p>
-			</div>
-			<TableFrame labelledBy="school-title">
-				<table class="s-table s-versus">
-					<thead>
-						<tr>
-							<td />
-							<th scope="col">{page.text("school.lesson")}</th>
-							<th scope="col" class="s-versus-olympiad">
-								{page.text("school.olympiad")}
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{page.list("school.rows").map((row) => (
-							<tr key={row}>
-								<th scope="row">{page.text(`${row}.label`)}</th>
-								<td>{page.text(`${row}.lesson`)}</td>
-								<td class="s-versus-olympiad">
-									{page.text(`${row}.olympiad`)}
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</TableFrame>
-		</section>
-	);
-}
-
-// NoTime is why school has no time for olympiad problems, card by card.
-function NoTime({ page }: { page: PageReader }) {
-	const numbers = new Intl.NumberFormat(page.locale, {
-		minimumIntegerDigits: 2,
-	});
-	return (
-		<section class="s-wrap s-section">
-			<h2 class="s-title">{page.text("time.title")}</h2>
-			<ol class="s-tiles">
-				{page.list("time.cards").map((key, at) => (
-					<li key={key} class="s-tile">
-						<span class="s-tip-number" aria-hidden="true">
-							{numbers.format(at + 1)}
-						</span>
-						<h3>{page.text(`${key}.title`)}</h3>
-						<p class="s-tile-text">{page.text(`${key}.text`)}</p>
-					</li>
-				))}
-			</ol>
-		</section>
-	);
-}
-
-// Parent is what a parent needs to prepare a child, up to the last grade
-// MathTrail is for, and what they do not need; then how to explain to the
-// child what it is for.
-function Parent({ page, last }: { page: PageReader; last: number }) {
-	const numbers = new Intl.NumberFormat(page.locale);
-	return (
-		<section class="s-wrap s-section">
-			<div class="s-split">
-				<div class="s-split-part">
-					<h2 class="s-title">{page.text("parent.title")}</h2>
-					<Honest page={page} at="parent.note" slots={{ last }} />
-					<h3 class="s-label">{page.text("parent.unneeded.title")}</h3>
-					<ul class="s-chips s-unneeded">
-						{page.list("parent.unneeded.items").map((key) => (
-							<li key={key} class="s-chip">
-								{page.text(key)}
-							</li>
-						))}
-					</ul>
-					<p class="s-tile-text">{page.text("parent.unneeded.note")}</p>
-				</div>
-				<div class="s-split-part">
-					<h3 class="s-label">{page.text("parent.needed.title")}</h3>
-					<ol class="s-needs">
-						{page.list("parent.needed.items").map((key, at) => (
-							<li key={key} class="s-need">
-								<span class="s-number" aria-hidden="true">
-									{numbers.format(at + 1)}
-								</span>
-								<div>
-									<h4>{page.text(`${key}.title`)}</h4>
-									<p class="s-tile-text">{page.text(`${key}.text`)}</p>
-								</div>
-							</li>
-						))}
-					</ol>
-				</div>
-			</div>
-			<div class="s-explain">
-				<h3>{page.text("parent.explain.title")}</h3>
-				<ul class="s-quotes">
-					{page.list("parent.explain.quotes").map((key) => (
-						<li key={key} class="s-quote">
-							{page.text(key)}
-						</li>
-					))}
-				</ul>
-			</div>
 		</section>
 	);
 }
@@ -324,85 +175,4 @@ function Thinking({ page, why }: { page: PageReader; why: Why }) {
 			</div>
 		</section>
 	);
-}
-
-// App is why MathTrail is no ordinary app: what research found of the apps
-// children play, then card by card how MathTrail differs, and the code where
-// that can be checked.
-function App({ page, why }: { page: PageReader; why: Why }) {
-	return (
-		<section class="s-wrap s-section">
-			<div class="s-intro">
-				<h2>{page.text("app.title")}</h2>
-				<p class="s-intro-line">
-					{page.text("app.lead", { source: <Cite source={why.apps} /> })}
-				</p>
-			</div>
-			<ul class="s-tiles s-tiles-two">
-				{page.list("app.cards").map((key) => (
-					<li key={key} class="s-tile">
-						<h3>{page.text(`${key}.title`)}</h3>
-						<p class="s-tile-text">{page.text(`${key}.text`)}</p>
-					</li>
-				))}
-			</ul>
-			<p class="s-code">
-				<span>{page.text("app.code")}</span>
-				<a class="s-btn" href={sourceURL}>
-					{page.text("app.github")}
-				</a>
-			</p>
-		</section>
-	);
-}
-
-// Ask is how to start: connecting MathTrail, which the home page tells, and
-// every topic.
-function Ask({ page }: { page: PageReader }) {
-	const words = useSiteWords();
-	return (
-		<section class="s-section s-ask-wrap">
-			<div class="s-ask s-ask-row">
-				<div class="s-ask-copy">
-					<h2 class="s-ask-title">{page.text("ask.title")}</h2>
-					<p class="s-ask-lead">{page.text("ask.lead")}</p>
-				</div>
-				<p class="s-choices">
-					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
-						{words.text("nav.add")}
-					</a>
-					<a class="s-btn" href={address(page.locale, "topics")}>
-						{page.text("ask.topics")}
-					</a>
-				</p>
-			</div>
-		</section>
-	);
-}
-
-// Cite is a work as a sentence cites it, its first author and its year, linked
-// to the work itself.
-function Cite({ source }: { source: Source }) {
-	const words = useSiteWords();
-	return <a href={doiAddress(source)}>{citeText(words, source)}</a>;
-}
-
-// citeText is how words cite source: by its one or two authors, or by the
-// first of more, and its year, as the language writes a citation.
-function citeText(words: Words<SiteKey>, source: Source): string {
-	const [first = "", second = ""] = source.authors.map(familyOf);
-	const year = String(source.year);
-	switch (source.authors.length) {
-		case 1:
-			return words.text("cite.one", { first, year });
-		case 2:
-			return words.text("cite.two", { first, second, year });
-		default:
-			return words.text("cite.many", { first, year });
-	}
-}
-
-// familyOf is the family name of an author written "Family, I.".
-function familyOf(author: string): string {
-	return author.split(",", 1)[0] ?? author;
 }

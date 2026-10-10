@@ -948,7 +948,34 @@
 			"parity": "parity.alternation",
 			"knights": "logic.knights_liars"
 		},
-		"findings": ["rebholz2022", "biondi2012", "agarwal2020", "nunes2007"],
+		"findings": [
+			{ "id": "rebholz2022", "hue": "blue", "mark": "rise" },
+			{ "id": "biondi2012", "hue": "green", "mark": "bars" },
+			{ "id": "agarwal2020", "hue": "violet", "mark": "chain" },
+			{ "id": "nunes2007", "hue": "amber", "mark": "span" }
+		],
+		"history": [
+			[
+				{ "name": "athens", "focus": "45% 85%" },
+				{ "name": "confucius", "focus": "55% 70%" },
+				{ "name": "aryabhata", "focus": "50% 30%" }
+			],
+			[
+				{ "name": "istanbul", "focus": "50% 40%" },
+				{ "name": "pacioli", "focus": "30% 80%" },
+				{ "name": "sangaku", "focus": "50% 40%" }
+			],
+			[
+				{ "name": "rachinsky", "focus": "70% 25%" },
+				{ "name": "st-louis", "focus": "55% 25%" },
+				{ "name": "moscow", "focus": "50% 30%" }
+			],
+			[
+				{ "name": "coach-canvas", "focus": "35% 55%" },
+				{ "name": "coach-sheet", "focus": "50% 45%" },
+				{ "name": "coach-map", "focus": "30% 40%" }
+			]
+		],
 		"apps": "radesky2022",
 		"sources": {
 			"rebholz2022": {

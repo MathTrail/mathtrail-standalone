@@ -91,6 +91,21 @@
 	--s-on-paper: #6b6457;
 	--s-plain: #f6f5f2;
 	--s-plain-edge: #e6e3dd;
+	--s-accent-line: #7aa7f7;
+	--s-green-tint: #e8f5ec;
+	--s-green-soft: #8fd1a4;
+	--s-violet: #6e3fbf;
+	--s-violet-tint: #f2edfb;
+	--s-violet-deep: #4b2a8a;
+	--s-violet-soft: #b9a6e6;
+	--s-amber: #b25e00;
+	--s-amber-tint: #fdf1e2;
+	--s-amber-deep: #7a3f00;
+	--s-amber-soft: #e8b779;
+	--s-hint: #fdf3d6;
+	--s-on-hint: #8a6100;
+	--s-house: #dfe3e8;
+	--s-roof: #c9ced5;
 	--s-wip: #fbf3dd;
 	--s-on-wip: #6b4e12;
 	--s-wip-dot: #c9982f;
@@ -1931,6 +1946,1765 @@ a:hover {
 
 	.s-contrast-card {
 		padding: var(--space-16);
+	}
+}
+
+/* The page "Why", after the author's second draft. A card lit in one of four
+   colours takes its tint, its ink, its deeper ink and its soft one from its
+   hue. */
+[data-hue="blue"] {
+	--s-hue: var(--s-accent);
+	--s-hue-tint: var(--s-accent-soft);
+	--s-hue-deep: var(--s-accent-hover);
+	--s-hue-soft: var(--s-bar-more);
+}
+
+[data-hue="green"] {
+	--s-hue: var(--s-on-free);
+	--s-hue-tint: var(--s-green-tint);
+	--s-hue-deep: var(--s-on-free);
+	--s-hue-soft: var(--s-green-soft);
+}
+
+[data-hue="violet"] {
+	--s-hue: var(--s-violet);
+	--s-hue-tint: var(--s-violet-tint);
+	--s-hue-deep: var(--s-violet-deep);
+	--s-hue-soft: var(--s-violet-soft);
+}
+
+[data-hue="amber"] {
+	--s-hue: var(--s-amber);
+	--s-hue-tint: var(--s-amber-tint);
+	--s-hue-deep: var(--s-amber-deep);
+	--s-hue-soft: var(--s-amber-soft);
+}
+
+/* A mark in a white square with rounded corners, in blue unless its card
+   says otherwise. */
+.s-why-badge {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 44px;
+	block-size: 44px;
+	border-radius: 14px;
+	background: var(--s-page);
+	color: var(--s-accent);
+}
+
+/* A note on what the page does not promise: a pale blue panel, its shield
+   beside its words. */
+.s-why-honest {
+	flex-direction: row;
+	gap: var(--space-16);
+	padding: var(--space-24);
+	border-radius: 24px;
+	background: var(--s-accent-soft);
+}
+
+.s-why-honest-text {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.s-why-honest .s-note-title {
+	font-size: 0.8125rem;
+}
+
+.s-why-honest .s-note-text {
+	color: var(--s-on-tint);
+	font-size: 1.125rem;
+	line-height: 1.55;
+	text-wrap: pretty;
+}
+
+/* The history: the words beside Euclid's saying; then the pictures in a tinted
+   frame beside the eras, the frame staying in sight while the eras scroll past
+   it where the two stand side by side. One picture shows at a time: the one
+   coming in fades in over the one before, which stays under it until it has,
+   and grows a little as it waits; its place stands over it and its caption
+   rises into place under it. */
+.s-history-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 32px 72px;
+}
+
+.s-history-head .s-intro {
+	flex: 1 1 560px;
+	min-inline-size: 0;
+}
+
+.s-history-quote {
+	display: flex;
+	flex: 0 1 380px;
+	flex-direction: column;
+	gap: 10px;
+	min-inline-size: 0;
+	margin: 0 0 var(--space-4);
+}
+
+.s-history-quote blockquote {
+	margin: 0;
+	font-size: 1.625rem;
+	font-weight: 500;
+	line-height: 1.25;
+	letter-spacing: -0.015em;
+	text-wrap: balance;
+}
+
+.s-history-quote figcaption {
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+	line-height: 1.5;
+	text-wrap: pretty;
+}
+
+.s-history-split {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 40px 56px;
+	margin-block-start: 40px;
+}
+
+.s-history-show {
+	display: flex;
+	flex: 1.15 1 440px;
+	flex-direction: column;
+	gap: 14px;
+	min-inline-size: 0;
+	margin: 0;
+	padding: clamp(12px, 2vw, 20px);
+	border-radius: 36px;
+	background: var(--s-tint);
+}
+
+@media (min-width: 960px) {
+	.s-history-show {
+		position: sticky;
+		inset-block-start: calc(64px + var(--space-24));
+	}
+}
+
+.s-history-frame {
+	position: relative;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	isolation: isolate;
+	border-radius: 24px;
+	background: var(--s-tint-hover);
+}
+
+.s-history-picture {
+	position: absolute;
+	inset: 0;
+	z-index: calc(1 + var(--s-shown, 0));
+	display: block;
+	inline-size: 100%;
+	block-size: 100%;
+	object-fit: cover;
+	opacity: var(--s-shown, 0);
+	visibility: var(--s-seen, hidden);
+	transform: scale(calc(1 + var(--s-shown, 0) * 0.07));
+	transition:
+		opacity 1.4s ease calc((1 - var(--s-shown, 0)) * 1.4s),
+		transform calc(var(--s-shown, 0) * (var(--s-history-wait, 5s) + 1.4s))
+		linear calc((1 - var(--s-shown, 0)) * 1.4s),
+		visibility 0s linear calc((1 - var(--s-shown, 0)) * 2.8s);
+}
+
+.s-history-place {
+	position: absolute;
+	inset-block-start: 14px;
+	inset-inline-start: 14px;
+	z-index: 5;
+	padding-block: var(--space-4);
+	padding-inline: var(--space-12);
+	border-radius: var(--radius-pill);
+	background: rgb(255 255 255 / 92%);
+	box-shadow: 0 1px 2px rgb(31 31 31 / 12%);
+	color: var(--s-text);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	line-height: 1.5;
+	visibility: var(--s-seen, hidden);
+}
+
+.s-history-captions {
+	display: grid;
+	padding: 0 var(--space-12) 2px;
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	line-height: 1.5;
+	text-align: center;
+	text-wrap: balance;
+}
+
+.s-history-caption {
+	grid-area: 1 / 1;
+	visibility: var(--s-seen, hidden);
+	animation: var(--s-rise, none) 0.7s ease both;
+}
+
+@keyframes s-history-rise {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes s-history-fill {
+	from {
+		transform: scaleX(0);
+	}
+
+	to {
+		transform: scaleX(1);
+	}
+}
+
+/* The eras: a line down their dots, blue as far as the era shown; the era
+   shown tinted, its dot ringed and its time in blue; and its chips, the one
+   picked filled. */
+.s-history-eras {
+	flex: 1 1 400px;
+	min-inline-size: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.s-history-eras ol {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-history-era {
+	position: relative;
+	border-radius: 20px;
+	transition: background-color 0.5s ease;
+}
+
+.s-history-era:hover,
+.s-history-era:has(.s-history-pick:checked) {
+	background: var(--s-tint);
+}
+
+.s-history-line {
+	position: absolute;
+	inset-block: 27px -31px;
+	inset-inline-start: 27px;
+	z-index: 1;
+	inline-size: 2px;
+	background: var(--s-rule-soft);
+	transition: background-color 0.6s ease;
+}
+
+.s-history-era:last-child .s-history-line {
+	display: none;
+}
+
+.s-history-dot {
+	position: absolute;
+	inset-block-start: 20px;
+	inset-inline-start: 21px;
+	z-index: 2;
+	inline-size: 14px;
+	block-size: 14px;
+	border-radius: 50%;
+	background: var(--s-page);
+	box-shadow: 0 0 0 2px var(--s-edge);
+	transition:
+		background-color 0.5s ease,
+		box-shadow 0.5s ease;
+}
+
+.s-history-era:has(.s-history-pick:checked) .s-history-dot {
+	background: var(--s-accent);
+	box-shadow:
+		0 0 0 2px var(--s-accent),
+		0 0 0 7px var(--s-accent-tint);
+}
+
+.s-history-era:has(~ .s-history-era .s-history-pick:checked) .s-history-dot {
+	background: var(--s-accent);
+	box-shadow: 0 0 0 2px var(--s-accent);
+}
+
+.s-history-era:has(~ .s-history-era .s-history-pick:checked) .s-history-line {
+	background: var(--s-accent);
+}
+
+.s-history-era-text {
+	padding-block: var(--space-16) 0;
+	padding-inline: 56px var(--space-20);
+}
+
+.s-history[data-live] .s-history-era-text {
+	cursor: pointer;
+}
+
+.s-history-when {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	font-weight: 600;
+	line-height: 1.5;
+	transition: color 0.5s ease;
+}
+
+.s-history-era:has(.s-history-pick:checked) .s-history-when {
+	color: var(--s-accent);
+}
+
+.s-history-era h3 {
+	margin: 2px 0 0;
+	font-size: 1.125rem;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.s-history-what {
+	margin: 6px 0 0;
+	color: var(--s-muted);
+	font-size: 1rem;
+	line-height: 1.6;
+	text-wrap: pretty;
+}
+
+.s-history-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0;
+	padding-block: var(--space-12) var(--space-16);
+	padding-inline: 56px var(--space-20);
+}
+
+.s-history-chip {
+	cursor: pointer;
+}
+
+.s-history-chip > span {
+	display: inline-block;
+	padding-block: 3px;
+	padding-inline: 11px;
+	border: 1px solid var(--s-line-strong);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	font-weight: 500;
+	line-height: 1.5;
+	transition:
+		background-color 0.4s ease,
+		border-color 0.4s ease,
+		color 0.4s ease;
+}
+
+.s-history-pick:checked + span {
+	border-color: var(--s-accent-tint);
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-history-pick:focus-visible + span {
+	outline: 2px solid var(--s-accent);
+	outline-offset: 2px;
+}
+
+.s-history-chips:has(+ .s-history-link) {
+	padding-block-end: 0;
+}
+
+.s-history-link {
+	margin: 0;
+	padding-block: var(--space-12) var(--space-16);
+	padding-inline: 56px var(--space-20);
+	font-size: 0.9375rem;
+	font-weight: 500;
+}
+
+.s-history-link a {
+	text-decoration: none;
+}
+
+/* The bars of the era shown, with the page's script: the picture shown fills
+   its bar as it waits, the pictures before it in the era stand full, and the
+   filling stops while the history waits for a reader. */
+.s-history-bars {
+	display: none;
+	gap: var(--space-4);
+	padding-block: 0 18px;
+	padding-inline: 56px var(--space-20);
+}
+
+.s-history[data-playing] .s-history-era:has(.s-history-pick:checked) .s-history-bars {
+	display: flex;
+}
+
+.s-history-bars > span {
+	flex: 1;
+	block-size: 3px;
+	overflow: hidden;
+	border-radius: 2px;
+	background: var(--s-line-soft);
+}
+
+.s-history-bars > span > span {
+	display: block;
+	block-size: 100%;
+	background: var(--s-accent);
+	transform: scaleX(0);
+	transform-origin: left center;
+	animation: none var(--s-history-wait, 5s) linear both;
+}
+
+[dir="rtl"] .s-history-bars > span > span {
+	transform-origin: right center;
+}
+
+.s-history[data-held] .s-history-bars > span > span {
+	animation-play-state: paused;
+}
+
+/* A browser that cannot tell which chip is picked shows the first picture,
+   its place and its caption, and the chips pick nothing. */
+@supports not selector(:has(a)) {
+	.s-history-picture:first-child,
+	.s-history-place:first-of-type,
+	.s-history-caption:first-child {
+		--s-shown: 1;
+		--s-seen: visible;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.s-history-picture {
+		transform: none;
+		transition:
+			opacity 0.6s ease calc((1 - var(--s-shown, 0)) * 0.6s),
+			visibility 0s linear calc((1 - var(--s-shown, 0)) * 1.2s);
+	}
+
+	.s-history-caption {
+		animation: none;
+	}
+
+	.s-history-era,
+	.s-history-line,
+	.s-history-dot,
+	.s-history-when,
+	.s-history-chip > span {
+		transition: none;
+	}
+}
+
+/* What research has found: a card for each finding in its own colour, its tag
+   and its few large words in its ink, a small drawing of it and the work it
+   comes from at its foot. */
+.s-why-findings {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+	gap: var(--space-24);
+	margin: 40px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-why-finding {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 28px;
+	overflow: hidden;
+	border-radius: 28px;
+	background: var(--s-hue-tint);
+}
+
+.s-why-finding-tag {
+	align-self: flex-start;
+	padding-block: var(--space-4);
+	padding-inline: var(--space-12);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-hue);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-why-finding-lead {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 0;
+}
+
+.s-why-finding-big {
+	color: var(--s-hue);
+	font-size: clamp(2rem, 1.4rem + 2vw, 2.75rem);
+	font-weight: 600;
+	line-height: 1.05;
+	letter-spacing: -0.02em;
+}
+
+.s-why-finding-small {
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+	line-height: 1.4;
+}
+
+.s-why-finding h3 {
+	margin: 6px 0 0;
+	font-size: 1.25rem;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+}
+
+.s-why-finding-text {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 1rem;
+	line-height: 1.6;
+}
+
+.s-why-mark {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-why-mark-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding-block: var(--space-4);
+	padding-inline: 10px;
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-hue-deep);
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
+.s-why-mark-chip b {
+	font-weight: 700;
+}
+
+.s-why-mark-words {
+	color: var(--s-hue);
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
+/* Five bars, each a step taller than the one before. */
+.s-why-bars {
+	display: flex;
+	align-items: flex-end;
+	gap: var(--space-4);
+	block-size: 34px;
+}
+
+.s-why-bars > span {
+	inline-size: 16px;
+	border-radius: 4px 4px 2px 2px;
+	background: var(--s-hue-soft);
+}
+
+.s-why-bars > span:nth-child(1) {
+	block-size: 10px;
+}
+
+.s-why-bars > span:nth-child(2) {
+	block-size: 16px;
+}
+
+.s-why-bars > span:nth-child(3) {
+	block-size: 22px;
+}
+
+.s-why-bars > span:nth-child(4) {
+	block-size: 28px;
+}
+
+.s-why-bars > span:nth-child(5) {
+	block-size: 34px;
+}
+
+/* A chain of steps, an arrow between two that points the way a language
+   reads. */
+.s-why-chain li {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.s-why-chain li + li::before {
+	content: "→" / "";
+	display: inline-block;
+	transform: scaleX(var(--s-reading, 1));
+	color: var(--s-hue-soft);
+}
+
+.s-why-span {
+	gap: var(--space-8);
+}
+
+.s-why-span-line {
+	inline-size: 40px;
+	border-block-start: 2px dashed var(--s-hue-soft);
+}
+
+.s-why-finding-source {
+	display: inline-flex;
+	align-items: center;
+	align-self: flex-start;
+	gap: 6px;
+	margin-block-start: auto;
+	padding-block: 6px;
+	padding-inline: 14px;
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-hue);
+	font-size: 0.875rem;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.s-why-finding-source:hover {
+	box-shadow: 0 2px 8px rgb(60 64 67 / 15%);
+	color: var(--s-hue);
+}
+
+/* School and olympiads: an example of each side by side, the lesson on warm
+   grey and the olympiad on pale blue under a blue edge; then a row for each
+   way they differ, its mark and label, the lesson's way in grey and the
+   olympiad's in blue after a tick. */
+.s-why-sides {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+	gap: 20px;
+	margin-block-start: 40px;
+}
+
+.s-why-side {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 28px;
+	border-radius: 28px;
+}
+
+.s-why-side-lesson {
+	border: 1px solid var(--s-plain-edge);
+	background: var(--s-plain);
+}
+
+.s-why-side-olympiad {
+	border: 1.5px solid var(--s-bar-more);
+	background: var(--s-accent-soft);
+}
+
+.s-why-side-name {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.s-why-side-name .s-why-badge {
+	inline-size: 40px;
+	block-size: 40px;
+	border-radius: 12px;
+}
+
+.s-why-side-lesson .s-why-badge {
+	color: var(--s-quiet);
+}
+
+.s-why-side-olympiad .s-why-side-name {
+	color: var(--s-on-tint);
+}
+
+.s-why-side-example {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	padding-block: 18px;
+	padding-inline: var(--space-20);
+	border-radius: 18px;
+	background: var(--s-page);
+}
+
+.s-why-side-label {
+	margin: 0;
+	color: var(--s-outline);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-why-side-olympiad .s-why-side-label {
+	color: var(--s-accent);
+}
+
+.s-why-sum {
+	margin: 0;
+	font-size: 1.75rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	font-variant-numeric: tabular-nums;
+}
+
+/* The sum's answer, left blank for the pupil to fill in. */
+.s-why-blank {
+	display: inline-block;
+	inline-size: 44px;
+	block-size: 1em;
+	margin-inline-start: 0.3em;
+	border-block-end: 2px dashed var(--s-idle);
+}
+
+.s-why-fence {
+	margin: 0;
+	font-size: 1.0625rem;
+	line-height: 1.5;
+}
+
+/* The fence's five posts, joined by its four gaps. */
+.s-why-posts {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding-block: 6px;
+}
+
+.s-why-posts > span {
+	inline-size: 10px;
+	block-size: 10px;
+	border-radius: 50%;
+	background: var(--s-accent);
+}
+
+.s-why-posts > i {
+	inline-size: 34px;
+	border-block-start: 2px solid var(--s-accent-line);
+}
+
+.s-why-side-note {
+	margin: 0;
+	color: var(--s-quiet);
+	font-size: 0.9375rem;
+	line-height: 1.5;
+}
+
+.s-why-side-olympiad .s-why-side-note {
+	color: var(--s-muted);
+}
+
+.s-why-rows {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin: 20px 0 0;
+}
+
+.s-why-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	gap: 10px;
+}
+
+.s-why-row dt {
+	display: flex;
+	flex: 1 1 180px;
+	align-items: center;
+	gap: 10px;
+	padding-block: 14px;
+	padding-inline: var(--space-4);
+	color: var(--s-text);
+	font-size: 0.9375rem;
+	font-weight: 600;
+}
+
+.s-why-row dt .s-why-badge {
+	inline-size: 36px;
+	block-size: 36px;
+	border-radius: 10px;
+	background: var(--s-tint);
+}
+
+.s-why-row dd {
+	display: flex;
+	flex: 2 1 220px;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	padding-block: 14px;
+	padding-inline: 18px;
+	border-radius: 16px;
+	font-size: 1rem;
+	line-height: 1.45;
+}
+
+.s-why-row-lesson {
+	background: var(--s-plain);
+	color: var(--s-quiet);
+}
+
+.s-why-row-olympiad {
+	background: var(--s-accent-soft);
+	color: var(--s-on-tint);
+	font-weight: 500;
+}
+
+.s-why-tick {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 22px;
+	block-size: 22px;
+	border-radius: 50%;
+	background: var(--s-accent);
+	color: var(--s-page);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+/* Why school has no time: three tinted cards, each its mark and number over
+   its heading, and a small drawing at its foot. */
+.s-why-tiles {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+	gap: var(--space-24);
+	margin: 40px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-why-tile {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 30px;
+	border-radius: 28px;
+	background: var(--s-tint);
+}
+
+.s-why-tile-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.s-why-tile-number {
+	color: var(--s-accent);
+	font-size: 0.9375rem;
+	font-weight: 600;
+}
+
+.s-why-tile h3,
+.s-why-app-card h3 {
+	margin: var(--space-4) 0 0;
+	font-size: 1.3125rem;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+}
+
+.s-why-tile-text {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 1rem;
+	line-height: 1.625;
+	text-wrap: pretty;
+}
+
+.s-why-tile-foot {
+	margin-block-start: auto;
+}
+
+/* A lesson's minutes: the syllabus fills the bar, and the problems beyond it
+   get a hatched sliver at its end. */
+.s-why-lesson {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+}
+
+.s-why-lesson-ends {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--space-8);
+	color: var(--s-quiet);
+	font-size: 0.8125rem;
+}
+
+.s-why-lesson-ends:last-child > span:first-child {
+	color: var(--s-muted);
+}
+
+.s-why-lesson-extra {
+	color: var(--s-wrong);
+	font-weight: 600;
+}
+
+.s-why-lesson-bar {
+	display: flex;
+	block-size: 12px;
+	overflow: hidden;
+	border-radius: 6px;
+	background: var(--s-tech);
+}
+
+.s-why-lesson-bar > span:first-child {
+	flex: 1;
+	background: var(--s-idle);
+}
+
+.s-why-lesson-bar > span:last-child {
+	inline-size: 6px;
+	background: repeating-linear-gradient(
+		135deg,
+		var(--s-trap) 0 3px,
+		var(--s-page) 3px 6px
+	);
+}
+
+/* A test: the working greyed out and passed over, the answer ticked. */
+.s-why-checked {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding-block: var(--space-12);
+	padding-inline: 14px;
+	border-radius: 14px;
+	background: var(--s-page);
+}
+
+.s-why-checked-lines {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	opacity: 0.45;
+}
+
+.s-why-checked-lines > span {
+	block-size: 6px;
+	border-radius: 3px;
+	background: var(--s-idle);
+}
+
+.s-why-checked-lines > span:nth-child(1) {
+	inline-size: 90%;
+}
+
+.s-why-checked-lines > span:nth-child(2) {
+	inline-size: 70%;
+}
+
+.s-why-checked-lines > span:nth-child(3) {
+	inline-size: 82%;
+}
+
+.s-why-checked-steps {
+	color: var(--s-outline);
+	font-size: 0.8125rem;
+}
+
+.s-why-checked-answer {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	font-size: 0.9375rem;
+	font-weight: 600;
+}
+
+.s-why-checked-answer .s-why-tick {
+	background: var(--s-right);
+	color: var(--s-on-free);
+}
+
+/* A row of schools, each a house, and one with a circle lit in blue. */
+.s-why-schools {
+	display: flex;
+	justify-content: space-between;
+	gap: 6px;
+	margin: 0;
+	padding-block: var(--space-12);
+	padding-inline: 14px;
+	border-radius: 14px;
+	background: var(--s-page);
+	list-style: none;
+}
+
+.s-why-schools li {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-4);
+	color: var(--s-idle);
+	font-size: 0.6875rem;
+}
+
+.s-why-schools li[data-circle] {
+	color: var(--s-accent);
+	font-weight: 600;
+}
+
+.s-why-school {
+	position: relative;
+	inline-size: 34px;
+	block-size: 28px;
+}
+
+.s-why-school::before {
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline: 0;
+	inline-size: 0;
+	block-size: 0;
+	margin-inline: auto;
+	border-inline: 17px solid transparent;
+	border-block-end: 11px solid var(--s-roof);
+	content: "";
+}
+
+.s-why-school::after {
+	position: absolute;
+	inset-block-end: 0;
+	inset-inline: 3px;
+	block-size: 18px;
+	border-radius: 2px;
+	background: var(--s-house);
+	content: "";
+}
+
+.s-why-schools li[data-circle] .s-why-school::before {
+	border-block-end-color: var(--s-accent-line);
+}
+
+.s-why-schools li[data-circle] .s-why-school::after {
+	background: var(--s-bar-more);
+}
+
+/* What a parent needs: the note and the two lists beside what it takes, each
+   on a tinted card under its mark with its number; then three moments of a
+   lesson on warm grey, each a few lines of a talk. */
+.s-why-parent {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+	align-items: start;
+	gap: 48px;
+}
+
+.s-why-parent-part {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-24);
+}
+
+.s-why-parent-part > .s-label {
+	margin: 0 0 -12px;
+}
+
+.s-why-lists {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+	gap: var(--space-12);
+}
+
+.s-why-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: var(--space-20);
+	border-radius: 20px;
+}
+
+.s-why-list h3 {
+	margin: 0;
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-why-list ul {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-why-list li {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 0.9375rem;
+}
+
+.s-why-unneeded {
+	border: 1px solid var(--s-line);
+}
+
+.s-why-unneeded h3 {
+	color: var(--s-muted);
+}
+
+.s-why-unneeded li {
+	color: var(--s-quiet);
+}
+
+.s-why-unneeded s {
+	text-decoration-color: var(--s-line-strong);
+}
+
+.s-why-taken {
+	background: var(--s-free);
+}
+
+.s-why-taken h3 {
+	color: var(--s-on-free);
+}
+
+.s-why-taken li {
+	color: var(--s-on-right);
+}
+
+.s-why-mark-no,
+.s-why-mark-yes {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 22px;
+	block-size: 22px;
+	border-radius: 50%;
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-why-mark-no {
+	background: var(--s-trap);
+	color: var(--s-wrong);
+}
+
+.s-why-mark-yes {
+	background: var(--s-page);
+	color: var(--s-on-free);
+}
+
+.s-why-needs {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-why-need {
+	display: flex;
+	gap: 18px;
+	padding: var(--space-24);
+	border-radius: 24px;
+	background: var(--s-tint);
+}
+
+.s-why-need-mark {
+	position: relative;
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 48px;
+	block-size: 48px;
+	border-radius: 16px;
+	background: var(--s-page);
+	color: var(--s-accent);
+}
+
+.s-why-need-number {
+	position: absolute;
+	inset-block-start: -6px;
+	inset-inline-end: -6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 22px;
+	block-size: 22px;
+	border-radius: 50%;
+	background: var(--s-accent);
+	color: var(--s-page);
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-why-need h4 {
+	margin: 2px 0 6px;
+	font-size: 1.1875rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+}
+
+.s-why-explain {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-24);
+	margin-block-start: 56px;
+	padding: clamp(24px, 4vw, 40px);
+	border-radius: 32px;
+	background: var(--s-plain);
+}
+
+.s-why-explain h3 {
+	margin: 0;
+	font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
+	font-weight: 500;
+	line-height: 1.2;
+	letter-spacing: -0.015em;
+}
+
+.s-why-explain-lead {
+	margin: -18px 0 0;
+	color: var(--s-quiet);
+	font-size: 1rem;
+	line-height: 1.5;
+}
+
+.s-why-talks {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+	gap: var(--space-16);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-why-talk {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	padding: 22px;
+	border-radius: 24px;
+	background: var(--s-page);
+	box-shadow:
+		0 1px 2px rgb(60 64 67 / 6%),
+		0 8px 24px rgb(60 64 67 / 6%);
+}
+
+.s-why-moment {
+	display: inline-flex;
+	align-items: center;
+	align-self: flex-start;
+	gap: 6px;
+	padding-block: var(--space-4);
+	padding-inline: var(--space-8) var(--space-12);
+	border-radius: var(--radius-pill);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-why-moment[data-moment="why"] {
+	background: var(--s-hint);
+	color: var(--s-on-hint);
+}
+
+.s-why-moment[data-moment="wrong"] {
+	background: var(--s-trap);
+	color: var(--s-on-trap);
+}
+
+.s-why-moment[data-moment="right"] {
+	background: var(--s-right);
+	color: var(--s-on-free);
+}
+
+/* A line of the talk: the child's at the start, after the child's letter, and
+   the parent's at the end, the parent's letter after it. */
+.s-why-line {
+	display: flex;
+	align-items: flex-end;
+	gap: var(--space-8);
+	margin: 0;
+}
+
+.s-why-line-you {
+	flex-direction: row-reverse;
+}
+
+.s-why-who {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 30px;
+	block-size: 30px;
+	border-radius: 50%;
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.s-why-line-child .s-why-who {
+	background: var(--s-tint);
+	color: var(--s-quiet);
+}
+
+.s-why-line-you .s-why-who {
+	background: var(--s-accent);
+	color: var(--s-page);
+}
+
+.s-why-said {
+	padding-block: 10px;
+	padding-inline: 14px;
+	border-radius: 18px;
+	font-size: 0.9375rem;
+	line-height: 1.45;
+}
+
+.s-why-line-child .s-why-said {
+	border-end-start-radius: 6px;
+	background: var(--s-tint);
+	color: var(--s-muted);
+}
+
+.s-why-line-you .s-why-said {
+	border-end-end-radius: 6px;
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+	font-size: 1rem;
+	line-height: 1.5;
+	font-weight: 500;
+}
+
+/* Why it is no ordinary app: the words beside a make-believe app that plays
+   every trick, then four cards, each in its own colour, with the short things
+   at its foot that show what it says. */
+.s-why-app-head {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+	align-items: center;
+	gap: 32px 56px;
+}
+
+.s-why-bait {
+	display: flex;
+	flex-direction: column;
+	justify-self: end;
+	gap: 10px;
+	inline-size: 100%;
+	max-inline-size: 400px;
+	margin: 0;
+}
+
+.s-why-bait figcaption {
+	color: var(--s-quiet);
+	font-size: 0.875rem;
+	line-height: 1.43;
+	text-align: center;
+}
+
+/* The make-believe app keeps colours of its own: gold, gems, wood and a
+   dragon's hat. */
+.s-why-bait-app {
+	--s-bait-gold: #f4d77a;
+	--s-bait-gold-edge: #d9b44a;
+	--s-bait-gold-deep: #e3c25f;
+	--s-bait-on-gold: #8a6100;
+	--s-bait-gem: #b9e6ee;
+	--s-bait-gem-edge: #86c9d6;
+	--s-bait-wood: #d8b08c;
+	--s-bait-wood-deep: #c79a74;
+	--s-bait-plinth: #d9cfbf;
+	--s-bait-hat: #c9b8ef;
+	--s-bait-brim: #b3a0e3;
+	--s-bait-alert: #f2a19a;
+	--s-bait-paper: #faf9f6;
+	--s-bait-paper-edge: #ece9e3;
+
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 18px;
+	border: 1px solid var(--s-plain-edge);
+	border-radius: 24px;
+	background: var(--s-plain);
+}
+
+.s-why-bait-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0;
+}
+
+.s-why-bait-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	block-size: 28px;
+	padding-inline: 7px 11px;
+	border: 1px solid var(--s-plain-edge);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.s-why-bait-timer {
+	padding-inline: 11px;
+	color: var(--s-wrong);
+}
+
+.s-why-bait-coin {
+	flex: none;
+	inline-size: 16px;
+	block-size: 16px;
+	border-radius: 50%;
+	background: var(--s-bait-gold);
+	box-shadow: inset 0 0 0 1.5px var(--s-bait-gold-edge);
+}
+
+.s-why-bait-gem {
+	flex: none;
+	inline-size: 12px;
+	block-size: 12px;
+	margin-inline: 2px;
+	border-radius: 2px;
+	background: var(--s-bait-gem);
+	box-shadow: inset 0 0 0 1.5px var(--s-bait-gem-edge);
+	transform: rotate(45deg);
+}
+
+.s-why-bait-prize {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-4);
+	padding-block: 14px;
+	padding-inline: var(--space-12);
+	border: 1px solid var(--s-bait-paper-edge);
+	border-radius: 18px;
+	background: var(--s-page);
+	text-align: center;
+}
+
+/* The trophy: a bowl, two handles, a stem and a plinth. */
+.s-why-bait-cup {
+	position: relative;
+	display: block;
+	inline-size: 52px;
+	block-size: 56px;
+}
+
+.s-why-bait-cup > span {
+	position: absolute;
+}
+
+.s-why-bait-cup > span:nth-child(1) {
+	inset-block-start: 4px;
+	inset-inline-start: 8px;
+	inline-size: 36px;
+	block-size: 28px;
+	border-radius: 4px 4px 18px 18px;
+	background: var(--s-bait-gold);
+	box-shadow: inset 0 0 0 1.5px var(--s-bait-gold-edge);
+}
+
+.s-why-bait-cup > span:nth-child(2),
+.s-why-bait-cup > span:nth-child(3) {
+	inset-block-start: 8px;
+	inline-size: 14px;
+	block-size: 15px;
+	border: 3px solid var(--s-bait-gold-deep);
+	border-radius: 50%;
+}
+
+.s-why-bait-cup > span:nth-child(2) {
+	inset-inline-start: 0;
+	border-inline-end-color: transparent;
+}
+
+.s-why-bait-cup > span:nth-child(3) {
+	inset-inline-end: 0;
+	border-inline-start-color: transparent;
+}
+
+.s-why-bait-cup > span:nth-child(4) {
+	inset-block-start: 31px;
+	inset-inline-start: 22px;
+	inline-size: 8px;
+	block-size: 10px;
+	background: var(--s-bait-gold-deep);
+}
+
+.s-why-bait-cup > span:nth-child(5) {
+	inset-block-start: 41px;
+	inset-inline-start: 12px;
+	inline-size: 28px;
+	block-size: 10px;
+	border-radius: 3px;
+	background: var(--s-bait-plinth);
+}
+
+.s-why-bait-cheer {
+	color: var(--s-bait-on-gold);
+	font-size: 1.5rem;
+	font-weight: 800;
+	line-height: 1.1;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.s-why-bait-praise {
+	color: var(--s-quiet);
+	font-size: 0.84375rem;
+}
+
+.s-why-bait-shop {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	margin: 0;
+}
+
+.s-why-bait-item {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-8);
+	padding-block: var(--space-12);
+	padding-inline: var(--space-8);
+	border: 1px solid var(--s-bait-paper-edge);
+	border-radius: 14px;
+	background: var(--s-bait-paper);
+	color: var(--s-muted);
+	font-size: 0.78125rem;
+	font-weight: 600;
+	line-height: 16px;
+	text-align: center;
+}
+
+/* A red dot that says something new waits in the chest. */
+.s-why-bait-new::after {
+	position: absolute;
+	inset-block-start: 8px;
+	inset-inline-end: 8px;
+	inline-size: 8px;
+	block-size: 8px;
+	border-radius: 50%;
+	background: var(--s-bait-alert);
+	content: "";
+}
+
+/* The chest: a lid, a box, a band and a lock. */
+.s-why-bait-chest,
+.s-why-bait-hat {
+	position: relative;
+	display: block;
+	inline-size: 40px;
+	block-size: 30px;
+}
+
+.s-why-bait-chest > span,
+.s-why-bait-hat > span {
+	position: absolute;
+}
+
+.s-why-bait-chest > span:nth-child(1) {
+	inset-block-start: 0;
+	inset-inline-start: 0;
+	inline-size: 40px;
+	block-size: 12px;
+	border-radius: 9px 9px 2px 2px;
+	background: var(--s-bait-wood);
+}
+
+.s-why-bait-chest > span:nth-child(2) {
+	inset-block-start: 11px;
+	inset-inline-start: 0;
+	inline-size: 40px;
+	block-size: 19px;
+	border-radius: 2px 2px 5px 5px;
+	background: var(--s-bait-wood-deep);
+}
+
+.s-why-bait-chest > span:nth-child(3) {
+	inset-block-start: 10px;
+	inset-inline-start: 0;
+	inline-size: 40px;
+	block-size: 3px;
+	background: var(--s-bait-gold);
+}
+
+.s-why-bait-chest > span:nth-child(4) {
+	inset-block-start: 8px;
+	inset-inline-start: 16px;
+	inline-size: 8px;
+	block-size: 10px;
+	border-radius: 2px;
+	background: var(--s-bait-gold);
+}
+
+/* The dragon's hat: a cone on a brim. */
+.s-why-bait-hat > span:nth-child(1) {
+	inset-block-start: 0;
+	inset-inline-start: 7px;
+	inline-size: 0;
+	block-size: 0;
+	border-inline-end: 13px solid transparent;
+	border-block-end: 24px solid var(--s-bait-hat);
+	border-inline-start: 13px solid transparent;
+}
+
+.s-why-bait-hat > span:nth-child(2) {
+	inset-block-start: 23px;
+	inset-inline-start: 4px;
+	inline-size: 32px;
+	block-size: 6px;
+	border-radius: 3px;
+	background: var(--s-bait-brim);
+}
+
+.s-why-bait-buy {
+	margin: 0;
+	padding-block: 11px;
+	padding-inline: var(--space-12);
+	border: 1px solid var(--s-free-edge);
+	border-radius: 14px;
+	background: var(--s-free);
+	color: var(--s-on-free);
+	font-size: 0.875rem;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.s-why-app-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+	gap: 20px;
+	margin: 40px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-why-app-card {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 30px;
+	border-radius: 28px;
+	background: var(--s-hue-tint);
+}
+
+.s-why-app-card .s-why-badge {
+	inline-size: 46px;
+	block-size: 46px;
+	color: var(--s-hue);
+}
+
+.s-why-app-foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin: auto 0 0;
+	padding-block-start: var(--space-4);
+}
+
+.s-why-foot-chip {
+	padding-block: var(--space-4);
+	padding-inline: 10px;
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-outline);
+	font-size: 0.8125rem;
+	line-height: 18px;
+	overflow-wrap: anywhere;
+}
+
+.s-why-app-card[data-hue="violet"] .s-why-foot-chip {
+	color: var(--s-hue-deep);
+}
+
+.s-why-foot-chip s {
+	text-decoration-color: var(--s-wrong);
+}
+
+.s-why-foot-chip code {
+	font-family: var(--font-mono);
+}
+
+.s-why-foot-yes {
+	color: var(--s-on-free);
+	font-weight: 500;
+}
+
+.s-why-foot-no {
+	background: var(--s-trap);
+	color: var(--s-on-trap);
+	font-weight: 600;
+}
+
+.s-why-foot-strong,
+.s-why-app-card[data-hue="violet"] .s-why-foot-strong {
+	color: var(--s-hue-deep);
+	font-weight: 600;
+}
+
+.s-why-foot-price {
+	margin-inline-end: 6px;
+	color: var(--s-on-free);
+	font-size: 1.625rem;
+	font-weight: 600;
+	line-height: 1;
+}
+
+@media (max-width: 479px) {
+	.s-why-finding,
+	.s-why-side,
+	.s-why-tile,
+	.s-why-app-card,
+	.s-why-need,
+	.s-why-honest {
+		padding: var(--space-20);
+	}
+
+	.s-history-era-text,
+	.s-history-chips,
+	.s-history-link,
+	.s-history-bars {
+		padding-inline-end: var(--space-12);
 	}
 }
 
@@ -5414,7 +7188,7 @@ a:hover {
    MathTrail, side by side where both fit; then three tinted tiles, and under
    a smaller heading three white ones. A tile rises a little when pointed at,
    and stays put for a reader who asks for less motion. */
-.s-why-head {
+.s-pillars-head {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	align-items: center;
@@ -5422,11 +7196,11 @@ a:hover {
 }
 
 @media (min-width: 960px) {
-	.s-why-head {
+	.s-pillars-head {
 		grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
 	}
 
-	.s-why-head .s-alone {
+	.s-pillars-head .s-alone {
 		justify-self: end;
 	}
 }
@@ -5552,14 +7326,14 @@ a:hover {
 /* Point against point: the chat alone on warm grey, its points crossed in
    red, and the chat with MathTrail on white under a blue edge, its points
    ticked in green; a faint line between two points. */
-.s-versus {
+.s-against {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
 	gap: var(--space-16);
 	margin-block: var(--space-64) var(--space-24);
 }
 
-.s-versus-side {
+.s-against-side {
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
@@ -5568,12 +7342,12 @@ a:hover {
 	border-radius: 28px;
 }
 
-.s-versus-alone {
+.s-against-alone {
 	border: 1px solid var(--s-plain-edge);
 	background: var(--s-plain);
 }
 
-.s-versus-ours {
+.s-against-ours {
 	border: 1.5px solid var(--s-bar-more);
 	background: var(--s-page);
 	box-shadow:
@@ -5581,7 +7355,7 @@ a:hover {
 		0 12px 32px rgb(11 87 208 / 10%);
 }
 
-.s-versus-head {
+.s-against-head {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -5589,7 +7363,7 @@ a:hover {
 	margin: 0;
 }
 
-.s-versus-tag {
+.s-against-tag {
 	padding-block: var(--space-4);
 	padding-inline: var(--space-12);
 	border-radius: var(--radius-pill);
@@ -5600,18 +7374,18 @@ a:hover {
 	line-height: 1.4;
 }
 
-.s-versus-ours .s-versus-tag {
+.s-against-ours .s-against-tag {
 	background: var(--s-accent-tint);
 	color: var(--s-on-tint);
 }
 
-.s-versus-ask {
+.s-against-ask {
 	color: var(--s-quiet);
 	font-size: 0.875rem;
 	line-height: 1.43;
 }
 
-.s-versus-points {
+.s-against-points {
 	display: flex;
 	flex-direction: column;
 	margin: 0;
@@ -5619,7 +7393,7 @@ a:hover {
 	list-style: none;
 }
 
-.s-versus-points li {
+.s-against-points li {
 	display: flex;
 	align-items: flex-start;
 	gap: var(--space-12);
@@ -5629,16 +7403,16 @@ a:hover {
 	line-height: 1.5;
 }
 
-.s-versus-points li:first-child {
+.s-against-points li:first-child {
 	padding-block-start: var(--space-4);
 	border-block-start: 0;
 }
 
-.s-versus-alone .s-versus-points li {
+.s-against-alone .s-against-points li {
 	color: var(--s-quiet);
 }
 
-.s-versus-mark {
+.s-against-mark {
 	display: inline-flex;
 	flex: none;
 	align-items: center;
@@ -5652,7 +7426,7 @@ a:hover {
 	font-weight: 700;
 }
 
-.s-versus-ours .s-versus-mark {
+.s-against-ours .s-against-mark {
 	background: var(--s-right);
 	color: var(--s-on-free);
 }
@@ -5660,7 +7434,7 @@ a:hover {
 /* The tiles: three in a row on a wide screen, one under another on a narrow
    one; a tile's mark in a white square and its number in blue over its
    heading, and the short things that show what it says at its foot. */
-.s-why-tiles {
+.s-pillars {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	gap: var(--space-24);
@@ -5670,12 +7444,12 @@ a:hover {
 }
 
 @media (min-width: 960px) {
-	.s-why-tiles {
+	.s-pillars {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }
 
-.s-why-tile {
+.s-pillar {
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
@@ -5687,36 +7461,36 @@ a:hover {
 		box-shadow 0.2s ease;
 }
 
-.s-why-tile:hover {
+.s-pillar:hover {
 	transform: translateY(-3px);
 	box-shadow: 0 12px 28px rgb(60 64 67 / 12%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.s-why-tile {
+	.s-pillar {
 		transition: none;
 	}
 
-	.s-why-tile:hover {
+	.s-pillar:hover {
 		transform: none;
 	}
 }
 
-.s-why-tile h3,
-.s-why-tile h4 {
+.s-pillar h3,
+.s-pillar h4 {
 	margin: 0;
 	font-size: 1.0625rem;
 	font-weight: 600;
 	line-height: 1.65;
 }
 
-.s-why-top {
+.s-pillar-top {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 }
 
-.s-why-icon {
+.s-pillar-icon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -5727,20 +7501,20 @@ a:hover {
 	color: var(--s-accent);
 }
 
-.s-why-number {
+.s-pillar-number {
 	color: var(--s-accent);
 	font-size: 0.9375rem;
 	font-weight: 600;
 }
 
-.s-why-text {
+.s-pillar-text {
 	margin: 0;
 	color: var(--s-muted);
 	font-size: 1.0625rem;
 	line-height: 1.65;
 }
 
-.s-why-mini {
+.s-pillar-mini {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
@@ -5803,7 +7577,7 @@ a:hover {
 	font-size: 0.8125rem;
 }
 
-.s-why-band {
+.s-pillars-band {
 	margin-block: 48px 20px;
 	font-size: 1.375rem;
 	font-weight: 500;
@@ -5811,12 +7585,12 @@ a:hover {
 	letter-spacing: -0.01em;
 }
 
-.s-why-tiles-plain .s-why-tile {
+.s-pillars-plain .s-pillar {
 	border: 1px solid var(--s-line);
 	background: var(--s-page);
 }
 
-.s-why-tiles-plain .s-why-icon {
+.s-pillars-plain .s-pillar-icon {
 	background: var(--s-accent-soft);
 }
 

@@ -27,15 +27,15 @@ export function Why({ page, home }: { page: PageReader; home: Home }) {
 	const [base, otherBase] = home.map.bases;
 	return (
 		<section class="s-wrap s-section">
-			<div class="s-why-head">
+			<div class="s-pillars-head">
 				<div class="s-intro">
 					<h2>{page.text("pillars.title")}</h2>
 					<p class="s-intro-line">{page.text("pillars.lead")}</p>
 				</div>
 				<ChatAlone page={page} alone={home.alone} />
 			</div>
-			<Versus page={page} />
-			<ol class="s-why-tiles">
+			<Against page={page} />
+			<ol class="s-pillars">
 				<Tile
 					page={page}
 					at="pillars.tiles.endless"
@@ -74,8 +74,8 @@ export function Why({ page, home }: { page: PageReader; home: Home }) {
 					</span>
 				</Tile>
 			</ol>
-			<h3 class="s-why-band">{page.text("pillars.behind.title")}</h3>
-			<ul class="s-why-tiles s-why-tiles-plain">
+			<h3 class="s-pillars-band">{page.text("pillars.behind.title")}</h3>
+			<ul class="s-pillars s-pillars-plain">
 				<Tile page={page} at="pillars.behind.coach" icon="coach" heading="h4">
 					<span class="s-mini-said">{page.text("chat.ask")}</span>
 					<Arrow />
@@ -136,10 +136,10 @@ function ChatAlone({ page, alone }: { page: PageReader; alone: HomeAlone }) {
 	);
 }
 
-// Versus is the chat alone against the chat with MathTrail, both asked for the
+// Against is the chat alone against the chat with MathTrail, both asked for the
 // same task, point against point: what goes wrong without MathTrail, crossed
 // out, and what MathTrail does about it, ticked.
-function Versus({ page }: { page: PageReader }) {
+function Against({ page }: { page: PageReader }) {
 	const asked = () =>
 		page.text("pillars.versus.asked", {
 			ask: page.plain("pillars.alone.ask"),
@@ -147,7 +147,7 @@ function Versus({ page }: { page: PageReader }) {
 	const points = (key: string) =>
 		page.list(key).map((point) => page.text(point));
 	return (
-		<div class="s-versus">
+		<div class="s-against">
 			<Side
 				kind="alone"
 				name={page.text("pillars.alone.name")}
@@ -182,15 +182,15 @@ function Side({
 	points: readonly ComponentChildren[];
 }) {
 	return (
-		<div class={`s-versus-side s-versus-${kind}`}>
-			<p class="s-versus-head">
-				<span class="s-versus-tag">{name}</span>
-				<span class="s-versus-ask">{asked}</span>
+		<div class={`s-against-side s-against-${kind}`}>
+			<p class="s-against-head">
+				<span class="s-against-tag">{name}</span>
+				<span class="s-against-ask">{asked}</span>
 			</p>
-			<ul class="s-versus-points">
+			<ul class="s-against-points">
 				{points.map((point, at) => (
 					<li key={at}>
-						<span class="s-versus-mark" aria-hidden="true">
+						<span class="s-against-mark" aria-hidden="true">
 							{mark}
 						</span>
 						<span>{point}</span>
@@ -222,9 +222,9 @@ function Tile({
 	children: ComponentChildren;
 }) {
 	return (
-		<li class="s-why-tile">
-			<div class="s-why-top">
-				<span class="s-why-icon">
+		<li class="s-pillar">
+			<div class="s-pillar-top">
+				<span class="s-pillar-icon">
 					<svg
 						viewBox="0 0 24 24"
 						width="22"
@@ -240,14 +240,14 @@ function Tile({
 					</svg>
 				</span>
 				{number !== undefined && (
-					<span class="s-why-number" aria-hidden="true">
+					<span class="s-pillar-number" aria-hidden="true">
 						{number}
 					</span>
 				)}
 			</div>
 			<Heading>{page.text(`${at}.title`)}</Heading>
-			<p class="s-why-text">{page.text(`${at}.text`, slots)}</p>
-			<p class="s-why-mini">{children}</p>
+			<p class="s-pillar-text">{page.text(`${at}.text`, slots)}</p>
+			<p class="s-pillar-mini">{children}</p>
 		</li>
 	);
 }
