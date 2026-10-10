@@ -43,7 +43,7 @@ After an answer. The card at once turns into how the answer went: the mistake be
 
 Your child's data. You sign in with Google, and your child needs no account. The profile is one file in your own Google Drive, under a pseudonym, never a real name, and MathTrail reaches only the files it created there.
 
-Limits. Up to 20 new tasks a day. MathTrail is not a homework solver, and it covers grades 1 to 6 only. Its code is open source under the MIT License.
+Limits. Up to 50 new tasks a day. MathTrail is not a homework solver, and it covers grades 1 to 6 only. Its code is open source under the MIT License.
 ```
 
 The categories, one to five, from the portal's own list, which its documentation does not publish (T87 picks from it):

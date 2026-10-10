@@ -169,7 +169,7 @@ Only recording an answer writes it, before the answer moves the levels: the firs
 
 `task_fingerprints` — an array of up to **200** opaque strings, oldest first, one per accepted task. No text, no topic, no date: eviction is "drop from the front", and the duplicate check compares a new task against all of them (T32 fixes the algorithm and the threshold; a fixed-length sketch of the normalised wording is what the size budget below assumes).
 
-Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child does not recognise a task anyway, and criterion 11.9 — twenty tasks in a row on one topic with no duplicate refusal — lives comfortably inside the window.
+Two hundred is four days at the most a day gives, fifty tasks, and two weeks of a long session every day (R291). Beyond that a child does not recognise a task anyway, and criterion 11.9 — twenty tasks in a row on one topic with no duplicate refusal — lives comfortably inside the window.
 
 ### The open request
 
@@ -228,7 +228,7 @@ It moves nothing about the child until it is handed out: not the fingerprints, n
 `daily` — `{ "date": "2026-09-20", "accepted": 7, "failed": 1 }`. Two counters and the day they belong to. It lives in the file because it must be shared by every instance (О-15, О-24).
 
 - `accepted` — the daily generation limit. Its unit is an accepted task (О-35), counted as it is handed out: checked in `next_task` and `prepare_task`, raised in `submit_task`, or in `next_task` when it hands out a task kept (03-flows, R235).
-- `failed` — the ceiling on failed generations: raised whenever a request ends in `attempts_exhausted`, checked in `next_task`, five a day by default, `MATHTRAIL_DAILY_FAILED` (SPEC 11.2). It exists because О-35 deliberately lets a refusal cost nothing, which on its own leaves a failing model free to loop for ever; the reasoning is in 03-flows and the decision is R15.
+- `failed` — the ceiling on failed generations: raised whenever a request ends in `attempts_exhausted`, checked in `next_task`, ten a day by default, `MATHTRAIL_DAILY_FAILED` (SPEC 11.2, R291). It exists because О-35 deliberately lets a refusal cost nothing, which on its own leaves a failing model free to loop for ever; the reasoning is in 03-flows and the decision is R15.
 
 The date is a **UTC** date. The service has no reliable idea of the family's timezone, and for once that costs very little: the product shows no rhythm of practice at all — no streaks, no "solved today", nothing to break (R13, О-49) — so an early rollover in the Americas makes the limit *looser* for one evening and never stricter. Taking the offset from the widget, which knows the browser's timezone, would make it exact; it is an improvement, not a debt.
 
@@ -475,4 +475,4 @@ The sealed string and the fingerprints are shortened here; everything else is th
 4. **A newer `schema_version` stops a write.** During a rollout that means a parent can briefly get "try again shortly" instead of a task. The alternative — letting an old instance rewrite a new file — loses data silently. **For:** T15, and one line in the troubleshooting text of T19.
 5. **`top_streak` and `mastered_since` have their numbers now.** T11 set them (SPEC section 2.5): at least five answers in the topic, a run of three correct at P ≤ 0.775 with no hint, and mastery lost after two wrong answers in a row. **For:** T25 and T27, which implement them. **Since T72.6** a topic is mastered by a cautious estimate instead (SPEC 2.5, R187): `top_streak` is counted for an older build alone, `ratings.mastery_rule` marks a file whose masteries the estimate declared, and the masteries of the run are cleared. **For:** T72.8.
 6. **The per-topic summary is the only unbounded block.** It grows with the catalog, not with use, so it is bounded in practice — but if the grade 5–6 catalogs (О-12а) turn out much larger than the current ten topics, the size table above needs redoing. **For:** T11.
-7. **The ceiling on failed generations is five a day, and that number was invented in this pass**, not derived from anything measured. It is meant to stop a loop, not to ration a lesson, so it should sit far above what a working day looks like. **For:** T52, which sets it against the load runs of T64. **Set in T52** as a variable, five by default (R121); T64 still measures it.
+7. **The ceiling on failed generations is five a day, and that number was invented in this pass**, not derived from anything measured. It is meant to stop a loop, not to ration a lesson, so it should sit far above what a working day looks like. **For:** T52, which sets it against the load runs of T64. **Set in T52** as a variable, five by default (R121); T64 still measures it. **Raised in T98** to ten (R291).

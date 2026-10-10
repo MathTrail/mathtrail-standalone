@@ -232,8 +232,8 @@ The rest have the defaults the service is meant to run with. The ones a deployme
 
 | Variable | Default | What it moves |
 |---|---|---|
-| `MATHTRAIL_DAILY_TASKS` | `20` | Tasks a child may be given in a day |
-| `MATHTRAIL_DAILY_FAILED` | `5` | Requests of a day that may end with the model out of attempts |
+| `MATHTRAIL_DAILY_TASKS` | `50` | Tasks a child may be given in a day |
+| `MATHTRAIL_DAILY_FAILED` | `10` | Requests of a day that may end with the model out of attempts |
 | `MATHTRAIL_RATE_USER_PER_MIN` | `60` | Requests one account may send an instance in a minute: a card waiting for a task asks fifteen times a minute |
 | `MATHTRAIL_RATE_IP_PER_MIN` | `20` | Requests one address may send the sign-in of an instance in a minute |
 | `MATHTRAIL_RATE_INSTANCE_PER_MIN` | `200` | Requests one instance takes in a minute, from everybody together |
@@ -385,7 +385,7 @@ A directory that reviews a copy before listing it asks for an account its review
 
    The service's start says `reviewer sign-in` with `configured` true, and the consent screen shows "Reviewing MathTrail for a directory?".
 
-Fill the demo profile by signing in through that line yourself, in a chat, before the review. Its 20 tasks a day are shared by every reviewer, and the day starts at 00:00 UTC, so do not fill it on the day a review may begin. The progress shows a change over the past week only while the last answer is at most six days old, so answer a few tasks in the days before a review. Sign in through the line once yourself before a review begins as well: a grant that has ended shows only when somebody signs in.
+Fill the demo profile by signing in through that line yourself, in a chat, before the review. Its 50 tasks a day are shared by every reviewer, and the day starts at 00:00 UTC, so do not fill it on the day a review may begin. The progress shows a change over the past week only while the last answer is at most six days old, so answer a few tasks in the days before a review. Sign in through the line once yourself before a review begins as well: a grant that has ended shows only when somebody signs in.
 
 **Never connect the demo account through Google.** A parent's account is known by its identifier at Drive, and the demo account by the identifier at Google its grant names, so the demo account signed in with Google is a parent's account like any other: its lessons are counted, and disconnecting that chat ends every grant of the demo account at MathTrail, the reviewers' among them. Fill and check the demo profile through the reviewers' line alone.
 
