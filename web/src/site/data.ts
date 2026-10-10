@@ -100,8 +100,9 @@ const topicExampleFile = z.strictObject({
 
 // techniquesFile is what the page of the techniques takes from the site's
 // data: its groups, each with its techniques in order — a technique's name,
-// the topics it leads to and its example — and the rows of its hint, each
-// with the techniques it suggests.
+// the topics it leads to, its example and, where the example's answer is no
+// whole number, the mark its answer shows instead — and the rows of its hint,
+// each with the techniques it suggests.
 const techniquesFile = z.object({
 	groups: z
 		.array(
@@ -113,6 +114,7 @@ const techniquesFile = z.object({
 							id: z.string(),
 							topics: z.array(z.string()),
 							example: exampleFile,
+							badge: z.enum(["✓", "✕", "●"]).optional(),
 						}),
 					)
 					.min(1),

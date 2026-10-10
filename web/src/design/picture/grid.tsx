@@ -9,6 +9,7 @@ import {
 	stackOf,
 } from "./shapes";
 import { fitted, room, squeezed, widest, widthOf, written } from "./text";
+import { type Tones, toneOf } from "./tones";
 
 // A grid, in the card's pixels: how large a cell may be, and the room between
 // the names of the rows and columns and the grid.
@@ -24,8 +25,9 @@ type Cell = { name: string; line: number; column: number };
  * names of its rows to the left and of its columns above, each column's on as
  * many lines as keep them apart; the filled cells in the shading tone, and
  * each mark in its cell, written as large as the widest of them fits a cell.
+ * A cell a page lights is filled, edged and written in its tone instead.
  */
-export function drawGrid(grid: Grid): Drawn {
+export function drawGrid(grid: Grid, _locale?: string, tones?: Tones): Drawn {
 	const rows = grid.rows.map((name, line) => ({
 		name,
 		line,
@@ -70,6 +72,7 @@ export function drawGrid(grid: Grid): Drawn {
 		x: left + column * cell,
 		y: top + line * cell,
 	});
+	const toneAt = (one: Cell) => toneOf(tones, `cell ${one.name}`);
 	let lines = "";
 	for (let line = 0; line <= grid.rows.length; line++) {
 		lines += `M${r1(left)} ${r1(top + line * cell)}H${r1(right)}`;
@@ -83,7 +86,7 @@ export function drawGrid(grid: Grid): Drawn {
 		body: (
 			<>
 				{cells
-					.filter((one) => filled.has(one.name))
+					.filter((one) => filled.has(one.name) && toneAt(one) === undefined)
 					.map((one) => (
 						<rect
 							key={one.name}
@@ -95,6 +98,20 @@ export function drawGrid(grid: Grid): Drawn {
 						/>
 					))}
 				<path d={lines} class="mt-pic-line" stroke-width={1.5} />
+				{cells
+					.filter((one) => toneAt(one) !== undefined)
+					.map((one) => (
+						<rect
+							key={`lit-${one.name}`}
+							x={r1(at(one).x + 3)}
+							y={r1(at(one).y + 3)}
+							width={r1(cell - 6)}
+							height={r1(cell - 6)}
+							rx={4}
+							class="mt-pic-fill"
+							data-tone={toneAt(one)}
+						/>
+					))}
 				<Stack
 					placed={columns.placed}
 					first={top - nameGap - lineHeight() / 2}
@@ -117,6 +134,7 @@ export function drawGrid(grid: Grid): Drawn {
 							y={at(one).y + cell / 2}
 							text={marks.get(one.name) ?? ""}
 							size={size}
+							tone={toneAt(one)}
 						/>
 					))}
 			</>

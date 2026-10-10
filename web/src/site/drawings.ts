@@ -4,15 +4,47 @@ import { pictureFormat } from "../widget/picture";
 import type { CatalogTopic } from "./topics";
 
 /**
+ * thumbs are the small coloured drawings the cards of the page of the topics
+ * show, one a topic, each the sign of what its tasks are about: people lined
+ * up by height, a knight and a liar, two circles that overlap, pairs of
+ * digits, a fence of posts, hutches with rabbits in them, cells of a grid, a
+ * clock's face, two weeks with a day marked in each, a product that makes a
+ * hundred, dots that alternate, groups of dots and the one left over, three
+ * quarters, one tenth, two parts to three, matches, and a balance.
+ */
+export const thumbs = [
+	"lined-up",
+	"knight-and-liar",
+	"two-circles",
+	"digit-pairs",
+	"fence",
+	"hutches",
+	"grid-cells",
+	"clock-face",
+	"two-weeks",
+	"hundred-product",
+	"alternating-dots",
+	"groups-and-remainder",
+	"three-quarters",
+	"one-in-ten",
+	"two-to-three",
+	"matches",
+	"balance",
+] as const;
+
+/** Thumb is the name of a card's small drawing. */
+export type Thumb = (typeof thumbs)[number];
+
+/**
  * markups are the drawings of the site's own a topic's drawing may be, where
  * no kind of picture shows what the page means: islanders and what they say,
- * a product and a sum regrouped, a tree of numbers, a time stepped through the
- * hour, a round table, flags of two stripes, a strip cut in two, the corners
- * of a cube, a count of eggs, a price changed twice, and a daisy.
+ * a sum regrouped, a tree of numbers, a time stepped through the hour, a round
+ * table, flags of two stripes, a strip cut in two, the corners of a cube, a
+ * count of eggs, a price changed twice, and a daisy; and the cards' small
+ * drawings.
  */
 export const markups = [
 	"islanders",
-	"product-regrouped",
 	"number-tree",
 	"through-the-hour",
 	"sum-regrouped",
@@ -23,6 +55,7 @@ export const markups = [
 	"eggs-backwards",
 	"price-changes",
 	"daisy",
+	...thumbs,
 ] as const;
 
 /** Markup is the name of a drawing of the site's own. */

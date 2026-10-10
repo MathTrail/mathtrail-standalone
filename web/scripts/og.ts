@@ -30,7 +30,7 @@ const built = join(repository, "site", "dist");
  */
 export const pictureStyle = `
 	.s-navlinks, .s-nav-tools, .s-footer, .s-hero-actions, .s-hero-note,
-	.s-hero-card figcaption, .s-main > :not(:first-child) {
+	.s-main > :not(:first-child) {
 		display: none !important;
 	}
 	html, body { overflow: hidden; }

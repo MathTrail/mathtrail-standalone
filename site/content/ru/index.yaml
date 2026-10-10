@@ -10,10 +10,7 @@ description: "Олимпиадная математика для детей в �
 
 hero:
   free: Бесплатно
-  open: Свободный код
-  # The parent's part of a lesson, which the line under the buttons tells:
-  # leave the child to the task.
-  laissez: Laissez-faire
+  open: Открытый код
   title: Олимпиадная математика — прямо в вашем чате.
   # The promise, word for word as the README gives it.
   lead: Бесконечный поток проверенных олимпиадных задач по математике для {range} классов, на любом языке, с разбором ошибки ребёнка и памятью о том, как он растёт.
@@ -29,11 +26,10 @@ hero:
     chance: "{chance} шанс решить — в зоне"
     reasons:
       - самая слабая тема
-      - вчера забыл крайний столб
+      - повторяет недавнюю ошибку на единицу
       - не тренировал 5 дней
   see: Посмотреть занятие
   note: Налейте себе чаю, пока ребёнок решает.
-  caption: 4 июля — хороший день для первой задачи.
 
 # The frame a card stands in: the chat a parent already uses, with the
 # parent's message above the card.

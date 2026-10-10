@@ -1,6 +1,7 @@
 import type { Table } from "./model";
 import { type Drawn, Label, r1 } from "./shapes";
 import { fitted, room, squeezed, widthOf, written } from "./text";
+import { type Tones, toneOf } from "./tones";
 
 // A table, in the card's pixels: the room between a cell's text and the lines
 // on either side of it, the room over and under it, and how narrow a column
@@ -45,8 +46,13 @@ function total(lengths: readonly number[]): number {
  * and written strong, the names in the cells strong and the numbers and times
  * plain, every cell centred in its column, each column as wide as its widest
  * cell, and the whole written at the largest size at which it fits the card.
+ * A cell a page lights is filled and written in its tone.
  */
-export function drawTable(table: Table): Drawn {
+export function drawTable(
+	table: Table,
+	_locale?: string,
+	tones?: Tones,
+): Drawn {
 	const header = table.header === undefined ? [] : [table.header.map(written)];
 	const rows = [...header, ...table.rows.map((row) => row.map(written))];
 	const size = fitted(squeezed, (one) => total(widthsOf(rows, one)) <= room);
@@ -61,6 +67,16 @@ export function drawTable(table: Table): Drawn {
 	const cells: Cell[] = rows.flatMap((row, line) =>
 		row.map((text, column) => ({ line, column, text })),
 	);
+	// toneAt is what a cell is lit in: a cell of the header is none of the
+	// rows a page counts.
+	const toneAt = (cell: Cell) =>
+		cell.line < header.length
+			? undefined
+			: toneOf(tones, `cell ${cell.line - header.length}.${cell.column}`);
+	const lit = cells.flatMap((cell) => {
+		const tone = toneAt(cell);
+		return tone === undefined ? [] : [{ cell, tone }];
+	});
 	let inner = "";
 	for (let line = 1; line < rows.length; line++) {
 		inner += `M0 ${r1(line * tall)}H${r1(width)}`;
@@ -82,6 +98,18 @@ export function drawTable(table: Table): Drawn {
 						class="mt-pic-band"
 					/>
 				)}
+				{lit.map(({ cell, tone }) => (
+					<rect
+						key={`lit-${cell.line}-${cell.column}`}
+						x={r1((edges[cell.column] ?? 0) + 2)}
+						y={r1(cell.line * tall + 2)}
+						width={r1((widths[cell.column] ?? 0) - 4)}
+						height={r1(tall - 4)}
+						rx={4}
+						class="mt-pic-fill"
+						data-tone={tone}
+					/>
+				))}
 				{cells.map(
 					(cell) =>
 						cell.text !== "" && (
@@ -95,6 +123,7 @@ export function drawTable(table: Table): Drawn {
 								text={cell.text}
 								size={size}
 								strong={cell.line < header.length || named(cell.text)}
+								tone={toneAt(cell)}
 							/>
 						),
 				)}

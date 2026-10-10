@@ -25,6 +25,7 @@ import {
 	written,
 	writtenNote,
 } from "./text";
+import { type Tones, toneOf } from "./tones";
 
 // A bar, in the card's pixels: how tall it is, how long one unit of length
 // may be drawn at most, and the room around what is written beside it.
@@ -97,12 +98,13 @@ type Laid = {
 };
 
 // labelsOfSegments are the labels of a bar's segments, each where it fits: in
-// its segment, or under the bar.
+// its segment, or under the bar, in the tone its segment is lit in.
 function labelsOfSegments(
 	bar: Bar,
 	place: number,
 	start: number,
 	pieces: readonly Piece[],
+	tones: Tones | undefined,
 ) {
 	const inside: Lined[] = [];
 	const outside: Lined[] = [];
@@ -114,6 +116,7 @@ function labelsOfSegments(
 				id: `segment-${place}-${piece.at}`,
 				x: start + (piece.from + piece.end) / 2,
 				text,
+				tone: toneOf(tones, pieceKey(place, piece.at)),
 			};
 			(widthOf(text, sizes.label) + 6 <= piece.end - piece.from
 				? inside
@@ -124,6 +127,12 @@ function labelsOfSegments(
 	return { inside, outside };
 }
 
+// pieceKey is the name a page lights a bar's piece by: its bar's place and
+// its own, each counted from 0.
+function pieceKey(bar: number, piece: number): string {
+	return `piece ${bar}.${piece}`;
+}
+
 // layOut lays one bar out from the top it stands at.
 function layOut(
 	bar: Bar,
@@ -132,13 +141,14 @@ function layOut(
 	unit: number,
 	start: number,
 	width: number,
+	tones: Tones | undefined,
 ): Laid {
 	const length = lengthOf(bar) * unit;
 	const edges = edgesOf(bar, length);
 	const pieces = edges
 		.slice(1)
 		.map((end, at) => ({ at, from: edges[at] ?? 0, end }));
-	const segments = labelsOfSegments(bar, place, start, pieces);
+	const segments = labelsOfSegments(bar, place, start, pieces, tones);
 	const outside = stackOf(segments.outside, 0, width);
 	const braceTop = top + barHeight + outside.lines * lineHeight() + 2;
 	const braces = (bar.braces ?? []).map((one, at) => ({
@@ -186,15 +196,18 @@ function inset({ from, to }: { from: number; to: number }): number {
 	return Math.min(2, (to - from) / 4);
 }
 
-// OneBar is one bar with everything drawn beside it and under it.
+// OneBar is one bar with everything drawn beside it and under it, a piece a
+// page lights filled and edged in its tone.
 function OneBar({
 	laid,
 	start,
 	width,
+	tones,
 }: {
 	laid: Laid;
 	start: number;
 	width: number;
+	tones: Tones | undefined;
 }) {
 	const { bar, top, length } = laid;
 	const middle = top + barHeight / 2;
@@ -203,27 +216,32 @@ function OneBar({
 			{bar.label !== undefined && (
 				<Label x={start / 2} y={middle} text={written(bar.label)} />
 			)}
-			{laid.pieces.map((piece) => (
-				<g key={piece.at}>
-					{piece.at < (bar.shaded ?? 0) && (
+			{laid.pieces.map((piece) => {
+				const tone = toneOf(tones, pieceKey(laid.place, piece.at));
+				return (
+					<g key={piece.at}>
+						{(piece.at < (bar.shaded ?? 0) || tone !== undefined) && (
+							<rect
+								x={r1(start + piece.from)}
+								y={r1(top)}
+								width={r1(piece.end - piece.from)}
+								height={barHeight}
+								class="mt-pic-fill"
+								data-tone={tone}
+							/>
+						)}
 						<rect
 							x={r1(start + piece.from)}
 							y={r1(top)}
 							width={r1(piece.end - piece.from)}
 							height={barHeight}
-							class="mt-pic-fill"
+							class="mt-pic-line"
+							stroke-width={1.5}
+							data-tone={tone}
 						/>
-					)}
-					<rect
-						x={r1(start + piece.from)}
-						y={r1(top)}
-						width={r1(piece.end - piece.from)}
-						height={barHeight}
-						class="mt-pic-line"
-						stroke-width={1.5}
-					/>
-				</g>
-			))}
+					</g>
+				);
+			})}
 			<Stack placed={laid.inside} first={middle} />
 			<Stack placed={laid.outside} first={top + barHeight + lineHeight() / 2} />
 			{bar.value !== undefined && (
@@ -293,9 +311,10 @@ function widestWord(
  * drawBars draws quantities as bars to one scale: each bar's equal parts with
  * the shaded ones filled, or its segments of their own sizes, its label before
  * it and its value after it, the braces under it with their labels, the length
- * of the whole bar, and the notes under all the bars.
+ * of the whole bar, and the notes under all the bars. A piece a page lights is
+ * filled in its tone.
  */
-export function drawBars(bars: Bars): Drawn {
+export function drawBars(bars: Bars, _locale?: string, tones?: Tones): Drawn {
 	const start = columnOf(bars.bars.map((bar) => bar.label));
 	const after = columnOf(bars.bars.map((bar) => bar.value));
 	const longest = Math.max(...bars.bars.map(lengthOf));
@@ -308,7 +327,7 @@ export function drawBars(bars: Bars): Drawn {
 	);
 	let top = 2;
 	const laids = bars.bars.map((bar, place) => {
-		const laid = layOut(bar, place, top, unit, start, width);
+		const laid = layOut(bar, place, top, unit, start, width, tones);
 		top += laid.height;
 		return laid;
 	});
@@ -319,7 +338,13 @@ export function drawBars(bars: Bars): Drawn {
 		body: (
 			<>
 				{laids.map((laid) => (
-					<OneBar key={laid.place} laid={laid} start={start} width={width} />
+					<OneBar
+						key={laid.place}
+						laid={laid}
+						start={start}
+						width={width}
+						tones={tones}
+					/>
 				))}
 				{placed.map((note) => (
 					<Label

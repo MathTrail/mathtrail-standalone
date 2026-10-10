@@ -4,13 +4,15 @@ import { anchorName, type CatalogTopic, gradesOf } from "./topics";
 /**
  * Technique is a technique of problem solving as the page of the techniques
  * shows it, as far as no language changes it: its name, which is its anchor
- * on the page, the topics of the catalog it leads to, and the example it is
- * worked through on.
+ * on the page, the topics of the catalog it leads to, the example it is
+ * worked through on, and the badge its answer shows: the answer itself where
+ * it is a whole number, and a tick, a cross or a dot where it is words.
  */
 export type Technique = {
 	readonly id: string;
 	readonly topics: readonly string[];
 	readonly example: Example;
+	readonly badge: string;
 };
 
 /** TechniqueGroup is a group of techniques, in the order the page shows them. */
@@ -43,7 +45,8 @@ export function allTechniques(techniques: Techniques): readonly Technique[] {
  * topics. A technique is refused whose name is no anchor or another's, that
  * leads to a topic the catalog lacks, or whose example is set at a level none
  * of its topics is taught at — or, for a technique of no topic, no topic at
- * all; and so is a row of the hint that names a technique the page lacks.
+ * all; and so is one whose answer is words with no badge to show for it, and
+ * a row of the hint that names a technique the page lacks.
  * Nothing may be named twice where the page would draw it twice: a group, a
  * topic of one technique, a technique in one row of the hint.
  */
@@ -80,6 +83,7 @@ export function readTechniques(
 					topics.length === 0 ? catalog : topics,
 					technique.example.level,
 				),
+				badge: badgeOf(technique.id, technique.example.answer, technique.badge),
 			};
 		}),
 	}));
@@ -119,6 +123,21 @@ function checkName(id: string, named: ReadonlySet<string>): void {
 	if (named.has(id)) {
 		throw new Error(`two techniques are called ${id}`);
 	}
+}
+
+// badgeOf is the badge of the answer of the technique called id: the answer
+// where it is a whole number, and otherwise the mark the data gives, which an
+// answer in words needs.
+function badgeOf(id: string, answer: string, mark: string | undefined): string {
+	if (/^\d+$/.test(answer)) {
+		return answer;
+	}
+	if (mark === undefined) {
+		throw new Error(
+			`the answer of ${id} is words, ${JSON.stringify(answer)}, and the data gives no badge for it`,
+		);
+	}
+	return mark;
 }
 
 // exampleOf is the example of the technique called id set at level, which

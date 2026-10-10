@@ -36,12 +36,7 @@
 	],
 	"drawings": {
 		"logic.ordering": {
-			"card": {
-				"picture": {
-					"kind": "bars",
-					"bars": [{ "length": 3 }, { "length": 2 }, { "length": 1 }]
-				}
-			},
+			"card": { "markup": "lined-up" },
 			"hero": {
 				"picture": {
 					"kind": "bars",
@@ -55,22 +50,15 @@
 			}
 		},
 		"logic.knights_liars": {
-			"card": { "markup": "islanders" },
+			"card": { "markup": "knight-and-liar" },
 			"hero": { "markup": "islanders" }
 		},
 		"combinatorics.enumeration": {
-			"card": {
-				"picture": {
-					"kind": "table",
-					"rows": [["12", "13", "21", "23", "31", "32"]]
-				}
-			},
+			"card": { "markup": "digit-pairs" },
 			"hero": { "markup": "number-tree" }
 		},
 		"counting.gaps": {
-			"card": {
-				"picture": { "kind": "row", "items": [{}, {}, {}, {}], "gaps": "3" }
-			},
+			"card": { "markup": "fence" },
 			"hero": {
 				"picture": {
 					"kind": "row",
@@ -84,43 +72,15 @@
 			}
 		},
 		"time.clocks": {
-			"card": { "picture": { "kind": "clock", "time": "11:50" } },
+			"card": { "markup": "clock-face" },
 			"hero": { "markup": "through-the-hour" }
 		},
 		"time.calendar": {
-			"card": {
-				"picture": {
-					"kind": "bars",
-					"bars": [
-						{
-							"segments": [
-								{ "size": 30, "label": "30" },
-								{ "size": 5, "label": "5" }
-							]
-						},
-						{
-							"segments": [
-								{ "size": 6, "label": "6" },
-								{ "size": 5, "label": "5" }
-							]
-						}
-					]
-				}
-			},
+			"card": { "markup": "two-weeks" },
 			"hero": { "picture": { "kind": "calendar", "first": 3, "days": 31 } }
 		},
 		"pigeonhole.basic": {
-			"card": {
-				"picture": {
-					"kind": "piles",
-					"across": true,
-					"piles": [
-						{ "count": 2, "boxed": true },
-						{ "count": 1, "boxed": true },
-						{ "count": 1, "boxed": true }
-					]
-				}
-			},
+			"card": { "markup": "hutches" },
 			"hero": {
 				"picture": {
 					"kind": "piles",
@@ -135,20 +95,7 @@
 			}
 		},
 		"parity.alternation": {
-			"card": {
-				"picture": {
-					"kind": "row",
-					"line": false,
-					"items": [
-						{ "mark": "dot" },
-						{ "mark": "ring" },
-						{ "mark": "dot" },
-						{ "mark": "ring" },
-						{ "mark": "dot" },
-						{ "mark": "ring" }
-					]
-				}
-			},
+			"card": { "markup": "alternating-dots" },
 			"hero": {
 				"picture": {
 					"kind": "row",
@@ -165,17 +112,11 @@
 			}
 		},
 		"arithmetic.tricks": {
-			"card": { "markup": "product-regrouped" },
+			"card": { "markup": "hundred-product" },
 			"hero": { "markup": "sum-regrouped" }
 		},
 		"algorithms.weighing_pouring": {
-			"card": {
-				"picture": {
-					"kind": "balance",
-					"left": ["?", "?", "?"],
-					"right": ["?", "?", "?"]
-				}
-			},
+			"card": { "markup": "balance" },
 			"hero": {
 				"picture": {
 					"kind": "table",
@@ -192,9 +133,7 @@
 			}
 		},
 		"fractions.parts": {
-			"card": {
-				"picture": { "kind": "bars", "bars": [{ "parts": 4, "shaded": 3 }] }
-			},
+			"card": { "markup": "three-quarters" },
 			"hero": {
 				"picture": {
 					"kind": "bars",
@@ -210,19 +149,7 @@
 			}
 		},
 		"percent.basic": {
-			"card": {
-				"picture": {
-					"kind": "bars",
-					"bars": [
-						{
-							"parts": 10,
-							"shaded": 1,
-							"value": "50",
-							"braces": [{ "from": 0, "to": 1, "label": "5" }]
-						}
-					]
-				}
-			},
+			"card": { "markup": "one-in-ten" },
 			"hero": {
 				"picture": {
 					"kind": "bars",
@@ -238,9 +165,7 @@
 			}
 		},
 		"ratio.sharing": {
-			"card": {
-				"picture": { "kind": "bars", "bars": [{ "parts": 2 }, { "parts": 3 }] }
-			},
+			"card": { "markup": "two-to-three" },
 			"hero": {
 				"picture": {
 					"kind": "bars",
@@ -250,7 +175,7 @@
 			}
 		},
 		"geometry.grid": {
-			"card": { "picture": { "kind": "bars", "bars": [{ "parts": 3 }] } },
+			"card": { "markup": "grid-cells" },
 			"hero": {
 				"picture": {
 					"kind": "grid",
@@ -261,21 +186,13 @@
 			}
 		},
 		"number.divisibility": {
-			"card": {
-				"picture": { "kind": "piles", "piles": [{ "count": 17, "group": 3 }] }
-			},
+			"card": { "markup": "groups-and-remainder" },
 			"hero": {
 				"picture": { "kind": "piles", "piles": [{ "count": 14, "group": 3 }] }
 			}
 		},
 		"logic.sets": {
-			"card": {
-				"picture": {
-					"kind": "venn",
-					"sets": [{ "label": "A" }, { "label": "B" }],
-					"both": "3"
-				}
-			},
+			"card": { "markup": "two-circles" },
 			"hero": {
 				"picture": {
 					"kind": "venn",
@@ -288,12 +205,7 @@
 			}
 		},
 		"games.strategy": {
-			"card": {
-				"picture": {
-					"kind": "piles",
-					"piles": [{ "count": 15, "group": 5, "shape": "square" }]
-				}
-			},
+			"card": { "markup": "matches" },
 			"hero": {
 				"picture": {
 					"kind": "number_line",
@@ -722,7 +634,8 @@
 							"level": "1-2",
 							"solver": "three-pets",
 							"answer": "Anya dog, Borya parrot, Vera cat"
-						}
+						},
+						"badge": "✓"
 					},
 					{
 						"id": "small-numbers",
@@ -776,7 +689,8 @@
 							"level": "1-2",
 							"solver": "flags-in-fours",
 							"answer": "green"
-						}
+						},
+						"badge": "●"
 					}
 				]
 			},
@@ -790,7 +704,8 @@
 							"level": "3-4",
 							"solver": "anya-and-borya",
 							"answer": "Anya knight, Borya liar"
-						}
+						},
+						"badge": "✓"
 					},
 					{
 						"id": "parity",
@@ -799,7 +714,8 @@
 							"level": "3-4",
 							"solver": "five-jumps",
 							"answer": "No"
-						}
+						},
+						"badge": "✕"
 					},
 					{
 						"id": "pigeonhole",

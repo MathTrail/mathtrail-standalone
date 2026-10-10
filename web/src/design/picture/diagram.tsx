@@ -12,14 +12,17 @@ import { drawRow } from "./row";
 import { type Drawn, r1 } from "./shapes";
 import { drawTable } from "./table";
 import { clearance } from "./text";
+import type { Tones } from "./tones";
 import { drawVenn } from "./venn";
 
 // Drawing is how a picture of one kind is drawn, in the language of the task
 // it belongs to: the words a kind draws itself, a month's weekdays, are words
-// of the task, as its question is.
+// of the task, as its question is. A kind that names its parts lights them in
+// the tones a page gives.
 type Drawing<K extends Kind> = (
 	picture: Extract<Picture, { kind: K }>,
 	locale: string,
+	tones?: Tones,
 ) => Drawn;
 
 // drawings are how each kind of picture is drawn: every kind has one, or the
@@ -42,11 +45,16 @@ const drawings: { [K in Kind]: Drawing<K> } = {
 
 /**
  * drawPicture is a picture laid out in a language: its shapes and words, and
- * the room they take. It throws where the picture cannot be drawn, and what
- * to draw in its place, if anything, is for the caller to decide.
+ * the room they take, its parts lit in the tones a page gives, if any. It
+ * throws where the picture cannot be drawn, and what to draw in its place, if
+ * anything, is for the caller to decide.
  */
-export function drawPicture(picture: Picture, locale: string): Drawn {
-	return drawings[picture.kind](picture as never, locale);
+export function drawPicture(
+	picture: Picture,
+	locale: string,
+	tones?: Tones,
+): Drawn {
+	return drawings[picture.kind](picture as never, locale, tones);
 }
 
 // drawnOf is a picture laid out, or undefined where it cannot be: a picture

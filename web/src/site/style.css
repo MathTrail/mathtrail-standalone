@@ -73,6 +73,7 @@
 	--s-soft: #f8fafd;
 	--s-trap: #ffdad6;
 	--s-trap-edge: #f2b8b5;
+	--s-trap-tint: #fdeceb;
 	--s-on-trap: #8c1d18;
 	--s-wrong: #b3261e;
 	--s-right: #c4eed0;
@@ -80,9 +81,6 @@
 	--s-free: #e6f4ea;
 	--s-free-edge: #b7dfc3;
 	--s-on-free: #146c2e;
-	--s-laissez: #fdf3d0;
-	--s-laissez-edge: #efd98f;
-	--s-on-laissez: #6b5210;
 	--s-tea: #c8d6c0;
 	--s-phone: #1f1f1f;
 	--s-phone-edge: #44474b;
@@ -104,6 +102,22 @@
 	--s-amber-soft: #e8b779;
 	--s-hint: #fdf3d6;
 	--s-on-hint: #8a6100;
+	--s-cool: #a8c7fa;
+	--s-paint-red: #d33b36;
+	--s-paint-blue: #2171cc;
+	--s-paint-green: #298646;
+	--s-paint-orange: #cf630d;
+	--s-paint-violet: #7652ac;
+	--s-paint-sky: #3986e4;
+	--s-paint-sky-wash: rgb(57 134 228 / 30%);
+	--s-paint-peach: #f2943c;
+	--s-paint-amber-wash: rgb(228 130 51 / 30%);
+	--s-paint-teal: #008192;
+	--s-paint-leaf: #36a558;
+	--s-paint-wood: #c9a467;
+	--s-warm: #fdc495;
+	--s-warm-edge: #eb883b;
+	--s-on-warm: #6b3a0a;
 	--s-house: #dfe3e8;
 	--s-roof: #c9ced5;
 	--s-wip: #fbf3dd;
@@ -1127,14 +1141,6 @@ a:hover {
 	border-color: var(--s-free-edge);
 	background: var(--s-free);
 	color: var(--s-on-free);
-}
-
-/* The chip that leaves the child to the task and the parent to the tea, lit
-   with a pale yellow. */
-.s-chip-laissez {
-	border-color: var(--s-laissez-edge);
-	background: var(--s-laissez);
-	color: var(--s-on-laissez);
 }
 
 /* The chip that leads to the code on GitHub: GitHub's mark before the words,
@@ -3708,32 +3714,43 @@ a:hover {
 	}
 }
 
-/* The page of the techniques: the first screen's list of every technique by
-   its group, on the tinted panel, each a pill that leads to its part of the
-   page. */
+/* The page of the techniques: the advice on how to read it on a tinted
+   panel of its own, and the first screen's list of every technique by its
+   group, on the tinted panel, each a pill with its number in a circle that
+   leads to its part of the page. */
+.s-technique-advice {
+	margin: 0;
+	padding: 18px 20px;
+	border-radius: 20px;
+	background: var(--s-tint);
+	font-size: 1rem;
+	line-height: 1.5625;
+	text-wrap: pretty;
+}
+
 .s-overview {
 	display: flex;
 	flex-direction: column;
-	gap: 22px;
+	gap: 18px;
 }
 
 .s-overview-group {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: var(--space-8);
 }
 
 .s-overview-title {
 	margin: 0;
 	color: var(--s-muted);
-	font-size: 0.875rem;
+	font-size: 0.8125rem;
 	font-weight: 600;
 }
 
 .s-overview-list {
 	display: flex;
 	flex-wrap: wrap;
-	gap: var(--space-8);
+	gap: 6px;
 	margin: 0;
 	padding: 0;
 	list-style: none;
@@ -3742,12 +3759,12 @@ a:hover {
 .s-technique-link {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--space-8);
-	padding: var(--space-8) 14px;
+	gap: 10px;
+	padding: 5px 12px 5px 5px;
 	border-radius: var(--radius-pill);
 	background: var(--s-page);
 	color: var(--s-text);
-	font-size: 0.9375rem;
+	font-size: 0.875rem;
 	font-weight: 500;
 	text-decoration: none;
 }
@@ -3758,9 +3775,17 @@ a:hover {
 }
 
 .s-technique-link-number {
-	color: var(--s-accent);
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 24px;
+	block-size: 24px;
+	border-radius: 50%;
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
 	font-size: 0.75rem;
-	font-weight: 600;
+	font-weight: 700;
 }
 
 .s-tiles-four {
@@ -3773,14 +3798,17 @@ a:hover {
 	font-size: 1rem;
 }
 
-/* A technique: its card on the tinted panel, the problem on white, and the
-   solution folded under a pill until asked for. */
+/* A technique: its card on the tinted panel, its number in a circle beside
+   its name and its other name, the problem on white with the key to its
+   pictures, and the solution folded under a pill until asked for: its steps
+   on white, each beside its picture, what the pictures show, and the answer
+   on green behind its badge. */
 .s-technique {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-20);
 	margin-block-start: 40px;
-	padding: clamp(16px, 4vw, 44px);
+	padding: clamp(20px, 4vw, 48px);
 	border-radius: 36px;
 	background: var(--s-tint);
 }
@@ -3791,60 +3819,102 @@ a:hover {
 
 .s-technique-head {
 	display: flex;
-	flex-direction: column;
-	gap: var(--space-12);
-	max-inline-size: 46em;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-12) var(--space-16);
 }
 
 .s-technique-number {
-	color: var(--s-accent);
-	font-size: 1.125rem;
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 44px;
+	block-size: 44px;
+	border-radius: 50%;
+	background: var(--s-accent);
+	color: var(--s-page);
+	font-size: 1rem;
 	font-weight: 600;
 }
 
 .s-technique h3 {
 	margin: 0;
-	font-size: clamp(1.75rem, 1.3rem + 1.4vw, 2.25rem);
+	font-size: clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);
 	font-weight: 500;
-	line-height: 1.12;
-	letter-spacing: -0.02em;
+	line-height: 1.2;
+	letter-spacing: -0.015em;
 	overflow-wrap: break-word;
 	hyphens: auto;
 }
 
 .s-technique-aka {
-	margin: 0;
+	padding: 4px 12px;
+	border: 1px solid var(--s-line-strong);
+	border-radius: var(--radius-pill);
 	color: var(--s-muted);
-	font-size: 0.9375rem;
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
+.s-technique-about {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	max-inline-size: 820px;
 }
 
 .s-technique-what {
 	margin: 0;
-	color: var(--s-muted);
-	font-size: 1.0625rem;
-	line-height: 1.6;
+	font-size: 1.125rem;
+	line-height: 1.5556;
 	text-wrap: pretty;
 }
 
 .s-technique-when {
 	margin: 0;
-	font-size: 0.9375rem;
-	line-height: 1.55;
+	color: var(--s-muted);
+	font-size: 1rem;
+	line-height: 1.5;
+}
+
+.s-technique-when strong {
+	color: var(--s-text);
+	font-weight: 600;
 }
 
 .s-technique-task {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-8);
-	padding: 20px 22px;
-	border-radius: 20px;
+	gap: 14px;
+	padding: clamp(20px, 3vw, 28px);
+	border-radius: 24px;
 	background: var(--s-page);
+}
+
+.s-technique-grades {
+	margin: 0;
+	color: var(--s-accent);
+	font-size: 0.875rem;
+	font-weight: 600;
 }
 
 .s-technique-question {
 	margin: 0;
-	font-size: 1.125rem;
-	line-height: 1.56;
+	max-inline-size: 42em;
+	font-size: 1.1875rem;
+	line-height: 1.5263;
+	text-wrap: pretty;
+}
+
+.s-technique-legend {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-12) 18px;
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.8125rem;
 }
 
 .s-solution-toggle {
@@ -3855,7 +3925,7 @@ a:hover {
 	border: 1px solid var(--s-outline);
 	border-radius: var(--radius-pill);
 	background: var(--s-page);
-	color: var(--s-accent);
+	color: var(--s-text);
 	font-size: 0.9375rem;
 	font-weight: 500;
 	cursor: pointer;
@@ -3866,17 +3936,117 @@ a:hover {
 	display: none;
 }
 
-.s-solution-toggle:hover,
-.s-solution[open] > .s-solution-toggle {
-	background: var(--s-accent-tint);
-	color: var(--s-on-tint);
+.s-solution-toggle:hover {
+	background: var(--s-soft);
+}
+
+.s-solution[open] .s-solution-show,
+.s-solution:not([open]) .s-solution-hide {
+	display: none;
 }
 
 .s-solution-body {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-16);
-	margin-block-start: var(--space-16);
+	gap: var(--space-20);
+	margin-block-start: var(--space-20);
+}
+
+.s-technique-steps {
+	margin: 0;
+	padding: 4px clamp(16px, 3vw, 28px);
+	border-radius: 24px;
+	background: var(--s-page);
+	list-style: none;
+}
+
+.s-technique-step {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 14px 32px;
+	padding-block: 20px;
+}
+
+.s-technique-step + .s-technique-step {
+	border-block-start: 1px solid var(--s-hairline);
+}
+
+.s-technique-step-text {
+	display: flex;
+	flex: 1 1 300px;
+	align-items: flex-start;
+	gap: 14px;
+	min-inline-size: 0;
+	margin: 0;
+	font-size: 1.0625rem;
+	line-height: 1.5294;
+	text-wrap: pretty;
+}
+
+.s-technique-step-number {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 28px;
+	block-size: 28px;
+	border-radius: 50%;
+	background: var(--s-accent);
+	color: var(--s-page);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-technique-caption {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+	font-style: italic;
+	line-height: 1.5333;
+	text-wrap: pretty;
+}
+
+.s-technique-answer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-12) var(--space-16);
+	margin: 0;
+}
+
+.s-technique-answer-label {
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+	font-weight: 500;
+}
+
+.s-technique-answer-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 5px 18px 5px 5px;
+	border-radius: 22px;
+	background: var(--s-right);
+	color: var(--s-on-right);
+	font-size: 1.0625rem;
+	font-weight: 500;
+	line-height: 1.4118;
+}
+
+.s-technique-badge {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	min-inline-size: 34px;
+	block-size: 34px;
+	padding-inline: 8px;
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	font-size: 0.875rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
 }
 
 .s-technique-topics {
@@ -3911,22 +4081,707 @@ a:hover {
 	color: var(--s-on-tint);
 }
 
-/* A technique's drawing: a white panel beside the steps, laid out by the page
-   from the problem's numbers, small enough for a phone's width. */
-.s-figure {
+/* A step's picture: a pale panel beside the step's words, or under them on
+   a narrow screen, its drawing in its middle, as wide as it needs and never
+   wider than the panel, and the line that says what it shows under it. */
+.s-step-picture {
+	flex: 0 1 auto;
+	min-inline-size: 0;
+	max-inline-size: 100%;
+	padding: 14px 16px;
+	border: 1px solid var(--s-hairline);
+	border-radius: 18px;
+	background: var(--s-soft);
+}
+
+.s-step-drawn {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-12);
-	min-inline-size: 0;
-	margin: 0;
+	align-items: center;
+	gap: 10px;
+	inline-size: max-content;
+	max-inline-size: 100%;
+	margin-inline: auto;
 }
 
-.s-figure figcaption {
+.s-step-under {
 	color: var(--s-muted);
-	font-size: 0.875rem;
-	line-height: 1.5;
+	font-size: 0.8125rem;
+	line-height: 18px;
+	text-align: center;
+	text-wrap: pretty;
 }
 
+.s-step-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 6px 8px;
+}
+
+.s-step-column {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+}
+
+/* On a phone a step's picture reaches across the padding of the panel of the
+   steps, so that a screen 320 px wide gives a picture of a kind the card
+   draws nearly the room a card gives it, and its words stay legible. */
+@media (max-width: 479px) {
+	.s-technique {
+		padding-inline: var(--space-16);
+	}
+
+	.s-technique-steps {
+		padding-inline: var(--space-12);
+	}
+
+	.s-step-picture {
+		flex: 1 1 auto;
+		max-inline-size: none;
+		margin-inline: calc(-1 * var(--space-12));
+		padding: 10px 4px;
+	}
+}
+
+/* The parts of a picture of a kind the card draws, lit in a step's tones:
+   cool and warm for the two kinds of thing side by side, struck for what is
+   taken away, picked ringed in the accent, and the start in the text's own
+   colour. The strip of a game has no part taken away: what it strikes out
+   are the cells no move is left in. A road's gaps are written on no fill,
+   in the accent of its line. */
+.s-step-picture .mt-pic-fill[data-tone~="cool"] {
+	fill: var(--s-cool);
+}
+
+.s-step-picture .mt-pic-fill[data-tone~="warm"] {
+	fill: var(--s-warm);
+}
+
+.s-step-picture .mt-pic-fill[data-tone~="struck"] {
+	fill: var(--s-trap);
+}
+
+.s-step-picture[data-technique="mirror"] .mt-pic-fill[data-tone~="struck"] {
+	fill: var(--s-tech);
+}
+
+.s-step-picture[data-technique="small-numbers"] .mt-pic-text[data-tone~="cool"] {
+	fill: var(--s-accent);
+}
+
+.s-step-picture .mt-pic-fill[data-tone="picked"] {
+	fill: var(--s-accent-soft);
+}
+
+.s-step-picture .mt-pic-fill[data-tone~="start"] {
+	fill: var(--s-text);
+}
+
+.s-step-picture .mt-pic-fill[data-tone~="picked"] {
+	stroke: var(--s-accent);
+	stroke-width: 2.5;
+}
+
+.s-step-picture .mt-pic-line[data-tone~="cool"] {
+	stroke: var(--s-accent-line);
+}
+
+.s-step-picture path.mt-pic-line[data-tone~="cool"] {
+	stroke: var(--s-accent);
+}
+
+.s-step-picture .mt-pic-line[data-tone~="warm"] {
+	stroke: var(--s-warm-edge);
+}
+
+.s-step-picture .mt-pic-line[data-tone~="struck"] {
+	stroke: var(--s-wrong);
+}
+
+.s-step-picture .mt-pic-line[data-tone~="picked"] {
+	stroke: var(--s-accent);
+	stroke-width: 2.5;
+}
+
+.s-step-picture .mt-pic-text[data-tone~="cool"] {
+	fill: var(--s-on-tint);
+}
+
+.s-step-picture .mt-pic-text[data-tone~="warm"] {
+	fill: var(--s-on-warm);
+}
+
+.s-step-picture .mt-pic-text[data-tone~="struck"] {
+	fill: var(--s-on-trap);
+}
+
+.s-step-picture .mt-pic-text[data-tone~="start"] {
+	fill: var(--s-page);
+}
+
+/* The site's own pictures of the steps. Their colours are the problems':
+   the children of the table, the digits of the tree, the flags, the apples
+   and the dice keep theirs from step to step. A box holds a number of a sum
+   or of a check, a sign stands between two boxes, and a ring picks what the
+   step finds. */
+.s-step-box {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	min-inline-size: 30px;
+	block-size: 30px;
+	padding-inline: 6px;
+	border: 1.5px solid var(--s-line-strong);
+	border-radius: 8px;
+	background: var(--s-page);
+	font-size: 0.9375rem;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.s-step-check .s-step-box {
+	min-inline-size: 26px;
+	block-size: 26px;
+	font-size: 0.75rem;
+}
+
+.s-step-box[data-picked],
+.s-step-leg[data-picked] {
+	box-shadow:
+		0 0 0 2px var(--s-page),
+		0 0 0 4px var(--s-accent);
+}
+
+.s-step-box[data-end] {
+	outline: 2px solid var(--s-on-free);
+	outline-offset: 3px;
+}
+
+.s-step-sign {
+	flex: none;
+	color: var(--s-muted);
+	font-size: 1.0625rem;
+	font-weight: 600;
+}
+
+/* The table of children and pets: each child by a face of their colour and
+   their name, each cell its cross or tick with the number of the step that
+   put it there, the marks the step has just put outlined in the accent. */
+.s-step-pets {
+	display: grid;
+	grid-template-columns: auto repeat(3, minmax(40px, 58px));
+	gap: 3px;
+	align-items: center;
+}
+
+.s-step-pets-head {
+	color: var(--s-muted);
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-align: center;
+}
+
+.s-step-pets-child {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding-inline-end: 6px;
+	font-size: 0.8125rem;
+}
+
+.s-step-pets-face {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 22px;
+	block-size: 22px;
+	border-radius: 50%;
+	color: var(--s-page);
+	font-size: 0.625rem;
+	font-weight: 600;
+}
+
+.s-step-pets-face[data-child="anya"] {
+	background: var(--s-paint-red);
+}
+
+.s-step-pets-face[data-child="borya"] {
+	background: var(--s-paint-blue);
+}
+
+.s-step-pets-face[data-child="vera"] {
+	background: var(--s-paint-green);
+}
+
+.s-step-pets-cell {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	block-size: 36px;
+	border-radius: 8px;
+	background: var(--s-page);
+	box-shadow: inset 0 0 0 1px var(--s-line);
+	font-size: 0.9375rem;
+	font-weight: 700;
+}
+
+.s-step-pets-cell[data-new] {
+	background: var(--s-accent-soft);
+	box-shadow: inset 0 0 0 1px var(--s-accent-line);
+}
+
+.s-step-pets-cell[data-mark="no"] {
+	color: var(--s-wrong);
+}
+
+.s-step-pets-cell[data-mark="yes"] {
+	color: var(--s-on-free);
+	font-size: 1.125rem;
+}
+
+.s-step-pets-cell sup {
+	position: absolute;
+	inset-block-start: 2px;
+	inset-inline-end: 5px;
+	color: var(--s-outline);
+	font-size: 0.625rem;
+	line-height: 1;
+}
+
+/* The tree of the numbers: each digit on a tile of its colour, a branch
+   from the first digit to the numbers it begins, and every branch side by
+   side. */
+.s-step-digit {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 32px;
+	block-size: 32px;
+	border-radius: 8px;
+	color: var(--s-page);
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.s-step-digit[data-size="middle"] {
+	inline-size: 20px;
+	block-size: 20px;
+	border-radius: 5px;
+	font-size: 0.625rem;
+}
+
+.s-step-digit[data-size="small"] {
+	inline-size: 18px;
+	block-size: 18px;
+	border-radius: 5px;
+	font-size: 0.5625rem;
+}
+
+.s-step-digit[data-digit="2"] {
+	background: var(--s-paint-blue);
+}
+
+.s-step-digit[data-digit="4"] {
+	background: var(--s-paint-orange);
+}
+
+.s-step-digit[data-digit="6"] {
+	background: var(--s-paint-green);
+}
+
+.s-step-digit[data-digit="8"] {
+	background: var(--s-paint-violet);
+}
+
+.s-step-pair {
+	display: flex;
+	flex: none;
+	gap: 1px;
+}
+
+.s-step-branch {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.s-step-branch-stem {
+	inline-size: 2px;
+	block-size: 8px;
+	background: var(--s-line-strong);
+}
+
+.s-step-branch-arms {
+	inline-size: 96px;
+	block-size: 10px;
+	border: 2px solid var(--s-line-strong);
+	border-block-end: none;
+	border-radius: 8px 8px 0 0;
+}
+
+.s-step-branches {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 12px;
+}
+
+/* The apples: each a red fruit with a green leaf, so many a row, the ones
+   eaten paler and ringed in the accent; the count of a heap under it, and
+   the arrow back from one heap to the one before it under what undoes the
+   step. */
+.s-step-heap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+}
+
+.s-step-apples {
+	display: grid;
+	grid-template-columns: repeat(var(--s-across), 18px);
+	gap: 3px;
+}
+
+.s-step-apple {
+	position: relative;
+	inline-size: 18px;
+	block-size: 18px;
+}
+
+.s-step-apple::before {
+	position: absolute;
+	inset: 2px 0 0;
+	border-radius: 50%;
+	background: #e6443d;
+	content: "";
+}
+
+.s-step-apple::after {
+	position: absolute;
+	inset-block-start: -2px;
+	inset-inline-start: 9px;
+	inline-size: 7px;
+	block-size: 5px;
+	border-radius: 0 6px;
+	background: var(--s-paint-leaf);
+	content: "";
+}
+
+.s-step-apple[data-eaten]::before {
+	background: #f45249;
+	box-shadow:
+		0 0 0 2px var(--s-page),
+		0 0 0 4px var(--s-accent);
+}
+
+.s-step-count {
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	line-height: 18px;
+}
+
+.s-step-back {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: center;
+	color: var(--s-accent);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	line-height: 13px;
+	white-space: nowrap;
+}
+
+.s-step-back-arrow {
+	color: var(--s-outline);
+	font-size: 0.9375rem;
+}
+
+/* The counters of the yard: a hen round and warm with its 2 legs, a rabbit
+   square and cool with its 4. */
+.s-step-legs {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 3px;
+}
+
+.s-step-leg {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 26px;
+	block-size: 26px;
+	border-radius: 50%;
+	background: var(--s-warm);
+	color: var(--s-on-warm);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.s-step-leg[data-legs="4"] {
+	border-radius: 8px;
+	background: var(--s-cool);
+	color: var(--s-on-tint);
+}
+
+/* The flags: each on its pole, in fours framed as the part that repeats, the
+   four the step finds framed in the accent and the flag asked about on a
+   pale tile ringed in it. */
+.s-step-four {
+	display: flex;
+	flex: none;
+	padding: 2px;
+	border-radius: 8px;
+	box-shadow: inset 0 0 0 1.5px var(--s-line-strong);
+}
+
+.s-step-four[data-picked] {
+	box-shadow: inset 0 0 0 1.5px var(--s-accent);
+}
+
+.s-step-flags {
+	display: flex;
+	flex: none;
+}
+
+.s-step-flag {
+	display: flex;
+	flex: none;
+	align-items: flex-start;
+	padding: 2px 3px;
+	border-radius: 6px;
+}
+
+.s-step-flag::before {
+	inline-size: 2px;
+	block-size: 28px;
+	border-radius: 1px;
+	background: var(--s-outline);
+	content: "";
+}
+
+.s-step-flag::after {
+	inline-size: 16px;
+	block-size: 12px;
+	margin-block-start: 1px;
+	border-radius: 0 2px 2px 0;
+	background: var(--s-flag-colour);
+	content: "";
+}
+
+.s-step-flag[data-small]::before {
+	block-size: 22px;
+}
+
+.s-step-flag[data-small]::after {
+	inline-size: 12px;
+	block-size: 9px;
+}
+
+.s-step-flag[data-picked] {
+	background: var(--s-accent-soft);
+	box-shadow: 0 0 0 2px var(--s-accent);
+}
+
+.s-step-flag[data-colour="red"] {
+	--s-flag-colour: #e6443d;
+}
+
+.s-step-flag[data-colour="yellow"] {
+	--s-flag-colour: #f4cd4b;
+}
+
+.s-step-flag[data-colour="green"] {
+	--s-flag-colour: #2e9e52;
+}
+
+.s-step-flag[data-colour="blue"] {
+	--s-flag-colour: #2b7ad6;
+}
+
+/* The chain of a supposition: on red where it ends in a contradiction and on
+   green where it fits, each islander by a letter, plain where the problem
+   names them, green as a knight and red as a liar, what they say in a
+   bubble, and an arrow from each link to the next. */
+.s-step-chain {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 10px;
+	border-radius: 12px;
+	background: var(--s-trap-tint);
+}
+
+.s-step-chain[data-fits] {
+	background: var(--s-green-tint);
+}
+
+.s-step-who {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 26px;
+	block-size: 26px;
+	border: 2px solid var(--s-outline);
+	border-radius: 50%;
+	background: var(--s-page);
+	color: var(--s-text);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.s-step-chain .s-step-who {
+	inline-size: 30px;
+	block-size: 30px;
+}
+
+.s-step-who[data-role="knight"] {
+	border-color: var(--s-green-soft);
+	background: var(--s-right);
+	color: var(--s-on-right);
+}
+
+.s-step-who[data-role="liar"] {
+	border-color: var(--s-trap-edge);
+	background: var(--s-trap);
+	color: var(--s-on-trap);
+}
+
+.s-step-said {
+	flex: 0 1 auto;
+	min-inline-size: 0;
+	padding: 4px 10px;
+	border: 1px solid var(--s-line-soft);
+	border-radius: 4px 14px 14px;
+	background: var(--s-page);
+	color: var(--s-text);
+	font-size: 0.8125rem;
+	text-wrap: balance;
+}
+
+.s-step-then {
+	display: flex;
+	flex: none;
+	align-items: center;
+	inline-size: 20px;
+}
+
+.s-step-then::before {
+	flex: 1;
+	border-block-start: 2px solid var(--s-outline);
+	content: "";
+}
+
+.s-step-then::after {
+	border-block: 4px solid transparent;
+	border-inline-start: 6px solid var(--s-outline);
+	content: "";
+}
+
+.s-step-end {
+	flex: none;
+	margin-inline-start: 4px;
+	color: var(--s-wrong);
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+.s-step-chain[data-fits] .s-step-end {
+	color: var(--s-on-free);
+}
+
+@media (max-width: 479px) {
+	.s-step-chain {
+		gap: 4px;
+		padding: 6px 8px;
+	}
+
+	.s-step-chain .s-step-who {
+		inline-size: 26px;
+		block-size: 26px;
+	}
+
+	.s-step-then {
+		inline-size: 16px;
+	}
+}
+
+/* The faces of a die, each over the throws that land on it: a dot in the
+   accent each, and a ringed red one for a throw that lands where one
+   already has. The swatches of the key to the strip of a game are the
+   tones its cells are lit in. */
+.s-step-die {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	grid-template-rows: repeat(3, 1fr);
+	place-items: center;
+	inline-size: 30px;
+	block-size: 30px;
+	padding: 4px;
+	border-radius: 8px;
+	background: var(--s-page);
+	box-shadow: inset 0 0 0 1.5px var(--s-quiet);
+}
+
+.s-step-die > span {
+	inline-size: 5px;
+	block-size: 5px;
+	border-radius: 50%;
+}
+
+.s-step-die > [data-pip] {
+	background: var(--s-text);
+}
+
+.s-step-throws {
+	display: flex;
+	gap: 2px;
+	min-block-size: 12px;
+}
+
+.s-step-throw {
+	inline-size: 10px;
+	block-size: 10px;
+	border-radius: 50%;
+	background: var(--s-accent);
+}
+
+.s-step-throw[data-again] {
+	background: var(--s-wrong);
+	box-shadow:
+		0 0 0 2px var(--s-page),
+		0 0 0 3.5px var(--s-wrong);
+}
+
+.s-step-swatch {
+	flex: none;
+	inline-size: 16px;
+	block-size: 16px;
+	border-radius: 4px;
+}
+
+.s-step-swatch[data-tone="cool"] {
+	background: var(--s-cool);
+}
+
+.s-step-swatch[data-tone="warm"] {
+	background: var(--s-warm);
+}
+
+/* A drawing of the site's own: a white panel, laid out by the page from the
+   problem's numbers, small enough for a phone's width. */
 .s-art {
 	display: flex;
 	flex-direction: column;
@@ -3936,38 +4791,6 @@ a:hover {
 	background: var(--s-page);
 	font-size: 0.9375rem;
 	font-variant-numeric: tabular-nums;
-}
-
-.s-art-title {
-	margin: 0;
-	color: var(--s-muted);
-	font-size: 0.8125rem;
-	font-weight: 600;
-}
-
-.s-art-part {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	padding-block-start: 14px;
-	border-block-start: 1px dashed var(--s-line-strong);
-}
-
-.s-art-sum,
-.s-art-note {
-	margin: 0;
-}
-
-.s-art-note {
-	color: var(--s-muted);
-	font-size: 0.875rem;
-}
-
-.s-art-chips {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
-	margin: 0;
 }
 
 .s-art-chip {
@@ -3981,11 +4804,6 @@ a:hover {
 .s-art-chip-accent {
 	background: var(--s-accent);
 	color: var(--s-page);
-}
-
-.s-art-accent {
-	color: var(--s-accent);
-	font-weight: 600;
 }
 
 .s-art-dot {
@@ -4005,197 +4823,6 @@ a:hover {
 .s-art-dot-accent {
 	background: var(--s-accent);
 	color: var(--s-page);
-}
-
-/* Ages as bars: the sister's, the brother's with four years more, the two
-   bracketed with their sum; then the two equal halves. */
-.s-ages {
-	display: grid;
-	grid-template-columns: auto minmax(0, 1fr) auto;
-	align-items: center;
-	gap: 10px;
-}
-
-.s-ages-name {
-	color: var(--s-muted);
-	font-size: 0.875rem;
-}
-
-.s-ages-bars {
-	display: flex;
-	gap: var(--space-4);
-	block-size: 40px;
-}
-
-.s-ages-bar,
-.s-ages-extra {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 10px;
-	font-weight: 600;
-}
-
-.s-ages-bar {
-	flex: 3;
-	background: var(--s-accent-tint);
-	color: var(--s-on-tint);
-}
-
-.s-ages-rest,
-.s-ages-extra {
-	flex: 1;
-}
-
-.s-ages-extra {
-	background: var(--s-accent);
-	color: var(--s-page);
-}
-
-.s-ages-halves .s-ages-bar {
-	flex: 1;
-}
-
-.s-ages-total {
-	display: flex;
-	grid-column: 3;
-	grid-row: 1 / span 2;
-	align-items: center;
-	align-self: stretch;
-	padding-inline: 10px;
-	border: 2px solid var(--s-outline);
-	border-inline-start: 0;
-	border-start-end-radius: 12px;
-	border-end-end-radius: 12px;
-	font-size: 1.125rem;
-	font-weight: 600;
-}
-
-/* The table of children and pets, a cross or a tick in every cell with the
-   step that put it there. */
-.s-pets {
-	display: grid;
-	grid-template-columns: auto repeat(3, minmax(0, 1fr));
-	align-items: center;
-	gap: 6px;
-}
-
-.s-pets-head {
-	color: var(--s-muted);
-	font-size: 0.75rem;
-	font-weight: 500;
-	text-align: center;
-	overflow-wrap: anywhere;
-}
-
-.s-pets-name {
-	font-weight: 500;
-}
-
-.s-pets-cell {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	block-size: 44px;
-	border-radius: 12px;
-	font-size: 1.125rem;
-	font-weight: 700;
-}
-
-.s-pets-no {
-	background: var(--s-trap);
-	color: var(--s-on-trap);
-}
-
-.s-pets-yes {
-	background: var(--s-right);
-	color: var(--s-on-right);
-}
-
-.s-pets-step {
-	position: absolute;
-	inset-block-start: 3px;
-	inset-inline-end: 6px;
-	font-size: 0.6875rem;
-	font-weight: 600;
-}
-
-/* Roads with their posts, against the gaps and the posts each has, and the
-   long road with the rule they show. */
-.s-posts {
-	display: grid;
-	grid-template-columns: auto minmax(0, 1fr) auto auto;
-	align-items: center;
-	column-gap: var(--space-8);
-}
-
-.s-posts-head {
-	color: var(--s-muted);
-	font-size: 0.6875rem;
-	font-weight: 600;
-	text-align: center;
-}
-
-.s-posts-name,
-.s-posts-road,
-.s-posts-count,
-.s-posts-rule {
-	align-self: stretch;
-	display: flex;
-	align-items: center;
-	padding-block: 10px;
-	border-block-start: 1px solid var(--s-hairline);
-}
-
-.s-posts-name {
-	color: var(--s-muted);
-	font-size: 0.875rem;
-	white-space: nowrap;
-}
-
-.s-posts-count {
-	justify-content: center;
-	font-size: 1rem;
-}
-
-.s-posts-rule {
-	color: var(--s-muted);
-	font-size: 0.8125rem;
-}
-
-.s-posts-last {
-	border-block-start: 2px solid var(--s-text);
-}
-
-.s-posts-name.s-posts-last {
-	color: var(--s-text);
-	font-weight: 600;
-}
-
-/* The posts stand on a line as long as the road they mark, so a longer road
-   draws longer. */
-.s-posts-line {
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-	gap: 14px;
-}
-
-.s-posts-line::before {
-	position: absolute;
-	inset-block-start: 50%;
-	inset-inline: 0;
-	border-block-start: 2px solid var(--s-outline);
-	content: "";
-}
-
-.s-posts-post {
-	position: relative;
-	inline-size: 3px;
-	block-size: 22px;
-	border-radius: 2px;
-	background: var(--s-accent);
 }
 
 /* The tree of options: each first digit, and the numbers it begins. */
@@ -4232,58 +4859,12 @@ a:hover {
 	font-size: 0.8125rem;
 }
 
-/* Heads, each with its legs: every one a hen's first, then four rabbits. */
-.s-heads {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--space-4);
-}
-
-.s-heads-head {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	inline-size: 18px;
-	block-size: 22px;
-	border-radius: 6px;
-	background: var(--s-accent-tint);
-	color: var(--s-on-tint);
-	font-size: 0.6875rem;
-	font-weight: 600;
-}
-
-.s-heads-rabbit {
-	background: var(--s-accent);
-	color: var(--s-page);
-}
-
-.s-heads-total {
-	margin-inline-start: 6px;
-	font-size: 0.875rem;
-	font-weight: 600;
-}
-
-/* Flags in fours, the one asked about ringed. Their colours are the
+/* Flags side by side, in the colours of their stripes, which are the
    problem's, not the site's palette. */
 .s-flags {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--space-8);
-}
-
-.s-flags-four {
-	display: inline-flex;
-	gap: 3px;
-	padding: var(--space-4);
-	border: 1px dashed var(--s-line-strong);
-	border-radius: 8px;
-}
-
-.s-flag {
-	inline-size: 12px;
-	block-size: 18px;
-	border-radius: 3px;
 }
 
 .s-flag-red {
@@ -4298,182 +4879,17 @@ a:hover {
 	background: #188038;
 }
 
-.s-flag-blue {
-	background: #1a73e8;
-}
-
-.s-flag-asked {
-	outline: 2px solid var(--s-text);
-	outline-offset: 2px;
-}
-
-/* Two ways of supposing: one to a contradiction, one that fits. */
-.s-ways {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
-	gap: var(--space-12);
-}
-
-.s-way {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	margin: 0;
-	padding: var(--space-12);
-	border: 1px solid;
-	border-radius: 16px;
-	font-size: 0.875rem;
-	list-style: none;
-}
-
-.s-way-dead {
-	border-color: var(--s-trap);
-}
-
-.s-way-fits {
-	border-color: var(--s-right);
-}
-
-.s-way-start,
-.s-way-end {
-	font-weight: 600;
-}
-
-.s-way-dead .s-way-end {
-	color: var(--s-on-trap);
-}
-
-.s-way-fits .s-way-end {
-	color: var(--s-on-right);
-}
-
-/* The number line in two colours, and the colour of the cell after each
-   jump. */
-.s-line,
-.s-jumps,
-.s-holes,
-.s-strip {
-	display: grid;
-	gap: 3px;
-}
-
-.s-line,
-.s-strip {
-	grid-template-columns: repeat(9, minmax(0, 1fr));
-}
-
-.s-line-cell,
-.s-strip-cell {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	block-size: 32px;
-	border-radius: 8px;
-	font-size: 0.75rem;
-	font-weight: 600;
-}
-
-.s-line-even {
-	background: var(--s-accent-tint);
-	color: var(--s-on-tint);
-}
-
-.s-line-odd {
-	background: var(--s-accent);
-	color: var(--s-page);
-}
-
-.s-line-start {
-	outline: 2px solid var(--s-text);
-	outline-offset: 1px;
-}
-
-.s-jumps {
-	grid-template-columns: repeat(5, minmax(0, 1fr));
-	gap: var(--space-4);
-}
-
-.s-jumps-jump {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	padding-block: 6px;
-	border-radius: 10px;
-	font-size: 0.75rem;
-	font-weight: 600;
-}
-
-.s-jumps-number {
-	font-size: 0.875rem;
-}
-
-/* A die's numbers as holes, a throw in each, and the seventh throw in one
-   already taken. */
-.s-holes {
-	grid-template-columns: repeat(6, minmax(0, 1fr));
-	gap: 6px;
-}
-
-.s-hole {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: var(--space-4);
-	padding-block: var(--space-8);
-	border: 1px solid var(--s-line-strong);
-	border-radius: 12px;
-}
-
-.s-hole-twice {
-	border-color: var(--s-accent);
-	background: var(--s-accent-tint);
-}
-
-.s-hole-face {
-	font-size: 0.875rem;
-	font-weight: 600;
-}
-
-.s-hole-throw {
-	inline-size: 10px;
-	block-size: 10px;
-	border-radius: 50%;
-	background: var(--s-on-tint);
-}
-
-.s-hole-seventh {
-	background: var(--s-accent);
-	outline: 2px solid var(--s-page);
-}
-
-/* The strip of nine cells, every counter numbered by its move. */
-.s-strip-cell {
-	border: 1px solid var(--s-line-strong);
-}
-
-.s-strip-first {
-	border-color: var(--s-accent);
-	background: var(--s-accent);
-	color: var(--s-page);
-}
-
-.s-strip-second {
-	border-color: var(--s-outline);
-	background: var(--s-outline);
-	color: var(--s-page);
-}
-
 /* A topic's picture, drawn as a card of the widget draws one, on a white box
    of its own; a drawing of the site's own stands on the same box as a
    technique's. On a topic's page a picture is drawn at its own size, no wider
    than 286 px: beside the words of a wide screen it has 344 px at the least,
    and on a phone it reaches across the padding of the panel or the example it
-   stands in, so that a screen 320 px wide gives it 288. On a card it spans the
-   card with no room taken at its sides: on the narrowest card of four in a
-   row, 270 px less the card's padding, it has 230 px and shrinks to them,
-   which takes no label of the site's pictures below 11 px. These widths are
-   held in TopicDrawings.test.tsx. A card's drawing is never lower than most
-   of them stand, and as tall as the tallest in its row. */
+   stands in, so that a screen 320 px wide gives it 288. A card shows a small
+   drawing of the site's own; a picture on a card spans the card with no room
+   taken at its sides, and on the narrowest card of four in a row, 270 px less
+   the card's padding, it has 230 px and shrinks to them, which takes no label
+   of the site's pictures below 11 px. A card's drawing is as tall as the
+   tallest in its row. */
 .s-picture {
 	display: flex;
 	align-items: center;
@@ -4483,15 +4899,390 @@ a:hover {
 	background: var(--s-page);
 }
 
-.s-topic > .s-picture,
-.s-topic > .s-art {
+.s-topic > .s-picture {
 	justify-content: center;
 	min-block-size: 140px;
+	padding-inline: 0;
 	border-radius: 18px;
 }
 
-.s-topic > .s-picture {
-	padding-inline: 0;
+/* A card's small drawing stands at the start of its white box, in the middle
+   of its height. */
+.s-topic > .s-art {
+	align-items: flex-start;
+	justify-content: center;
+	min-block-size: 84px;
+	padding: 16px 18px;
+	border-radius: 18px;
+}
+
+/* The cards' small drawings: coloured shapes side by side, a fifth larger
+   than their sizes say, each shape in its paint. */
+.s-thumb {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	max-inline-size: 100%;
+	overflow: hidden;
+	zoom: 1.2;
+}
+
+.s-thumb [data-paint="red"] {
+	--s-thumb-paint: var(--s-paint-red);
+}
+
+.s-thumb [data-paint="blue"] {
+	--s-thumb-paint: var(--s-paint-blue);
+}
+
+.s-thumb [data-paint="green"] {
+	--s-thumb-paint: var(--s-paint-green);
+}
+
+.s-thumb [data-paint="orange"] {
+	--s-thumb-paint: var(--s-paint-orange);
+}
+
+.s-thumb [data-paint="sky"] {
+	--s-thumb-paint: var(--s-paint-sky);
+}
+
+.s-thumb [data-paint="peach"] {
+	--s-thumb-paint: var(--s-paint-peach);
+}
+
+.s-thumb [data-paint="teal"] {
+	--s-thumb-paint: var(--s-paint-teal);
+}
+
+.s-thumb [data-paint="leaf"] {
+	--s-thumb-paint: var(--s-paint-leaf);
+}
+
+.s-thumb [data-paint="grey"] {
+	--s-thumb-paint: var(--s-tech);
+}
+
+.s-thumb-grid {
+	display: grid;
+	gap: 2px;
+}
+
+.s-thumb-grid[data-columns="2"] {
+	grid-template-columns: repeat(2, 7px);
+}
+
+.s-thumb-grid[data-columns="5"] {
+	grid-template-columns: repeat(5, 12px);
+}
+
+.s-thumb-grid[data-columns="7"] {
+	grid-template-columns: repeat(7, 10px);
+}
+
+/* People lined up by height, each a head over a body. */
+.s-thumb-people {
+	align-items: flex-end;
+	gap: 4px;
+}
+
+.s-thumb-person {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+.s-thumb-person::before,
+.s-thumb-person::after {
+	background: var(--s-thumb-paint);
+	content: "";
+}
+
+.s-thumb-person::before {
+	inline-size: 9px;
+	block-size: 9px;
+	border-radius: 50%;
+}
+
+.s-thumb-person::after {
+	inline-size: 12px;
+	block-size: 26px;
+	border-radius: 6px 6px 2px 2px;
+}
+
+.s-thumb-person[data-height="middle"]::after {
+	block-size: 20px;
+}
+
+.s-thumb-person[data-height="short"]::after {
+	block-size: 14px;
+}
+
+/* A knight and a liar, each a circle in the colours of a right and a wrong
+   answer. */
+.s-thumb-islander {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 32px;
+	block-size: 32px;
+	border-radius: 50%;
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.s-thumb-islander[data-role="knight"] {
+	background: var(--s-right);
+	color: var(--s-on-right);
+}
+
+.s-thumb-islander[data-role="liar"] {
+	background: var(--s-trap);
+	color: var(--s-on-trap);
+}
+
+/* Two circles that overlap, each washed in its colour inside its ring. */
+.s-thumb-circles {
+	position: relative;
+	inline-size: 48px;
+	block-size: 30px;
+}
+
+.s-thumb-circles > span {
+	position: absolute;
+	inset-block-start: 0;
+	inline-size: 30px;
+	block-size: 30px;
+	border-radius: 50%;
+}
+
+.s-thumb-circles > [data-paint="blue"] {
+	inset-inline-start: 0;
+	background: var(--s-paint-sky-wash);
+	box-shadow: inset 0 0 0 2px var(--s-paint-blue);
+}
+
+.s-thumb-circles > [data-paint="orange"] {
+	inset-inline-start: 18px;
+	background: var(--s-paint-amber-wash);
+	box-shadow: inset 0 0 0 2px var(--s-paint-orange);
+}
+
+/* Tiles of digits and of parts, two of them side by side a number. */
+.s-thumb-pair {
+	display: flex;
+	gap: 1px;
+}
+
+.s-thumb-tile {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 16px;
+	block-size: 16px;
+	border-radius: 4px;
+	background: var(--s-thumb-paint);
+	color: var(--s-page);
+	font-size: 0.625rem;
+	font-weight: 600;
+}
+
+/* A fence: posts and the rails between them. */
+.s-thumb-fence {
+	gap: 0;
+}
+
+.s-thumb-post {
+	inline-size: 4px;
+	block-size: 22px;
+	border-radius: 2px;
+	background: var(--s-quiet);
+}
+
+.s-thumb-rail {
+	inline-size: 22px;
+	border-block-start: 2px solid var(--s-idle);
+}
+
+/* Hutches open at the top, the rabbits in them dots. */
+.s-thumb-hutch {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	gap: 2px;
+	inline-size: 30px;
+	block-size: 24px;
+	padding-block-end: 3px;
+	border: 2px solid var(--s-quiet);
+	border-block-start: none;
+	border-radius: 0 0 6px 6px;
+}
+
+.s-thumb-dot,
+.s-thumb-coin {
+	inline-size: 8px;
+	block-size: 8px;
+	border-radius: 50%;
+	background: var(--s-thumb-paint);
+}
+
+.s-thumb-groups .s-thumb-dot {
+	inline-size: 7px;
+	block-size: 7px;
+}
+
+/* Cells of a grid and days of a week. */
+.s-thumb-cell,
+.s-thumb-day {
+	border-radius: 2px;
+	background: var(--s-thumb-paint);
+}
+
+.s-thumb-cell {
+	inline-size: 12px;
+	block-size: 12px;
+}
+
+.s-thumb-day {
+	inline-size: 10px;
+	block-size: 10px;
+}
+
+/* A clock's face, its hour hand up and its minute hand to the side. */
+.s-thumb-clock {
+	position: relative;
+	inline-size: 30px;
+	block-size: 30px;
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 2px var(--s-quiet);
+}
+
+.s-thumb-hour,
+.s-thumb-minute {
+	position: absolute;
+	inset-inline-start: 14px;
+	border-radius: 1px;
+}
+
+.s-thumb-hour {
+	inset-block-start: 5px;
+	inline-size: 2px;
+	block-size: 10px;
+	background: var(--s-text);
+}
+
+.s-thumb-minute {
+	inset-block-start: 14px;
+	inline-size: 9px;
+	block-size: 2px;
+	background: var(--s-paint-red);
+}
+
+/* A product on a tinted plate. */
+.s-thumb-sum {
+	padding: 4px 10px;
+	border-radius: 8px;
+	background: var(--s-tint);
+	font-size: 0.9375rem;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+/* Dots filled and empty by turns. */
+.s-thumb-dots {
+	gap: 4px;
+}
+
+.s-thumb-turn {
+	inline-size: 14px;
+	block-size: 14px;
+	border-radius: 50%;
+	background: var(--s-paint-blue);
+}
+
+.s-thumb-turn[data-empty] {
+	background: none;
+	box-shadow: inset 0 0 0 2px var(--s-paint-blue);
+}
+
+/* A whole in parts, some of them filled. */
+.s-thumb-parts {
+	gap: 2px;
+}
+
+.s-thumb-part,
+.s-thumb-tenth {
+	block-size: 18px;
+	background: var(--s-thumb-paint);
+}
+
+.s-thumb-part {
+	inline-size: 16px;
+	border-radius: 3px;
+}
+
+.s-thumb-tenth {
+	inline-size: 8px;
+	border-radius: 2px;
+}
+
+/* Two parts to three, a colon between them. */
+.s-thumb-ratio {
+	gap: 4px;
+}
+
+.s-thumb-colon {
+	color: var(--s-outline);
+	font-weight: 600;
+}
+
+/* Matches, their heads up. */
+.s-thumb-matches {
+	gap: 5px;
+}
+
+.s-thumb-match {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.s-thumb-match::before {
+	inline-size: 6px;
+	block-size: 6px;
+	border-radius: 50%;
+	background: var(--s-paint-red);
+	content: "";
+}
+
+.s-thumb-match::after {
+	inline-size: 3px;
+	block-size: 20px;
+	background: var(--s-paint-wood);
+	content: "";
+}
+
+/* A balance: two pans of coins, level, over the pivot between them. */
+.s-thumb-balance {
+	align-items: flex-end;
+	gap: 3px;
+}
+
+.s-thumb-pan {
+	display: flex;
+	gap: 1px;
+	padding: 0 2px 2px;
+	border-block-end: 3px solid var(--s-quiet);
+}
+
+.s-thumb-pivot {
+	inline-size: 0;
+	block-size: 0;
+	border-inline: 6px solid transparent;
+	border-block-end: 12px solid var(--s-quiet);
 }
 
 .s-example-work > .s-picture,
@@ -4534,8 +5325,7 @@ a:hover {
 	background: var(--s-tint);
 }
 
-/* A sum or a product, the numbers that make a hundred marked, and a pair of
-   terms over the hundred it makes. */
+/* A sum regrouped: each pair of terms over the hundred it makes. */
 .s-sum {
 	display: flex;
 	flex-wrap: wrap;
@@ -4543,10 +5333,6 @@ a:hover {
 	justify-content: center;
 	gap: 6px;
 	margin: 0;
-}
-
-.s-sum-break {
-	flex-basis: 100%;
 }
 
 .s-sum-pair {
@@ -4686,10 +5472,11 @@ a:hover {
 }
 
 /* The hint: what a problem says, beside the techniques it suggests, in two
-   columns where there is room and one under the other where there is not. */
+   columns in a frame where there is room, and one under the other where
+   there is not. */
 .s-cues {
 	margin-block-start: 40px;
-	overflow: hidden;
+	padding: var(--space-8) clamp(16px, 3vw, 32px);
 	border: 1px solid var(--s-line);
 	border-radius: 28px;
 }
@@ -4697,47 +5484,53 @@ a:hover {
 .s-cues-head,
 .s-cue {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+	grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+	gap: var(--space-12) var(--space-24);
 	align-items: center;
 }
 
 .s-cues-head {
 	margin: 0;
-	border-block-end: 1px solid var(--s-line);
-	background: var(--s-soft);
+	padding-block: 14px;
 	color: var(--s-muted);
-	font-size: 0.875rem;
-	font-weight: 500;
-}
-
-.s-cues-head span {
-	padding: var(--space-16) var(--space-24);
+	font-size: 0.8125rem;
+	font-weight: 600;
 }
 
 .s-cues-list {
 	margin: 0;
 }
 
-.s-cue + .s-cue {
+.s-cue {
+	padding-block: var(--space-12);
 	border-block-start: 1px solid var(--s-hairline);
 }
 
 .s-cue dt {
-	padding: var(--space-16) var(--space-24);
 	font-size: 1.0625rem;
-	line-height: 1.5;
+	line-height: 1.4706;
 }
 
 .s-cue dd {
 	display: flex;
 	flex-wrap: wrap;
-	gap: var(--space-8);
+	gap: 6px;
 	margin: 0;
-	padding: var(--space-12) var(--space-24);
 }
 
 .s-cue .s-technique-link {
 	background: var(--s-tint);
+}
+
+@media (max-width: 599px) {
+	.s-cues-head,
+	.s-cue {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.s-cues-head {
+		gap: 2px;
+	}
 }
 
 /* The page about who makes MathTrail: the first screen's words beside the

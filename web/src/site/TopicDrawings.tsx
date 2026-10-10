@@ -5,6 +5,7 @@ import type { Drawn } from "../design/picture/shapes";
 import { Chain, DigitTree, type DrawingProps } from "./Art";
 import type { Drawing, Markup } from "./drawings";
 import type { PageReader } from "./reader";
+import { thumbDrawings } from "./TopicThumbs";
 
 /**
  * TopicDrawing is a drawing a topic's card or page shows: a picture, drawn as
@@ -60,7 +61,6 @@ function laidOut(picture: Picture, locale: string, where: string): Drawn {
 // one, or the site does not build.
 const drawings: { readonly [M in Markup]: (props: DrawingProps) => VNode } = {
 	islanders: Islanders,
-	"product-regrouped": ProductRegrouped,
 	"number-tree": NumberTree,
 	"through-the-hour": ThroughTheHour,
 	"sum-regrouped": SumRegrouped,
@@ -71,6 +71,7 @@ const drawings: { readonly [M in Markup]: (props: DrawingProps) => VNode } = {
 	"eggs-backwards": EggsBackwards,
 	"price-changes": PriceChanges,
 	daisy: Daisy,
+	...thumbDrawings,
 };
 
 // islanders are the two islanders who speak, by the keys of their words.
@@ -87,25 +88,6 @@ function Islanders({ page, at }: DrawingProps) {
 				</p>
 			))}
 		</div>
-	);
-}
-
-// ProductRegrouped draws a product whose two factors that make a hundred are
-// marked, and under it the product they make it.
-function ProductRegrouped({ numbers }: DrawingProps) {
-	return (
-		<p class="s-sum">
-			<span class="s-art-chip s-art-chip-accent">{numbers.format(25)}</span>
-			<span>×</span>
-			<span>{numbers.format(7)}</span>
-			<span>×</span>
-			<span class="s-art-chip s-art-chip-accent">{numbers.format(4)}</span>
-			<span class="s-sum-break" />
-			<span>=</span>
-			<span>{numbers.format(7)}</span>
-			<span>×</span>
-			<span class="s-art-chip s-art-chip-accent">{numbers.format(100)}</span>
-		</p>
 	);
 }
 

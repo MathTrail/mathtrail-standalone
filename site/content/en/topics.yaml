@@ -54,13 +54,11 @@ topics:
     phrase: "Who is taller, older, faster: line everyone up from a few clues."
   knights-and-liars:
     phrase: Some always tell the truth, the others always lie. Work out who is who from what they say.
-    # The drawing on its card is the site's own: two islanders, and what each
-    # says.
+    # The small drawing on its card: a knight and a liar, each by the first
+    # letter of what they are.
     drawing:
-      first: A
-      first-says: “I am a knight”
-      second: B
-      second-says: “A is lying”
+      knight: K
+      liar: L
   enumeration:
     phrase: List every case in order, so that none is lost and none counted twice.
   gaps-and-boundaries:

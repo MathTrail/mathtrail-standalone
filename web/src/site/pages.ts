@@ -58,7 +58,7 @@ export function sitePages(data: SiteData): ReadonlyMap<string, Page> {
 			},
 		],
 		["topics", { draw: TopicsPage, card: true, style: topicsStyle }],
-		["techniques", { draw: TechniquesPage }],
+		["techniques", { draw: TechniquesPage, card: true }],
 		["about", { draw: AboutPage }],
 		["coach", { draw: CoachPage }],
 		["research", { draw: ResearchPage }],

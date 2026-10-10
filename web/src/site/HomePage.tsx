@@ -171,9 +171,6 @@ function Hero({
 						<span class="s-chip s-chip-free">{page.text("hero.free")}</span>
 						<SourceChip label={page.text("hero.open")} />
 						<span class="s-chip">{gradesText(words, grades)}</span>
-						<span class="s-chip s-chip-laissez" lang="fr">
-							{page.text("hero.laissez")}
-						</span>
 					</p>
 					<h1>{page.text("hero.title")}</h1>
 					<p class="s-lead">
@@ -208,7 +205,6 @@ function Hero({
 							/>
 						</Chat>
 					</Phone>
-					<figcaption>{page.text("hero.caption")}</figcaption>
 				</figure>
 			</section>
 		</div>

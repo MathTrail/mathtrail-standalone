@@ -10,10 +10,7 @@ description: "Olympiad maths for children in the chat you already use: checked t
 
 hero:
   free: Free
-  open: Free software
-  # The parent's part of a lesson, which the line under the buttons tells:
-  # leave the child to the task.
-  laissez: Laissez-faire
+  open: Open source
   title: Olympiad maths, in the chat you already use.
   # The promise, word for word as the README gives it.
   lead: An endless stream of checked olympiad-style maths tasks for grades {range}, in any language, with a diagnosis of the child's mistake and a memory of how they are progressing.
@@ -29,11 +26,10 @@ hero:
     chance: "{chance} chance — in the zone"
     reasons:
       - weakest topic
-      - missed the end post yesterday
+      - "repeats a recent mistake: off-by-one"
       - not practised for 5 days
   see: See a lesson
   note: Pour yourself some tea while your child solves.
-  caption: The Fourth of July is a good day for a first task.
 
 # The frame a card stands in: the chat a parent already uses, with the
 # parent's message above the card.

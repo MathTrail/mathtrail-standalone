@@ -5,9 +5,8 @@ import type { ComponentChildren } from "preact";
  * around a screen with the status bar on top, the chat in the middle, and the
  * field a message is typed in and the bar that leads home at the bottom. The
  * chat scrolls inside the screen. All but the chat is a drawing, which a
- * screen reader skips. Its clock shows the fourth of July, written the
- * American way, which the caption under it says is a good day for a first
- * task.
+ * screen reader skips. Its clock shows a time of its own rather than the
+ * time of the build, so that every build draws the page the same.
  */
 export function Phone({ children }: { children: ComponentChildren }) {
 	return (
