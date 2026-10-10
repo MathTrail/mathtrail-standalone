@@ -2,6 +2,7 @@ package checks
 
 import (
 	"fmt"
+	"strings"
 	"unicode"
 )
 
@@ -36,13 +37,49 @@ var (
 var letterings = map[string]lettering{
 	"Latn": {letters: []*unicode.RangeTable{unicode.Latin}, called: "Latin letters"},
 	"Cyrl": {letters: []*unicode.RangeTable{unicode.Cyrillic}, called: "Cyrillic letters"},
+	"Grek": {letters: []*unicode.RangeTable{unicode.Greek}, called: "Greek letters"},
+	"Armn": {letters: []*unicode.RangeTable{unicode.Armenian}, called: "Armenian letters"},
+	"Geor": {letters: []*unicode.RangeTable{unicode.Georgian}, called: "Georgian letters"},
+	"Hebr": {letters: []*unicode.RangeTable{unicode.Hebrew}, called: "Hebrew letters"},
 	"Arab": {letters: []*unicode.RangeTable{unicode.Arabic}, called: "Arabic letters"},
+	"Ethi": {letters: []*unicode.RangeTable{unicode.Ethiopic}, called: "Ethiopic letters"},
 	"Deva": {letters: []*unicode.RangeTable{unicode.Devanagari}, called: "Devanagari letters"},
 	"Beng": {letters: []*unicode.RangeTable{unicode.Bengali}, called: "Bengali letters"},
+	"Guru": {letters: []*unicode.RangeTable{unicode.Gurmukhi}, called: "Gurmukhi letters"},
+	"Gujr": {letters: []*unicode.RangeTable{unicode.Gujarati}, called: "Gujarati letters"},
+	"Orya": {letters: []*unicode.RangeTable{unicode.Oriya}, called: "Odia letters"},
+	"Taml": {letters: []*unicode.RangeTable{unicode.Tamil}, called: "Tamil letters"},
+	"Telu": {letters: []*unicode.RangeTable{unicode.Telugu}, called: "Telugu letters"},
+	"Knda": {letters: []*unicode.RangeTable{unicode.Kannada}, called: "Kannada letters"},
+	"Mlym": {letters: []*unicode.RangeTable{unicode.Malayalam}, called: "Malayalam letters"},
 	"Thai": {letters: []*unicode.RangeTable{unicode.Thai}, called: "Thai letters"},
 	"Hans": chinese, "Hant": chinese, "Hani": chinese,
 	"Jpan": japanese, "Hira": japanese, "Kana": japanese, "Hrkt": japanese,
 	"Kore": korean, "Hang": korean,
+}
+
+// letteringOf is the letters of several scripts at once, which a task in any
+// of them is held to, named together as a refusal names them: "Cyrillic or
+// Latin letters". A script left out of letterings adds nothing.
+func letteringOf(scripts []string) lettering {
+	var together lettering
+	var names, stems []string
+	for _, script := range scripts {
+		one, known := letterings[script]
+		if !known {
+			continue
+		}
+		together.letters = append(together.letters, one.letters...)
+		names = append(names, one.called)
+		if stem, isLetters := strings.CutSuffix(one.called, " letters"); isLetters {
+			stems = append(stems, stem)
+		}
+	}
+	together.called = eitherOf(names)
+	if len(stems) == len(names) {
+		together.called = eitherOf(stems) + " letters"
+	}
+	return together
 }
 
 // readText is one text of a task the child reads, or several held to the
@@ -71,18 +108,16 @@ type readText struct {
 // and a wrong refusal costs the child an attempt. So two languages written in
 // the same letters are not told apart.
 //
-// A task in a language written in no script the check knows, or in several
-// with none named by its tag, is held to nothing.
+// A task in a language of the cards written in several scripts, named
+// without one, is held to any of them, and a task in a language written in no
+// script the check knows, or whose script the tag library only guesses at, is
+// held to nothing.
 func Language(task *Task, language string) []Problem {
 	if task == nil {
 		return nil
 	}
-	script, held := heldScript(language)
+	lesson, held := lessonLetters(language)
 	if !held {
-		return nil
-	}
-	lesson, known := letterings[script]
-	if !known {
 		return nil
 	}
 
@@ -154,8 +189,8 @@ func mostlyElsewhere(texts []string, letters []*unicode.RangeTable) bool {
 // read in no language is left out: numbers and signs, the letters every script
 // shares, such as the Japanese mark of a long vowel, words of Latin capitals
 // alone, which are labels such as AB, short words in small Latin letters, which
-// are symbols such as x, ab and cm, and single Greek letters such as π. A mark
-// is read with the letter it is written over.
+// are symbols such as x, ab and cm, and single Greek letters such as π, but in
+// a lesson written in Greek. A mark is read with the letter it is written over.
 func counted(text string, letters []*unicode.RangeTable) (own, all int) {
 	reading := tally{letters: letters}
 	for _, r := range text {
@@ -194,7 +229,7 @@ func (t *tally) read(r rune) {
 // endWord counts the word read so far, unless it is a symbol, and starts the
 // next one.
 func (t *tally) endWord() {
-	if len(t.word) > 0 && !symbol(t.word) {
+	if len(t.word) > 0 && !symbol(t.word, t.letters) {
 		t.count(unicode.In(t.word[0], t.letters...))
 	}
 	t.word = t.word[:0]
@@ -236,16 +271,18 @@ func letterKind(r rune, letters []*unicode.RangeTable) int {
 // or opens its sentence with a capital.
 const shortSymbol = 3
 
-// symbol says whether a word is read in no language: Latin capitals alone, a
-// label such as AB; a short word in small Latin letters, a symbol such as x,
-// ab or cm; or a single Greek letter, a symbol such as π. Every letter of a
-// word is of one kind, so its first tells which.
-func symbol(word []rune) bool {
+// symbol says whether a word is read in no language, in a lesson written in
+// these letters: Latin capitals alone, a label such as AB; a short word in
+// small Latin letters, a symbol such as x, ab or cm; or a single Greek letter,
+// a symbol such as π — but where the lesson is written in Greek, whose
+// articles ο and η and whose ή, "or", are words of a single letter. Every
+// letter of a word is of one kind, so its first tells which.
+func symbol(word []rune, letters []*unicode.RangeTable) bool {
 	switch {
 	case unicode.Is(unicode.Latin, word[0]):
 		return every(word, unicode.IsUpper) || len(word) <= shortSymbol && every(word, unicode.IsLower)
 	case unicode.Is(unicode.Greek, word[0]):
-		return len(word) == 1
+		return len(word) == 1 && !unicode.In(word[0], letters...)
 	}
 	return false
 }

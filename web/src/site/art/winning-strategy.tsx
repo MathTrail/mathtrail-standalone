@@ -56,12 +56,20 @@ function Tile({
 	ring?: "picked" | "wrong" | "right";
 	size?: "sm" | "xs";
 }) {
-	const tone = loses === undefined ? "plain" : loses ? "red" : "green";
 	return (
-		<Box tone={tone} size={size} ring={ring}>
+		<Box tone={toneOf(loses)} size={size} ring={ring}>
 			{count}
 		</Box>
 	);
+}
+
+// toneOf is the tone of a position's tile: plain where it is not yet known,
+// red where it loses for the player about to move and green where it wins.
+function toneOf(loses: boolean | undefined): "plain" | "red" | "green" {
+	if (loses === undefined) {
+		return "plain";
+	}
+	return loses ? "red" : "green";
 }
 
 // Tiles are the positions from one count to another, as tiles going on to
@@ -218,18 +226,21 @@ function Daisy({
 			height={size}
 			viewBox="0 0 120 120"
 		>
-			{petals.map((petal, at) => (
-				<ellipse
-					key={at}
-					class="s-win-petal"
-					data-petal={petal}
-					cx={60}
-					cy={27}
-					rx={7}
-					ry={16}
-					transform={`rotate(${(360 * at) / petals.length} 60 60)`}
-				/>
-			))}
+			{petals.map((petal, at) => {
+				const turn = (360 * at) / petals.length;
+				return (
+					<ellipse
+						key={turn}
+						class="s-win-petal"
+						data-petal={petal}
+						cx={60}
+						cy={27}
+						rx={7}
+						ry={16}
+						transform={`rotate(${turn} 60 60)`}
+					/>
+				);
+			})}
 			<circle class="s-win-middle" cx={60} cy={60} r={15} />
 		</svg>
 	);
@@ -244,12 +255,17 @@ function daisy(changed: Readonly<Record<number, Petal>> = {}): Petal[] {
 // at its top and its bottom, a blue row of five on the right and an orange
 // one on the left.
 function rows(changed: Readonly<Record<number, Petal>> = {}): Petal[] {
-	return Array.from(
-		{ length: 12 },
-		(_, at) =>
-			changed[at] ??
-			(at === 0 || at === 6 ? "torn" : at < 6 ? "blue" : "orange"),
-	);
+	return Array.from({ length: 12 }, (_, at) => changed[at] ?? rowPetal(at));
+}
+
+// rowPetal is a petal of the daisy after the second player's first move, by
+// its place from the top: torn at the top and the bottom, blue on the right
+// and orange on the left.
+function rowPetal(at: number): Petal {
+	if (at === 0 || at === 6) {
+		return "torn";
+	}
+	return at < 6 ? "blue" : "orange";
 }
 
 /**

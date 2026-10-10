@@ -354,7 +354,7 @@ exports[`the screens in Arabic > the card of how a wrong answer went 1`] = `
           مسألة أخرى
         </button>
         <button
-          aria-controls="P0-0"
+          aria-controls="P0-2"
           aria-expanded="false"
           class="mt-btn mt-topic-button"
           type="button"
@@ -396,7 +396,7 @@ exports[`the screens in Arabic > the card of how a wrong answer went 1`] = `
         aria-labelledby="P0-3"
         class="mt-topic-panel"
         hidden=""
-        id="P0-0"
+        id="P0-2"
       />
       <p
         aria-live="polite"
@@ -4999,12 +4999,17 @@ exports[`the screens in Arabic > the task 1`] = `
       >
         
       </p>
+      <output
+        class="mt-vh"
+      >
+        
+      </output>
     </div>
   </div>
 </div>
 `;
 
-exports[`the screens in Arabic > the task answered wrong, the chat asked to go over it 1`] = `
+exports[`the screens in Arabic > the task answered wrong, the card turned into how it went 1`] = `
 <div
   class="mt mt-widget mt-rtl"
 >
@@ -5042,7 +5047,7 @@ exports[`the screens in Arabic > the task answered wrong, the chat asked to go o
       />
     </button>
     <article
-      aria-label="مسألة"
+      aria-label="مراجعة الإجابة"
     >
       <header
         class="mt-head mt-head-versioned"
@@ -5101,167 +5106,145 @@ exports[`the screens in Arabic > the task answered wrong, the chat asked to go o
         class="mt-body"
       >
         <p
-          class="mt-task-text"
-          dir="rtl"
-          lang="ar"
+          class="mt-verdict-line"
         >
-          طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟
+          <svg
+            aria-hidden="true"
+            class="mt-icon"
+            fill="none"
+            height="20"
+            viewBox="0 0 24 24"
+            width="20"
+          />
+          <span>
+            ليس تماما: الإجابة هي 5 وليست 4.
+          </span>
         </p>
-        <svg
-          aria-label="أشياء في صف"
-          class="mt-picture"
-          direction="ltr"
-          height="73.2"
-          role="img"
-          viewBox="-2 -2 160 73.2"
-          width="160"
-        />
-        <fieldset
-          class="mt-options"
+        <div
+          class="mt-note mt-note-trap"
         >
-          <legend
-            class="mt-vh"
-          >
-            الإجابات
-          </legend>
           <div
-            class="mt-options-list"
+            class="mt-note-label"
           >
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="muted"
-              type="button"
-            >
+            <svg
+              aria-hidden="true"
+              class="mt-icon"
+              fill="none"
+              height="16"
+              viewBox="0 0 24 24"
+              width="16"
+            />
+            <span>
+              الفخ
+            </span>
+          </div>
+          <p
+            dir="rtl"
+            lang="ar"
+          >
+            عُدّت المسافات بدلًا من الأعمدة.
+          </p>
+        </div>
+        <div
+          class="mt-steps"
+        >
+          <h3
+            class="mt-section-label"
+          >
+            الحل
+          </h3>
+          <ol
+            dir="rtl"
+            lang="ar"
+          >
+            <li>
               <span
-                class="mt-option-letter"
+                class="mt-step-num"
               >
-                A
+                1
               </span>
                
+              <span>
+                12 ÷ 3 = 4 مسافات.
+              </span>
+            </li>
+            <li>
               <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
+                class="mt-step-num"
+              >
+                2
+              </span>
+               
+              <span>
+                في السياج المستقيم الذي تقف أعمدته عند طرفيه يزيد عدد الأعمدة على عدد المسافات بواحد.
+              </span>
+            </li>
+            <li>
+              <span
+                class="mt-step-num"
               >
                 3
               </span>
-            </button>
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="wrong"
-              type="button"
-            >
-              <span
-                class="mt-option-letter"
-              >
-                B
-              </span>
                
-              <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
-              >
-                4
+              <span>
+                4 + 1 = 5 أعمدة.
               </span>
-               
-              <span
-                class="mt-option-status"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="mt-icon"
-                  fill="none"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                />
-                إجابتك
-              </span>
-            </button>
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="correct"
-              type="button"
-            >
-              <span
-                class="mt-option-letter"
-              >
-                C
-              </span>
-               
-              <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
-              >
-                5
-              </span>
-               
-              <span
-                class="mt-option-status"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="mt-icon"
-                  fill="none"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                />
-                الإجابة الصحيحة
-              </span>
-            </button>
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="muted"
-              type="button"
-            >
-              <span
-                class="mt-option-letter"
-              >
-                D
-              </span>
-               
-              <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
-              >
-                6
-              </span>
-            </button>
-            <button
-              aria-disabled="true"
-              class="mt-option"
-              data-state="muted"
-              type="button"
-            >
-              <span
-                class="mt-option-letter"
-              >
-                E
-              </span>
-               
-              <span
-                class="mt-option-value"
-                dir="rtl"
-                lang="ar"
-              >
-                12
-              </span>
-            </button>
+            </li>
+          </ol>
+        </div>
+        <dl
+          class="mt-facts"
+        >
+          <div
+            class="mt-fact"
+          >
+            <dt>
+              نوع المسألة
+            </dt>
+            <dd>
+              الفواصل والحدود
+            </dd>
           </div>
-        </fieldset>
+          <div
+            class="mt-fact"
+          >
+            <dt>
+              التصنيف في هذا الموضوع
+            </dt>
+            <dd>
+              <span
+                class="mt-rating-move"
+              >
+                <span
+                  class="mt-rating-before"
+                >
+                  1502
+                </span>
+                 ← 
+                <span
+                  class="mt-rating-after mt-rating-loss"
+                >
+                  1480
+                </span>
+              </span>
+            </dd>
+          </div>
+        </dl>
       </div>
     </article>
     <div
       class="mt-foot"
     >
+      <div
+        class="mt-btns"
+      >
+        <button
+          class="mt-btn mt-btn-primary"
+          type="button"
+        >
+          مسألة أخرى
+        </button>
+      </div>
       <p
         aria-live="polite"
         class="mt-action-note"
@@ -5271,10 +5254,14 @@ exports[`the screens in Arabic > the task answered wrong, the chat asked to go o
       <p
         aria-live="polite"
         class="mt-action-note mt-answer-note"
-        tabindex="-1"
       >
-        عندما يصل الطلب إلى الدردشة، ستظهر مراجعة الإجابة أدناه، في بطاقة جديدة.
+        
       </p>
+      <output
+        class="mt-vh"
+      >
+        ليس تماما: الإجابة هي 5 وليست 4.
+      </output>
     </div>
   </div>
 </div>
@@ -6256,6 +6243,11 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
       >
         
       </p>
+      <output
+        class="mt-vh"
+      >
+        
+      </output>
     </div>
   </div>
 </div>

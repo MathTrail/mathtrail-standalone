@@ -1,4 +1,5 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
+import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
 	buttonIn,
@@ -56,8 +57,23 @@ const facts = () =>
 		fact.querySelector("dt")?.textContent,
 		fact.querySelector("dd")?.textContent,
 	]);
+// piecesOf is what the element under selector holds, piece by piece: an
+// element by its class, and words as they read.
+const piecesOf = (selector: string) =>
+	[...(root.querySelector(selector)?.childNodes ?? [])].map((piece) =>
+		piece instanceof HTMLElement ? piece.className : piece.textContent,
+	);
 
 describe("the card of how an answer went", () => {
+	// It is drawn for an answer given elsewhere — in the chat — and nothing was
+	// pressed on it: what has the focus keeps it.
+	test("takes no focus as it is drawn", async () => {
+		await drawCard(shown(fence));
+
+		expect(document.hasFocus()).toBe(true);
+		expect(document.activeElement).toBe(document.body);
+	});
+
 	test("tells a wrong answer from its trap, step by step, with the topic and how the rating moved", async () => {
 		await drawCard(shown(fence, {}, {}), { links: "open" });
 
@@ -157,11 +173,7 @@ describe("the card of how an answer went", () => {
 	test("writes the rating as the card's language reads it, the arrow its way", async () => {
 		await drawCard(shown(fenceInArabic));
 
-		const move = root.querySelector(".mt-rating-move");
-		const pieces = [...(move?.childNodes ?? [])].map((piece) =>
-			piece instanceof HTMLElement ? piece.className : piece.textContent,
-		);
-		expect(pieces).toEqual([
+		expect(piecesOf(".mt-rating-move")).toEqual([
 			"mt-rating-before",
 			" ← ",
 			"mt-rating-after mt-rating-loss",
@@ -243,7 +255,7 @@ describe("the picture of the solution, on the card of how an answer went", () =>
 		expect(drawn?.getAttribute("aria-label")).toBe("Things in a row");
 		expect(text(".mt-total")).toBe("12 ÷ 3 + 1 = 5, not 4");
 		expect(text(".mt-total-sum")).toBe(fenceTotal);
-		expect(text(".mt-total-not")).toBe(", not 4");
+		expect(piecesOf(".mt-total")).toEqual(["mt-total-sum", ", not 4"]);
 		expect(steps()).toHaveLength(3);
 	});
 
@@ -254,7 +266,7 @@ describe("the picture of the solution, on the card of how an answer went", () =>
 
 		await drawCard(pictured({ choice: "?", trap: null }));
 		expect(text(".mt-total")).toBe(fenceTotal);
-		expect(root.querySelector(".mt-total-not")).toBeNull();
+		expect(piecesOf(".mt-total")).toEqual(["mt-total-sum"]);
 	});
 
 	test("stands alone with no total, and is not drawn with no picture, or with one the card cannot draw", async () => {
@@ -408,6 +420,25 @@ describe("the topic, chosen on the card of how an answer went", () => {
 		press(button("Another task"));
 
 		expect(button("Another task").getAttribute("aria-disabled")).toBe("true");
+		saved.arrive(topicSaved("percent.basic"));
+		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
+		expect(heard.messages[0]).toContain("Percentages");
+	});
+
+	test("turns away the next task pressed in the moment a topic is chosen, before the card is drawn again", async () => {
+		const saved = pending();
+		const heard = await drawCard(shown(fence, {}, {}), {
+			tools: () => saved.result,
+		});
+
+		press(button("Topic: Coach"));
+		const percentages = choice("Percentages");
+		const another = button("Another task");
+		act(() => {
+			percentages.click();
+			another.click();
+		});
+
 		saved.arrive(topicSaved("percent.basic"));
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
 		expect(heard.messages[0]).toContain("Percentages");

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -15,16 +16,19 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
+	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	"github.com/MathTrail/mathtrail-standalone/internal/store/memory"
+	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 )
 
 // The answer: a letter from the card or from the model, or "I don't know",
 // recorded once against the task on the card and told back — to the card, which
-// turns to its result, and to the model, which explains it. Most cases start
+// turns into how it went, and to the model, which draws that card for an answer
+// given in the chat, or explains it where no card is shown. Most cases start
 // from the race of the task tests already on the card, handed out the way an
 // accepted task is; one goes the whole way from the rule.
 
@@ -66,6 +70,15 @@ type answerPayload struct {
 	} `json:"last_answer"`
 	Result *resultPayload `json:"result"`
 }
+
+// notRetold is how the words ask the model to leave a card that shows how an
+// answer went as it is: a sentence beside it at most, and the trap and the
+// solution retold by nobody.
+const notRetold = "add one short sentence at most, and retell neither the trap nor the solution"
+
+// onTheCardAlready is how the words of an answer say that one pressed on the
+// card needs no show_result: the card that took it shows how it went.
+const onTheCardAlready = "An answer pressed on the card has turned that card into the same, and nothing more is called for it."
 
 // raceInstructions is the version of the instructions the race on the card was
 // written to.
@@ -191,10 +204,82 @@ func TestAnAnswerIsToldHowItWent(t *testing.T) {
 			if text := textOf(t, answer); !strings.Contains(text, tc.says) || !strings.Contains(text, "The rating in Ordering went from") {
 				t.Errorf("the words are %q, want them to say %q and how the rating moved", text, tc.says)
 			}
+			if text := textOf(t, answer); !strings.Contains(text, "call show_result with task_id "+p.CurrentTask.ID) ||
+				!strings.Contains(text, notRetold) || !strings.Contains(text, onTheCardAlready) {
+				t.Errorf("the words are %q, want show_result asked for an answer given in the chat alone, and the "+
+					"card retold by nobody", text)
+			}
 			if text := textOf(t, answer); !strings.Contains(text, "does not show whether the child is a boy or a girl") {
 				t.Errorf("the words are %q, want the explanation worded so it does not show the child's gender", text)
 			}
 		})
+	}
+}
+
+// The card that sent an answer turns into how it went, so the answer's own
+// reply carries all that the card of how an answer went is handed — whose card
+// it is, the task's options for the verdict to name, its topic's page and the
+// site, and the choice of the topic once the trial series is over, the answer
+// that ends the series among them — the same as show_result hands its card.
+func TestTheCardThatTookAnAnswerIsHandedHowItWent(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name    string
+		answers int
+		chooses bool
+	}{
+		{name: "in the trial series", answers: 0},
+		{name: "the answer that ends the trial series", answers: rating.TrialAnswers - 1, chooses: true},
+		{name: "past the trial series", answers: rating.TrialAnswers, chooses: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept := keptAsIs(t, raceOnTheCard(t, tc.answers))
+			_, session := lessonShowing(t, kept)
+			id := loadedOf(t, kept).CurrentTask.ID
+
+			told := payloadOf[shownPayload](t, answerIt(t, session, id, "A", false))
+			if told.Screen != "result" || told.Status != "" || told.Result == nil || told.Result.TaskID != id {
+				t.Fatalf("submit_answer = %+v, want how the answer to %s went", told, id)
+			}
+			wantTheTaskNamed(t, &told, id)
+			if (told.TopicChoice != nil) != tc.chooses {
+				t.Errorf("topic_choice = %+v, want one: %v", told.TopicChoice, tc.chooses)
+			}
+			if shown := payloadOf[shownPayload](t, showIt(t, session, id)); !reflect.DeepEqual(told, shown) {
+				t.Errorf("submit_answer handed the card %+v, show_result %+v, want the same", told, shown)
+			}
+		})
+	}
+}
+
+// An answer counts whatever the choice of the topic comes to: where no choice
+// can be worked out — a catalog with no topic to suggest — the answer is still
+// recorded, kept and told, and the card it turns into offers no choice.
+func TestAnAnswerCountsWhenNoTopicCanBeChosen(t *testing.T) {
+	t.Parallel()
+
+	kept := keptAsIs(t, raceOnTheCard(t, rating.TrialAnswers))
+	h, session := lessonShowing(t, kept, func(parts *mcpserver.Parts) { parts.Content = &content.Content{} })
+	id := loadedOf(t, kept).CurrentTask.ID
+
+	told := payloadOf[shownPayload](t, answerIt(t, session, id, "A", false))
+	if told.Result == nil || told.Result.Choice != "A" || told.TopicChoice != nil {
+		t.Errorf("submit_answer = %+v, want the answer told with no choice of the topic", told)
+	}
+	span := h.spanNamed(t, "tools/call submit_answer")
+	if texts := spanTexts(span); !slices.Contains(texts, "the choice of the topic could not be worked out") ||
+		slices.ContainsFunc(texts, func(text string) bool { return strings.Contains(text, "catalog") }) {
+		t.Errorf("the span says %q, want that the choice could not be worked out, and no error's text", texts)
+	}
+	h.settle()
+	if p := loadedOf(t, kept); p.CurrentTask.Answered == nil {
+		t.Error("the file holds the task with no answer, want the answer kept")
+	}
+	if lines := linesOf(h, "answer_recorded"); len(lines) != 1 {
+		t.Errorf("answer_recorded lines = %d, want 1", len(lines))
 	}
 }
 
@@ -853,9 +938,9 @@ func TestAWrongLetterIsExplainedByWhatTheTaskSays(t *testing.T) {
 	for _, tc := range []struct {
 		name, answer, trap, says string
 	}{
-		{"a trap the catalog has", "A", "reversed_relation", "Start from what went wrong on the way to it"},
-		{"a trap the catalog does not have", "B", other, "Start from what went wrong on the way to it"},
-		{"no trap at all", "D", "", "and it is wrong; the right option is C) \"Ben\". Explain in two or three short sentences"},
+		{"a trap the catalog has", "A", "reversed_relation", "What went wrong on the way to it"},
+		{"a trap the catalog does not have", "B", other, "What went wrong on the way to it"},
+		{"no trap at all", "D", "", "and it is wrong; the right option is C) \"Ben\". Without a card, explain the step that decides it"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -1016,7 +1101,8 @@ func fellFor(trap string, i int) profile.Answer {
 
 // The second time among the latest answers the child falls for a trap, it is
 // marked as a mistake that repeats, and the model is asked to end with a short
-// reminder of it in its own words; the first time, neither.
+// reminder of it in its own words where no card shows it; the first time,
+// neither.
 func TestATrapFallenForAgainIsMarkedAsOneThatRepeats(t *testing.T) {
 	t.Parallel()
 

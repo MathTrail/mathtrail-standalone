@@ -144,7 +144,7 @@ A deployment with no domain of its own instead sets `create_domain_mapping = fal
 
 ## 10. Connect it
 
-Add the service to a chat the way the [README](../README.md#add-it-to-your-chat) describes, with your own address — `https://mcp.example.com/mcp` — and ask for a task. The first connection goes through your consent page, your Google client and your site, and the first task through every check: nothing else proves the whole path at once.
+Add the service to a chat the way the [help page](https://mathtrail.app/en/help/) describes, with your own address — `https://mcp.example.com/mcp` — and ask for a task. The first connection goes through your consent page, your Google client and your site, and the first task through every check: nothing else proves the whole path at once.
 
 ## The first delivery, as a checklist
 
@@ -457,20 +457,19 @@ Where `operator_email` names an address, the delivery creates an email channel t
 
 ## The daily report
 
-Every morning Data Studio mails one page of the private report: what yesterday cost and how the service was used, beside the month so far and a table of the last fortnight. The costs come from Cloud Billing's export to BigQuery, the counts are the night's, from `impact.daily`, and one view, `impact_private.daily_report`, sets them side by side. It needs `analytics`, and is made by hand, once, in this order:
+Every morning Data Studio mails one page of the private report: what yesterday cost and how the service was used, beside the month so far. The costs come from Cloud Billing's export to BigQuery, the counts are the night's, from `impact.daily`, and one view, `impact_private.daily_report`, sets them side by side. It needs `analytics`, and is made by hand, once, in this order:
 
 1. **Turn the export on.** In the Billing console of the account the project is billed to: *Billing export → BigQuery export → Standard usage cost → Edit settings*, the project, and the dataset `billing` the delivery has made. It takes *Billing Account Costs Manager* or *Administrator*. Turning it on lets the export's own identity write into the dataset; leave that right where it is. A dataset in a region is given the costs from the day the export is turned on, and none from before.
 2. **Wait for its table.** The export writes its first rows within hours, sometimes a day, and `bq ls PROJECT_ID:billing` then lists `gcp_billing_export_v1_…`. Set `billing_export = true` in the tfvars and deliver it: the delivery makes the view. Set before the table is there, the delivery stops at the view, since BigQuery makes no view over a table that does not exist.
-3. **The page.** In the private report, add data from BigQuery: the project, the dataset `impact_private`, the view `daily_report`. In the data source, set the data freshness to one hour, and the type of `charged`, `credits` and `cost` to the currency of the billing account. On a page of its own:
+3. **The page.** In the private report, add data from BigQuery: the project, the dataset `impact_private`, the view `daily_report`. In the data source, set the data freshness to one hour, the type of `charged`, `credits` and `cost` to the currency of the billing account, and that of `learners_week` and `learners_month`, which Data Studio takes for dates by their names, to Number. On a page of its own:
    - **Yesterday**: scorecards of `cost`, `charged`, `credits`, `learners`, `tasks`, `answers` and `topics_won`, each filtered on `yesterday` being true.
    - **The month so far**: scorecards of the sums of `cost`, `charged`, `tasks`, `answers` and `topics_won`, filtered on `this_month` being true, and of `learners_month` filtered on `yesterday`: a sum of the days' children would count a child once for every day.
-   - **The last fortnight**: a table of `day` and the other columns, filtered on `days_ago` being at most 14, newest first.
 4. **The schedule.** *Share → Schedule delivery*: the recipients, this page alone, a start at 8:00, repeated every day. Data Studio takes the time zone of the computer the schedule is made on and has no setting of its own, so make it on a computer set to the time zone the mail is wanted in.
 
 What to know when reading it:
 
 - A day is a UTC day, as every count here is, and so is a day of the costs: the one their usage began in, in UTC, rather than the Pacific day the Billing console shows. On the first of a month, the month so far is the month just ended, whole.
-- The export promises no time of writing, and Google says a day's costs are usually there within a day: the morning's figure for yesterday may still grow, and the fortnight's table shows it settle.
+- The export promises no time of writing, and Google says a day's costs are usually there within a day: the morning's figure for yesterday may still grow.
 - `charged` is the price of what was used, `credits` the free allowance and any other credit against it, below nought, and `cost` what is left to pay. They are this project's charges alone, as the spend alert counts them: what the billing account is charged for itself or for its other projects is not in them.
 - An empty day is one the night did not count, or one the export holds nothing of; `just impact` lists the first.
 - Moving the project to another billing account leaves the export behind: turn it on again on the new account, into the same dataset.

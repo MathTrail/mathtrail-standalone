@@ -37,6 +37,12 @@ import (
 // Traps is how many mistakes a brief names for the wrong options to lead to.
 const Traps = 2
 
+// InterestEvery is how often a task is dressed in one of the child's
+// interests: one task in this many, the first of each run of them, while the
+// others are dressed in a setting the model chooses. Met in every task, an
+// interest wears thin, and the tasks blur into one another.
+const InterestEvery = 3
+
 // Catalog is what the rule has to know about the content the service ships.
 // It is declared here, by the side that needs it, and it speaks in
 // identifiers and levels: which topics exist, at which levels each is taught,
@@ -217,6 +223,10 @@ func joined(levels []rating.GradeLevel) string {
 // topic: a brief that says "reinforce" about a topic the child has never
 // practised records that a failure just happened and something else was asked
 // for, which is a fact about the child rather than a defect.
+//
+// While a task on the card still waits for its answer, the brief is for the
+// task asked for in its place, which leaves that one behind: it is dressed as
+// the task after it.
 func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, profile.TutorMode, error) {
 	return brief(p, catalog, choice, false)
 }
@@ -224,10 +234,10 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 // Ahead builds the brief for the task after the one on the card, which the
 // model writes ahead, and says who chose it. It is the brief Next builds now.
 // While the child still works on the task on the card it is chosen before
-// that answer, which the next brief ahead then takes in, and dressed one
-// interest further on: the interests are taken in turn by the answers behind
-// the child, and the answer to the task on the card is not behind them yet, so
-// two tasks in a row would otherwise be dressed alike. Once that task has its
+// that answer, which the next brief ahead then takes in, and dressed as the
+// task after that one: which task an interest dresses is counted by the tasks
+// behind the child, and the task on the card is not behind them yet, so two
+// tasks in a row would otherwise be dressed alike. Once that task has its
 // answer, the task written ahead is simply the next one.
 func Ahead(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, profile.TutorMode, error) {
 	return brief(p, catalog, choice, true)
@@ -266,7 +276,7 @@ func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (prof
 		GradeLevel:      point.GradeLevel,
 		PedagogicalGoal: goal,
 		Rationale:       said,
-		Setting:         setting(p, awaited),
+		Setting:         setting(p),
 		TargetConcept:   topic,
 		TrapsToUse:      traps(p, topic, point.GradeLevel, catalog),
 	}, mode, nil
@@ -274,10 +284,9 @@ func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (prof
 
 // awaits says a task is written ahead of the answer to the task on the card.
 // That task comes before it, whatever answer it gets, so whatever counts what
-// the child has left behind counts the task on the card among it already: the
-// interest the task is dressed in, its place in the trial series, and the idea
-// and the reference tasks of its package are what they will be once that
-// answer is in.
+// the child has left behind counts the task on the card among it already: its
+// place in the trial series, and the idea and the reference tasks of its
+// package are what they will be once that answer is in.
 func awaits(p *profile.Profile, ahead bool) bool {
 	return ahead && p.InFlight() != nil
 }
@@ -547,30 +556,46 @@ func CorridorIn(p *profile.Profile, catalog Catalog, topic string) rating.Corrid
 	return rating.NewCorridor(p.LevelIn(topic), pointsOf(catalog, topic))
 }
 
-// setting is what the task is dressed in: the interests taken in turn, by the
-// number of answers behind the child — one more for a task written ahead while
-// the answer to the task on the card is awaited, whose turn comes after that
-// answer. The count never goes backwards, which is what the window of recent
+// setting is what the task is dressed in: one of the child's interests on the
+// first of every InterestEvery tasks, the interests taken in turn, and nothing
+// on the others, which the model dresses in a setting of its own. The tasks
+// are counted as the child leaves them behind, answered or skipped, so that a
+// task leafed past for its interest is not followed by another dressed in
+// one. The count never goes backwards, which is what the window of recent
 // answers cannot promise — it is pruned, and a rotation over it would quietly
 // start repeating.
 //
 // No interests, no setting: the model picks something itself.
-func setting(p *profile.Profile, awaited bool) string {
+func setting(p *profile.Profile) string {
 	interests := p.Student.Interests
 	if len(interests) == 0 {
 		return ""
 	}
-	answers := p.Ratings.Answers
-	if awaited {
-		answers++
+	tasks := tasksBehind(p)
+	if tasks%InterestEvery != 0 {
+		return ""
 	}
-	// The count comes from a file a person can open and edit, so it can be
-	// anything at all. A remainder of a negative number is negative in Go, and
-	// a rule that reached past the front of the list over that would take the
-	// request down: nonsense in is a setting out, not a panic.
-	turn := answers % len(interests)
-	if turn < 0 {
-		turn += len(interests)
+	return interests[(tasks/InterestEvery)%len(interests)]
+}
+
+// tasksBehind is how many tasks the child has left behind, answered or
+// skipped, with the task on the card among them while it waits for its
+// answer: a brief built then is for a task after it, whether written ahead of
+// that answer or asked for in its place, which leaves it behind, skipped — and
+// a brief is built before that skip is recorded.
+//
+// The counts come from a file a person can open and edit, so they can be
+// anything at all. A remainder of a negative number is negative in Go, and a
+// rule that reached past the front of the list over that would take the
+// request down: a count below zero is taken as none, and nonsense in is a
+// setting out, not a panic.
+func tasksBehind(p *profile.Profile) int {
+	tasks := p.Ratings.Answers
+	for _, topic := range p.Topics {
+		tasks += topic.Skipped
 	}
-	return interests[turn]
+	if p.InFlight() != nil {
+		tasks++
+	}
+	return max(tasks, 0)
 }

@@ -2,8 +2,11 @@ package checks_test
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
+
+	"golang.org/x/text/language"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 )
@@ -25,11 +28,17 @@ func labelled(labels ...string) json.RawMessage {
 // matched is what holding a picture to its wording finds, in an English
 // lesson, for a task whose options none of the labels is.
 func matched(question string, picture json.RawMessage) []checks.Problem {
+	return matchedIn("en", question, picture)
+}
+
+// matchedIn is what holding a picture to its wording finds, in a lesson in a
+// language, for a task whose options none of the labels is.
+func matchedIn(lesson, question string, picture json.RawMessage) []checks.Problem {
 	task := &checks.Task{
 		Question: question, Picture: picture, CorrectAnswer: "A",
 		Options: map[string]string{"A": "one hundred", "B": "two", "C": "three", "D": "four", "E": "five"},
 	}
-	return checks.PictureMatch(task, "en")
+	return checks.PictureMatch(task, lesson)
 }
 
 func TestAPictureLabelledAsTheWordingNamesMatches(t *testing.T) {
@@ -131,87 +140,254 @@ func TestEachMismatchIsRefused(t *testing.T) {
 
 // A range whose ends the wording names names every label between them, in
 // each language of the cards, with the marks any language spans a range by,
-// and with the ends joined to a hyphen, an apostrophe or a script's letters.
+// and with the ends joined to a hyphen, an apostrophe, a case ending or a
+// script's letters. The Spanish, Portuguese, Italian and Catalan a, "to",
+// spans one, though the Czech a lists.
 func TestARangeNamesTheLabelsBetweenItsEnds(t *testing.T) {
 	t.Parallel()
 
-	for _, question := range []string{
-		"The rows run from A up to D.",
-		"从A到D的行涂了颜色。",
-		"A से D तक की पंक्तियाँ रंगी हैं।",
-		"Las filas de la A a la D están pintadas.",
-		"الصفوف من A إلى D ملونة.",
-		"Les rangées de A jusqu'à D sont coloriées.",
-		"A থেকে D পর্যন্ত সারি রং করা।",
-		"As linhas da A à D estão pintadas.",
-		"Ряды с A по D закрашены.",
-		"A سے D تک قطاریں رنگی ہیں۔",
-		"Baris A sampai D diwarnai.",
-		"Die Reihen von A bis D sind bemalt.",
-		"AからDまでの行に色がある。",
-		"A'dan D'ye kadar olan satırlar boyalı.",
-		"A부터 D까지의 행은 칠해져 있다.",
-		"Các hàng từ A đến D được tô màu.",
-		"Le righe dalla A alla D sono colorate.",
-		"ردیف های A تا D رنگی است.",
-		"Rzędy od A do D są pomalowane.",
-		"Ряди від A до D зафарбовані.",
-		"แถว A ถึง D ถูกระบายสี",
-		"De rijen van A tot D zijn gekleurd.",
-		"Rows A-D are shaded.",
-		"Rows A\u2010D are shaded.",
-		"Rows A…D are shaded.",
-		"Rows A～D are shaded.",
+	for _, test := range []struct{ lesson, question string }{
+		{"en", "The rows run from A up to D."},
+		{"zh-Hans", "从A到D的行涂了颜色。"},
+		{"hi", "A से D तक की पंक्तियाँ रंगी हैं।"},
+		{"es", "Las filas de la A a la D están pintadas."},
+		{"ar", "الصفوف من A إلى D ملونة."},
+		{"fr", "Les rangées de A jusqu'à D sont coloriées."},
+		{"bn", "A থেকে D পর্যন্ত সারি রং করা।"},
+		{"pt", "As linhas da A à D estão pintadas."},
+		{"pt", "As linhas de A a D estão pintadas."},
+		{"ru", "Ряды с A по D закрашены."},
+		{"ur", "A سے D تک قطاریں رنگی ہیں۔"},
+		{"id", "Baris A sampai D diwarnai."},
+		{"de", "Die Reihen von A bis D sind bemalt."},
+		{"ja", "AからDまでの行に色がある。"},
+		{"tr", "A'dan D'ye kadar olan satırlar boyalı."},
+		{"ko", "A부터 D까지의 행은 칠해져 있다."},
+		{"vi", "Các hàng từ A đến D được tô màu."},
+		{"it", "Le righe dalla A alla D sono colorate."},
+		{"it", "Le righe da A a D sono colorate."},
+		{"fa", "ردیف های A تا D رنگی است."},
+		{"pl", "Rzędy od A do D są pomalowane."},
+		{"uk", "Ряди від A до D зафарбовані."},
+		{"th", "แถว A ถึง D ถูกระบายสี"},
+		{"nl", "De rijen van A tot D zijn gekleurd."},
+		{"ca", "Les files de l'A a la D estan pintades."},
+		{"cs", "Řady od A do D jsou vybarvené."},
+		{"sk", "Riadky od A po D sú vyfarbené."},
+		{"fi", "Rivit A:sta D:hen on varjostettu."},
+		{"sv", "Raderna A till D är skuggade."},
+		{"hu", "Az A-tól D-ig tartó sorok színezettek."},
+		{"el", "Οι σειρές από A έως D είναι σκιασμένες."},
+		{"he", "השורות מ-A עד D צבועות."},
+		{"hy", "A-ից մինչև D շարքերը ներկված են։"},
+		{"ka", "რიგები A-დან D-მდე შეღებილია."},
+		{"sw", "Safu kutoka A hadi D zimetiwa rangi."},
+		{"zu", "Imigqa kusuka ku-A kuya ku-D ifakwe umbala."},
+		{"sv", "Raderna A till och med D är skuggade."},
+		{"da", "Rækkerne A til og med D er skraverede."},
+		{"nb", "Radene A til og med D er skravert."},
+		{"nl", "De rijen A tot en met D zijn gekleurd."},
+		{"id", "Baris A sampai dengan D diwarnai."},
+		{"ms", "Baris A sampai dengan D diwarnakan."},
+		{"el", "Οι σειρές από A έως και D είναι σκιασμένες."},
+		{"", "Raderna A till och med D är skuggade."},
+		{"en", "Rows A-D are shaded."},
+		{"en", "Rows A\u2010D are shaded."},
+		{"en", "Rows A…D are shaded."},
+		{"en", "Rows A～D are shaded."},
 	} {
-		t.Run(question, func(t *testing.T) {
+		t.Run(test.lesson+" "+test.question, func(t *testing.T) {
 			t.Parallel()
 
-			if problems := matched(question, labelled("A", "B", "C", "D")); len(problems) != 0 {
-				t.Errorf("PictureMatch() = %v, want B and C named by the range", problems)
+			if problems := matchedIn(test.lesson, test.question, labelled("A", "B", "C", "D")); len(problems) != 0 {
+				t.Errorf("PictureMatch() = %v in %s, want B and C named by the range", problems, test.lesson)
 			}
 		})
 	}
 }
 
+// The Greek semicolon, a raised dot that a keyboard writes as the middle dot,
+// and the grave accent as a mark of its own, written after its letter.
+const (
+	greekAnoTeleia = "\u0387"
+	combiningGrave = "\u0300"
+)
+
+// listedInEachLanguage are two ends a wording lists in each language of the
+// cards, with its word for "and", "or" or "with": written apart, joined to a
+// label by a hyphen, or by a case ending.
+var listedInEachLanguage = []struct{ lesson, question string }{
+	{"am", "ረድፎች A እና D ቀለም ተቀብተዋል።"},
+	{"ar", "الصفان A و D ملونان."},
+	{"az", "A və D sıraları rənglənib."},
+	{"bg", "Редовете A и D са оцветени."},
+	{"bn", "সারি A ও D রং করা।"},
+	{"bs", "Redovi A i D su obojeni."},
+	{"ca", "Les files A i D estan pintades."},
+	{"ckb", "ڕیزەکانی A و D ڕەنگکراون."},
+	{"cs", "Řady A a D jsou vybarvené."},
+	{"da", "Rækkerne A og D er skraverede."},
+	{"de", "Die Reihen A und D sind bemalt."},
+	{"el", "Οι σειρές A και D είναι σκιασμένες."},
+	{"en", "Rows A and D are shaded."},
+	{"es", "Las filas A y D están pintadas."},
+	{"fa", "ردیف A یا D رنگی است."},
+	{"fi", "Rivit A ja D on varjostettu."},
+	{"fi", "Rivien A:n ja D:n ruudut on varjostettu."},
+	{"fil", "Ang mga hanay A at D ay may kulay."},
+	{"fr", "Les rangées A et D sont coloriées."},
+	{"gu", "હરોળ A અને D રંગેલી છે."},
+	{"ha", "Layukan A da D an yi musu launi."},
+	{"he", "השורות A ו-D צבועות."},
+	{"hi", "पंक्तियाँ A और D रंगी हैं।"},
+	{"hr", "Redovi A i D su obojeni."},
+	{"hu", "Az A és D sor színezett."},
+	{"hy", "A և D շարքերը ներկված են։"},
+	{"id", "Baris A dan D diwarnai."},
+	{"ig", "Ahịrị A na D ka e tere agba."},
+	{"it", "Le righe A e D sono colorate."},
+	{"ja", "AとDの行に色がある。"},
+	{"ka", "რიგები A და D შეღებილია."},
+	{"kk", "A және D қатарлары боялған."},
+	{"kn", "ಸಾಲುಗಳು A ಮತ್ತು D ಬಣ್ಣ ಹಚ್ಚಲಾಗಿದೆ."},
+	{"ko", "A와 D 행은 칠해져 있다."},
+	{"ku", "Rêzên A û D rengkirî ne."},
+	{"lt", "Eilutės A ir D nuspalvintos."},
+	{"mai", "पाँती A आ D रंगल अछि।"},
+	{"ml", "വരികൾ A-യും D-യും നിറം നൽകിയവയാണ്."},
+	{"mr", "रांगा A आणि D रंगवल्या आहेत."},
+	{"ms", "Baris A dan D diwarnakan."},
+	{"ms", "باريس A دان D دوارناكن."},
+	{"nb", "Radene A og D er skravert."},
+	{"nl", "De rijen A en D zijn gekleurd."},
+	{"no", "Radene A og D er skravert."},
+	{"or", "ଧାଡ଼ି A ଓ D ରଙ୍ଗ କରାଯାଇଛି।"},
+	{"pa", "ਕਤਾਰਾਂ A ਅਤੇ D ਰੰਗੀਆਂ ਹਨ।"},
+	{"pa-PK", "قطاراں A اتے D رنگیاں ہن۔"},
+	{"pl", "Rzędy A i D są pomalowane."},
+	{"ps", "قطارونه A او D رنګ شوي دي."},
+	{"pt", "As linhas A e D estão pintadas."},
+	{"ro", "Rândurile A și D sunt colorate."},
+	{"ru", "Ряды A и D закрашены."},
+	{"sk", "Riadky A a D sú vyfarbené."},
+	{"sr", "Редови A и D су обојени."},
+	{"sr", "Redovi A i D su obojeni."},
+	{"sv", "Raderna A och D är skuggade."},
+	{"sw", "Safu A na D zimetiwa rangi."},
+	{"ta", "வரிசைகள் A மற்றும் D வண்ணம் தீட்டப்பட்டுள்ளன."},
+	{"te", "వరుసలు A మరియు D రంగు వేయబడ్డాయి."},
+	{"th", "แถว A และ D ถูกระบายสี"},
+	{"tr", "A ve D satırları boyalı."},
+	{"uk", "Ряди A і D зафарбовані."},
+	{"ur", "قطار A اور D رنگی ہیں۔"},
+	{"uz", "A va D qatorlari bo'yalgan."},
+	{"vi", "Hàng A và D được tô màu."},
+	{"yo", "Àwọn ìlà A àti D ni a kùn."},
+	{"zh-Hans", "A和D两行涂了颜色。"},
+	{"zh-Hant", "A與D兩行塗了顏色。"},
+	{"zu", "Imigqa A no-D ifakwe umbala."},
+}
+
 // Two ends the wording lists — with a word for "and", "or" or "with" in each
-// language of the cards, or with a mark that lists or reckons — name those two
-// and nothing between them.
+// language of the cards, or with a mark that lists or reckons in any — name
+// those two and nothing between them.
 func TestListedEndsNameNothingBetween(t *testing.T) {
 	t.Parallel()
 
-	for _, question := range []string{
-		"Rows A and D are shaded.",
-		"A和D两行涂了颜色。",
-		"पंक्तियाँ A और D रंगी हैं।",
-		"Las filas A y D están pintadas.",
-		"الصفان A و D ملونان.",
-		"Les rangées A et D sont coloriées.",
-		"সারি A ও D রং করা।",
-		"As linhas A e D estão pintadas.",
-		"Ряды A и D закрашены.",
-		"قطار A اور D رنگی ہیں۔",
-		"Baris A dan D diwarnai.",
-		"Die Reihen A und D sind bemalt.",
-		"AとDの行に色がある。",
-		"A ve D satırları boyalı.",
-		"A와 D 행은 칠해져 있다.",
-		"Hàng A và D được tô màu.",
-		"Le righe A e D sono colorate.",
-		"ردیف A یا D رنگی است.",
-		"Rzędy A i D są pomalowane.",
-		"Ряди A і D зафарбовані.",
-		"แถว A และ D ถูกระบายสี",
-		"De rijen A en D zijn gekleurd.",
-		"Rows A, D are shaded.",
-		"Rows A/D are shaded.",
-		"A + D = 10.",
-	} {
-		t.Run(question, func(t *testing.T) {
+	marked := []struct{ lesson, question string }{
+		{"en", "Rows A, D are shaded."},
+		{"en", "Rows A/D are shaded."},
+		{"ru", "Ряды A/D закрашены."},
+		{"en", "A + D = 10."},
+		{"am", "ረድፎች A፣ D ቀለም ተቀብተዋል።"},
+		{"am", "ረድፎች A፡እና፡D ቀለም ተቀብተዋል።"},
+		{"hy", "A՝ D շարքերը ներկված են։"},
+		{"el", "Οι σειρές A·D είναι σκιασμένες."},
+		{"el", "Οι σειρές A" + greekAnoTeleia + "D είναι σκιασμένες."},
+		{"el", "Οι σειρές A" + greekQuestionMark + " D είναι σκιασμένες."},
+		{"yo", "Àwọn ìlà A a" + combiningGrave + "ti D ni a kùn."},
+	}
+	for _, test := range append(slices.Clone(listedInEachLanguage), marked...) {
+		t.Run(test.lesson+" "+test.question, func(t *testing.T) {
 			t.Parallel()
 
-			problems := matched(question, labelled("A", "B", "C", "D"))
+			problems := matchedIn(test.lesson, test.question, labelled("A", "B", "C", "D"))
 			if len(problems) != 1 || !strings.Contains(problems[0].Message, "does not name 2 of the labels") {
-				t.Errorf("PictureMatch() = %v, want B and C unnamed", problems)
+				t.Errorf("PictureMatch() = %v in %s, want B and C unnamed", problems, test.lesson)
+			}
+		})
+	}
+}
+
+// Every language of the cards lists two ends with words of its own, and a
+// lesson in one is read with them alone. A lesson with no list of its own, or
+// none at all, is read with the words of every language but those another
+// joins a range with: the a of Czech lists there, in a lesson in no language,
+// as it does not in one in Spanish.
+func TestEachLanguageListsWithItsOwnWords(t *testing.T) {
+	t.Parallel()
+
+	listing := checks.ListingLanguages()
+	for tag := range languagesOfTheCards {
+		if base, _ := language.Make(tag).Base(); !slices.Contains(listing, base.String()) {
+			t.Errorf("the cards speak %s, and %s lists with no words of its own", tag, base)
+		}
+	}
+	for _, test := range []struct {
+		name, lesson, question string
+		named                  bool
+	}{
+		{"Swedish and, in a lesson in English", "en", "Raderna A och D är skuggade.", true},
+		{"Swedish and, in a lesson in no language", "", "Raderna A och D är skuggade.", false},
+		{"Czech and, in a lesson in no language", "", "Řady A a D jsou vybarvené.", true},
+		{"Spanish to, in a lesson in no language", "", "Las filas de la A a la D están pintadas.", true},
+		{"Spanish to, in a lesson in Czech", "cs", "Las filas de la A a la D están pintadas.", false},
+		{"Bokmål and, in a lesson in Nynorsk", "nn", "Radene A og D er skravert.", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			problems := matchedIn(test.lesson, test.question, labelled("A", "B", "C", "D"))
+			if named := len(problems) == 0; named != test.named {
+				t.Errorf("PictureMatch() = %v in %q, want B and C named by a range %v", problems, test.lesson, test.named)
+			}
+		})
+	}
+}
+
+// A picture labels in Latin capitals, and a lesson written in Greek names its
+// points with Greek ones: a run of them standing apart, each drawn as a Latin
+// capital is, names the labels it looks like, so that the wording's Α names a
+// picture's A. A Greek word opening with such a capital names nothing, nor
+// does a run that holds a capital drawn as no Latin one. The labels the
+// wording names are looked for in the picture in Latin capitals alone, as in
+// any lesson, so an article opening a sentence after a quote is never taken
+// for one. A lesson in any other language reads a Greek capital as the letter
+// it is.
+func TestAGreekLessonReadsItsCapitalsAsTheLatinTheyLookLike(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name, lesson, question string
+		picture                json.RawMessage
+		refused                bool
+	}{
+		{"the wording's Greek capitals, a picture's Latin ones", "el", "Τα σημεία \u0391 και \u0392 απέχουν 4 cm.",
+			labelled("A", "B"), false},
+		{"a Greek capital no Latin one is drawn as", "el", "Τα σημεία \u0391 και \u0393 απέχουν 4 cm.", labelled("A", "C"), true},
+		{"a Greek capital the wording names is not looked for in the picture", "el", "Τα σημεία \u0391 και \u0392 απέχουν 4 cm.", labelled("A"), false},
+		{"an article opening a sentence after a Greek question", "el", "Πόσα cm απέχει το \u0391 από το \u0392; \u0397 Μαρία μετράει.", labelled("A", "B"), false},
+		{"and after the Greek question mark", "el", "Πόσα cm απέχει το \u0391 από το \u0392" + greekQuestionMark + " \u0397 Μαρία μετράει.", labelled("A", "B"), false},
+		{"a liar quoted in a Greek lesson, its articles opening sentences", "el", "\u039f \u0391 λέει: «\u039f \u0392 είναι ψεύτης.» \u039f Γ λέει ότι ψεύδεται.", labelled("A", "B"), false},
+		{"Greek words opening with capitals drawn as Latin ones", "el", "Από το σημείο \u0392 ως το τέλος. Τα μήλα είναι 5.", labelled("A", "B", "T"), true},
+		{"a run of Greek capitals one of which is drawn as no Latin one", "el", "Το τρίγωνο \u0391\u0392Γ έχει ορθή γωνία.", labelled("A", "B"), true},
+		{"the same in a lesson in Russian", "ru", "Точки \u0391 и \u0392 на расстоянии 4 см.", labelled("A", "B"), true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if refused := len(matchedIn(test.lesson, test.question, test.picture)) > 0; refused != test.refused {
+				t.Errorf("PictureMatch() refused %v in %s, want %v", refused, test.lesson, test.refused)
 			}
 		})
 	}
@@ -302,6 +478,10 @@ func FuzzPictureMatch(f *testing.F) {
 	f.Add("Сколько флажков с красной полосой?", []byte(`{"kind":"flags","colors":{"red":"красная","blue":"синяя"},`+
 		`"groups":[{"label":"Q","flags":[["red","blue"],["blue","?"]]}]}`), "2", "ru")
 	f.Add("ёЁ", []byte(`{"kind":"flags","colors":{"red":"Ё"},"groups":[{"flags":[["red","?"]]}]}`), "1", "")
+	f.Add("Řady A a D jsou vybarvené.", []byte(`{"kind":"table","rows":[["A"],["B"],["C"],["D"]]}`), "B", "cs")
+	f.Add("השורות A ו-D צבועות.", []byte(`{"kind":"table","rows":[["A"],["D"]]}`), "D", "he")
+	f.Add("Rivit A:sta D:hen", []byte(`{"kind":"table","rows":[["A"],["B"],["D"]]}`), "B", "fi")
+	f.Add("Οι σειρές Α έως Δ·Ε;", []byte(`{"kind":"table","rows":[["Α"],["B"],["Δ"]]}`), "Β", "el")
 
 	f.Fuzz(func(t *testing.T, question string, picture []byte, right, lesson string) {
 		task := &checks.Task{Question: question, Picture: picture, Options: map[string]string{"A": right},

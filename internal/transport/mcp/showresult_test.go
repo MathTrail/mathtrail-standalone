@@ -98,7 +98,7 @@ func TestTheCardOfHowAnAnswerWentShowsIt(t *testing.T) {
 	}{
 		{name: "right", answers: rating.TrialAnswers, answer: "C", says: "and it is right. Praise briefly"},
 		{name: "wrong", answers: rating.TrialAnswers, answer: "A", says: raceExplained[0]},
-		{name: "I don't know", answers: rating.TrialAnswers, answer: "?", says: "what the solution turns on"},
+		{name: "I don't know", answers: rating.TrialAnswers, answer: "?", says: "Without a card, go through the solution"},
 		{name: "in the trial series", answer: "B", says: "1 of 5 tasks done", inSeries: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -120,8 +120,8 @@ func TestTheCardOfHowAnAnswerWentShowsIt(t *testing.T) {
 				t.Errorf("topic_choice = %+v, want one only once the trial series is over", payload.TopicChoice)
 			}
 			if text := textOf(t, shown); !strings.Contains(text, "the card below shows how the answer to task "+id) ||
-				!strings.Contains(text, tc.says) || !strings.Contains(text, "Solution: ") {
-				t.Errorf("the words are %q, want the card named, %q and the solution", text, tc.says)
+				!strings.Contains(text, tc.says) || !strings.Contains(text, "Solution: ") || !strings.Contains(text, notRetold) {
+				t.Errorf("the words are %q, want the card named and retold by nobody, %q and the solution", text, tc.says)
 			}
 			if after, _ := profile.Marshal(loadedOf(t, kept)); !bytes.Equal(after, before) {
 				t.Error("show_result changed the profile, want it as the answer left it")
@@ -174,8 +174,9 @@ func TestNothingIsShownOfATaskBeforeItsAnswer(t *testing.T) {
 	if reads := counted.reads(); reads != 4 {
 		t.Errorf("the profile was read %d times, want the three reads of the answer after the session's own", reads)
 	}
-	if text := textOf(t, shown); !strings.Contains(text, "may still be on its way into the file") {
-		t.Errorf("show_result says %q, want the model told an answer just recorded may still be on its way", text)
+	if text := textOf(t, shown); !strings.Contains(text, "only just recorded with submit_answer may still be on its way") ||
+		!strings.Contains(text, "then, and only then, call show_result again") {
+		t.Errorf("show_result says %q, want the model to ask again only after an answer it has just recorded", text)
 	}
 }
 
@@ -340,7 +341,8 @@ func TestThereIsNoAnswerToShowWithoutAProfile(t *testing.T) {
 // answer: before the answer they reach no payload, no word for the model and
 // no open field of the file; no line ever holds them, and the hand-in's line
 // names no more of the picture than its kind and its size. Once the answer is
-// in, the card of how it went carries them.
+// in, the reply to it carries them, for the card that took it, and so does the
+// card of how it went.
 func TestThePictureOfTheSolutionIsSealedUntilTheAnswer(t *testing.T) {
 	t.Parallel()
 
@@ -372,15 +374,19 @@ func TestThePictureOfTheSolutionIsSealedUntilTheAnswer(t *testing.T) {
 		}
 	}
 
-	answerIt(t, session, card.Task.ID, "A", false)
-	shown := payloadOf[struct {
+	type pictured struct {
 		Result struct {
 			SolutionPicture map[string]any `json:"solution_picture"`
 			SolutionTotal   string         `json:"solution_total"`
 		} `json:"result"`
-	}](t, showIt(t, session, card.Task.ID))
-	if shown.Result.SolutionPicture["kind"] != "row" || shown.Result.SolutionTotal != "1970 + 9 = "+marker {
-		t.Errorf("show_result = %+v, want the picture of the solution and its total", shown.Result)
+	}
+	answered := answerIt(t, session, card.Task.ID, "A", false)
+	shown := showIt(t, session, card.Task.ID)
+	for tool, after := range map[string]*mcp.CallToolResult{"submit_answer": answered, "show_result": shown} {
+		if shown := payloadOf[pictured](t, after); shown.Result.SolutionPicture["kind"] != "row" ||
+			shown.Result.SolutionTotal != "1970 + 9 = "+marker {
+			t.Errorf("%s = %+v, want the picture of the solution and its total", tool, shown.Result)
+		}
 	}
 
 	h.settle()

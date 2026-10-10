@@ -76,11 +76,13 @@ function numbered(
 				(tick, at) => at === 0 || apart(regular[at - 1] as Tick, tick, size),
 			);
 			if (spaced) {
-				const kept = regular.filter((tick) =>
-					forced.every((other) => other === tick || apart(other, tick, size)),
+				const kept = new Set(
+					regular.filter((tick) =>
+						forced.every((other) => other === tick || apart(other, tick, size)),
+					),
 				);
 				const chosen = ticks.filter(
-					(tick) => always.has(tick.place) || kept.includes(tick),
+					(tick) => always.has(tick.place) || kept.has(tick),
 				);
 				return { chosen, size };
 			}

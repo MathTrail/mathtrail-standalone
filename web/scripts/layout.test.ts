@@ -2,6 +2,7 @@
 import { Window } from "happy-dom";
 import { h, render } from "preact";
 import { describe, expect, test } from "vitest";
+import { pseudoLocale } from "../src/i18n/pseudo";
 import {
 	allowed,
 	type DrawnPicture,
@@ -11,6 +12,7 @@ import {
 	pagesOf,
 	pictureFindings,
 	type Shard,
+	sampled,
 	shardOf,
 	shareOf,
 	told,
@@ -154,6 +156,47 @@ describe("what is asked for", () => {
 		"2 / 6",
 	])("refuses %j as a shard", (asked) => {
 		expect(() => shardOf(asked)).toThrow(`${asked} is no shard`);
+	});
+});
+
+describe("the languages a pull request is measured in", () => {
+	// offered are the languages the preview offers, in its order.
+	const offered = ["en", "ru", "ar", "de", "en-XA", "ja"];
+
+	test("are the pseudo-language, English and one other, the same for a commit", () => {
+		const languages = sampled(offered, "a1b2c3d4e5f6");
+
+		expect(languages.slice(0, 2)).toEqual([pseudoLocale, "en"]);
+		expect(languages).toHaveLength(3);
+		expect(["ru", "ar", "de", "ja"]).toContain(languages[2]);
+		expect(sampled(offered, "a1b2c3d4e5f6")).toEqual(languages);
+	});
+
+	test("take each other language for some commit", () => {
+		const picked = new Set(
+			Array.from(
+				{ length: 64 },
+				(_, at) => sampled(offered, at.toString(16).padStart(8, "0"))[2],
+			),
+		);
+
+		expect([...picked].sort()).toEqual(["ar", "de", "ja", "ru"]);
+	});
+
+	test.each([
+		["no commit", "main"],
+		["a commit cut too short", "a1b2c3"],
+		["a commit in capitals", "A1B2C3D4"],
+	])("are refused for %s", (_, commit) => {
+		expect(() => sampled(offered, commit)).toThrow(
+			`${commit} is no commit to pick a language by`,
+		);
+	});
+
+	test("are refused by a preview that offers no English", () => {
+		expect(() => sampled(["ru", "en-XA"], "a1b2c3d4")).toThrow(
+			"the preview offers no en",
+		);
 	});
 });
 

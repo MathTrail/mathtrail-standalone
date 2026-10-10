@@ -55,8 +55,12 @@ func among(words, symbols []string) string {
 }
 
 // lessonsInOtherLetters are languages of the cards written in letters other
-// than Latin.
-var lessonsInOtherLetters = []string{"ru", "uk", "ar", "fa", "ur", "hi", "bn", "th", "ja", "zh-Hans", "ko"}
+// than Latin. Greek is left out: a single Greek letter is a symbol anywhere
+// else, and a word of its own in a lesson in Greek.
+var lessonsInOtherLetters = []string{
+	"ru", "uk", "bg", "ar", "fa", "ur", "ps", "ckb", "he", "am", "hy", "ka", "hi", "mr", "mai", "bn", "pa", "gu",
+	"or", "ta", "te", "kn", "ml", "th", "ja", "zh-Hans", "zh-Hant", "ko",
+}
 
 func TestTheLanguageCheckHoldsItsProperties(t *testing.T) {
 	t.Parallel()

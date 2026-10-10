@@ -138,9 +138,10 @@ function Figure({
 					</text>
 				);
 			})}
-			{twice.map((points, place) => (
-				<path key={place} class="s-grid-twice" d={pathOf(points, size, at)} />
-			))}
+			{twice.map((points) => {
+				const d = pathOf(points, size, at);
+				return <path key={d} class="s-grid-twice" d={d} />;
+			})}
 			{border && (
 				<path
 					class="s-grid-border"
@@ -149,9 +150,10 @@ function Figure({
 						.join("")}
 				/>
 			)}
-			{cuts.map((points, place) => (
-				<path key={place} class="s-grid-cut" d={pathOf(points, size, at)} />
-			))}
+			{cuts.map((points) => {
+				const d = pathOf(points, size, at);
+				return <path key={d} class="s-grid-cut" d={d} />;
+			})}
 			{dots.map(([column, row]) => (
 				<circle
 					key={`${column}.${row}`}

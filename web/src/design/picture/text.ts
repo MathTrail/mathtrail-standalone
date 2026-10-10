@@ -166,7 +166,7 @@ export function fitted(
 			return size;
 		}
 	}
-	return sizes[sizes.length - 1] ?? smallest;
+	return sizes.at(-1) ?? smallest;
 }
 
 /** Placed is a label laid out among others: where its middle stands, and on which line. */

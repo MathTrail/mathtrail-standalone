@@ -273,8 +273,8 @@ const note = (from: number, to: number, tone: "host" | "service"): Step => ({
 /**
  * scenarios are a lesson's three ways, call by call: a task, from the adult's
  * asking to the card that shows it; an answer, from the child's press to the
- * card of how it went and the chat's few words beside it; and the parent's one
- * sign-in.
+ * card turned into how it went, and the adult's question after it; and the
+ * parent's one sign-in.
  */
 export const scenarios: readonly Scenario[] = [
 	{
@@ -306,12 +306,9 @@ export const scenarios: readonly Scenario[] = [
 			note(5, 6, "service"),
 			call(5, 6),
 			reply(5, 3),
+			note(2, 3, "host"),
 			inHost(3, 4),
-			inHost(3, 1),
 			call(1, 4),
-			call(4, 5),
-			reply(5, 4),
-			note(3, 4, "host"),
 			reply(4, 1),
 		],
 	},

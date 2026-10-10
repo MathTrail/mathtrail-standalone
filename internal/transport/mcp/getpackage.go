@@ -125,7 +125,6 @@ func (s *Service) packageFor(p *profile.Profile, request *profile.OpenRequest) (
 		Brief:      request.Brief,
 		Corridor:   tutor.CorridorIn(p, s.content, request.Brief.TargetConcept),
 		Grade:      p.Student.Grade,
-		Interests:  p.Student.Interests,
 		Notes:      p.Student.Notes,
 		Answers:    answers,
 		TopicTasks: topicTasks,

@@ -50,8 +50,6 @@ type Request struct {
 	// age, for the words and the plot, and it decides nothing else: the task
 	// is of the level the brief names, whatever the grade.
 	Grade int
-	// Interests are what the child likes: the settings tasks are dressed in.
-	Interests []string
 	// Notes are what the parent wrote about the child.
 	Notes string
 	// Answers is how many answers the child has given. It rotates the
@@ -170,11 +168,12 @@ type packageTopic struct {
 }
 
 // packageChild is what the wording may be pitched at: the school year, as the
-// child's age, the interests and the parent's notes.
+// child's age, and the parent's notes. The child's interests are not among
+// them: one dresses a task only when the brief's setting names it, and a list
+// of them in front of the model would dress every task in one.
 type packageChild struct {
-	Grade     int      `json:"grade"`
-	Interests []string `json:"interests"`
-	Notes     string   `json:"notes"`
+	Grade int    `json:"grade"`
+	Notes string `json:"notes"`
 }
 
 // packageExample is a reference task as the model is shown it: without its
@@ -228,7 +227,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 		Topic:        packageTopic{ID: topic.ID, Name: topic.Name, Description: topic.Description},
 		Traps:        packageTraps(c.traps),
 		Prohibitions: prohibitions,
-		Child:        packageChild{Grade: request.Grade, Interests: request.Interests, Notes: request.Notes},
+		Child:        packageChild{Grade: request.Grade, Notes: request.Notes},
 		Limits: packageLimits{
 			SentenceWords:      readable.SentenceWords,
 			SentenceCharacters: readable.SentenceCharacters,

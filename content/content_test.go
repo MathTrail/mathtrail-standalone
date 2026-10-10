@@ -499,6 +499,7 @@ func TestAlwaysSaysEveryRuleOfALesson(t *testing.T) {
 		{"an answer is recorded before it is explained", "before you explain anything"},
 		{`"I don't know" is an answer`, "\"I don't know\" is the answer `?`"},
 		{"a wrong answer is explained from its trap", "from its trap's text"},
+		{"what a card shows is never retold", "Never retell what a card shows"},
 		{"the adult decides when the next task comes", "The adult decides when the next task comes"},
 		{"the last answer is read from a tool", "read the last recorded answer in its result"},
 		{"MathTrail's tools are for its own tasks alone", "never for homework, another subject or a task past grade 6"},

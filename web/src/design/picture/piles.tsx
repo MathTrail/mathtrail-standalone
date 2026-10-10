@@ -60,9 +60,9 @@ function tokensOf(pile: Pile): Token[] {
 	if (pile.shown !== undefined) {
 		const first = Math.ceil(pile.shown / 2);
 		return [
-			...Array<Token>(first).fill("counter"),
+			...new Array<Token>(first).fill("counter"),
 			"ellipsis",
-			...Array<Token>(pile.shown - first).fill("counter"),
+			...new Array<Token>(pile.shown - first).fill("counter"),
 		];
 	}
 	const tokens: Token[] = [];

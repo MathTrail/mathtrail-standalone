@@ -80,12 +80,12 @@ export function drawFlags(flags: Flags, locale: string): Drawn {
 		height: rows * groupTall + (rows - 1) * rowGap,
 		body: (
 			<>
-				{laid.map((one, at) => {
+				{laid.map((one) => {
 					const left = one.x + (width - rowWidth(laid, one.row)) / 2;
 					const top = one.row * (groupTall + rowGap);
 					return (
 						<Group
-							key={at}
+							key={`${left} ${top}`}
 							laid={one}
 							left={left}
 							top={top}
@@ -182,17 +182,20 @@ function Group({
 	const middle = left + width / 2;
 	return (
 		<>
-			{group.flags.map((stripes, at) => (
-				<Flag
-					key={at}
-					x={first + at * (flagWide + flagGap)}
-					y={top}
-					tall={flagsTall}
-					stripe={stripe}
-					stripes={stripes}
-					painted={painted}
-				/>
-			))}
+			{group.flags.map((stripes, at) => {
+				const x = first + at * (flagWide + flagGap);
+				return (
+					<Flag
+						key={x}
+						x={x}
+						y={top}
+						tall={flagsTall}
+						stripe={stripe}
+						stripes={stripes}
+						painted={painted}
+					/>
+				);
+			})}
 			{(group.label !== undefined || group.color !== undefined) && (
 				<>
 					<path
@@ -249,16 +252,19 @@ function Flag({
 				stroke-width={pole}
 				stroke-linecap="round"
 			/>
-			{stripes.map((paint, at) => (
-				<StripeOf
-					key={at}
-					x={clothLeft}
-					y={y + at * stripe}
-					tall={stripe}
-					stripe={paint}
-					painted={painted}
-				/>
-			))}
+			{stripes.map((paint, at) => {
+				const top = y + at * stripe;
+				return (
+					<StripeOf
+						key={top}
+						x={clothLeft}
+						y={top}
+						tall={stripe}
+						stripe={paint}
+						painted={painted}
+					/>
+				);
+			})}
 			<rect
 				x={r1(clothLeft)}
 				y={r1(y)}

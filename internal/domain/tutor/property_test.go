@@ -230,10 +230,89 @@ func TestTheRuleKeepsWithinReach(t *testing.T) {
 	properties.TestingRun(t)
 }
 
+// The interests dress one task in three and take their turns, whatever the
+// child: never two tasks in a row, each interest as often as any other, and a
+// task leafed past counts as one answered, so skipping is no way round them.
+func TestTheInterestsDressOneTaskInThree(t *testing.T) {
+	t.Parallel()
+
+	c := stepped()
+	properties := gopter.NewProperties(nil)
+
+	properties.Property("of any three tasks in a row, one is dressed in an interest", prop.ForAll(
+		func(s *seed, from int) bool {
+			settings, built := settingsFrom(s, c, from, tutor.InterestEvery)
+			return built && len(dressed(settings)) == min(len(s.interests()), 1)
+		},
+		genSeed(), gen.IntRange(0, 1000),
+	))
+
+	properties.Property("over a round of the interests, each dresses one task", prop.ForAll(
+		func(s *seed, from int) bool {
+			settings, built := settingsFrom(s, c, from, tutor.InterestEvery*len(s.interests()))
+			return built && slices.Equal(slices.Sorted(slices.Values(dressed(settings))),
+				slices.Sorted(slices.Values(s.interests())))
+		},
+		genSeed(), gen.IntRange(0, 1000),
+	))
+
+	properties.Property("a task skipped counts as one answered", prop.ForAll(
+		func(s *seed, answered, skipped int) bool {
+			all, built := settingAfter(s, c, answered+skipped, 0)
+			some, built2 := settingAfter(s, c, answered, skipped)
+			return built && built2 && all == some
+		},
+		genSeed(), gen.IntRange(0, 100), gen.IntRange(0, 50),
+	))
+
+	properties.TestingRun(t)
+}
+
+// interests is the seed's interests, as many as a profile may hold.
+func (s *seed) interests() []string {
+	return s.Interests[:min(len(s.Interests), profile.MaxInterests)]
+}
+
+// settingAfter is what the next task of a seed's child is dressed in once the
+// child has answered and skipped so many tasks; it reports whether a brief was
+// built at all.
+func settingAfter(s *seed, c catalog, answered, skipped int) (string, bool) {
+	p := s.build()
+	p.Student.Interests = s.interests()
+	p.Ratings.Answers = answered
+	topic := p.Topics[c.topics[0]]
+	topic.Skipped = skipped
+	p.Topics[c.topics[0]] = topic
+
+	brief, _, err := tutor.Next(p, c, tutor.Choice{})
+	return brief.Setting, err == nil
+}
+
+// settingsFrom is what each of so many tasks in a row is dressed in, the first
+// once from tasks are behind the seed's child; it reports whether every brief
+// was built.
+func settingsFrom(s *seed, c catalog, from, tasks int) ([]string, bool) {
+	settings := make([]string, 0, tasks)
+	for behind := from; behind < from+tasks; behind++ {
+		setting, built := settingAfter(s, c, behind, 0)
+		if !built {
+			return nil, false
+		}
+		settings = append(settings, setting)
+	}
+	return settings, true
+}
+
+// dressed is the settings that name an interest, without the tasks the model
+// dresses itself.
+func dressed(settings []string) []string {
+	return slices.DeleteFunc(slices.Clone(settings), func(setting string) bool { return setting == "" })
+}
+
 // fillable reports whether a brief names everything a task can be written
 // from: a topic of the catalog at a level it is taught at, a difficulty that
-// exists, at most two mistakes and no repeat of one, a goal, and a setting the
-// child actually named.
+// exists, at most two mistakes and no repeat of one, a goal, and a setting, if
+// there is one, that the child actually named.
 func fillable(p *profile.Profile, brief *profile.Brief, c catalog) bool {
 	switch {
 	case !slices.Contains(c.topics, brief.TargetConcept):
@@ -251,10 +330,10 @@ func fillable(p *profile.Profile, brief *profile.Brief, c catalog) bool {
 		return false
 	case brief.PedagogicalGoal != profile.GoalReinforce && brief.PedagogicalGoal != profile.GoalNewTopic:
 		return false
-	case brief.Setting == "":
-		return len(p.Student.Interests) == 0
 	}
-	return slices.Contains(p.Student.Interests, brief.Setting)
+	// No setting leaves the plot to the model, which is how two tasks in three
+	// come, and every task of a child with no interests.
+	return brief.Setting == "" || slices.Contains(p.Student.Interests, brief.Setting)
 }
 
 // The rule never reads the notes the parent wrote. They travel to the model as

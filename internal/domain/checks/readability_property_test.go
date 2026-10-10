@@ -21,10 +21,12 @@ import (
 // never takes a syllable away: it tells how a letter is said, and never makes
 // a vowel something else.
 
-// genText is a question made of words, the marks that end and close sentences,
-// and the spaces between them.
+// genText is a question made of words, the marks that end and close sentences
+// — the semicolon among them, which ends one in Greek alone — and the spaces
+// between them.
 func genText() gopter.Gen {
-	piece := gen.OneConstOf("cat", "dog", "3.5", "2", "+", "-", "…", ".", "!", "?", "'", ")", "。", "猫", "؟", "।")
+	piece := gen.OneConstOf("cat", "dog", "3.5", "2", "+", "-", "…", ".", "!", "?", "'", ")", "。", "猫", "؟", "।",
+		"։", "፧", ";")
 	space := gen.OneConstOf(" ", "", "  ", "\n")
 	return gen.SliceOfN(30, gopter.CombineGens(piece, space).Map(func(parts []any) string {
 		word, _ := parts[0].(string)
@@ -43,10 +45,15 @@ func withoutSpaces(text string) string {
 	}, text)
 }
 
-// longestOf is the length of the longest sentence of a text, in its unit.
-func longestOf(text string) int {
+// genMarks are the marks a sentence may end with: those of every language, or
+// with Greek's own.
+func genMarks() gopter.Gen { return gen.OneConstOf(sentenceEnds, sentenceEndsIn("el")) }
+
+// longestOf is the length of the longest sentence of a text, split at these
+// marks, in its unit.
+func longestOf(text, marks string) int {
 	longest := 0
-	for _, sentence := range sentences(text) {
+	for _, sentence := range sentences(text, marks) {
 		longest = max(longest, lengthIn(sentence, unitFor(sentence, "")))
 	}
 	return longest
@@ -59,18 +66,18 @@ func TestSplittingHoldsItsProperties(t *testing.T) {
 	first, second := genText(), genText()
 
 	properties.Property("nothing of a text is lost or doubled by splitting it", prop.ForAll(
-		func(text string) bool {
-			return withoutSpaces(strings.Join(sentences(text), "")) == withoutSpaces(text)
+		func(text, marks string) bool {
+			return withoutSpaces(strings.Join(sentences(text, marks), "")) == withoutSpaces(text)
 		},
-		first,
+		first, genMarks(),
 	))
 
 	properties.Property("a sentence added after a finished one never makes the longest one shorter", prop.ForAll(
-		func(text, more string) bool {
+		func(text, more, marks string) bool {
 			finished := text + "."
-			return longestOf(finished+" "+more) >= longestOf(finished)
+			return longestOf(finished+" "+more, marks) >= longestOf(finished, marks)
 		},
-		first, second,
+		first, second, genMarks(),
 	))
 
 	properties.TestingRun(t)

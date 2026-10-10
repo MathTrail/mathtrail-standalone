@@ -77,8 +77,7 @@ func inFront(t *testing.T, target session.Target, front func(next http.Handler) 
 
 // A lesson against the service walks one child through every task: each asked
 // for with its package, accepted with the card told on either side of the
-// hand-in, answered and its result shown, and the progress read at the end —
-// with every call
+// hand-in, and answered, and the progress read at the end — with every call
 // answered as asked, nothing the service should never do, and what one
 // accepted task cost.
 func TestALessonIsAcceptedTaskByTask(t *testing.T) {
@@ -95,9 +94,9 @@ func TestALessonIsAcceptedTaskByTask(t *testing.T) {
 	if hards := run.Verdict(); len(hards) != 0 {
 		t.Errorf("Verdict() = %+v, want nothing", hards)
 	}
-	if got, want := len(run.Calls), 2+7*o.Tasks+1; got != want {
-		t.Errorf("%d calls, want %d: the profile read and saved, seven for each task — asked for, its package, the "+
-			"card's two looks, handed in, answered, its result shown — and the progress", got, want)
+	if got, want := len(run.Calls), 2+6*o.Tasks+1; got != want {
+		t.Errorf("%d calls, want %d: the profile read and saved, six for each task — asked for, its package, the "+
+			"card's two looks, handed in, answered — and the progress", got, want)
 	}
 	if run.Requests <= len(run.Calls) {
 		t.Errorf("%d requests for %d calls, want the handshake counted too", run.Requests, len(run.Calls))

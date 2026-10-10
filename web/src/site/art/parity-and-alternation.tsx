@@ -211,6 +211,12 @@ const corners = [0, 1].flatMap((back) =>
 	),
 );
 
+// colourOf is the colour of a corner of the coloured cube: white and black by
+// turns, the start white.
+function colourOf(one: (typeof corners)[number]): Corner {
+	return (one.across + one.up + one.back) % 2 === 1 ? "white" : "black";
+}
+
 // edges are the cube's twelve edges, as pairs of corners one step apart.
 const edges = corners.flatMap((one, at) =>
 	corners
@@ -252,12 +258,7 @@ function Cube({
 				))}
 				{corners.map((one) => {
 					const start = one.across === 0 && one.up === 1 && one.back === 0;
-					const white = (one.across + one.up + one.back) % 2 === 1;
-					const corner: Corner = coloured
-						? white
-							? "white"
-							: "black"
-						: "plain";
+					const corner: Corner = coloured ? colourOf(one) : "plain";
 					return (
 						<g key={`${one.x}.${one.y}`}>
 							{start && (

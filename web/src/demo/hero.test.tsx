@@ -137,14 +137,15 @@ describe("the card on the first screen, come alive", () => {
 		expect(observed).toEqual([card()?.querySelector(".mt-widget")]);
 	});
 
-	test("checks a wrong option a moment, then goes over it as a chat does: the card's ask, and the card of how it went with the trap behind it and the solution", async () => {
+	test("checks a wrong option a moment, then turns into how it went, with the trap behind it and the solution, asking the chat nothing", async () => {
 		const data = alive();
+		const asked = bubble();
 
 		press(option("B"));
 		expect(option("B").dataset.state).toBe("selected");
 		await passing(checkingTakes);
 
-		expect(bubble()).toBe("Go over the answer");
+		expect(bubble()).toBe(asked);
 		expect(card()?.querySelector(".mt-option")).toBeNull();
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
 		expect(text(".mt-note-trap p")).toBe(data.results.B.trap?.text);

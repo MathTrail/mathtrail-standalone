@@ -224,10 +224,27 @@ export function resultOf(fields: Partial<AnswerResult> = {}): AnswerResult {
 }
 
 /**
- * answered is the result of an answer to the fence the service recorded, as
- * the card that sent it is told: resultOf the fields given.
+ * answered is the result of an answer to the task handed — the fence unless
+ * said otherwise — the service recorded, as the card that sent it is told: how
+ * the answer went, whole, as the card of how it went shows it, resultOf the
+ * fields given, with the choice of the topic given offered.
  */
-export function answered(fields: Partial<AnswerResult> = {}): CallToolResult {
+export function answered(
+	fields: Partial<AnswerResult> = {},
+	handed: Handed = fence,
+	offered?: Partial<TopicChoice>,
+): CallToolResult {
+	return toolResult(shown(handed, fields, offered));
+}
+
+/**
+ * answeredByAnEarlierService is the result of an answer to the fence as an
+ * earlier service told it to the card that sent it: resultOf the fields given,
+ * alone, with nothing of the task, the child or the site beside it.
+ */
+export function answeredByAnEarlierService(
+	fields: Partial<AnswerResult> = {},
+): CallToolResult {
 	const result = resultOf(fields);
 	return toolResult({
 		screen: "result",
@@ -241,21 +258,27 @@ export function answered(fields: Partial<AnswerResult> = {}): CallToolResult {
 }
 
 /**
- * shown is the card of how an answer to the task handed went, as show_result
- * draws it: whose card it is, the task as it names it in its language, with
- * its topic's page on the site published, how the answer went — resultOf the
- * fields given — and, given offered, the choice of the topic the trial series
- * over offers, with offered replacing its own fields.
+ * shown is how an answer to the task handed went, as show_result draws it and
+ * as the card that took the answer is told it: whose card it is, the task as
+ * it names it in its language, with its topic's page on the site published,
+ * how the answer went — resultOf the fields given — and, given offered, the
+ * choice of the topic the trial series over offers, with offered replacing
+ * its own fields.
  */
 export function shown(
 	handed: Handed,
 	fields: Partial<AnswerResult> = {},
 	offered?: Partial<TopicChoice>,
-): object {
+): Record<string, unknown> {
 	const { task } = handed;
+	const result = resultOf({ task_id: task.id, topic: task.topic, ...fields });
 	return {
 		screen: "result",
-		last_answer: { task_id: task.id, topic: task.topic, correct: false },
+		last_answer: {
+			task_id: task.id,
+			topic: task.topic,
+			correct: result.correct,
+		},
 		child: handed.child,
 		language: task.language,
 		task: {
@@ -266,7 +289,7 @@ export function shown(
 			slug: "gaps-and-boundaries",
 			site_page: true,
 		},
-		result: resultOf({ task_id: task.id, topic: task.topic, ...fields }),
+		result,
 		...(offered === undefined
 			? {}
 			: { topic_choice: { ...offeredChoice, ...offered } }),

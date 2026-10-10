@@ -2,13 +2,11 @@ package mcpserver
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
-	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
@@ -39,23 +37,16 @@ type showResultIn struct {
 	TaskID string `json:"task_id" jsonschema:"the id of the task on the child's card, once its answer is recorded"`
 }
 
-// shownOut is what the card of how an answer went is handed: whose card it is,
-// the language of the task, the task as its card names it, how the answer
-// went, what the card needs to keep the lessons to a topic, once the trial
-// series is over, and the site the topic's page is on — or why there is
-// nothing to show. A host may show the model the payload in place of the
-// words, so the last answer is here as well.
+// shownOut is what the card of how an answer went is handed: how the answer
+// went, as the card that took it shows it too — or why there is nothing to
+// show, with whose card it is and in which language. A host may show the model
+// the payload in place of the words, so the last answer is here as well.
 type shownOut struct {
-	Screen      string           `json:"screen"`
-	Status      string           `json:"status,omitempty"`
-	Code        string           `json:"code,omitempty"`
-	LastAnswer  *answerLine      `json:"last_answer"`
-	Child       *childLine       `json:"child,omitempty"`
-	Language    string           `json:"language,omitempty"`
-	Task        *answeredTaskOut `json:"task,omitempty"`
-	Result      *resultOut       `json:"result,omitempty"`
-	TopicChoice *topicChoiceOut  `json:"topic_choice,omitempty"`
-	Site        *siteOut         `json:"site,omitempty"`
+	Screen     string      `json:"screen"`
+	Status     string      `json:"status,omitempty"`
+	Code       string      `json:"code,omitempty"`
+	LastAnswer *answerLine `json:"last_answer"`
+	wentOut
 }
 
 // answeredTaskOut is the task as the card of its answer names it: its id and
@@ -76,11 +67,12 @@ func (s *Service) showResultTool() Tool {
 		Name:  "show_result",
 		Title: "Show how the answer went",
 		Description: "Draws the card of how the child's answer to the task on the card went, once the answer is " +
-			"recorded — on the card, or by you with submit_answer: whether it was right and which option is, what " +
-			"went wrong on the way to a wrong one and whether that mistake has come up before, the solution step " +
-			"by step with its picture where it has one, the topic, and how the child's rating in the topic moved — " +
-			"during the trial series, how many of its tasks are done instead — with the buttons for another task " +
-			"and for the topic. Call it with the task's id. A task with no answer yet shows nothing of it, and a " +
+			"recorded by you with submit_answer: whether it was right and which option is, what went wrong on the " +
+			"way to a wrong one and whether that mistake has come up before, the solution step by step with its " +
+			"picture where it has one, the topic, and how the child's rating in the topic moved — during the trial " +
+			"series, how many of its tasks are done instead — with the buttons for another task and for the topic. " +
+			"An answer given on the card turns that card into the same. Call it with the task's id. A task with no " +
+			"answer yet shows nothing of it, and a " +
 			"task left behind by the next one shows no more than whether its answer was right. It reads the " +
 			"profile's file in the adult's Google Drive and changes nothing.",
 		Effect:     Reads,
@@ -91,7 +83,8 @@ func (s *Service) showResultTool() Tool {
 
 // showResult tells how the answer to the task on the card went, on a card of
 // its own: to the card, which shows the whole of it, and to the model, which
-// explains it in words. Nothing is written.
+// adds a sentence at most beside it, or explains it in words where no card is
+// shown. Nothing is written.
 func (s *Service) showResult(ctx context.Context, account store.Account, in showResultIn) (Reply[shownOut], error) {
 	p, recorded, err := s.toldOnceWritten(ctx, account, in.TaskID)
 	switch {
@@ -135,31 +128,14 @@ func (s *Service) toldOnceWritten(ctx context.Context, account store.Account, ta
 // shown is how the answer went, as its card shows it and as the words tell it
 // to the model.
 func (s *Service) shown(p *profile.Profile, recorded *profile.Recorded) (Reply[shownOut], error) {
-	task := p.CurrentTask
 	choice, err := s.topicChoiceOf(p, s.now())
 	if err != nil {
 		return Reply[shownOut]{}, fmt.Errorf("mcp: the choice of the topic: %w", err)
 	}
-	repeated := progress.Repeats(p.Recent, s.content, recorded.Trap.Trap, s.repeats)
-	result := resultOf(task.ID, recorded, repeated)
-	// The picture is handed over only as one the card can draw, and the total
-	// with it: a seal holds what was checked, but a card is never handed what
-	// it cannot draw.
-	if drawn := pictureOf(json.RawMessage(recorded.SolutionPicture), task.Language); drawn != nil {
-		result.SolutionPicture, result.SolutionTotal = drawn, recorded.SolutionTotal
-	}
+	went, repeated := s.wentOf(p, recorded, choice)
 	return Reply[shownOut]{
-		Text: s.shownText(task, recorded, repeated),
-		Payload: shownOut{
-			Screen:      screenResult,
-			LastAnswer:  lastAnswerOf(p),
-			Child:       childLineOf(&p.Student),
-			Language:    task.Language,
-			Task:        s.answeredTaskOf(task),
-			Result:      result,
-			TopicChoice: choice,
-			Site:        s.siteOut(),
-		},
+		Text:    s.shownText(p.CurrentTask, recorded, repeated),
+		Payload: shownOut{Screen: screenResult, LastAnswer: lastAnswerOf(p), wentOut: went},
 	}, nil
 }
 
@@ -173,10 +149,11 @@ func (s *Service) answeredTaskOf(task *profile.CurrentTask) *answeredTaskOut {
 }
 
 // shownText tells the model how the answer went, as the card below shows it,
-// for it to explain in a few words beside the card, or in full without one.
+// for it to add a sentence at most beside the card, or to explain it in full
+// without one.
 func (s *Service) shownText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool) string {
 	lead := fmt.Sprintf("Where cards are shown, the card below shows how the answer to task %s went: the verdict, "+
-		"the trap, the solution step by step and the rating.", task.ID)
+		"the trap, the solution step by step and the rating. %s", task.ID, besideACard)
 	return joined(lead, outcomeText(task, recorded, repeated), aboutTheStep, s.standingText(recorded)) +
 		"\nSolution: " + quoted(recorded.Solution)
 }
@@ -208,8 +185,8 @@ func (s *Service) showableNowText(p *profile.Profile) string {
 	case task == nil:
 		return "There is no task on the card: ask for a new one with next_task when another is asked for."
 	case task.Answered != nil:
-		return fmt.Sprintf("The task on the card, %s, has its answer: show how it went with show_result and its id.",
-			task.ID)
+		return fmt.Sprintf("The task on the card, %s, has its answer: the card that took it shows how it went, and "+
+			"for an answer given in the chat show_result with its id draws that card.", task.ID)
 	}
 	return fmt.Sprintf("Task %s is on the card, with no answer yet.", p.CurrentTask.ID)
 }
@@ -222,8 +199,8 @@ func (s *Service) notAnswered(p *profile.Profile) Reply[shownOut] {
 	return Reply[shownOut]{
 		Text: fmt.Sprintf("Task %s on the card has no answer yet, so there is nothing to show. Call show_result once "+
 			"the child has answered: on the card, which records the answer itself, or in the chat, recorded with "+
-			"submit_answer. An answer the card has only just recorded may still be on its way into the file: if "+
-			"the card asked to go over the answer, call show_result again in a moment.", p.CurrentTask.ID),
+			"submit_answer. An answer you have only just recorded with submit_answer may still be on its way into "+
+			"the file: then, and only then, call show_result again in a moment.", p.CurrentTask.ID),
 		Payload: s.refusedOut(p, statusRejected, codeNotAnswered),
 	}
 }
@@ -243,7 +220,8 @@ func (s *Service) toldNoMore(p *profile.Profile) Reply[shownOut] {
 // in the language of the task on the card when there is one, and why.
 func (s *Service) refusedOut(p *profile.Profile, status, code string) shownOut {
 	out := shownOut{
-		Screen: screenResult, Status: status, Code: code, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
+		Screen: screenResult, Status: status, Code: code, LastAnswer: lastAnswerOf(p),
+		wentOut: wentOut{Child: childLineOf(&p.Student)},
 	}
 	if p.CurrentTask != nil {
 		out.Language = p.CurrentTask.Language

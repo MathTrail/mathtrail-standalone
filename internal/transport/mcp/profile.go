@@ -50,7 +50,7 @@ type detailsOut struct {
 type saveProfileIn struct {
 	Pseudonym        *string  `json:"pseudonym,omitempty" jsonschema:"what the child is called: a pseudonym of at most 32 characters, never a real name. Required to create the profile"`
 	Grade            *int     `json:"grade,omitempty" jsonschema:"the school year, 1 to 6. Required to create the profile. It sets where the first tasks start; changed later it is only a label"`
-	Interests        []string `json:"interests,omitempty" jsonschema:"what tasks may be dressed in, at most 10 of at most 40 characters each. The list replaces the one kept; an empty list clears it"`
+	Interests        []string `json:"interests,omitempty" jsonschema:"what one task in three is dressed in, in turn, at most 10 of at most 40 characters each. The list replaces the one kept; an empty list clears it"`
 	ExcludedSkills   []string `json:"excluded_skills,omitempty" jsonschema:"ids of skills the child has not met at school yet, from the list in this tool's description. The list replaces the one kept; an empty list clears it"`
 	Notes            *string  `json:"notes,omitempty" jsonschema:"what the adult wants known about the child, for pitching the words, at most 500 characters. An empty text clears it"`
 	UILanguage       *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons — the tasks, the cards and your words — as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes them follow the chat's language"`

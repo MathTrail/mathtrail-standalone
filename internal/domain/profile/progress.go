@@ -9,9 +9,10 @@ import (
 // Ratings is where the child stands across every topic.
 type Ratings struct {
 	// Answers is how many answers the level rests on. It narrows the step
-	// every new answer may move the level by, and it is also what the setting
-	// rotation counts: a number that never goes backwards, unlike the length
-	// of a window that is pruned. While it is below the length of the trial
+	// every new answer may move the level by, and, with the tasks skipped, it
+	// counts the tasks behind the child, which pick the ones dressed in an
+	// interest: a number that never goes backwards, unlike the length of a
+	// window that is pruned. While it is below the length of the trial
 	// series, the child is in it.
 	Answers int `json:"answers"`
 	// ConsecutiveFailures is how many wrong answers came in a row. It is the
@@ -68,7 +69,9 @@ type Topic struct {
 	// another was asked for. No rating reads it: it is for the parent, who can
 	// see from it that hard tasks are being leafed past, and, added to the
 	// answers, it counts the tasks of the topic the child has been through,
-	// which picks the idea of the topic the next one is built on.
+	// which picks the idea of the topic the next one is built on; over every
+	// topic, it counts the tasks behind the child, which pick the ones dressed
+	// in an interest.
 	Skipped int `json:"skipped,omitzero"`
 	// TopStreak is the run of correct answers at the harder half of the
 	// corridor with no hint — the run the earlier rule mastered a topic by.

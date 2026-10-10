@@ -65,6 +65,7 @@ function State({
 	step?: number;
 	goal?: boolean;
 }) {
+	const [[firstHolds, firstCapacity], [secondHolds, secondCapacity]] = jugs;
 	return (
 		<Stack gap={4}>
 			{step !== undefined && (
@@ -73,9 +74,8 @@ function State({
 				</span>
 			)}
 			<span class="s-wei-state" data-goal={goal ? "" : undefined}>
-				{jugs.map(([holds, capacity], at) => (
-					<Jug key={at} page={page} holds={holds} capacity={capacity} />
-				))}
+				<Jug page={page} holds={firstHolds} capacity={firstCapacity} />
+				<Jug page={page} holds={secondHolds} capacity={secondCapacity} />
 			</span>
 		</Stack>
 	);
@@ -91,13 +91,16 @@ function Move({ children }: { children: ComponentChildren }) {
 	);
 }
 
+// CoinSize is how large a coin is drawn: as it is, small, or tiny.
+type CoinSize = "md" | "sm" | "xs";
+
 // Coin is a gold coin, small or tiny where many stand together.
-function Coin({ size = "md" }: { size?: "md" | "sm" | "xs" }) {
+function Coin({ size = "md" }: { size?: CoinSize }) {
 	return <span class="s-wei-coin" data-size={size} />;
 }
 
 // Coins are so many coins in a row.
-function Coins({ count, size }: { count: number; size?: "md" | "sm" | "xs" }) {
+function Coins({ count, size }: { count: number; size?: CoinSize }) {
 	return (
 		<span class="s-wei-coins">
 			{Array.from({ length: count }, (_, at) => (
@@ -175,7 +178,7 @@ function Heaps({
 }: {
 	heaps: number;
 	coins: number;
-	size: "md" | "sm" | "xs";
+	size: CoinSize;
 }) {
 	return (
 		<Line gap={6}>

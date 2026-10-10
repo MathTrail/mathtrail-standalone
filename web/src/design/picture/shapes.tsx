@@ -45,7 +45,7 @@ export function Label({
 	size?: number;
 	strong?: boolean;
 	anchor?: "middle" | "start" | "end";
-	tone?: string | undefined;
+	tone?: string;
 }) {
 	return (
 		<text
@@ -215,7 +215,7 @@ export type Lined = {
 	text: string;
 	size?: number;
 	strong?: boolean;
-	tone?: string | undefined;
+	tone?: string;
 };
 
 /** lineHeight is how far apart the lines of a stack of labels stand, at a size. */

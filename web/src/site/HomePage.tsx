@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { type DemoData, DemoDataScript } from "../demo/data";
-import { cardWords, dictionaries } from "../widget/dictionaries";
+import { dictionaries } from "../widget/dictionaries";
 import type { Section } from "../widget/folds";
 import { lessonStart } from "../widget/lesson";
 import type { HandedTask, ProgressReport } from "../widget/payload";
@@ -216,16 +216,14 @@ function Hero({
 function Chat({
 	page,
 	ask = "chat.ask",
-	said,
 	children,
 }: {
 	page: PageReader;
 	ask?: string;
-	said?: string;
 	children: ComponentChildren;
 }) {
 	return (
-		<ChatFrame title={page.text("chat.title")} ask={said ?? page.text(ask)}>
+		<ChatFrame title={page.text("chat.title")} ask={page.text(ask)}>
 			{children}
 		</ChatFrame>
 	);
@@ -233,10 +231,10 @@ function Chat({
 
 // Steps is how a lesson goes, a step at a time, each beside the card as a chat
 // draws it at that step: the task being written; an option picked and being
-// checked; the hint open, a step within answering; the wrong answer told, with
-// its trap and the solution; the question the child asks in the chat once the
-// answer is in, a step within that; and the progress. Then the one thing a
-// parent should know while the child solves.
+// checked; the hint open, a step within answering; the card turned into how
+// the wrong answer went, with its trap and the solution; the question the
+// child asks in the chat once the answer is in, a step within that; and the
+// progress. Then the one thing a parent should know while the child solves.
 function Steps({
 	page,
 	home,
@@ -250,9 +248,6 @@ function Steps({
 }) {
 	const { handed, answered } = lesson;
 	const { locale } = page;
-	// The card that took the answer asks the chat, in its own words, to go over
-	// it, and the card of how it went comes below that message.
-	const goneOver = cardWords(locale, undefined).text("task.review");
 	return (
 		<section id={lessonSection} class="s-wrap s-section">
 			<div class="s-intro">
@@ -291,7 +286,7 @@ function Steps({
 					</Chat>
 				</Step>
 				<Step page={page} name="wrong" number={3}>
-					<Chat page={page} said={goneOver}>
+					<Chat page={page}>
 						<StaticResult
 							handed={answered.handed}
 							result={answered.result}
@@ -300,7 +295,7 @@ function Steps({
 					</Chat>
 				</Step>
 				<Step page={page} name="question">
-					<Chat page={page} said={goneOver}>
+					<Chat page={page}>
 						<StaticResult
 							handed={answered.handed}
 							result={answered.result}

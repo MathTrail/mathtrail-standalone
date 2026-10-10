@@ -111,10 +111,11 @@ function Waiting({
 	);
 }
 
-// Stander is one person of a line drawn standing: their colour, how tall
-// they are, their name, and whether they stood on the line before the step,
-// pale, or are the one it adds, their name in bold.
+// Stander is one person of a line drawn standing: who they are, their colour,
+// how tall they are, their name, and whether they stood on the line before
+// the step, pale, or are the one it adds, their name in bold.
 type Stander = {
+	who: (typeof tall)[number]["who"];
 	paint: Paint;
 	height: number;
 	name: ComponentChildren;
@@ -134,13 +135,13 @@ function Lineup({
 		<span class="s-ord-lineup" data-size={size}>
 			{people.map((one, at) => [
 				at > 0 && (
-					<span key={`than-${at}`} class="s-ord-than-column">
+					<span key={`than-${one.who}`} class="s-ord-than-column">
 						<span class="s-ord-floor" />
 						<span class="s-ord-than">&gt;</span>
 					</span>
 				),
 				<span
-					key={at}
+					key={one.who}
 					class="s-ord-stander"
 					data-before={one.before ? "" : undefined}
 				>
@@ -200,6 +201,7 @@ const tall = [
 // page's words, those on the line before the last so many pale.
 function lineOf(page: PageReader, count: number, added = count): Stander[] {
 	return tall.slice(0, count).map((one, at) => ({
+		who: one.who,
 		paint: one.paint,
 		height: one.height,
 		name: page.text(`art.${one.who}-name`),
@@ -304,21 +306,24 @@ function Queue({
 	const where = "examples.2.art";
 	return (
 		<Line gap={6} align="end">
-			{order.map((who, at) => (
-				<Placed key={at} places={[at + 1]}>
-					{who === "?" ? (
-						<Slot />
-					) : (
-						<Person
-							page={page}
-							where={where}
-							who={who}
-							paint={queue[who]}
-							ring={rings[who]}
-						/>
-					)}
-				</Placed>
-			))}
+			{order.map((who, at) => {
+				const place = at + 1;
+				return (
+					<Placed key={place} places={[place]}>
+						{who === "?" ? (
+							<Slot />
+						) : (
+							<Person
+								page={page}
+								where={where}
+								who={who}
+								paint={queue[who]}
+								ring={rings[who]}
+							/>
+						)}
+					</Placed>
+				);
+			})}
 		</Line>
 	);
 }

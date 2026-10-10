@@ -89,6 +89,38 @@ func TestATotalEndsInTheLabelItsAnswerIs(t *testing.T) {
 	}
 }
 
+// A Greek lesson names its points with Greek capitals, and a right option
+// written in those drawn as Latin ones is the label its total ends in: the
+// total of the segment Alpha Epsilon ends in AE, and one that ends in AB is
+// refused.
+func TestAGreekOptionIsHeldToTheLatinTotal(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		total string
+		codes []checks.Code
+	}{
+		{"AB + BE = AE", nil},
+		{"AB + BE = AB", []checks.Code{checks.CodeDrawingMismatch}},
+	} {
+		held := &checks.Task{
+			Question: "Τα σημεία \u0391, \u0392, \u0395 και \u0397 είναι σε μια γραμμή με αυτή τη σειρά. Το \u0391\u0392 είναι 2 cm και το \u0392\u0395 " +
+				"είναι 3 cm. Ποιο τμήμα είναι 5 cm;",
+			Solution:        "Τα \u0391\u0392 και \u0392\u0395 μαζί κάνουν 2 + 3 = 5 cm, το \u0391\u0395.",
+			SolutionPicture: json.RawMessage(`{"kind":"row","items":[{"label":"A"},{"label":"B"},{"label":"E"},{"label":"H"}]}`),
+			SolutionTotal:   test.total, CorrectAnswer: "C",
+			Options: map[string]string{"A": "\u0391\u0392", "B": "\u0392\u0395", "C": "\u0391\u0395", "D": "\u0391\u0397", "E": "\u0395\u0397"},
+		}
+		var codes []checks.Code
+		for _, problem := range checks.SolutionPicture(held, "el") {
+			codes = append(codes, problem.Code)
+		}
+		if !slices.Equal(codes, test.codes) {
+			t.Errorf("SolutionPicture() with the total %q: codes = %v, want %v", test.total, codes, test.codes)
+		}
+	}
+}
+
 // The picture of a solution is checked alone as the review checks it: in its
 // format, its total in its own, and against the wording and the solution;
 // a task with none has nothing to check.

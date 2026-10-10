@@ -10,20 +10,20 @@ import (
 )
 
 // unnamedLabels counts the labels of a picture written in Latin capitals that
-// its question does not name; a number or a question mark is not looked for.
-// The question is read softly, since a refusal costs the child an attempt: a
-// label counts as named where the question has it as a word of its own, among
-// capitals written together (the AB of a segment), in the name of a cell (B2),
-// or inside a range whose ends it names — rows A to D name B and C in any
-// language. An example of a kind of picture has no question, and nothing to
-// count.
-func unnamedLabels(question string, labels []string) int {
+// its question, in a lesson labelled so, does not name; a number or a question
+// mark is not looked for. The question is read softly, since a refusal costs
+// the child an attempt: a label counts as named where the question has it as a
+// word of its own, among capitals written together (the AB of a segment), in
+// the name of a cell (B2), or inside a range whose ends it names — rows A to D
+// name B and C in any language. An example of a kind of picture has no
+// question, and nothing to count.
+func unnamedLabels(question string, labels []string, by labelling) int {
 	if strings.TrimSpace(question) == "" {
 		return 0
 	}
 	declared := declaredOf(labels)
-	runes := []rune(question)
-	ranges := rangesOf(runes, declared)
+	runes := []rune(by.asLatin(question))
+	ranges := rangesOf(runes, declared, by.listing)
 	unnamed := 0
 	for _, label := range labels {
 		if capitalsOnly(label) && !named(runes, label, declared, ranges) {
@@ -178,17 +178,17 @@ func inRange(label string, ranges []span) bool {
 	return false
 }
 
-// rangesOf are the ranges a question names: two declared labels of a kind,
-// each standing alone or in the name of a cell, joined as the ends of a range
-// are — rows A to D, von A bis D, A부터 D까지, 从A到D, cells A1 to D4 — so
-// that a range is read in any language, while points A and D, or A at 3 and D
-// at 9, name none.
-func rangesOf(runes []rune, declared map[string]bool) []span {
+// rangesOf are the ranges a question names, in a language that joins two
+// labels in words as listed: two declared labels of a kind, each standing
+// alone or in the name of a cell, joined as the ends of a range are — rows A
+// to D, von A bis D, A부터 D까지, 从A到D, cells A1 to D4 — so that a range is
+// read in any language, while points A and D, or A at 3 and D at 9, name none.
+func rangesOf(runes []rune, declared map[string]bool, listed listing) []span {
 	var ranges []span
 	ends := endsOf(runes)
 	for i := 1; i < len(ends); i++ {
 		first, second := ends[i-1], ends[i]
-		if !joinsRange(string(runes[first.stop:second.start])) {
+		if !joinsRange(string(runes[first.stop:second.start]), listed) {
 			continue
 		}
 		for _, pair := range [][2]string{{first.letter, second.letter}, {first.number, second.number}} {
@@ -256,56 +256,38 @@ func endAt(runes []rune, at int) (end, bool) {
 func asciiDigit(r rune) bool { return r >= '0' && r <= '9' }
 
 // joinsRange says whether what stands between two ends joins them as the ends
-// of a range: a dash, dots, or at most three words — the "to" of rows A to D
-// in whatever language — none of them a word or a mark that lists or reckons
-// instead, as "and", a comma or a plus do, and no end of a sentence.
-func joinsRange(joint string) bool {
+// of a range, in a language that joins two labels in words as listed: a dash,
+// dots, or at most three words, between spaces or the word spaces of Ethiopic
+// — the "to" of rows A to D in whatever language — none of them a word or a
+// mark that lists or reckons instead, as "and", a comma or a plus do, and no
+// end of a sentence, but where the words are a phrase that spans a range,
+// though a word of it lists, as A till och med D does.
+func joinsRange(joint string, listed listing) bool {
 	trimmed := strings.TrimSpace(joint)
 	if slices.Contains([]string{"..", "...", "…"}, trimmed) {
 		return true
 	}
-	words := strings.Fields(trimmed)
-	if len(words) == 0 || len(words) > 3 || strings.ContainsAny(trimmed, listingMarks+sentenceEnds) {
+	words := strings.FieldsFunc(trimmed, betweenWords)
+	if len(words) == 0 || len(words) > 3 || marksAList(trimmed) {
 		return false
 	}
+	if listed.spans(words) {
+		return true
+	}
 	for _, word := range words {
-		if slices.Contains(listingWords, strings.ToLower(word)) {
+		if listed.lists(word) {
 			return false
 		}
 	}
 	return true
 }
 
-// listingMarks list or reckon two things, and never join the ends of a range.
-const listingMarks = ",;:、،؛&+=×÷*<>≤≥≠−"
-
-// listingWords list two things, or put one with the other, in the languages
-// of the cards — and, or, with — and so does a slash standing alone, the one
-// of A/D. Between two ends they name those two alone, not a range.
-var listingWords = []string{
-	"/",
-	"and", "or", "nor", "plus", "with", // English
-	"和", "与", "及", "或", "或者", "跟", "同", "以及", "还有", // Chinese
-	"और", "या", "तथा", "एवं", "व", // Hindi
-	"y", "e", "o", "u", "ni", "con", // Spanish
-	"و", "أو", "او", "أم", // Arabic
-	"et", "ou", "avec", // French
-	"ও", "এবং", "বা", "আর", "অথবা", // Bengali
-	"nem", "com", // Portuguese, with e and ou above
-	"и", "или", "либо", "с", // Russian
-	"اور", "یا", // Urdu and Persian
-	"dan", "atau", "serta", "dengan", // Indonesian
-	"und", "oder", "sowie", "mit", // German
-	"と", "や", "か", "または", "および", "及び", "又は", // Japanese
-	"ve", "veya", "ya", "ile", "yahut", // Turkish
-	"와", "과", "및", "또는", "이나", "나", "하고", "랑", "이랑", // Korean
-	"và", "hoặc", "với", "cùng", // Vietnamese
-	"ed", "od", "oppure", // Italian, with e, o and con above
-	"i", "oraz", "lub", "albo", "czy", "z", // Polish
-	"і", "й", "та", "або", "чи", "з", // Ukrainian
-	"และ", "หรือ", "กับ", // Thai
-	"en", "of", "met", // Dutch
-}
+// listingMarks list or reckon two things, and never join the ends of a range:
+// among them the comma and the semicolon of Ethiopic, the comma of Armenian,
+// the middle dot of a product, the semicolon of Greek, which is a raised dot
+// that a keyboard writes as the middle dot, and the Greek question mark, which
+// looks like a semicolon.
+const listingMarks = ",;:、،؛&+=×÷*<>≤≥≠−፣፤\u055d\u00b7\u0387\u037e"
 
 // The kinds of label that come in an order.
 const (

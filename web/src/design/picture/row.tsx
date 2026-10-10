@@ -40,7 +40,7 @@ function endRoom(item: RowItem | undefined): number {
 // width allows, up to widestStep.
 function spotsOf(items: readonly RowItem[]): { spots: Spot[]; width: number } {
 	const start = endRoom(items[0]);
-	const end = endRoom(items[items.length - 1]);
+	const end = endRoom(items.at(-1));
 	const step = Math.min(widestStep, (room - start - end) / (items.length - 1));
 	const spots = items.map((item, place) => ({
 		item,
@@ -217,7 +217,7 @@ export function drawRow(row: Row, _locale?: string, tones?: Tones): Drawn {
 		{ length: row.copies ?? 1 },
 		(_, before) => first + before * copyGap,
 	);
-	const last = copies[copies.length - 1] ?? first;
+	const last = Math.max(first, ...copies);
 	const underTop = last + markRadius + 4 + lineHeight() / 2;
 	const spanAt =
 		underTop -
@@ -229,7 +229,8 @@ export function drawRow(row: Row, _locale?: string, tones?: Tones): Drawn {
 		row.span === undefined
 			? spanAt - spanHeight / 2
 			: spanAt + spanHeight / 2 + 2;
-	const ends = { from: spots[0]?.x ?? 0, to: spots[spots.length - 1]?.x ?? 0 };
+	const xs = spots.map((spot) => spot.x);
+	const ends = { from: Math.min(...xs), to: Math.max(...xs) };
 	return {
 		width,
 		height,

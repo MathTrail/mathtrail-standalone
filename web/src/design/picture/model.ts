@@ -36,8 +36,8 @@ export type Kind = (typeof kinds)[number];
 export type Clock = {
 	kind: "clock";
 	time: string;
-	hour_label?: string | undefined;
-	minute_label?: string | undefined;
+	hour_label?: string;
+	minute_label?: string;
 };
 
 /**
@@ -46,12 +46,12 @@ export type Clock = {
  */
 export type Table = {
 	kind: "table";
-	header?: string[] | undefined;
+	header?: string[];
 	rows: string[][];
 };
 
 /** LineMark is a mark on a tick of a number line, and its label. */
-export type LineMark = { at: number; label?: string | undefined };
+export type LineMark = { at: number; label?: string };
 
 /**
  * NumberLine is a line of evenly spaced ticks the card numbers itself, from
@@ -62,8 +62,8 @@ export type NumberLine = {
 	kind: "number_line";
 	from: number;
 	to: number;
-	step?: number | undefined;
-	marks?: LineMark[] | undefined;
+	step?: number;
+	marks?: LineMark[];
 };
 
 /**
@@ -72,10 +72,10 @@ export type NumberLine = {
  * short, which holds nothing else.
  */
 export type RowItem = {
-	label?: string | undefined;
-	below?: string | undefined;
-	mark?: "dot" | "ring" | "square" | undefined;
-	skip?: boolean | undefined;
+	label?: string;
+	below?: string;
+	mark?: "dot" | "ring" | "square";
+	skip?: boolean;
 };
 
 /**
@@ -87,14 +87,14 @@ export type RowItem = {
 export type Row = {
 	kind: "row";
 	items: RowItem[];
-	line?: boolean | undefined;
-	gaps?: string | undefined;
-	span?: string | undefined;
-	copies?: number | undefined;
+	line?: boolean;
+	gaps?: string;
+	span?: string;
+	copies?: number;
 };
 
 /** RingStart is the place a ring starts at, and its label. */
-export type RingStart = { at: number; label?: string | undefined };
+export type RingStart = { at: number; label?: string };
 
 /**
  * Ring is places in a ring, which the card numbers from 1 in the order of
@@ -103,7 +103,7 @@ export type RingStart = { at: number; label?: string | undefined };
 export type Ring = {
 	kind: "ring";
 	count: number;
-	start?: RingStart | undefined;
+	start?: RingStart;
 };
 
 /**
@@ -115,12 +115,12 @@ export type Grid = {
 	kind: "grid";
 	rows: string[];
 	cols: string[];
-	filled?: string[] | undefined;
-	marks?: Record<string, string> | undefined;
+	filled?: string[];
+	marks?: Record<string, string>;
 };
 
 /** Segment is a part of a bar of a size of its own, and its label. */
-export type Segment = { size: number; label?: string | undefined };
+export type Segment = { size: number; label?: string };
 
 /**
  * Brace is a brace under a bar, from one edge between its parts or segments to
@@ -135,25 +135,25 @@ export type Brace = { from: number; to: number; label: string };
  * whole length.
  */
 export type Bar = {
-	label?: string | undefined;
-	parts?: number | undefined;
-	shaded?: number | undefined;
-	segments?: Segment[] | undefined;
-	length?: number | undefined;
-	value?: string | undefined;
-	braces?: Brace[] | undefined;
-	span?: string | undefined;
+	label?: string;
+	parts?: number;
+	shaded?: number;
+	segments?: Segment[];
+	length?: number;
+	value?: string;
+	braces?: Brace[];
+	span?: string;
 };
 
 /** Bars is quantities as bars drawn to one scale, and notes under them all. */
 export type Bars = {
 	kind: "bars";
 	bars: Bar[];
-	notes?: string[] | undefined;
+	notes?: string[];
 };
 
 /** VennSet is one of two groups: its label, and how many it holds. */
-export type VennSet = { label: string; count?: string | undefined };
+export type VennSet = { label: string; count?: string };
 
 /**
  * Venn is two groups that overlap, inside a box of everyone the question
@@ -162,9 +162,9 @@ export type VennSet = { label: string; count?: string | undefined };
 export type Venn = {
 	kind: "venn";
 	sets: VennSet[];
-	both?: string | undefined;
-	neither?: string | undefined;
-	total?: string | undefined;
+	both?: string;
+	neither?: string;
+	total?: string;
 };
 
 /** Balance is a pan balance and the labels of what stands on each pan. */
@@ -178,7 +178,7 @@ export type Balance = {
 export type Container = {
 	capacity: number;
 	amount: number;
-	label?: string | undefined;
+	label?: string;
 };
 
 /** Containers is jugs, buckets and the like to pour between. */
@@ -194,15 +194,15 @@ export type Containers = {
  * counters' fill and shape, and whether it stands in a box of its own.
  */
 export type Pile = {
-	label?: string | undefined;
-	value?: string | undefined;
-	count?: number | undefined;
-	shown?: number | undefined;
-	group?: number | undefined;
-	fill?: "dark" | "light" | undefined;
-	shape?: "dot" | "square" | undefined;
-	boxed?: boolean | undefined;
-	skip?: boolean | undefined;
+	label?: string;
+	value?: string;
+	count?: number;
+	shown?: number;
+	group?: number;
+	fill?: "dark" | "light";
+	shape?: "dot" | "square";
+	boxed?: boolean;
+	skip?: boolean;
 };
 
 /**
@@ -212,8 +212,8 @@ export type Pile = {
 export type Piles = {
 	kind: "piles";
 	piles: Pile[];
-	box?: boolean | undefined;
-	across?: boolean | undefined;
+	box?: boolean;
+	across?: boolean;
 };
 
 /**
@@ -225,8 +225,8 @@ export type Calendar = {
 	kind: "calendar";
 	first: number;
 	days: number;
-	week_starts?: "monday" | "sunday" | undefined;
-	marks?: Record<string, string> | undefined;
+	week_starts?: "monday" | "sunday";
+	marks?: Record<string, string>;
 };
 
 /** paints are the colours of the palette, in the order the format lists them. */
@@ -256,15 +256,15 @@ export type Stripe = Paint | "?";
  * and what names the group under it: a label, or a colour.
  */
 export type FlagGroup = {
-	label?: string | undefined;
-	color?: Paint | undefined;
+	label?: string;
+	color?: Paint;
 	flags: Stripe[][];
 };
 
 /** Flags is flags in groups, painted with the colours its colors name. */
 export type Flags = {
 	kind: "flags";
-	colors?: Colors | undefined;
+	colors?: Colors;
 	groups: FlagGroup[];
 };
 

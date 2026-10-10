@@ -39,7 +39,7 @@ MathTrail is for parents and tutors who want to give a child in grades 1 to 6 ol
 
 How a lesson goes. You ask Claude for a task. Claude writes it, and MathTrail checks it with a program before your child sees it: exactly one of the five options is right, a solver that tries every case reproduces the answer, the wording suits the grade, the task is not a near copy of an earlier one, and any picture is well formed, labelled as the question names it and has no answer written on it. The task then appears on a card, and your child, sitting beside you, answers by tapping an option. Whether the wording, the picture and the solution agree in meaning is checked by Claude itself.
 
-After an answer. The card asks Claude to go over the answer, and how it went comes below, on a card of its own: the mistake behind a wrong answer, a picture of the solution where the task has one, and the solution step by step. The first five tasks find where your child stands; after them, MathTrail chooses each task's topic and difficulty from the answers. Ask how your child is doing to see the rank in each topic, what moved over the past week, the mistakes that repeat and what to practise next.
+After an answer. The card at once turns into how the answer went: the mistake behind a wrong answer, a picture of the solution where the task has one, and the solution step by step. The first five tasks find where your child stands; after them, MathTrail chooses each task's topic and difficulty from the answers. Ask how your child is doing to see the rank in each topic, what moved over the past week, the mistakes that repeat and what to practise next.
 
 Your child's data. You sign in with Google, and your child needs no account. The profile is one file in your own Google Drive, under a pseudonym, never a real name, and MathTrail reaches only the files it created there.
 
@@ -94,7 +94,7 @@ OAuth 2.1 with PKCE, by a client ID metadata document or by dynamic client regis
 
 ### Three working examples (CL-24)
 
-1. **"Let's do a MathTrail task."** A card appears at once and shows that the task is being prepared, while Claude writes the task and MathTrail checks it (`next_task`, `get_package`, `submit_task`). Within a minute or two the task arrives on the card with five options. The child taps one, and the card asks Claude to go over the answer: how it went comes below, on a card of its own, with the mistake behind a wrong answer, a picture of the solution and the solution step by step (`submit_answer`, `show_result`). Meanwhile Claude writes the next task ahead (`prepare_task`, `submit_task`), so "Another task", sent to the chat, brings it at once, on a new card below (`next_task`).
+1. **"Let's do a MathTrail task."** A card appears at once and shows that the task is being prepared, while Claude writes the task and MathTrail checks it (`next_task`, `get_package`, `submit_task`). Within a minute or two the task arrives on the card with five options. The child taps one, and the card turns into how the answer went, with the mistake behind a wrong answer, a picture of the solution and the solution step by step (`submit_answer`); an answer told to Claude gets the same card below (`show_result`). Meanwhile Claude writes the next task ahead (`prepare_task`, `submit_task`), so "Another task", sent to the chat, brings it at once, on a new card below (`next_task`).
 2. **"How is my child doing?"** A card shows the rank in each topic, what moved since the last task and over the past week, a review of strengths and topics to develop, and the mistakes that repeat; Claude sums it up for the adult (`get_progress`).
 3. **"Change my child's interests to space and dinosaurs."** Claude asks to allow MathTrail to save the profile, since saving replaces what was kept, then says what was saved (`save_profile`). The next tasks may draw on the new interests.
 
@@ -104,7 +104,7 @@ PNG, at least 1000 pixels wide, three to five, of the card alone and without the
 
 1. "Let's do a MathTrail task." The card with the task and its five options, in the light theme.
 2. "Let's do a MathTrail task.", then the bulb, Hint, tapped on the card. The same card with the hint open, in the dark theme.
-3. "Let's do a MathTrail task.", then a wrong option tapped on the card, and "Go over the answer" sent. The card of how the answer went names the mistake and shows the picture of the solution and the solution, in the light theme.
+3. "Let's do a MathTrail task.", then a wrong option tapped on the card. The card, turned into how the answer went, names the mistake and shows the picture of the solution and the solution, in the light theme.
 4. "How is my child doing?" The progress with its review open, in the dark theme.
 
 ## ChatGPT

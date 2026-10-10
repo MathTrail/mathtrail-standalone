@@ -1,17 +1,18 @@
 import type { OptionState } from "../design/controls";
 import { dontKnow, type Letter } from "./choices";
-import type { AnswerOutcome, AnswerResult } from "./payload";
+import type { AnswerOutcome, AnswerResult, ResultShown } from "./payload";
 
 /**
  * Answer is where the child's answer to the task stands: not given yet; sent
- * and being checked; recorded, with what the service said of it; refused,
- * because the task is no longer the one being solved; or lost on its way, and
- * free to be given again.
+ * and being checked; recorded, with what the service said of it and, from a
+ * service that tells it whole, how the answer went as its card shows it;
+ * refused, because the task is no longer the one being solved; or lost on its
+ * way, and free to be given again.
  */
 export type Answer =
 	| { state: "open" }
 	| { state: "checking"; choice: Letter }
-	| { state: "answered"; result: AnswerResult }
+	| { state: "answered"; result: AnswerResult; shown?: ResultShown }
 	| { state: "closed" }
 	| { state: "failed" };
 
@@ -74,26 +75,19 @@ export function canAnswer(lesson: Lesson): boolean {
 
 /**
  * isSettled says whether the task is done with: answered, or no longer the
- * one being solved. A settled task takes no answer and shows no hint, and the
- * one thing left to do on it is to ask for another.
+ * one being solved. A settled task takes no answer and shows no hint.
  */
 export function isSettled(answer: Answer): boolean {
 	return answer.state === "answered" || answer.state === "closed";
-}
-
-/**
- * isOver says whether the card has something to say of the answer: its
- * result, why it was refused, or that it could not be checked.
- */
-export function isOver(answer: Answer): boolean {
-	return isSettled(answer) || answer.state === "failed";
 }
 
 // answerAfter is the answer an outcome leaves.
 function answerAfter(outcome: AnswerOutcome): Answer {
 	switch (outcome.kind) {
 		case "answered":
-			return { state: "answered", result: outcome.result };
+			return outcome.shown === undefined
+				? { state: "answered", result: outcome.result }
+				: { state: "answered", result: outcome.result, shown: outcome.shown };
 		case "closed":
 			return { state: "closed" };
 		case "failed":
@@ -102,19 +96,12 @@ function answerAfter(outcome: AnswerOutcome): Answer {
 }
 
 /**
- * optionStateOf is how the option letter stands: from the service's result
- * once the answer is recorded — the right option, the child's wrong choice,
- * the rest set back — and, before it, being checked when it is the choice on
- * its way.
+ * optionStateOf is how the option letter stands while the task is on the
+ * card: being checked when it is the choice on its way, and as it was handed
+ * out otherwise. Once the answer is in, the card shows how it went in the
+ * task's place, options and all.
  */
 export function optionStateOf(answer: Answer, letter: Letter): OptionState {
-	if (answer.state === "answered") {
-		const { correct_answer: right, choice } = answer.result;
-		if (letter === right) {
-			return "correct";
-		}
-		return letter === choice ? "wrong" : "muted";
-	}
 	if (answer.state === "checking" && answer.choice === letter) {
 		return "selected";
 	}
@@ -122,36 +109,29 @@ export function optionStateOf(answer: Answer, letter: Letter): OptionState {
 }
 
 /**
- * modelLineOf is the one line the model is told once the card marks a
- * recorded answer: which task, which choice, and how it went, and what comes
- * next. It says what is recorded rather than what was just done, since the
- * card also marks an answer recorded before — in the chat, in another card —
- * as it was recorded. The model wrote the task, so it holds the options, the
- * traps and the solution already; after an answer, naming the letters gives
- * nothing away. An answer just recorded is followed by the card's ask to go
- * over it, which the model answers with the card of how it went and a few
- * words beside it; one recorded before is gone over again only when asked. A
- * chat begun before that card has no tool to draw it, and its model explains
- * in words. A mistake the child has made before asks for a reminder of it, in
- * the model's own words, since the card keeps none. And whatever the model
- * says next is worded about the step, addressing nobody, since the model
- * talks with the adult and the child hears it as the adult reads it out; nor
- * does it show whether the child is a boy or a girl, which nothing tells the
- * card: he or she shows it, and in a language with grammatical gender so does
- * a past-tense sentence about what the child did.
+ * modelLineOf is the one line the model is told once the card shows a
+ * recorded answer: which task, which choice, and how it went, and that the
+ * card already shows the rest. It says what is recorded rather than what was
+ * just done, since the card also shows an answer recorded before — in the
+ * chat, in another card — as it was recorded. The model wrote the task, so it
+ * holds the options, the traps and the solution already; after an answer,
+ * naming the letters gives nothing away. The card asks the chat for nothing:
+ * the model reads the line with the adult's next message, and leaves the card
+ * as it is, since a retelling of it would say everything twice. And whatever
+ * the model says of it, asked, is worded about the step, addressing nobody,
+ * since the model talks with the adult and the child hears it as the adult
+ * reads it out; nor does it show whether the child is a boy or a girl, which
+ * nothing tells the card: he or she shows it, and in a language with
+ * grammatical gender so does a past-tense sentence about what the child did.
  */
 export function modelLineOf(result: AnswerResult): string {
-	return `${recordedLineOf(result)} ${nextLineOf(result)} ${aboutTheStep}`;
+	return `${recordedLineOf(result)} ${onTheCard} ${aboutTheStep}`;
 }
 
-// nextLineOf is what the model is to do next of an answer the card marks.
-function nextLineOf(result: AnswerResult): string {
-	const show = `call show_result with task_id ${result.task_id}, which draws below the card of how the answer went`;
-	if (result.already_answered) {
-		return `The card asks nothing more of it: if the adult asks to go over the answer, ${show}.`;
-	}
-	return `The card asks the chat, as the adult's message, to go over the answer: then ${show}, with the trap and the solution step by step, and explain in two or three short sentences beside it. If show_result is not among your tools, this chat has an earlier list of MathTrail's tools: explain in words, and offer another task.`;
-}
+// onTheCard is what the card does with the answer it shows, and what is left
+// to the model.
+const onTheCard =
+	"The card has turned into how the answer went — the verdict, the trap, the solution step by step and the rating — with the buttons for another task and for the topic, and it sends nothing to the chat: never call show_result for it, and say nothing of the answer unless the adult asks; asked, add to what the card shows rather than retell it.";
 
 const aboutTheStep =
 	"Word it about the step, addressing nobody, in short sentences that fit the child's grade, so the adult can read it out as it is, and so it does not show whether the child is a boy or a girl: speak of the child by the pseudonym, never as he or she, praise the step, not the child, and keep to the present tense.";
@@ -167,7 +147,7 @@ function recordedLineOf(result: AnswerResult): string {
 	}
 	const line = `${task}: ${result.choice}, which is wrong; the right option is ${result.correct_answer}.`;
 	if (result.trap?.repeated) {
-		return `${line} The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time.`;
+		return `${line} The child has made this mistake before among the latest answers, and the card says so.`;
 	}
 	return line;
 }

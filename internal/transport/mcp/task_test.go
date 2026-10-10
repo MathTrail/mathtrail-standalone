@@ -1292,6 +1292,29 @@ func TestThePackageNamesTheIdeaByTheTopicsTasksLeftBehind(t *testing.T) {
 	}
 }
 
+// A task asked for in place of one left on the card without an answer comes
+// after it: the task left counts among the tasks behind the child for the new
+// brief, so a task leafed past for its interest is not followed by another
+// dressed in one.
+func TestATaskAskedForInPlaceOfAnUnansweredOneIsDressedAfterIt(t *testing.T) {
+	t.Parallel()
+
+	// Three answers behind the child, the race on the card is the fourth task,
+	// the first of three, and the task asked for in its place is the fifth,
+	// which no interest dresses.
+	_, session := lesson(t, keptAsIs(t, raceOnTheCard(t, 3)))
+
+	coming := wantComing(t, call(t, session, "next_task", map[string]any{"language": "en"}))
+	var brief profile.Brief
+	if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, coming.RequestID))["brief"], &brief); err != nil {
+		t.Fatalf("read the package's brief: %v", err)
+	}
+	if brief.Setting != "" {
+		t.Errorf("setting = %q after three answers and the race left, want none: the fifth task is the model's to dress",
+			brief.Setting)
+	}
+}
+
 // Nothing that gives the answer away leaves the seal before the child has
 // answered: not in the payload a card draws, not in the words for the model,
 // not in the open part of the profile, not on a span and not in a line. A card

@@ -459,9 +459,9 @@ describe("the home page", () => {
 		expect(statesIn(step(3))).not.toContain("C correct");
 	});
 
-	test("shows the wrong answer gone over at the third: the card's ask in the chat, and the card of how it went, with its trap, the picture of the solution and the solution step by step", () => {
+	test("shows the wrong answer gone over at the third: the card turned into how it went, with its trap, the picture of the solution and the solution step by step, and nothing asked of the chat", () => {
 		expect(step(4).querySelector(".s-message-adult")?.textContent).toBe(
-			"Go over the answer",
+			"A task, please",
 		);
 		expect(step(4).querySelector(".mt-verdict-line")?.textContent).toBe(
 			"Not quite — it's 5, not 4.",

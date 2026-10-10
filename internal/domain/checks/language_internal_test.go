@@ -11,7 +11,7 @@ import (
 func TestATextIsCountedAsAChildReadsIt(t *testing.T) {
 	t.Parallel()
 
-	cyrillic := letterings["Cyrl"].letters
+	cyrillic, greek := letterings["Cyrl"].letters, letterings["Grek"].letters
 	for _, test := range []struct {
 		name     string
 		text     string
@@ -19,6 +19,8 @@ func TestATextIsCountedAsAChildReadsIt(t *testing.T) {
 		own, all int
 	}{
 		{"Chinese naming two children in Latin letters", "Tom和Mary谁高？", chinese.letters, 3, 5},
+		{"Greek articles and its or, words of a single letter", "Ο Νίκος ή η Μαρία", greek, 5, 5},
+		{"a single Greek letter among the words of another lesson", "Найди π и α.", cyrillic, 2, 2},
 		{"points named in Latin capitals", "AB = 3, BC = 4. Найди AC.", cyrillic, 1, 1},
 		{"an accent written as a mark of its own, inside its word", "nai\u0308ve", letterings["Latn"].letters, 1, 1},
 		{"a vowel sign and a virama inside a word", "नमस्ते", letterings["Deva"].letters, 1, 1},
@@ -43,28 +45,44 @@ func TestATextIsCountedAsAChildReadsIt(t *testing.T) {
 	}
 }
 
-// A tag holds a task to a script only where the tag library is sure of it: a
-// script the tag names, a language written in one script as a rule, or
-// Chinese, whose two likely scripts are one set of characters.
-func TestATagHoldsATaskToAScriptOnlyWhereTheLibraryIsSure(t *testing.T) {
+// A tag holds a task to the letters its language is written in: those of the
+// script it names, of the one its language is written in as a rule, of any a
+// language of the cards is written in when it is written in several, with the
+// one its place adds — and to none where the tag library only guesses at the
+// script of a language the cards do not speak, or the tag names nothing.
+// Chinese is held at a guess, since its two likely scripts are one set of
+// characters.
+func TestATagHoldsATaskToTheLettersItsLanguageIsWrittenIn(t *testing.T) {
 	t.Parallel()
 
-	for _, test := range []struct {
-		tag, script string
-		held        bool
-	}{
-		{"ru", "Cyrl", true}, {"ru-RU", "Cyrl", true}, {"en-GB", "Latn", true}, {"ja", "Jpan", true},
-		{"ko", "Kore", true}, {"zh-Hans", "Hans", true}, {"zh", "Hans", true}, {"zh-TW", "Hant", true},
-		{"yue", "Hant", true}, {"cmn", "Hans", true}, {"sr-Latn", "Latn", true}, {"kk-Cyrl", "Cyrl", true},
-		{"kk", "", false}, {"ms", "", false}, {"pa", "", false}, {"bs", "", false}, {"sr", "", false}, {"uz", "", false}, {"az", "", false}, {"mn", "", false}, {"pa-PK", "", false},
-		{"kk-CN", "", false}, {"und", "", false}, {"mul", "", false}, {"x-abc", "", false}, {"", "", false},
-		{"not a tag", "", false},
+	for _, test := range []struct{ tag, called string }{
+		{"ru", "Cyrillic letters"}, {"ru-RU", "Cyrillic letters"}, {"en-GB", "Latin letters"},
+		{"ja", "kanji and kana"}, {"ko", "Hangul"}, {"zh-Hans", "Chinese characters"}, {"zh", "Chinese characters"},
+		{"zh-TW", "Chinese characters"}, {"yue", "Chinese characters"}, {"cmn", "Chinese characters"},
+		{"el", "Greek letters"}, {"he", "Hebrew letters"}, {"iw", "Hebrew letters"}, {"am", "Ethiopic letters"},
+		{"hy", "Armenian letters"}, {"ka", "Georgian letters"}, {"te", "Telugu letters"}, {"ta", "Tamil letters"},
+		{"gu", "Gujarati letters"}, {"kn", "Kannada letters"}, {"ml", "Malayalam letters"}, {"or", "Odia letters"},
+		{"mr", "Devanagari letters"}, {"mai", "Devanagari letters"}, {"bg", "Cyrillic letters"}, {"ps", "Arabic letters"},
+		{"zh-Hant", "Chinese characters"}, {"sw", "Latin letters"}, {"zu", "Latin letters"}, {"nb", "Latin letters"},
+		{"no", "Latin letters"},
+		{"pa", "Gurmukhi or Arabic letters"}, {"pa-PK", "Gurmukhi or Arabic letters"},
+		{"ms", "Latin or Arabic letters"}, {"ha", "Latin or Arabic letters"}, {"ku", "Latin or Arabic letters"},
+		{"sr", "Cyrillic or Latin letters"}, {"kk", "Cyrillic or Latin letters"}, {"bs", "Latin or Cyrillic letters"},
+		{"uz", "Latin or Cyrillic letters"}, {"az", "Latin or Cyrillic letters"},
+		{"kk-CN", "Cyrillic, Latin or Arabic letters"}, {"uz-AF", "Latin, Cyrillic or Arabic letters"},
+		{"az-IR", "Latin, Cyrillic or Arabic letters"},
+		{"ckb", "Arabic letters"}, {"fil", "Latin letters"}, {"tl", "Latin letters"}, {"yo", "Latin letters"},
+		{"ig", "Latin letters"},
+		{"sr-Latn", "Latin letters"}, {"sr-Cyrl", "Cyrillic letters"}, {"kk-Cyrl", "Cyrillic letters"},
+		{"pa-Arab", "Arabic letters"}, {"ku-Arab", "Arabic letters"}, {"el-Latn", "Latin letters"},
+		{"mn", ""}, {"und", ""}, {"mul", ""}, {"x-abc", ""}, {"", ""}, {"not a tag", ""},
 	} {
 		t.Run(test.tag, func(t *testing.T) {
 			t.Parallel()
 
-			if script, held := heldScript(test.tag); script != test.script || held != test.held {
-				t.Errorf("heldScript(%q) = %q, %v, want %q, %v", test.tag, script, held, test.script, test.held)
+			lesson, held := lessonLetters(test.tag)
+			if called := lesson.called; held != (test.called != "") || called != test.called {
+				t.Errorf("lessonLetters(%q) = %q, held %v, want %q", test.tag, called, held, test.called)
 			}
 		})
 	}
@@ -78,6 +96,21 @@ func TestEveryLetteringHasLettersAndAName(t *testing.T) {
 	for script, lettering := range letterings {
 		if len(lettering.letters) == 0 || lettering.called == "" {
 			t.Errorf("letterings[%q] = %+v, want letters and a name", script, lettering)
+		}
+	}
+}
+
+// Every script a language of the cards is usually written in is one the check
+// has letters for: one it lacked would narrow the language's letters, and a
+// task written in that script would be refused.
+func TestEveryUsualScriptHasLetters(t *testing.T) {
+	t.Parallel()
+
+	for language, scripts := range usualScripts {
+		for _, script := range scripts {
+			if _, known := letterings[script]; !known {
+				t.Errorf("usualScripts[%q] holds %q, which letterings lacks", language, script)
+			}
 		}
 	}
 }

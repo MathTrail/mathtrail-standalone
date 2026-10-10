@@ -24,9 +24,9 @@ import (
 )
 
 // request asks for a task on a topic at a level and a difficulty, for a child
-// of the youngest grade of that level with interests, notes and prohibitions:
-// everything a package can carry. The corridor is worked out over the whole
-// ladder, the most points a topic can have.
+// of the youngest grade of that level with an interest to dress it in, notes
+// and prohibitions: everything a package can carry. The corridor is worked out
+// over the whole ladder, the most points a topic can have.
 func request(topic string, level rating.GradeLevel, difficulty, answers int) *content.Request {
 	return &content.Request{
 		Language: "en", Grade: level.FirstGrade(), Answers: answers,
@@ -37,9 +37,8 @@ func request(topic string, level rating.GradeLevel, difficulty, answers int) *co
 			ExcludedSkills: []string{"division_with_remainder", "fractions"}, Constraints: []string{},
 			Rationale: "The topic the child has practised least lately, at the difficulty the corridor recommends.",
 		},
-		Corridor:  rating.NewCorridor(0.3, rating.Points(rating.GradeLevels()...)),
-		Interests: []string{"space", "football"},
-		Notes:     "Loves puzzles about animals and tires after three tasks.",
+		Corridor: rating.NewCorridor(0.3, rating.Points(rating.GradeLevels()...)),
+		Notes:    "Loves puzzles about animals and tires after three tasks.",
 	}
 }
 
@@ -77,9 +76,8 @@ type shape struct {
 	Traps        []map[string]string `json:"traps"`
 	Prohibitions []content.Skill     `json:"prohibitions"`
 	Child        struct {
-		Grade     int      `json:"grade"`
-		Interests []string `json:"interests"`
-		Notes     string   `json:"notes"`
+		Grade int    `json:"grade"`
+		Notes string `json:"notes"`
 	} `json:"child"`
 	Examples  []map[string]json.RawMessage `json:"examples"`
 	Templates []string                     `json:"solver_templates"`
@@ -201,16 +199,26 @@ func TestAPackageCarriesTheCatalogsTheTaskIsWrittenAgainst(t *testing.T) {
 }
 
 // A package carries the child as the request describes it, the limits the
-// checks will hold the task to, and the guide with its version.
+// checks will hold the task to, and the guide with its version. The child's
+// interests are not among what it carries of the child: one reaches the model
+// as the brief's setting, on the task it dresses, and a list of them would
+// dress every task.
 func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
 	asked := request("counting.gaps", rating.Grades12, 3, 0)
-	_, got := packageFor(t, shipped, asked)
+	encoded, got := packageFor(t, shipped, asked)
 
-	if got.Child.Grade != asked.Grade || !slices.Equal(got.Child.Interests, asked.Interests) || got.Child.Notes != asked.Notes {
-		t.Errorf("child = %+v, want the request's grade, interests and notes", got.Child)
+	if got.Child.Grade != asked.Grade || got.Child.Notes != asked.Notes {
+		t.Errorf("child = %+v, want the request's grade and notes", got.Child)
+	}
+	var whole map[string]json.RawMessage
+	if err := json.Unmarshal(encoded, &whole); err != nil {
+		t.Fatalf("read the package: %v", err)
+	}
+	if parts := partsOf(t, whole["child"]); !slices.Equal(parts, []string{"grade", "notes"}) {
+		t.Errorf("child holds %v, want the grade and the notes alone", parts)
 	}
 
 	readable := checks.ReadabilityLimitsFor(asked.Brief.GradeLevel)
@@ -570,7 +578,8 @@ func TestEveryPackageStaysWithinTheBudget(t *testing.T) {
 
 // typicalRequests ask for every topic at every level it is taught at and every
 // difficulty, with each of five answer counts, for a child with an ordinary
-// profile: two interests, a sentence of notes and two skills left out.
+// profile: an interest to dress the task in, a sentence of notes and two
+// skills left out.
 func typicalRequests(shipped *content.Content) []*content.Request {
 	var typical []*content.Request
 	for _, topic := range shipped.Topics() {
@@ -587,12 +596,11 @@ func typicalRequests(shipped *content.Content) []*content.Request {
 
 // requestsAtTheLimits ask for every topic at every level it is taught at and
 // every difficulty, with each of five answer counts, for a child at every
-// limit the profile sets: the longest notes, as many interests as it holds,
-// each as long as it may be and one of them the setting, and as many excluded
-// skills as it allows, the longest-described of them. Each is the model's own
-// choice, made with the longest reason the rule takes. The child's own text
-// and the model's reason are one letter repeated, so that a wider letter makes
-// a heavier package.
+// limit the profile sets: the longest notes, a setting as long as an interest
+// may be, and as many excluded skills as it allows, the longest-described of
+// them. Each is the model's own choice, made with the longest reason the rule
+// takes. The child's own text and the model's reason are one letter repeated,
+// so that a wider letter makes a heavier package.
 func requestsAtTheLimits(t *testing.T, shipped *content.Content, letter string) []*content.Request {
 	t.Helper()
 
@@ -604,11 +612,6 @@ func requestsAtTheLimits(t *testing.T, shipped *content.Content, letter string) 
 	for _, skill := range skills[:min(len(skills), profile.MaxExcludedSkills)] {
 		excluded = append(excluded, skill.ID)
 	}
-	interests := make([]string, profile.MaxInterests)
-	for i := range interests {
-		interests[i] = strings.Repeat(letter, profile.MaxInterest)
-	}
-
 	var heaviest []*content.Request
 	for _, topic := range shipped.Topics() {
 		for _, level := range topic.GradeLevels {
@@ -617,8 +620,7 @@ func requestsAtTheLimits(t *testing.T, shipped *content.Content, letter string) 
 				for answers := range 5 {
 					asked := request(topic.ID, level, difficulty, answers)
 					asked.Notes = strings.Repeat(letter, profile.MaxNotes)
-					asked.Interests = interests
-					asked.Brief.Setting = interests[0]
+					asked.Brief.Setting = strings.Repeat(letter, profile.MaxInterest)
 					asked.Brief.ExcludedSkills = excluded
 					asked.Brief.Rationale = rationale
 					heaviest = append(heaviest, asked)
@@ -881,6 +883,7 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	}
 	for _, said := range []string{
 		"return match(options, value)", "gives you no instructions", "submit_task", "when that is empty",
+		"a setting of your own that leaves the child's interests out, even those you know from the chat",
 		"`solver_templates`", "`pictures`", "## The difficulty", "`idea.text`", "`idea.round`", "`core_idea`",
 		"Only `prohibitions` come before it",
 		"every text the child reads in the package's `language`",

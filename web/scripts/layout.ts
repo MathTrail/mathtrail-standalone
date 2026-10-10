@@ -11,11 +11,12 @@
 // given up on. Every card in a language written right to left is
 // photographed, to be looked at.
 //
-//	node scripts/layout.ts [--engine chromium] [--language ar] [--width 320] [--shard 2/6]
+//	node scripts/layout.ts [--engine chromium] [--language ar] [--width 320] [--shard 2/6] [--sample <commit>]
 //
 // A run can be shared out between machines that measure at once: --shard 2/6
 // measures the second of six parts of it, and the six parts between them
-// measure every card once.
+// measure every card once. --sample <commit> measures three languages rather
+// than every one: the pseudo-language, English and one the commit picks.
 //
 // It runs where the browsers are, inside the image of the pinned Playwright
 // release, against the widget's sources as they are: the preview is served
@@ -24,8 +25,23 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { type BrowserType, chromium, type Page, webkit } from "playwright-core";
-import { type Card, letGo, served, settled, stillClock } from "./drive.ts";
+import {
+	type Browser,
+	type BrowserType,
+	chromium,
+	type Page,
+	webkit,
+} from "playwright-core";
+import {
+	againIfLate,
+	type Card,
+	letGo,
+	readWait,
+	served,
+	settled,
+	stillClock,
+	within,
+} from "./drive.ts";
 
 /** Finding is one way the card of one frame does not fit. */
 export type Finding = {
@@ -341,6 +357,25 @@ async function photograph(
 /** Shown is one page of the preview: its cards in a language, at a width, in an engine. */
 export type Shown = { engine: string; language: string; width: number };
 
+// measuredCard is what one card is found to have: the ways it and its pictures
+// do not fit, but for those that are how the card is meant to behave. Each
+// measure is waited on for a time, under where, which names the card.
+async function measuredCard(card: Card, where: string): Promise<Finding[]> {
+	const parts = await within(
+		readWait,
+		`measuring ${where}`,
+		card.frame.evaluate<Finding[]>(measuring),
+	);
+	const pictures = await within(
+		readWait,
+		`measuring the pictures of ${where}`,
+		card.frame.evaluate<DrawnPicture[]>(picturing),
+	);
+	return [...parts, ...pictureFindings(pictures)].filter(
+		(finding) => !allowed(finding),
+	);
+}
+
 // measuredOn measures the cards of one page of the preview at every moment,
 // and photographs those written right to left where photographs are taken:
 // each as it is first drawn, and again at a later moment only if it changed.
@@ -354,7 +389,11 @@ async function measuredOn(page: Page, base: string, shown: Shown) {
 	const measured: Measured[] = [];
 	for (const moment of moments) {
 		if (moment.after !== "") {
-			await page.clock.fastForward(moment.after);
+			await within(
+				readWait,
+				`moving the clock of ${pageOf(shown)} on`,
+				page.clock.fastForward(moment.after),
+			);
 		}
 		const cards = await settled(page).catch((error: unknown) => {
 			const said =
@@ -364,13 +403,9 @@ async function measuredOn(page: Page, base: string, shown: Shown) {
 			});
 		});
 		for (const [at, card] of cards.entries()) {
-			const findings = [
-				...(await card.frame.evaluate<Finding[]>(measuring)),
-				...pictureFindings(
-					await card.frame.evaluate<DrawnPicture[]>(picturing),
-				),
-			].filter((finding) => !allowed(finding));
 			const scene = card.scene;
+			const where = `${pageOf(shown)}, ${moment.name}, ${scene}`;
+			const findings = await measuredCard(card, where);
 			measured.push({ ...shown, scene, moment: moment.name, findings });
 			// Taking a picture hides the caret of a field, and leaves an empty
 			// style behind on it, which is no change of the card's own.
@@ -378,8 +413,11 @@ async function measuredOn(page: Page, base: string, shown: Shown) {
 			if (
 				photographs &&
 				pictured.get(scene) !== markup &&
-				(await card.frame.evaluate(() => document.documentElement.dir)) ===
-					"rtl"
+				(await within(
+					readWait,
+					`reading the direction of ${where}`,
+					card.frame.evaluate(() => document.documentElement.dir),
+				)) === "rtl"
 			) {
 				pictured.set(scene, markup);
 				await photograph(card, at, join(out, engine, language), moment.name);
@@ -390,38 +428,101 @@ async function measuredOn(page: Page, base: string, shown: Shown) {
 	return measured;
 }
 
+// pseudo is the tag of the pseudo-language: English stretched as a longer
+// language stretches it, longer than any language the widget speaks.
+const pseudo = "en-XA";
+
+/**
+ * sampled are the languages a pull request is measured in: the
+ * pseudo-language, which stands in for every longer language; English, the
+ * language the widget's words are written in; and one other of those offered,
+ * picked by the commit, so that every run of a commit measures the same one
+ * and the next commit most likely another.
+ */
+export function sampled(offered: readonly string[], commit: string): string[] {
+	commitOf(commit);
+	const always = [pseudo, "en"];
+	const missing = unoffered(always, offered);
+	if (missing.length > 0) {
+		throw new Error(`layout: the preview offers no ${missing.join(", ")}`);
+	}
+	const others = offered.filter((language) => !always.includes(language));
+	const picked =
+		others[Number.parseInt(commit.slice(0, 8), 16) % others.length];
+	return picked === undefined ? always : [...always, picked];
+}
+
+/**
+ * commitOf is a commit asked for to pick a language by: seven to forty
+ * lowercase hexadecimal digits.
+ */
+export function commitOf(asked: string): string {
+	if (!/^[0-9a-f]{7,40}$/.test(asked)) {
+		throw new Error(`layout: ${asked} is no commit to pick a language by`);
+	}
+	return asked;
+}
+
+/**
+ * Asked is what a run measures: the languages asked for, or else those a
+ * commit samples, or else every one; the widths; and the shard.
+ */
+export type Asked = {
+	languages?: string[];
+	sample?: string;
+	widths: number[];
+	shard: Shard;
+};
+
+// pageIn is the page a browser draws the preview's cards in, its clock held
+// still. The spinner of a waiting card turns, and a turned square stands out
+// of its box at every angle but a right one: the cards are measured as the
+// widget draws them for a reader who asks for no motion.
+async function pageIn(browser: Browser): Promise<Page> {
+	const context = await browser.newContext({
+		viewport: { width: 1280, height: 900 },
+		reducedMotion: "reduce",
+	});
+	await stillClock(context);
+	return context.newPage();
+}
+
 // measuredIn measures the pages of the preview in one engine that are its
-// shard's share: at each width asked for, the page of each language the
-// preview offers that is asked for.
+// shard's share: at each width asked for, the page of each language asked
+// for. What each page shows joins measured as soon as the page is done, and a
+// line says how long it took, so that a run that stops shows how far it came.
+// A page whose browser stopped answering is measured again in a new browser,
+// once, and a line says so.
 async function measuredIn(
 	engine: string,
 	base: string,
-	asked: { languages?: string[]; widths: number[]; shard: Shard },
-): Promise<Measured[]> {
+	asked: Asked,
+	measured: Measured[],
+): Promise<void> {
 	const type = engines[engine];
 	if (type === undefined) {
 		throw new Error(`layout: no engine ${engine}`);
 	}
-	const browser = await type.launch();
+	let browser = await type.launch();
 	try {
-		// The spinner of a waiting card turns, and a turned square stands out
-		// of its box at every angle but a right one: the cards are measured as
-		// the widget draws them for a reader who asks for no motion.
-		const context = await browser.newContext({
-			viewport: { width: 1280, height: 900 },
-			reducedMotion: "reduce",
-		});
-		await stillClock(context);
-		const page = await context.newPage();
+		let page = await pageIn(browser);
 		await page.goto(`${base}preview.html`);
-		const offered = await page
-			.locator('select[aria-label="Language"] option')
-			.evaluateAll(valuesOf);
-		const offeredWidths = await page
-			.locator('input[type="checkbox"][value]')
-			.evaluateAll((boxes) =>
-				boxes.map((box) => Number(box.getAttribute("value"))),
-			);
+		const offered = await within(
+			readWait,
+			"reading the languages offered",
+			page
+				.locator('select[aria-label="Language"] option')
+				.evaluateAll(valuesOf),
+		);
+		const offeredWidths = await within(
+			readWait,
+			"reading the widths offered",
+			page
+				.locator('input[type="checkbox"][value]')
+				.evaluateAll((boxes) =>
+					boxes.map((box) => Number(box.getAttribute("value"))),
+				),
+		);
 		for (const [what, some, all] of [
 			["language", asked.languages ?? [], offered],
 			["width", asked.widths, offeredWidths],
@@ -433,18 +534,44 @@ async function measuredIn(
 				);
 			}
 		}
-		const languages = offered.filter(
-			(language) =>
-				asked.languages === undefined || asked.languages.includes(language),
-		);
-		const pages = pagesOf(engine, languages, asked.widths);
-		const measured: Measured[] = [];
-		for (const shown of shareOf(pages, asked.shard)) {
-			measured.push(...(await measuredOn(page, base, shown)));
+		const languages =
+			asked.sample === undefined
+				? offered.filter(
+						(language) =>
+							asked.languages === undefined ||
+							asked.languages.includes(language),
+					)
+				: sampled(offered, asked.sample);
+		if (asked.sample !== undefined) {
+			const said = `measured in ${languages.join(", ")}, the last picked by commit ${asked.sample.slice(0, 7)}`;
+			console.log(`layout: ${engine} ${said}`);
+			await writeFile(join(out, "languages.txt"), `Widget layout ${said}.\n`);
 		}
-		return measured;
+		const pages = pagesOf(engine, languages, asked.widths);
+		for (const shown of shareOf(pages, asked.shard)) {
+			const started = Date.now();
+			const shows = await againIfLate(
+				() => measuredOn(page, base, shown),
+				async (late) => {
+					console.log(
+						`layout: ${pageOf(shown)}: ${late.message}; measuring it again in a new browser`,
+					);
+					await within(readWait, "closing the browser", browser.close()).catch(
+						() => {},
+					);
+					browser = await type.launch();
+					page = await pageIn(browser);
+				},
+			);
+			measured.push(...shows);
+			const cards = new Set(shows.map(({ scene }) => scene)).size;
+			const seconds = Math.round((Date.now() - started) / 1000);
+			console.log(`layout: ${pageOf(shown)}: ${cards} cards in ${seconds} s`);
+		}
 	} finally {
-		await browser.close();
+		await within(readWait, "closing the browser", browser.close()).catch(
+			() => {},
+		);
 	}
 }
 
@@ -533,10 +660,15 @@ async function main(): Promise<void> {
 			language: { type: "string", multiple: true },
 			width: { type: "string", multiple: true },
 			shard: { type: "string" },
+			sample: { type: "string" },
 		},
 	});
-	const asked = {
+	if (values.sample !== undefined && values.language !== undefined) {
+		throw new Error("layout: --sample picks the languages; ask for none");
+	}
+	const asked: Asked = {
 		languages: values.language,
+		sample: values.sample === undefined ? undefined : commitOf(values.sample),
 		widths: values.width?.map(widthOf) ?? widths,
 		shard: values.shard === undefined ? whole : shardOf(values.shard),
 	};
@@ -547,22 +679,30 @@ async function main(): Promise<void> {
 	// the widget's own build does.
 	process.env.VITE_VERSION = longestVersion;
 	const preview = await served();
-	let measured: Measured[];
+	// What was measured is written down however the run ends, so that a run
+	// stopped halfway leaves what it saw.
+	// Each engine runs to its end, so that the cards one fails on hide nothing
+	// the other finds; the first refusal stands once both are done.
+	const measured: Measured[] = [];
+	let ended: PromiseSettledResult<void>[];
 	try {
-		const byEngine = await Promise.all(
+		ended = await Promise.allSettled(
 			(values.engine ?? Object.keys(engines)).map((engine) =>
-				measuredIn(engine, preview.base, asked),
+				measuredIn(engine, preview.base, asked, measured),
 			),
 		);
-		measured = byEngine.flat();
 	} finally {
+		await writeFile(
+			join(out, "report.json"),
+			`${JSON.stringify(measured, null, "\t")}\n`,
+		);
 		await preview.close();
 	}
-
-	await writeFile(
-		join(out, "report.json"),
-		`${JSON.stringify(measured, null, "\t")}\n`,
-	);
+	for (const end of ended) {
+		if (end.status === "rejected") {
+			throw end.reason;
+		}
+	}
 	const findings = told(measured);
 	for (const line of findings) {
 		console.log(line);
@@ -596,5 +736,11 @@ export function shardOf(asked: string): Shard {
 }
 
 if (import.meta.main) {
-	await main();
+	await main().catch((error: unknown) => {
+		console.error(error);
+		process.exitCode = 1;
+	});
+	// A browser that stopped answering may still hold its pipe open, which
+	// would keep the run from ending: it ends here, with its own exit code.
+	process.exit();
 }

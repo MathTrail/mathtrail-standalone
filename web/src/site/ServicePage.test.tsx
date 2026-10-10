@@ -326,7 +326,7 @@ describe("the page of the service", () => {
 		).toEqual(["Adult → The host's model: ", "The host's model → MathTrail: "]);
 	});
 
-	test("has the child answer on the card, the card ask the chat to go over it as the adult, and the model answer the adult beside the card it draws", () => {
+	test("has the child answer on the card, the card turn into how it went and tell the model, and the model answer the adult's question", () => {
 		const answer = texts(
 			`#${stepsId("answer")} .s-service-arrow-words .s-hidden`,
 		);
@@ -336,10 +336,7 @@ describe("the page of the service", () => {
 			"MathTrail → Drive: ",
 			"MathTrail → Card: ",
 			"Card → The host's model: ",
-			"Card → Adult: ",
 			"Adult → The host's model: ",
-			"The host's model → MathTrail: ",
-			"MathTrail → The host's model: ",
 			"The host's model → Adult: ",
 		]);
 	});

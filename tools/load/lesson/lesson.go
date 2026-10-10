@@ -48,8 +48,8 @@ type Card struct {
 // language is the language every task of the load is written in.
 const language = "en"
 
-// interest is what every child of the load is interested in, which the
-// setting of a brief is made of.
+// interest is what every child of the load is interested in: the setting of
+// one brief in three is made of it.
 const interest = "sport"
 
 // Start opens the child's profile: it reads what is there, and saves the
@@ -190,12 +190,6 @@ func HandIn(ctx context.Context, child *session.Child, request Request, task *Ta
 // would from the card.
 func AnswerTask(ctx context.Context, child *session.Child, card Card, letter string) session.Answer {
 	return child.Call(ctx, "submit_answer", map[string]any{"task_id": card.TaskID, "answer": letter})
-}
-
-// ShowResult asks for the card of how the answer to the task on the card went,
-// as the model does once the card has recorded the answer.
-func ShowResult(ctx context.Context, child *session.Child, card Card) session.Answer {
-	return child.Call(ctx, "show_result", map[string]any{"task_id": card.TaskID})
 }
 
 // Progress reads the child's progress.

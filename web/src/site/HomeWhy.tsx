@@ -146,42 +146,45 @@ function Against({ page }: { page: PageReader }) {
 		page.text("pillars.versus.asked", {
 			ask: page.plain("pillars.alone.ask"),
 		});
-	const points = (key: string) =>
-		page.list(key).map((point) => page.text(point));
 	return (
 		<div class="s-against">
 			<Side
+				page={page}
 				kind="alone"
 				name={page.text("pillars.alone.name")}
 				asked={asked()}
 				mark="✕"
-				points={points("pillars.versus.alone")}
+				points="pillars.versus.alone"
 			/>
 			<Side
+				page={page}
 				kind="ours"
 				name={page.text("pillars.versus.ours.name")}
 				asked={asked()}
 				mark="✓"
-				points={points("pillars.versus.ours.points")}
+				points="pillars.versus.ours.points"
 			/>
 		</div>
 	);
 }
 
 // Side is one side of the comparison: its name, what it was asked, and its
-// points, each after a mark that says whether it counts against or for.
+// points, the items of the page's list under the key given, each after a mark
+// that says whether it counts against or for.
 function Side({
+	page,
 	kind,
 	name,
 	asked,
 	mark,
 	points,
 }: {
+	page: PageReader;
 	kind: "alone" | "ours";
 	name: ComponentChildren;
 	asked: ComponentChildren;
 	mark: string;
-	points: readonly ComponentChildren[];
+	points: string;
 }) {
 	return (
 		<div class={`s-against-side s-against-${kind}`}>
@@ -190,12 +193,12 @@ function Side({
 				<span class="s-against-ask">{asked}</span>
 			</p>
 			<ul class="s-against-points">
-				{points.map((point, at) => (
-					<li key={at}>
+				{page.list(points).map((point) => (
+					<li key={point}>
 						<span class="s-against-mark" aria-hidden="true">
 							{mark}
 						</span>
-						<span>{point}</span>
+						<span>{page.text(point)}</span>
 					</li>
 				))}
 			</ul>

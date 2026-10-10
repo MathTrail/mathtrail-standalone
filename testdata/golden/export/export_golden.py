@@ -334,8 +334,9 @@ def export_rule(conn: psycopg.Connection, params: rating.Params) -> dict:
     return {
         "source": {
             "note": "The prototype's rule (its SPEC 5.7, D40) on the five seed profiles. v1 changes three things "
-                    "and these vectors do not cover them: the goal 'motivate' is gone (О-34), the setting rotates "
-                    "by the total answer count rather than by the number of history rows, and grades 5-6 exist "
+                    "and these vectors do not cover them: the goal 'motivate' is gone (О-34), the setting dresses "
+                    "one task in three, counted by the tasks behind the child rather than by the number of "
+                    "history rows, and grades 5-6 exist "
                     "(SPEC 3.3). Everything else — the goal, the topic, the difficulty and the traps — is the same.",
             "trap_count": tutor_rule.TRAP_COUNT,
         },

@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import type { Bar } from "../../design/picture/model";
+import type { Brace } from "../../design/picture/model";
 import type { Tone, Tones } from "../../design/picture/tones";
 import type { PageReader } from "../reader";
 import { Box, Key, Line, Op, Say, Stack, Then, Versus } from "../Sketch";
@@ -36,7 +36,7 @@ function Strip({
 	sizes: readonly number[];
 	labels?: readonly (string | undefined)[];
 	paints?: readonly Paint[];
-	braces?: Bar["braces"];
+	braces?: Brace[];
 	span?: string;
 	value?: string;
 }) {
@@ -103,7 +103,7 @@ function Chain({
 	return (
 		<Line gap={4}>
 			{values.map((value, at) => [
-				at > 0 && <Then key={`then-${at}`} back={back} />,
+				at > 0 && <Then key={`then-${value}`} back={back} />,
 				<Box
 					key={value}
 					size="sm"
@@ -200,9 +200,9 @@ export const art: TopicArt = {
 				page={page}
 				{...equal(12, 1)}
 				paints={[
-					...Array<Paint>(4).fill("cool"),
-					...Array<Paint>(3).fill("warm"),
-					...Array<Paint>(5).fill("green"),
+					...new Array<Paint>(4).fill("cool"),
+					...new Array<Paint>(3).fill("warm"),
+					...new Array<Paint>(5).fill("green"),
 				]}
 				braces={[
 					{ from: 0, to: 4, label: "1/3" },
@@ -351,7 +351,7 @@ export const art: TopicArt = {
 							"20",
 							"20",
 						]}
-						paints={[...Array<Paint>(5).fill("struck"), "green", "green"]}
+						paints={[...new Array<Paint>(5).fill("struck"), "green", "green"]}
 						braces={[{ from: 5, to: 7, label: "40" }]}
 					/>
 				),
@@ -360,7 +360,7 @@ export const art: TopicArt = {
 						<Strip
 							page={page}
 							{...equal(7, 1, "20")}
-							paints={Array<Paint>(7).fill("green")}
+							paints={new Array<Paint>(7).fill("green")}
 							braces={[{ from: 0, to: 7, label: "140" }]}
 						/>
 						<Say>7 × 20 = 140</Say>
@@ -372,7 +372,7 @@ export const art: TopicArt = {
 					<Strip
 						page={page}
 						{...equal(7, 1, "8")}
-						paints={Array<Paint>(5).fill("struck")}
+						paints={new Array<Paint>(5).fill("struck")}
 						braces={[{ from: 0, to: 5, label: "40" }]}
 					/>
 					<Say way="wrong">{page.text(`${at}.read`)}</Say>
