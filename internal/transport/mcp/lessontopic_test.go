@@ -267,15 +267,19 @@ func TestACardIsToldTheChoiceOfTheTopicOnceTheSeriesIsOver(t *testing.T) {
 }
 
 // A catalog the rule can choose no topic from is the service's own fault: the
-// card of a task is not drawn without its choice of the topic, nor the
-// progress without its review, and the model is told that something went
-// wrong inside MathTrail.
+// card of a task is not drawn without its choice of the topic, nor the card of
+// how its answer went, nor the progress without its review, and the model is
+// told that something went wrong inside MathTrail.
 func TestNoTopicToChooseFromIsAFailure(t *testing.T) {
 	t.Parallel()
 
 	kept := keptAs(t, "petya", developing)
-	_, session := lesson(t, kept)
+	answering, session := lesson(t, kept)
 	request := raceHandedOut(t, session, kept)
+	onTheCard, _ := loadKept(t, kept)
+	answered := map[string]any{"task_id": onTheCard.CurrentTask.ID}
+	call(t, session, "submit_answer", map[string]any{"task_id": onTheCard.CurrentTask.ID, "answer": "A"})
+	answering.settle()
 
 	parts := allParts(t)
 	parts.Store, parts.Content = kept, &content.Content{}
@@ -292,6 +296,7 @@ func TestNoTopicToChooseFromIsAFailure(t *testing.T) {
 		args map[string]any
 	}{
 		{"read_task", map[string]any{"request_id": request.ID}},
+		{"show_result", answered},
 		{"get_progress", nil},
 	} {
 		wantOurSentence(t, call(t, empty, tc.tool, tc.args), "Something went wrong inside MathTrail.")

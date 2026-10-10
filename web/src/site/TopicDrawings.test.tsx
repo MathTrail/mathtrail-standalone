@@ -263,13 +263,10 @@ describe("a drawing of the site's own", () => {
 		expect(new Set(flags.map((flag) => flag.join("/"))).size).toBe(6);
 	});
 
-	test.each([
-		["product-regrouped", ["25", "4", "100"]],
-		["sum-regrouped", ["100", "100"]],
-	] as const)("of %s marks the numbers that make a hundred", (name, marked) => {
-		const { doc } = drawn(markup(name));
+	test("of sum-regrouped marks the numbers that make a hundred", () => {
+		const { doc } = drawn(markup("sum-regrouped"));
 
-		expect(textsOf(doc, ".s-art-chip-accent")).toEqual(marked);
+		expect(textsOf(doc, ".s-art-chip-accent")).toEqual(["100", "100"]);
 	});
 });
 
@@ -328,9 +325,12 @@ const placed: readonly Placed[] = (() => {
 })();
 
 describe("the pictures of the site's topics", () => {
-	test("are every kind of place a topic's picture stands in", () => {
+	// No topic's card draws a picture of a kind any more: each card draws a
+	// markup of the site's own. A card keeps its room, for a picture one may
+	// draw again.
+	test("stand on the first screens and in the examples", () => {
 		expect(new Set(placed.map(([place]) => place))).toEqual(
-			new Set(Object.keys(rooms)),
+			new Set(["hero", "example"]),
 		);
 	});
 

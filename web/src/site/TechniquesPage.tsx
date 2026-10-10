@@ -6,8 +6,8 @@ import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { StepDrawing, TaskLegend } from "./TechniqueSteps";
 import { allTechniques, type Technique, type Techniques } from "./techniques";
-import { gradesText, useSiteWords } from "./words";
 import { Answer, WorkedSteps } from "./WorkedSteps";
+import { gradesText, useSiteWords } from "./words";
 
 /**
  * TechniquesPage is the page of the techniques of problem solving. It opens

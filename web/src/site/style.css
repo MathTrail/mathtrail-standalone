@@ -2684,7 +2684,9 @@ a.s-related-card:hover {
 	padding-inline: 56px var(--space-20);
 }
 
-.s-history[data-playing] .s-history-era:has(.s-history-pick:checked) .s-history-bars {
+.s-history[data-playing]
+	.s-history-era:has(.s-history-pick:checked)
+	.s-history-bars {
 	display: flex;
 }
 
@@ -4495,7 +4497,8 @@ a.s-related-card:hover {
 	fill: var(--s-tech);
 }
 
-.s-step-picture[data-technique="small-numbers"] .mt-pic-text[data-tone~="cool"] {
+.s-step-picture[data-technique="small-numbers"]
+	.mt-pic-text[data-tone~="cool"] {
 	fill: var(--s-accent);
 }
 

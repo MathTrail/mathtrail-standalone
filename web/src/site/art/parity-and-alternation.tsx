@@ -102,13 +102,7 @@ function Sum({
 
 // Parity is the word for even or for odd on its pill: blue for even, amber
 // for odd.
-function Parity({
-	page,
-	even,
-}: {
-	page: PageReader;
-	even: boolean;
-}) {
+function Parity({ page, even }: { page: PageReader; even: boolean }) {
 	return (
 		<span class="s-par-parity" data-even={even ? "" : undefined}>
 			{page.text(even ? "art.even" : "art.odd")}
@@ -154,7 +148,13 @@ function River({
 // outside in.
 function Target() {
 	return (
-		<svg class="s-par-target" width={90} height={90} viewBox="0 0 90 90">
+		<svg
+			aria-hidden="true"
+			class="s-par-target"
+			width={90}
+			height={90}
+			viewBox="0 0 90 90"
+		>
 			{[42, 32, 22].map((radius) => (
 				<circle key={radius} class="s-par-ring" cx={45} cy={45} r={radius} />
 			))}
@@ -213,14 +213,16 @@ const corners = [0, 1].flatMap((back) =>
 
 // edges are the cube's twelve edges, as pairs of corners one step apart.
 const edges = corners.flatMap((one, at) =>
-	corners.slice(at + 1).flatMap((other) =>
-		Math.abs(one.across - other.across) +
-			Math.abs(one.up - other.up) +
-			Math.abs(one.back - other.back) ===
-		1
-			? [{ one, other, back: one.back + other.back === 2 }]
-			: [],
-	),
+	corners
+		.slice(at + 1)
+		.flatMap((other) =>
+			Math.abs(one.across - other.across) +
+				Math.abs(one.up - other.up) +
+				Math.abs(one.back - other.back) ===
+			1
+				? [{ one, other, back: one.back + other.back === 2 }]
+				: [],
+		),
 );
 
 // Cube is the wire cube, its back edges pale, the spider's starting corner
@@ -236,7 +238,7 @@ function Cube({
 	return (
 		<span class="s-par-cube">
 			<span class="s-par-start-name">{page.text("art.start")}</span>
-			<svg width={110} height={110} viewBox="0 0 110 110">
+			<svg aria-hidden="true" width={110} height={110} viewBox="0 0 110 110">
 				{edges.map(({ one, other, back }) => (
 					<line
 						key={`${one.x}.${one.y}-${other.x}.${other.y}`}
@@ -251,7 +253,11 @@ function Cube({
 				{corners.map((one) => {
 					const start = one.across === 0 && one.up === 1 && one.back === 0;
 					const white = (one.across + one.up + one.back) % 2 === 1;
-					const corner: Corner = coloured ? (white ? "white" : "black") : "plain";
+					const corner: Corner = coloured
+						? white
+							? "white"
+							: "black"
+						: "plain";
 					return (
 						<g key={`${one.x}.${one.y}`}>
 							{start && (
@@ -397,14 +403,11 @@ export const art: TopicArt = {
 		},
 		{
 			column: 2,
-			rows: [1, 2, 3, 4].map(
-				(row) =>
-					({ page }: { page: PageReader }) => (
-						<span class="s-par-parity" data-even={row <= 2 ? "" : undefined}>
-							{page.text(`idea.table.rows.${row}.3`)}
-						</span>
-					),
-			),
+			rows: [1, 2, 3, 4].map((row) => ({ page }: { page: PageReader }) => (
+				<span class="s-par-parity" data-even={row <= 2 ? "" : undefined}>
+					{page.text(`idea.table.rows.${row}.3`)}
+				</span>
+			)),
 		},
 	],
 	ideaLegend: ({ page }) => <Kinds page={page} />,

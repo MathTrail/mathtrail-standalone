@@ -129,17 +129,21 @@ func TestATextDrawingThatHoldsNothingIsReadPast(t *testing.T) {
 }
 
 // A picture written as null, the way a card's payload writes no picture, or
-// as an empty text, is no picture: it is mended and named, not refused.
+// as an empty text, is no picture: it is mended and named, not refused. So is
+// a picture of the solution.
 func TestAPictureWrittenAsNothingIsNoPicture(t *testing.T) {
 	t.Parallel()
 
-	for _, written := range []any{nil, "", " "} {
-		submitted := validParts(t)
-		draft, problems := checks.Decode(withMember(t, submitted.task, "picture", written), submitted.selfCheck)
-		problems = append(problems, checks.Structure(draft, testCatalog)...)
-		if len(problems) != 0 || draft.Task.Picture != nil || !slices.Contains(draft.Mended, "task.picture") {
-			t.Errorf("picture %#v: problems %v, picture %s, mended %v, want no picture and the mend named",
-				written, problems, draft.Task.Picture, draft.Mended)
+	for _, member := range []string{"picture", "solution_picture"} {
+		for _, written := range []any{nil, "", " "} {
+			submitted := validParts(t)
+			draft, problems := checks.Decode(withMember(t, submitted.task, member, written), submitted.selfCheck)
+			problems = append(problems, checks.Structure(draft, testCatalog)...)
+			drawn := map[string]json.RawMessage{"picture": draft.Task.Picture, "solution_picture": draft.Task.SolutionPicture}
+			if len(problems) != 0 || drawn[member] != nil || !slices.Contains(draft.Mended, "task."+member) {
+				t.Errorf("%s %#v: problems %v, picture %s, mended %v, want no picture and the mend named",
+					member, written, problems, drawn[member], draft.Mended)
+			}
 		}
 	}
 }

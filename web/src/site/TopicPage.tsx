@@ -4,8 +4,8 @@ import { cardWords } from "../widget/dictionaries";
 import { topicName, trapName } from "../widget/names";
 import type { Key } from "../widget/words";
 import { address } from "./addresses";
-import type { Art, CellWords, ExampleArt, TopicArt } from "./art/art";
 import { topicArt } from "./art";
+import type { Art, CellWords, ExampleArt, TopicArt } from "./art/art";
 import type { SiteData, TopicExample } from "./data";
 import type { Drawing } from "./drawings";
 import { connectAddress } from "./home";
@@ -16,8 +16,8 @@ import { TableFrame } from "./TableFrame";
 import { TopicDrawing } from "./TopicDrawings";
 import { TopicThumb } from "./TopicThumbs";
 import type { Group, Topic } from "./topics";
-import { gradesText, groupKey, type SiteKey, useSiteWords } from "./words";
 import { Answer, StepFrame, WorkedSteps } from "./WorkedSteps";
+import { gradesText, groupKey, type SiteKey, useSiteWords } from "./words";
 
 // shownTraps is how many of a topic's traps its page explains: the most
 // frequent in its reference tasks, which between them take most of the wrong
@@ -341,7 +341,11 @@ function Idea({
 				<p class="s-intro-line">{page.text("idea.lead")}</p>
 			</div>
 			{legend !== undefined && (
-				<p class="s-legend s-idea-legend s-topic-art" aria-hidden="true" dir="ltr">
+				<p
+					class="s-legend s-idea-legend s-topic-art"
+					aria-hidden="true"
+					dir="ltr"
+				>
 					{legend({ page, at: "idea.art" })}
 				</p>
 			)}
@@ -642,7 +646,11 @@ function Traps({
 						<h3>{trapName(card, id)}</h3>
 						<p class="s-tile-text">{page.text(`traps.${id}.shows`)}</p>
 						{art?.[id] !== undefined && (
-							<div class="s-trap-sketch s-topic-art" aria-hidden="true" dir="ltr">
+							<div
+								class="s-trap-sketch s-topic-art"
+								aria-hidden="true"
+								dir="ltr"
+							>
 								{art[id]({ page, at: `traps.${id}.art` })}
 							</div>
 						)}

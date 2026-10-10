@@ -223,20 +223,20 @@ jobs:
   layout:
     name: Widget layout ${{ matrix.part }}/${{ strategy.job-total }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     # This job stays on the runner: the browsers run in an image of their own,
     # which needs a Docker daemon. The widget's packages are installed here, by
     # the Node the development image pins, and the image runs over them.
     #
-    # On one runner the pages take some twenty minutes, nearly all of it the
+    # On one runner the pages take well over an hour, nearly all of it the
     # browser drawing each page's cards on a single thread, and the two engines
-    # slow each other down; six runners measure a sixth of them each, at once.
-    # Every part runs to its end, so that a card that fails in one hides
-    # nothing the others find.
+    # slow each other down; twelve runners measure a twelfth of them each, at
+    # once, each well within its limit. Every part runs to its end, so that a
+    # card that fails in one hides nothing the others find.
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2, 3, 4, 5, 6]
+        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/just

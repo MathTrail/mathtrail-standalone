@@ -54,7 +54,10 @@ function borderOf(cells: readonly string[]): [Point, Point][] {
 // pathOf is the path through points of the grid, in pixels of a cell's size.
 function pathOf(points: readonly Point[], size: number, at: number): string {
 	return points
-		.map(([x, y], place) => `${place === 0 ? "M" : "L"}${at + x * size} ${at + y * size}`)
+		.map(
+			([x, y], place) =>
+				`${place === 0 ? "M" : "L"}${at + x * size} ${at + y * size}`,
+		)
 		.join("");
 }
 
@@ -87,6 +90,7 @@ function Figure({
 	const height = cells.length * size + 2 * at;
 	return (
 		<svg
+			aria-hidden="true"
 			class="s-grid-figure"
 			width={width}
 			height={height}
@@ -186,8 +190,11 @@ function crossingsOf(rows: number, columns: number): Crossing[] {
 // passedOf are the cells whose inside the segment passes through, by
 // "row.column": between each two crossings it runs inside one cell.
 function passedOf(rows: number, columns: number): Set<string> {
-	const along = [0, 1, ...crossingsOf(rows, columns).map((one) => one.x / columns)]
-		.sort((one, other) => one - other);
+	const along = [
+		0,
+		1,
+		...crossingsOf(rows, columns).map((one) => one.x / columns),
+	].sort((one, other) => one - other);
 	const passed = new Set<string>();
 	for (let place = 1; place < along.length; place++) {
 		const middle = ((along[place - 1] ?? 0) + (along[place] ?? 0)) / 2;
@@ -220,6 +227,7 @@ function Diagonal({
 	const through = passed ? passedOf(rows, columns) : new Set<string>();
 	return (
 		<svg
+			aria-hidden="true"
 			class="s-grid-figure"
 			width={width}
 			height={height}
@@ -266,10 +274,38 @@ function Spot({ line }: { line: "down" | "across" }) {
 // strips are the four ways to cut a strip of 2 by 4 into two whole parts of
 // 4 cells: along it, across it, by a step, and by the step the other way.
 const strips = {
-	along: { cells: ["cccc", "wwww"], cut: [[0, 1], [4, 1]] },
-	across: { cells: ["ccww", "ccww"], cut: [[2, 0], [2, 2]] },
-	step: { cells: ["cccw", "cwww"], cut: [[3, 0], [3, 1], [1, 1], [1, 2]] },
-	back: { cells: ["cwww", "cccw"], cut: [[1, 0], [1, 1], [3, 1], [3, 2]] },
+	along: {
+		cells: ["cccc", "wwww"],
+		cut: [
+			[0, 1],
+			[4, 1],
+		],
+	},
+	across: {
+		cells: ["ccww", "ccww"],
+		cut: [
+			[2, 0],
+			[2, 2],
+		],
+	},
+	step: {
+		cells: ["cccw", "cwww"],
+		cut: [
+			[3, 0],
+			[3, 1],
+			[1, 1],
+			[1, 2],
+		],
+	},
+	back: {
+		cells: ["cwww", "cccw"],
+		cut: [
+			[1, 0],
+			[1, 1],
+			[3, 1],
+			[3, 2],
+		],
+	},
 } as const satisfies Record<
 	string,
 	{ cells: readonly string[]; cut: readonly Point[] }
@@ -445,10 +481,9 @@ export const art: TopicArt = {
 		},
 		{
 			column: 2,
-			rows: [1, 2, 3, 4].map(
-				(row) =>
-					({ page }: { page: PageReader }) => <Perimeter page={page} row={row} />,
-			),
+			rows: [1, 2, 3, 4].map((row) => ({ page }: { page: PageReader }) => (
+				<Perimeter page={page} row={row} />
+			)),
 		},
 	],
 	legend: ({ page, at }) => (
@@ -546,7 +581,11 @@ export const art: TopicArt = {
 					<Line gap={8}>
 						<Strip way="along" />
 						<Op>=</Op>
-						<Figure cells={["wwww", "cccc"]} size={20} cuts={[strips.along.cut]} />
+						<Figure
+							cells={["wwww", "cccc"]}
+							size={20}
+							cuts={[strips.along.cut]}
+						/>
 						<Say way="wrong">{page.text(`${at}.same`)}</Say>
 					</Line>
 					<Line gap={6}>

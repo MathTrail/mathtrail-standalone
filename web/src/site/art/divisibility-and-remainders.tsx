@@ -1,16 +1,7 @@
 import type { ComponentChildren } from "preact";
 import type { Tones } from "../../design/picture/tones";
 import type { PageReader } from "../reader";
-import {
-	Box,
-	Chip,
-	Key,
-	Line,
-	Op,
-	Say,
-	Stack,
-	Versus,
-} from "../Sketch";
+import { Box, Chip, Key, Line, Op, Say, Stack, Versus } from "../Sketch";
 import type { TopicArt } from "./art";
 import { Kind, lit } from "./pictures";
 
@@ -224,7 +215,15 @@ export const art: TopicArt = {
 					picture={{ kind: "number_line", from: 0, to: 7 }}
 					tones={{
 						...lit(
-							["tick 0", "tick 1", "tick 2", "tick 3", "tick 4", "tick 5", "tick 6"],
+							[
+								"tick 0",
+								"tick 1",
+								"tick 2",
+								"tick 3",
+								"tick 4",
+								"tick 5",
+								"tick 6",
+							],
 							"cool",
 						),
 						"tick 7": ["struck"],
@@ -254,9 +253,7 @@ export const art: TopicArt = {
 		({ page, at }) => (
 			<Stack gap={10} align="start">
 				<Rule by={page.text(`${at}.by-two`)}>{page.text(`${at}.even`)}</Rule>
-				<Rule by={page.text(`${at}.by-five`)}>
-					{page.text(`${at}.five`)}
-				</Rule>
+				<Rule by={page.text(`${at}.by-five`)}>{page.text(`${at}.five`)}</Rule>
 				<Rule by={page.text(`${at}.by-three`)}>
 					{page.text(`${at}.digits`)}
 				</Rule>
@@ -268,7 +265,9 @@ export const art: TopicArt = {
 			column: 1,
 			words: "under",
 			rows: [
-				() => <Packs groups={7} size={4} rest={1} picked={["groups", "rest"]} />,
+				() => (
+					<Packs groups={7} size={4} rest={1} picked={["groups", "rest"]} />
+				),
 				() => <Packs groups={7} size={4} rest={1} picked={["groups"]} />,
 				() => <Packs groups={7} size={4} rest={1} picked={["rest"]} />,
 			],
@@ -375,7 +374,10 @@ export const art: TopicArt = {
 				),
 			],
 			note: ({ page }) => (
-				<Sums page={page} tones={lit(["tick 18", "tick 21", "tick 24"], "green")} />
+				<Sums
+					page={page}
+					tones={lit(["tick 18", "tick 21", "tick 24"], "green")}
+				/>
 			),
 		},
 		{
@@ -392,7 +394,10 @@ export const art: TopicArt = {
 									["2", "4", "8", "6", "2", "4", "8", "6"],
 								],
 							}}
-							tones={lit(["cell 1.0", "cell 1.1", "cell 1.2", "cell 1.3"], "cool")}
+							tones={lit(
+								["cell 1.0", "cell 1.1", "cell 1.2", "cell 1.3"],
+								"cool",
+							)}
 						/>
 						<Say>{page.text(`${at}.first`)}</Say>
 					</>

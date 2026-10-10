@@ -24,7 +24,12 @@ function Bead({
 	children: ComponentChildren;
 }) {
 	return (
-		<span class="s-ord-bead" data-paint={paint} data-ring={ring} data-size={size}>
+		<span
+			class="s-ord-bead"
+			data-paint={paint}
+			data-ring={ring}
+			data-size={size}
+		>
 			{children}
 		</span>
 	);
@@ -75,7 +80,11 @@ function Placed({
 		<Stack gap={4}>
 			<span class="s-ord-places">
 				{places.map((place) => (
-					<span key={place} class="s-ord-place" data-gold={gold ? "" : undefined}>
+					<span
+						key={place}
+						class="s-ord-place"
+						data-gold={gold ? "" : undefined}
+					>
 						{place}
 					</span>
 				))}
@@ -130,7 +139,11 @@ function Lineup({
 						<span class="s-ord-than">&gt;</span>
 					</span>
 				),
-				<span key={at} class="s-ord-stander" data-before={one.before ? "" : undefined}>
+				<span
+					key={at}
+					class="s-ord-stander"
+					data-before={one.before ? "" : undefined}
+				>
 					<span class="s-ord-floor">
 						<span
 							class="s-ord-figure"
@@ -445,15 +458,9 @@ export const art: TopicArt = {
 		},
 		{
 			column: 2,
-			rows: [2, 3, 4].map(
-				(count) =>
-					({ page }: { page: PageReader }) => (
-						<Lineup
-							people={lineOf(page, count, count === 2 ? 2 : 1)}
-							size="sm"
-						/>
-					),
-			),
+			rows: [2, 3, 4].map((count) => ({ page }: { page: PageReader }) => (
+				<Lineup people={lineOf(page, count, count === 2 ? 2 : 1)} size="sm" />
+			)),
 		},
 	],
 	legend: ({ page, at }) => (
@@ -573,7 +580,13 @@ export const art: TopicArt = {
 						/>
 						<span class="s-ord-apart" />
 						<Waiting word={page.text(`${at}.waits`)}>
-							<Person page={page} where={at} who="pavel" paint="red" size="sm" />
+							<Person
+								page={page}
+								where={at}
+								who="pavel"
+								paint="red"
+								size="sm"
+							/>
 						</Waiting>
 					</Line>
 				),

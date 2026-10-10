@@ -1,15 +1,5 @@
 import type { ComponentChildren } from "preact";
-import {
-	Box,
-	Chip,
-	Key,
-	Line,
-	Op,
-	Row,
-	Say,
-	Stack,
-	Versus,
-} from "../Sketch";
+import { Box, Chip, Key, Line, Op, Row, Say, Stack, Versus } from "../Sketch";
 import type { TopicArt } from "./art";
 import { Kind, lit } from "./pictures";
 
@@ -164,7 +154,7 @@ function AgesThen({
 	then,
 	more,
 }: {
-	words: { now: ComponentChildren; then: ComponentChildren };
+	words: { now: ComponentChildren; later: ComponentChildren };
 	young: ComponentChildren;
 	old: ComponentChildren;
 	now: readonly [number, string, string];
@@ -176,7 +166,7 @@ function AgesThen({
 			<Say>{words.now}</Say>
 			<Age name={young} own={now[0]} value={now[1]} />
 			<Age name={old} own={now[0]} more={more} value={now[2]} />
-			<Say>{words.then}</Say>
+			<Say>{words.later}</Say>
 			<Age name={young} own={then[0]} value={then[1]} />
 			<Age name={old} own={then[0]} more={more} value={then[2]} />
 		</Stack>
@@ -225,7 +215,7 @@ export const art: TopicArt = {
 		),
 		({ page, at }) => (
 			<AgesThen
-				words={{ now: page.text(`${at}.now`), then: page.text(`${at}.then`) }}
+				words={{ now: page.text(`${at}.now`), later: page.text(`${at}.then`) }}
 				young={page.text(`${at}.anya`)}
 				old={page.text(`${at}.mum`)}
 				now={[18, "6", "30"]}
@@ -329,7 +319,7 @@ export const art: TopicArt = {
 						<AgesThen
 							words={{
 								now: page.text(`${at}.now`),
-								then: page.text(`${at}.then`),
+								later: page.text(`${at}.then`),
 							}}
 							young={page.text(`${at}.vera`)}
 							old={page.text(`${at}.dad`)}
@@ -411,7 +401,10 @@ export const art: TopicArt = {
 							locale={page.locale}
 							picture={{ kind: "calendar", first: 5, days: 30 }}
 							tones={{
-								...lit(["day 2", "day 9", "day 16", "day 23", "day 30"], "cool"),
+								...lit(
+									["day 2", "day 9", "day 16", "day 23", "day 30"],
+									"cool",
+								),
 								"day 25": ["warm", "picked"],
 							}}
 						/>

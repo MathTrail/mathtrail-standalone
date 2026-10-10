@@ -29,13 +29,7 @@ function Pigeon({
 }
 
 // Pigeons are so many pigeons in a row.
-function Pigeons({
-	count,
-	size,
-}: {
-	count: number;
-	size?: "md" | "sm";
-}) {
+function Pigeons({ count, size }: { count: number; size?: "md" | "sm" }) {
 	return (
 		<Line gap={size === "sm" ? 4 : 10}>
 			{Array.from({ length: count }, (_, at) => (
@@ -125,7 +119,13 @@ function Week({ page, size = "md" }: { page: PageReader; size?: "md" | "sm" }) {
 }
 
 // Ball is a ball, blue or red, ringed where it is the one that decides.
-function Ball({ red = false, ringed = false }: { red?: boolean; ringed?: boolean }) {
+function Ball({
+	red = false,
+	ringed = false,
+}: {
+	red?: boolean;
+	ringed?: boolean;
+}) {
 	return (
 		<span
 			class="s-pig-ball"
@@ -205,13 +205,7 @@ type Shade = "black" | "white" | "striped";
 
 // Sock is a sock of a shade, ringed where it decides or where it is wrongly
 // taken.
-function Sock({
-	kind,
-	ring,
-}: {
-	kind: Shade;
-	ring?: "picked" | "wrong";
-}) {
+function Sock({ kind, ring }: { kind: Shade; ring?: "picked" | "wrong" }) {
 	return <span class="s-pig-sock" data-kind={kind} data-ring={ring} />;
 }
 
@@ -242,8 +236,22 @@ function Socks({
 
 // drawer are the socks of the drawer in the order they lie, mixed.
 const drawer: readonly Shade[] = [
-	"black", "white", "black", "striped", "black", "white", "white", "black",
-	"black", "white", "striped", "black", "white", "black", "white", "black",
+	"black",
+	"white",
+	"black",
+	"striped",
+	"black",
+	"white",
+	"white",
+	"black",
+	"black",
+	"white",
+	"striped",
+	"black",
+	"white",
+	"black",
+	"white",
+	"black",
 ];
 
 // Drawer is the drawer of socks, mixed.

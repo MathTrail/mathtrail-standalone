@@ -125,7 +125,9 @@ export function historyPickId(name: string): string {
  * script waits on it, the bars of the pictures before it in its era standing
  * full.
  */
-export function historyRules(eras: readonly (readonly HistoryPicture[])[]): string {
+export function historyRules(
+	eras: readonly (readonly HistoryPicture[])[],
+): string {
 	const chosen = (name: string) =>
 		`#${historySection}:has(#${historyPickId(name)}:checked)`;
 	const shown = eras

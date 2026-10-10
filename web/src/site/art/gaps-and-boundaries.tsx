@@ -92,6 +92,7 @@ function Bushes({
 	});
 	return (
 		<svg
+			aria-hidden="true"
 			class="s-gap-bushes"
 			width={size}
 			height={size}
@@ -104,7 +105,12 @@ function Bushes({
 				const gap = at((place + 0.5) / count, ring + size * 0.13);
 				return (
 					<g key={place}>
-						<circle class="s-gap-bush" cx={bush.x} cy={bush.y} r={size * 0.055} />
+						<circle
+							class="s-gap-bush"
+							cx={bush.x}
+							cy={bush.y}
+							r={size * 0.055}
+						/>
 						{numbered && (
 							<text
 								class="s-gap-number"
@@ -178,7 +184,15 @@ function Logs({ cuts }: { cuts: readonly number[] }) {
 }
 
 // Girl is Masha or Lena as a circle of her own colour with her initial.
-function Girl({ page, at, who }: { page: PageReader; at: string; who: "masha" | "lena" }) {
+function Girl({
+	page,
+	at,
+	who,
+}: {
+	page: PageReader;
+	at: string;
+	who: "masha" | "lena";
+}) {
 	return (
 		<span class="s-gap-girl" data-who={who}>
 			{page.text(`${at}.${who}`)}
@@ -204,11 +218,13 @@ function Climb({
 		<Line gap={14} align="start">
 			<Stack gap={6}>
 				<span class="s-gap-floors">
-					{Array.from({ length: top }, (_, below) => top - below).map((floor) => (
-						<span key={floor} data-top={floor === top ? "" : undefined}>
-							{floor}
-						</span>
-					))}
+					{Array.from({ length: top }, (_, below) => top - below).map(
+						(floor) => (
+							<span key={floor} data-top={floor === top ? "" : undefined}>
+								{floor}
+							</span>
+						),
+					)}
 				</span>
 				<Say>{name}</Say>
 			</Stack>
@@ -478,13 +494,7 @@ export const art: TopicArt = {
 			<Versus
 				child={
 					<>
-						<Track
-							thing="stop"
-							count={6}
-							gaps={() => 3}
-							beyond="3"
-							size="sm"
-						/>
+						<Track thing="stop" count={6} gaps={() => 3} beyond="3" size="sm" />
 						<Count>18</Count>
 					</>
 				}

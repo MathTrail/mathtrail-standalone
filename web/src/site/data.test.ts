@@ -155,12 +155,12 @@ describe("the site's data", () => {
 			card: { markup: "daisy" },
 		});
 		expect(data.examples.get("logic.knights_liars")).toEqual([
-			{ grades: [5, 6], drawing: { markup: "round-table" } },
-			{ grades: [3, 4] },
+			{ grades: [5, 6], answer: "5", drawing: { markup: "round-table" } },
+			{ grades: [3, 4], answer: "A liar" },
 		]);
 	});
 
-	test("sets each example at the grades of its level", () => {
+	test("sets each example at the grades of its level, with its answer", () => {
 		const data = readSiteData(
 			catalog,
 			examples({
@@ -172,8 +172,8 @@ describe("the site's data", () => {
 		);
 
 		expect(data.examples.get("logic.knights_liars")).toEqual([
-			{ grades: [5, 6] },
-			{ grades: [3, 4] },
+			{ grades: [5, 6], answer: "5" },
+			{ grades: [3, 4], answer: "A liar" },
 		]);
 	});
 

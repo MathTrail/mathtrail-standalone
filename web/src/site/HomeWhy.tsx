@@ -111,7 +111,9 @@ export function Why({ page, home }: { page: PageReader; home: Home }) {
 function ChatAlone({ page, alone }: { page: PageReader; alone: HomeAlone }) {
 	return (
 		<figure class="s-alone">
-			<figcaption class="s-alone-bar">{page.text("pillars.alone.name")}</figcaption>
+			<figcaption class="s-alone-bar">
+				{page.text("pillars.alone.name")}
+			</figcaption>
 			<div class="s-alone-body">
 				<p class="s-alone-ask">{page.text("pillars.alone.ask")}</p>
 				<div class="s-alone-task">
@@ -263,7 +265,13 @@ function Arrow({ back = false }: { back?: boolean }) {
 }
 
 // TileIcon is the name of a tile's mark.
-type TileIcon = "endless" | "checked" | "diagnosis" | "coach" | "research" | "map";
+type TileIcon =
+	| "endless"
+	| "checked"
+	| "diagnosis"
+	| "coach"
+	| "research"
+	| "map";
 
 // tileIcons are the tiles' marks, drawn in strokes on a 24-unit square: a loop
 // with no end, a shield with a tick, a warning sign; a person, a flask, and
@@ -308,7 +316,10 @@ const tileIcons: Readonly<Record<TileIcon, () => VNode>> = {
 
 // languagesFirst are the languages a tile names, the page's own first and the
 // rest in the order the site's data gives them.
-function languagesFirst(locale: string, languages: readonly string[]): string[] {
+function languagesFirst(
+	locale: string,
+	languages: readonly string[],
+): string[] {
 	const own = languages.filter((tag) => tag === locale);
 	return [...own, ...languages.filter((tag) => tag !== locale)];
 }
@@ -316,6 +327,7 @@ function languagesFirst(locale: string, languages: readonly string[]): string[] 
 // nameOf is a language's name in the language itself, begun with a capital,
 // as a list of languages to choose from writes it.
 function nameOf(tag: string): string {
-	const name = new Intl.DisplayNames([tag], { type: "language" }).of(tag) ?? tag;
+	const name =
+		new Intl.DisplayNames([tag], { type: "language" }).of(tag) ?? tag;
 	return name.charAt(0).toLocaleUpperCase(tag) + name.slice(1);
 }

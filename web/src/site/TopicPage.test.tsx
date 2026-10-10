@@ -349,7 +349,7 @@ describe("a topic's page", () => {
 		const related = [...knights.querySelectorAll(".s-related")].map((list) => [
 			list.parentElement?.querySelector("h2")?.textContent,
 			[...list.querySelectorAll("li")].map((topic) => [
-				topic.querySelector("h3")?.textContent,
+				topic.querySelector(".s-related-name")?.textContent,
 				topic.querySelector("a")?.getAttribute("href") ??
 					topic.querySelector(".s-soon")?.textContent,
 			]),

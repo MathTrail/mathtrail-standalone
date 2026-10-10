@@ -59,6 +59,36 @@ func TestATaskWithNoPictureHasNoFormatToCheck(t *testing.T) {
 	}
 }
 
+// A total of a task whose answer is a label ends in that label: an option
+// that holds no number is held to the total's end as the text it is.
+func TestATotalEndsInTheLabelItsAnswerIs(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		total string
+		codes []checks.Code
+	}{
+		{"AB + BC = AC", nil},
+		{"AB + BC = AD", []checks.Code{checks.CodeDrawingMismatch}},
+	} {
+		held := &checks.Task{
+			Question: "Points A, B, C and D lie on a line in that order. AB is 2 cm, BC is 3 cm, CD is 4 cm " +
+				"and AD is 9 cm. Which segment is 5 cm long?",
+			Solution:        "AB and BC together are 2 + 3 = 5 cm, and they make AC.",
+			SolutionPicture: json.RawMessage(`{"kind":"row","items":[{"label":"A"},{"label":"B"},{"label":"C"},{"label":"D"}]}`),
+			SolutionTotal:   test.total, CorrectAnswer: "C",
+			Options: map[string]string{"A": "AB", "B": "BC", "C": "AC", "D": "AD", "E": "CD"},
+		}
+		var codes []checks.Code
+		for _, problem := range checks.SolutionPicture(held, "en") {
+			codes = append(codes, problem.Code)
+		}
+		if !slices.Equal(codes, test.codes) {
+			t.Errorf("SolutionPicture() with the total %q: codes = %v, want %v", test.total, codes, test.codes)
+		}
+	}
+}
+
 // The picture of a solution is checked alone as the review checks it: in its
 // format, its total in its own, and against the wording and the solution;
 // a task with none has nothing to check.

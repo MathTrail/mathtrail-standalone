@@ -328,7 +328,9 @@ export const art: TopicArt = {
 							]}
 						/>
 						<Line gap={14}>
-							<Key sample={<Swatch paint="cool" />}>{page.text(`${at}.monday`)}</Key>
+							<Key sample={<Swatch paint="cool" />}>
+								{page.text(`${at}.monday`)}
+							</Key>
 							<Key sample={<Swatch paint="warm" />}>
 								{page.text(`${at}.tuesday`)}
 							</Key>
@@ -339,7 +341,15 @@ export const art: TopicArt = {
 					<Strip
 						page={page}
 						{...equal(7, 1)}
-						labels={[undefined, undefined, undefined, undefined, undefined, "20", "20"]}
+						labels={[
+							undefined,
+							undefined,
+							undefined,
+							undefined,
+							undefined,
+							"20",
+							"20",
+						]}
 						paints={[...Array<Paint>(5).fill("struck"), "green", "green"]}
 						braces={[{ from: 5, to: 7, label: "40" }]}
 					/>
@@ -386,13 +396,20 @@ export const art: TopicArt = {
 				({ page, at }) => (
 					<Stack gap={10}>
 						<Buyer page={page} at={at} who="first" count={7} taken={4} />
-						<Chain values={["7", "3", "1", "0"]} ring={{ at: 0, way: "picked" }} />
+						<Chain
+							values={["7", "3", "1", "0"]}
+							ring={{ at: 0, way: "picked" }}
+						/>
 					</Stack>
 				),
 			],
 			note: ({ page, at }) => (
 				<Line gap={10}>
-					<Chain values={["0", "1", "3", "7"]} back ring={{ at: 3, way: "right" }} />
+					<Chain
+						values={["0", "1", "3", "7"]}
+						back
+						ring={{ at: 3, way: "right" }}
+					/>
 					<Say>{page.text(`${at}.back`)}</Say>
 				</Line>
 			),

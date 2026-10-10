@@ -41,7 +41,9 @@ function Jug({
 				<span class="s-wei-water" />
 				<span class="s-wei-litres">{holds}</span>
 			</span>
-			<span class="s-wei-size">{page.text("art.litres", { count: capacity })}</span>
+			<span class="s-wei-size">
+				{page.text("art.litres", { count: capacity })}
+			</span>
 		</Stack>
 	);
 }
@@ -95,13 +97,7 @@ function Coin({ size = "md" }: { size?: "md" | "sm" | "xs" }) {
 }
 
 // Coins are so many coins in a row.
-function Coins({
-	count,
-	size,
-}: {
-	count: number;
-	size?: "md" | "sm" | "xs";
-}) {
+function Coins({ count, size }: { count: number; size?: "md" | "sm" | "xs" }) {
 	return (
 		<span class="s-wei-coins">
 			{Array.from({ length: count }, (_, at) => (
@@ -184,7 +180,11 @@ function Heaps({
 	return (
 		<Line gap={6}>
 			{Array.from({ length: heaps }, (_, heap) => (
-				<span key={heap} class="s-wei-heap" data-square={coins === 9 ? "" : undefined}>
+				<span
+					key={heap}
+					class="s-wei-heap"
+					data-square={coins === 9 ? "" : undefined}
+				>
 					{Array.from({ length: coins }, (_, at) => (
 						<Coin key={at} size={size} />
 					))}
@@ -232,18 +232,61 @@ export const art: TopicArt = {
 		<>
 			<Stack gap={14} align="start">
 				<Line gap={6} align="end">
-					<State page={page} step={0} jugs={[[5, 5], [0, 3]]} />
+					<State
+						page={page}
+						step={0}
+						jugs={[
+							[5, 5],
+							[0, 3],
+						]}
+					/>
 					<Move>{page.text("art.pour")}</Move>
-					<State page={page} step={1} jugs={[[2, 5], [3, 3]]} />
+					<State
+						page={page}
+						step={1}
+						jugs={[
+							[2, 5],
+							[3, 3],
+						]}
+					/>
 					<Move>{page.text("art.empty")}</Move>
-					<State page={page} step={2} jugs={[[2, 5], [0, 3]]} />
+					<State
+						page={page}
+						step={2}
+						jugs={[
+							[2, 5],
+							[0, 3],
+						]}
+					/>
 				</Line>
 				<Line gap={6} align="end">
-					<State page={page} step={3} jugs={[[0, 5], [2, 3]]} />
+					<State
+						page={page}
+						step={3}
+						jugs={[
+							[0, 5],
+							[2, 3],
+						]}
+					/>
 					<Move>{page.text("art.fill")}</Move>
-					<State page={page} step={4} jugs={[[5, 5], [2, 3]]} />
+					<State
+						page={page}
+						step={4}
+						jugs={[
+							[5, 5],
+							[2, 3],
+						]}
+					/>
 					<Move>{page.text("art.top")}</Move>
-					<State page={page} step={5} jugs={[[4, 5], [3, 3]]} goal />
+					<State
+						page={page}
+						step={5}
+						jugs={[
+							[4, 5],
+							[3, 3],
+						]}
+						goal
+					/>
 				</Line>
 			</Stack>
 			<Say>{page.text(`${at}.pair`)}</Say>
@@ -252,9 +295,21 @@ export const art: TopicArt = {
 	basis: [
 		({ page }) => (
 			<Line gap={8} align="end">
-				<State page={page} jugs={[[5, 5], [0, 3]]} />
+				<State
+					page={page}
+					jugs={[
+						[5, 5],
+						[0, 3],
+					]}
+				/>
 				<Move>{page.text("art.pour")}</Move>
-				<State page={page} jugs={[[2, 5], [3, 3]]} />
+				<State
+					page={page}
+					jugs={[
+						[2, 5],
+						[3, 3],
+					]}
+				/>
 			</Line>
 		),
 		({ page, at }) => (
@@ -299,33 +354,84 @@ export const art: TopicArt = {
 		},
 	],
 	legend: ({ page, at }) => (
-		<Key sample={<span class="s-wei-goal-sample" />}>{page.text(`${at}.goal`)}</Key>
+		<Key sample={<span class="s-wei-goal-sample" />}>
+			{page.text(`${at}.goal`)}
+		</Key>
 	),
 	examples: [
 		{
 			task: ({ page, at }) => (
 				<Line gap={12} align="end">
-					<State page={page} jugs={[[0, 3], [0, 5]]} />
+					<State
+						page={page}
+						jugs={[
+							[0, 3],
+							[0, 5],
+						]}
+					/>
 					<Say>{page.text(`${at}.jugs`)}</Say>
 				</Line>
 			),
 			steps: [
 				({ page }) => (
 					<Line gap={6} align="end">
-						<State page={page} step={0} jugs={[[0, 3], [0, 5]]} />
+						<State
+							page={page}
+							step={0}
+							jugs={[
+								[0, 3],
+								[0, 5],
+							]}
+						/>
 						<Move>{page.text("art.fill")}</Move>
-						<State page={page} step={1} jugs={[[3, 3], [0, 5]]} />
+						<State
+							page={page}
+							step={1}
+							jugs={[
+								[3, 3],
+								[0, 5],
+							]}
+						/>
 						<Move>{page.text("art.pour")}</Move>
-						<State page={page} step={2} jugs={[[0, 3], [3, 5]]} />
+						<State
+							page={page}
+							step={2}
+							jugs={[
+								[0, 3],
+								[3, 5],
+							]}
+						/>
 					</Line>
 				),
 				({ page }) => (
 					<Line gap={6} align="end">
-						<State page={page} step={2} jugs={[[0, 3], [3, 5]]} />
+						<State
+							page={page}
+							step={2}
+							jugs={[
+								[0, 3],
+								[3, 5],
+							]}
+						/>
 						<Move>{page.text("art.fill")}</Move>
-						<State page={page} step={3} jugs={[[3, 3], [3, 5]]} />
+						<State
+							page={page}
+							step={3}
+							jugs={[
+								[3, 3],
+								[3, 5],
+							]}
+						/>
 						<Move>{page.text("art.pour")}</Move>
-						<State page={page} step={4} jugs={[[1, 3], [5, 5]]} goal />
+						<State
+							page={page}
+							step={4}
+							jugs={[
+								[1, 3],
+								[5, 5],
+							]}
+							goal
+						/>
 					</Line>
 				),
 				({ page, at }) => (
@@ -461,7 +567,13 @@ export const art: TopicArt = {
 					}
 					right={
 						<>
-							<State page={page} jugs={[[1, 3], [5, 5]]} />
+							<State
+								page={page}
+								jugs={[
+									[1, 3],
+									[5, 5],
+								]}
+							/>
 							<Say>{page.text(`${at}.after-pouring`)}</Say>
 						</>
 					}

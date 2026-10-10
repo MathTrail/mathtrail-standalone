@@ -14,6 +14,8 @@ import {
 import { AdultAsks, ChatFrame } from "./Chat";
 import { frontPage } from "./content";
 import { progressOf } from "./data";
+import { Pick } from "./HomePick";
+import { Why } from "./HomeWhy";
 import {
 	connectAddress,
 	connectSection,
@@ -25,8 +27,6 @@ import {
 	homeTaskOf,
 	lessonSection,
 } from "./home";
-import { Pick } from "./HomePick";
-import { Why } from "./HomeWhy";
 import { Phone } from "./Phone";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";

@@ -1,8 +1,8 @@
 import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
 import type { HomePick } from "./home";
-import type { PageReader } from "./reader";
 import { written } from "./ResearchNumbers";
+import type { PageReader } from "./reader";
 
 /**
  * Pick is how the task on the first screen's card was picked for the child,
@@ -70,7 +70,9 @@ export function Pick({
 					<ul class="s-pick-list s-pick-reasons">
 						<li>
 							{page.text("hero.pick.chance", {
-								chance: <strong>{written(page.locale, chance, "share")}</strong>,
+								chance: (
+									<strong>{written(page.locale, chance, "share")}</strong>
+								),
 							})}
 						</li>
 						{page.list("hero.pick.reasons").map((key) => (

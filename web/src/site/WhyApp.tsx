@@ -1,8 +1,8 @@
 import type { ComponentChildren } from "preact";
 import { profileFileName } from "./brand";
 import type { PageReader } from "./reader";
-import type { Hue, Source } from "./why";
 import { Cite, Stroke } from "./WhyParts";
+import type { Hue, Source } from "./why";
 
 // appCards are the cards of how MathTrail differs from an ordinary app, by
 // the names their words have, each with the colour it is lit in: a program
@@ -67,7 +67,9 @@ function CardFoot({ page, card }: { page: PageReader; card: string }) {
 							{page.text(key)}
 						</span>
 					))}
-					<span class="s-why-foot-chip s-why-foot-no">{page.text(`${at}.fails`)}</span>
+					<span class="s-why-foot-chip s-why-foot-no">
+						{page.text(`${at}.fails`)}
+					</span>
 				</>
 			);
 		case "free":
@@ -124,7 +126,9 @@ const cardMarks: Readonly<Record<string, () => ComponentChildren>> = {
 			<path d="M9 12l2 2 4-4" />
 		</>
 	),
-	free: () => <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />,
+	free: () => (
+		<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+	),
 	data: () => (
 		<>
 			<rect x="4" y="11" width="16" height="10" rx="2" />

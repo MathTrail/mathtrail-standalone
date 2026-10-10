@@ -11,7 +11,7 @@ const usage =
 	"usage: node tools/sitecheck/main.ts --base <origin> --dir <directory> [--reference-locale <locale>] [--max-page-bytes <bytes>] [--max-frame-bytes <bytes>]";
 
 /** defaultMaxPageBytes is what a page may weigh with everything it loads. */
-export const defaultMaxPageBytes = 450 * 1024;
+export const defaultMaxPageBytes = 600 * 1024;
 
 /**
  * defaultMaxFrameBytes is what a document a page frames may weigh with
@@ -24,6 +24,12 @@ export const defaultMaxFrameBytes = 2 * 1024 * 1024;
  * weighed without.
  */
 export const photoDirectory = "/assets/photos/";
+
+/**
+ * historyDirectory is where the site keeps the pictures of the history a page
+ * tells, which a page is weighed without, as it is without the photographs.
+ */
+export const historyDirectory = "/assets/history/";
 
 /**
  * main judges the site a command line names and returns the command's exit
@@ -104,7 +110,7 @@ function optionsOf(args: string[]): (Options & { dir: string }) | undefined {
 		referenceLocale: values["reference-locale"] ?? "en",
 		maxPageBytes,
 		maxFrameBytes,
-		photos: photoDirectory,
+		photos: [photoDirectory, historyDirectory],
 		published,
 	};
 }

@@ -413,7 +413,10 @@ export const art: TopicArt = {
 			steps: [
 				({ page, at }) => (
 					<Across
-						from={[<Box key="8:00">8:00</Box>, page.text(`${at}.grandma-clock`)]}
+						from={[
+							<Box key="8:00">8:00</Box>,
+							page.text(`${at}.grandma-clock`),
+						]}
 						between={<Op>≠</Op>}
 						to={[
 							<Box key="8:30" tone="pale">
@@ -431,9 +434,7 @@ export const art: TopicArt = {
 							</Box>,
 							page.text(`${at}.at-ann`),
 						]}
-						between={
-							<Stretch length={60}>{`+ ${lasts(page, 240)}`}</Stretch>
-						}
+						between={<Stretch length={60}>{`+ ${lasts(page, 240)}`}</Stretch>}
 						to={[
 							<Box key="12:30" ring="picked">
 								12:30

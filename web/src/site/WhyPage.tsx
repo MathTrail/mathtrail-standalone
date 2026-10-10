@@ -8,12 +8,12 @@ import type { PageReader } from "./reader";
 import { SourceChip } from "./SourceChip";
 import { StaticResult } from "./StaticCard";
 import { gradesOfAll } from "./topics";
-import { answerOf, type Why } from "./why";
 import { App } from "./WhyApp";
 import { Research } from "./WhyFindings";
 import { History } from "./WhyHistory";
 import { Parent } from "./WhyParent";
 import { NoTime, School } from "./WhySchool";
+import { answerOf, type Why } from "./why";
 import { gradesText, useSiteWords } from "./words";
 
 // whyScript is where the page's script is served: one module, which the

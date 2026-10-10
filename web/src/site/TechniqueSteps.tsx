@@ -23,7 +23,9 @@ export function StepDrawing({
 }) {
 	const draw = stepPictures[technique];
 	if (draw === undefined) {
-		throw new Error(`the page of the techniques has no pictures for ${technique}`);
+		throw new Error(
+			`the page of the techniques has no pictures for ${technique}`,
+		);
 	}
 	return <>{draw(page, `techniques.${technique}.pictures`, step)}</>;
 }
@@ -249,7 +251,9 @@ const drawTable: Draw = (page, at, step) => (
 				...pets.map((pet) => (
 					<PetCell
 						key={`${child}-${pet}`}
-						mark={petMarks.find((one) => one.child === child && one.pet === pet)}
+						mark={petMarks.find(
+							(one) => one.child === child && one.pet === pet,
+						)}
 						step={step + 1}
 					/>
 				)),
@@ -388,7 +392,12 @@ const drawSystematic: Draw = (page, at, step) => {
 						{digits.map((first) => (
 							<span key={first} class="s-step-column">
 								{others(first).map((second) => (
-									<Pair key={second} first={first} second={second} size="small" />
+									<Pair
+										key={second}
+										first={first}
+										second={second}
+										size="small"
+									/>
 								))}
 							</span>
 						))}
@@ -660,15 +669,9 @@ const drawPattern: Draw = (page, at, step) => {
 
 // Who is an islander by the first letter of their name: plain where the
 // problem names them, green as a knight and red as a liar.
-function Who({
-	letter,
-	role,
-}: {
-	letter: string;
-	role?: "knight" | "liar";
-}) {
+function Who({ letter, kind }: { letter: string; kind?: "knight" | "liar" }) {
 	return (
-		<span class="s-step-who" data-role={role}>
+		<span class="s-step-who" data-role={kind}>
 			{letter}
 		</span>
 	);
@@ -703,9 +706,9 @@ const drawOpposite: Draw = (page, at, step) => {
 		case 0:
 			return (
 				<Chain fits={false}>
-					<Who letter={borya} role="knight" />
+					<Who letter={borya} kind="knight" />
 					<Then />
-					<Who letter={anya} role="knight" />
+					<Who letter={anya} kind="knight" />
 					<Then />
 					<span class="s-step-said">{page.text(`${at}.said`)}</span>
 				</Chain>
@@ -713,7 +716,7 @@ const drawOpposite: Draw = (page, at, step) => {
 		case 1:
 			return (
 				<Chain fits>
-					<Who letter={borya} role="liar" />
+					<Who letter={borya} kind="liar" />
 					<Then />
 					<span class="s-step-said">{page.text(`${at}.false`)}</span>
 				</Chain>
@@ -723,7 +726,7 @@ const drawOpposite: Draw = (page, at, step) => {
 				<Chain fits>
 					<span class="s-step-said">{page.text(`${at}.true`)}</span>
 					<Then />
-					<Who letter={anya} role="knight" />
+					<Who letter={anya} kind="knight" />
 				</Chain>
 			);
 	}
@@ -917,7 +920,13 @@ const drawMirror: Draw = (page, at, step) => {
 				<>
 					<Kind
 						page={page}
-						picture={strip({ "1": "2", "3": "4", "5": "1", "7": "5", "9": "3" })}
+						picture={strip({
+							"1": "2",
+							"3": "4",
+							"5": "1",
+							"7": "5",
+							"9": "3",
+						})}
 						tones={{
 							...lit(["cell 2", "cell 4", "cell 6", "cell 8"], "struck"),
 							...lit(["cell 1", "cell 3"], "warm"),

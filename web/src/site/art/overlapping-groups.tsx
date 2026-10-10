@@ -76,13 +76,26 @@ function Venn({
 				</span>
 			)}
 			<svg
+				aria-hidden="true"
 				class="s-ovl-circles"
 				width={g.width}
 				height={g.height}
 				viewBox={`0 0 ${g.width} ${g.height}`}
 			>
-				<circle class="s-ovl-set" data-set="left" cx={left} cy={y} r={g.radius} />
-				<circle class="s-ovl-set" data-set="right" cx={right} cy={y} r={g.radius} />
+				<circle
+					class="s-ovl-set"
+					data-set="left"
+					cx={left}
+					cy={y}
+					r={g.radius}
+				/>
+				<circle
+					class="s-ovl-set"
+					data-set="right"
+					cx={right}
+					cy={y}
+					r={g.radius}
+				/>
 				{(["left", "both", "right"] as const).map((part) => {
 					const count = counts[part];
 					if (count === undefined) {
@@ -109,7 +122,9 @@ function Venn({
 					);
 				})}
 			</svg>
-			{all !== undefined && all !== true && <span class="s-ovl-all">{all}</span>}
+			{all !== undefined && all !== true && (
+				<span class="s-ovl-all">{all}</span>
+			)}
 			{counts.out !== undefined && (
 				<span
 					class="s-ovl-out"
@@ -134,7 +149,9 @@ function Filled({ part }: { part: Part }) {
 			shape="sm"
 			counts={club}
 			rings={{ [part]: "picked" }}
-			pale={(["left", "both", "right", "out"] as const).filter((one) => one !== part)}
+			pale={(["left", "both", "right", "out"] as const).filter(
+				(one) => one !== part,
+			)}
 			all
 		/>
 	);
@@ -165,7 +182,10 @@ function Kids({
 			<span
 				class="s-ovl-bar"
 				data-set="left"
-				style={{ gridRow: "1", gridColumn: `${apples[0] + 1} / ${apples[1] + 2}` }}
+				style={{
+					gridRow: "1",
+					gridColumn: `${apples[0] + 1} / ${apples[1] + 2}`,
+				}}
 			/>
 			<span class="s-ovl-row-name" style={{ gridRow: "2" }}>
 				{names[1]}
@@ -188,7 +208,10 @@ function Kids({
 			<span
 				class="s-ovl-bar"
 				data-set="right"
-				style={{ gridRow: "3", gridColumn: `${pears[0] + 1} / ${pears[1] + 2}` }}
+				style={{
+					gridRow: "3",
+					gridColumn: `${pears[0] + 1} / ${pears[1] + 2}`,
+				}}
 			/>
 		</span>
 	);
@@ -209,7 +232,13 @@ function Three({
 			<span class="s-ovl-three-name" data-set="right">
 				{names[1]}
 			</span>
-			<svg class="s-ovl-circles" width={150} height={136} viewBox="0 0 150 136">
+			<svg
+				aria-hidden="true"
+				class="s-ovl-circles"
+				width={150}
+				height={136}
+				viewBox="0 0 150 136"
+			>
 				<circle class="s-ovl-set" data-set="left" cx={50} cy={46} r={40} />
 				<circle class="s-ovl-set" data-set="right" cx={100} cy={46} r={40} />
 				<circle class="s-ovl-set" data-set="third" cx={75} cy={90} r={40} />
@@ -311,7 +340,13 @@ export const art: TopicArt = {
 	],
 	ideaAnswers: 1,
 	legend: ({ page, at }) => (
-		<Key sample={<span class="s-ovl-out" data-ring="picked">6</span>}>
+		<Key
+			sample={
+				<span class="s-ovl-out" data-ring="picked">
+					6
+				</span>
+			}
+		>
 			{page.text(`${at}.filled`)}
 		</Key>
 	),

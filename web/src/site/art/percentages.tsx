@@ -77,13 +77,19 @@ function Tenths({
 				kind: "bars",
 				bars: [
 					{
-						segments: Array.from({ length: 10 }, () => ({ size: 1, label: value })),
+						segments: Array.from({ length: 10 }, () => ({
+							size: 1,
+							label: value,
+						})),
 						braces: [{ from: 0, to: lit, label: total }],
 					},
 				],
 			}}
 			tones={Object.fromEntries(
-				Array.from({ length: lit }, (_, at) => [`piece 0.${at}`, ["cool"] as Tone[]]),
+				Array.from({ length: lit }, (_, at) => [
+					`piece 0.${at}`,
+					["cool"] as Tone[],
+				]),
 			)}
 		/>
 	);
@@ -94,7 +100,10 @@ function Tenths({
 // its number.
 function Price({ kept, off }: { kept: number; off: number }) {
 	return (
-		<span class="s-pct-price" style={{ "--s-length": `${((kept + off) / 200) * 220}px` }}>
+		<span
+			class="s-pct-price"
+			style={{ "--s-length": `${((kept + off) / 200) * 220}px` }}
+		>
 			<span class="s-pct-kept" style={{ flexGrow: kept }}>
 				{kept}
 			</span>
@@ -107,13 +116,7 @@ function Price({ kept, off }: { kept: number; off: number }) {
 
 // Fifths are a price as a strip of a kind the card draws in parts of 100,
 // the last one added, green, or taken off, struck.
-function Fifths({
-	page,
-	last,
-}: {
-	page: PageReader;
-	last: "added" | "taken";
-}) {
+function Fifths({ page, last }: { page: PageReader; last: "added" | "taken" }) {
 	return (
 		<Kind
 			locale={page.locale}

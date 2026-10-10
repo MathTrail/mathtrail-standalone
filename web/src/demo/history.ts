@@ -24,10 +24,7 @@ export function nextOf(at: number, count: number): number {
  * shows the bars that fill as a picture waits; and it returns what stops it
  * and puts the page back as it was.
  */
-export function playTheHistory(
-	document: Document,
-	window: Window,
-): () => void {
+export function playTheHistory(document: Document, window: Window): () => void {
 	const root = document.getElementById("history");
 	const split = root?.querySelector<HTMLElement>(".s-history-split");
 	const picks = [
@@ -110,7 +107,9 @@ export function playTheHistory(
 		if (!words || !era || era.querySelector(".s-history-pick:checked")) {
 			return;
 		}
-		const first = picks.find((pick) => pick.value === words.dataset.firstPicture);
+		const first = picks.find(
+			(pick) => pick.value === words.dataset.firstPicture,
+		);
 		if (first !== undefined) {
 			first.checked = true;
 			restart();

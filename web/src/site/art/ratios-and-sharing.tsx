@@ -389,7 +389,12 @@ export const art: TopicArt = {
 						page={page}
 						shares={[
 							{ name: page.plain(`${at}.boys`), parts: 4, tone: "cool" },
-							{ name: page.plain(`${at}.girls`), parts: 7, tone: "warm", picked: 3 },
+							{
+								name: page.plain(`${at}.girls`),
+								parts: 7,
+								tone: "warm",
+								picked: 3,
+							},
 						]}
 					/>
 				),

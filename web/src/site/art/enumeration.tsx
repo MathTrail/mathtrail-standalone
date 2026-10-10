@@ -194,9 +194,7 @@ function Flag({
 				<span data-paint={top} />
 				<span data-paint={bottom} />
 			</span>
-			{number !== undefined && (
-				<span class="s-enum-flag-number">{number}</span>
-			)}
+			{number !== undefined && <span class="s-enum-flag-number">{number}</span>}
 		</span>
 	);
 }
@@ -420,7 +418,9 @@ export const art: TopicArt = {
 			<Line gap={16} align="start">
 				{(["a", "b", "c"] as const).map((first) => (
 					<Stack key={first} gap={6}>
-						<Say>{page.text(`${at}.on`, { child: page.plain(`art.${first}`) })}</Say>
+						<Say>
+							{page.text(`${at}.on`, { child: page.plain(`art.${first}`) })}
+						</Say>
 						{(["a", "b", "c"] as const)
 							.filter((second) => second !== first)
 							.map((second) =>

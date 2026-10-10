@@ -155,11 +155,7 @@ function above(spots: readonly Spot[]): Lined[] {
 
 // under are the labels under a row: under each item, and under each gap drawn
 // between two items that are not skips, in the tone of the line.
-function under(
-	row: Row,
-	spots: readonly Spot[],
-	tones?: Tones,
-): Lined[] {
+function under(row: Row, spots: readonly Spot[], tones?: Tones): Lined[] {
 	const labels: Lined[] = [];
 	for (const { item, place, x } of spots) {
 		if (item.below !== undefined) {
@@ -246,9 +242,7 @@ export function drawRow(row: Row, _locale?: string, tones?: Tones): Drawn {
 				/>
 				{copies.map((y) => (
 					<g key={y}>
-						{line && (
-							<Line spots={spots} y={y} tone={toneOf(tones, "line")} />
-						)}
+						{line && <Line spots={spots} y={y} tone={toneOf(tones, "line")} />}
 						{spots.map((spot) => (
 							<Mark
 								key={spot.place}

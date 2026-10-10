@@ -316,6 +316,8 @@ var breakages = []struct {
 	{"flags with no groups", `{"kind":"flags"}`, "picture.groups", "is missing"},
 	{"five groups of flags", `{"kind":"flags","groups":[` + strings.Repeat(`{"flags":[["?","?"]]},`, 4) +
 		`{"flags":[["?","?"]]}]}`, "picture.groups", "must hold 1 to 4 groups of flags"},
+	{"a group that is no object", `{"kind":"flags","groups":["red",{"flags":[["?","?"]]}]}`,
+		"picture.groups.0", "must be an object"},
 	{"a group of no flags", `{"kind":"flags","groups":[{"flags":[]}]}`, "picture.groups.0.flags",
 		"must hold 1 to 6 flags"},
 	{"a group of seven flags", `{"kind":"flags","groups":[{"flags":[` + strings.Repeat(`["?","?"],`, 6) +

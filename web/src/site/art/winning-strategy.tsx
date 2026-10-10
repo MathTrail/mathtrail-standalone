@@ -211,7 +211,13 @@ function Daisy({
 	size?: number;
 }) {
 	return (
-		<svg class="s-win-daisy" width={size} height={size} viewBox="0 0 120 120">
+		<svg
+			aria-hidden="true"
+			class="s-win-daisy"
+			width={size}
+			height={size}
+			viewBox="0 0 120 120"
+		>
 			{petals.map((petal, at) => (
 				<ellipse
 					key={at}

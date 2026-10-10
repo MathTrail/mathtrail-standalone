@@ -78,13 +78,7 @@ type Paint =
 	| "grey";
 
 // Shapes are so many shapes of a kind side by side, each in its paint.
-function Shapes({
-	kind,
-	paints,
-}: {
-	kind: string;
-	paints: readonly Paint[];
-}) {
+function Shapes({ kind, paints }: { kind: string; paints: readonly Paint[] }) {
 	return (
 		<>
 			{paints.map((paint, at) => (
@@ -255,7 +249,11 @@ function AlternatingDots() {
 	return (
 		<span class="s-thumb s-thumb-dots">
 			{Array.from({ length: 6 }, (_, at) => (
-				<span key={at} class="s-thumb-turn" data-empty={at % 2 === 1 ? "" : undefined} />
+				<span
+					key={at}
+					class="s-thumb-turn"
+					data-empty={at % 2 === 1 ? "" : undefined}
+				/>
 			))}
 		</span>
 	);

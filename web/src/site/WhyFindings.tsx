@@ -1,7 +1,7 @@
-import { useSiteWords } from "./words";
 import type { PageReader } from "./reader";
-import { doiAddress, type Finding } from "./why";
 import { citeText } from "./WhyParts";
+import { doiAddress, type Finding } from "./why";
+import { useSiteWords } from "./words";
 
 /**
  * Research is what studies have found about olympiad maths: a card for each
@@ -34,7 +34,13 @@ export function Research({
 // FindingCard is one finding: a tag of where and whom, a few large words and
 // a line under them, the finding's heading and its words, its drawing and the
 // work it comes from, which leaves the site.
-function FindingCard({ page, finding }: { page: PageReader; finding: Finding }) {
+function FindingCard({
+	page,
+	finding,
+}: {
+	page: PageReader;
+	finding: Finding;
+}) {
 	const words = useSiteWords();
 	const at = `research.findings.${finding.id}`;
 	return (

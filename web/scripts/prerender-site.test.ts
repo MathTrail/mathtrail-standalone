@@ -21,9 +21,12 @@ import widgetEnglish from "../locales/en.json";
 import widgetRussian from "../locales/ru.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
 import { address, outputPath } from "../src/site/addresses.ts";
+import { topicArt } from "../src/site/art/index.ts";
 import {
 	coachScreenPath,
 	coachScreenSize,
+	historyDirectory,
+	historyPicturePath,
 	photoDirectory,
 	photoPath,
 	photos,
@@ -31,7 +34,10 @@ import {
 import { frontPage } from "../src/site/content.ts";
 import english from "../src/site/locales/en.json";
 import russian from "../src/site/locales/ru.json";
-import { photoDirectory as checkedPhotoDirectory } from "../tools/sitecheck/main.ts";
+import {
+	historyDirectory as checkedHistoryDirectory,
+	photoDirectory as checkedPhotoDirectory,
+} from "../tools/sitecheck/main.ts";
 import {
 	buildSite,
 	givenTwice,
@@ -60,9 +66,24 @@ const fontFiles = [
 	"onest-symbols-wght-normal.woff2",
 ];
 
-// scripted are the pages that may run a script: the home pages, whose demo
-// brings their cards alive. The English one is the bare domain's.
-const scripted: readonly string[] = ["index.html", "ru/index.html"];
+// scripted are the pages that may run a script, each with the one module it
+// loads: the home pages, whose demo brings their cards alive — the English one
+// is the bare domain's — and the pages Why, whose script moves the pictures of
+// the history on.
+const scripted: ReadonlyMap<string, string> = new Map([
+	["index.html", "/assets/demo.js"],
+	["ru/index.html", "/assets/demo.js"],
+	["en/why/index.html", "/assets/why.js"],
+	["ru/why/index.html", "/assets/why.js"],
+]);
+
+// drawnByItsOwn are the pages of the topics that draw drawings of their own,
+// which load the card's styles for the pictures of the card's kinds their
+// drawings may draw among their parts.
+const drawnByItsOwn = (page: string) =>
+	[...topicArt.keys()].some((slug) =>
+		page.endsWith(`/topics/${slug}/index.html`),
+	);
 
 // carded are the pages that draw a card of the widget.
 const carded: readonly string[] = [
@@ -277,89 +298,98 @@ describe("the site built from this repository", () => {
 		await rm(out, { recursive: true, force: true });
 	});
 
-	test("is its pages, its stylesheets, its font, its mark, its sharing pictures, the family's photographs, the coach's prototype with a screen of it and the host's files, and nothing older", async () => {
-		expect(await filesIn(out)).toEqual([
-			".nojekyll",
-			"CNAME",
-			"assets/card.css",
-			"assets/coach-prototype.html",
-			"assets/coach-screen.png",
-			"assets/demo.js",
-			"assets/favicon.svg",
-			"assets/noto-license.txt",
-			"assets/og-en.png",
-			"assets/og-ru.png",
-			"assets/onest-cyrillic-wght-normal.woff2",
-			"assets/onest-latin-wght-normal.woff2",
-			"assets/onest-license.txt",
-			"assets/onest-symbols-wght-normal.woff2",
-			"assets/photos/dad.webp",
-			"assets/photos/family.webp",
-			"assets/photos/mum.webp",
-			"assets/photos/older-son.webp",
-			"assets/photos/younger-son.webp",
-			"assets/style.css",
-			"assets/tokens.css",
-			"en/about/index.html",
-			"en/coach/index.html",
-			"en/help/index.html",
-			"en/index.html",
-			"en/privacy/index.html",
-			"en/research/index.html",
-			"en/service/index.html",
-			"en/techniques/index.html",
-			"en/terms/index.html",
-			"en/topics/arithmetic-with-a-trick/index.html",
-			"en/topics/calendar-and-age/index.html",
-			"en/topics/clocks/index.html",
-			"en/topics/divisibility-and-remainders/index.html",
-			"en/topics/enumeration/index.html",
-			"en/topics/figures-on-a-grid/index.html",
-			"en/topics/gaps-and-boundaries/index.html",
-			"en/topics/index.html",
-			"en/topics/knights-and-liars/index.html",
-			"en/topics/ordering/index.html",
-			"en/topics/overlapping-groups/index.html",
-			"en/topics/parity-and-alternation/index.html",
-			"en/topics/parts-and-shares/index.html",
-			"en/topics/percentages/index.html",
-			"en/topics/pigeonhole-principle/index.html",
-			"en/topics/ratios-and-sharing/index.html",
-			"en/topics/weighing-and-pouring/index.html",
-			"en/topics/winning-strategy/index.html",
-			"en/why/index.html",
-			"index.html",
-			"robots.txt",
-			"ru/about/index.html",
-			"ru/coach/index.html",
-			"ru/help/index.html",
-			"ru/index.html",
-			"ru/privacy/index.html",
-			"ru/research/index.html",
-			"ru/service/index.html",
-			"ru/techniques/index.html",
-			"ru/terms/index.html",
-			"ru/topics/arithmetic-with-a-trick/index.html",
-			"ru/topics/calendar-and-age/index.html",
-			"ru/topics/clocks/index.html",
-			"ru/topics/divisibility-and-remainders/index.html",
-			"ru/topics/enumeration/index.html",
-			"ru/topics/figures-on-a-grid/index.html",
-			"ru/topics/gaps-and-boundaries/index.html",
-			"ru/topics/index.html",
-			"ru/topics/knights-and-liars/index.html",
-			"ru/topics/ordering/index.html",
-			"ru/topics/overlapping-groups/index.html",
-			"ru/topics/parity-and-alternation/index.html",
-			"ru/topics/parts-and-shares/index.html",
-			"ru/topics/percentages/index.html",
-			"ru/topics/pigeonhole-principle/index.html",
-			"ru/topics/ratios-and-sharing/index.html",
-			"ru/topics/weighing-and-pouring/index.html",
-			"ru/topics/winning-strategy/index.html",
-			"ru/why/index.html",
-			"sitemap.xml",
-		]);
+	test("is its pages, its stylesheets, its scripts, its font, its mark, its sharing pictures, the family's photographs, the pictures of the history, the coach's prototype with a screen of it and the host's files, and nothing older", async () => {
+		const history = data.why.history
+			.flat()
+			.map(({ name }) => historyPicturePath(name).slice(1));
+		expect(await filesIn(out)).toEqual(
+			[
+				...history,
+				"assets/why.js",
+				...[
+					".nojekyll",
+					"CNAME",
+					"assets/card.css",
+					"assets/coach-prototype.html",
+					"assets/coach-screen.png",
+					"assets/demo.js",
+					"assets/favicon.svg",
+					"assets/noto-license.txt",
+					"assets/og-en.png",
+					"assets/og-ru.png",
+					"assets/onest-cyrillic-wght-normal.woff2",
+					"assets/onest-latin-wght-normal.woff2",
+					"assets/onest-license.txt",
+					"assets/onest-symbols-wght-normal.woff2",
+					"assets/photos/dad.webp",
+					"assets/photos/family.webp",
+					"assets/photos/mum.webp",
+					"assets/photos/older-son.webp",
+					"assets/photos/younger-son.webp",
+					"assets/style.css",
+					"assets/tokens.css",
+					"en/about/index.html",
+					"en/coach/index.html",
+					"en/help/index.html",
+					"en/index.html",
+					"en/privacy/index.html",
+					"en/research/index.html",
+					"en/service/index.html",
+					"en/techniques/index.html",
+					"en/terms/index.html",
+					"en/topics/arithmetic-with-a-trick/index.html",
+					"en/topics/calendar-and-age/index.html",
+					"en/topics/clocks/index.html",
+					"en/topics/divisibility-and-remainders/index.html",
+					"en/topics/enumeration/index.html",
+					"en/topics/figures-on-a-grid/index.html",
+					"en/topics/gaps-and-boundaries/index.html",
+					"en/topics/index.html",
+					"en/topics/knights-and-liars/index.html",
+					"en/topics/ordering/index.html",
+					"en/topics/overlapping-groups/index.html",
+					"en/topics/parity-and-alternation/index.html",
+					"en/topics/parts-and-shares/index.html",
+					"en/topics/percentages/index.html",
+					"en/topics/pigeonhole-principle/index.html",
+					"en/topics/ratios-and-sharing/index.html",
+					"en/topics/weighing-and-pouring/index.html",
+					"en/topics/winning-strategy/index.html",
+					"en/why/index.html",
+					"index.html",
+					"robots.txt",
+					"ru/about/index.html",
+					"ru/coach/index.html",
+					"ru/help/index.html",
+					"ru/index.html",
+					"ru/privacy/index.html",
+					"ru/research/index.html",
+					"ru/service/index.html",
+					"ru/techniques/index.html",
+					"ru/terms/index.html",
+					"ru/topics/arithmetic-with-a-trick/index.html",
+					"ru/topics/calendar-and-age/index.html",
+					"ru/topics/clocks/index.html",
+					"ru/topics/divisibility-and-remainders/index.html",
+					"ru/topics/enumeration/index.html",
+					"ru/topics/figures-on-a-grid/index.html",
+					"ru/topics/gaps-and-boundaries/index.html",
+					"ru/topics/index.html",
+					"ru/topics/knights-and-liars/index.html",
+					"ru/topics/ordering/index.html",
+					"ru/topics/overlapping-groups/index.html",
+					"ru/topics/parity-and-alternation/index.html",
+					"ru/topics/parts-and-shares/index.html",
+					"ru/topics/percentages/index.html",
+					"ru/topics/pigeonhole-principle/index.html",
+					"ru/topics/ratios-and-sharing/index.html",
+					"ru/topics/weighing-and-pouring/index.html",
+					"ru/topics/winning-strategy/index.html",
+					"ru/why/index.html",
+					"sitemap.xml",
+				],
+			].sort(byCodeUnits),
+		);
 	});
 
 	test("ships the design's tokens and the mark as the very files they are", async () => {
@@ -522,7 +552,8 @@ describe("the site built from this repository", () => {
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
 			const html = await readFile(join(out, page), "utf8");
-			const pictured = html.includes('class="mt-picture"');
+			const pictured =
+				html.includes('class="mt-picture"') || drawnByItsOwn(page);
 
 			expect(
 				[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(
@@ -533,12 +564,12 @@ describe("the site built from this repository", () => {
 				"/assets/style.css",
 				...(carded.includes(page) || pictured ? ["/assets/card.css"] : []),
 			]);
-			expect(html.includes("<script")).toBe(scripted.includes(page));
+			expect(html.includes("<script")).toBe(scripted.has(page));
 			expect(
 				[...html.matchAll(/<script type="module" src="([^"]+)"/g)].map(
 					([, src]) => src,
 				),
-			).toEqual(scripted.includes(page) ? ["/assets/demo.js"] : []);
+			).toEqual(scripted.has(page) ? [scripted.get(page)] : []);
 			expect(html.includes('class="mt mt-widget')).toBe(carded.includes(page));
 		}
 	});
@@ -557,7 +588,7 @@ describe("the site built from this repository", () => {
 			expect(html, page).not.toContain("<pre");
 			if (topics.includes(page)) {
 				expect(html, page).toMatch(
-					/<div class="s-panel s-subject-panel"><div class="s-(picture|art)" aria-hidden="true"/,
+					/<div class="s-panel s-subject-panel(?: s-subject-sketch)?"(?: aria-hidden="true")?[^>]*>(?:<p class="s-subject-line">.*?<\/p>)?<div class="s-(picture|art|sketch)[ "]/,
 				);
 			}
 		}
@@ -870,6 +901,7 @@ describe("the site built from this repository", () => {
 	// them elsewhere, every page that shows one would weigh them after all.
 	test("keeps its photographs where its checker weighs them apart from the page", () => {
 		expect(checkedPhotoDirectory).toBe(photoDirectory);
+		expect(checkedHistoryDirectory).toBe(historyDirectory);
 	});
 
 	test("shows on the page of the techniques every technique of the data, once among the links at its top and once as its card", async () => {

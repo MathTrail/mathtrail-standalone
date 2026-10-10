@@ -10,6 +10,15 @@ const catalog = { topics, traps };
 // own is what the site's own data gives the page "Why", as its reader takes it.
 const own = whyFile.parse(file.why);
 
+// Finding is a finding as the site's data writes it: the work, and how it is drawn.
+type Finding = (typeof own.findings)[number];
+
+// findingOf is a finding of the work id, drawn as the data's first finding is.
+const findingOf = (id: string): Finding => ({
+	...(own.findings[0] ?? { hue: "blue", mark: "bars" }),
+	id,
+});
+
 // withCard is the page's data with these fields of its card changed.
 const withCard = (fields: Partial<WhyCard>) => ({
 	...own,
@@ -20,7 +29,9 @@ describe("what the page Why takes from the site's own data", () => {
 	const why = readWhy(catalog, own);
 
 	test("shows its findings in the data's order, each of a work it lists", () => {
-		expect(why.findings.map((source) => source.id)).toEqual(own.findings);
+		expect(
+			why.findings.map(({ id, hue, mark }) => ({ id, hue, mark })),
+		).toEqual(own.findings);
 		expect(why.apps.id).toBe(own.apps);
 	});
 
@@ -117,18 +128,21 @@ describe("what the page Why takes from the data", () => {
 		],
 		[
 			"a finding of a work the data does not list",
-			{ ...own, findings: [...own.findings, "smith2024"] },
+			{ ...own, findings: [...own.findings, findingOf("smith2024")] },
 			"the page Why cites smith2024, which the data's sources do not have",
 		],
 		[
 			"a finding shown twice",
-			{ ...own, findings: [...own.findings, own.findings[0] ?? ""] },
+			{
+				...own,
+				findings: [...own.findings, findingOf(own.findings[0]?.id ?? "")],
+			},
 			"the page Why shows a finding twice",
 		],
 		[
 			"a work cited nowhere",
 			{ ...own, findings: own.findings.slice(1) },
-			`the source ${own.findings[0]} is cited nowhere on the page Why`,
+			`the source ${own.findings[0]?.id} is cited nowhere on the page Why`,
 		],
 	])("refuses %s", (_, broken, want) => {
 		expect(() => readWhy(catalog, broken)).toThrow(want);

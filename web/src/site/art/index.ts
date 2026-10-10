@@ -1,5 +1,5 @@
-import type { TopicArt } from "./art";
 import { art as arithmeticWithATrick } from "./arithmetic-with-a-trick";
+import type { TopicArt } from "./art";
 import { art as calendarAndAge } from "./calendar-and-age";
 import { art as clocks } from "./clocks";
 import { art as divisibilityAndRemainders } from "./divisibility-and-remainders";

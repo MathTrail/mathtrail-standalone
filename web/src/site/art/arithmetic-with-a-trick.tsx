@@ -393,7 +393,10 @@ export const art: TopicArt = {
 				({ page, at }) => (
 					<Stack gap={10} align="start">
 						<Row name={page.text(`${at}.back`)} size="small" gap={4}>
-							<Undone start={<Box tone="warm">10</Box>} between={["20", "27"]} />
+							<Undone
+								start={<Box tone="warm">10</Box>}
+								between={["20", "27"]}
+							/>
 						</Row>
 						<Row name={page.text(`${at}.check`)} size="small" gap={4}>
 							<Chain
