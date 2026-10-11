@@ -333,7 +333,7 @@ func wantChoice(t *testing.T, got *choicePayload, chosen *string, suggested []st
 	if (choice.Chosen == nil) != (chosen == nil) || (choice.Chosen != nil && *choice.Chosen != *chosen) {
 		t.Errorf("chosen = %v, want %v", choice.Chosen, chosen)
 	}
-	if choice.Site == nil || choice.Site.URL == "" || !slices.Equal(choice.Site.Languages, []string{"en", "ru"}) {
+	if choice.Site == nil || choice.Site.URL == "" || !slices.Equal(choice.Site.Languages, mcpserver.SiteLanguages()) {
 		t.Errorf("site = %+v, want the site's origin and its languages", choice.Site)
 	}
 	if !slices.Equal(choice.Recommended, suggested) {

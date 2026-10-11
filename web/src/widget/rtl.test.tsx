@@ -98,6 +98,9 @@ describe("a card in a language written right to left", () => {
 		["ar-EG", "ar"],
 		["fa-IR", "fa"],
 		["ur-PK", "ur"],
+		["ps-AF", "ps"],
+		["he-IL", "he"],
+		["ckb-IQ", "ckb"],
 	])("in %s lays the page out right to left, in %s", async (locale, tag) => {
 		const root = await draw(fence, locale);
 
@@ -126,7 +129,7 @@ describe("a card in a language written right to left", () => {
 	});
 });
 
-// The markup of twelve screens in Arabic, against the snapshots the review last
+// The markup of thirteen screens in Arabic, against the snapshots the review last
 // read: which of their parts run right to left and which do not, and what
 // they say. A change to them is a change to read in the snapshots' diff.
 describe("the screens in Arabic", () => {

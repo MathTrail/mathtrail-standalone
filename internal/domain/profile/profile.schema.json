@@ -196,6 +196,12 @@
           "description": "The correction to the overall level for this topic.",
           "type": "number"
         },
+        "ideas": {
+          "description": "How far the child has come through the topic's list of ideas at each level, keyed by the level: the round of the list and the ideas given in it. The next task is built on an idea not yet given in its round. Absent means no task of the topic was built on an idea yet.",
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/gradeLevel" },
+          "additionalProperties": { "$ref": "#/$defs/ideaRound" }
+        },
         "last_issued": {
           "description": "The day a task of this topic was last accepted. Absent means never issued, which the rule puts first.",
           "type": "string",
@@ -211,7 +217,7 @@
           "format": "date"
         },
         "skipped": {
-          "description": "Tasks of this topic left without an answer when another was asked for. No rating reads it: the progress screen shows it to the parent, and, added to the answers, it counts the tasks of the topic the child has been through, which picks the idea of the topic the next one is built on. Absent means none.",
+          "description": "Tasks of this topic left without an answer when another was asked for. No rating reads it: the progress screen shows it to the parent, and, over every topic and with the answers, it counts the tasks behind the child, which pick the ones dressed in an interest. Absent means none.",
           "type": "integer",
           "minimum": 0
         },
@@ -230,6 +236,29 @@
           "type": "integer",
           "minimum": 0
         }
+      }
+    },
+    "ideaRound": {
+      "description": "One round of one list of ideas: which round it is, and the ideas of the list given in it, each by its place on the list, the earliest first. Once every idea of the list has been given, the next idea opens a new round.",
+      "type": "object",
+      "required": ["given", "round"],
+      "properties": {
+        "given": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 1, "maximum": 10 }
+        },
+        "round": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "idea": {
+      "description": "The idea of its topic's list a task is built on, at the level it is written for: its place on the list, and the round of the list it was named in. It is given once the task is handed out.",
+      "type": "object",
+      "required": ["number", "round"],
+      "properties": {
+        "number": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "round": { "type": "integer", "minimum": 1 }
       }
     },
     "ratingDay": {
@@ -354,6 +383,10 @@
         },
         "brief": { "$ref": "#/$defs/brief" },
         "id": { "type": "string", "minLength": 1 },
+        "idea": {
+          "description": "The idea the task is to be built on, named when the request was opened; absent for a request that named none.",
+          "$ref": "#/$defs/idea"
+        },
         "language": { "type": "string" },
         "lesson_topic": {
           "description": "The topic the lessons were kept to when a request ahead was opened; absent when they were kept to none.",
@@ -492,6 +525,10 @@
           "description": "The id the task will have on the card, which its seal is tied to.",
           "type": "string",
           "minLength": 1
+        },
+        "idea": {
+          "description": "The idea the task was built on, given once it is handed out; absent for a task whose request named none.",
+          "$ref": "#/$defs/idea"
         },
         "instructions_version": { "type": "string" },
         "language": { "type": "string", "minLength": 1 },

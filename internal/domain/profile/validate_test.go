@@ -247,6 +247,36 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			wantSay: "topics[counting.gaps].mastered_level",
 		},
 		{
+			name:    "a round of ideas at a level there is not",
+			breakIt: withIdeas("7-8", profile.IdeaRound{Given: []int{1}, Round: 1}),
+			wantSay: `topics[counting.gaps].ideas has a round at level "7-8"`,
+		},
+		{
+			name:    "a round of ideas before the first",
+			breakIt: withIdeas(rating.Grades12, profile.IdeaRound{Given: []int{1}, Round: 0}),
+			wantSay: "topics[counting.gaps].ideas[1-2].round is 0",
+		},
+		{
+			name:    "a round of ideas that gives nothing rather than none",
+			breakIt: withIdeas(rating.Grades12, profile.IdeaRound{Round: 1}),
+			wantSay: "topics[counting.gaps].ideas[1-2] has no given",
+		},
+		{
+			name:    "an idea before the first place on its list",
+			breakIt: withIdeas(rating.Grades12, profile.IdeaRound{Given: []int{0}, Round: 1}),
+			wantSay: "topics[counting.gaps].ideas[1-2].given holds 0",
+		},
+		{
+			name:    "an idea past the end of its list",
+			breakIt: withIdeas(rating.Grades12, profile.IdeaRound{Given: []int{profile.IdeasPerList + 1}, Round: 1}),
+			wantSay: "topics[counting.gaps].ideas[1-2].given holds 11",
+		},
+		{
+			name:    "an idea given twice in one round",
+			breakIt: withIdeas(rating.Grades12, profile.IdeaRound{Given: []int{3, 7, 3}, Round: 2}),
+			wantSay: "topics[counting.gaps].ideas[1-2].given holds idea 3 twice",
+		},
+		{
 			name:    "a start that is no number",
 			breakIt: func(p *profile.Profile) { p.Ratings.Start = math.Inf(1) },
 			wantSay: "ratings.start",
@@ -444,6 +474,16 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 	}
 }
 
+// withIdeas gives counting.gaps one round of ideas at a level, as a file edited
+// by hand could hold it.
+func withIdeas(level rating.GradeLevel, kept profile.IdeaRound) func(p *profile.Profile) {
+	return func(p *profile.Profile) {
+		topic := p.Topics["counting.gaps"]
+		topic.Ideas = map[rating.GradeLevel]profile.IdeaRound{level: kept}
+		p.Topics["counting.gaps"] = topic
+	}
+}
+
 // ratingDays are days one after another, each with a correction of one
 // topic, the way recording answers keeps them.
 func ratingDays(count int) []profile.RatingDay {
@@ -553,6 +593,7 @@ func TestAnOpenRequestIsRefusedWhenItIsNotWhole(t *testing.T) {
 	whole := profile.OpenRequest{
 		Attempts:  1,
 		ID:        "req_1",
+		Idea:      profile.Idea{Number: profile.IdeasPerList, Round: 2},
 		Language:  "en-US",
 		OpenedAt:  profile.At(time.Date(2026, 9, 4, 10, 0, 0, 0, time.UTC)),
 		TutorMode: profile.TutorRule,
@@ -577,15 +618,18 @@ func TestAnOpenRequestIsRefusedWhenItIsNotWhole(t *testing.T) {
 	}
 
 	cases := map[string]func(r *profile.OpenRequest){
-		"open_request has no id":              func(r *profile.OpenRequest) { r.ID = "" },
-		"open_request.brief.difficulty":       func(r *profile.OpenRequest) { r.Brief.Difficulty = 0 },
-		"open_request.brief.grade_level":      func(r *profile.OpenRequest) { r.Brief.GradeLevel = "" },
-		"open_request.attempts":               func(r *profile.OpenRequest) { r.Attempts = profile.MaxAttempts + 1 },
-		"open_request.tutor_mode":             func(r *profile.OpenRequest) { r.TutorMode = "guesswork" },
-		"open_request.brief names no topic":   func(r *profile.OpenRequest) { r.Brief.TargetConcept = "" },
-		"open_request.brief.pedagogical_goal": func(r *profile.OpenRequest) { r.Brief.PedagogicalGoal = "whatever" },
-		"open_request has no opened_at":       func(r *profile.OpenRequest) { r.OpenedAt = profile.Time{} },
-		"open_request has no language":        func(r *profile.OpenRequest) { r.Language = "" },
+		"open_request has no id":                    func(r *profile.OpenRequest) { r.ID = "" },
+		"open_request.brief.difficulty":             func(r *profile.OpenRequest) { r.Brief.Difficulty = 0 },
+		"open_request.brief.grade_level":            func(r *profile.OpenRequest) { r.Brief.GradeLevel = "" },
+		"open_request.attempts":                     func(r *profile.OpenRequest) { r.Attempts = profile.MaxAttempts + 1 },
+		"open_request.tutor_mode":                   func(r *profile.OpenRequest) { r.TutorMode = "guesswork" },
+		"open_request.brief names no topic":         func(r *profile.OpenRequest) { r.Brief.TargetConcept = "" },
+		"open_request.brief.pedagogical_goal":       func(r *profile.OpenRequest) { r.Brief.PedagogicalGoal = "whatever" },
+		"open_request has no opened_at":             func(r *profile.OpenRequest) { r.OpenedAt = profile.Time{} },
+		"open_request has no language":              func(r *profile.OpenRequest) { r.Language = "" },
+		"open_request.idea is number 11":            func(r *profile.OpenRequest) { r.Idea.Number = profile.IdeasPerList + 1 },
+		"open_request.idea is number 0":             func(r *profile.OpenRequest) { r.Idea.Number = 0 },
+		"open_request.idea is number 10 in round 0": func(r *profile.OpenRequest) { r.Idea.Round = 0 },
 	}
 
 	for wantSay, breakIt := range cases {

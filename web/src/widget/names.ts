@@ -110,16 +110,24 @@ export function countryName(words: Words<Key>, code: string): string {
 	}
 }
 
+// namedBy are the tags a language is named by, in a language other than its
+// own, where the name of its own tag would not tell it from another language
+// of the lessons: the platform calls Kurmanji plain Kurdish beside Central
+// Kurdish, and Kurmanji is written in Latin letters, Central Kurdish in Arabic
+// ones. In its own words Kurmanji calls itself kurmancî, and needs no more.
+const namedBy: ReadonlyMap<string, string> = new Map([["ku", "ku-Latn"]]);
+
 /**
  * languageName is what the card's language calls the language tag names,
  * written to begin a line; a tag it cannot read is shown as it is.
  */
 export function languageName(words: Words<Key>, tag: string): string {
+	const named = tag === words.locale ? tag : (namedBy.get(tag) ?? tag);
 	let name: string;
 	try {
 		name =
 			new Intl.DisplayNames(intlLocales(words.locale), { type: "language" }).of(
-				tag,
+				named,
 			) ?? tag;
 	} catch {
 		// A tag the platform cannot read names no language it can say.

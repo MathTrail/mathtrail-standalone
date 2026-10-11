@@ -54,10 +54,11 @@ INSPECTOR_RUN := "docker run --rm --init --network host -e HOST=127.0.0.1 -e MCP
 TRIVY_IMAGE := "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969"
 
 # The image the widget's layout is measured in: Chromium and WebKit as the pinned
-# Playwright release builds them, with the libraries and the fonts of every
-# script they need, pinned by tag and digest. Its release is the one
-# web/package.json pins playwright-core to, since a release drives only the
-# browsers of its own build.
+# Playwright release builds them, with the libraries they need and a font for
+# every script the cards are written in, pinned by tag and digest. For several
+# scripts that font is a fallback, FreeSerif or, for Telugu, Unifont's bitmaps,
+# whose sizes no phone's font has. Its release is the one web/package.json pins
+# playwright-core to, since a release drives only the browsers of its own build.
 PLAYWRIGHT_IMAGE := "mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27"
 
 # The BigQuery emulator the SQL of the counts kept for years is tested against,
@@ -680,13 +681,16 @@ _site-check:
 # photographed in Chromium, from the image the widget's layout is measured
 # in. They are written over site/assets/, for the change to be looked at
 # before it is kept; a change to the home page's first screen deserves new
-# ones.
-# Photograph the site's sharing pictures
+# ones. Given --language and a tag, as often as there are languages to take,
+# it takes those alone and leaves the others' pictures as they are. The
+# arguments reach the script as arguments, never as its text.
+# Photograph the site's sharing pictures, of every language or of those given
 [working-directory('web')]
-site-og: site _playwright-pinned
+[positional-arguments]
+site-og *args: site _playwright-pinned
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
-        {{ PLAYWRIGHT_IMAGE }} node scripts/og.ts
+        {{ PLAYWRIGHT_IMAGE }} node scripts/og.ts "$@"
 
 # The width the site's menu folds at: for every language of the site, in
 # Chromium with a classic scroll bar and in WebKit, the narrowest width at

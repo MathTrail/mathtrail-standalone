@@ -162,33 +162,55 @@ func (p *Profile) validateHeader() error {
 // lesson moves each count by one at most, so a profile read with every count
 // below the most can always be written after it.
 func (p *Profile) countsUpTo(most int) error {
-	past := func(counts ...int) bool {
-		for _, count := range counts {
-			if count > most {
-				return true
-			}
-		}
-		return false
-	}
 	switch {
-	case past(p.Revision):
+	case past(most, p.Revision):
 		return fmt.Errorf("%w: revision is past %d", ErrInvalid, most)
-	case past(p.Ratings.Answers, p.Ratings.ConsecutiveFailures):
+	case past(most, p.Ratings.Answers, p.Ratings.ConsecutiveFailures):
 		return fmt.Errorf("%w: ratings count past %d", ErrInvalid, most)
-	case past(p.Daily.Accepted, p.Daily.Failed):
+	case past(most, p.Daily.Accepted, p.Daily.Failed):
 		return fmt.Errorf("%w: daily counts past %d", ErrInvalid, most)
+	// The round a task's idea was named in becomes the round of its list once
+	// the task is handed out, so it is held to the most as the list's is.
+	case p.OpenRequest != nil && past(most, p.OpenRequest.Idea.Round):
+		return fmt.Errorf("%w: open_request.idea counts its round past %d", ErrInvalid, most)
+	case p.ReadyTask != nil && past(most, p.ReadyTask.Idea.Round):
+		return fmt.Errorf("%w: ready_task.idea counts its round past %d", ErrInvalid, most)
 	}
 	for _, topic := range p.Topics {
-		if past(topic.Answers, topic.Correct, topic.Skipped, topic.TopStreak, topic.WrongStreak) {
-			return fmt.Errorf("%w: a topic counts past %d", ErrInvalid, most)
-		}
-		for _, times := range topic.Traps {
-			if past(times) {
-				return fmt.Errorf("%w: a topic counts a trap past %d", ErrInvalid, most)
-			}
+		if err := topic.countsUpTo(most); err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+// countsUpTo reports a count of one topic past the most given: of its answers
+// and runs, of a trap it counts, or of the rounds of its ideas.
+func (t *Topic) countsUpTo(most int) error {
+	if past(most, t.Answers, t.Correct, t.Skipped, t.TopStreak, t.WrongStreak) {
+		return fmt.Errorf("%w: a topic counts past %d", ErrInvalid, most)
+	}
+	for _, times := range t.Traps {
+		if past(most, times) {
+			return fmt.Errorf("%w: a topic counts a trap past %d", ErrInvalid, most)
+		}
+	}
+	for _, kept := range t.Ideas {
+		if past(most, kept.Round) {
+			return fmt.Errorf("%w: a topic counts the rounds of its ideas past %d", ErrInvalid, most)
+		}
+	}
+	return nil
+}
+
+// past reports whether any of the counts is past the most.
+func past(most int, counts ...int) bool {
+	for _, count := range counts {
+		if count > most {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Student) validate() error {
@@ -222,6 +244,57 @@ func validateTopics(topics map[string]Topic) error {
 				return fmt.Errorf("%w: topics[%s].traps counts a trap %d times", ErrInvalid, id, times)
 			}
 		}
+		if err := validateIdeas(id, topic.Ideas); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateIdeas checks how far a topic's lists of ideas have been gone
+// through: each list at a level there is, on a round from the first on, with
+// the ideas given in that round, each a place on a list and none of them
+// twice. A round with no idea given in it yet holds an empty list, never null:
+// null is what a file edited by hand says, and a list written back as null is
+// one the schema refuses.
+func validateIdeas(id string, ideas map[rating.GradeLevel]IdeaRound) error {
+	for level, kept := range ideas {
+		switch {
+		case !level.Known():
+			return fmt.Errorf("%w: topics[%s].ideas has a round at level %q, want one of %v",
+				ErrInvalid, id, level, rating.GradeLevels())
+		case kept.Round < 1:
+			return fmt.Errorf("%w: topics[%s].ideas[%s].round is %d, and the rounds count from 1",
+				ErrInvalid, id, level, kept.Round)
+		case kept.Given == nil:
+			return fmt.Errorf("%w: topics[%s].ideas[%s] has no given; a round with no idea given in it yet has []",
+				ErrInvalid, id, level)
+		}
+		var seen [IdeasPerList + 1]bool
+		for _, number := range kept.Given {
+			switch {
+			case number < 1 || number > IdeasPerList:
+				return fmt.Errorf("%w: topics[%s].ideas[%s].given holds %d, and an idea is a place from 1 to %d on its list",
+					ErrInvalid, id, level, number, IdeasPerList)
+			case seen[number]:
+				return fmt.Errorf("%w: topics[%s].ideas[%s].given holds idea %d twice, and a round gives an idea once",
+					ErrInvalid, id, level, number)
+			}
+			seen[number] = true
+		}
+	}
+	return nil
+}
+
+// validateIdea checks the idea a task is built on: none, or a place on its
+// list named in a round.
+func validateIdea(field string, idea Idea) error {
+	if idea == (Idea{}) {
+		return nil
+	}
+	if idea.Number < 1 || idea.Number > IdeasPerList || idea.Round < 1 {
+		return fmt.Errorf("%w: %s.idea is number %d in round %d, want a place from 1 to %d on its list in a round from 1",
+			ErrInvalid, field, idea.Number, idea.Round, IdeasPerList)
 	}
 	return nil
 }
@@ -390,6 +463,9 @@ func (r *ReadyTask) validate() error {
 	case !r.TutorMode.Known():
 		return fmt.Errorf("%w: ready_task.tutor_mode is %q, want rule, llm or person", ErrInvalid, r.TutorMode)
 	}
+	if err := validateIdea("ready_task", r.Idea); err != nil {
+		return err
+	}
 	return validateOptions("ready_task", r.Options)
 }
 
@@ -439,7 +515,7 @@ func (r *OpenRequest) validate() error {
 		return fmt.Errorf("%w: open_request.brief.pedagogical_goal is %q, want reinforce or new_topic",
 			ErrInvalid, r.Brief.PedagogicalGoal)
 	}
-	return nil
+	return validateIdea("open_request", r.Idea)
 }
 
 func (d *Daily) validate() error {

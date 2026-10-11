@@ -43,18 +43,21 @@ import { type Key, useWords } from "./words";
 /**
  * TaskCard is the card a task is handed to the child on: the task, in the
  * frame every card of a lesson has, which opens the progress in the card and
- * comes back to the task as it was left. The lesson on it begins at start: the
- * task just handed out, with no answer given, unless start says how far it
- * has got.
+ * comes back to the task as it was left, and keeps its top in sight for a
+ * while from freshSince, the moment the task was handed out, where it is
+ * told. The lesson on it begins at start: the task just handed out, with no
+ * answer given, unless start says how far it has got.
  */
 export function TaskCard({
 	handed,
 	host,
 	start,
+	freshSince,
 }: {
 	handed: HandedTask;
 	host: Host;
 	start?: Lesson;
+	freshSince?: number;
 }) {
 	const words = useWords();
 	return (
@@ -62,6 +65,7 @@ export function TaskCard({
 			child={handed.child}
 			back={words.text("progress.back")}
 			host={host}
+			freshSince={freshSince}
 		>
 			{(wide, whose) => (
 				<TaskInCard

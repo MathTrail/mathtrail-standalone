@@ -32,7 +32,15 @@ import { useWords } from "./words";
  * a card drawn again with an earlier chat: no task is here, and where the next
  * one comes.
  */
-export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
+export function ComingCard({
+	coming,
+	host,
+	issued,
+}: {
+	coming: Coming;
+	host: Host;
+	issued?: number;
+}) {
 	const words = useWords();
 	const wait = useWaitFor(coming.requestId);
 	const finishing = useFinishing(wait);
@@ -40,6 +48,7 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 	// The wait's news is of a task still awaited: a task that has come answers
 	// it.
 	const awaited = wait.task === undefined;
+	const freshSince = useFreshSince(wait, issued);
 	return (
 		<CardFrame
 			child={coming.child}
@@ -47,6 +56,7 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 				task === undefined ? "progress.back_plain" : "progress.back",
 			)}
 			host={host}
+			freshSince={freshSince}
 		>
 			{(wide, whose) =>
 				task === undefined ? (
@@ -75,6 +85,38 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 			}
 		</CardFrame>
 	);
+}
+
+// useFreshSince is the moment from which the card keeps its top in the chat's
+// sight: the moment the service issued its wait, as the result that drew it
+// tells, while the task is being written; and, once the task has come to a
+// card that heard it was being written, the moment it came. A card told no
+// moment — a page that plays a host, an earlier service's result —, a wait no
+// task is coming to, and a task its first answer brought, on a card drawn
+// again with an earlier chat, keep nothing.
+function useFreshSince(
+	wait: Wait,
+	issued: number | undefined,
+): number | undefined {
+	const came = useFirstSeen(wait.task !== undefined);
+	if (issued === undefined) {
+		return undefined;
+	}
+	if (wait.task === undefined) {
+		return shows(wait) === "writing" ? issued : undefined;
+	}
+	return wait.seenWriting ? came : undefined;
+}
+
+// useFirstSeen is the moment, by the device's clock, of the first drawing of
+// the card in which so was true, kept for as long as the card is drawn;
+// undefined before it.
+function useFirstSeen(so: boolean): number | undefined {
+	const at = useRef<number | undefined>(undefined);
+	if (so && at.current === undefined) {
+		at.current = Date.now();
+	}
+	return at.current;
 }
 
 // useWaitFor is the wait for the task of the request given, kept up by asking

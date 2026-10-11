@@ -26,11 +26,6 @@ const PackageBudget = 64 * 1024
 // examplesPerPackage is how many reference tasks a package shows.
 const examplesPerPackage = 3
 
-// ideasPerList is how many ideas of a topic its list holds at each level the
-// topic is taught at, and so how many tasks of the topic go by before an idea
-// comes round again.
-const ideasPerList = 10
-
 // guideName is the page every package carries: how a task is written, handed
 // in and checked.
 const guideName = "task_writing.md"
@@ -56,11 +51,10 @@ type Request struct {
 	// reference tasks a package shows, so that a child asking for the same
 	// topic twice does not get the same examples twice.
 	Answers int
-	// TopicTasks is how many tasks of the brief's topic the child has left
-	// behind, answered or skipped. It picks the idea of the topic the task is
-	// built on, so that tasks of one topic go through its ideas one after
-	// another instead of coming back to the same one.
-	TopicTasks int
+	// Idea is the idea of the topic's list at the brief's level the task is
+	// to be built on, as the request named it: its place on the list and the
+	// round of the list it was named in.
+	Idea profile.Idea
 }
 
 // Package is everything the model is handed to write one task from, as the
@@ -78,9 +72,10 @@ type Request struct {
 // instructions; being a string of JSON, they cannot close themselves off and
 // speak as anything else.
 //
-// A request naming a topic or a skill the catalogs do not have, or a level the
-// topic is not taught at, makes no package: its description would be empty,
-// and no task written to it could pass the checks.
+// A request naming a topic or a skill the catalogs do not have, a level the
+// topic is not taught at, or an idea its list does not have, makes no package:
+// its description would be empty, and no task written to it could pass the
+// checks.
 func (c *Content) Package(request *Request) ([]byte, error) {
 	contents, err := c.contentsFor(request)
 	if err != nil {
@@ -111,25 +106,27 @@ type packageContents struct {
 
 // packageIdea is the idea of the topic the task is built on: Text says it, and
 // Number is its place on the topic's list at the brief's level. Round is which
-// pass of the list the number is on for this child, the first being 1: from
-// the second, the task is a variant of its idea, so that an idea that comes
-// round again is not the same task again.
+// pass of the list the idea was named in for this child, the first being 1:
+// from the second, the task is a variant of its idea, so that an idea that
+// comes round again is not the same task again.
 type packageIdea struct {
 	Number int    `json:"number"`
 	Round  int    `json:"round"`
 	Text   string `json:"text"`
 }
 
-// ideaOf is the idea on a topic's list the next task is built on, after the
-// tasks of the topic the child has left behind: the next on the list each
-// time, and round again after the last. A model in a new chat sees none of the
-// tasks written before, and left to itself reaches for the same favourite idea
-// every time; an idea named for it, a step further with every task, is what
-// moves it along the topic.
-func ideaOf(list []string, tasks int) packageIdea {
-	tasks = max(tasks, 0) // a count read from a file is not trusted to be positive
-	place := tasks % len(list)
-	return packageIdea{Number: place + 1, Round: tasks/len(list) + 1, Text: list[place]}
+// ideaOf is the idea of a topic's list the request named, in words. A model in
+// a new chat sees none of the tasks written before, and left to itself
+// reaches for the same favourite idea every time; an idea named for it, one
+// the child has not been given in its round, is what moves it along the topic.
+// A place the list does not have, or a round before the first, names nothing a
+// task could be built on.
+func ideaOf(list []string, named profile.Idea) (packageIdea, error) {
+	if named.Number < 1 || named.Number > len(list) || named.Round < 1 {
+		return packageIdea{}, fmt.Errorf("content: build the package: idea %d of round %d is not on a list of %d",
+			named.Number, named.Round, len(list))
+	}
+	return packageIdea{Number: named.Number, Round: named.Round, Text: list[named.Number-1]}, nil
 }
 
 // packageCorridor is the point of the ladder the rule recommends for the child
@@ -219,12 +216,16 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 	if err != nil {
 		return packageContents{}, err
 	}
+	idea, err := ideaOf(c.ideas[topic.ID][level], request.Idea)
+	if err != nil {
+		return packageContents{}, err
+	}
 	readable := checks.ReadabilityLimitsFor(level)
 
 	contents := packageContents{
 		Language:     request.Language,
 		Brief:        request.Brief,
-		Idea:         ideaOf(c.ideas[topic.ID][level], request.TopicTasks),
+		Idea:         idea,
 		Corridor:     corridorOf(&request.Corridor),
 		Topic:        packageTopic{ID: topic.ID, Name: topic.Name, Description: topic.Description},
 		Traps:        packageTraps(c.traps),

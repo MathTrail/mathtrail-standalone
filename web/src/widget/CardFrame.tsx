@@ -56,17 +56,21 @@ export const OpensProgress = createContext<
  * progress's form is the card's from then on — its line and what it frames
  * show the child as the profile now says — until the card is handed another
  * payload, which carries the child as the service has it. A card handed the
- * child hands what it frames a child too.
+ * child hands what it frames a child too. A card given freshSince, the moment
+ * what it frames became new, keeps its top in the chat's sight for a while
+ * from then.
  */
 export function CardFrame<C extends Child | undefined>({
 	child,
 	back,
 	host,
+	freshSince,
 	children,
 }: {
 	child: C;
 	back: string;
 	host: Host;
+	freshSince?: number;
 	children: (wide: boolean, child: C | Child) => ComponentChildren;
 }) {
 	const words = useWords();
@@ -100,7 +104,7 @@ export function CardFrame<C extends Child | undefined>({
 	useFocusFollowsProgress(progress !== undefined, topBar, backBar);
 
 	return (
-		<CardRoot>
+		<CardRoot freshSince={freshSince}>
 			{(wide) => (
 				<>
 					<div hidden={progress !== undefined}>

@@ -3,21 +3,27 @@ import { useContext, useRef } from "preact/hooks";
 import { classes } from "../design/classes";
 import { MessageHeader } from "../design/thread";
 import { useWide } from "../design/wide";
+import { useTopHeldInSight } from "./sight";
 import { buildVersion, NamesBuild, versionNumber } from "./version";
 import { useWords } from "./words";
 
 /**
  * CardRoot is the card itself: the width it lays out for, which it measures
- * and hands to what it holds, and the way the card's words run.
+ * and hands to what it holds, the way the card's words run, and — from
+ * freshSince, the moment what it holds became new — its top kept in the
+ * chat's sight while the reply that brought it may still be coming.
  */
 export function CardRoot({
+	freshSince,
 	children,
 }: {
+	freshSince?: number;
 	children: (wide: boolean) => ComponentChildren;
 }) {
 	const words = useWords();
 	const root = useRef<HTMLDivElement>(null);
 	const wide = useWide(root);
+	useTopHeldInSight(freshSince);
 	return (
 		<div
 			ref={root}

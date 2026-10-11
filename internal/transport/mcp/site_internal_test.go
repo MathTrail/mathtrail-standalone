@@ -1,6 +1,8 @@
 package mcpserver
 
 import (
+	"encoding/json"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -35,7 +37,8 @@ func TestTheSiteIsWrittenInTheLanguagesOfItsDictionaries(t *testing.T) {
 
 // A topic's pages are linked in the language of the lesson when the site is
 // written in it, or in the language it narrows down to, and otherwise in the
-// one every page is written in.
+// one every page is written in. Scottish Gaelic is no language of the cards,
+// so the site, which speaks none the cards do not, is never written in it.
 func TestPagesAreLinkedInTheLanguageOfTheLessonTheSiteIsWrittenIn(t *testing.T) {
 	t.Parallel()
 
@@ -50,8 +53,8 @@ func TestPagesAreLinkedInTheLanguageOfTheLessonTheSiteIsWrittenIn(t *testing.T) 
 		{"the same, written in capitals by hand", tag("RU"), "ru"},
 		{"a region of it", tag("ru-RU"), "ru"},
 		{"a region of the language of every page", tag("en-GB"), "en"},
-		{"a region of a language the site is not written in", tag("pt-BR"), "en"},
-		{"a language the site is not written in", tag("ar"), "en"},
+		{"a region of a language the site is not written in", tag("gd-GB"), "en"},
+		{"a language the site is not written in", tag("gd"), "en"},
 		{"a tag of nothing", tag("-"), "en"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -61,6 +64,39 @@ func TestPagesAreLinkedInTheLanguageOfTheLessonTheSiteIsWrittenIn(t *testing.T) 
 				t.Errorf("pageLanguage() = %q, want %q", got, tc.want)
 			}
 		})
+	}
+}
+
+// A language is found among the site's as a card finds its dictionary: whole,
+// then shorter, then in the script it is usually written in, but never cut
+// past its script. The cases are the card's own, read from the file its tests
+// read too, so that the service and the card choose alike in every one; on a
+// few rarer tags, whose likely script or alias the card's platform and this
+// library know apart, they may still part.
+func TestALanguageIsReadAsTheCardReadsIt(t *testing.T) {
+	t.Parallel()
+
+	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "web", "src", "i18n", "testdata", "lookup.json"))
+	if err != nil {
+		t.Fatalf("read the card's cases: %v", err)
+	}
+	var vectors []struct {
+		Among []string          `json:"among"`
+		Read  map[string]string `json:"read"`
+	}
+	if err := json.Unmarshal(raw, &vectors); err != nil || len(vectors) == 0 {
+		t.Fatalf("the card's cases are %d groups, %v; want some", len(vectors), err)
+	}
+	for _, group := range vectors {
+		for chosen, want := range group.Read {
+			t.Run(chosen+" among "+strings.Join(group.Among, " "), func(t *testing.T) {
+				t.Parallel()
+
+				if got := languageAmong(group.Among, chosen); got != want {
+					t.Errorf("languageAmong(%v, %q) = %q, want %q", group.Among, chosen, got, want)
+				}
+			})
+		}
 	}
 }
 

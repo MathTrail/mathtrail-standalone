@@ -2,6 +2,7 @@ import type { CallToolResult } from "@modelcontextprotocol/client";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { firstAskIn } from "./coming";
+import { heldFor as topHeldFor } from "./sight";
 import { buttonIn, foldIn, openCard, press, takeDown } from "./testing/card";
 import type { ToolCall } from "./testing/host";
 import {
@@ -501,5 +502,91 @@ describe("a card a task asked for comes to", () => {
 		await pass(late);
 
 		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("true");
+	});
+});
+
+describe("the place in the chat of a card a task asked for comes to", () => {
+	const band = () => document.querySelector(".mt-top-band");
+
+	// drawnIssued is a card drawn as next_task draws it now: the moment the
+	// service issued the wait in its result's metadata.
+	async function drawnIssued(tools: ReturnType<typeof answering>) {
+		const opened = await openCard({ context: { locale: "en-US" }, tools });
+		root = opened.root;
+		await opened.host.sendToolResult({
+			content: [],
+			structuredContent: coming,
+			_meta: { "mathtrail.app/issued_at": new Date().toISOString() },
+		});
+		await pass(100);
+	}
+
+	// The reply that writes the task is coming while it is written, and the
+	// chat may scroll on under it: the card watches its top by a band along it.
+	test("is watched from the moment its wait was issued, while the task is written", async () => {
+		await drawnIssued(answering(writing()));
+		expect(band()).not.toBeNull();
+
+		await pass(first + moments.ask);
+
+		expect(band()).not.toBeNull();
+	});
+
+	// The task that came is written ahead after, under the card, by the same
+	// reply.
+	test("is watched on for the task that comes to it", async () => {
+		await drawnIssued(answering(writing(), onTheCard));
+
+		await pass(first + moments.ask + late + finished);
+
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		expect(band()).not.toBeNull();
+	});
+
+	// A page that plays a host, and an earlier service, tell no moment: the card
+	// cannot tell its wait from one drawn again.
+	test("is left to the chat when its result tells no moment", async () => {
+		await drawn(answering(writing(), onTheCard));
+
+		await pass(first);
+		expect(band()).toBeNull();
+		await pass(moments.ask + late + finished);
+
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		expect(band()).toBeNull();
+	});
+
+	test("is left to the chat for a task its first question finds there, as on a card drawn again with an earlier chat", async () => {
+		await drawnIssued(answering(onTheCard));
+
+		await pass(first + late);
+
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		expect(band()).toBeNull();
+	});
+
+	test("is left to the chat once no task is coming", async () => {
+		await drawnIssued(answering(notComing));
+
+		await pass(first + moments.ask + late);
+
+		expect(band()).toBeNull();
+	});
+
+	// A read straight after a write may say no task is coming, and the next
+	// takes it back: the card watches its top again, for what is left of the
+	// two minutes from the moment its wait was issued.
+	test("is watched for what is left of its time through a word that no task is coming, taken back", async () => {
+		await drawnIssued(answering(writing(), notComing, writing()));
+		await pass(first);
+		expect(band()).not.toBeNull();
+
+		await pass(moments.ask);
+		expect(band()).toBeNull();
+		await pass(moments.ask);
+		expect(band()).not.toBeNull();
+
+		await pass(topHeldFor - 100 - first - 2 * moments.ask);
+		expect(band()).toBeNull();
 	});
 });

@@ -89,7 +89,7 @@ sequenceDiagram
     M->>MT: next_task, with the chat language and, if it wants, its own topic or difficulty and a reason
     Note over W: the host draws the card as the call starts: "Preparing the next task…", the topic being picked
     MT->>D: read the profile
-    Note over MT: the daily and rate limits · the rule picks topic, goal and corridor ·<br/>the model's override, or a topic a person chose, is recorded as tutor_mode · the open request is written down:<br/>id, brief, attempts 0, started at
+    Note over MT: the daily and rate limits · the rule picks topic, goal and corridor ·<br/>the model's override, or a topic a person chose, is recorded as tutor_mode · the open request is written down:<br/>id, brief, the idea to build on — one of the topic's list not yet given in its round —, attempts 0, started at
     MT->>D: write the profile
     MT-->>M: request open: get its package, write the task, hand it in
     MT-->>W: the task on its way — the request, whose card it is, its language, and no package
@@ -113,7 +113,7 @@ sequenceDiagram
             MT->>D: write the profile
             MT-->>M: every failed check at once, with the first one as the code<br/>and no answer letter anywhere in it
         else accepted
-            Note over MT: the task becomes the current one, under the id its request gives it,<br/>the answer and the trap texts go into the sealed block, the request closes,<br/>the daily counter goes up, the fingerprint is kept for the duplicate check
+            Note over MT: the task becomes the current one, under the id its request gives it,<br/>the answer and the trap texts go into the sealed block, the request closes,<br/>the daily counter goes up, the fingerprint is kept for the duplicate check,<br/>and the idea joins those given in its round
             MT->>D: write the profile
             MT-->>M: accepted, plus the task exactly as the child will see it
         end
@@ -253,13 +253,13 @@ sequenceDiagram
     Note over M,W: the task is on the card; the model goes on in the same turn
     M->>MT: prepare_task, with the chat language
     MT->>D: read the profile
-    Note over MT: nothing kept and nothing being written · the day has room ·<br/>the rule builds the brief it would build now,<br/>dressed as the task after the one on the card while that one waits for its answer,<br/>and its package counts that task as behind the child ·<br/>a request ahead is written down
+    Note over MT: nothing kept and nothing being written · the day has room ·<br/>the rule builds the brief it would build now,<br/>dressed as the task after the one on the card while that one waits for its answer,<br/>and its package counts that task as behind the child ·<br/>a request ahead is written down, on an idea that task, which gave its own when it was handed out, was not built on
     MT->>D: write the profile
     MT-->>M: the request ahead and its package: say nothing about this task
     Note over M: the model writes the next task while the child works on the one on the card
     M->>MT: submit_task with the request ahead
     MT->>D: read the profile
-    Note over MT: the same checks · accepted: the task is sealed under the id it will have,<br/>beside what it was written for · the request closes · nothing counted yet
+    Note over MT: the same checks · accepted: the task is sealed under the id it will have,<br/>beside what it was written for, its idea among it · the request closes · nothing counted yet, its idea not given
     MT->>D: write the profile
     MT-->>M: kept: say nothing about it, and ask for no other task
 
@@ -268,7 +268,7 @@ sequenceDiagram
     Note over W: the host has the ask: the card is done with —<br/>options locked, buttons gone, the new task "will come below"
     M->>MT: next_task, with the chat language
     MT->>D: read the profile
-    Note over MT: the task kept still fits the lesson · it becomes the task on the card,<br/>its id and seal unchanged · the task left unanswered is skipped · the day's counter goes up
+    Note over MT: the task kept still fits the lesson · it becomes the task on the card,<br/>its id and seal unchanged · the task left unanswered is skipped · the day's counter goes up ·<br/>its idea joins those given in its round
     MT-->>N: the task — the card the host drew for next_task shows it at once
     MT-->>M: the words read the task out and send the model on
     MT->>D: write the profile — after the answer, in the same request (R255)

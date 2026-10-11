@@ -17,6 +17,17 @@ describe("the address of a topic's page", () => {
 		);
 	});
 
+	test("names the language by its tag as it is written, as the site's addresses do", () => {
+		expect(
+			pageAddress(
+				{ ...site, languages: ["en", "zh-Hans"] },
+				"zh-Hans",
+				gaps,
+				"",
+			),
+		).toBe("https://mathtrail.app/zh-Hans/topics/gaps-and-boundaries/");
+	});
+
 	test("is in English for a card in a language the site is not written in", () => {
 		expect(pageAddress(site, "fr", gaps, "#home")).toBe(
 			"https://mathtrail.app/en/topics/gaps-and-boundaries/#home",

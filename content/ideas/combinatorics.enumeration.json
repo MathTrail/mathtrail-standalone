@@ -3,16 +3,16 @@
     "Pairs from two groups, such as one hat and one scarf, every hat with every scarf.",
     "Handshakes or phone calls among a few friends, each pair once.",
     "Two-digit numbers written with given digits, with or without a digit used twice.",
-    "Lines of three or four children, with one of them kept in one place.",
+    "Lines of children or towers of blocks, with one of them kept in one place or kept out of one.",
     "Routes through a middle stop: the roads of each part of the way multiplied.",
     "Paying a small amount with coins of two or three values, the order of the coins not mattering.",
     "Two-digit numbers whose digits add up to a given number.",
-    "Towers of three blocks of different colours, with one colour kept off the bottom.",
+    "A robot's steps, some to the right and one or two up, in any order: how many orders there are.",
     "Cones of two scoops from a few flavours, when the order of the scoops matters and when it does not.",
     "Flags of two or three stripes, neighbouring stripes in different colours."
   ],
   "3-4": [
-    "Games or cards among a group: every pair once, or every pair twice.",
+    "Games or cards among a group, every pair once or twice: the games from the players, or the players from the games.",
     "Three-digit numbers from given digits, all different or with repeats allowed.",
     "Choosing two or three things from a few, when the order does not matter.",
     "Paths on a grid that only go right and up.",
@@ -21,7 +21,7 @@
     "A team with a captain: the members chosen, and then one of them to lead.",
     "Lines with a rule: someone at an end, or two people never side by side.",
     "Codes of letters and digits, or of digits written in increasing order.",
-    "Working back: the number of players from the number of games they played."
+    "The choices a condition rules out, counted and taken from all the choices: two children who are not both girls."
   ],
   "5-6": [
     "Menus and outfits with one combination that is not allowed.",

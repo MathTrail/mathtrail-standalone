@@ -5,13 +5,16 @@
 // a picture and photographed in Chromium, so that a shared link shows the page
 // it leads to rather than a picture drawn apart from it.
 //
-//	node scripts/og.ts
+//	node scripts/og.ts [--language <tag>]...
 //
 // It runs where the browsers are, inside the image of the pinned Playwright
 // release, over the site built into site/dist/, and writes over the pictures
-// in site/assets/, to be looked at before they are kept.
+// in site/assets/, to be looked at before they are kept: those of every
+// language, or of the languages asked for alone, so that a language joining
+// the site brings its own picture and leaves the others as they were.
 
 import { join } from "node:path";
+import { parseArgs } from "node:util";
 import { chromium } from "playwright-core";
 import { preview } from "vite";
 import { sharingPicturePath, sharingPictureSize } from "../src/site/brand.ts";
@@ -46,11 +49,40 @@ export const pictureStyle = `
 	.s-hero .s-lead { font-size: 22px; }
 `;
 
+/**
+ * languagesAsked are the languages a run photographs: those its arguments
+ * name with --language, in the order of the site's, or every language of the
+ * site when they name none. A language the site does not have is refused
+ * rather than passed over, which would photograph nothing and call it done.
+ */
+export function languagesAsked(
+	args: readonly string[],
+	site: readonly string[],
+): string[] {
+	const { values } = parseArgs({
+		args: [...args],
+		options: { language: { type: "string", multiple: true } },
+	});
+	const asked = values.language ?? [];
+	const missing = asked.filter((language) => !site.includes(language));
+	if (missing.length > 0) {
+		throw new Error(
+			`og: the site has no language ${missing.join(", ")}; it has ${site.join(", ")}`,
+		);
+	}
+	return asked.length === 0
+		? [...site]
+		: site.filter((language) => asked.includes(language));
+}
+
 async function main(): Promise<void> {
 	// The languages are the site's texts', as its build reads them.
-	const locales = [
-		...(await readSources(join(repository, "site", "content"))).keys(),
-	].sort((a, b) => a.localeCompare(b, "en"));
+	const locales = languagesAsked(
+		process.argv.slice(2),
+		[...(await readSources(join(repository, "site", "content"))).keys()].sort(
+			(a, b) => a.localeCompare(b, "en"),
+		),
+	);
 	const server = await preview({
 		configFile: join(web, "vite.config.site.ts"),
 		logLevel: "warn",

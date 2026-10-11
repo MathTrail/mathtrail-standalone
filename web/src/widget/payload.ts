@@ -103,6 +103,24 @@ export function readHandedTask(payload: unknown): HandedTask | undefined {
 	return read.success ? read.data : undefined;
 }
 
+// issuedMeta is the moment the service issued what a card shows, as a
+// result's metadata tells it to the card alone.
+const issuedMeta = z.object({ "mathtrail.app/issued_at": z.iso.datetime() });
+
+/**
+ * issuedAt is when the service issued what a result's card shows — the task
+ * it hands out, or the wait for a task to come —, in milliseconds since the
+ * epoch, as the result's metadata tells the card alone; undefined where it
+ * says nothing of it — another tool's result, an earlier service's, a page
+ * that plays a host — or nothing that reads as a moment.
+ */
+export function issuedAt(meta: unknown): number | undefined {
+	const read = issuedMeta.safeParse(meta);
+	return read.success
+		? Date.parse(read.data["mathtrail.app/issued_at"])
+		: undefined;
+}
+
 const answerResult = z.object({
 	task_id: z.string(),
 	topic: z.string(),

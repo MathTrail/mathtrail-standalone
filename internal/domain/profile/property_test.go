@@ -83,7 +83,12 @@ func TestTheFileHoldsItsProperties(t *testing.T) {
 			topic := p.Topics["counting.gaps"]
 			topic.Traps[trap] = times
 			topic.Answers += times
+			topic.Ideas = map[rating.GradeLevel]profile.IdeaRound{
+				rating.Grades34: {Given: []int{times, 10}, Round: times}, rating.Grades12: {Given: []int{1}, Round: 1},
+			}
 			p.Topics["counting.gaps"] = topic
+			brief := briefOn("counting.gaps")
+			p.Ask(&brief, profile.TutorRule, "en", asked).Idea = profile.Idea{Number: times, Round: times}
 
 			written, err := profile.Marshal(p)
 			if err != nil {

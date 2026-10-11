@@ -2,6 +2,7 @@ package mcpserver_test
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -735,12 +736,13 @@ func TestTheRequestAheadIsHandedBackAsItWasOpened(t *testing.T) {
 }
 
 // A task written ahead while the child works on the task on the card comes
-// after that task, so it is built on the idea after the one that task was
-// built on, the two being of one topic, and is shown the reference tasks the
-// next task is shown once the child has answered: the package of the same
-// request, fetched again after the answer, names the same idea and shows the
-// same reference tasks.
-func TestATaskWrittenAheadIsBuiltOnTheIdeaAfterTheTaskOnTheCard(t *testing.T) {
+// after that task: the task on the card gave its idea when it was handed out,
+// so the task written ahead, of the same topic and level, is built on another
+// idea of the same round. It is shown the reference tasks the next task is
+// shown once the child has answered: the package of the same request, fetched
+// again after the answer, names the same idea and shows the same reference
+// tasks.
+func TestATaskWrittenAheadIsBuiltOnAnIdeaTheTaskOnTheCardWasNot(t *testing.T) {
 	t.Parallel()
 
 	kept := racer(t)
@@ -767,14 +769,52 @@ func TestATaskWrittenAheadIsBuiltOnTheIdeaAfterTheTaskOnTheCard(t *testing.T) {
 	if err := json.Unmarshal(ahead["idea"], &next); err != nil {
 		t.Fatalf("read the idea of the task written ahead: %v", err)
 	}
-	if next.Number != raced.Number+1 || next.Round != raced.Round || next.Text == raced.Text {
-		t.Errorf("the task written ahead is built on %+v, want the idea after the race's, %+v", next, raced)
+	if next.Number == raced.Number || next.Round != raced.Round || next.Text == raced.Text {
+		t.Errorf("the task written ahead is built on %+v, want another idea of the race's round than %+v", next, raced)
+	}
+	if named := (profile.Idea{Number: next.Number, Round: next.Round}); request.Idea != named {
+		t.Errorf("the request written ahead keeps %+v, want the idea its package names, %+v", request.Idea, named)
+	}
+	p, _ := loadKept(t, kept)
+	given := p.Topics["logic.ordering"].Ideas[rating.Grades12]
+	if want := (profile.IdeaRound{Given: []int{raced.Number}, Round: raced.Round}); !reflect.DeepEqual(given, want) {
+		t.Errorf("the ideas given are %+v, want the race's alone, %+v", given, want)
 	}
 	for _, part := range []string{"idea", "examples"} {
 		if string(afterTheAnswer[part]) != string(ahead[part]) {
 			t.Errorf("after the answer the package's %s is %s, want the one written ahead from, %s",
 				part, afterTheAnswer[part], ahead[part])
 		}
+	}
+}
+
+// A task written ahead gives its idea only once it reaches the child: while
+// it is kept, the race on the card has given its idea alone, and once the
+// child asks for the next task, the relay's idea joins it in the same round.
+func TestATaskKeptGivesItsIdeaOnceHandedOut(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	race, relayID := keepTheRelay(t, session, kept)
+	p, _ := loadKept(t, kept)
+	relay := p.ReadyTask.Idea
+	if relay == (profile.Idea{}) || relay.Number == race.Idea.Number || relay.Round != race.Idea.Round {
+		t.Fatalf("the relay is kept on %+v, want another idea of the race's round than %+v", relay, race.Idea)
+	}
+	given := p.Topics["logic.ordering"].Ideas[rating.Grades12]
+	if want := (profile.IdeaRound{Given: []int{race.Idea.Number}, Round: race.Idea.Round}); !reflect.DeepEqual(given, want) {
+		t.Errorf("while the relay is kept the ideas given are %+v, want the race's alone, %+v", given, want)
+	}
+
+	call(t, session, "next_task", map[string]any{"language": "en"})
+	p, _ = loadKept(t, kept)
+	if p.CurrentTask == nil || p.CurrentTask.ID != relayID {
+		t.Fatalf("the task on the card is %+v, want the relay handed out", p.CurrentTask)
+	}
+	given = p.Topics["logic.ordering"].Ideas[rating.Grades12]
+	if want := (profile.IdeaRound{Given: []int{race.Idea.Number, relay.Number}, Round: relay.Round}); !reflect.DeepEqual(given, want) {
+		t.Errorf("once the relay is handed out the ideas given are %+v, want the race's and the relay's, %+v", given, want)
 	}
 }
 

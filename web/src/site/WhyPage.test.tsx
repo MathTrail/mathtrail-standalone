@@ -12,6 +12,7 @@ import { readSiteData } from "./data";
 import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
 import { renderSite } from "./render";
+import { dictionariesOf } from "./testing/dictionaries";
 import { gradesOf } from "./topics";
 import { doiAddress } from "./why";
 
@@ -95,6 +96,7 @@ const render = (sources = sourcesWith(), given = data) =>
 	renderSite({
 		base: "https://example.test",
 		sources,
+		dictionaries: dictionariesOf(sources),
 		pages,
 		frame,
 		data: given,

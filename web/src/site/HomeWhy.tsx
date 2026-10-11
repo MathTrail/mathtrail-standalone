@@ -1,4 +1,5 @@
 import type { ComponentChildren, VNode } from "preact";
+import { candidatesOf } from "../i18n/lookup";
 import { cardWords } from "../widget/dictionaries";
 import { topicName, trapName } from "../widget/names";
 import type { Home, HomeAlone } from "./home";
@@ -317,14 +318,20 @@ const tileIcons: Readonly<Record<TileIcon, () => VNode>> = {
 	),
 };
 
-// languagesFirst are the languages a tile names, the page's own first and the
-// rest in the order the site's data gives them.
-function languagesFirst(
+/**
+ * languagesFirst are the languages a tile names: the page's own first, and
+ * then those of the site's data in their order, but for the page's language
+ * under another tag, which the tile has named already — a page in Simplified
+ * Chinese names Chinese once, and first.
+ */
+export function languagesFirst(
 	locale: string,
 	languages: readonly string[],
 ): string[] {
-	const own = languages.filter((tag) => tag === locale);
-	return [...own, ...languages.filter((tag) => tag !== locale)];
+	return [
+		locale,
+		...languages.filter((tag) => !candidatesOf(tag).includes(locale)),
+	];
 }
 
 // nameOf is a language's name in the language itself, begun with a capital,

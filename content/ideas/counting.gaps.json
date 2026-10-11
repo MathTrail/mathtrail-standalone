@@ -1,13 +1,13 @@
 {
   "1-2": [
-    "Trees or posts in a row and the gaps between them: one gap fewer than the trees.",
-    "Cutting a ribbon or a log: one cut fewer than the pieces.",
+    "Trees or posts in a row: one gap fewer than the trees, and the length of the row from the gap between two.",
+    "Cutting a ribbon or sawing a log: one cut fewer than the pieces, and the time all the cuts take.",
     "Pages read from one page to another, both ends counted.",
-    "Going up from one floor to another: one flight fewer than the floor reached.",
-    "A fence of posts a given distance apart: the length from the first post to the last.",
-    "Sawing a log when each cut takes the same time: the time for all the pieces.",
+    "Going up a house: one flight fewer than the floor reached, and the steps of all the flights.",
+    "Children standing between two others in a line: how many there are, from the places of the two.",
+    "Bushes along the sides of a square, one in every corner: the corners counted once.",
     "A child counted from the front and from the back of a queue: how many are in it.",
-    "Steps between floors: the steps of one flight times the flights climbed.",
+    "A frog jumping along a row of stones, skipping one stone each time: the jumps to the last.",
     "Beads on a closed necklace: as many gaps as beads.",
     "A clock striking: the time from the first stroke to the last counted in gaps."
   ],
@@ -19,7 +19,7 @@
     "A closed ring of beads or posts: as many gaps as objects.",
     "A bell ringing at equal spaces: the time for more rings from the time for a few.",
     "A pupil counted from the left and from the right: the length of the row.",
-    "Posts along a fence with a post at each end, and the same fence closed into a ring.",
+    "Square tables pushed together in a row, one seat to a side: how many people can sit around them.",
     "A train of carriages with links between them, and the length of the whole train.",
     "Pages numbered on both sides of the sheets: how many sheets a run of pages takes."
   ],

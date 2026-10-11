@@ -155,6 +155,9 @@ func (s *Service) prepared(p *profile.Profile, in *prepareTaskIn, language strin
 	if err != nil {
 		return Reply[any]{}, nil, fmt.Errorf("mcp: ask for the task ahead: %w", err)
 	}
+	// The task on the card gave its idea when it was handed out, so the task
+	// after it is built on another, even in the same round of the same list.
+	opened.Idea = tutor.NextIdea(p, opened.Brief.TargetConcept, opened.Brief.GradeLevel)
 	reply, err = s.packageWords(p, opened, aheadLead(opened))
 	return reply, opened, err
 }

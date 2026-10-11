@@ -16,6 +16,7 @@ import { readSiteData } from "./data";
 import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
 import { renderSite } from "./render";
+import { dictionariesOf } from "./testing/dictionaries";
 
 const browser = new Window({
 	settings: {
@@ -117,7 +118,14 @@ const frame: Frame = {
 };
 
 const render = (sources = sourcesWith()) =>
-	renderSite({ base: "https://example.test", sources, pages, frame, data });
+	renderSite({
+		base: "https://example.test",
+		sources,
+		dictionaries: dictionariesOf(sources),
+		pages,
+		frame,
+		data,
+	});
 
 const files = render();
 

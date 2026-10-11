@@ -80,6 +80,11 @@ type Handler[In, Out any] func(ctx context.Context, account store.Account, in In
 type Reply[Out any] struct {
 	Text    string
 	Payload Out
+	// CardAlone is what only the widget is told, as the result's metadata: a
+	// host hands a card the whole result and keeps the metadata out of the
+	// model's context, where a moment would be of no use and a directory
+	// reviews one as logging. Nil for a reply with nothing of the kind.
+	CardAlone mcp.Meta
 }
 
 // definition is a tool as Define made it.
@@ -181,5 +186,8 @@ func (d definition[In, Out]) call(ctx context.Context, _ *mcp.CallToolRequest, i
 	if err != nil {
 		return nil, none, explain(err)
 	}
-	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: reply.Text}}}, reply.Payload, nil
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{&mcp.TextContent{Text: reply.Text}},
+		Meta:    reply.CardAlone,
+	}, reply.Payload, nil
 }

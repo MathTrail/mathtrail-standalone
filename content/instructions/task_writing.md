@@ -33,7 +33,7 @@ A harder task is not a longer story or bigger numbers: keep the numbers and the 
 
 ## Handing it in
 
-Hand the task in with `submit_task`, together with the request id you were given; the brief stays with the request, so do not send it back. A complete example follows. Its brief is a child's first task of ordering at grades 1–2, at difficulty 2 and in the setting "sport", so its idea is the first on the topic's list there, in round 1: "A runner who overtakes the one in a place takes that place, not the place ahead of it." Its question draws nothing, since a picture of the race would show the very place it asks about; its solution draws the three places with Tom's ringed, which the child sees only after answering:
+Hand the task in with `submit_task`, together with the request id you were given; the brief stays with the request, so do not send it back. A complete example follows. Its brief is a child's first task of ordering at grades 1–2, at difficulty 2 and in the setting "sport", and its idea, in round 1, is: "A runner who overtakes the one in a place takes that place, not the place ahead of it." Its question draws nothing, since a picture of the race would show the very place it asks about; its solution draws the three places with Tom's ringed, which the child sees only after answering:
 
 ```json
 {

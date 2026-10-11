@@ -9,6 +9,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 )
 
 // reviewPayload is the review of the progress, as a card reads it.
@@ -196,8 +197,8 @@ func TestTheProgressNamesTheSiteAndEachTopicsPage(t *testing.T) {
 
 	read := payloadOf[sitePayload](t, result)
 	if read.Site == nil || read.Site.URL != "https://mathtrail.app" ||
-		!reflect.DeepEqual(read.Site.Languages, []string{"en", "ru"}) {
-		t.Errorf("site = %+v, want https://mathtrail.app in en and ru", read.Site)
+		!reflect.DeepEqual(read.Site.Languages, mcpserver.SiteLanguages()) {
+		t.Errorf("site = %+v, want https://mathtrail.app in %v", read.Site, mcpserver.SiteLanguages())
 	}
 	loaded, err := shipped()
 	if err != nil {

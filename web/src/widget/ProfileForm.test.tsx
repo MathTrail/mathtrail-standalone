@@ -12,6 +12,7 @@ import {
 	unfold,
 } from "./testing/card";
 import type { ToolCall } from "./testing/host";
+import { languagesOfV1 } from "./testing/languages";
 import {
 	editGone,
 	editRefused,
@@ -166,7 +167,7 @@ describe("the form of the profile", () => {
 		expect(form(root).querySelectorAll("input[type=text]")).toHaveLength(2);
 	});
 
-	test("offers every language of the lessons by name, after the chat's", async () => {
+	test("offers the sixty-four languages of the lessons by name, after the chat's", async () => {
 		const { root } = await opened();
 
 		const choices = [
@@ -174,6 +175,9 @@ describe("the form of the profile", () => {
 		];
 		expect(choices[0]?.textContent).toBe("The chat's language");
 		expect(choices).toHaveLength(lessonLanguages.length + 1);
+		expect(choices.map((choice) => choice.value)).toEqual(
+			expect.arrayContaining([...languagesOfV1]),
+		);
 		expect(choices.map((choice) => choice.textContent)).toContain("French");
 	});
 

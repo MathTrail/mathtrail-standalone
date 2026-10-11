@@ -15,6 +15,7 @@ import { researchSections } from "./ResearchPage";
 import { secondRun } from "./ResearchTheses";
 import { renderSite } from "./render";
 import type { Research, Row } from "./research";
+import { dictionariesOf } from "./testing/dictionaries";
 import { handTyped } from "./testing/handtyped";
 import { answer, example, fence, fencePosts } from "./worked";
 
@@ -108,6 +109,7 @@ function pagesOf(data: SiteData): Map<string, Document> {
 	const files = renderSite({
 		base: "https://example.test",
 		sources,
+		dictionaries: dictionariesOf(sources),
 		pages: new Map([["research", page]]),
 		frame,
 		data,

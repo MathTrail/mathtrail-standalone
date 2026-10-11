@@ -4,6 +4,7 @@ import { disagreements } from "../i18n/dictionaries";
 import { lengthOf, pseudoLocale } from "../i18n/pseudo";
 import { textsOf } from "../i18n/words";
 import { cardWords, dictionaries, lessonLanguages } from "./dictionaries";
+import { languagesOfV1 } from "./testing/languages";
 
 describe("the widget's words", () => {
 	const english = dictionaries.get("en") ?? {};
@@ -33,11 +34,14 @@ describe("the widget's words", () => {
 	// tells the two apart, and in the one form it has where it does not: the
 	// form the card asks for a new profile in.
 	test.each([
+		["am", "ይጠይቁ"],
 		["ar", "يمكن طلب"],
+		["az", "istəyin"],
 		["bg", "поискайте"],
 		["bn", "চান"],
 		["bs", "zatražite"],
 		["ca", "demani"],
+		["ckb", "داوا بکەن"],
 		["cs", "požádejte"],
 		["da", "bed om"],
 		["de", "Sie"],
@@ -45,25 +49,49 @@ describe("the widget's words", () => {
 		["es", "pida"],
 		["fa", "بخواهید"],
 		["fi", "pyydä"],
+		["fil", "humingi po kayo"],
 		["fr", "demandez"],
+		["gu", "માંગો"],
+		["ha", "ku nemi"],
+		["he", "בקשו"],
 		["hi", "माँगें"],
 		["hr", "zatražite"],
 		["hu", "kérjen"],
+		["hy", "խնդրեք"],
+		["ig", "biko rịọ"],
 		["it", "chieda"],
 		["ja", "頼んでください"],
+		["ka", "მოითხოვეთ"],
+		["kk", "сұраңыз"],
+		["kn", "ಕೇಳಿ"],
 		["ko", "요청해 주세요"],
+		["ku", "bixwazin"],
 		["lt", "paprašykite"],
+		["mai", "माँगू"],
+		["ml", "ആവശ്യപ്പെടുക"],
+		["mr", "मागा"],
+		["ms", "sila"],
 		["nb", "be om"],
+		["or", "ମାଗନ୍ତୁ"],
+		["pa", "ਮੰਗੋ"],
+		["ps", "وغواړئ"],
 		["ro", "cereți"],
 		["ru", "попросите"],
 		["sk", "požiadajte"],
 		["sr", "затражите"],
 		["sv", "be om"],
+		["sw", "tafadhali"],
+		["ta", "கேளுங்கள்"],
+		["te", "అడగండి"],
 		["tr", "isteyin"],
 		["uk", "попросіть"],
 		["ur", "مانگیں"],
+		["uz", "soʻrang"],
 		["vi", "yêu cầu"],
+		["yo", "ẹ béèrè"],
 		["zh-Hans", "请"],
+		["zh-Hant", "請"],
+		["zu", "celani"],
 	])("in %s send the adult to the chat as %s", (tag, form) => {
 		const words = dictionaries.get(tag) ?? {};
 		for (const key of [
@@ -101,6 +129,9 @@ describe("a card's words", () => {
 		["pt-BR", "ru-RU", "pt"],
 		[undefined, "zh-CN", "zh-Hans"],
 		[undefined, "so-SO", "en"],
+		[undefined, "zh-TW", "zh-Hant"],
+		[undefined, "zh-HK", "zh-Hant"],
+		[undefined, "tl-PH", "fil"],
 		[undefined, undefined, "en"],
 	])(
 		"with the language chosen %s and the host's %s are in %s",
@@ -119,47 +150,9 @@ describe("a card's words", () => {
 		).toBe("Grade 3");
 	});
 
-	test("are in every one of the thirty-seven languages written so far", () => {
+	test("are in every one of the sixty-four languages of v1", () => {
 		expect([...dictionaries.keys()]).toEqual(
-			expect.arrayContaining([
-				"en",
-				"zh-Hans",
-				"hi",
-				"es",
-				"ar",
-				"fr",
-				"bn",
-				"pt",
-				"ru",
-				"ur",
-				"id",
-				"de",
-				"ja",
-				"tr",
-				"ko",
-				"vi",
-				"it",
-				"fa",
-				"pl",
-				"uk",
-				"th",
-				"nl",
-				"ro",
-				"cs",
-				"hu",
-				"el",
-				"sv",
-				"da",
-				"nb",
-				"fi",
-				"sk",
-				"ca",
-				"lt",
-				"hr",
-				"bs",
-				"sr",
-				"bg",
-			]),
+			expect.arrayContaining([...languagesOfV1]),
 		);
 	});
 });

@@ -47,6 +47,9 @@ type ReadyTask struct {
 	Hint string `json:"hint"`
 	// ID is the id the task will have on the card, which its seal is tied to.
 	ID string `json:"id"`
+	// Idea is the idea of the topic's list the task was built on, given once
+	// the task is handed out.
+	Idea Idea `json:"idea,omitzero"`
 	// InstructionsVersion is the version of the instructions the task was
 	// written to.
 	InstructionsVersion string `json:"instructions_version"`
@@ -128,6 +131,7 @@ func (p *Profile) Keep(written *Written, secret *TaskSecret, sealer Sealer, now 
 		GradeLevel:          request.Brief.GradeLevel,
 		Hint:                written.Hint,
 		ID:                  id,
+		Idea:                request.Idea,
 		InstructionsVersion: written.InstructionsVersion,
 		Language:            request.Language,
 		LessonTopic:         request.LessonTopic,
@@ -148,7 +152,8 @@ func (p *Profile) Keep(written *Written, secret *TaskSecret, sealer Sealer, now 
 // It becomes the task on the card as it was written, under its own id and with
 // its own seal, and it is handed out as any task is: the one left on the card
 // without an answer is recorded as skipped, its fingerprint joins the tasks
-// given, its topic records the day, and the day's count of tasks goes up.
+// given, its topic records the day and the idea it was built on, and the day's
+// count of tasks goes up.
 func (p *Profile) HandOutReady(now time.Time) (*CurrentTask, error) {
 	ready := p.ReadyTask
 	if ready == nil {
@@ -169,14 +174,14 @@ func (p *Profile) HandOutReady(now time.Time) (*CurrentTask, error) {
 		Topic:               ready.Topic,
 		TutorMode:           ready.TutorMode,
 		Wording:             ready.Wording,
-	}, now)
+	}, ready.Idea, now)
 	p.ReadyTask = nil
 	return p.CurrentTask, nil
 }
 
 // DropReady lets go of the kept task, which no longer fits the lesson. Nothing
 // else moves: it never reached the child, so it is neither among the tasks
-// given nor counted against the day.
+// given nor counted against the day, and its idea is not given.
 func (p *Profile) DropReady() { p.ReadyTask = nil }
 
 // CloseRequest lets go of the open request, whose task nobody will take: a

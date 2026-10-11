@@ -1,0 +1,66 @@
+[
+	{
+		"among": ["en", "ru"],
+		"read": {
+			"ru-RU": "ru",
+			"ru": "ru",
+			"RU": "ru",
+			"en-GB": "en",
+			"es-MX": "en",
+			"pt-BR": "en",
+			"kk": "en",
+			"be-BY": "en",
+			"gd": "en",
+			"gd-GB": "en",
+			"xx": "en",
+			"und-RU": "en",
+			"und": "en",
+			"ru-Latn": "en",
+			"not a language": "en",
+			"": "en"
+		}
+	},
+	{
+		"among": ["en", "es", "pt", "ru", "zh-Hans"],
+		"read": {
+			"es-MX": "es",
+			"es-419": "es",
+			"pt-BR": "pt",
+			"PT-br": "pt",
+			"ru-RU-u-nu-latn": "ru",
+			"zh-CN": "zh-Hans",
+			"zh-Hans-CN": "zh-Hans",
+			"zh": "zh-Hans",
+			"cmn": "zh-Hans",
+			"zh-guoyu": "zh-Hans",
+			"zh-TW": "en",
+			"zh-Hant": "en",
+			"tlh": "en"
+		}
+	},
+	{
+		"among": ["en", "zh", "sr", "pa"],
+		"read": {
+			"zh-CN": "zh",
+			"zh-SG": "zh",
+			"zh-TW": "en",
+			"zh-Hant": "en",
+			"sr": "sr",
+			"sr-Latn-RS": "en",
+			"pa": "pa",
+			"pa-Arab": "en"
+		}
+	},
+	{
+		"among": ["en", "nb"],
+		"read": {
+			"no": "nb",
+			"no-NO": "nb",
+			"NO-no": "nb",
+			"nb": "nb",
+			"nb-NO": "nb",
+			"nn": "en",
+			"nn-NO": "en"
+		}
+	}
+]

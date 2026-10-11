@@ -441,20 +441,23 @@ func TestEveryStepOfTheLessonWritesAFileTheSchemaDescribes(t *testing.T) {
 			return err
 		}
 	}
+	ask := func(number, round int) {
+		p.Ask(&brief, profile.TutorRule, "en", asked).Idea = profile.Idea{Number: number, Round: round}
+	}
 	steps := []struct {
 		name string
 		take func() error
 	}{
-		{"a request", func() error { p.Ask(&brief, profile.TutorRule, "en", asked); return nil }},
+		{"a request", func() error { ask(3, 1); return nil }},
 		{"a refusal", func() error { _, err := p.Refuse(asked); return err }},
 		{"a task handed out", func() error { _, err := p.Issue(written(), secret(), newSealer(t), asked); return err }},
 		{"I don't know", answer(profile.DontKnow)},
 		{"the answer sent again", answer(wrongLetter)},
-		{"the next request", func() error { p.Skip(asked.Add(time.Hour)); p.Ask(&brief, profile.TutorRule, "en", asked); return nil }},
+		{"the next request", func() error { p.Skip(asked.Add(time.Hour)); ask(5, 1); return nil }},
 		{"the next task handed out", func() error { _, err := p.Issue(written(), secret(), newSealer(t), asked); return err }},
 		{"a wrong answer", answer(wrongLetter)},
-		{"the task after it handed out", func() error {
-			p.Ask(&brief, profile.TutorRule, "en", asked)
+		{"the task after it handed out, in a new round", func() error {
+			ask(5, 2)
 			_, err := p.Issue(written(), secret(), newSealer(t), asked)
 			return err
 		}},

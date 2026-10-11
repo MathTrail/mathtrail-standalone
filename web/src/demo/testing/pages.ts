@@ -11,6 +11,7 @@ import type { Frame } from "../../site/frame";
 import { connectSection } from "../../site/home";
 import { type Page, sitePages } from "../../site/pages";
 import { renderSite } from "../../site/render";
+import { dictionariesOf } from "../../site/testing/dictionaries";
 
 const repository = join(import.meta.dirname, "..", "..", "..", "..");
 
@@ -82,6 +83,7 @@ function builtPage(name: string, locale: string): string {
 	const page = renderSite({
 		base: "https://example.test",
 		sources,
+		dictionaries: dictionariesOf(sources),
 		pages: new Map<string, Page>([[name, drawn]]),
 		frame,
 		data,

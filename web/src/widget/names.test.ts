@@ -8,7 +8,7 @@ import { onAMachineSpeaking } from "../i18n/testing/machine";
 import { openWords } from "../i18n/words";
 import siteEnglish from "../site/locales/en.json";
 import siteRussian from "../site/locales/ru.json";
-import { cardWords, catalogSkills } from "./dictionaries";
+import { cardWords, catalogSkills, lessonLanguages } from "./dictionaries";
 import {
 	countryName,
 	groupName,
@@ -153,6 +153,37 @@ describe("a language", () => {
 
 	test("that no tag names is shown as it is", () => {
 		expect(languageName(inEnglish, "not a tag")).toBe("not a tag");
+	});
+
+	// Kurmanji and Central Kurdish are both Kurdish to the platform: the one
+	// written in Latin letters says so, beside the other.
+	test.each([
+		["ku", "Kurdish (Latin)"],
+		["ckb", "Central Kurdish"],
+	])(
+		"%s is named %s, so that two Kurdish languages are told apart",
+		(tag, name) => {
+			expect(languageName(inEnglish, tag)).toBe(name);
+		},
+	);
+
+	// A card in any language of the lessons names each of them apart from the
+	// others, and none says which Kurdish Kurmanji is twice over.
+	test.each(lessonLanguages)(
+		"in %s names every language of the lessons apart, Kurmanji's kind once",
+		(tag) => {
+			const words = cardWords(tag, undefined);
+			const names = lessonLanguages.map((other) => languageName(words, other));
+
+			expect(new Set(names).size).toBe(names.length);
+			expect(
+				languageName(words, "ku").match(/[(（]/g)?.length ?? 0,
+			).toBeLessThanOrEqual(1);
+		},
+	);
+
+	test("spelt like a property every object has is named by the platform", () => {
+		expect(languageName(inEnglish, "valueOf")).toBe("Valueof");
 	});
 });
 
