@@ -91,6 +91,55 @@ func (s *stub) answered(string, float64, bool) {}
 // points.
 func levelShownAs(points float64) float64 { return (points - 1500) * math.Ln10 / 400 }
 
+// A wrong answer's fall and a right answer that leaves the card where it stood
+// are counted apart, by the card's own whole points: a right answer up 3, one
+// that moves the rating less than a point, a wrong answer down 7, another down
+// 2 and a right one that rounds to no move are falls of 9 over two wrong
+// answers and two right answers of three that showed nothing.
+func TestAWrongAnswersFallAndAStillCardAreCountedApart(t *testing.T) {
+	t.Parallel()
+	est := &stub{at: levelShownAs(1600)}
+	s := &session{est: est}
+	r := &childResult{}
+	for i, a := range []struct {
+		points  float64
+		correct bool
+	}{{1603, true}, {1603.2, true}, {1596, false}, {1594, false}, {1594.3, true}} {
+		before := est.at
+		est.at = levelShownAs(a.points)
+		r.screen.after(s, "a", &observedAnswer{estimate: before, overall: before, correct: a.correct}, 5+i)
+	}
+	if num, den := fallAfterWrong(0)(r); num != 9 || den != 2 {
+		t.Errorf("fallen %v points over %v wrong answers, want 9 over 2", num, den)
+	}
+	if num, den := stillAfterRight(0)(r); num != 2 || den != 3 {
+		t.Errorf("%v right answers of %v left the card still, want 2 of 3", num, den)
+	}
+	if num, den := fallAfterWrong(1)(r); num != 0 || den != 0 {
+		t.Errorf("a window with no answer: fallen %v over %v, want nothing", num, den)
+	}
+}
+
+// Every run reads the card's fall after a wrong answer and the right answers
+// that leave it still in both windows, as measures of what the child is shown,
+// which say nothing of the ceiling.
+func TestARunReadsWhatAWrongAndARightAnswerDoToTheCard(t *testing.T) {
+	t.Parallel()
+	ceiling := ceilingRule()
+	for _, w := range screenWindows {
+		for _, name := range []string{"r8_wrong_fall_" + w.name(), "r8_right_still_" + w.name()} {
+			at := slices.IndexFunc(metrics(), func(m metric) bool { return m.name == name })
+			if at < 0 {
+				t.Errorf("no run reads %s", name)
+				continue
+			}
+			if m := metrics()[at]; m.applies == nil || m.applies(ceiling) {
+				t.Errorf("%s is read off the ceiling, want it read off the rules alone", name)
+			}
+		}
+	}
+}
+
 // A rank changes when the rating crosses a rank's floor, and only then, and
 // the changes are counted in a hundred answers of their window: a rating that
 // steps across the floor of 1666 and back changes rank twice in five answers,

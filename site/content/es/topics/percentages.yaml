@@ -1,0 +1,208 @@
+# The page of the topic of percentages, for a parent, in Spanish. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Porcentajes
+description: Qué son los problemas de porcentajes, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+hero:
+  lead: >-
+    Un precio baja un 20%, y luego otro 20%. ¿Ha bajado un 40%? En estos
+    problemas, el uno por ciento es la centésima parte de algo, y toda la
+    dificultad está en ese algo: el precio anterior o el nuevo, todas las aves
+    o solo las gallinas. Quien pregunta «¿un porcentaje de qué?» antes de cada
+    paso evita la mayoría de los errores.
+  method: Preguntar «¿un porcentaje de qué?» antes de cada paso
+  teaches: A encontrar de qué se toma un porcentaje y a darse cuenta de cuándo cambia
+  # The words of its drawing: the whole it is drawn for.
+  art:
+    line: 100% son 50
+
+basis:
+  title: Las reglas de los porcentajes
+  cards:
+    - title: Una centésima parte
+      text: >-
+        El uno por ciento es la centésima parte de una cantidad. El 100% es la
+        cantidad entera, y el 50%, su mitad.
+      art:
+        half: 50% es la mitad
+    - title: ¿Un porcentaje de qué?
+      text: >-
+        Un porcentaje siempre es de algo: del precio anterior o del nuevo, de
+        todos los invitados o solo de las chicas. El mismo 10% de cantidades
+        distintas da números distintos.
+      art:
+        tens: 10% de 200 = 20 · 10% de 50 = 5
+    - title: Primero, el diez por ciento
+      text: >-
+        El 10% es la cantidad dividida entre 10. A partir de él, el 20%, el
+        30% o el 5% están a un paso: el 30% de 80 es 3 × 8 = 24.
+      art:
+        eighty: 80 son diez partes de 8
+
+idea:
+  title: La base cambia
+  lead: Cada porcentaje se toma de la cantidad que hay en ese momento. Cuando un precio cambia dos veces, el segundo cambio se calcula sobre el precio nuevo.
+  table:
+    head:
+      - El paso
+      - Calculado sobre
+      - El precio después
+    rows:
+      - - 20% de descuento
+        - 200, así que 40 menos
+        - "160"
+      - - otro 20% de descuento
+        - 160, así que 32 menos
+        - "128"
+      - - los dos juntos
+        - 200, así que 72 menos
+        - 36% de descuento, no 40%
+  note:
+    title: Por qué importa
+    text: >-
+      Las tiendas, los bancos y las noticias hablan en porcentajes, y el truco
+      siempre está en saber de qué son. Quien pregunta «¿un porcentaje de qué?»
+      tiene lo que hace falta tanto para una olimpiada como para una tienda.
+
+method:
+  title: "Cómo resolverlo: decir qué es el cien por cien"
+  lead: >-
+    Antes de cada paso, diga qué cantidad es el 100%. Calcule su 1% o su
+    10%, y después el porcentaje que necesita el problema. Cuando la cantidad
+    cambie, empiece otra vez desde el nuevo 100%. Los ejemplos de abajo van
+    del más sencillo a uno de olimpiada.
+  steps:
+    - Decir qué es el 100%
+    - Calcular su 1% o su 10%
+    - Calcular el porcentaje que se pide y comprobar de qué es
+  # The key under the steps: what a grid of the drawings stands for.
+  legend:
+    hundred: una cuadrícula de 100 casillas es el 100%
+
+examples:
+  - title: Clubes deportivos
+    question: >-
+      Una escuela tiene 300 alumnos, y el 35% de ellos va a un club deportivo.
+      ¿Cuántos alumnos no van a ningún club deportivo?
+    steps:
+      - "El 100% son los 300 alumnos, así que el 1% son 300 : 100 = 3 alumnos."
+      - Los que no van a ningún club son el 100% − 35% = 65% de los alumnos.
+      - El 65% son 65 × 3 = 195 alumnos.
+    answer: 195 alumnos.
+    note:
+      title: El otro camino
+      text: >-
+        El 35% de 300 son 35 × 3 = 105 alumnos que sí van, y 300 − 105 = 195.
+        Los dos caminos dan la misma respuesta; tomar directamente el 65%
+        ahorra un paso.
+    art:
+      go: 35 casillas de 100 van a un club
+      grid: toda la cuadrícula son 300 alumnos
+      cell: una casilla son 3 alumnos
+      go-short: van
+      do-not: no van
+  - title: El precio de una bicicleta
+    question: >-
+      Una bicicleta cuesta 400 monedas. En primavera su precio sube un 25%, y
+      en otoño el precio nuevo baja un 20%. ¿Cuánto cuesta ahora la bicicleta?
+    steps:
+      - >-
+        En primavera, el 100% es el precio anterior, 400 monedas: su 25% son
+        100 monedas, así que la bicicleta pasa a costar 500.
+      - "En otoño, el 100% es el precio nuevo, 500 monedas: su 20% son 100 monedas."
+      - 500 − 100 = 400. La bicicleta vuelve a costar 400 monedas.
+    answer: 400 monedas.
+    note:
+      title: ¿Por qué no 420?
+      text: >-
+        420 sale de calcular el 20% del otoño sobre el precio anterior, que da
+        80 monedas. Pero en otoño el precio ya era 500, y el 20% de 500 es 100.
+    art:
+      coins: monedas, el precio antes de la primavera
+      quarters: "100% = 400: cuatro partes del 25%"
+      five-hundred: 500 monedas
+      fifths: "100% = 500: cinco partes del 20%"
+      of-old: 20% de 400 = 80 →
+      of-new: 20% de 500 = 100 →
+  - title: Sandías que se secan
+    question: >-
+      Un agricultor tiene 200 kg de sandías con un 99% de agua. Una semana
+      después se han secado un poco y tienen un 98% de agua. ¿Cuánto pesan
+      ahora?
+    steps:
+      - >-
+        Lo que no se seca es la parte que no es agua: el 1% de 200 kg, es
+        decir, 2 kg. Esa parte sigue pesando 2 kg.
+      - Una semana después el agua es el 98%, así que esos 2 kg son el 2% del peso nuevo.
+      - "El 2% son 2 kg, así que el 1% es 1 kg y el 100%, 100 kg."
+    answer: 100 kg.
+    note:
+      title: ¿La mitad del peso?
+      text: >-
+        Sí. El agua solo bajó del 99% al 98%, pero la parte que no es agua se
+        duplicó, del 1% al 2%. Esos 2 kg siguieron igual, así que el peso
+        total tuvo que reducirse a la mitad.
+    art:
+      melons: 200 kg, 99% de agua
+      dry: "200 kg: una casilla es 1 kg; las de color naranja no son agua, 2 kg"
+      same: los mismos 2 kg son ahora 2 casillas de 100
+      was: 200 kg antes
+      became: 100 kg después
+      water: agua 99%
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  percent_wrong_base:
+    shows: >-
+      El porcentaje se calcula sobre la cantidad equivocada: el 20% del otoño
+      sobre el precio anterior en lugar del nuevo, o el 98% sobre el peso
+      anterior de las sandías.
+    say: «¿Qué cantidad es ahora el 100%?»
+    art:
+      question: En otoño cuesta 500, 20% de descuento
+      of-old: 20% de 400 =
+      of-new: 20% de 500 =
+  part_whole_swap:
+    shows: >-
+      Se toma una parte por el todo, o el todo por una parte: los 2 kg que no
+      son agua se dan como el peso de las sandías, o se cuenta toda la escuela
+      cuando la pregunta es sobre una parte de ella.
+    say: «¿Este número es una parte o el todo?»
+    art:
+      question: ¿Cuánto pesan las sandías?
+      dry: 2 kg
+      only-dry: solo lo que no es agua
+      all: 100 kg
+      weight: el peso total
+  answered_other_question:
+    shows: >-
+      Un número hallado por el camino se convierte en la respuesta: los 105
+      alumnos que van a un club cuando la pregunta es por los que no van, o las
+      100 monedas en que cambió el precio en lugar del precio.
+    say: «¿Qué pide exactamente la pregunta?»
+    art:
+      question: ¿Cuántos alumnos no van a un club?
+      go: van
+      do-not: no van
+
+home:
+  - title: Porcentajes en la tienda
+    text: >-
+      En una tienda, busque un precio con descuento y calcúlelo con su hijo o
+      hija: ¿cuánto es 150 con un 20% de descuento? Empiece por el 10%.
+  - title: Primero, el diez por ciento
+    text: >-
+      Practiquen el cálculo del 10% de cualquier cantidad: de 80, de 350, de
+      1200. Desde el 10%, la mayoría de los demás porcentajes están a un paso.
+  - title: ¿Un porcentaje de qué?
+    text: >-
+      Cuando oigan un porcentaje en las noticias o en un anuncio, pregúntense:
+      ¿un porcentaje de qué? Muchas veces nadie lo dice.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de porcentajes

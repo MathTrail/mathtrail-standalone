@@ -1,0 +1,225 @@
+# The page of the topic of parity and alternation, for a parent, in Spanish. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Paridad y alternancia
+description: Qué son los problemas de paridad y alternancia, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+# The words the page's drawings say of a number and of a corner of the cube.
+art:
+  even: par
+  odd: impar
+  start: salida
+
+hero:
+  lead: >-
+    ¿Pueden 15 niños formar un corro alternándose niño, niña, niño, niña, en
+    toda la vuelta? En estos problemas, lo par y lo impar responden a la
+    pregunta sin contarlo todo ni probar todas las posibilidades: en qué
+    orilla está un ferri, si una puntuación es posible, quién hace la última
+    jugada. Para muchos niños y niñas, la paridad es su primer encuentro con
+    algo que no cambia, vayan como vayan las jugadas.
+  method: Observar qué le hace cada movimiento a la paridad
+  teaches: A responder a «¿puede ser?» sin probar todas las posibilidades
+  # The words of its drawing: who takes turns, the key of the colours, and
+  # what the two circles show.
+  art:
+    line: Niños y niñas se alternan en círculo
+    boy: un niño
+    girl: una niña
+    six: "6 niños: se puede"
+    five: "5 niños: no se puede"
+    even: en círculo, solo pueden alternarse si son un número par
+
+basis:
+  title: Las reglas de lo par y lo impar
+  cards:
+    - title: Lo par forma parejas
+      text: >-
+        Un número par de objetos se agrupa en parejas sin que sobre ninguno. Un
+        número impar siempre deja uno sin pareja.
+    - title: Solo importan los impares
+      text: >-
+        Par más par es par, impar más impar es par, y par más impar es impar.
+        Por eso, que una suma sea par depende solo de cuántos números impares
+        tiene.
+    - title: Alternarse
+      text: >-
+        Cuando dos cosas se alternan, una ocupa los puestos impares y la otra
+        los pares. En un círculo, la alternancia en toda la vuelta solo es
+        posible si hay un número par de puestos.
+      art:
+        places: niños en los puestos impares, niñas en los pares
+
+idea:
+  title: Contar solo los impares
+  lead: Para saber si una suma es par, no hace falta calcularla. Cuente cuántos números impares tiene.
+  table:
+    head:
+      - La suma
+      - Impares que tiene
+      - La suma es
+    rows:
+      - - 4 + 6 + 8
+        - ninguno
+        - par
+      - - 3 + 5
+        - "2"
+        - par
+      - - 3 + 5 + 7
+        - "3"
+        - impar
+      - - 1 + 2 + … + 10
+        - "5"
+        - impar
+  note:
+    title: Por qué importa
+    text: >-
+      Muchas preguntas de olimpiada piden saber si algo puede llegar a ocurrir.
+      La paridad puede responder «no» sin probar las posibilidades: si cada
+      movimiento mantiene un número par y el objetivo lo necesita impar,
+      ningún movimiento llevará nunca hasta él.
+
+method:
+  title: "Cómo resolverlo: seguir lo par y lo impar"
+  lead: >-
+    Busque en el problema un número que sea par o impar: una cantidad, una
+    suma, un puesto en una fila. Vea qué le hace cada movimiento o cada paso,
+    si lo cambia o lo deja igual, y compare el principio con el objetivo. Los
+    ejemplos de abajo van del más sencillo a uno de olimpiada.
+  steps:
+    - Buscar qué es par o impar
+    - Ver qué le hace cada paso
+    - Comparar el principio con el objetivo
+
+examples:
+  - title: El ferri
+    question: >-
+      Un ferri lleva coches de una orilla a otra de un río, de ida y de vuelta,
+      una y otra vez. Sale de la orilla izquierda. ¿En qué orilla estará
+      después de cruzar el río 7 veces?
+    steps:
+      - Después de 1 travesía, el ferri está en la orilla derecha, y después de 2, otra vez en la izquierda.
+      - >-
+        Cada dos travesías vuelve al punto de partida. Así que después de un
+        número par de travesías está en la orilla izquierda, y después de un
+        número impar, en la derecha.
+      - 7 es impar, así que el ferri está en la orilla derecha.
+    answer: En la orilla derecha.
+    badge: →
+    note:
+      title: ¿Por qué no contar sin más?
+      text: >-
+        Con 7 travesías, contar es rápido. La regla responde igual de rápido
+        con 100 travesías, y es la regla lo que necesitan los problemas más
+        difíciles.
+    art:
+      start: al principio, en la orilla izquierda
+      none: 0 travesías
+      one: 1 travesía
+      two: 2 travesías
+      left: la orilla izquierda
+      right: la orilla derecha
+  - title: Cuatro dardos
+    question: >-
+      Bruno lanza 4 dardos a una diana cuyos anillos valen 1, 3, 5 y 7 puntos,
+      y todos los dardos dan en la diana. Bruno dice que ha conseguido 15
+      puntos. ¿Puede ser cierto?
+    steps:
+      - Cada anillo vale un número impar de puntos.
+      - >-
+        Dos números impares suman un número par. 4 dardos son dos parejas, y
+        cada pareja suma un número par de puntos, así que los 4 dardos juntos
+        suman un número par.
+      - 15 es impar, así que Bruno no puede haberlos conseguido.
+    answer: No.
+    badge: ✕
+    note:
+      title: ¿Y con 3 dardos?
+      text: >-
+        Tres números impares suman un número impar, y 15 sí es posible:
+        5 + 5 + 5, o 7 + 7 + 1.
+    art:
+      darts: 4 dardos, todos en la diana
+      rings: todos los anillos son impares
+      only-even: y con 4 dardos solo salen puntuaciones pares
+  - title: Una araña en un cubo
+    question: >-
+      Una araña está en un vértice de un cubo de alambre. Cada minuto recorre
+      una arista hasta un vértice vecino. ¿Puede estar de vuelta en el vértice
+      del que salió después de exactamente 7 minutos?
+    steps:
+      - >-
+        Coloreamos los vértices: el de salida, de blanco; sus vecinos, de
+        negro; los vecinos de estos, de blanco, y así sucesivamente. Como
+        muestra el dibujo, cada arista une un vértice negro con uno blanco.
+      - >-
+        Así que el color cambia cada minuto: después de 1 minuto la araña está
+        en un vértice negro, después de 2 en uno blanco, y después de cualquier
+        número impar de minutos, en uno negro.
+      - 7 es impar, y el vértice de salida es blanco. La araña no puede estar de vuelta.
+    answer: No.
+    badge: ✕
+    note:
+      title: ¿Y después de 8 minutos?
+      text: >-
+        Sí: si recorre una arista de ida y vuelta cuatro veces, vuelve al punto
+        de partida. Los colores dicen cuándo no se puede; que un número par de
+        minutos sea suficiente todavía hay que demostrarlo.
+    art:
+      edge: una arista por minuto
+      minutes: "minutos: vértice blanco en los pares, negro en los impares"
+      seven: después de 7 minutos
+      back: ida y vuelta × 4
+      eight: 8 minutos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_parity:
+    shows: >-
+      Par e impar se intercambian: el niño o la niña decide que después de 7
+      travesías el ferri ha vuelto al punto de partida, o que cuatro números
+      impares suman uno impar.
+    say: "«Prueba con casos pequeños: ¿dónde está el ferri después de 1 travesía? ¿Y después de 2?»"
+    art:
+      question: ¿Dónde está el ferri después de 7 travesías?
+  ignored_condition:
+    shows: >-
+      Se pierde una condición del problema: el niño o la niña consigue 15
+      puntos con tres dardos y olvida que Bruno lanzó cuatro, o elige un
+      número que encaja con un dato y no con el otro.
+    say: «Lee otra vez el problema. ¿Tu respuesta encaja con cada una de sus palabras?»
+    art:
+      question: "Dardos: 4"
+      three: 3 dardos
+      always: siempre par
+  off_by_one:
+    shows: >-
+      Un puesto en una fila se cuenta con uno de más o de menos: el punto de
+      partida se toma por la primera travesía, o a una fila que empieza y
+      termina con un niño se le dan tantos niños como niñas.
+    say: «Escribe los primeros. ¿Cuál es el número 1?»
+    art:
+      equal: tantos de cada uno
+
+home:
+  - title: ¿Par o impar?
+    text: >-
+      Esconda un puñado de botones en el puño y deje que su hijo o hija
+      adivine: ¿par o impar? Después compruébenlo poniendo los botones por
+      parejas.
+  - title: ¿Quién hace la décima jugada?
+    text: >-
+      En cualquier juego en el que dos personas jueguen por turnos, pregunte
+      antes del final: ¿quién hará la décima jugada? ¿Y la número 15? La
+      respuesta sale de la paridad, no de seguir jugando.
+  - title: Los números de las casas
+    text: >-
+      En una calle, mire los números de las casas: pares en un lado, impares
+      en el otro. ¿En qué lado estará el número 37?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de paridad y alternancia

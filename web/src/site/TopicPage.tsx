@@ -11,14 +11,20 @@ import type {
 	IdeaColumn,
 	TopicArt,
 } from "./art/art";
-import type { SiteData, TopicExample } from "./data";
+import type { Example, SiteData } from "./data";
 import { connectAddress } from "./home";
 import type { Page, PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { TableFrame } from "./TableFrame";
 import { TopicThumb } from "./TopicThumbs";
 import type { Group, Topic } from "./topics";
-import { Answer, StepFrame, WorkedSteps } from "./WorkedSteps";
+import {
+	Answer,
+	provedAnswer,
+	provedBadge,
+	StepFrame,
+	WorkedSteps,
+} from "./WorkedSteps";
 import { gradesText, groupKey, type SiteKey, useSiteWords } from "./words";
 
 // shownTraps is how many of a topic's traps its page explains: the most
@@ -114,7 +120,7 @@ function groupOf(data: SiteData, topic: Topic): Group {
 }
 
 // examplesOf are the examples of the topic's page, as the site's data has them.
-function examplesOf(data: SiteData, topic: Topic): readonly TopicExample[] {
+function examplesOf(data: SiteData, topic: Topic): readonly Example[] {
 	return data.examples.get(topic.id) ?? [];
 }
 
@@ -421,7 +427,7 @@ function Solving({
 	art,
 }: {
 	page: PageReader;
-	examples: readonly TopicExample[];
+	examples: readonly Example[];
 	art: TopicArt;
 }) {
 	const words = useSiteWords();
@@ -524,23 +530,23 @@ function WorkedExample({
 				label={words.text("topic.answer")}
 				badge={badgeOf(page, at, answer)}
 			>
-				{page.text(`${at}.answer`)}
+				{provedAnswer(page, `${at}.answer`, answer)}
 			</Answer>
 		</article>
 	);
 }
 
-// badgeOf is the badge of an example's answer: the one its words give, or
-// the answer its solver proves where that is a number or a time, which reads
-// the same in every language; an answer in words with no badge in the words
-// has none.
+// badgeOf is the badge of an example's answer: the one its words give, held
+// to the answer its solver proves, or that answer where it is a number or a
+// time, which reads the same in every language; an answer in words with no
+// badge in the words has none.
 function badgeOf(
 	page: PageReader,
 	at: string,
 	answer: string,
 ): string | undefined {
 	if (page.has(`${at}.badge`)) {
-		return page.plain(`${at}.badge`);
+		return provedBadge(page, `${at}.badge`, answer);
 	}
 	return /^\d+(:\d\d)?$/.test(answer) ? answer : undefined;
 }

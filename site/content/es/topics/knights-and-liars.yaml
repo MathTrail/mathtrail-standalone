@@ -1,0 +1,216 @@
+# The page of the topic of knights and liars, for a parent, in Spanish. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Caballeros y mentirosos
+description: Qué son los problemas de caballeros y mentirosos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+# The words every drawing of the page writes its islanders in: the letters
+# of a knight and of a liar, and the islanders' own.
+art:
+  knight: V
+  liar: M
+  a: A
+  b: B
+  c: C
+
+hero:
+  lead: >-
+    En una isla viven caballeros, que siempre dicen la verdad, y mentirosos,
+    que siempre mienten. Por lo que dicen, hay que averiguar quién es quién.
+    Para muchos niños y niñas es su primer encuentro con un razonamiento
+    lógico de verdad: hacer una suposición, seguirla hasta donde lleve y darse
+    cuenta de una contradicción.
+  method: «Supongamos que este es caballero…»
+  teaches: A razonar paso a paso y a comprobar sus propias conclusiones
+  # The words of its drawing: the key of the letters over it, and in it the
+  # first example's two suppositions and how each ends.
+  art:
+    knight: un caballero siempre dice la verdad
+    liar: un mentiroso siempre miente
+    says: «Soy mentiroso y B es caballero»
+    rule: supongamos y comprobemos
+    if-knight: Si A es caballero, entonces A es mentiroso
+    contradiction: una contradicción
+    if-liar: Si A es mentiroso, entonces B también lo es
+    fits: encaja
+
+basis:
+  title: Las reglas de la isla
+  cards:
+    - mark: V
+      title: Caballero
+      text: Siempre dice la verdad. Cada afirmación de un caballero es verdadera, sin excepción.
+    - mark: M
+      title: Mentiroso
+      text: Siempre miente. Cada afirmación de un mentiroso es falsa, y un mentiroso nunca dice la verdad, ni siquiera por casualidad.
+    - mark: "?"
+      title: Nadie más
+      text: Cada habitante de la isla es o caballero o mentiroso. No se distinguen por su aspecto, solo por lo que dicen.
+
+idea:
+  title: Quién puede decir qué
+  lead: Empiece por dos frases. Muestran enseguida cómo funcionan estos problemas.
+  table:
+    head:
+      - Frase
+      - Caballero
+      - Mentiroso
+      - Qué significa
+    rows:
+      - - «Soy caballero»
+        - "✓ Puede decirla: es verdad"
+        - "✓ Puede decirla: es mentira, como deben ser las palabras de un mentiroso"
+        - "No aporta nada: cualquiera puede decirla."
+      - - «Soy mentiroso»
+        - "✕ No puede: sería mentira"
+        - "✕ No puede: sería verdad"
+        - "Una frase imposible: nadie puede decirla."
+  note:
+    title: Por qué importa
+    text: >-
+      Cuando un habitante dice «Soy caballero», puede tachar esa frase: no
+      cambia nada. Y cuando, a mitad de una solución, resulta que alguien en el
+      fondo ha dicho «Soy mentiroso», la suposición de partida es falsa.
+
+method:
+  title: "Cómo resolverlo: «supongamos que…»"
+  lead: >-
+    Casi todos estos problemas se resuelven igual: se elige a un habitante, se
+    supone qué es y se ve qué se deduce. Los ejemplos de abajo van del más
+    sencillo a uno de olimpiada.
+  steps:
+    - Suponer
+    - Deducir las consecuencias
+    - Encontrar una contradicción o comprobar la respuesta
+
+examples:
+  - title: Dos en el camino
+    question: >-
+      Dos habitantes de la isla, A y B, se encuentran en un camino. A dice:
+      «Soy mentiroso y B es caballero». ¿Quién es quién?
+    steps:
+      - >-
+        **Supongamos que A es caballero.** Entonces sus palabras son verdad, y A
+        es mentiroso. Pero hemos supuesto que A es caballero:
+        **una contradicción**, así que este caso es imposible.
+      - >-
+        **Supongamos que A es mentiroso.** Entonces sus palabras son falsas. La
+        primera mitad, «Soy mentiroso», es verdad, así que la segunda mitad es
+        falsa: B no es caballero, sino mentiroso. **Todo encaja.**
+    answer: A y B son mentirosos los dos.
+    note:
+      title: ¿Cómo puede un mentiroso decir «Soy mentiroso»?
+      text: >-
+        Por sí sola, la frase «Soy mentiroso» es imposible. Si se une a otra
+        frase con «y», un mentiroso sí puede decirla: la frase entera es falsa
+        en cuanto una de sus partes lo es.
+    art:
+      says: «Soy mentiroso y B es caballero»
+      contradiction: una contradicción
+      fits: todo encaja
+      alone: «Soy mentiroso»
+      nobody: nadie puede decirla
+      liar-can: un mentiroso puede decirla
+  - title: Una cadena de acusaciones
+    question: >-
+      Tres habitantes de la isla, A, B y C, dicen lo siguiente. A: «B es
+      mentiroso». B: «C es caballero». C: «A y B son mentirosos los dos».
+      ¿Quién es caballero y quién es mentiroso?
+    steps:
+      - >-
+        **¿Por dónde empezar?** Por quien más dice, porque de sus palabras se
+        deduce más. Es C.
+      - >-
+        **Supongamos que C es caballero.** Entonces A y B son mentirosos los
+        dos. Pero B dijo «C es caballero», que sería verdad, y un mentiroso
+        nunca dice nada verdadero. **Una contradicción.**
+      - >-
+        **Así que C es mentiroso.** Entonces el «C es caballero» de B es falso,
+        y B también es mentiroso.
+      - A dijo «B es mentiroso», y eso es verdad. Así que A es caballero.
+    answer: A es caballero; B y C son mentirosos.
+    note:
+      title: "Comprobación: cada frase una vez más"
+      text: >-
+        A: «B es mentiroso» es verdad, y lo dice un caballero. B: «C es
+        caballero» es falso, y lo dice un mentiroso. C: «A y B son mentirosos
+        los dos» es falso, porque A es caballero, y lo dice un mentiroso. Todo
+        encaja.
+    art:
+      a-says: «B es mentiroso»
+      b-says: «C es caballero»
+      c-says: «A y B son mentirosos los dos»
+      most: dice más que nadie
+      contradiction: una contradicción
+      true-knight: verdad, y lo dice un caballero
+      false-liar: falso, y lo dice un mentiroso
+  - title: La mesa redonda
+    question: >-
+      Diez habitantes de la isla se sientan a una mesa redonda. Cada uno dice:
+      «Mi vecino de la derecha es mentiroso». ¿Cuántos caballeros hay en la
+      mesa?
+    steps:
+      - >-
+        Si un habitante es caballero, sus palabras son verdad: su vecino de la
+        derecha es mentiroso.
+      - >-
+        Si un habitante es mentiroso, sus palabras son falsas: su vecino de la
+        derecha es caballero.
+      - >-
+        Así que caballeros y mentirosos se alternan alrededor de la mesa: V, M,
+        V, M… Exactamente la mitad de los diez son caballeros:
+        **5 caballeros**.
+    answer: 5 caballeros.
+    note:
+      title: ¿Y si en la mesa se sientan 9 habitantes?
+      text: >-
+        Alternarse alrededor de un número impar de asientos nunca cierra el
+        círculo: el último y el primero serían del mismo tipo. Una mesa así no
+        puede existir. Aquí los caballeros y mentirosos se encuentran con la
+        paridad.
+    art:
+      right-liar: el vecino de la derecha es mentiroso
+      right-knight: el vecino de la derecha es caballero
+      half: 5 y 5
+      kinds: caballeros y mentirosos
+      turns: cada uno mira a su vecino en el sentido de las agujas del reloj
+      clash: el último y el primero son del mismo tipo
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      El niño o la niña pone V y M y no repasa otra vez todas las frases, y una
+      de ellas no encaja.
+    say: «Vuelve a leer cada frase. ¿Es verdad o mentira, y quién la dijo?»
+  trusted_statement:
+    shows: >-
+      El niño o la niña cree lo que dice un habitante sin preguntarse quién lo
+      dijo: A llamó mentiroso a B, así que B tiene que serlo.
+    say: «¿Y si lo dijo un mentiroso? ¿Qué es verdad entonces?»
+  stopped_early:
+    shows: >-
+      El niño o la niña averigua qué es el primer habitante y se detiene ahí,
+      sin decidir qué son los demás.
+    say: «Bien, A es mentiroso. ¿Qué te dice eso de B?»
+
+home:
+  - title: Juegue a la isla
+    text: >-
+      Usted miente siempre, y su hijo o hija le hace preguntas. Pronto se da
+      cuenta de que a «¿Mientes?» usted siempre responde «No».
+  - title: Pregunte en vez de responder
+    text: >-
+      En vez de una respuesta, una pregunta: «¿Y si es caballero, qué pasa
+      entonces?». Esa es la idea clave del tema.
+  - title: Escriba V y M a lápiz
+    text: >-
+      Sobre cada nombre, una suposición. ¿Sale una contradicción? Se borra y se
+      prueba la otra.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de caballeros y mentirosos

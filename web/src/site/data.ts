@@ -27,15 +27,13 @@ export type Catalog = {
 
 /**
  * Example is an example a page works through, as far as no language changes
- * it: the first and the last grade of the level it is set at.
+ * it: the first and the last grade of the level it is set at, and the answer
+ * its solver proves.
  */
-export type Example = { readonly grades: readonly [number, number] };
-
-/**
- * TopicExample is an example a topic's page works through: an example, and
- * the answer its solver proves.
- */
-export type TopicExample = Example & { readonly answer: string };
+export type Example = {
+	readonly grades: readonly [number, number];
+	readonly answer: string;
+};
 
 /**
  * SiteData is what the site's pages draw that no language changes: the
@@ -52,7 +50,7 @@ export type SiteData = {
 	/** drawings are the drawings of each topic's card, by the topic's id. */
 	readonly drawings: ReadonlyMap<string, TopicDrawings>;
 	/** examples are the examples of each topic's page, by the topic's id. */
-	readonly examples: ReadonlyMap<string, readonly TopicExample[]>;
+	readonly examples: ReadonlyMap<string, readonly Example[]>;
 	/** progress is a progress as the service sends it, but for the child's name. */
 	readonly progress: Sample;
 	/** why is what the page "Why" draws, when the data has it. */
@@ -220,7 +218,7 @@ function readExamples(
 	examples: Readonly<
 		Record<string, readonly { level: string; answer: string }[]>
 	>,
-): ReadonlyMap<string, readonly TopicExample[]> {
+): ReadonlyMap<string, readonly Example[]> {
 	const byId = new Map(catalog.map((topic) => [topic.id, topic]));
 	return new Map(
 		Object.entries(examples).map(([id, listed]) => {
@@ -237,26 +235,25 @@ function readExamples(
 			}
 			return [
 				id,
-				listed.map(
-					({ level, answer }): TopicExample => ({
-						...exampleAt(topic, level),
-						answer,
-					}),
-				),
+				listed.map(({ level, answer }) => exampleAt(topic, level, answer)),
 			];
 		}),
 	);
 }
 
 // exampleAt is an example of topic set at level, which has to be one the
-// topic is taught at.
-function exampleAt(topic: CatalogTopic, level: string): Example {
+// topic is taught at, and the answer its solver proves.
+function exampleAt(
+	topic: CatalogTopic,
+	level: string,
+	answer: string,
+): Example {
 	if (!topic.grade_levels.includes(level)) {
 		throw new Error(
 			`an example of ${topic.id} is set at ${level}, a level the topic is not taught at`,
 		);
 	}
-	return { grades: gradesOf([level]) };
+	return { grades: gradesOf([level]), answer };
 }
 
 /**

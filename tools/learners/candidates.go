@@ -630,8 +630,9 @@ const (
 // ruleSets are the sets a run can be given: the bench's own, the sweep and
 // its refinement on children of their own, the decision run, the parts of the
 // chosen step, the pilot and the decision run of mastery, the service's path
-// with the next task written ahead, and the confirmation on the held-out
-// children.
+// with the next task written ahead, the confirmation on the held-out
+// children, and the choice of a debt: a rough look on the sweep's children,
+// the decision run and its confirmation on children held out for it.
 func ruleSets() []ruleSet {
 	return []ruleSet{
 		{name: benchSet, rules: func() ([]*rule, error) { return benchRules(), nil }},
@@ -645,6 +646,12 @@ func ruleSets() []ruleSet {
 		{
 			name: confirmationSet, rules: confirmationRules, seed: heldOutSeed, experiment: heldOutExperiment, directory: heldOutDirectory,
 			criterion: confirmationCriterion,
+		},
+		{name: "debt-look", rules: debtRules, seed: paperSeed, experiment: sweepExperiment, directory: "debt-look", criterion: debtCriterion},
+		{name: "debt", rules: debtRules, directory: "debt", criterion: debtCriterion},
+		{
+			name: "debt-confirmation", rules: debtConfirmationRules, seed: debtHeldOutSeed, experiment: debtHeldOutExperiment,
+			directory: debtHeldOutDirectory, criterion: debtCriterion,
 		},
 	}
 }

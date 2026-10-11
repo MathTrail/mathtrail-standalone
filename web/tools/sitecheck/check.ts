@@ -4,8 +4,8 @@
 // a head that a search result cannot be built from, a locale that lost a page,
 // a page, or a document a page frames, that grew past its budget, an address
 // the site handed out and lost, a page it serves without having listed it
-// among the addresses it keeps, and a script that loads more than itself, or
-// sends or keeps something.
+// among the addresses it keeps, a script that loads more than itself, or
+// sends or keeps something, and a page that writes a digit other than 0 to 9.
 //
 // It reads the finished directory and nothing of what drew it, so it keeps
 // judging the same way whatever builds the site.
@@ -60,6 +60,7 @@ export type Options = {
 
 /** Rule names the rule a finding breaks. */
 export type Rule =
+	| "digits"
 	| "external"
 	| "head"
 	| "link"
@@ -161,6 +162,7 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 			...external(page),
 			...head(page, pages, files, options),
 			...weight(page, files, loads, options),
+			...digits(page),
 		);
 	}
 	// A document a page frames is held to what a page is held to about the
@@ -528,6 +530,23 @@ function translations(pages: Map<string, Page>, options: Options): Finding[] {
 					message: `locale "${locale}" is missing a page that "${options.referenceLocale}" has`,
 				}));
 		});
+}
+
+// digits reports a page that writes a digit other than 0 to 9: every number a
+// built page holds is written in the digits a reader of any of its languages
+// reads, whatever drew it into the page — the words, the build's own
+// formatting or the data. What a script writes in the browser is no page's.
+function digits(page: Page): Finding[] {
+	if (page.digits.length === 0) {
+		return [];
+	}
+	return [
+		{
+			path: page.file,
+			rule: "digits",
+			message: `the page writes digits other than 0 to 9: ${page.digits.join(" ")}`,
+		},
+	];
 }
 
 // weight reports a page that, with everything it pulls in but the site's

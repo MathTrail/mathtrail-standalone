@@ -104,9 +104,22 @@ type notWorse struct {
 	generator      generator
 	metric         string
 	higherIsBetter bool
-	tolerance      float64
+	// size reads the measure's mean as its size, less of which is better, as
+	// the step's goal reads the lag: an estimate that overshoots the children
+	// on the whole is no nearer for being above them.
+	size      bool
+	tolerance float64
 	// only names the generators a measure is read on, when not every one.
 	only []generator
+}
+
+// label is how a check names its measure: as it is, or as abs(…) for a check
+// that reads its size; a bar would split the cell of a table in Markdown.
+func (nw notWorse) label() string {
+	if nw.size {
+		return "abs(" + nw.metric + ")"
+	}
+	return nw.metric
 }
 
 // badness is a measure the score reads, as a size less of which is better.
@@ -284,17 +297,30 @@ func sizeOf(s summary) (value, low, high float64) {
 
 // pairedDifference is a rule's cell on a generator less the baseline's, on
 // the same children, with its interval, drawn on a stream named after what it
-// reads.
-func (cr *criterionRun) pairedDifference(r *rule, g generator, metric string) (summary, bool) {
+// reads: the measure itself, or its size.
+func (cr *criterionRun) pairedDifference(r *rule, g generator, metric string, size bool) (summary, bool) {
 	c, hasCell := cr.cellOf(r, g)
 	base, hasBase := cr.cellOf(cr.baseline, g)
 	i, hasMetric := cr.metricAt[metric]
 	if !hasCell || !hasBase || !hasMetric {
 		return summary{}, false
 	}
+	read := readerOf(i, cr.ms)
+	if size {
+		read = sizeRead(read)
+	}
 	stream := seeded("criterion/"+cr.all[c].name()+"/"+metric, "bootstrap")
-	diff := compare(readerOf(i, cr.ms), cr.results[c], cr.results[base], stream)
+	diff := compare(read, cr.results[c], cr.results[base], stream)
 	return diff, diff.has
+}
+
+// sizeRead reads the size of a measure's mean off a sample, not the mean of
+// each child's size.
+func sizeRead(read reader) reader {
+	return func(children []vector, sample []int) (float64, bool) {
+		v, has := read(children, sample)
+		return math.Abs(v), has
+	}
 }
 
 // resolution is what the bench resolves on a check: the paired difference
@@ -302,7 +328,7 @@ func (cr *criterionRun) pairedDifference(r *rule, g generator, metric string) (s
 // that difference shows, if the run gives it.
 func (cr *criterionRun) resolution(nw notWorse) checkResolution {
 	res := checkResolution{check: nw}
-	res.measured, res.has = cr.pairedDifference(cr.measuring, nw.generator, nw.metric)
+	res.measured, res.has = cr.pairedDifference(cr.measuring, nw.generator, nw.metric, nw.size)
 	if res.has {
 		res.se = (res.measured.high - res.measured.low) / 2 / normalQuantile
 	}
@@ -328,7 +354,7 @@ func toleranceOf(nw notWorse, se float64, has bool) float64 {
 func (cr *criterionRun) readNotWorse(r *rule, res *checkResolution) reading {
 	nw := res.check
 	rd := reading{
-		kind: notWorseKind, name: "not worse than " + cr.crit.against, generator: nw.generator, metric: nw.metric,
+		kind: notWorseKind, name: "not worse than " + cr.crit.against, generator: nw.generator, metric: nw.label(),
 		bound: res.tolerance, higherIsBetter: nw.higherIsBetter, verdict: unread,
 	}
 	var diff summary
@@ -340,7 +366,7 @@ func (cr *criterionRun) readNotWorse(r *rule, res *checkResolution) reading {
 	case cr.measuring:
 		diff, has = res.measured, res.has
 	default:
-		diff, has = cr.pairedDifference(r, nw.generator, nw.metric)
+		diff, has = cr.pairedDifference(r, nw.generator, nw.metric, nw.size)
 	}
 	if !has {
 		return rd

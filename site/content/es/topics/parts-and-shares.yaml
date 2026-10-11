@@ -1,0 +1,216 @@
+# The page of the topic of parts and shares, for a parent, in Spanish. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Partes de un todo
+description: Qué son los problemas de partes de un todo, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+hero:
+  lead: >-
+    Bruno se come un tercio de una pizza, y Ana, la mitad de lo que queda.
+    ¿Quién ha comido más? En estos problemas, una fracción siempre es una
+    fracción de algo, y la mayor parte de la dificultad está en saber de qué:
+    del todo o de lo que quedaba. Una tira de papel cortada en partes iguales
+    lo muestra mejor que cualquier regla.
+  method: Dibujar el todo como una tira y cortarla en partes iguales
+  teaches: A preguntar «¿una parte de qué?» y a hallar el todo a partir de su parte
+  # The words of its drawing: the share over it, and what it comes to.
+  art:
+    line: 3/4 de 12
+    sum: 3/4 de 12 = 9
+    one: "12 : 4 = 3 en una parte, y 3 partes son 9"
+
+basis:
+  title: Las reglas de las partes
+  cards:
+    - title: ¿Una parte de qué?
+      text: >-
+        Una fracción siempre es una fracción de algo. «Un cuarto del resto» y
+        «un cuarto del todo» son números distintos, así que primero averigüe de
+        qué se toma la fracción.
+      art:
+        whole: un cuarto del todo
+        rest: un cuarto del resto
+    - title: A través de una parte
+      text: >-
+        Para hallar 3/4 de 20, se divide entre 4 y se toman 3 partes: 15. Para
+        hallar el todo cuando sus 3/4 son 15, se divide entre 3 para obtener una
+        parte y se toman 4 partes: 20.
+    - title: Las partes forman el todo
+      text: >-
+        Lo que se da y lo que queda forman juntos un todo. Si se dan 1/3 y 1/4,
+        queda 1 − 1/3 − 1/4 = 5/12.
+
+idea:
+  title: Cuánto vale una parte
+  lead: Sea cual sea la pregunta, averigüe primero cuánto vale una parte y luego tome tantas partes como haga falta.
+  table:
+    head:
+      - Datos
+      - La tira y una parte
+      - Se pide
+    rows:
+      - - 3/4 de 20
+        - "20 : 4 = 5"
+        - 3 partes, 15
+      - - 3/4 de un número son 15
+        - "15 : 3 = 5"
+        - el número, 4 partes, 20
+      - - 2/5 de un número son 14
+        - "14 : 2 = 7"
+        - el número, 5 partes, 35
+  note:
+    title: Por qué importa
+    text: >-
+      La mayoría de los errores con fracciones no están en las cuentas, sino en
+      el todo: la parte se toma de la cantidad equivocada. Decir en voz alta
+      cuál es el todo antes de cada paso permite detectarlos.
+
+method:
+  title: "Cómo resolverlo: dibujar una tira"
+  lead: >-
+    Dibuje el todo como una tira larga y córtela en tantas partes iguales como
+    indique el denominador de la fracción. Cuando una parte se toma de lo que
+    queda, dibuje lo que queda como una tira nueva. Después, averigüe cuánto
+    vale una parte. Los ejemplos de abajo van del más sencillo a uno de
+    olimpiada.
+  steps:
+    - Dibujar el todo como una tira
+    - Cortarla en partes iguales y, si hace falta, también el resto
+    - Hallar una parte y después las partes que pide la pregunta
+  # The key under the steps: what the strips' colours mean.
+  legend:
+    given: lo ya dado
+    sought: lo que se busca
+
+examples:
+  - title: Panecillos en la panadería
+    question: >-
+      Un panadero hornea 60 panecillos. Hasta el mediodía vende la mitad, y por
+      la tarde, dos tercios del resto. ¿Cuántos panecillos quedan?
+    steps:
+      - La mitad de 60 panecillos es 30, así que al mediodía quedan 30 panecillos.
+      - >-
+        Dos tercios del resto son dos tercios de 30, no de 60: por la tarde se
+        venden 30 : 3 × 2 = 20 panecillos.
+      - Quedan 30 − 20 = 10 panecillos.
+    answer: 10 panecillos.
+    note:
+      title: ¿Dos tercios de qué?
+      text: >-
+        Dos tercios del total de 60 panecillos serían 40, y 30 + 40 = 70
+        panecillos son más de los que horneó el panadero. «Dos tercios del
+        resto» es una parte de lo que queda en ese momento.
+    art:
+      rest: el resto es un todo nuevo
+      evening: 20 vendidos por la tarde
+      all: hasta el mediodía 30 · por la tarde 20 · quedan 10
+      over: 30 + 40 = 70 no cabe en 60
+  - title: Un libro en séptimos
+    question: >-
+      El lunes Tomás lee 2/7 de un libro, y el martes, 3/7. Le quedan 40
+      páginas. ¿Cuántas páginas tiene el libro?
+    steps:
+      - En dos días Tomás lee 2/7 + 3/7 = 5/7 del libro, así que le quedan 2/7.
+      - "Esos 2/7 son las 40 páginas: un séptimo son 40 : 2 = 20 páginas."
+      - "El libro entero son siete séptimos: 7 × 20 = 140 páginas."
+    answer: 140 páginas.
+    note:
+      title: ¿Qué parte son las 40?
+      text: >-
+        Las 40 páginas son lo que queda, 2/7 del libro, no los 5/7 que leyó
+        Tomás. Si se tomaran por los 5/7, darían un libro de 56 páginas, del que
+        solo quedarían 16 páginas.
+    art:
+      sevenths: el libro, 7 partes iguales
+      monday: lunes
+      tuesday: martes
+      read: 40 no es lo leído
+  - title: Huevos en el mercado
+    question: >-
+      La abuela vende huevos en el mercado. El primer comprador se lleva la
+      mitad de sus huevos y medio huevo más. El segundo se lleva la mitad de los
+      huevos que quedan y medio huevo más, y el tercero hace lo mismo. Con eso
+      se han vendido todos los huevos, y nadie ha roto ninguno. ¿Cuántos huevos
+      tenía la abuela?
+    steps:
+      - >-
+        Empecemos por el final. El tercer comprador se llevó la mitad de los
+        huevos y medio huevo más, y no quedó nada: así que la mitad de los
+        huevos era medio huevo, y la abuela tenía 1 huevo.
+      - >-
+        Antes del segundo comprador, igual: se llevó la mitad de los huevos y
+        medio huevo más, y quedó 1 huevo; así que la mitad era huevo y medio, y
+        había 3 huevos.
+      - >-
+        Antes del primer comprador, la mitad de los huevos era tres y medio, así
+        que había 7. Comprobación: 7 → 3 → 1 → 0.
+    answer: 7 huevos.
+    note:
+      title: Empezar por el final
+      text: >-
+        Cuando cada parte se toma de lo que queda, lo más fácil es empezar por
+        el final: ahí la cantidad se conoce. Cada paso hacia atrás deshace una
+        de esas partes: se suma el medio huevo y luego se duplica.
+    art:
+      basket: ¿cuántos huevos hay en la cesta?
+      third: "el tercer comprador: había 1"
+      third-took: se llevó 0,5 + ½ = 1, quedaron 0
+      second: "el segundo comprador: había 3"
+      second-took: se llevó 1,5 + ½ = 2, quedó 1
+      first: "el primer comprador: había 7"
+      first-took: se llevó 3,5 + ½ = 4, quedaron 3
+      back: "un paso atrás: + ½ y luego × 2"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  part_whole_swap:
+    shows: >-
+      La parte se toma de la cantidad equivocada: dos tercios del total de 60
+      panecillos en lugar de los 30 que quedan, o las 40 páginas que quedan se
+      toman por la parte que leyó Tomás.
+    say: «¿Dos tercios de qué? Señálalo en la tira».
+    art:
+      question: Dos tercios del resto
+      of-all: 2/3 de 60 =
+      of-rest: 2/3 de 30 =
+  answered_other_question:
+    shows: >-
+      Un número hallado por el camino se convierte en la respuesta: los 20
+      panecillos vendidos por la tarde en lugar de los que quedan, o las 100
+      páginas que leyó Tomás en lugar del libro entero.
+    say: «¿Qué pide exactamente la pregunta?»
+    art:
+      question: ¿Cuántos panecillos quedan?
+      evening: vendidos por la tarde
+      left: quedan
+  stopped_early:
+    shows: >-
+      La solución se queda a un paso del final: se halla un séptimo del libro,
+      20 páginas, y nunca se convierte en el libro entero; o se restan los
+      panecillos vendidos hasta el mediodía y se olvidan los de la tarde.
+    say: «¿Eso es la respuesta o un paso hacia ella?»
+    art:
+      question: ¿Cuántas páginas tiene el libro?
+
+home:
+  - title: Cortar en familia
+    text: >-
+      Corte una manzana, una pizza o una hoja de papel en partes iguales y
+      nombre las partes: mitades, tercios, cuartos. Luego quite algunas y
+      pregunte qué parte queda.
+  - title: ¿Una parte de qué?
+    text: >-
+      Cuando en una receta o un juego aparezca una fracción, pregunte: «¿Un
+      tercio de qué?». La respuesta a esa pregunta suele ser todo el problema.
+  - title: La tira
+    text: >-
+      Dibuje la tira con su hijo o hija siempre que en casa haya que repartir
+      algo: un rectángulo largo dividido en casillas iguales. Sirve para todos
+      los problemas de este tema.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de partes de un todo

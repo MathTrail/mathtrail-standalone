@@ -72,7 +72,9 @@ func (o oracle) answered(string, float64, bool)            {}
 // constant step, a floor under the overall level's step, and a step worked
 // out from an uncertainty counted by answers, which never dies away. A limit
 // on how far one answer may move the level in a topic holds a step that is
-// large at first back from throwing a child about.
+// large at first back from throwing a child about. A debt, when the rule keeps
+// one, decides when a wrong answer's charge is taken, and a right answer pays
+// it before it raises the level.
 type stepRule struct {
 	overallStep, topicStep stepCurve
 	floor                  float64 // the least the overall level's step may shrink to
@@ -81,6 +83,7 @@ type stepRule struct {
 	delta                  map[string]float64
 	answers                int
 	inTopic                map[string]int
+	debt                   *owing // nil for a rule that charges every answer at once
 }
 
 // The service's own constants, which a variant departs from. The service's
@@ -124,18 +127,34 @@ func (s *stepRule) chance(topic string, beta float64) float64 {
 func (s *stepRule) answered(topic string, beta float64, correct bool) {
 	surprise := surpriseOf(correct, s.chance(topic, beta))
 	kTheta, kDelta := limited(max(s.overallStep.at(s.answers), s.floor), s.topicStep.at(s.inTopic[topic]), surprise, s.limit)
-	s.theta += kTheta * surprise
-	s.delta[topic] += kDelta * surprise
+	theta, delta := kTheta*surprise, kDelta*surprise
+	if s.debt != nil {
+		theta, delta = s.debt.charged(topic, theta, delta, correct)
+	}
+	s.theta += theta
+	s.delta[topic] += delta
 	s.answers++
 	s.inTopic[topic]++
 }
 
 // followed takes an answer of the trial series in without moving a level:
-// the series' own estimate stands, and the counts go on as the service's do.
-func (s *stepRule) followed(topic string, _ float64, _ bool, estimate float64) {
+// the series' own estimate stands, and the counts go on as the service's do,
+// the topic's run of wrong answers among them.
+func (s *stepRule) followed(topic string, _ float64, correct bool, estimate float64) {
 	s.answers++
 	s.inTopic[topic]++
 	s.theta = estimate
+	if s.debt != nil {
+		s.debt.counted(topic, correct)
+	}
+}
+
+// owed is what a topic's level owes, nothing for a rule that keeps no debt.
+func (s *stepRule) owed(topic string) float64 {
+	if s.debt == nil {
+		return 0
+	}
+	return s.debt.owed(topic)
 }
 
 // surpriseOf is how far an answer fell from the chance it was given: the score

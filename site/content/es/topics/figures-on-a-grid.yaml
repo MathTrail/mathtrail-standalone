@@ -1,0 +1,221 @@
+# The page of the topic of figures on a square grid, for a parent, in Spanish.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Figuras en cuadrícula
+description: Qué son los problemas de área y perímetro en papel cuadriculado, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+hero:
+  lead: >-
+    Dibuje una figura en papel cuadriculado: ¿cuántas casillas ocupa y cuánto
+    mide su borde? En estos problemas el área se cuenta en casillas y el
+    perímetro en lados de casilla, y es fácil confundirlos: un rectángulo
+    puede perder la casilla de una esquina y conservar su perímetro. Toda la
+    habilidad está en contar sin saltarse nada y sin contar nada dos veces.
+  method: Contar los lados exteriores de cada casilla
+  teaches: A distinguir el área del perímetro y a contar casillas y lados sin saltarse ni repetir ninguno
+  # The words of its drawing: the figure over it, what each of its two copies
+  # counts, and what the numbers in the cells mean.
+  art:
+    line: Una figura de tres casillas
+    area: área, 3 casillas
+    perimeter: perímetro, 8 lados
+    out: "los números de la derecha: cuántos lados de cada casilla dan al exterior, 3 + 2 + 3 = 8"
+
+basis:
+  title: Las reglas de la cuadrícula
+  cards:
+    - title: El área son casillas
+      text: >-
+        El área de una figura en papel cuadriculado es el número de casillas
+        que ocupa. Dos medias casillas forman una entera.
+      art:
+        cells: 3 casillas
+    - title: El perímetro son lados
+      text: >-
+        El perímetro es el número de lados de casilla que hay en el borde. Un
+        lado que comparten dos casillas de la figura queda dentro y no cuenta.
+      art:
+        shared: un lado compartido por dentro no cuenta
+    - title: Cosas distintas
+      text: >-
+        Dos figuras con la misma área pueden tener perímetros distintos: cuatro
+        casillas en fila tienen un perímetro de 10, y cuatro en cuadrado, de 8.
+      art:
+        perimeter: perímetro {count}
+
+idea:
+  title: Contar los lados exteriores
+  lead: Cada casilla tiene 4 lados. Un lado cuenta para el perímetro solo si al otro lado no hay ninguna casilla de la figura.
+  table:
+    head:
+      - La figura
+      - Área, en casillas
+      - Perímetro, en lados
+    rows:
+      - - 1 casilla
+        - "1"
+        - "4"
+      - - 2 casillas juntas
+        - "2"
+        - 4 + 4 − 2 = 6
+      - - 4 casillas en fila
+        - "4"
+        - "10"
+      - - un cuadrado de 2 por 2
+        - "4"
+        - "8"
+  note:
+    title: Por qué importa
+    text: >-
+      Para el perímetro, los niños y las niñas a menudo cuentan casillas, o todos
+      los lados de todas las casillas, con los compartidos dos veces. Contar
+      solo los lados que dan al exterior evita los dos errores.
+
+method:
+  title: "Cómo resolverlo: recorrer el borde"
+  lead: >-
+    Dibuje la figura en papel cuadriculado. Para el área, cuente las casillas
+    fila por fila. Para el perímetro, recorra el borde y cuente los lados de
+    casilla por los que pasa. Cuando se corta una figura, enumere las partes
+    en un orden con el que no se pueda saltar ninguna ni contar ninguna dos
+    veces. Los ejemplos de abajo van del más sencillo a uno de olimpiada.
+  steps:
+    - Dibujar la figura en papel cuadriculado
+    - Contar casillas para el área y lados exteriores para el perímetro
+    - Comprobar contando de otra manera
+  # The key under the steps: what the drawings' lines and numbers mean.
+  legend:
+    border: el borde, el perímetro
+    cut: un corte
+    count: "un número: cuántos lados dan al exterior"
+
+examples:
+  - title: Una cruz
+    question: >-
+      Una cruz está formada por 5 casillas: una en el centro y otra a cada uno
+      de sus cuatro lados. ¿Cuál es el perímetro de la cruz, en lados de
+      casilla?
+    steps:
+      - Cada uno de los 4 brazos tiene 3 lados que dan al exterior, así que los brazos suman 4 × 3 = 12 lados.
+      - La casilla del centro no tiene ningún lado que dé al exterior, porque cada uno de sus lados toca un brazo.
+      - Así que el perímetro es de 12 lados de casilla.
+    answer: 12 lados de casilla.
+    note:
+      title: Otra manera de contar
+      text: >-
+        5 casillas tienen 5 × 4 = 20 lados. Los 4 lados entre el centro y los
+        brazos se cuentan dos veces cada uno, una desde cada casilla, y quedan
+        dentro: 20 − 2 × 4 = 12.
+    art:
+      ends: 4 brazos, 3 lados cada uno
+      middle: el centro, 0
+      border: el borde, 12 lados
+      inner: en rojo, los 4 lados interiores
+  - title: Una tira en dos
+    question: >-
+      Una tira de 2 por 4 casillas se corta por las líneas de la cuadrícula en
+      dos partes de 4 casillas cada una, y cada parte tiene que quedar de una
+      pieza. ¿De cuántas maneras distintas se puede cortar?
+    steps:
+      - "Un corte recto a lo largo, por el medio, da dos filas de 4: 1 manera."
+      - "Un corte recto a lo ancho, por el medio, da dos cuadrados de 2 por 2: 1 manera."
+      - >-
+        Un corte que va a lo ancho, después a lo largo y de nuevo a lo ancho da
+        dos partes en forma de L, y su escalón puede ir hacia un lado o hacia
+        el otro: 2 maneras. En total, 4 maneras.
+    answer: 4 maneras.
+    note:
+      title: ¿Por qué no 8?
+      text: >-
+        Si se enumeran las partes una a una, cada corte sale dos veces, una por
+        cada una de sus partes. Si se decide que la primera parte es la que
+        tiene la casilla de arriba a la izquierda, cada corte se cuenta una
+        sola vez.
+    art:
+      along: a lo largo
+      across: a lo ancho
+      step: un escalón
+      back: al revés
+      same: el mismo corte
+      dot: el punto es la casilla de arriba a la izquierda, siempre en la parte azul
+  - title: Una diagonal
+    question: >-
+      En papel cuadriculado se dibuja un rectángulo de 3 por 5 casillas, y se
+      traza un segmento de una esquina a la opuesta. ¿Por cuántas casillas
+      pasa el segmento? Una casilla cuenta si el segmento atraviesa su
+      interior, no si solo toca una de sus esquinas.
+    steps:
+      - >-
+        Al ir de esquina a esquina, el segmento entra en una casilla nueva cada
+        vez que cruza una línea de la cuadrícula dentro del rectángulo.
+      - >-
+        Cruza 4 líneas en una dirección y 2 en la otra, y nunca dos a la vez: 3
+        y 5 no tienen más divisor común que el 1, así que el segmento no pasa
+        por ningún nodo de la cuadrícula en su camino.
+      - Empieza en 1 casilla y entra en 4 + 2 = 6 más, 7 casillas en total.
+    answer: 7 casillas.
+    note:
+      title: Por un nodo
+      text: >-
+        En un rectángulo de 4 por 6 casillas, el segmento pasa por un nodo de la
+        cuadrícula, donde cruza dos líneas a la vez y entra en una sola
+        casilla, no en dos. Pasa por 4 + 6 − 2 = 8 casillas: 2 es el mayor
+        divisor común de 4 y 6.
+    art:
+      points: los puntos, donde el segmento cruza las líneas de la cuadrícula
+      down: 4 verticales
+      across: 2 horizontales
+      green: 1 + 4 + 2 = 7 casillas verdes
+      node: "el punto rojo es un nodo: 8 casillas"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      Se cuenta dos veces lo mismo: los lados que comparten las casillas se
+      suman al perímetro, o cada corte de la tira se apunta una vez por cada
+      una de sus dos partes.
+    say: «¿Has contado algún lado, o algún corte, desde los dos lados?»
+    art:
+      question: El perímetro de dos casillas juntas
+  missed_case:
+    shows: >-
+      Se pasa por alto un caso: un corte cuyo escalón va hacia el otro lado, un
+      trozo de borde en una esquina interior, o los dominós en vertical además
+      de los que están en horizontal.
+    say: «¿Hay alguna manera que aún no has probado, al revés?»
+    art:
+      question: Los cortes de una tira de 2 por 4
+  ignored_condition:
+    shows: >-
+      Se pierde una condición: una parte que se deshace en trozos se cuenta
+      como una parte, una casilla que solo toca por una esquina se cuenta como
+      vecina, o se dice que el segmento pasa por una casilla que solo toca.
+    say: «¿Esta parte, o esta casilla, cumple de verdad lo que dice el enunciado?»
+    art:
+      question: Cada parte, de una pieza
+      broken: la parte azul se deshace
+      whole: las dos partes, de una pieza
+
+home:
+  - title: Papel cuadriculado
+    text: >-
+      Tenga papel cuadriculado a mano y dibuje con su hijo o hija figuras de 4
+      o 5 casillas. ¿Cuál tiene el borde más largo? ¿Y cuál, el más corto?
+  - title: Recorra el borde
+    text: >-
+      Cuente un perímetro recorriendo el borde con un dedo, lado por lado.
+      Después cuente los lados exteriores de cada casilla y compruebe que los
+      dos resultados coinciden.
+  - title: Corte y cuente
+    text: >-
+      Corte una tira de papel en dos partes del mismo tamaño de todas las
+      maneras que encuentre. Colóquelas de modo que no falte ni se repita
+      ninguna.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de figuras en cuadrícula

@@ -20,6 +20,11 @@ export type PageReader = {
 	/** locale is the language the page is drawn in. */
 	readonly locale: string;
 	/**
+	 * file is the file the words come from, as a refusal names it:
+	 * es/topics/clocks.yaml.
+	 */
+	readonly file: string;
+	/**
 	 * text is the text under key with its emphasis drawn — *…* and **…**, the
 	 * only markup a page's text may hold — and its slots filled.
 	 */
@@ -74,6 +79,7 @@ export function openReader(
 
 	const page: PageReader = {
 		locale,
+		file,
 		text(key, slots = {}) {
 			const where = `${file}: ${key}`;
 			return Lexer.lexInline(take(key), { gfm: false }).map((token) =>

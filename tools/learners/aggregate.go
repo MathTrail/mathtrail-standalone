@@ -169,6 +169,8 @@ func metrics() []metric {
 		all = append(all,
 			shown(overallOnly(mean("r8_rank_"+w.name(), rankChanges(at, false)))),
 			shown(mean("r8_topic_rank_"+w.name(), rankChanges(at, true))),
+			shown(ratio("r8_wrong_fall_"+w.name(), fallAfterWrong(at))),
+			shown(ratio("r8_right_still_"+w.name(), stillAfterRight(at))),
 		)
 	}
 	return append(all, liveMetrics()...)

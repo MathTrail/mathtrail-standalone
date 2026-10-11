@@ -180,15 +180,21 @@ func TestTheOracleIsInTheCorridorWheneverTheLadderAllows(t *testing.T) {
 	}
 }
 
-// The held-out seeds and the sweep's draw other children than the working
-// ones and than each other: their seeds or names differ, the first draws of
-// no child's streams in one set are drawn in another, and their results go
-// into directories of their own. The test sets the seed and the name every
-// other test draws with, so it does not run beside them.
+// The held-out seeds, those held out for a debt and the sweep's draw other
+// children than the working ones and than each other: their seeds or names
+// differ, the first draws of no child's streams in one set are drawn in
+// another, and their results go into directories of their own. The test sets
+// the seed and the name every other test draws with, so it does not run beside
+// them.
 func TestTheHeldOutAndTheSweepsSeedsDrawOtherChildren(t *testing.T) {
 	t.Cleanup(func() { masterSeed, experiment = paperSeed, paperExperiment })
 	if heldOutSeed == paperSeed || heldOutExperiment == paperExperiment || sweepExperiment == paperExperiment {
 		t.Fatalf("the held-out seed %d and name %s and the sweep's name %s, want none the working ones", heldOutSeed, heldOutExperiment, sweepExperiment)
+	}
+	if debtHeldOutSeed == paperSeed || debtHeldOutSeed == heldOutSeed || debtHeldOutExperiment == heldOutExperiment ||
+		debtHeldOutExperiment == paperExperiment || debtHeldOutExperiment == sweepExperiment || debtHeldOutDirectory == heldOutDirectory {
+		t.Fatalf("the seed %d, name %s and directory %s held out for a debt, want none another set's",
+			debtHeldOutSeed, debtHeldOutExperiment, debtHeldOutDirectory)
 	}
 	sets := []struct {
 		name, directory string
@@ -197,6 +203,7 @@ func TestTheHeldOutAndTheSweepsSeedsDrawOtherChildren(t *testing.T) {
 		{"working", "results", []string{"-out", "results"}},
 		{"held-out", filepath.Join("results", heldOutDirectory), []string{"-out", "results", "-held-out"}},
 		{"sweep", filepath.Join("results", "sweep"), []string{"-out", "results", "-rules", "sweep"}},
+		{"held out for a debt", filepath.Join("results", debtHeldOutDirectory), []string{"-out", "results", "-rules", "debt-confirmation"}},
 	}
 	drawn := map[float64]string{}
 	for _, set := range sets {

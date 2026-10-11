@@ -1,10 +1,14 @@
 import { describe, expect, test } from "vitest";
 import topics from "../../../content/catalogs/topics.json";
 import { published } from "../../tools/sitecheck/published";
+import { siteDictionaries } from "../site/words";
 import { type Anchor, groupAddress, pageAddress } from "./links";
 import { topicGroups } from "./topicGroups";
 
 const site = { url: "https://mathtrail.app", languages: ["en", "ru"] };
+// written is the site as it is written: in the languages of its dictionaries,
+// every one of which a card may link a page in.
+const written = { ...site, languages: [...siteDictionaries.keys()] };
 const gaps = { slug: "gaps-and-boundaries", site_page: true };
 
 describe("the address of a topic's page", () => {
@@ -76,9 +80,9 @@ describe("the address of a topic's page", () => {
 	test("is one the site keeps, for every topic of the catalog whose page is out, in every language and at every part", () => {
 		const anchors: Anchor[] = ["", "#traps", "#home"];
 		for (const topic of topics) {
-			for (const language of site.languages) {
+			for (const language of written.languages) {
 				for (const anchor of anchors) {
-					const address = pageAddress(site, language, topic, anchor);
+					const address = pageAddress(written, language, topic, anchor);
 					const where = `${topic.id} ${language} ${anchor}`;
 					if (!topic.site_page) {
 						expect(address, where).toBeUndefined();
@@ -120,8 +124,8 @@ describe("the address of a group of topics", () => {
 
 	test("is one the site keeps, for every group a card offers, in every language", () => {
 		for (const group of topicGroups) {
-			for (const language of site.languages) {
-				const address = groupAddress(site, language, group.id);
+			for (const language of written.languages) {
+				const address = groupAddress(written, language, group.id);
 				expect(published, `${group.id} ${language}`).toContain(
 					address?.slice("https://mathtrail.app".length),
 				);

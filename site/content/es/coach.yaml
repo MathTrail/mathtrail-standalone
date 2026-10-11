@@ -1,0 +1,48 @@
+# The page "Coach", for a parent, in Spanish: a product of its own, still in
+# the making, that leads a child through a problem on a tablet, and its
+# prototype to try in a frame. The prototype speaks English alone in every
+# language of the page and is never translated. The number of techniques on
+# the first screen's second button is the site's data.
+
+title: Entrenador
+description: Estamos creando un entrenador para niños y niñas de 7 a 12 años, que resuelven problemas de olimpiada en una tableta y los razonan por su cuenta. Pruebe su prototipo.
+
+hero:
+  badge: En desarrollo
+  title: Matemáticas de olimpiada donde quien piensa es el niño o la niña
+  lead: "Estamos creando un entrenador para niños y niñas de 7 a 12 años. El niño o la niña resuelve un problema en una tableta, dibujando y escribiendo en un lienzo como en un cuaderno. Un compañero elegido por el niño o la niña marca el camino a lo largo de cuatro pasos y plantea preguntas que sirven de guía. El compañero nunca da la respuesta: la escribe quien resuelve."
+  try: Pruebe el prototipo
+  # A screen of the prototype beside the words: what it shows, for whoever
+  # cannot see it, and the line under it.
+  screen: "El prototipo de MathTrail: el niño o la niña elige un compañero"
+  caption: "Una pantalla del prototipo: el niño o la niña elige con quién resolver. Pruébelo más abajo."
+
+# What the coach is about, a card for each idea, under a heading a screen
+# reader alone says.
+ideas:
+  title: Cómo será el entrenador
+  items:
+    - title: Los cuatro pasos de Pólya
+      text: Comprender → hacer un plan → resolver → comprobar. Los pasos siempre están a la vista.
+    - title: Un lienzo como un cuaderno
+      text: El dibujo es parte de la solución. Las pistas llegan de una en una, sin opciones entre las que elegir.
+    - title: Un compañero propio
+      text: Un zorro, un robot, un búho, un gato, un dinosaurio o uno que dibuje el niño o la niña.
+
+# The prototype in its frame: the frame's name for a screen reader, the line
+# under it, and the link that opens it alone.
+prototype:
+  frame: "MathTrail: un prototipo interactivo"
+  caption: "Un prototipo interactivo: pruebe a dibujar una solución"
+  open: Abrir a pantalla completa ↗
+
+# What the prototype is, and what it only pretends to do yet.
+notes:
+  title: Esto es un prototipo
+  text: Se puede hacer clic en todo, y en el lienzo se puede dibujar con el ratón o con el dedo. Por ahora, la interfaz está en inglés.
+  imitated:
+    title: Por ahora, solo simulado
+    items:
+      - reconocimiento de escritura a mano y dibujos
+      - la voz del compañero
+      - problemas a partir de una foto

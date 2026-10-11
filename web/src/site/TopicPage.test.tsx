@@ -173,7 +173,7 @@ const words = [
 	"    question: How many?",
 	"    steps:",
 	"      - Count them.",
-	"    answer: Two.",
+	"    answer: 2 knights.",
 	"traps:",
 	"  trusted_statement:",
 	"    shows: Believed A.",
@@ -334,7 +334,7 @@ describe("a topic's page", () => {
 			]),
 		).toEqual([
 			["Why so", "A is a liar."],
-			[undefined, "2Two."],
+			[undefined, "22 knights."],
 		]);
 	});
 
@@ -480,6 +480,31 @@ describe("a topic's page is refused when", () => {
 
 		expect(() => render(sourcesWith(words), fewer)).toThrow(
 			"the words work through 2 examples, and site/data.json gives 1",
+		);
+	});
+
+	test("its words in Russian give an answer without the number its solver proves", () => {
+		expect(() =>
+			render(
+				sourcesWith(
+					words,
+					words.replace("answer: 2 knights.", "answer: 3 knights."),
+				),
+			),
+		).toThrow(
+			'ru/topics/knights.yaml: examples.2.answer says "3 knights.", and the example\'s solver proves "2"',
+		);
+	});
+
+	test("its words in Russian give a badge with another number than its solver proves", () => {
+		const badged = (badge: string) =>
+			words.replace(
+				"    answer: 2 knights.\n",
+				`    answer: 2 knights.\n    badge: "${badge}"\n`,
+			);
+
+		expect(() => render(sourcesWith(badged("2"), badged("3")))).toThrow(
+			'ru/topics/knights.yaml: examples.2.badge shows "3", and the example\'s solver proves "2"',
 		);
 	});
 

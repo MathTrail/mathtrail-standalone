@@ -17,6 +17,7 @@ import { renderSite } from "./render";
 import type { Research, Row } from "./research";
 import { dictionariesOf } from "./testing/dictionaries";
 import { handTyped } from "./testing/handtyped";
+import { siteDictionaries } from "./words";
 import { answer, example, fence, fencePosts } from "./worked";
 
 const browser = new Window({
@@ -38,8 +39,11 @@ const textOf = (...path: string[]) =>
 		join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", ...path),
 		"utf8",
 	);
-const english = textOf("site", "content", "en", "research.yaml");
-const russian = textOf("site", "content", "ru", "research.yaml");
+// languages are the languages the site is written in, those of its
+// dictionaries, and wordsIn the page's own words in one of them.
+const languages = [...siteDictionaries.keys()];
+const wordsIn = (locale: string) =>
+	textOf("site", "content", locale, "research.yaml");
 const tex = textOf("research", "paper-a", "main.tex");
 const russianDraft = textOf("research", "paper-a", "draft.ru.md");
 
@@ -80,15 +84,16 @@ function dataOf(research: unknown): SiteData {
 const document = (title: string) =>
 	`---\ntitle: ${title}\ndescription: D\n---\n\n# ${title}\n`;
 
-// sources are the site's texts, the page's own words in both its languages.
+// sources are the site's texts, the page's own words in every language of
+// the site.
 const sources = new Map(
-	Object.entries({ en: english, ru: russian }).map(([locale, words]) => [
+	languages.map((locale) => [
 		locale,
 		new Map([
 			["index.md", document("Home")],
 			["privacy.md", document("Privacy")],
 			["terms.md", document("Terms")],
-			["research.yaml", words],
+			["research.yaml", wordsIn(locale)],
 		]),
 	]),
 );
@@ -115,7 +120,7 @@ function pagesOf(data: SiteData): Map<string, Document> {
 		data,
 	});
 	return new Map(
-		["en", "ru"].map((locale) => [
+		languages.map((locale) => [
 			locale,
 			new browser.DOMParser().parseFromString(
 				files.find(({ path }) => path === `${locale}/research/index.html`)
@@ -1035,7 +1040,7 @@ describe("the page Research", () => {
 
 describe("the numbers on the page Research", () => {
 	test("are typed into none of its words, in any language, but in the names that carry their own", () => {
-		for (const words of [english, russian]) {
+		for (const words of languages.map(wordsIn)) {
 			const typed = words
 				.split("\n")
 				.filter((line) =>

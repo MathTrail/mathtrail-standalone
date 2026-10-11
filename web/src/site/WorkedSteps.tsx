@@ -64,6 +64,63 @@ export function StepFrame({
 }
 
 /**
+ * provedAnswer is the answer of a worked example in the page's words, under
+ * key, held to proved, the answer the example's solver proves: the words state
+ * the numbers of the proof, in its order, and no other number, so that no
+ * translation changes the answer. Words that state another stop the build. An
+ * answer proved in words has no number to hold them to.
+ */
+export function provedAnswer(
+	page: PageReader,
+	key: string,
+	proved: string,
+): ComponentChildren {
+	const said = page.plain(key);
+	if (!statesTheNumbersOf(said, proved)) {
+		throw new Error(
+			`${page.file}: ${key} says ${JSON.stringify(said)}, and the example's solver proves ${JSON.stringify(proved)}: the answer's words state its numbers, in its order, and no other`,
+		);
+	}
+	return page.text(key);
+}
+
+/**
+ * provedBadge is the badge of a worked example's answer as the page's words
+ * give it, under key, held to proved as the answer's words are when it writes
+ * a number: a badge may show a place or a mark for an answer in words, and a
+ * badge that writes numbers for an answer proved in numbers writes those.
+ */
+export function provedBadge(
+	page: PageReader,
+	key: string,
+	proved: string,
+): string {
+	const badge = page.plain(key);
+	if (numbersOf(badge).length > 0 && !statesTheNumbersOf(badge, proved)) {
+		throw new Error(
+			`${page.file}: ${key} shows ${JSON.stringify(badge)}, and the example's solver proves ${JSON.stringify(proved)}: a badge that writes numbers writes the answer's`,
+		);
+	}
+	return badge;
+}
+
+/**
+ * statesTheNumbersOf says whether words state the numbers of answer and no
+ * other: its runs of the digits 0 to 9, the two of 4:25, in the answer's
+ * order. A digit of another script is no number, and an answer with no number
+ * holds words to none.
+ */
+export function statesTheNumbersOf(words: string, answer: string): boolean {
+	const wanted = numbersOf(answer);
+	return wanted.length === 0 || numbersOf(words).join(" ") === wanted.join(" ");
+}
+
+// numbersOf are the runs of the digits 0 to 9 in text, in their order.
+function numbersOf(text: string): string[] {
+	return text.match(/[0-9]+/g) ?? [];
+}
+
+/**
  * Answer is a worked example's answer on green, behind its badge: the answer
  * in a word or a number, which a screen reader passes over since the answer's
  * words follow it. A worked example whose answer has no short form shows no

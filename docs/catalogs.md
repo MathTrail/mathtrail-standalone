@@ -130,7 +130,7 @@ Claude makes its guidelines binding: developers "must … follow design guidelin
 
 ## 5. The Coach page, two steps from the card
 
-**The path.** The card links a topic's page on the site (`web/src/widget/links.ts`: `https://mathtrail.app/{en,ru}/topics/<slug>/`). Every page of the site carries the menu, whose first entry is "Coach" (`web/src/site/frame.ts:40–50`, R202), and the Coach page frames the prototype of the author's coming product, with a free plan, a Plus plan at $10 a month and an "Upgrade" button (R198). The listing's website is the site's home page, under the same menu. The connector itself shows no advertisement, sells nothing and links to no plan.
+**The path.** The card links a topic's page on the site (`web/src/widget/links.ts`: `https://mathtrail.app/<language>/topics/<slug>/`, in a language the site is written in). Every page of the site carries the menu, whose first entry is "Coach" (`web/src/site/frame.ts:40–50`, R202), and the Coach page frames the prototype of the author's coming product, with a free plan, a Plus plan at $10 a month and an "Upgrade" button (R198). The listing's website is the site's home page, under the same menu. The connector itself shows no advertisement, sells nothing and links to no plan.
 
 **The rules**, all read 2026-10-05:
 

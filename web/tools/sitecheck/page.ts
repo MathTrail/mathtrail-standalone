@@ -60,6 +60,12 @@ export type Page = {
 	references: Reference[];
 	/** ids are the anchors a link may lead to within the page. */
 	ids: Set<string>;
+	/**
+	 * digits are the decimal digits of other scripts than 0 to 9 the page
+	 * writes anywhere, each once: in its words, its attributes or the data its
+	 * script reads.
+	 */
+	digits: string[];
 };
 
 // subresourceRels are the link relations a browser acts on by itself. A
@@ -173,6 +179,23 @@ function extension(path: string): string {
 	return dot < 0 ? "" : last.slice(dot);
 }
 
+// foreignDigit matches a decimal digit of any script but 0 to 9.
+const foreignDigit = /(?![0-9])\p{Nd}/gu;
+
+// numericReference matches a character written by its number, &#1633; or
+// &#x661;, which a browser shows as the character itself.
+const numericReference = /&#(?:x([0-9a-f]+)|([0-9]+));?/gi;
+
+// digitsOf are the decimal digits of other scripts than 0 to 9 that html
+// shows, each once: written as they are, or by their number.
+function digitsOf(html: string): string[] {
+	const shown = html.replace(numericReference, (reference, hex, decimal) => {
+		const point = Number.parseInt(hex ?? decimal, hex === undefined ? 10 : 16);
+		return point <= 0x10ffff ? String.fromCodePoint(point) : reference;
+	});
+	return [...new Set(shown.match(foreignDigit) ?? [])];
+}
+
 /**
  * parsePage reads one built HTML file of the site, whose bare domain serves
  * the front page of the reference locale.
@@ -191,6 +214,7 @@ export function parsePage(file: string, html: string, reference: string): Page {
 		refresh: undefined,
 		references: [],
 		ids: new Set(),
+		digits: digitsOf(html),
 	};
 	walk(parse(html), page);
 	return page;

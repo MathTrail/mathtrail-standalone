@@ -1,0 +1,229 @@
+# The page of the topic of enumeration, for a parent, in Spanish. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Enumeración de casos
+description: Qué son los problemas de enumeración de casos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+# The words every drawing of the page writes its people in: the three
+# children's letters, and Lea's and Tom's initials.
+art:
+  a: A
+  b: B
+  c: C
+  lea: L
+  tom: T
+
+hero:
+  lead: >-
+    ¿Cuántos números se pueden escribir con estas cifras? ¿Cuántos apretones
+    de manos, conjuntos de ropa o maneras de ponerse en fila? En estos
+    problemas se escribe cada caso en un orden que garantiza que no se pierda
+    ninguno ni se cuente ninguno dos veces. Una lista que sigue una regla es
+    la primera herramienta que tienen los niños y las niñas ante preguntas
+    demasiado grandes para adivinar la respuesta.
+  method: Enumerar los casos siguiendo una regla
+  teaches: A trabajar con orden y a ver cuándo se pueden contar los casos sin escribirlos todos
+  # The words of its drawing: the question and the rule over it, and the count
+  # under it.
+  art:
+    line: ¿Cuántos números de dos cifras distintas se pueden formar con 1, 2 y 3?
+    rule: "ordenados con una regla: primero, la primera cifra"
+    count: 3 opciones para la primera cifra × 2 para la segunda = 6 números
+
+basis:
+  title: Las reglas de una lista
+  cards:
+    - title: En orden
+      text: >-
+        Ordene los casos antes de escribirlos: por la primera letra y después
+        por la segunda. En una lista ordenada, un caso que falta deja un hueco
+        que se ve.
+      art:
+        on: primero {child}
+    - title: Cada caso, una sola vez
+      text: >-
+        Antes de contar, decida qué hace que dos casos sean distintos. Que
+        Laura y Tomás se den la mano es un solo apretón de manos, pero Laura
+        delante de Tomás y Tomás delante de Laura son dos filas distintas.
+      art:
+        handshake: 1 apretón de manos
+        queues: 2 filas
+    - title: Las opciones se multiplican
+      text: >-
+        Cuando un caso se forma eligiendo una cosa tras otra, primero una taza
+        y luego un platillo, cuente multiplicando: 3 tazas y 2 platillos dan
+        3 × 2 = 6 combinaciones.
+      art:
+        sets: 3 × 2 = 6 combinaciones
+
+idea:
+  title: ¿Importa el orden?
+  lead: Con los mismos tres niños, A, B y C, preguntas distintas dan recuentos distintos.
+  table:
+    head:
+      - La pregunta
+      - ¿Importa el orden?
+      - Los casos
+    rows:
+      - - ¿De cuántas maneras pueden ponerse en fila?
+        - "Sí: AB y BA son dos filas"
+        - "ABC, ACB, BAC, BCA, CAB, CBA: 6"
+      - - ¿Cuántas parejas se pueden mandar a hacer un recado?
+        - "No: AB y BA son la misma pareja"
+        - "AB, AC, BC: 3"
+      - - ¿De cuántas maneras se puede elegir quién dirige y quién ayuda?
+        - "Sí: quien dirige va primero (más grande)"
+        - "AB, AC, BA, BC, CA, CB: 6"
+  note:
+    title: Por qué importa
+    text: >-
+      Aquí la mayoría de las respuestas incorrectas cuentan un caso dos veces o
+      toman dos casos distintos por uno solo. Decidir primero si importa el
+      orden indica de qué error hay que cuidarse.
+
+method:
+  title: "Cómo resolverlo: una lista con regla"
+  lead: >-
+    Fije primero una regla: qué va al principio de la lista y qué después.
+    Luego escriba los casos siguiéndola, o cuéntelos en cuanto la regla deje
+    ver un patrón. Los ejemplos de abajo van del más sencillo a uno de
+    olimpiada.
+  steps:
+    - Decidir qué hace que dos casos sean distintos
+    - Enumerar los casos siguiendo una regla
+    - Contarlos, o multiplicar cuando se elige una cosa tras otra
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    frame: "un marco azul: lo que añade este paso"
+
+examples:
+  - title: Banderas de dos franjas
+    question: >-
+      Una bandera tiene dos franjas, una encima de la otra. Cada franja es
+      roja, amarilla o verde, y las dos franjas son de colores distintos.
+      ¿Cuántas banderas distintas hay?
+    steps:
+      - >-
+        Ordenamos las banderas por la franja de arriba. Con la roja arriba, la
+        de abajo es amarilla o verde: dos banderas.
+      - >-
+        Con la amarilla arriba, abajo va la roja o la verde: dos más. Con la
+        verde arriba, la roja o la amarilla: dos más.
+      - >-
+        3 colores para la franja de arriba y, cada vez, quedan 2 para la de
+        abajo: 3 × 2 = 6 banderas.
+    answer: 6 banderas.
+    art:
+      paints: tres pinturas, las franjas de colores distintos
+      red-top: roja arriba
+      red: roja
+      yellow: amarilla
+      green: verde
+      top: arriba ↓
+      bottom: abajo →
+      same: "×: el mismo color dos veces no vale, 9 − 3 = 6"
+  - title: Cifras a tres de distancia
+    question: ¿Cuántos números de dos cifras hay cuyas cifras se diferencian en 3, como el 14 o el 30?
+    steps:
+      - >-
+        Recorremos la cifra de las decenas del 1 al 9 y escribimos a su lado
+        cada cifra de las unidades que está a 3 de ella: 1 → 4; 2 → 5; 3 → 0 y
+        6; 4 → 1 y 7; y así sucesivamente.
+      - >-
+        Con 3, 4, 5 o 6 en las decenas hay dos números en cada caso, 3 por
+        debajo y 3 por encima. Con 1, 2, 7, 8 o 9, solo uno: el otro no sería
+        una cifra.
+      - >-
+        4 × 2 + 5 × 1 = 13 números: 14, 25, 30, 36, 41, 47, 52, 58, 63, 69,
+        74, 85, 96.
+    answer: 13 números.
+    note:
+      title: El caso que más se pierde
+      text: >-
+        El 30 es el número que olvidan los niños y las niñas: un número puede
+        terminar en 0, aunque no puede empezar por él. Una lista con regla lo
+        encuentra, y una lista de memoria, no.
+    art:
+      given: las decenas y las unidades se diferencian en 3
+      under: arriba, las decenas; debajo, las unidades que encajan
+      two: "en azul: dos números por cifra"
+      can: vale
+      not: no tiene dos cifras
+  - title: Sin dos 2 seguidos
+    question: >-
+      ¿Cuántos números de cuatro cifras se pueden escribir solo con las cifras
+      1 y 2, sin que haya dos 2 uno al lado del otro?
+    steps:
+      - >-
+        Son demasiados para adivinarlos, así que los construimos cifra a cifra.
+        Con una cifra: 1 y 2, dos números. Con dos cifras: 11, 12 y 21, tres,
+        porque 22 no vale.
+      - >-
+        Un número válido termina en 1 o en 2. Si termina en 1, es cualquier
+        número válido con una cifra menos al que se añade un 1. Si termina en
+        2, la cifra anterior tiene que ser 1: es cualquier número válido con
+        dos cifras menos al que se añade 12. Así que cada recuento es la suma
+        de los dos anteriores: con tres cifras salen 3 + 2 = 5, y con cuatro,
+        5 + 3 = 8.
+      - >-
+        Lo comprobamos con la lista: 1111, 1112, 1121, 1211, 2111, 1212, 2112,
+        2121, ocho.
+    answer: 8 números.
+    note:
+      title: Un recuento que crece
+      text: >-
+        Los recuentos 2, 3, 5, 8 siguen con 13, 21, 34, cada uno la suma de los
+        dos anteriores. A los problemas de olimpiada les encantan los recuentos
+        que se construyen a partir de otros más pequeños.
+    art:
+      twos: dos 2 seguidos no valen
+      one: 1 cifra
+      two: 2 cifras
+      three: 3 cifras
+      four: 4 cifras
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  missed_case:
+    shows: >-
+      El niño o la niña escribe los casos según se le ocurren y pierde uno, a
+      menudo uno con un 0 o con una cifra repetida.
+    say: «¿En qué orden los has escrito? Vamos a escribirlos otra vez siguiendo una regla».
+    art:
+      question: Cifras a 3 de distancia
+  wrong_operation:
+    shows: >-
+      El niño o la niña suma donde las opciones se multiplican, y así 3
+      camisas y 2 bufandas dan 5, o multiplica donde se elige una pareja y
+      nadie va en pareja consigo mismo.
+    say: "«Toma una camisa: ¿cuántos conjuntos salen con ella? ¿Y cuántas camisas hay?»"
+    art:
+      question: 3 camisas y 2 bufandas
+  double_count:
+    shows: >-
+      Que Laura dé la mano a Tomás y que Tomás dé la mano a Laura se cuenta
+      como dos apretones de manos, aunque es uno solo.
+    say: «¿Es este el mismo caso que uno que ya tenemos?»
+
+home:
+  - title: Vista un peluche
+    text: >-
+      Dé a su hijo o hija dos gorros y tres bufandas para un peluche y
+      pregúntele de cuántas maneras se puede vestir. Después pídale la lista y
+      revísenla en equipo.
+  - title: Pregunte por la regla
+    text: >-
+      Cuando su hijo o hija enumere casos, pregunte: «¿En qué orden los
+      escribes?». Una lista con regla es una lista que se puede comprobar.
+  - title: Un candado con código
+    text: >-
+      Invente un candado con un código de dos cifras, cada una 1, 2 o 3, y
+      deje que su hijo o hija averigüe cuántos códigos tendría que probar un
+      ladrón.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de enumeración de casos

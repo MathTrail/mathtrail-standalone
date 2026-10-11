@@ -1,0 +1,186 @@
+# The home page, for a parent: what MathTrail is, why not just ask the chat,
+# how a lesson goes — the card of the widget at every step — and how to
+# connect. The grades, the names of the traps, the card's picture, options and
+# rating, the connector's address and the card's own words are not here: they
+# are the catalog's numbers, the site's data, the widget's words and the
+# site's own.
+
+title: "MathTrail: matemáticas de olimpiada en su chat"
+description: "Matemáticas de olimpiada para niños y niñas en el chat que ya usa: problemas comprobados que no se acaban, un diagnóstico de cada error y la memoria de cómo avanza cada niño o niña."
+
+hero:
+  free: Gratis
+  open: Código abierto
+  title: Matemáticas de olimpiada, en el chat que ya usa.
+  # The promise, word for word as the README gives it.
+  lead: Un sinfín de problemas comprobados de matemáticas de tipo olimpiada para {range} de primaria, en cualquier idioma, con un diagnóstico de cada error del niño o la niña y la memoria de cómo avanza.
+  # How the task on the card was picked for the lesson's child: the child's
+  # topics, then the chance of a right answer and the reasons. The topics and
+  # the numbers are the site's data.
+  pick:
+    label: Cómo se eligió el siguiente problema
+    title: Elegido para Galt
+    skills: Habilidades de Galt
+    why: Por qué este problema
+    auto: Elección automática
+    chance: "{chance} de probabilidad de acertar: en la zona"
+    reasons:
+      - el tema más débil
+      - "repite un error reciente: uno de más o de menos"
+      - 5 días sin practicar
+  see: Ver una clase
+  note: Sírvase un té mientras su hijo o hija resuelve.
+
+# The frame a card stands in: the chat a parent already uses, with the
+# parent's message above the card.
+chat:
+  title: Su chat
+  ask: Un problema nuevo, por favor
+  progress: ¿Cómo va mi hijo o hija?
+
+pillars:
+  title: ¿Por qué no pedírselo directamente al chat?
+  lead: "Un modelo de chat escribe un problema en un segundo, y se equivoca igual de rápido: dos opciones correctas a la vez, una solución que no cuadra, el problema de ayer con números nuevos. Y si su hijo o hija insiste, le da la razón con gusto. MathTrail deja al modelo lo que hace bien, escribir, y todo lo demás lo comprueba con un programa."
+  # A chat asked alone for a task. Its options, and which of them are right,
+  # are the site's data.
+  alone:
+    name: Solo el chat
+    ask: Un problema de olimpiada para 3.º de primaria
+    task: Un número es divisible entre 2 y entre 3. ¿Qué número puede ser?
+    flag: "Dos respuestas correctas: nadie lo comprobó"
+  # The chat alone against the chat with MathTrail, both asked what the chat
+  # alone was asked, point against point.
+  versus:
+    asked: "«{ask}»"
+    alone:
+      - Puede haber dos opciones correctas, o ninguna.
+      - Da por buena una respuesta incorrecta si el niño o la niña insiste.
+      - Olvida dónde se equivocó su hijo o hija.
+      - "Hay que saber qué pedir: temas, niveles, qué viene después."
+      - Cada problema es independiente, sin un modelo de cómo aprenden los niños y las niñas.
+      - No hay un mapa de lo que su hijo o hija ya sabe.
+    ours:
+      name: Chat + MathTrail
+      points:
+        - "Exactamente una opción correcta: un programa que resuelve el problema prueba todos los casos."
+        - "La respuesta se registra con un toque: discutir no la vuelve correcta."
+        - Recuerda habilidades y errores, y elige el siguiente problema.
+        - "Basta con decir «un problema nuevo»: MathTrail elige el tema y el nivel."
+        - "Un modelo de habilidades basado en la investigación: Elo sobre TRI, 11 etapas."
+        - Una puntuación en cada tema y un mapa de qué temas se basan en cuáles.
+  tiles:
+    # The languages are named each in itself; this follows them.
+    endless:
+      title: Los problemas no se acaban.
+      text: Cada problema se escribe desde cero para el tema, el nivel y el último error de su hijo o hija, en el idioma de su chat, y no sale de un banco fijo. Uno de cada tres gira en torno a sus intereses.
+      more: + cualquiera
+    checked:
+      title: Un programa comprueba al modelo.
+      text: "Un problema solo llega a su hijo o hija después de pasar todas las comprobaciones: una sola opción correcta, la respuesta reproducida por un solucionador, un texto legible para su grado, ninguna repetición y, si hay dibujo, las etiquetas que nombra el enunciado y ninguna respuesta en él."
+      checks:
+        - una sola respuesta
+        - solucionador
+        - legible
+        - no repetido
+    diagnosis:
+      title: Un error es un diagnóstico.
+      # The traps are the catalog's, under the names the card gives them.
+      text: "Cada opción incorrecta esconde una trampa con nombre: «{first}», «{second}», «{third}». La explicación parte de cómo razonó su hijo o hija, no de la respuesta correcta."
+      trap: "Trampa: se contaron los espacios, no los postes"
+  behind:
+    title: Lo que hay detrás de cada problema
+    # Under the words, what the parent says, and what MathTrail picks.
+    coach:
+      title: No hace falta ser docente.
+      text: No necesita conocer los temas de olimpiada ni elegir un nivel. Diga «un problema nuevo», y el entrenador decide qué practicar a continuación y con qué dificultad.
+      picked: "tema + nivel: elegidos"
+    research:
+      title: Un modelo basado en la investigación.
+      text: La probabilidad de acertar sale de un modelo de habilidades que se usa en psicometría —Elo sobre la teoría de respuesta al ítem (TRI)—, y los problemas se mantienen donde el niño o la niña acierta el 70–85 % de las veces.
+      formula: P = 0,2 + 0,8·σ(θ + δ − β)
+    # Under the words, a topic between two it builds on, as the catalog has
+    # them.
+    map:
+      title: Un mapa de habilidades y temas.
+      text: MathTrail sabe qué temas se basan en cuáles —la ordenación y la enumeración de casos van antes que los caballeros y mentirosos— y guarda la puntuación de su hijo o hija en cada tema.
+
+lesson:
+  eyebrow: Cómo es una clase
+  title: Un problema cada vez, en su propio chat.
+  lead: Usted se sienta al lado y su hijo o hija toca los botones. Junto a cada paso está la tarjeta tal como la muestra el chat en ese momento.
+  # The steps in the order a lesson takes them, each beside its card.
+  steps:
+    generating:
+      title: Pida un problema
+      text: Escriba «un problema nuevo, por favor». MathTrail elige el tema y la dificultad, el chat escribe el problema y un programa comprueba cada respuesta antes de que su hijo o hija lo vea.
+    selected:
+      title: La respuesta, con un botón
+      text: Cinco opciones, de la A a la E. Un toque registra la respuesta al instante, antes de cualquier explicación, así que ninguna conversación puede volverla correcta.
+    hint:
+      title: ¿Se atasca? Una pista, no la respuesta
+      text: La pista indica por dónde empezar —dibujar una valla más corta— y la respuesta sigue oculta hasta que su hijo o hija se decida por una.
+    wrong:
+      title: Una respuesta incorrecta se convierte en lección
+      text: Cada opción incorrecta esconde una trampa conocida. Cuando su hijo o hija responde, la tarjeta se convierte en el repaso de la respuesta, nombra la trampa desde el punto de vista de quien resuelve —«se contaron los espacios en lugar de los postes»— y después explica la solución paso a paso.
+    question:
+      title: Pregunte por qué, con sus propias palabras
+      text: Cuando la respuesta ya está registrada, pregunte en el chat —«¿por qué un poste más?»— y el modelo responde sobre este mismo problema.
+    progress:
+      title: Un progreso que se entiende
+      text: La etapa alcanzada y la de cada tema, los errores que se repiten, lo que viene después y, para usted, un análisis de lo que va bien y de lo que conviene desarrollar.
+  # The name of the child the cards show, an invented one, which the first
+  # screen picks a task for.
+  child: Galt
+  # Two messages of the chat beneath a card answered wrong: the adult's
+  # question and the model's reply, about the step and to nobody, for the adult
+  # to read out to the child. They are the site's words, never the card's.
+  chat:
+    label: Una ilustración del chat
+    adult: Persona adulta
+    model: Modelo
+    question: ¿Por qué un poste más?
+    reply: Si se recorre la valla desde la izquierda, cada espacio termina en un poste, así que 4 espacios dan 4 postes, y el primer poste está antes que todos ellos. 4 + 1 = 5.
+
+# The task of the lesson: a variant of a reference task, never one word for
+# word.
+task:
+  question: Una valla mide 12 metros de largo. Hay un poste cada 3 metros, incluidos los dos extremos. ¿Cuántos postes hay?
+  hint: Prueba primero con una valla más corta, de 6 metros, con un poste cada 3 metros. Dibújala y cuenta los postes.
+  # The trap behind each wrong option, as the card says it once that option
+  # is picked: the steps pick one, and the card on the first screen any.
+  traps:
+    a: Se dio como respuesta la distancia entre los postes, no el número de postes.
+    b: Se contaron los espacios en lugar de los postes.
+    d: Se multiplicó la longitud por la distancia entre postes en lugar de dividirla.
+    e: Se tomó del enunciado la longitud de la valla en lugar de contar los postes.
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4 espacios. Una valla recta con postes en los dos extremos tiene un poste más que espacios. 4 + 1 = 5 postes.
+
+connect:
+  eyebrow: Conexión
+  title: Unos pocos pasos hasta el primer problema.
+  claude:
+    pill: Ya funciona · también en el plan Free
+    # The steps of Claude's own help on custom connectors; the address follows
+    # the third.
+    steps:
+      open: En Claude, abra {connectors}.
+      add: Pulse **+ Añadir** y elija **Añadir conector personalizado**.
+      paste: "Escriba MathTrail como nombre y pegue la dirección:"
+      sign: "Pulse **Continuar** y otra vez **Continuar**: no hace falta cambiar la configuración de autenticación que Claude detecta. Después pulse **Añadir**, luego **Conectar**, e inicie sesión con Google. MathTrail pide permiso para guardar un archivo en su Google Drive, el perfil de su hijo o hija. Permítalo en la pantalla de Google: sin ese archivo no hay dónde guardar el progreso."
+      chat: "En un chat, pulse **+** → **Conectores**, active MathTrail y diga: «Hagamos un problema de MathTrail»."
+    # Claude's own names for the page, as Claude writes them in the page's
+    # language, and in English where Claude does not speak it.
+    connectors: Personalizar → Conectores
+    note: El plan Free permite un conector personalizado.
+  chatgpt:
+    pill: Aún no está en el directorio
+    text: Las cuentas gratuitas de ChatGPT solo añaden apps desde el directorio de ChatGPT. En cuanto MathTrail aparezca allí, búsquelo por su nombre, conéctelo e inicie sesión con Google. Todavía no aparece.
+    dev: "Mientras tanto, el modo para desarrolladores de ChatGPT permite añadir una app por su dirección en los planes Plus, Pro, Business, Enterprise y Education, en la web: actívelo y añada una app con la dirección de arriba, tal como {openai}. MathTrail todavía se está probando en ChatGPT."
+    openai: describe OpenAI
+  need: Necesita una cuenta de Claude o de ChatGPT y una cuenta de Google; su hijo o hija no necesita ninguna.
+
+ask:
+  title: Empiece con un problema.
+  lead: "Añada MathTrail a Claude: se tarda unos dos minutos."
+  code: Ver el código en GitHub

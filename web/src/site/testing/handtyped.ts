@@ -16,8 +16,8 @@ export type HandTypedRules = {
 	readonly values: ReadonlySet<string>;
 };
 
-// digit is a digit of any script: the languages a page is drawn in write
-// their numbers in their own.
+// digit is a digit of any script: a number typed by hand is found in
+// whatever digits it was typed, though the site writes its own in 0 to 9.
 const digit = /\p{Nd}/u;
 
 // spoken are the attributes a reader is read or shown in place of a text.

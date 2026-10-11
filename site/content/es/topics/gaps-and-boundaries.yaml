@@ -1,0 +1,223 @@
+# The page of the topic of gaps and boundaries, for a parent, in Spanish. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Intervalos y extremos
+description: Qué son los problemas de intervalos y extremos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+hero:
+  lead: >-
+    Seis árboles en fila: ¿cuántos intervalos hay entre ellos? Un tronco en
+    cinco trozos: ¿cuántos cortes? En estos problemas el niño o la niña
+    cuenta o bien las cosas, o bien los intervalos entre ellas, y los dos
+    números se diferencian en uno. De ese uno sale la mayoría de las
+    respuestas incorrectas, y lo que lo arregla es un dibujo rápido de un caso
+    pequeño.
+  method: Dibujar un caso pequeño y contar sobre él
+  teaches: A distinguir las cosas de los intervalos entre ellas y a comprobar una regla en un dibujo
+  # The words of its drawing: the fence and the rule over it, and the two
+  # counts under it.
+  art:
+    line: Cuatro postes de una valla
+    rule: contar los postes y luego los intervalos entre ellos
+    posts: "**4** postes"
+    spans: "**3** intervalos"
+
+basis:
+  title: Las reglas de los intervalos
+  cards:
+    - title: En fila, uno menos
+      text: >-
+        Los intervalos quedan entre las cosas, así que una fila siempre tiene
+        un intervalo menos que cosas: seis árboles, cinco intervalos; cinco
+        trozos de tronco, cuatro cortes.
+      art:
+        trees: 6 árboles, 5 intervalos
+    - title: En círculo, el mismo número
+      text: >-
+        Cuando la fila se cierra en un círculo, como los arbustos alrededor de
+        un macizo de flores, el último tiene un intervalo hasta el primero: hay
+        tantos intervalos como cosas.
+      art:
+        bushes: 8 arbustos, 8 intervalos
+    - title: Los dos extremos cuentan
+      text: >-
+        De la página 3 a la 7 hay 7 − 3 = 4 pasos, pero 5 páginas, porque la
+        primera página también se lee. Contar «desde … hasta …» con los dos
+        extremos añade uno.
+      art:
+        steps: 4 pasos
+        pages: 4 pasos, pero 5 páginas
+
+idea:
+  title: ¿Cosas o intervalos?
+  lead: Cada pregunta cuenta o las cosas o los intervalos. En una fila, en un círculo y «desde … hasta …» se cuenta de forma distinta, y un dibujo pequeño muestra cómo.
+  table:
+    head:
+      - El dibujo
+      - Qué se cuenta
+      - Cuántos
+    rows:
+      - - 6 árboles en fila
+        - los intervalos entre ellos
+        - 6 − 1 = 5
+      - - un tronco en 5 trozos
+        - los cortes
+        - 5 − 1 = 4
+      - - 8 arbustos alrededor de un macizo de flores
+        - los intervalos entre ellos
+        - "8"
+      - - las páginas de la 3 a la 7
+        - las páginas leídas
+        - 7 − 3 + 1 = 5
+  note:
+    title: Por qué importa
+    text: >-
+      Una respuesta con uno de más o de menos parece casi correcta, así que el
+      niño o la niña rara vez lo nota. Dos o tres postes dibujados en un papel
+      muestran enseguida si hay que sumar uno, restar uno o ninguna de las dos
+      cosas.
+
+method:
+  title: "Cómo resolverlo: dibujar un caso pequeño"
+  lead: >-
+    Dibuje las cosas como puntos o postes, primero para un número pequeño,
+    dos o tres. Cuente los intervalos en el dibujo, descubra la regla y solo
+    entonces aplíquela a los números del problema. Los ejemplos de abajo van
+    del más sencillo a uno de olimpiada.
+  steps:
+    - Dibujar las cosas y los intervalos
+    - Averiguar cuál de los dos cuenta la pregunta
+    - Calcularlo y comprobar la regla en un caso pequeño
+  # The key under the steps: what the drawings' blue and red mean.
+  legend:
+    counted: "en azul: lo que se cuenta"
+    cut: un corte
+
+examples:
+  - title: El recorrido del autobús
+    question: >-
+      El recorrido de un autobús tiene 6 paradas. El autobús tarda 3 minutos en
+      ir de una parada a la siguiente. ¿Cuántos minutos tarda de la primera
+      parada a la última?
+    steps:
+      - Dibujamos las 6 paradas como puntos. El autobús circula por los intervalos entre ellas.
+      - Entre 6 paradas hay 5 intervalos, uno menos que paradas.
+      - "Cada intervalo lleva 3 minutos: 5 × 3 = 15."
+    answer: 15 minutos.
+    note:
+      title: ¿Por qué no 18?
+      text: >-
+        6 × 3 = 18 da a cada parada un intervalo propio, pero después de la
+        última parada el autobús ya no va a ninguna parte: los minutos se gastan
+        entre las paradas.
+    art:
+      stops: 6 paradas, 3 minutos de una a la siguiente
+      minutes: "{count} min"
+      total: 5 × 3 = 15 minutos
+      end: después de la 6.ª parada no hay camino
+  - title: El piso 9 y el piso 3
+    question: >-
+      Lucía vive en el piso 9 y María en el piso 3 del mismo edificio, y las
+      dos suben a pie desde el piso 1. Todos los tramos de escalera son iguales.
+      ¿Cuántas veces más escalones sube Lucía que María?
+    steps:
+      - >-
+        María sube del piso 1 al piso 3: 2 tramos de escalera, del 1 al 2 y del
+        2 al 3.
+      - >-
+        Lucía sube del piso 1 al piso 9, que son 8 tramos, uno menos que el
+        número de su piso.
+      - "Todos los tramos son iguales, así que 8 : 2 = 4. Lucía sube 4 veces más escalones."
+    answer: 4 veces más.
+    note:
+      title: ¿Por qué no 3 veces?
+      text: >-
+        9 : 3 = 3 divide los pisos, pero los escalones están en los tramos entre
+        pisos, y nadie sube hasta el piso 1.
+    art:
+      masha: M
+      lena: L
+      third: piso 3
+      ninth: piso 9
+      from: las dos suben a pie desde el piso 1
+      masha-name: María
+      lena-name: Lucía
+      two: tramos
+      eight: tramos
+      times: los 8 tramos de Lucía son 4 veces los 2 de María
+      floors: pisos
+      flights: tramos
+  - title: ¿Cuántos troncos?
+    question: >-
+      Unos leñadores serraron varios troncos, y cada tronco se cortó al menos
+      una vez. Hicieron 9 cortes en total y obtuvieron 14 trozos. ¿Cuántos
+      troncos serraron?
+    steps:
+      - >-
+        Serramos un tronco: 1 corte da 2 trozos, 2 cortes dan 3. Cada tronco
+        acaba con un trozo más que cortes.
+      - Lo sumamos para todos los troncos. Los trozos son los cortes, y uno más por cada tronco.
+      - 14 − 9 = 5. Había 5 troncos.
+    answer: 5 troncos.
+    note:
+      title: ¿Importa cómo se repartieron los cortes?
+      text: >-
+        No. Cinco troncos con 9 cortes dan 14 trozos tanto si un tronco se llevó
+        la mayoría de los cortes como si se repartieron casi por igual: cada
+        corte convierte un trozo en dos.
+    art:
+      cuts: 9 cortes
+      pieces: 14 trozos
+      logs: "troncos: ?"
+      one: 1 corte, 2 trozos
+      two: 2 cortes, 3 trozos
+      sum: "trozos = cortes + troncos: 9 = 6 + 3"
+      all: 9 cortes · 14 trozos · 5 troncos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      El niño o la niña cuenta las paradas en vez de los intervalos entre
+      ellas, o los intervalos en vez de los postes: 6 paradas se convierten en
+      6 × 3 = 18 minutos. La respuesta tiene uno de más o de menos, así que
+      parece casi correcta.
+    say: «Dibuja tres paradas. ¿Cuántos intervalos hay entre ellas?»
+  wrong_operation:
+    shows: >-
+      El niño o la niña hace con los números del problema algo que el dibujo
+      no pide: los suma, 6 + 3, o duplica uno de ellos, en vez de contar los
+      intervalos y dar a cada uno sus minutos.
+    say: «¿Cuánto dura un intervalo y cuántos hay?»
+  number_from_text:
+    shows: >-
+      Un número del enunciado se convierte en la respuesta: las 6 paradas
+      cuando la pregunta pide minutos, o el piso 9 cuando pide tramos de
+      escalera.
+    say: "«¿Qué cuenta este número: paradas o intervalos?»"
+    art:
+      question: "La pregunta: ¿cuántos minutos?"
+      stops: paradas
+      minutes: minutos
+
+home:
+  - title: Dedos e intervalos
+    text: >-
+      Abra los dedos: cinco dedos, cuatro intervalos entre ellos. Es la imagen
+      más rápida de todo el tema, y siempre está a mano.
+  - title: La escalera de camino a casa
+    text: >-
+      En la escalera, cuente con su hijo o hija los pisos y los tramos: del
+      piso 1 al piso 4, ¿cuántos tramos hay? ¿Y del piso 2 al piso 4?
+  - title: Postes y bancos
+    text: >-
+      En un paseo, cuente los postes de una valla y los intervalos entre ellos,
+      o los bancos alrededor de un estanque. En fila hay un intervalo menos; en
+      círculo, el mismo número.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de intervalos y extremos

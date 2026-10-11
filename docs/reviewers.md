@@ -8,7 +8,7 @@ This page is for a directory's reviewer: how to connect, how to sign in with the
 
 The address is `https://mcp.mathtrail.app/mcp`.
 
-- **Claude:** open [Customize → Connectors](https://claude.ai/customize/connectors), press **+**, choose **Add custom connector**, paste the address, press **Add**, then **Connect**.
+- **Claude:** open [Customize → Connectors](https://claude.ai/customize/connectors), press **+ Add**, choose **Add custom connector**, name it MathTrail and paste the address, press **Continue** twice, leaving the sign-in settings Claude detects as they are, then **Add**, then **Connect**.
 - **ChatGPT:** connect the app as the review describes, or, in developer mode, add an app with the address above.
 
 ## Sign in
