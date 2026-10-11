@@ -13,6 +13,7 @@ import {
 	buttonIn,
 	drawCard as drawOnHost,
 	foldIn,
+	openCard,
 	press,
 	takeDown,
 	unfold,
@@ -296,6 +297,48 @@ describe("a task card", () => {
 		});
 
 		expect(root.textContent).not.toContain("the sealed solution");
+	});
+});
+
+describe("the place of a task card in the chat", () => {
+	const band = () => document.querySelector(".mt-top-band");
+
+	// drawHandedOut draws the fence as next_task hands out a task kept, with
+	// the metadata given beside it.
+	async function drawHandedOut(meta: Record<string, unknown> | undefined) {
+		const opened = await openCard({ tools: service });
+		root = opened.root;
+		await opened.host.sendToolInput({ arguments: {} });
+		await opened.host.sendToolResult({
+			content: [],
+			structuredContent: fence,
+			...(meta !== undefined && { _meta: meta }),
+		});
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-option")).not.toBeNull(),
+		);
+	}
+
+	// A task handed out a moment ago comes in a reply the chat may still be
+	// writing under it: the card watches its top, by a band along it.
+	test("is watched a while from the moment the task was handed out", async () => {
+		await drawHandedOut({
+			"mathtrail.app/issued_at": new Date().toISOString(),
+		});
+
+		expect(band()).not.toBeNull();
+	});
+
+	test.each([
+		[
+			"handed out long ago, as on a card drawn again with an earlier chat",
+			{ "mathtrail.app/issued_at": "2026-09-27T18:00:00Z" },
+		],
+		["whose result does not say when it was handed out", undefined],
+	])("is left to the chat for a task %s", async (_, meta) => {
+		await drawHandedOut(meta);
+
+		expect(band()).toBeNull();
 	});
 });
 

@@ -10,7 +10,7 @@ import { serviceThrough } from "./hostedService";
 import { ProfileCard } from "./ProfileScreen";
 import { ProgressOverCard } from "./ProgressOverCard";
 import { ProgressCard } from "./ProgressScreen";
-import { readScreen } from "./payload";
+import { issuedAt, readScreen } from "./payload";
 import { ResultCard } from "./ResultCard";
 import { ServiceContext } from "./service";
 import { TaskCard } from "./TaskCard";
@@ -59,7 +59,11 @@ export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 		<WordsContext.Provider value={words}>
 			<ServiceContext.Provider value={service}>
 				<OpensProgress.Provider value={ProgressOverCard}>
-					<Screen payload={result.structuredContent} host={host} />
+					<Screen
+						payload={result.structuredContent}
+						issued={issuedAt(result._meta)}
+						host={host}
+					/>
 				</OpensProgress.Provider>
 			</ServiceContext.Provider>
 		</WordsContext.Provider>
@@ -69,9 +73,20 @@ export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 // Screen is the card a payload draws: a task handed to the child, a new card
 // for each task; how an answer went; a task on its way, a new card for each
 // request; a card a task did not come to, a new one for each payload that says
-// so; the progress, the profile or the first sign-in. A payload that names none of them, or does not
-// read as the one it names, draws a card that says so.
-function Screen({ payload, host }: { payload: unknown; host: Host }) {
+// so; the progress, the profile or the first sign-in. A payload that names none
+// of them, or does not read as the one it names, draws a card that says so. A
+// task's card and the card a task is on its way to keep their top in sight a
+// while from issued, the moment the service issued what they show, where the
+// result tells it.
+function Screen({
+	payload,
+	issued,
+	host,
+}: {
+	payload: unknown;
+	issued: number | undefined;
+	host: Host;
+}) {
 	const shown = useMemo(() => readScreen(payload), [payload]);
 	// A task's card stays the same card for the same task, and the card a task
 	// is on its way to for the same request, whatever else a payload told again
@@ -85,6 +100,7 @@ function Screen({ payload, host }: { payload: unknown; host: Host }) {
 					key={shown.handed.task.id}
 					handed={shown.handed}
 					host={host}
+					freshSince={issued}
 				/>
 			);
 		case "result":
@@ -95,6 +111,7 @@ function Screen({ payload, host }: { payload: unknown; host: Host }) {
 					key={shown.coming.requestId}
 					coming={shown.coming}
 					host={host}
+					issued={issued}
 				/>
 			);
 		case "waiting":

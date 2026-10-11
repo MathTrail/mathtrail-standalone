@@ -363,6 +363,54 @@ func TestATaskGoesFromTheRuleToTheChildsCard(t *testing.T) {
 	}
 }
 
+// Every card next_task draws is told, and only it, when the service issued
+// what the card shows: in the result's metadata, which a host keeps out of the
+// model's context, while the words and the payload say no moment at all. A
+// request opened, a request handed back and the task kept, handed out, are
+// each told the moment of the call that drew their card — the task kept the
+// moment it was handed out, not when it was written. A card drawn in a reply
+// still coming keeps its top in the chat's sight; a card drawn again with an
+// earlier chat reads the moment as long past.
+func TestEveryCardNextTaskDrawsIsToldAloneWhenItWasIssued(t *testing.T) {
+	t.Parallel()
+
+	loaded, err := shipped()
+	if err != nil {
+		t.Fatalf("load the content: %v", err)
+	}
+	kept, moving := racer(t), &clock{at: lessonDay}
+	_, session := lessonWith(t, kept, moving, nil)
+	issued := func(name string, result *mcp.CallToolResult) {
+		t.Helper()
+		if got, want := result.Meta["mathtrail.app/issued_at"], moving.now().Format(time.RFC3339); got != want {
+			t.Errorf("%s tells its card it was issued at %v, want %s", name, got, want)
+		}
+		wantNoMetadata(t, name, result, loaded.InstructionsVersion())
+	}
+
+	issued("next_task opening a request", call(t, session, "next_task", raceChoice))
+	moving.advance(time.Minute)
+	issued("next_task handing a request back", call(t, session, "next_task", raceChoice))
+
+	p, _ := loadKept(t, kept)
+	if p.OpenRequest == nil {
+		t.Fatal("no request is open, want the race next_task opened")
+	}
+	wantOnTheCard(t, call(t, session, "submit_task", raceOn(p.OpenRequest)))
+	prepared(t, session, aheadChoice)
+	ahead := aheadOpen(t, kept)
+	if text := textOf(t, call(t, session, "submit_task", relayOn(ahead))); !strings.HasPrefix(text, "Accepted at attempt 1 and kept") {
+		t.Fatalf("submit_task for the relay said %q, want it accepted and kept", text)
+	}
+	moving.advance(3 * time.Minute)
+	handed := call(t, session, "next_task", map[string]any{"language": "en"})
+	if card := payloadOf[requestPayload](t, handed); card.Screen != "task" || card.Task == nil ||
+		card.Task.ID != profile.TaskIDFor(ahead.ID) {
+		t.Fatalf("next_task = %+v, want the relay on the card at once", card)
+	}
+	issued("next_task handing the task kept out", handed)
+}
+
 // wantRequestOpened holds what next_task answered the race with to a card
 // waiting for a new request's task, with nothing of its package — which the
 // model fetches with get_package, and whose brief is the race's — and is the

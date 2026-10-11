@@ -1026,6 +1026,11 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           لغة الدردشة
         </option>
         <option
+          value="az"
+        >
+          الأذربيجانية
+        </option>
+        <option
           value="es"
         >
           الإسبانية
@@ -1051,9 +1056,19 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           الأوردية
         </option>
         <option
+          value="uz"
+        >
+          الأوزبكية
+        </option>
+        <option
           value="uk"
         >
           الأوكرانية
+        </option>
+        <option
+          value="ig"
+        >
+          الإيجبو
         </option>
         <option
           value="it"
@@ -1116,9 +1131,19 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           الرومانية
         </option>
         <option
+          value="zu"
+        >
+          الزولو
+        </option>
+        <option
           value="sk"
         >
           السلوفاكية
+        </option>
+        <option
+          value="sw"
+        >
+          السواحلية
         </option>
         <option
           value="sv"
@@ -1129,6 +1154,11 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           value="sr"
         >
           الصربية
+        </option>
+        <option
+          value="zh-Hant"
+        >
+          الصينية التقليدية
         </option>
         <option
           value="zh-Hans"
@@ -1151,6 +1181,11 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           الفرنسية
         </option>
         <option
+          value="fil"
+        >
+          الفلبينية
+        </option>
+        <option
           value="fi"
         >
           الفنلندية
@@ -1161,9 +1196,19 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           الفيتنامية
         </option>
         <option
+          value="kk"
+        >
+          الكازاخستانية
+        </option>
+        <option
           value="ca"
         >
           الكتالانية
+        </option>
+        <option
+          value="ku"
+        >
+          الكردية
         </option>
         <option
           value="hr"
@@ -1181,6 +1226,11 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           الليتوانية
         </option>
         <option
+          value="ms"
+        >
+          الماليزية
+        </option>
+        <option
           value="nb"
         >
           النرويجية بوكمال
@@ -1196,6 +1246,11 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           الهنغارية
         </option>
         <option
+          value="ha"
+        >
+          الهوسا
+        </option>
+        <option
           value="nl"
         >
           الهولندية
@@ -1204,6 +1259,11 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           value="ja"
         >
           اليابانية
+        </option>
+        <option
+          value="yo"
+        >
+          اليوروبا
         </option>
         <option
           value="el"

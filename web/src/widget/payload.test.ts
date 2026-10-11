@@ -2,6 +2,7 @@ import type { CallToolResult } from "@modelcontextprotocol/client";
 import { describe, expect, test } from "vitest";
 import {
 	type AnswerResult,
+	issuedAt,
 	readAnswer,
 	readEdited,
 	readHandedTask,
@@ -141,6 +142,26 @@ describe("a task handed to the card", () => {
 		["nothing", undefined],
 	])("is not read from %s", (_, payload) => {
 		expect(readHandedTask(payload)).toBeUndefined();
+	});
+});
+
+describe("the moment a result says the service issued what its card shows", () => {
+	test("is read from the result's metadata, which the card alone is told", () => {
+		expect(
+			issuedAt({ "mathtrail.app/issued_at": "2026-10-11T12:00:00Z" }),
+		).toBe(Date.UTC(2026, 9, 11, 12));
+	});
+
+	test.each([
+		["no metadata, as an earlier service's result has", undefined],
+		["metadata that says nothing of it", { "ui/other": "x" }],
+		[
+			"a moment that does not read as one",
+			{ "mathtrail.app/issued_at": "yesterday" },
+		],
+		["a moment that is no text", { "mathtrail.app/issued_at": 1760184000 }],
+	])("is none from %s", (_, meta) => {
+		expect(issuedAt(meta)).toBeUndefined();
 	});
 });
 

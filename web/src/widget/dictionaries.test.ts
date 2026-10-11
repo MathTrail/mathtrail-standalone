@@ -34,6 +34,7 @@ describe("the widget's words", () => {
 	// form the card asks for a new profile in.
 	test.each([
 		["ar", "يمكن طلب"],
+		["az", "istəyin"],
 		["bg", "поискайте"],
 		["bn", "চান"],
 		["bs", "zatražite"],
@@ -45,25 +46,36 @@ describe("the widget's words", () => {
 		["es", "pida"],
 		["fa", "بخواهید"],
 		["fi", "pyydä"],
+		["fil", "humingi po kayo"],
 		["fr", "demandez"],
+		["ha", "ku nemi"],
 		["hi", "माँगें"],
 		["hr", "zatražite"],
 		["hu", "kérjen"],
+		["ig", "biko rịọ"],
 		["it", "chieda"],
 		["ja", "頼んでください"],
+		["kk", "сұраңыз"],
 		["ko", "요청해 주세요"],
+		["ku", "bixwazin"],
 		["lt", "paprašykite"],
+		["ms", "sila"],
 		["nb", "be om"],
 		["ro", "cereți"],
 		["ru", "попросите"],
 		["sk", "požiadajte"],
 		["sr", "затражите"],
 		["sv", "be om"],
+		["sw", "tafadhali"],
 		["tr", "isteyin"],
 		["uk", "попросіть"],
 		["ur", "مانگیں"],
+		["uz", "soʻrang"],
 		["vi", "yêu cầu"],
+		["yo", "ẹ béèrè"],
 		["zh-Hans", "请"],
+		["zh-Hant", "請"],
+		["zu", "celani"],
 	])("in %s send the adult to the chat as %s", (tag, form) => {
 		const words = dictionaries.get(tag) ?? {};
 		for (const key of [
@@ -101,6 +113,9 @@ describe("a card's words", () => {
 		["pt-BR", "ru-RU", "pt"],
 		[undefined, "zh-CN", "zh-Hans"],
 		[undefined, "so-SO", "en"],
+		[undefined, "zh-TW", "zh-Hant"],
+		[undefined, "zh-HK", "zh-Hant"],
+		[undefined, "tl-PH", "fil"],
 		[undefined, undefined, "en"],
 	])(
 		"with the language chosen %s and the host's %s are in %s",
@@ -119,7 +134,7 @@ describe("a card's words", () => {
 		).toBe("Grade 3");
 	});
 
-	test("are in every one of the thirty-seven languages written so far", () => {
+	test("are in every one of the forty-nine languages written so far", () => {
 		expect([...dictionaries.keys()]).toEqual(
 			expect.arrayContaining([
 				"en",
@@ -159,6 +174,18 @@ describe("a card's words", () => {
 				"bs",
 				"sr",
 				"bg",
+				"sw",
+				"ms",
+				"fil",
+				"uz",
+				"kk",
+				"az",
+				"ku",
+				"ha",
+				"yo",
+				"ig",
+				"zu",
+				"zh-Hant",
 			]),
 		);
 	});

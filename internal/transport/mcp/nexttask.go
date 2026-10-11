@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -161,7 +162,12 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 
 	now := s.now()
 	if open := s.waitedOpen(p, now); open != nil {
-		return s.stillOpen(ctx, account, p, in.differsFrom(open, &p.Student, tutor.LessonTopic(p, s.content)))
+		reply, stillErr := s.stillOpen(ctx, account, p, in.differsFrom(open, &p.Student, tutor.LessonTopic(p, s.content)))
+		if stillErr != nil {
+			return Reply[requestOut]{}, stillErr
+		}
+		reply.CardAlone = issuedAt(now)
+		return reply, nil
 	}
 	if limit, count, reached := s.daily.reached(p.Daily.Today(now)); reached {
 		limitHit(ctx, s.events.logger, s.events.projectID, account.ID, limit, zap.Int("count", count))
@@ -197,6 +203,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 	if err != nil {
 		return Reply[requestOut]{}, err
 	}
+	reply.CardAlone = issuedAt(now)
 	s.sayLetGo(ctx, account, gone)
 	return reply, nil
 }
@@ -245,6 +252,20 @@ func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Pro
 			Language: request.Language,
 		},
 	}, nil
+}
+
+// issuedAtKey names, in a result's metadata, the moment the service issued
+// what the card the result draws shows.
+const issuedAtKey = "mathtrail.app/issued_at"
+
+// issuedAt is what only the card next_task draws is told: the moment, now,
+// the service issued what it shows — the task kept, handed out, or the wait
+// for a task to come —, in RFC 3339 and UTC. A card drawn in the reply that
+// is still coming keeps its top in the chat's sight, and a card drawn again
+// with an earlier chat finds the moment long past and leaves the chat as the
+// reader keeps it.
+func issuedAt(now time.Time) mcp.Meta {
+	return mcp.Meta{issuedAtKey: now.UTC().Format(time.RFC3339)}
 }
 
 // serveReady hands the task kept to the child, once the next one is asked for
