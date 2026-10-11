@@ -82,6 +82,14 @@ describe("the pseudo-language", () => {
 		expect(pseudoWords(english, [broken])).toEqual(pseudo);
 	});
 
+	test("has no key a translation says and English does not", () => {
+		const said = pseudoWords({ "task.hint": "Hint" }, [
+			{ "task.hint": "Hint", "task.extra": "A text English never wrote" },
+		]);
+
+		expect(Object.keys(said)).toEqual(["task.hint"]);
+	});
+
 	test("is left as it was by translations no longer than it", () => {
 		const shorter = Object.fromEntries(
 			Object.keys(english).map((key) => [key, "Kurz"]),

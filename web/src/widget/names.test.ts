@@ -168,6 +168,19 @@ describe("a country", () => {
 });
 
 // Names in Klingon, which no platform has data for.
+describe("a name the platform has none for", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	test("is the code or the tag as it is", () => {
+		vi.spyOn(Intl.DisplayNames.prototype, "of").mockReturnValue(undefined);
+
+		expect(countryName(inEnglish, "FR")).toBe("FR");
+		expect(languageName(inEnglish, "fr")).toBe("Fr");
+	});
+});
+
 describe("names in a language the platform has no data for", () => {
 	const inKlingon = openWords<Key>("tlh", new Map([["en", english]]));
 

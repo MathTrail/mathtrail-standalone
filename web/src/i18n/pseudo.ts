@@ -25,38 +25,44 @@ export function pseudoWords(
 	english: Dictionary,
 	translations: Iterable<Dictionary>,
 ): Dictionary {
-	const longest = longestOf(english, translations);
 	return Object.fromEntries(
-		Object.entries(english).map(([key, wording]) => [
+		[...longestOf(english, translations)].map(([key, { wording, atLeast }]) => [
 			key,
-			stretched(wording, longest.get(key) ?? 0),
+			stretched(wording, atLeast),
 		]),
 	);
 }
 
-// longestOf is, for each key of English, how long each of its texts is to be
-// at least: as long as the longest text any translation says for it, in any
-// of its forms, where that is longer than the shortest text the key grows to
-// from its English alone. Counting letters is what costs, and every card of
-// the preview counts them as its page loads: a text has no more letters than
-// code units, so one no longer in code units than the length its key has
-// reached is not counted at all.
+// longestOf is, for each key of English, its wording and how long each of its
+// texts is to be at least: as long as the longest text any translation says
+// for it, in any of its forms, where that is longer than the shortest text the
+// key grows to from its English alone. A key English lacks is no key of the
+// pseudo-language. Counting letters is what costs, and every card of the
+// preview counts them as its page loads: a text has no more letters than code
+// units, so one no longer in code units than the length its key has reached
+// is not counted at all.
 function longestOf(
 	english: Dictionary,
 	translations: Iterable<Dictionary>,
-): Map<string, number> {
+): Map<string, { wording: Wording; atLeast: number }> {
 	const longest = new Map(
 		Object.entries(english).map(([key, wording]) => [
 			key,
-			Math.min(...textsOf(wording).map((text) => grown(text))),
+			{
+				wording,
+				atLeast: Math.min(...textsOf(wording).map((text) => grown(text))),
+			},
 		]),
 	);
 	for (const dictionary of translations) {
 		for (const [key, wording] of Object.entries(dictionary)) {
+			const kept = longest.get(key);
+			if (kept === undefined) {
+				continue;
+			}
 			for (const text of textsOf(wording)) {
-				const most = longest.get(key) ?? 0;
-				if (text.length > most) {
-					longest.set(key, Math.max(most, lengthOf(text)));
+				if (text.length > kept.atLeast) {
+					kept.atLeast = Math.max(kept.atLeast, lengthOf(text));
 				}
 			}
 		}
