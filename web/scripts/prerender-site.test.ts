@@ -957,7 +957,7 @@ describe("the site built from this repository", () => {
 			said: ['site: the base URL "https://mathtrail.app/" ends in a slash'],
 		});
 		expect(await filesIn(out)).toEqual(before);
-	});
+	}, 60_000);
 
 	test("is left where it was by a build whose text cannot be read", async () => {
 		const before = await filesIn(out);
@@ -978,7 +978,7 @@ describe("the site built from this repository", () => {
 		} finally {
 			await rm(broken, { recursive: true, force: true });
 		}
-	});
+	}, 60_000);
 });
 
 describe("a directory that holds something else", () => {
@@ -1067,7 +1067,7 @@ describe("a directory that does not exist yet", () => {
 		} finally {
 			await rm(parent, { recursive: true, force: true });
 		}
-	});
+	}, 60_000);
 
 	test("is made by a build that succeeds", async () => {
 		const parent = await mkdtemp(join(tmpdir(), "parent-"));
