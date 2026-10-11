@@ -144,6 +144,8 @@ describe("a clock face", () => {
 		expect(labelled.map((text) => text.text).slice(12)).toEqual(["M", "H"]);
 	});
 
+	// Every minute of the day is 1,440 faces drawn, which on a shared runner,
+	// counting coverage, takes longer than a test's usual five seconds.
 	test("labels its hands clear of its numbers and of each other at every minute of the day", () => {
 		for (let minutes = 0; minutes < 24 * 60; minutes++) {
 			const time = `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`;
@@ -159,7 +161,7 @@ describe("a clock face", () => {
 				}
 			}
 		}
-	});
+	}, 30_000);
 
 	test("writes a hand's label below zero with the sign of mathematics, as every label is", () => {
 		const labels = textsOf(
