@@ -528,7 +528,7 @@ func waitedLonger(p *profile.Profile, places map[string]int, topic, than string)
 // answers, of its oldest skipped task, so such a topic was given before all
 // the window holds, or at worst among its oldest entries.
 func lastPlaces(p *profile.Profile) map[string]int {
-	places := make(map[string]int, len(p.Recent)+1)
+	places := make(map[string]int, len(p.Recent))
 	for i := range p.Recent {
 		places[p.Recent[i].Topic] = i + 1
 	}
