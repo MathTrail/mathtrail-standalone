@@ -30,19 +30,35 @@ describe("the widget's words", () => {
 	// The adult types in the chat and the child answers on the card, so a card
 	// that sends its reader to the chat to ask for a task speaks to the adult,
 	// in the form its words for the adult already take where the language
-	// tells the two apart: the form the card asks for a new profile in.
+	// tells the two apart, and in the one form it has where it does not: the
+	// form the card asks for a new profile in.
 	test.each([
 		["ar", "يمكن طلب"],
+		["bg", "поискайте"],
 		["bn", "চান"],
+		["bs", "zatražite"],
+		["ca", "demani"],
+		["cs", "požádejte"],
+		["da", "bed om"],
 		["de", "Sie"],
+		["el", "ζητήστε"],
 		["es", "pida"],
 		["fa", "بخواهید"],
+		["fi", "pyydä"],
 		["fr", "demandez"],
 		["hi", "माँगें"],
+		["hr", "zatražite"],
+		["hu", "kérjen"],
 		["it", "chieda"],
 		["ja", "頼んでください"],
 		["ko", "요청해 주세요"],
+		["lt", "paprašykite"],
+		["nb", "be om"],
+		["ro", "cereți"],
 		["ru", "попросите"],
+		["sk", "požiadajte"],
+		["sr", "затражите"],
+		["sv", "be om"],
 		["tr", "isteyin"],
 		["uk", "попросіть"],
 		["ur", "مانگیں"],
@@ -103,7 +119,7 @@ describe("a card's words", () => {
 		).toBe("Grade 3");
 	});
 
-	test("are in every one of the twenty-two languages of v1", () => {
+	test("are in every one of the thirty-seven languages written so far", () => {
 		expect([...dictionaries.keys()]).toEqual(
 			expect.arrayContaining([
 				"en",
@@ -128,6 +144,21 @@ describe("a card's words", () => {
 				"uk",
 				"th",
 				"nl",
+				"ro",
+				"cs",
+				"hu",
+				"el",
+				"sv",
+				"da",
+				"nb",
+				"fi",
+				"sk",
+				"ca",
+				"lt",
+				"hr",
+				"bs",
+				"sr",
+				"bg",
 			]),
 		);
 	});

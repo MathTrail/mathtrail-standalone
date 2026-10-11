@@ -225,12 +225,14 @@ It moves nothing about the child until it is handed out: not the fingerprints, n
 
 ### The daily counters
 
-`daily` — `{ "date": "2026-09-20", "accepted": 7, "failed": 1 }`. Two counters and the day they belong to. It lives in the file because it must be shared by every instance (О-15, О-24).
+`daily` — `{ "accepted": 7, "date": "2026-09-20", "ends": "2026-09-21T05:00:00Z", "failed": 1, "utc_offset": -300 }`. Two counters, the day they belong to and when it ends, and the family's clock the next day begins by. It lives in the file because it must be shared by every instance (О-15, О-24).
 
 - `accepted` — the daily generation limit. Its unit is an accepted task (О-35), counted as it is handed out: checked in `next_task` and `prepare_task`, raised in `submit_task`, or in `next_task` when it hands out a task kept (03-flows, R235).
 - `failed` — the ceiling on failed generations: raised whenever a request ends in `attempts_exhausted`, checked in `next_task`, five a day by default, `MATHTRAIL_DAILY_FAILED` (SPEC 11.2). It exists because О-35 deliberately lets a refusal cost nothing, which on its own leaves a failing model free to loop for ever; the reasoning is in 03-flows and the decision is R15.
+- `ends` — when the day ends: the family's next midnight by the clock the day began under, RFC 3339 in UTC. It is the midnight after `date` by a clock some time zone keeps, and a file from before T98 has none: its day ends at the UTC midnight after `date`.
+- `utc_offset` — how far the family's clock runs ahead of UTC, in minutes, behind it below zero: the clock of the device the child last answered a card on, which the card tells with the answer, and which the next day begins by. It lies between −720 and 840 and keeps to quarters of an hour, and it is absent until a card has told one. The model's answers, given in the chat, tell none (R291).
 
-The date is a **UTC** date. The service has no reliable idea of the family's timezone, and for once that costs very little: the product shows no rhythm of practice at all — no streaks, no "solved today", nothing to break (R13, О-49) — so an early rollover in the Americas makes the limit *looser* for one evening and never stricter. Taking the offset from the widget, which knows the browser's timezone, would make it exact; it is an improvement, not a debt.
+The date is the **family's** date: the day the family's clock showed as the day began, which ends at `ends`, the family's midnight, or the UTC date while the file has no clock. It was the UTC date until T98, on the reasoning that an early rollover in the Americas makes the limit looser for one evening and never stricter; but in the Americas that evening is the lesson, and the card of a full day says new tasks come tomorrow (R291, R292). A clock told counts from the next day on: the day under way ends at `ends`, so a clock that moves, or two that take turns, neither ends a day sooner nor carries its tasks into the next.
 
 ## Where the answer is, and why it cannot be deduced
 

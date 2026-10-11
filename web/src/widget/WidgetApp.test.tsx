@@ -222,11 +222,7 @@ describe("the card", () => {
 
 	test.each([
 		["a task refused", refused, "This try didn't pass the checks."],
-		[
-			"a day refused",
-			limited,
-			"There are no more new tasks today\u00a0— there will be more tomorrow.",
-		],
+		["a day refused", limited, "Make a wish for tomorrow"],
 	])("draws the wait after %s as the waiting card", (_, payload, says) => {
 		const { bridge, deliver } = heldBridge();
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));

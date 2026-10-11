@@ -168,6 +168,31 @@ func TestTheCardTellsTheFamilysClockWithTheAnswer(t *testing.T) {
 	}
 }
 
+// An answer whose file another instance wrote first is recorded again on what
+// is there now, and the card's clock with it: the clock is part of the
+// answer's change, not of its first write alone.
+func TestAnAnswerMadeAgainKeepsTheCardsClock(t *testing.T) {
+	t.Parallel()
+
+	p := raceOnTheCard(t, rating.TrialAnswers)
+	kept := &overtaking{Storage: keptAsIs(t, p), edit: func(p *profile.Profile) { p.Student.Notes = "Likes puzzles." }}
+	h, session := lesson(t, kept)
+	kept.armed.Store(true)
+
+	answered(t, call(t, session, "submit_answer", map[string]any{
+		"task_id": p.CurrentTask.ID, "answer": "C", "utc_offset": -5 * 60,
+	}))
+	h.settle()
+	if outcome := lateOutcome(t, h, "submit_answer"); outcome != "remade" {
+		t.Errorf("the answer's write went %q, want remade on the other instance's file", outcome)
+	}
+	got, _ := loadKept(t, kept.Storage)
+	if got.Daily.UTCOffset != -5*60 || got.Student.Notes != "Likes puzzles." || got.CurrentTask.Answered == nil {
+		t.Errorf("the file keeps the clock %d, the notes %q and the answer %+v, want the card's clock, the other "+
+			"instance's notes and the answer", got.Daily.UTCOffset, got.Student.Notes, got.CurrentTask.Answered)
+	}
+}
+
 // answered is the payload of an answer that was told how it went.
 func answered(t *testing.T, result *mcp.CallToolResult) *resultPayload {
 	t.Helper()

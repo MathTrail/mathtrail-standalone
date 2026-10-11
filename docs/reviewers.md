@@ -44,7 +44,7 @@ The chat's own log of tool calls is another matter. When the model hands its tas
 
 ## Limits
 
-- **20 new tasks a day** for the demo child, shared by every reviewer, counted from 00:00 UTC. Past them the card says there are no more new tasks today; the progress and the last task stay available.
+- **20 new tasks a day** for the demo child, shared by every reviewer, counted until midnight by the clock of the device a card was last answered on, or midnight UTC before any card has been answered. Past them the card wishes the child a good tomorrow and says the day's tasks are over; the progress and the last task stay available.
 - **A task is written by the chat's model** and checked before it is shown, so it takes a minute or two; one the checks refuse is written again, up to three times.
 
 ## Contact

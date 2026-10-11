@@ -561,15 +561,20 @@
       }
     },
     "daily": {
-      "description": "What the limits count, and the family's day they belong to: the day by the family's clock, which ends at the family's midnight.",
+      "description": "What the limits count, and the family's day they belong to, which ends at the family's midnight.",
       "type": "object",
       "required": ["accepted", "date", "failed"],
       "properties": {
         "accepted": { "type": "integer", "minimum": 0 },
         "date": { "type": "string", "format": "date" },
+        "ends": {
+          "description": "When the day ends, RFC 3339 in UTC: the family's next midnight by the clock the day began under. Absent in a file from before the family's clock was kept, whose day ends at the UTC midnight after date.",
+          "type": "string",
+          "format": "date-time"
+        },
         "failed": { "type": "integer", "minimum": 0 },
         "utc_offset": {
-          "description": "How far the family's clock runs ahead of UTC, in minutes, and behind it below zero: the clock of the device the child last answered a card on. Absent, the family's day is the UTC day.",
+          "description": "How far the family's clock runs ahead of UTC, in minutes, and behind it below zero: the clock of the device the child last answered a card on, by which the next day begins. Absent, the family's day is the UTC day.",
           "type": "integer",
           "minimum": -720,
           "maximum": 840,

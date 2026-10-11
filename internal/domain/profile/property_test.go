@@ -565,11 +565,14 @@ func TestARefusalHoldsItsProperties(t *testing.T) {
 // Whatever clock a family keeps and whenever a task is given, the counters of
 // its day hold to the family's next midnight and not a second past it: the
 // last second of the family's day still counts the task, and the first of the
-// next counts none.
+// next counts none. And whatever clocks a card tells later, in whatever order,
+// no day ends sooner or later than the midnight of the clock it began under.
 func TestTheFamilysDayHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 
 	properties := gopter.NewProperties(nil)
+	moments := gen.Int64Range(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC).Unix(), time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC).Unix())
+	quarters := gen.IntRange(-12*4, 14*4)
 
 	properties.Property("the counters hold to the family's midnight and no further", prop.ForAll(
 		func(quarters int, given int64) bool {
@@ -584,8 +587,32 @@ func TestTheFamilysDayHoldsItsProperties(t *testing.T) {
 			return p.Daily.Today(midnight.Add(-time.Second)).Accepted == 1 &&
 				p.Daily.Today(midnight).Accepted == 0
 		},
-		gen.IntRange(-12*4, 14*4),
-		gen.Int64Range(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC).Unix(), time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC).Unix()),
+		quarters, moments,
+	))
+
+	properties.Property("a clock told moves the end of no day", prop.ForAll(
+		func(first int, told []int, given, later int64, count int) bool {
+			var p profile.Profile
+			p.SetClock(first * 15)
+			at := time.Unix(given, 0).UTC()
+			for range count {
+				p.CountAccepted(at)
+			}
+			for _, quarters := range told {
+				p.SetClock(quarters * 15)
+			}
+
+			offset := time.Duration(first*15) * time.Minute
+			shown := at.Add(offset)
+			ends := time.Date(shown.Year(), shown.Month(), shown.Day()+1, 0, 0, 0, 0, time.UTC).Add(-offset)
+			then := at.Add(time.Duration(later) * time.Second)
+			want := 0
+			if then.Before(ends) {
+				want = count
+			}
+			return p.Daily.Today(then).Accepted == want
+		},
+		quarters, gen.SliceOf(quarters), moments, gen.Int64Range(0, 48*60*60), gen.IntRange(0, 30),
 	))
 
 	properties.TestingRun(t)

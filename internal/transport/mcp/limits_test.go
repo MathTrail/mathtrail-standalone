@@ -356,7 +356,10 @@ func TestADayFullEndsAtTheFamilysMidnight(t *testing.T) {
 	t.Parallel()
 
 	familys := time.Date(2026, 10, 10, 0, 0, 0, 0, time.UTC)
-	kept := dayOf(t, profile.Daily{Date: profile.DateOf(familys), Accepted: config.DefaultDailyTasks, UTCOffset: -5 * 60})
+	kept := dayOf(t, profile.Daily{
+		Date: profile.DateOf(familys), Ends: profile.At(time.Date(2026, 10, 11, 5, 0, 0, 0, time.UTC)),
+		Accepted: config.DefaultDailyTasks, UTCOffset: -5 * 60,
+	})
 	moving := &clock{at: time.Date(2026, 10, 11, 0, 30, 0, 0, time.UTC)} // half past seven for the family
 	_, session := lessonWith(t, kept, moving, nil)
 	_, revision := loadKept(t, kept)

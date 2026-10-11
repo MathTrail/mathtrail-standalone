@@ -105,7 +105,7 @@ func New(student Student, appVersion string, now time.Time) *Profile {
 		Student:          student,
 		StudentID:        uuid.NewString(),
 		CreatedAt:        At(now),
-		Daily:            Daily{Date: DateOf(now)},
+		Daily:            dayFrom(now, 0),
 		Ratings:          Ratings{Start: rating.Start(student.Grade), Theta: rating.Start(student.Grade), MasteryRule: MasteryRuleCautious},
 		Recent:           []Answer{},
 		Revision:         1,

@@ -182,17 +182,21 @@ type Daily struct {
 	// Accepted is how many tasks were accepted today. Its unit is an accepted
 	// task, so a refusal costs the child nothing.
 	Accepted int `json:"accepted"`
-	// Date is the family's day these numbers belong to: the day by the
-	// family's clock, which UTCOffset sets, so that the tasks of a day end at
-	// the family's midnight and "more tomorrow" means tomorrow.
+	// Date is the family's day these numbers belong to: the day the family's
+	// clock showed as it began.
 	Date Date `json:"date"`
+	// Ends is when that day ends: the family's next midnight by the clock it
+	// began under, so that the tasks of a day end at the family's midnight and
+	// "more tomorrow" means tomorrow. A file from before the family's clock was
+	// kept has none, and its day ends at the UTC midnight after Date.
+	Ends Time `json:"ends,omitzero"`
 	// Failed is how many requests ended with the model out of attempts. It
 	// exists to stop a loop, not to ration a lesson.
 	Failed int `json:"failed"`
 	// UTCOffset is how far the family's clock runs ahead of UTC, in minutes,
 	// and behind it below zero: the clock of the device the child last
-	// answered a card on, which the card tells with the answer. Until a card
-	// has told it, the family's day is the UTC day.
+	// answered a card on, which the card tells with the answer. The next day
+	// begins by it. Until a card has told one, the family's day is the UTC day.
 	UTCOffset int `json:"utc_offset,omitempty"`
 }
 
@@ -207,9 +211,10 @@ const (
 // SetClock records how far the family's clock runs from UTC, in minutes, as
 // the card the child answered on told it. An offset no clock runs at is left
 // out, and the one before it stays: the answer it came with counts all the
-// same. A clock that moves can move the day the counters belong to once, and
-// only ever loosens the limit for it — the counters of a day the clock left
-// count as none.
+// same. A clock counts from the next day on: the day under way ends when it
+// was to end, so a clock told — the first one, a family that travels, summer
+// time, two devices whose clocks take turns — neither ends a day sooner nor
+// carries its tasks into the next.
 func (p *Profile) SetClock(offset int) {
 	if clockRunsAt(offset) {
 		p.Daily.UTCOffset = offset
@@ -237,16 +242,35 @@ func (p *Profile) CountFailed(now time.Time) {
 	p.Daily.Failed++
 }
 
-// Today is what the counters hold for the family's day now falls on: the
-// counters as they stand when they are that day's, and nothing counted when
-// they are another day's, the family's clock kept. A limit reads the counters
+// Today is what the counters hold for the family's day now falls in: the
+// counters as they stand while their day lasts, and nothing counted once it
+// has ended — or before it began, in a file whose day lies ahead — the day
+// then begun at now by the family's clock as it is. A limit reads the counters
 // through it, so that yesterday's tasks never hold back today's.
 func (d *Daily) Today(now time.Time) Daily {
-	today := DateOf(now.Add(time.Duration(d.UTCOffset) * time.Minute))
-	if d.Date.Equal(today.Time) {
+	ends := d.ends()
+	if !now.Before(ends.Add(-24*time.Hour)) && now.Before(ends) {
 		return *d
 	}
-	return Daily{Date: today, UTCOffset: d.UTCOffset}
+	return dayFrom(now, d.UTCOffset)
+}
+
+// ends is when the counters' day ends: as the file says, or, in a file from
+// before it said, at the UTC midnight after Date.
+func (d *Daily) ends() time.Time {
+	if !d.Ends.IsZero() {
+		return d.Ends.Time
+	}
+	return d.Date.AddDate(0, 0, 1)
+}
+
+// dayFrom is a day begun at now by a clock offset minutes ahead of UTC:
+// nothing counted yet, the date the clock shows, and its end at the clock's
+// next midnight.
+func dayFrom(now time.Time, offset int) Daily {
+	ahead := time.Duration(offset) * time.Minute
+	date := DateOf(now.Add(ahead))
+	return Daily{Date: date, Ends: At(date.AddDate(0, 0, 1).Add(-ahead)), UTCOffset: offset}
 }
 
 // startDay moves the counters onto the day they are about to count, clearing

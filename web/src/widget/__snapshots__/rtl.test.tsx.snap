@@ -1066,9 +1066,19 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           البرتغالية
         </option>
         <option
+          value="bg"
+        >
+          البلغارية
+        </option>
+        <option
           value="bn"
         >
           البنغالية
+        </option>
+        <option
+          value="bs"
+        >
+          البوسنية
         </option>
         <option
           value="pl"
@@ -1086,9 +1096,39 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           التركية
         </option>
         <option
+          value="cs"
+        >
+          التشيكية
+        </option>
+        <option
+          value="da"
+        >
+          الدانمركية
+        </option>
+        <option
           value="ru"
         >
           الروسية
+        </option>
+        <option
+          value="ro"
+        >
+          الرومانية
+        </option>
+        <option
+          value="sk"
+        >
+          السلوفاكية
+        </option>
+        <option
+          value="sv"
+        >
+          السويدية
+        </option>
+        <option
+          value="sr"
+        >
+          الصربية
         </option>
         <option
           value="zh-Hans"
@@ -1111,9 +1151,24 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           الفرنسية
         </option>
         <option
+          value="fi"
+        >
+          الفنلندية
+        </option>
+        <option
           value="vi"
         >
           الفيتنامية
+        </option>
+        <option
+          value="ca"
+        >
+          الكتالانية
+        </option>
+        <option
+          value="hr"
+        >
+          الكرواتية
         </option>
         <option
           value="ko"
@@ -1121,9 +1176,24 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           الكورية
         </option>
         <option
+          value="lt"
+        >
+          الليتوانية
+        </option>
+        <option
+          value="nb"
+        >
+          النرويجية بوكمال
+        </option>
+        <option
           value="hi"
         >
           الهندية
+        </option>
+        <option
+          value="hu"
+        >
+          الهنغارية
         </option>
         <option
           value="nl"
@@ -1134,6 +1204,11 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
           value="ja"
         >
           اليابانية
+        </option>
+        <option
+          value="el"
+        >
+          اليونانية
         </option>
       </select>
       <p

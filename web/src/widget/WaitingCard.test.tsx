@@ -101,15 +101,17 @@ describe("a card a task did not come to", () => {
 });
 
 describe("a card refused for the day", () => {
-	test("says when there will be more, with nothing to wait for or press", async () => {
+	test("wishes for tomorrow under a night and says the day's tasks are over, with nothing to wait for or press", async () => {
 		await drawCard(limited);
 
-		expect(text(".mt-verdict-line")).toBe(
-			"There are no more new tasks today — there will be more tomorrow.",
+		expect(text(".mt-dayover-title")).toBe("Make a wish for tomorrow");
+		expect(text(".mt-dayover-line")).toBe(
+			"That's all the tasks for today\u00a0— it's the daily limit. New ones will come tomorrow.",
 		);
-		expect(text(".mt-verdict-detail")).toBe(
-			"You can still look at your progress, or go back over the last task.",
-		);
+		expect(
+			root.querySelector(".mt-night svg")?.getAttribute("aria-hidden"),
+		).toBe("true");
+		expect(root.querySelector(".mt-verdict")).toBeNull();
 		expect(root.querySelector(".mt-gen")).toBeNull();
 		expect(root.querySelector("button")).toBeNull();
 		expect(root.querySelector(".mt-bar")).toBeNull();

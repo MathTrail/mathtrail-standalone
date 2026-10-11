@@ -36,7 +36,7 @@ type submitAnswerIn struct {
 	HintUsed bool   `json:"hint_used,omitempty" jsonschema:"whether the child opened the hint before answering; false when left out"`
 	// UTCOffset is the clock of the device the card was answered on, which
 	// the card tells itself: a model has no clock of the family's to tell.
-	UTCOffset *int `json:"utc_offset,omitempty" jsonschema:"set by the card itself: how far the clock of its device runs ahead of UTC, in minutes. Leave it out"`
+	UTCOffset *int `json:"utc_offset,omitempty" jsonschema:"never pass it: the card that shows the task sets it itself, as how far the clock of its device runs ahead of UTC, in minutes"`
 }
 
 // answeredOut is what submit_answer hands back: how the answer went, as the
@@ -217,7 +217,7 @@ func (s *Service) recordAgain(account store.Account, given profile.Answered, clo
 }
 
 // clockTold sets the family's clock to the one the card told with an answer,
-// when it told one, so that the day of the limits ends at the family's
+// when it told one, so that the days of the limits end at the family's
 // midnight. A call that told none — the model's, for an answer given in the
 // chat — leaves the clock as it was.
 func clockTold(p *profile.Profile, offset *int) {

@@ -548,18 +548,18 @@
 		"mind": "'It' is the task awaited; 'here' is this card."
 	},
 	"waiting.limit": {
-		"reader": "both",
-		"where": "The first line on the card shown once the day's new tasks are used up.",
-		"length": "sentence",
-		"address": "none",
-		"mind": "No reproach and no number: only that new tasks come again tomorrow."
-	},
-	"waiting.limit_detail": {
 		"reader": "child",
-		"where": "The line under the day's-limit line, pointing to the progress, opened from the card's top line, and to the last task above.",
+		"where": "The title of the card shown once the day's tasks are over, under a picture of a night over the mountains with a shooting star.",
 		"length": "sentence",
 		"address": "informal",
-		"mind": "'Your progress' is the child's, opened from task.profile_action. Where 'you' shows gender, an impersonal 'one can', as the Russian has."
+		"mind": "A wish made on the shooting star in the picture: the child's own, for tomorrow. Where the second person shows gender, a 'let's' or a noun instead."
+	},
+	"waiting.limit_detail": {
+		"reader": "both",
+		"where": "The line under the title of the day's-end card: the day's tasks are over, that is the daily limit, and new ones come tomorrow.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "No reproach and no number. It must not say the child solved them: the same card ends a day of requests the chat could not write a task for, when the child may have had none."
 	},
 	"progress.label": {
 		"reader": "both",

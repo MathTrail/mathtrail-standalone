@@ -46,7 +46,7 @@ hero:
 # author and licence, and the chip that picks it, where that is not its place.
 history:
   title: Thinking with no example to follow has been taught for over two thousand years
-  lead: Olympiad problems are nothing new. In many countries and many centuries, people learned to find a solution nobody had shown them and to explain why it is right, and each generation handed the skill on to the next.
+  lead: Non-standard problems are nothing new. In many countries and many centuries, people learned to find a solution nobody had shown them and to explain why it is right, and each generation handed the skill on to the next.
   quote: “There is no royal road to geometry.”
   quoted: Euclid to King Ptolemy, who asked whether geometry could be learned more easily than through the Elements. So Proclus tells it, in the fifth century.
   # What a screen reader calls the choice of a picture.
