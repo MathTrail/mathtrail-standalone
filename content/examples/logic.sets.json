@@ -16,6 +16,8 @@
     "correct_answer": "C",
     "hint": "Count the pupils who are in at least one club. Is anybody counted twice?",
     "solution": "Adding 15 and 12 counts the 5 pupils in both clubs twice, so 15 + 12 - 5 = 22 pupils are in at least one club. That leaves 25 - 22 = 3 pupils in neither.",
+    "solution_picture": {"kind": "venn", "total": "25", "sets": [{"label": "F", "count": "15"}, {"label": "C", "count": "12"}], "both": "5", "neither": "3"},
+    "solution_total": "25 − (15 + 12 − 5) = 3",
     "distractors": {
       "A": {
         "trap": "answered_other_question",

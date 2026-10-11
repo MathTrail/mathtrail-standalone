@@ -51,16 +51,23 @@ var raceChecked = map[string]string{
 	"A": "Ann is last.", "B": "Kim is second.", "C": "Ben is first.", "D": "Someone was first.", "E": "Nobody tied.",
 }
 
+// racePlaces is the picture of the race's solution, which every task draws:
+// the three places, the first ringed.
+var racePlaces = map[string]any{"kind": "row", "items": []map[string]string{
+	{"below": "1", "mark": "ring"}, {"below": "2"}, {"below": "3"},
+}}
+
 // raceTask is the race as the model hands it in.
 func raceTask() map[string]any {
 	return map[string]any{
-		"core_idea":      raceIdea,
-		"question":       raceQuestion,
-		"options":        raceOptions,
-		"correct_answer": raceAnswer,
-		"hint":           raceHint,
-		"solution":       raceSolution,
-		"distractors":    raceExplained,
+		"core_idea":        raceIdea,
+		"question":         raceQuestion,
+		"options":          raceOptions,
+		"correct_answer":   raceAnswer,
+		"hint":             raceHint,
+		"solution":         raceSolution,
+		"solution_picture": racePlaces,
+		"distractors":      raceExplained,
 	}
 }
 

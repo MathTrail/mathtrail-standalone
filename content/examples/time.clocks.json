@@ -434,6 +434,7 @@
     },
     "correct_answer": "A",
     "solution": "Going back 40 minutes from 11:40 gives 11:00. Going back 10 more minutes gives 10:50.",
+    "solution_picture": {"kind": "clock", "time": "10:50"},
     "distractors": {
       "B": {
         "trap": "wrong_operation",
@@ -1266,6 +1267,7 @@
     },
     "correct_answer": "B",
     "solution": "The real time is 7 minutes earlier than the fast clock: 9:55. The slow clock is 5 minutes behind the real time: 9:50.",
+    "solution_picture": {"kind": "clock", "time": "9:50"},
     "distractors": {
       "A": {
         "trap": "stopped_early",
@@ -1854,6 +1856,7 @@
     "correct_answer": "B",
     "hint": "Work out each trip on its own: count up to midnight, then on from midnight.",
     "solution": "Train A travels 1 hour 25 minutes up to midnight and 6 hours 10 minutes after it, 7 hours 35 minutes in all. Train B travels 10 minutes up to midnight and 7 hours 5 minutes after it, 7 hours 15 minutes in all. Train A's trip is 20 minutes longer.",
+    "solution_picture": {"kind": "table", "rows": [["A", "22:35", "6:10", "7:35"], ["B", "23:50", "7:05", "7:15"]]},
     "distractors": {
       "A": {
         "trap": "reversed_relation",

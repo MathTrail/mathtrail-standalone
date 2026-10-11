@@ -385,7 +385,7 @@ A directory that reviews a copy before listing it asks for an account its review
 
    The service's start says `reviewer sign-in` with `configured` true, and the consent screen shows "Reviewing MathTrail for a directory?".
 
-Fill the demo profile by signing in through that line yourself, in a chat, before the review. Its 50 tasks a day are shared by every reviewer, and the day starts at 00:00 UTC, so do not fill it on the day a review may begin. The progress shows a change over the past week only while the last answer is at most six days old, so answer a few tasks in the days before a review. Sign in through the line once yourself before a review begins as well: a grant that has ended shows only when somebody signs in.
+Fill the demo profile by signing in through that line yourself, in a chat, before the review. Its 50 tasks a day are shared by every reviewer, and the day ends at midnight by the clock of the device a card was last answered on, so do not fill it on the day a review may begin. The progress shows a change over the past week only while the last answer is at most six days old, so answer a few tasks in the days before a review. Sign in through the line once yourself before a review begins as well: a grant that has ended shows only when somebody signs in.
 
 **Never connect the demo account through Google.** A parent's account is known by its identifier at Drive, and the demo account by the identifier at Google its grant names, so the demo account signed in with Google is a parent's account like any other: its lessons are counted, and disconnecting that chat ends every grant of the demo account at MathTrail, the reviewers' among them. Fill and check the demo profile through the reviewers' line alone.
 

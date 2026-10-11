@@ -14,6 +14,8 @@
     },
     "correct_answer": "B",
     "solution": "Make pairs that give 10: 1 + 9, 2 + 8, 3 + 7 and 4 + 6. Four tens are 40, and the 5 in the middle makes 45.",
+    "solution_picture": {"kind": "table", "rows": [["1", "2", "3", "4", "5"], ["9", "8", "7", "6", ""]]},
+    "solution_total": "4 × 10 + 5 = 45",
     "distractors": {
       "A": {
         "trap": "answered_other_question",
@@ -1306,6 +1308,8 @@
     },
     "correct_answer": "D",
     "solution": "Three times the number is the number plus two more of it. So two of the number make 12, and the number is 6. Check: 6 + 12 = 18, and 3 × 6 = 18.",
+    "solution_picture": {"kind": "bars", "bars": [{"segments": [{"size": 6, "label": "6"}, {"size": 12, "label": "12"}]}, {"segments": [{"size": 6, "label": "6"}, {"size": 6, "label": "6"}, {"size": 6, "label": "6"}]}]},
+    "solution_total": "12 ÷ 2 = 6",
     "distractors": {
       "A": {
         "trap": "wrong_operation",
@@ -1995,6 +1999,8 @@
     "correct_answer": "B",
     "hint": "Start from the end. Before the last 2 coins in the third shop, how many did he have? And before he spent half?",
     "solution": "Go backwards. After the third shop he had 0, so before its last 2 coins he had 2, and before spending half he had 4. Before the second shop he had (4 + 2) × 2 = 12, and before the first (12 + 2) × 2 = 28. Check: 28 → 14 − 2 = 12 → 6 − 2 = 4 → 2 − 2 = 0.",
+    "solution_picture": {"kind": "row", "items": [{"label": "28"}, {"label": "12"}, {"label": "4"}, {"label": "0"}]},
+    "solution_total": "(12 + 2) × 2 = 28",
     "distractors": {
       "A": {
         "trap": "stopped_early",

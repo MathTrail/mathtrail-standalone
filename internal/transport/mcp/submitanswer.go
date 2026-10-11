@@ -34,6 +34,9 @@ type submitAnswerIn struct {
 	TaskID   string `json:"task_id" jsonschema:"the id of the task on the child's card"`
 	Answer   string `json:"answer" jsonschema:"the letter of the option the child chose, A to E, or ? when the child does not know"`
 	HintUsed bool   `json:"hint_used,omitempty" jsonschema:"whether the child opened the hint before answering; false when left out"`
+	// UTCOffset is the clock of the device the card was answered on, which
+	// the card tells itself: a model has no clock of the family's to tell.
+	UTCOffset *int `json:"utc_offset,omitempty" jsonschema:"never pass it: the card that shows the task sets it itself, as how far the clock of its device runs ahead of UTC, in minutes"`
 }
 
 // answeredOut is what submit_answer hands back: how the answer went, as the
@@ -66,7 +69,7 @@ type wentOut struct {
 // resultOut is how an answer went, as a card shows it: the child's choice and
 // the right option, whether they are the same, the trap behind a wrong letter
 // with what the child is told about it, the solution with its picture and the
-// total under it where the task has them, and the rating in the topic before
+// total under it where the task has one, and the rating in the topic before
 // and after — or, while the trial series runs, how many of its answers are in.
 // AlreadyAnswered marks an answer recorded by an earlier call and only told
 // again.
@@ -119,7 +122,8 @@ func (s *Service) submitAnswerTool() Tool {
 			"how many of its tasks are done instead. An answer is recorded once: the same task answered again, on " +
 			"the card or by you, changes nothing and is told what was recorded the first time — the whole result " +
 			"while the task is on the card, and whether it was right once the next task has been asked for. The " +
-			"answer is written to the profile's file in the adult's Google Drive, with the ratings it moves.",
+			"answer is written to the profile's file in the adult's Google Drive, with the ratings it moves and, " +
+			"for an answer given on the card, the clock of its device, which the day's tasks are counted by.",
 		Effect:     Adds,
 		Idempotent: true,
 	}, s.submitAnswer)
@@ -173,11 +177,13 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 	// The answer is written after the reply, which the card does not wait for,
 	// and its lines once the file holds it, so that an answer whose write lost
 	// to another is not counted when it is sent again.
+	clockTold(p, in.UTCOffset)
 	p.Touch(s.version, now)
 	reply := s.told(ctx, p, &recorded, now)
 	err = s.writeAfterAnswer(ctx, &lateWrite{
 		tool: "submit_answer", account: account, profile: p, revision: revision,
-		again: s.recordAgain(account, given, now), landed: s.answerLines(account, p, &recorded, masteredBefore, now),
+		again:  s.recordAgain(account, given, in.UTCOffset, now),
+		landed: s.answerLines(account, p, &recorded, masteredBefore, now),
 	})
 	if err != nil {
 		return Reply[answeredOut]{}, err
@@ -186,10 +192,11 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 }
 
 // recordAgain is the answer recorded once more, on a fresh read of the
-// profile, as a change: unless the task on the card has this answer already,
-// which then stands, or has another, or is no longer the task answered — the
-// answer the call told is then not the one the file keeps.
-func (s *Service) recordAgain(account store.Account, given profile.Answered, now time.Time) change {
+// profile, as a change, with the clock the card told beside it: unless the
+// task on the card has this answer already, which then stands, or has another,
+// or is no longer the task answered — the answer the call told is then not the
+// one the file keeps.
+func (s *Service) recordAgain(account store.Account, given profile.Answered, clock *int, now time.Time) change {
 	return func(p *profile.Profile) (made, error) {
 		masteredBefore := p.CurrentTask != nil && tutor.Mastered(p, s.content, p.CurrentTask.Topic)
 		recorded, err := p.Record(given, s.sealer, s.taughtOf(p))
@@ -203,8 +210,19 @@ func (s *Service) recordAgain(account store.Account, given profile.Answered, now
 		case recorded.Again:
 			return made{state: already}, nil
 		}
+		clockTold(p, clock)
 		p.Touch(s.version, now)
 		return made{state: changed, landed: s.answerLines(account, p, &recorded, masteredBefore, now)}, nil
+	}
+}
+
+// clockTold sets the family's clock to the one the card told with an answer,
+// when it told one, so that the days of the limits end at the family's
+// midnight. A call that told none — the model's, for an answer given in the
+// chat — leaves the clock as it was.
+func clockTold(p *profile.Profile, offset *int) {
+	if offset != nil {
+		p.SetClock(*offset)
 	}
 }
 

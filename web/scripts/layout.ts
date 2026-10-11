@@ -122,11 +122,19 @@ function describe(element: Element): string {
 }
 
 // shownIn are the elements of the card a reader sees laid out: not what is
-// hidden from sight but read out.
+// hidden from sight but read out, nor the parts of a drawing that fills its
+// box and is cut by it, whose box is all a reader sees of them and is measured
+// itself.
 function shownIn(card: Element): HTMLElement[] {
 	return [...card.querySelectorAll<HTMLElement>("*")].filter((element) => {
 		const box = element.getBoundingClientRect();
+		const cut =
+			element instanceof SVGElement &&
+			element.ownerSVGElement
+				?.getAttribute("preserveAspectRatio")
+				?.endsWith("slice") === true;
 		return (
+			!cut &&
 			element.closest(".mt-vh, [hidden]") === null &&
 			getComputedStyle(element).display !== "none" &&
 			(box.width > 0 || box.height > 0)

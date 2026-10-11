@@ -349,7 +349,7 @@ func TestEachLanguageListsWithItsOwnWords(t *testing.T) {
 
 			problems := matchedIn(test.lesson, test.question, labelled("A", "B", "C", "D"))
 			if named := len(problems) == 0; named != test.named {
-				t.Errorf("PictureMatch() = %v in %q, want B and C named by a range %v", problems, test.lesson, test.named)
+				t.Errorf("PictureMatch() named B and C by a range %v in %q, want %v (problems %v)", named, test.lesson, test.named, problems)
 			}
 		})
 	}

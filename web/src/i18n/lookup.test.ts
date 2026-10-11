@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { chooseLocale, directionOf, fallbacksOf } from "./lookup";
+import { chooseLocale, directionOf, fallbacksOf, intlLocales } from "./lookup";
 
 // The two languages the widget speaks today, and a wider set such as its
 // dictionaries will make, to see how a tag finds its language among them.
@@ -68,6 +68,20 @@ describe("the dictionary chosen for a language", () => {
 	])("for %s, where the bare languages have words, is %s", (tag, want) => {
 		expect(chooseLocale([tag], new Set(["en", "zh", "sr", "pa"]))).toBe(want);
 	});
+
+	// Norwegian named as a whole is Bokmål, which most of its readers write;
+	// Nynorsk is a standard of its own, which has no words of its own here.
+	test.each([
+		["no", "nb"],
+		["no-NO", "nb"],
+		["NO-no", "nb"],
+		["nb", "nb"],
+		["nb-NO", "nb"],
+		["nn", "en"],
+		["nn-NO", "en"],
+	])("for %s, where Bokmål has words, is %s", (tag, want) => {
+		expect(chooseLocale([tag], new Set(["en", "nb"]))).toBe(want);
+	});
 });
 
 describe("the dictionaries a missing word is looked for in", () => {
@@ -80,6 +94,28 @@ describe("the dictionaries a missing word is looked for in", () => {
 		["en", ["en"]],
 	])("for %s are %j", (locale, want) => {
 		expect(fallbacksOf(locale)).toEqual(want);
+	});
+});
+
+describe("the locales a language is formatted in", () => {
+	test("are its own, then English", () => {
+		expect(intlLocales("mai")).toEqual(["mai", "en"]);
+	});
+
+	// Klingon, which no platform has data for, is counted, written, listed,
+	// named and sorted in English rather than in the machine's own language.
+	test("are English for a language the platform has no data for", () => {
+		const formats = [
+			new Intl.Collator(intlLocales("tlh")),
+			new Intl.DisplayNames(intlLocales("tlh"), { type: "language" }),
+			new Intl.ListFormat(intlLocales("tlh")),
+			new Intl.NumberFormat(intlLocales("tlh")),
+			new Intl.PluralRules(intlLocales("tlh")),
+		];
+
+		for (const format of formats) {
+			expect(format.resolvedOptions().locale).toBe("en");
+		}
 	});
 });
 

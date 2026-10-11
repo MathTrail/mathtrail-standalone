@@ -243,8 +243,8 @@ var refusals = []struct {
 	{"a picture of the solution with a label neither the question nor the solution names", func(s *scenario) {
 		solutionPicture(s, pictureOf(1, "P", "Q", "R"), "P", "Q")
 	}, checks.CodeDrawingMismatch, "neither task.question nor task.solution names 1 of the labels"},
-	{"a total with no picture of the solution", func(s *scenario) { s.draft.Task.SolutionTotal = "2 + 2 + 2 = 6" },
-		checks.CodeBadStructure, "task.solution_total comes with task.solution_picture"},
+	{"a task with no picture of its solution", func(s *scenario) { s.draft.Task.SolutionPicture = nil },
+		checks.CodeBadStructure, "task.solution_picture is missing"},
 	{"a total that is no equality", func(s *scenario) {
 		solutionPicture(s, pictureOf(1, "P", "Q"), "P", "Q")
 		s.draft.Task.SolutionTotal = "six pairs"

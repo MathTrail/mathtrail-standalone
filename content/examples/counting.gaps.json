@@ -799,6 +799,8 @@
     },
     "correct_answer": "D",
     "solution": "20 metres split into 2-metre parts gives 10 gaps. 10 gaps need 10 + 1 = 11 posts.",
+    "solution_picture": {"kind": "row", "items": [{"label": "1"}, {"label": "2"}, {"label": "3"}, {"skip": true}, {"label": "11"}], "gaps": "2", "span": "20"},
+    "solution_total": "20 ÷ 2 + 1 = 11",
     "distractors": {
       "A": {
         "trap": "ignored_condition",
@@ -1450,6 +1452,8 @@
     },
     "correct_answer": "D",
     "solution": "One side has 90 ÷ 10 = 9 gaps and 9 + 1 = 10 posts. Two sides have 10 + 10 = 20 posts.",
+    "solution_picture": {"kind": "row", "items": [{"label": "1"}, {"label": "2"}, {"label": "3"}, {"skip": true}, {"label": "10"}], "gaps": "10", "span": "90", "copies": 2},
+    "solution_total": "10 + 10 = 20",
     "distractors": {
       "A": {
         "trap": "answered_other_question",
@@ -1795,6 +1799,8 @@
     "correct_answer": "E",
     "hint": "How many steps from one child to the next lead from child 6 to child 17? That is half of the circle.",
     "solution": "From child 6 to child 17 there are 11 steps from one child to the next, and that is half of the way round. The whole circle is 22 steps, and in a circle there are as many children as steps: 22.",
+    "solution_picture": {"kind": "ring", "count": 22, "start": {"at": 6}},
+    "solution_total": "11 × 2 = 22",
     "distractors": {
       "A": {
         "trap": "off_by_one",

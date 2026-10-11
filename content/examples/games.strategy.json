@@ -16,6 +16,8 @@
     "correct_answer": "B",
     "hint": "Which pile would you hate to face on your turn: 1, 2 or 3 stones?",
     "solution": "A pile of 3 loses for the player whose turn it is: after 1 or 2 stones, the other player takes the rest. In the same way 6 and 9 lose. Ann takes 1 and leaves 9. Each time Ben takes some, she takes enough to make 3 in that round, so he faces 6, then 3, and she takes the last stone.",
+    "solution_picture": {"kind": "piles", "piles": [{"label": "1", "count": 1, "fill": "dark"}, {"label": "9", "count": 9, "group": 3}]},
+    "solution_total": "10 − 9 = 1",
     "distractors": {
       "A": {
         "trap": "best_case_not_worst",

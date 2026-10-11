@@ -50,8 +50,10 @@ func asked() *profile.Brief {
 }
 
 // validDraft is the prototype's own well-formed task, with the brief it was
-// asked for and a self-check that found nothing. Its options are words rather
-// than numbers, so that a refusal quoting one would be caught by a search.
+// asked for and a self-check that found nothing, and the picture of its
+// solution every task draws: the six pairs, one to a row. Its options are
+// words rather than numbers, so that a refusal quoting one would be caught by
+// a search.
 func validDraft() checks.Draft {
 	return checks.Draft{
 		Task: &checks.Task{
@@ -63,6 +65,9 @@ func validDraft() checks.Draft {
 			CorrectAnswer: "C",
 			Hint:          "How many ships can the first ship dock with?",
 			Solution:      "List the pairs: 6.",
+			SolutionPicture: json.RawMessage(
+				`{"kind":"table","rows":[["1","2"],["1","3"],["1","4"],["2","3"],["2","4"],["3","4"]]}`),
+			SolutionTotal: "3 + 2 + 1 = 6",
 			Distractors: map[string]checks.Distractor{
 				"A": {Trap: "number_from_text", Text: "4 is the number of ships."},
 				"B": {Trap: "missed_case", Text: "You missed one pair."},
@@ -151,6 +156,9 @@ var formatBreakages = []breakage{
 	{"a picture of the solution that is no object", func(d *checks.Draft) {
 		d.Task.SolutionPicture = json.RawMessage(`["six pairs"]`)
 	}, "task.solution_picture must be an object"},
+	{"no picture of the solution", func(d *checks.Draft) {
+		d.Task.SolutionPicture, d.Task.SolutionTotal = nil, ""
+	}, "task.solution_picture is missing, or holds nothing: every task draws its solution"},
 	{"a picture written as a list", func(d *checks.Draft) { d.Task.Picture = json.RawMessage(`[{"kind":"clock"}]`) },
 		"task.picture must be an object"},
 	{"issues left out", func(d *checks.Draft) { d.SelfCheck.Issues = nil }, "self_check.issues is missing"},

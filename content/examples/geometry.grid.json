@@ -45,6 +45,8 @@
     "correct_answer": "B",
     "hint": "Look at each side of the rose square: which beds touch it there?",
     "solution": "Two beds touch each of the four sides of the rose square: A2 and A3 above, D2 and D3 below, B1 and C1 on the left, B4 and C4 on the right. That makes 8 beds.",
+    "solution_picture": {"kind": "grid", "rows": ["A", "B", "C", "D"], "cols": ["1", "2", "3", "4"], "filled": ["B2", "B3", "C2", "C3"], "marks": {"A2": "1", "A3": "2", "B4": "3", "C4": "4", "D3": "5", "D2": "6", "C1": "7", "B1": "8"}},
+    "solution_total": "2 + 2 + 2 + 2 = 8",
     "distractors": {
       "A": {"trap": "missed_case", "text": "6 leaves out the two beds along one side."},
       "C": {"trap": "ignored_condition", "text": "12 adds the corner beds, which only touch at a point."},

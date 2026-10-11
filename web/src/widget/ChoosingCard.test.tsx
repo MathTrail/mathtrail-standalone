@@ -123,9 +123,7 @@ describe("a card a task is asked for on", () => {
 		wait(200);
 		await host.sendToolResult({ content: [], structuredContent: limited });
 		await vi.waitFor(() =>
-			expect(text(".mt-verdict-line")).toMatch(
-				/^There are no more new tasks today/,
-			),
+			expect(text(".mt-dayover-title")).toBe("Make a wish for tomorrow"),
 		);
 		wait(1000);
 
@@ -193,9 +191,7 @@ describe("a card a task is asked for on", () => {
 		await host.sendToolResult({ content: [], structuredContent: limited });
 
 		await vi.waitFor(() =>
-			expect(text(".mt-verdict-line")).toMatch(
-				/^На сегодня новых задач больше нет/,
-			),
+			expect(text(".mt-dayover-title")).toBe("Загадай желание на завтра"),
 		);
 	});
 

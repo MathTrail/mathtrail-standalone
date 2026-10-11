@@ -1,5 +1,5 @@
 {
-  "purpose": "Things in a row — posts, trees, children in a queue, the squares of a track — each with a label over it, one under it and its mark. A skip stands for the middle of a long row cut short; gaps labels every gap drawn, span the whole length, and copies 2 draws the row twice, for the two sides of a path.",
-  "topics": ["logic.ordering", "logic.knights_liars", "combinatorics.enumeration", "counting.gaps", "parity.alternation", "games.strategy"],
+  "purpose": "Things in a row — posts, trees, children in a queue, the squares of a track, the numbers a solution goes through — each with a label over it, one under it and its mark. A skip stands for the middle of a long row cut short; gaps labels every gap drawn, span the whole length, and copies 2 draws the row twice, for the two sides of a path.",
+  "topics": ["logic.ordering", "logic.knights_liars", "combinatorics.enumeration", "counting.gaps", "parity.alternation", "games.strategy", "arithmetic.tricks"],
   "picture": {"kind": "row", "items": [{"label": "1"}, {"label": "2"}, {"label": "3"}, {"skip": true}, {"label": "9"}], "gaps": "18", "span": "?"}
 }

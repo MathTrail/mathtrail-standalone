@@ -30,7 +30,7 @@ The account opens one demo profile: a child known by a pseudonym, with the trial
 In a chat with MathTrail switched on, type as the adult would; the card is the child's part:
 
 1. **A task.** Say "Let's do a MathTrail task." A card shows that the task is being written; the model takes a minute or two. Then the card shows the task and five options, and the model goes on to write the next task ahead, saying nothing about it.
-2. **An answer.** Choose an option on the card, as the child would, or tell the chat the child's answer. An option chosen on the card turns the card into how the answer went at once, with nothing sent to the chat: the mistake behind a wrong answer, a picture of the solution where the task has one, and the solution step by step. An answer told in the chat gets the same card below. "We don't know this one", said in the chat, is an answer too.
+2. **An answer.** Choose an option on the card, as the child would, or tell the chat the child's answer. An option chosen on the card turns the card into how the answer went at once, with nothing sent to the chat: the mistake behind a wrong answer, a picture of the solution, and the solution step by step. An answer told in the chat gets the same card below. "We don't know this one", said in the chat, is an answer too.
 3. **The hint.** Press the bulb, **Hint**, on the card before answering.
 4. **Another task.** Press the two arrows in a circle, **Another task**, on a task's card before its answer, or **Another task** under how the answer went. The card puts its words in the chat — in Claude, press Enter to send them —, the task written ahead appears at once on a new card below, and the model writes the one after it. Or ask for one in the chat, or ask for a topic: "Let's practise counting."
 5. **The progress.** Say "Show the progress." The card shows each topic's rank, what moved since the last task and over the past week, the **Review** — strengths, topics to develop and what to do next — and **Mistakes that repeat**.
@@ -44,7 +44,7 @@ The chat's own log of tool calls is another matter. When the model hands its tas
 
 ## Limits
 
-- **50 new tasks a day** for the demo child, shared by every reviewer, counted from 00:00 UTC. Past them the card says there are no more new tasks today; the progress and the last task stay available.
+- **50 new tasks a day** for the demo child, shared by every reviewer, counted until midnight by the clock of the device a card was last answered on, or midnight UTC before any card has been answered. Past them the card wishes the child a good tomorrow and says the day's tasks are over; the progress and the last task stay available.
 - **A task is written by the chat's model** and checked before it is shown, so it takes a minute or two; one the checks refuse is written again, up to three times.
 
 ## Contact

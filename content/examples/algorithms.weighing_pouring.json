@@ -361,6 +361,7 @@
     },
     "correct_answer": "A",
     "solution": "Write the litres in the bucket, the 5-litre jug and the 3-litre jug. One shortest way: (8, 0, 0), (3, 5, 0), (3, 2, 3), (6, 2, 0), (6, 0, 2), (1, 5, 2), (1, 4, 3). After 6 steps the 5-litre jug holds 4 litres.",
+    "solution_picture": {"kind": "table", "header": ["8", "5", "3"], "rows": [["8", "0", "0"], ["3", "5", "0"], ["3", "2", "3"], ["6", "2", "0"], ["6", "0", "2"], ["1", "5", "2"], ["1", "4", "3"]]},
     "distractors": {
       "B": {
         "trap": "stopped_early",
@@ -877,6 +878,7 @@
     "correct_answer": "A",
     "hint": "What amounts can you measure with the 3-litre and the 5-litre bucket alone?",
     "solution": "Fill the 5-litre bucket and pour it into the 3-litre one: 2 litres stay in the 5-litre bucket. Pour them into the 8-litre bucket. That is 3 steps. Two steps are not enough: after two steps the only way to have 2 litres is in the 5-litre bucket, not yet in the 8-litre one.",
+    "solution_picture": {"kind": "containers", "items": [{"capacity": 3, "amount": 3}, {"capacity": 5, "amount": 0}, {"capacity": 8, "amount": 2}]},
     "distractors": {
       "B": {
         "trap": "ignored_condition",

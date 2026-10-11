@@ -524,7 +524,9 @@
       "E": "5"
     },
     "correct_answer": "B",
-    "solution": "The five sentences name different numbers, so at most one of them is true, and at most one islander is a knight. If there were no knights, there would be 5 liars and the fifth sentence would be true, but a liar cannot say it. So there is exactly 1 knight and 4 liars: the fourth islander is the knight.",
+    "solution": "The five sentences name different numbers, so at most one of them is true, and at most one islander is a knight. If there were no knights, there would be 5 liars and the fifth sentence would be true, but a liar cannot say it. So there is exactly 1 knight (K) among 4 liars (L): the fourth islander is the knight.",
+    "solution_picture": {"kind": "row", "items": [{"label": "1", "below": "L"}, {"label": "2", "below": "L"}, {"label": "3", "below": "L"}, {"label": "4", "below": "K", "mark": "ring"}, {"label": "5", "below": "L"}]},
+    "solution_total": "5 − 4 = 1",
     "distractors": {
       "A": {
         "trap": "ignored_condition",
@@ -1077,7 +1079,9 @@
     },
     "correct_answer": "E",
     "hint": "All the knights give the same true answer. How many islanders gave each answer?",
-    "solution": "Every knight gives the true number and no liar does, so the number of knights equals the number of islanders who gave it. One islander answered 1, one answered 2 and two answered 3. Only 1 fits: one knight, who answered 1. Nobody answered 0, which would fit too, but at least one of the four is a knight.",
+    "solution": "Every knight gives the true number and no liar does, so the number of knights equals the number of islanders who gave it. One islander answered 1, one answered 2 and two answered 3. Only 1 fits: one knight (K), who answered 1, and three liars (L). Nobody answered 0, which would fit too, but at least one of the four is a knight.",
+    "solution_picture": {"kind": "row", "items": [{"label": "1", "below": "K", "mark": "ring"}, {"label": "2", "below": "L"}, {"label": "3", "below": "L"}, {"label": "3", "below": "L"}]},
+    "solution_total": "4 − 3 = 1",
     "distractors": {
       "A": {
         "trap": "trusted_statement",

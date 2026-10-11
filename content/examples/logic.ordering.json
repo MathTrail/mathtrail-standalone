@@ -387,7 +387,8 @@
       "E": "Tom"
     },
     "correct_answer": "E",
-    "solution": "From the tallest: Leo, Tom, Sam, Max. The second tallest is Tom.",
+    "solution": "From the tallest: Leo (L), Tom (T), Sam (S), Max (M). The second tallest is Tom.",
+    "solution_picture": {"kind": "row", "items": [{"label": "L"}, {"label": "T", "mark": "ring"}, {"label": "S"}, {"label": "M"}]},
     "distractors": {
       "A": {
         "trap": "answered_other_question",
@@ -1170,7 +1171,8 @@
       "E": "It is impossible to tell"
     },
     "correct_answer": "D",
-    "solution": "Lea's chair number is one more than Mo's, so Mo is not on chair 3, and Mo is not on chair 2. So Mo is on chair 1, Lea on chair 2 and Kim on chair 3.",
+    "solution": "Lea's chair number is one more than Mo's, so Mo is not on chair 3, and Mo is not on chair 2. So Mo (M) is on chair 1, Lea (L) on chair 2 and Kim (K) on chair 3.",
+    "solution_picture": {"kind": "row", "items": [{"label": "1", "below": "M"}, {"label": "2", "below": "L", "mark": "ring"}, {"label": "3", "below": "K"}]},
     "distractors": {
       "A": {
         "trap": "ignored_condition",
@@ -1928,7 +1930,8 @@
     },
     "correct_answer": "E",
     "hint": "List the pairs of slots with exactly three slots between them. Which pairs survive the other clues?",
-    "solution": "Two slots with exactly three bikes between them are 4 apart: 1 and 5, 2 and 6, or 3 and 7. Slot 3 is Hana's, so 3 and 7 are out. Lea is to the right of Hana and to the left of Ivo, so Ivo is at 5 or further right. That leaves Ivo at 5 with Jon at 1, or Ivo at 6 with Jon at 2. With Jon at 2, Kai would be at 3, which is Hana's slot. So Jon is at 1, Kai at 2, Lea at 4 and Ivo at 5.",
+    "solution": "Two slots with exactly three bikes between them are 4 apart: 1 and 5, 2 and 6, or 3 and 7. Slot 3 is Hana's, so 3 and 7 are out. Lea is to the right of Hana and to the left of Ivo, so Ivo is at 5 or further right. That leaves Ivo at 5 with Jon at 1, or Ivo at 6 with Jon at 2. With Jon at 2, Kai would be at 3, which is Hana's slot. So Jon (J) is at 1, Kai (K) at 2, Hana (H) at 3, Lea (L) at 4 and Ivo (I) at 5.",
+    "solution_picture": {"kind": "row", "items": [{"label": "1", "below": "J"}, {"label": "2", "below": "K"}, {"label": "3", "below": "H"}, {"label": "4", "below": "L"}, {"label": "5", "below": "I", "mark": "ring"}, {"label": "6"}, {"label": "7"}]},
     "distractors": {
       "A": {
         "trap": "reversed_relation",

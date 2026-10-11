@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test, vi } from "vitest";
@@ -41,6 +41,26 @@ describe("a change", () => {
 		for (const path of measuring) {
 			expect(touching([path], drawn), path).toBe(path);
 		}
+	});
+
+	test("touches the cards where it changes a workflow that measures them", async () => {
+		const workflows = join(
+			import.meta.dirname,
+			"..",
+			"..",
+			".github",
+			"workflows",
+		);
+		const measuringThem: string[] = [];
+		for (const file of await readdir(workflows)) {
+			const text = await readFile(join(workflows, file), "utf8");
+			if (text.includes("just web-layout")) {
+				measuringThem.push(`.github/workflows/${file}`);
+			}
+		}
+
+		expect(measuringThem).not.toEqual([]);
+		expect(measuring).toEqual(expect.arrayContaining(measuringThem));
 	});
 
 	test("touches the cards where it adds or takes away a file beside one they are drawn from", () => {

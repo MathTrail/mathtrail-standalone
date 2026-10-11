@@ -300,7 +300,14 @@ describe("a task card", () => {
 });
 
 describe("an answer", () => {
-	test("is recorded with the letter pressed", async () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	test("is recorded with the letter pressed and the clock of the device it was pressed on", async () => {
+		// The browser counts how far UTC runs ahead: five hours, for a family
+		// five hours behind it.
+		vi.spyOn(Date.prototype, "getTimezoneOffset").mockReturnValue(300);
 		const heard = await drawCard();
 
 		press(option("B"));
@@ -308,7 +315,12 @@ describe("an answer", () => {
 		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
 		expect(heard.calls[0]).toEqual({
 			name: "submit_answer",
-			arguments: { task_id: "task_fence", answer: "B", hint_used: false },
+			arguments: {
+				task_id: "task_fence",
+				answer: "B",
+				hint_used: false,
+				utc_offset: -300,
+			},
 		});
 	});
 
@@ -599,14 +611,14 @@ describe("a card whose host lets it down", () => {
 
 describe("a task in a language the card has no words for", () => {
 	// The card speaks its lesson's language when it has words for it, and the
-	// host's otherwise: Hebrew is one it has none for, and is written right to
+	// host's otherwise: Yiddish is one it has none for, and is written right to
 	// left.
 	test("is marked as written in it, and runs its way", async () => {
 		await drawCard(
 			{
 				...fence,
-				task: { ...fence.task, language: "he", question: "כמה עמודים?" },
-				language: "he",
+				task: { ...fence.task, language: "yi", question: "וויפֿל סלופּעס?" },
+				language: "yi",
 			},
 			() => answered(),
 		);
@@ -618,7 +630,7 @@ describe("a task in a language the card has no words for", () => {
 			".mt-note-hint p",
 		]) {
 			const words = root.querySelector(said);
-			expect(words?.getAttribute("lang")).toBe("he");
+			expect(words?.getAttribute("lang")).toBe("yi");
 			expect(words?.getAttribute("dir")).toBe("rtl");
 		}
 		// The card's own words stay in the card's language.

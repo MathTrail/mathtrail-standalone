@@ -197,7 +197,19 @@ func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, truth fl
 	if err != nil {
 		t.Fatalf("build the seal: %v", err)
 	}
-	p.Ask(&brief, mode, "en", now)
+	task := handedOut(t, p, &brief, mode, sealer, now)
+	return answeredByChance(t, catalog, p, task, truth, sealer, random)
+}
+
+// handedOut puts the task a brief asks for on the card, as the service hands
+// one out at this moment: asked for, written and accepted, and sealed as the
+// service seals a task. C is right and B a slip. A task still on the card
+// without an answer is left behind, skipped.
+func handedOut(t *testing.T, p *profile.Profile, brief *profile.Brief, mode profile.TutorMode,
+	sealer profile.Sealer, now time.Time) *profile.CurrentTask {
+	t.Helper()
+
+	p.Ask(brief, mode, "en", now)
 	task, err := p.Issue(&profile.Written{
 		Wording: "a task", Options: map[string]string{"A": "1", "B": "2", "C": "3", "D": "4", "E": "5"},
 		Hint: "hint", Fingerprint: "sketch", InstructionsVersion: "v",
@@ -209,14 +221,24 @@ func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, truth fl
 	if err != nil {
 		t.Fatalf("Issue() error = %v, want nil", err)
 	}
+	return task
+}
 
-	point := rating.Point{GradeLevel: brief.GradeLevel, Difficulty: brief.Difficulty}
+// answeredByChance answers the task on the card as a child of this true level
+// would, by the chance the ratings give them at its point, two minutes after
+// it was handed out; it records the answer and says whether it was right.
+func answeredByChance(t *testing.T, catalog tutor.Catalog, p *profile.Profile, task *profile.CurrentTask,
+	truth float64, sealer profile.Sealer, random *rand.Rand) bool {
+	t.Helper()
+
+	point := rating.Point{GradeLevel: task.GradeLevel, Difficulty: task.Difficulty}
 	correct := random.Float64() < rating.Probability(truth, point.Beta())
 	choice := "C"
 	if !correct {
 		choice = "B"
 	}
-	if _, err := p.Record(profile.Answered{TaskID: task.ID, Choice: choice, At: now.Add(2 * time.Minute)}, sealer, catalog.LevelsOf(brief.TargetConcept)); err != nil {
+	answered := profile.Answered{TaskID: task.ID, Choice: choice, At: task.IssuedAt.Add(2 * time.Minute)}
+	if _, err := p.Record(answered, sealer, catalog.LevelsOf(task.Topic)); err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
 	return correct

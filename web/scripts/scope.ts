@@ -35,6 +35,7 @@ export const measuring: readonly string[] = [
 	"web/tsconfig.json",
 	"justfile",
 	".github/workflows/ci.yml",
+	".github/workflows/layout.yml",
 	".github/actions/node/action.yml",
 	".devcontainer/Dockerfile",
 ];
@@ -89,7 +90,7 @@ export function touching(
 	changed: readonly string[],
 	drawn: ReadonlySet<string>,
 ): string | undefined {
-	const folders = new Set([...drawn].map(dirname));
+	const folders = new Set([...drawn].map((path) => dirname(path)));
 	return changed.find(
 		(path) =>
 			drawn.has(path) || folders.has(dirname(path)) || measuring.includes(path),

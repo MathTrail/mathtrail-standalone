@@ -39,8 +39,9 @@ type Task struct {
 	Solution string `json:"solution"`
 	// SolutionPicture is the description of the picture of the solution, as it
 	// came: shown with the solution, after the answer, so it may show the
-	// answer. A task with none has none.
-	SolutionPicture json.RawMessage `json:"solution_picture,omitempty"`
+	// answer. Every task has one, and the structure check refuses a task that
+	// has none.
+	SolutionPicture json.RawMessage `json:"solution_picture"`
 	// SolutionTotal is the equality the solution comes to, written large under
 	// its picture, and nothing without one.
 	SolutionTotal string `json:"solution_total,omitempty"`

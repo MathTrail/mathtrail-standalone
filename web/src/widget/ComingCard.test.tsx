@@ -169,7 +169,12 @@ describe("a card a task asked for comes to", () => {
 		await pass(0);
 		expect(card.heard.calls.at(-1)).toEqual({
 			name: "submit_answer",
-			arguments: { task_id: fence.task.id, answer: "C", hint_used: false },
+			arguments: {
+				task_id: fence.task.id,
+				answer: "C",
+				hint_used: false,
+				utc_offset: expect.any(Number),
+			},
 		});
 		expect(text(".mt-verdict-line")).toBe("Correct! It's 5.");
 		expect(root.querySelector(".mt-option")).toBeNull();

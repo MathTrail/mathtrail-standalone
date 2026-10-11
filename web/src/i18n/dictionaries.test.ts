@@ -1,5 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { disagreements } from "./dictionaries";
+import { onAMachineSpeaking } from "./testing/machine";
 import type { Dictionary } from "./words";
 
 // The comparison passes for words that agree only if it can fail for words
@@ -111,6 +112,17 @@ describe("words that disagree with English", () => {
 		};
 
 		expect(disagreements(english, joined, "en")).toEqual([]);
+	});
+
+	// Klingon, which no platform has data for, counts as English does, whatever
+	// language the machine that checks it speaks.
+	test("are held to English's categories in a language the platform has no data for", () => {
+		onAMachineSpeaking("ru");
+		try {
+			expect(disagreements(english, english, "tlh")).toEqual([]);
+		} finally {
+			vi.restoreAllMocks();
+		}
 	});
 
 	test("are caught for a category their language never chooses", () => {

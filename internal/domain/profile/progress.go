@@ -52,7 +52,9 @@ type Topic struct {
 	// LastIssued is the day a task of this topic was last accepted, and is
 	// absent for a topic never issued, which the rule puts first. It moves
 	// when a task is accepted rather than when the topic is chosen: a
-	// generation that produced nothing must not push its topic away.
+	// generation that produced nothing must not push its topic away. A day
+	// cannot order the topics given on it, so the rule orders those by the
+	// history window.
 	LastIssued Date `json:"last_issued,omitzero"`
 	// MasteredLevel is the level the topic is mastered at: the highest of its
 	// levels, at or below the task whose answer earned mastery, that the
@@ -137,8 +139,10 @@ type Answer struct {
 	// Skipped marks a task left without an answer. Such an entry has no
 	// outcome, and nothing that learns from answers reads it — the rating,
 	// the trial series, the runs of a topic, the rule's last answer: there was
-	// no answer to learn from. Only the progress screen shows it, so that a
-	// parent can see hard tasks being leafed past.
+	// no answer to learn from. The progress screen shows it, so that a parent
+	// can see hard tasks being leafed past, and the rule reads where it stands
+	// among the entries: it orders the topics given on one day by the place of
+	// each one's last task, a skipped one as much as an answered one.
 	Skipped bool `json:"skipped,omitzero"`
 	// TaskID ties this entry to the fingerprint of the task and to the line
 	// about it in the log.

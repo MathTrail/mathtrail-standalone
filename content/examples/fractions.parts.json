@@ -16,6 +16,8 @@
     "correct_answer": "C",
     "hint": "First find the whole number. How much is one third of it?",
     "solution": "Two thirds are 24, so one third is 12 and the whole number is 36. One quarter of 36 is 9, so three quarters are 27.",
+    "solution_picture": {"kind": "bars", "bars": [{"label": "N", "segments": [{"size": 12, "label": "12"}, {"size": 12, "label": "12"}, {"size": 12, "label": "12"}], "braces": [{"from": 0, "to": 2, "label": "24"}]}, {"label": "N", "segments": [{"size": 9, "label": "9"}, {"size": 9, "label": "9"}, {"size": 9, "label": "9"}, {"size": 9, "label": "9"}], "braces": [{"from": 0, "to": 3, "label": "27"}]}]},
+    "solution_total": "36 ÷ 4 × 3 = 27",
     "distractors": {
       "A": {
         "trap": "part_whole_swap",

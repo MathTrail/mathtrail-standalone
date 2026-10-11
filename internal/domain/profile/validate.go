@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
@@ -447,6 +448,18 @@ func (d *Daily) validate() error {
 	}
 	if d.Date.IsZero() {
 		return fmt.Errorf("%w: daily has no date, and the counters belong to a day", ErrInvalid)
+	}
+	if !clockRunsAt(d.UTCOffset) {
+		return fmt.Errorf("%w: daily.utc_offset is %d, and a clock runs from %d to %d minutes from UTC, in quarters of an hour",
+			ErrInvalid, d.UTCOffset, minUTCOffset, maxUTCOffset)
+	}
+	// A day ends at the midnight after its date by the clock it began under,
+	// so the offset between the two is a clock's: an end anywhere else would
+	// hold the counters past their day, or end it before it began.
+	if behind := d.Date.AddDate(0, 0, 1).Sub(d.Ends.Time); !d.Ends.IsZero() &&
+		(behind%time.Minute != 0 || !clockRunsAt(int(behind/time.Minute))) {
+		return fmt.Errorf("%w: daily.ends is %s, and a day ends at the midnight after its date by a clock some time zone keeps",
+			ErrInvalid, d.Ends.Format(time.RFC3339))
 	}
 	return nil
 }

@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
+import notes from "../../locales/notes/keys.json";
 import { disagreements } from "../i18n/dictionaries";
-import { pseudoLocale } from "../i18n/pseudo";
+import { lengthOf, pseudoLocale } from "../i18n/pseudo";
+import { textsOf } from "../i18n/words";
 import { cardWords, dictionaries, lessonLanguages } from "./dictionaries";
 
 describe("the widget's words", () => {
@@ -28,19 +30,35 @@ describe("the widget's words", () => {
 	// The adult types in the chat and the child answers on the card, so a card
 	// that sends its reader to the chat to ask for a task speaks to the adult,
 	// in the form its words for the adult already take where the language
-	// tells the two apart: the form the card asks for a new profile in.
+	// tells the two apart, and in the one form it has where it does not: the
+	// form the card asks for a new profile in.
 	test.each([
 		["ar", "يمكن طلب"],
+		["bg", "поискайте"],
 		["bn", "চান"],
+		["bs", "zatražite"],
+		["ca", "demani"],
+		["cs", "požádejte"],
+		["da", "bed om"],
 		["de", "Sie"],
+		["el", "ζητήστε"],
 		["es", "pida"],
 		["fa", "بخواهید"],
+		["fi", "pyydä"],
 		["fr", "demandez"],
 		["hi", "माँगें"],
+		["hr", "zatražite"],
+		["hu", "kérjen"],
 		["it", "chieda"],
 		["ja", "頼んでください"],
 		["ko", "요청해 주세요"],
+		["lt", "paprašykite"],
+		["nb", "be om"],
+		["ro", "cereți"],
 		["ru", "попросите"],
+		["sk", "požiadajte"],
+		["sr", "затражите"],
+		["sv", "be om"],
 		["tr", "isteyin"],
 		["uk", "попросіть"],
 		["ur", "مانگیں"],
@@ -78,11 +96,11 @@ describe("a card's words", () => {
 		["ru", "en-US", "ru"],
 		["en", "ru-RU", "en"],
 		[undefined, "ru-RU", "ru"],
-		["kk", "ru-RU", "ru"],
+		["be", "ru-RU", "ru"],
 		[undefined, "es-MX", "es"],
 		["pt-BR", "ru-RU", "pt"],
 		[undefined, "zh-CN", "zh-Hans"],
-		[undefined, "sw-KE", "en"],
+		[undefined, "so-SO", "en"],
 		[undefined, undefined, "en"],
 	])(
 		"with the language chosen %s and the host's %s are in %s",
@@ -101,7 +119,7 @@ describe("a card's words", () => {
 		).toBe("Grade 3");
 	});
 
-	test("are in every one of the twenty-two languages of v1", () => {
+	test("are in every one of the thirty-seven languages written so far", () => {
 		expect([...dictionaries.keys()]).toEqual(
 			expect.arrayContaining([
 				"en",
@@ -126,6 +144,21 @@ describe("a card's words", () => {
 				"uk",
 				"th",
 				"nl",
+				"ro",
+				"cs",
+				"hu",
+				"el",
+				"sv",
+				"da",
+				"nb",
+				"fi",
+				"sk",
+				"ca",
+				"lt",
+				"hr",
+				"bs",
+				"sr",
+				"bg",
 			]),
 		);
 	});
@@ -134,12 +167,32 @@ describe("a card's words", () => {
 describe("the pseudo-language", () => {
 	afterEach(() => {
 		vi.unstubAllEnvs();
+		vi.unstubAllGlobals();
 		vi.resetModules();
 	});
 
 	test("is spoken by the preview and the tests", () => {
 		expect(dictionaries.has(pseudoLocale)).toBe(true);
 	});
+
+	// A card that holds the pseudo-language holds every language's words: it
+	// says each text of each key at least as long as any dictionary says one,
+	// in letters as a reader sees them.
+	test.each([...dictionaries].filter(([tag]) => tag !== pseudoLocale))(
+		"says every text no shorter than %s says its key",
+		(_, words) => {
+			const pseudo = dictionaries.get(pseudoLocale) ?? {};
+			const shorter = Object.entries(words).flatMap(([key, wording]) =>
+				textsOf(wording).flatMap((text) =>
+					textsOf(pseudo[key] ?? {})
+						.filter((said) => lengthOf(said) < lengthOf(text))
+						.map((said) => `${key}: ${said} is shorter than ${text}`),
+				),
+			);
+
+			expect(shorter).toEqual([]);
+		},
+	);
 
 	test("is left out of a build for production, which a host could ask it of", async () => {
 		vi.stubEnv("MODE", "production");
@@ -150,6 +203,55 @@ describe("the pseudo-language", () => {
 		expect(shipped.has(pseudoLocale)).toBe(false);
 		expect(shipped.has("en")).toBe(true);
 	});
+
+	// The build that ships carries the pseudo-language's code and never runs
+	// it, so the card's words load where the platform cannot split letters.
+	test("asks the platform for nothing in a build for production", async () => {
+		vi.stubEnv("MODE", "production");
+		vi.stubGlobal(
+			"Intl",
+			Object.create(Intl, { Segmenter: { value: undefined } }),
+		);
+		vi.resetModules();
+
+		const { dictionaries: shipped } = await import("./dictionaries");
+
+		expect(shipped.has("en")).toBe(true);
+	});
+});
+
+describe("the notes for whoever translates the words", () => {
+	const english = dictionaries.get("en") ?? {};
+
+	// A key with no note is translated blind, and a note with no key is read
+	// for nothing; in English's order, the two files read side by side.
+	test("are one for every key of English, in its order", () => {
+		expect(Object.keys(notes)).toEqual(Object.keys(english));
+	});
+
+	test.each(Object.entries(notes))(
+		"say whom %s is for, where it stands, how long it may be and how it speaks",
+		(_, note) => {
+			expect(Object.keys(note)).toEqual(
+				expect.arrayContaining(["reader", "where", "length", "address"]),
+			);
+			expect(["reader", "where", "length", "address", "mind"]).toEqual(
+				expect.arrayContaining(Object.keys(note)),
+			);
+			expect(["child", "parent", "both"]).toContain(note.reader);
+			expect(["label", "line", "sentence", "heard"]).toContain(note.length);
+			expect(["informal", "polite", "none"]).toContain(note.address);
+			for (const said of Object.values(note)) {
+				expect(said.trim()).not.toBe("");
+			}
+			// The child is spoken to as a child, and the parent as an adult.
+			const wrongFor: Readonly<Record<string, string>> = {
+				child: "polite",
+				parent: "informal",
+			};
+			expect(note.address).not.toBe(wrongFor[note.reader]);
+		},
+	);
 });
 
 describe("the languages of the lessons", () => {
@@ -159,6 +261,5 @@ describe("the languages of the lessons", () => {
 		expect([...lessonLanguages].sort()).toEqual(
 			[...dictionaries.keys()].filter((tag) => tag !== pseudoLocale).sort(),
 		);
-		expect(lessonLanguages).toHaveLength(22);
 	});
 });

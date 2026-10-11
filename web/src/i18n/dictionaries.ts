@@ -1,14 +1,16 @@
+import { intlLocales } from "./lookup";
 import { byCodeUnits } from "./order";
 import { type Dictionary, placeholder, type Wording } from "./words";
 
-// textsOf are the texts a wording says: its one, or one per plural category.
-function textsOf(wording: Wording): unknown[] {
+// textsAsWritten are the texts a wording says as its file has them, whatever
+// they are: its one, or one per plural category.
+function textsAsWritten(wording: Wording): unknown[] {
 	return typeof wording === "string" ? [wording] : Object.values(wording);
 }
 
 // slotsOf are the slots a wording names, in any of its texts, sorted.
 function slotsOf(wording: Wording): string[] {
-	const names = textsOf(wording).flatMap((text) =>
+	const names = textsAsWritten(wording).flatMap((text) =>
 		typeof text === "string"
 			? [...text.matchAll(placeholder)].flatMap(([, name]) => name ?? [])
 			: [],
@@ -48,7 +50,8 @@ export function disagreements(
 	tag: string,
 ): string[] {
 	const counted = [
-		...new Intl.PluralRules(tag).resolvedOptions().pluralCategories,
+		...new Intl.PluralRules(intlLocales(tag)).resolvedOptions()
+			.pluralCategories,
 	].sort(byCodeUnits);
 	const missing = Object.keys(english)
 		.filter((key) => !Object.hasOwn(words, key))
@@ -75,7 +78,7 @@ function wordingDisagreements(
 	counted: readonly string[],
 ): string[] {
 	const found: string[] = [];
-	const texts = textsOf(wording);
+	const texts = textsAsWritten(wording);
 	if (slotsOf(wording).join() !== slotsOf(reference).join()) {
 		found.push(
 			`${key} names the slots [${slotsOf(wording)}], the English [${slotsOf(reference)}]`,

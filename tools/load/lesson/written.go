@@ -121,6 +121,8 @@ func heights() Task {
 			Correct:  "C",
 			Hint:     "Who is taller than Gus?",
 			Solution: "Bob is taller than Gus, and Gus is taller than Hal. So Bob is the tallest.",
+			SolutionPicture: json.RawMessage(
+				`{"kind":"row","items":[{"below":"1","mark":"ring"},{"below":"2"},{"below":"3"}]}`),
 			Distractors: map[string]Distractor{
 				"A": {Trap: stopped, Text: "Gus is only in the middle of the three."},
 				"B": {Trap: reversed, Text: "Hal is the shortest of the three."},
@@ -158,6 +160,8 @@ func ages() Task {
 			Correct:  "C",
 			Hint:     "Who is younger than Pam?",
 			Solution: "Liz is older than Pam, and Pam is older than Dan. So Dan is the youngest.",
+			SolutionPicture: json.RawMessage(
+				`{"kind":"row","items":[{"below":"1"},{"below":"2"},{"below":"3","mark":"ring"}]}`),
 			Distractors: map[string]Distractor{
 				"A": {Trap: reversed, Text: "Liz is the oldest of the three friends."},
 				"B": {Trap: stopped, Text: "Pam is younger than Liz, yet Dan is younger still."},
@@ -195,6 +199,8 @@ func queue() Task {
 			Correct:  "C",
 			Hint:     "Who stands behind Joe?",
 			Solution: "Ned is in front of Joe, and Kit is behind Joe. So Kit is at the back.",
+			SolutionPicture: json.RawMessage(
+				`{"kind":"row","items":[{"below":"1"},{"below":"2"},{"below":"3","mark":"ring"}]}`),
 			Distractors: map[string]Distractor{
 				"A": {Trap: stopped, Text: "Joe stands between Ned and Kit."},
 				"B": {Trap: reversed, Text: "Ned is at the front of the line."},
@@ -232,6 +238,8 @@ func cats() Task {
 			Correct:  "B",
 			Hint:     "Which cat has a cat on each side?",
 			Solution: "The black cat is on the left of the white cat, and the grey cat is on its right. So the white cat is in the middle.",
+			SolutionPicture: json.RawMessage(
+				`{"kind":"row","items":[{"below":"1"},{"below":"2","mark":"ring"},{"below":"3"}]}`),
 			Distractors: map[string]Distractor{
 				"A": {Trap: reversed, Text: "The black cat lies at the left end."},
 				"C": {Trap: stopped, Text: "The grey cat lies at the right end."},

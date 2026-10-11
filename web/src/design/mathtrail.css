@@ -722,6 +722,47 @@ button.mt-bar {
 	margin-block-start: 2px;
 }
 
+/* The end of a day's tasks: a night the width of the card, and under it a
+   wish for tomorrow and what happened. The night keeps its height and is cut,
+   never squeezed: at its sides on a narrow card, above and below on a wide
+   one. Its corners follow the card's. */
+.mt-dayover {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+.mt-night {
+	height: 132px;
+	border-radius: var(--radius-widget);
+	overflow: hidden;
+}
+.mt-night svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+.mt-dayover-words {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.mt-dayover-title {
+	margin: 0;
+	font-size: 20px;
+	line-height: 26px;
+	font-weight: 600;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-dayover-line {
+	margin: 0;
+	font-size: 16px;
+	line-height: 24px;
+	color: var(--ink-strong);
+	overflow-wrap: break-word;
+	text-wrap: pretty;
+}
+
 /* The picture of a solution stands in a frame of its own between the trap and
    the solution, on the card's own colour, which its plates and bands are
    drawn in, with the equality the solution comes to written large under a
@@ -2160,8 +2201,12 @@ button.mt-bar {
 	line-height: normal;
 }
 .mt-rtl .mt-task-text,
-.mt-rtl .mt-lead {
+.mt-rtl .mt-lead,
+.mt-rtl .mt-dayover-line {
 	line-height: 26px;
+}
+.mt-rtl .mt-dayover-title {
+	line-height: 32px;
 }
 .mt-rtl .mt-fact dd,
 .mt-rtl .mt-steps li,

@@ -8,6 +8,7 @@ import {
 	SelectField,
 	TextField,
 } from "../design/controls";
+import { intlLocales } from "../i18n/lookup";
 import type { Words } from "../i18n/words";
 import { catalogSkills, lessonLanguages } from "./dictionaries";
 import {
@@ -210,7 +211,7 @@ function formNote(words: Words<Key>, editing: Open): string {
 // gradeChoices are the school years the lessons are for, each written as the
 // card's language writes numbers.
 function gradeChoices(words: Words<Key>): Choice[] {
-	const numbers = new Intl.NumberFormat(words.locale);
+	const numbers = new Intl.NumberFormat(intlLocales(words.locale));
 	const choices: Choice[] = [];
 	for (
 		let grade = profileLimits.minGrade;
@@ -246,7 +247,7 @@ function countryChoices(words: Words<Key>, kept: readonly string[]): Choice[] {
 	const others = kept.filter(
 		(code) => code !== "" && !countryCodes.includes(code),
 	);
-	const collator = new Intl.Collator(words.locale);
+	const collator = new Intl.Collator(intlLocales(words.locale));
 	const named = [...new Set([...countryCodes, ...others])]
 		.map((code) => ({ value: code, label: countryName(words, code) }))
 		.sort((one, other) => collator.compare(one.label, other.label));
@@ -265,7 +266,7 @@ function regionChoices(
 	const others = kept.filter(
 		(code) => code !== "" && !regions.some((region) => region.code === code),
 	);
-	const collator = new Intl.Collator(words.locale);
+	const collator = new Intl.Collator(intlLocales(words.locale));
 	const named = [
 		...regions.map(({ code, name }) => ({ value: code, label: name })),
 		...others.map((code) => ({ value: code, label: code })),
@@ -283,7 +284,7 @@ function languageChoices(words: Words<Key>, kept: readonly string[]): Choice[] {
 		(tag) => tag !== "" && !lessonLanguages.includes(tag),
 	);
 	const tags = [...new Set([...lessonLanguages, ...others])];
-	const collator = new Intl.Collator(words.locale);
+	const collator = new Intl.Collator(intlLocales(words.locale));
 	const named = tags
 		.map((tag) => ({ value: tag, label: languageName(words, tag) }))
 		.sort((one, other) => collator.compare(one.label, other.label));

@@ -129,23 +129,37 @@ func TestATextDrawingThatHoldsNothingIsReadPast(t *testing.T) {
 }
 
 // A picture written as null, the way a card's payload writes no picture, or
-// as an empty text, is no picture: it is mended and named, not refused. So is
-// a picture of the solution.
+// as an empty text, is no picture: it is mended and named, not refused for
+// its form. So is a picture of the solution, and a task left with none is
+// then asked for it, since every task draws its solution.
 func TestAPictureWrittenAsNothingIsNoPicture(t *testing.T) {
 	t.Parallel()
 
-	for _, member := range []string{"picture", "solution_picture"} {
+	for _, test := range []struct{ member, refusal string }{
+		{"picture", ""},
+		{"solution_picture", "task.solution_picture is missing"},
+	} {
 		for _, written := range []any{nil, "", " "} {
 			submitted := validParts(t)
-			draft, problems := checks.Decode(withMember(t, submitted.task, member, written), submitted.selfCheck)
+			draft, problems := checks.Decode(withMember(t, submitted.task, test.member, written), submitted.selfCheck)
 			problems = append(problems, checks.Structure(draft, testCatalog)...)
 			drawn := map[string]json.RawMessage{"picture": draft.Task.Picture, "solution_picture": draft.Task.SolutionPicture}
-			if len(problems) != 0 || drawn[member] != nil || !slices.Contains(draft.Mended, "task."+member) {
-				t.Errorf("%s %#v: problems %v, picture %s, mended %v, want no picture and the mend named",
-					member, written, problems, drawn[member], draft.Mended)
+			if drawn[test.member] != nil || !slices.Contains(draft.Mended, "task."+test.member) ||
+				!refusedFor(problems, test.refusal) {
+				t.Errorf("%s %#v: problems %v, picture %s, mended %v, want no picture, the mend named and %q",
+					test.member, written, problems, drawn[test.member], draft.Mended, test.refusal)
 			}
 		}
 	}
+}
+
+// refusedFor says whether problems are a refusal for this alone, or none at
+// all where it is empty.
+func refusedFor(problems []checks.Problem, refusal string) bool {
+	if refusal == "" {
+		return len(problems) == 0
+	}
+	return len(problems) == 1 && strings.Contains(problems[0].Message, refusal)
 }
 
 // What a picture holds is its own check's to judge, member by member: a

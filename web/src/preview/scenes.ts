@@ -636,7 +636,7 @@ export function scenesIn(language: string): Scene[] {
 			name: "attempts exhausted",
 			payload: { ...exhausted, child: handed.child },
 		},
-		{ name: "limit reached", payload: limited },
+		{ name: "limit reached", payload: { ...limited, child: handed.child } },
 		{ name: "progress, the model's card", payload: moving, play: everyFold },
 		// The model's card as it first opens, its topics alone open: a card short
 		// enough to take in at once.

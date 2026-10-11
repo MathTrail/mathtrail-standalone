@@ -1,4 +1,4 @@
-import { directionOf, fallbacksOf } from "./lookup";
+import { directionOf, fallbacksOf, intlLocales } from "./lookup";
 
 /**
  * Wording is what a dictionary says for a key: a text, or, for words that
@@ -11,6 +11,21 @@ export type Wording =
 
 /** Dictionary is one language's words by key, keys in dot notation. */
 export type Dictionary = Readonly<Record<string, Wording>>;
+
+/**
+ * textsOf are the texts a wording says: its only one, or one for each plural
+ * category. A dictionary is read from a file, and what a file holds in place
+ * of a text says nothing: the check of the dictionaries names it.
+ */
+export function textsOf(wording: Wording): string[] {
+	if (typeof wording === "string") {
+		return [wording];
+	}
+	if (typeof wording !== "object" || wording === null) {
+		return [];
+	}
+	return Object.values(wording).filter((text) => typeof text === "string");
+}
 
 /**
  * Slots fill a wording's placeholders, `{name}`, by name. A number is written
@@ -83,8 +98,8 @@ export function openWords<Key extends string>(
 		if (dictionary !== undefined) {
 			sources.push({
 				dictionary,
-				plurals: new Intl.PluralRules(tag),
-				numbers: new Intl.NumberFormat(tag),
+				plurals: new Intl.PluralRules(intlLocales(tag)),
+				numbers: new Intl.NumberFormat(intlLocales(tag)),
 			});
 		}
 	}

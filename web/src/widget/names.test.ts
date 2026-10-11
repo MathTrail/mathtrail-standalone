@@ -4,6 +4,7 @@ import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import english from "../../locales/en.json";
 import russian from "../../locales/ru.json";
+import { onAMachineSpeaking } from "../i18n/testing/machine";
 import { openWords } from "../i18n/words";
 import siteEnglish from "../site/locales/en.json";
 import siteRussian from "../site/locales/ru.json";
@@ -163,6 +164,38 @@ describe("a country", () => {
 
 	test("that no code names is shown as it is", () => {
 		expect(countryName(inEnglish, "not a code")).toBe("not a code");
+	});
+});
+
+// Names in Klingon, which no platform has data for.
+describe("a name the platform has none for", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	test("is the code or the tag as it is", () => {
+		vi.spyOn(Intl.DisplayNames.prototype, "of").mockReturnValue(undefined);
+
+		expect(countryName(inEnglish, "FR")).toBe("FR");
+		expect(languageName(inEnglish, "fr")).toBe("Fr");
+	});
+});
+
+describe("names in a language the platform has no data for", () => {
+	const inKlingon = openWords<Key>("tlh", new Map([["en", english]]));
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	test("are listed and named as English does, whatever the machine speaks", () => {
+		onAMachineSpeaking("de");
+
+		expect(listed(inKlingon, ["space", "animals", "football"])).toBe(
+			"space, animals, football",
+		);
+		expect(countryName(inKlingon, "FR")).toBe("France");
+		expect(languageName(inKlingon, "fr")).toBe("French");
 	});
 });
 

@@ -1,6 +1,7 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { lessonLanguages } from "./dictionaries";
 import {
 	buttonIn,
 	type Drawn,
@@ -165,14 +166,14 @@ describe("the form of the profile", () => {
 		expect(form(root).querySelectorAll("input[type=text]")).toHaveLength(2);
 	});
 
-	test("offers the twenty-two languages of the lessons by name, after the chat's", async () => {
+	test("offers every language of the lessons by name, after the chat's", async () => {
 		const { root } = await opened();
 
 		const choices = [
 			...field<HTMLSelectElement>(root, "Language of the lessons").options,
 		];
 		expect(choices[0]?.textContent).toBe("The chat's language");
-		expect(choices).toHaveLength(23);
+		expect(choices).toHaveLength(lessonLanguages.length + 1);
 		expect(choices.map((choice) => choice.textContent)).toContain("French");
 	});
 
@@ -200,18 +201,18 @@ describe("the form of the profile", () => {
 			{},
 			{
 				...standing,
-				profile: { ...standing.profile, ui_language: "sw" },
+				profile: { ...standing.profile, ui_language: "so" },
 			},
 		);
 		const language = () =>
 			field<HTMLSelectElement>(root, "Language of the lessons");
 
-		expect(language().value).toBe("sw");
+		expect(language().value).toBe("so");
 		chosen(root, "Language of the lessons", "fr");
 
 		expect(language().value).toBe("fr");
 		expect([...language().options].map((choice) => choice.value)).toContain(
-			"sw",
+			"so",
 		);
 	});
 

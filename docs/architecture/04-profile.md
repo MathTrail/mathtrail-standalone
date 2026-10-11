@@ -126,7 +126,7 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 |---|---|---|
 | `delta` | number | δ, the per-topic correction |
 | `answers`, `correct` | integers | The `n` of the step and the `m` of the uncertainty mastery is judged by (SPEC 2.5), and the success count the progress screen shows |
-| `last_issued` | date | "The topic not seen for the longest" in the rule; absent means never issued, which the rule puts first. Written when a task is **accepted**, not when the rule picks the topic — a generation that never produced anything must not push its topic away |
+| `last_issued` | date | "The topic not seen for the longest" in the rule; absent means never issued, which the rule puts first. Written when a task is **accepted**, not when the rule picks the topic — a generation that never produced anything must not push its topic away. A day cannot order the topics given on it, so the rule orders those by `recent` and the task on the card (SPEC 3.2) |
 | `top_streak` | integer | Correct answers in a row at the upper edge of the corridor with no hint — the run the earlier rule of mastery counted (О-32). It is counted as before, and no rule reads it since the cautious estimate (SPEC 2.5, R187): it stays so that a file means to an older build what it did, and goes with the next version |
 | `wrong_streak` | integer | Wrong answers in a row in this topic, which is what mastery is lost by. It is counted rather than read back out of `recent` for the same reason `top_streak` is: the window is pruned, and a run that has to be exact cannot be read from something that forgets |
 | `mastered_since` | date or null | Set when the cautious estimate declares the topic mastered (SPEC 2.5); the progress screen reads it |
@@ -136,7 +136,7 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 
 ### The history window
 
-`recent` — the last **20** entries, answers and skipped tasks alike (R98), oldest first, and never fewer than 5 answers after any pruning (see "Size, and the window policy"). It exists for two readers: the progress screen — its "recent answers" (PRODUCT 4.2), its map of the mistakes that repeat, each trap behind at least `MATHTRAIL_TRAP_REPEATS` of the window's answers (R136), and its review, which reads how often each topic's answers in the window used the hint and fell for one trap (SPEC 2.11, R176) —, and the rule, which needs the topic of the last answer when it decides to consolidate.
+`recent` — the last **20** entries, answers and skipped tasks alike (R98), oldest first, and never fewer than 5 answers after any pruning (see "Size, and the window policy"). It exists for two readers: the progress screen — its "recent answers" (PRODUCT 4.2), its map of the mistakes that repeat, each trap behind at least `MATHTRAIL_TRAP_REPEATS` of the window's answers (R136), and its review, which reads how often each topic's answers in the window used the hint and fell for one trap (SPEC 2.11, R176) —, and the rule, which needs the topic of the last answer when it decides to consolidate, and the order of the entries, skipped tasks among them, to tell apart the topics given on one day (SPEC 3.2, R290).
 
 | Field | Type | Why |
 |---|---|---|
@@ -150,7 +150,7 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | `skipped` | boolean | The task was left without an answer when a new one was asked for — `next_task` records it (R98). Such an entry carries the task's id, topic, level and difficulty, and `answered_at` as the moment it was left — and none of `correct`, `chosen`, `trap`, `hint_used`, `confused`, `pace` or `before` |
 | `before` | `{delta, theta}` | Where the child stood before this answer moved anything: θ and the correction of the answer's topic, at full precision. What the progress tells moved since the last answer is measured from it (SPEC 2.10, R165). Absent from a skipped task, which moved nothing, and from an answer an earlier build wrote |
 
-Unlike the prototype, an answered entry's `correct` is never null: "I don't know" is answered with the solution, so it is an answer, and a wrong one (R93), marked by `confused` rather than by a third outcome. A skipped task is the one entry with no outcome, and every reader that learns from answers — the rating, the trial series, the misconception map, the streaks, the rule's "last answer" — passes over it; only the progress screen reads it (R98).
+Unlike the prototype, an answered entry's `correct` is never null: "I don't know" is answered with the solution, so it is an answer, and a wrong one (R93), marked by `confused` rather than by a third outcome. A skipped task is the one entry with no outcome, and every reader that learns from answers — the rating, the trial series, the misconception map, the streaks, the rule's "last answer" — passes over it. The progress screen reads it (R98), and the rule reads where it stands among the entries, as it does an answer's (R290).
 
 ### The days of the ratings
 
@@ -202,7 +202,7 @@ Two hundred is four days at the most a day gives, fifty tasks, and two weeks of 
 | `fingerprint` | open | Added to `task_fingerprints` when the task is handed out |
 | `asked` | open, absent when false | As the request had it: a person asked for the task (R237). A task kept takes `asked` from the ask it is handed out to |
 | `wording`, `picture`, `options`, `hint` | open | Exactly what the card shows and what the model was given back. `picture`, the description the card draws, is left out for a task with none (R269) |
-| `sealed` | sealed | `mt1.t.<kid>.<ciphertext>` — the answer, the trap id and the explanation behind each wrong option, the solution with the picture of the solution and its total where the task has them (R276), and the solver program |
+| `sealed` | sealed | `mt1.t.<kid>.<ciphertext>` — the answer, the trap id and the explanation behind each wrong option, the solution with its picture, which every task draws, and its total where the task has one (R276, R289), and the solver program |
 
 The sealed block's plaintext is JSON with a version of its own, sealed under the `task-answer` purpose of the key ring (02-auth). The picture of the solution and its total are optional members of it, so a block sealed before them opens as one with neither, and one sealed with them opens in a build from before, which reads past them: the version stays 1. It is opened in exactly two places, both after the answer: inside `submit_answer`, when the child's answer arrives and again when the same answer is sent twice, and inside `show_result`, which shows how the answer recorded went — never before the child has answered (R278). `show_result` checks that the task is the one on the card and that the service recorded its answer before it opens the block, and the block of an answered task opens only against the letter it was answered with. If it cannot be opened — the key that sealed it has been retired, which takes two rotation periods — the tool says the task can no longer be checked and takes it off the card, recording nothing about it — it was neither an answer nor a skip — and the child is given a new one (02-auth). `show_result`, which opens it only for an answer recorded, says instead that the answer counts and how it went can no longer be told, and writes nothing.
 
@@ -225,12 +225,14 @@ It moves nothing about the child until it is handed out: not the fingerprints, n
 
 ### The daily counters
 
-`daily` — `{ "date": "2026-09-20", "accepted": 7, "failed": 1 }`. Two counters and the day they belong to. It lives in the file because it must be shared by every instance (О-15, О-24).
+`daily` — `{ "accepted": 7, "date": "2026-09-20", "ends": "2026-09-21T05:00:00Z", "failed": 1, "utc_offset": -300 }`. Two counters, the day they belong to and when it ends, and the family's clock the next day begins by. It lives in the file because it must be shared by every instance (О-15, О-24).
 
 - `accepted` — the daily generation limit. Its unit is an accepted task (О-35), counted as it is handed out: checked in `next_task` and `prepare_task`, raised in `submit_task`, or in `next_task` when it hands out a task kept (03-flows, R235).
 - `failed` — the ceiling on failed generations: raised whenever a request ends in `attempts_exhausted`, checked in `next_task`, ten a day by default, `MATHTRAIL_DAILY_FAILED` (SPEC 11.2, R291). It exists because О-35 deliberately lets a refusal cost nothing, which on its own leaves a failing model free to loop for ever; the reasoning is in 03-flows and the decision is R15.
+- `ends` — when the day ends: the family's next midnight by the clock the day began under, RFC 3339 in UTC. It is the midnight after `date` by a clock some time zone keeps, and a file from before T99 has none: its day ends at the UTC midnight after `date`.
+- `utc_offset` — how far the family's clock runs ahead of UTC, in minutes, behind it below zero: the clock of the device the child last answered a card on, which the card tells with the answer, and which the next day begins by. It lies between −720 and 840 and keeps to quarters of an hour, and it is absent until a card has told one. The model's answers, given in the chat, tell none (R293).
 
-The date is a **UTC** date. The service has no reliable idea of the family's timezone, and for once that costs very little: the product shows no rhythm of practice at all — no streaks, no "solved today", nothing to break (R13, О-49) — so an early rollover in the Americas makes the limit *looser* for one evening and never stricter. Taking the offset from the widget, which knows the browser's timezone, would make it exact; it is an improvement, not a debt.
+The date is the **family's** date: the day the family's clock showed as the day began, which ends at `ends`, the family's midnight, or the UTC date while the file has no clock. It was the UTC date until T99, on the reasoning that an early rollover in the Americas makes the limit looser for one evening and never stricter; but in the Americas that evening is the lesson, and the card of a full day says new tasks come tomorrow (R293, R292). A clock told counts from the next day on: the day under way ends at `ends`, so a clock that moves, or two that take turns, neither ends a day sooner nor carries its tasks into the next.
 
 ## Where the answer is, and why it cannot be deduced
 
@@ -256,7 +258,7 @@ The check for this task is that the prototype's rule (its SPEC 5.7) can be compu
 | A failure to consolidate? | `ratings.consecutive_failures` |
 | Which topic to consolidate | the last entry of `recent` — never empty while `consecutive_failures` is above zero — if that topic is within reach |
 | Which topics are within reach | `ratings.theta`, `topics[*].delta`, and the levels each topic is taught at, from the topic catalog in the binary |
-| Otherwise: a topic within reach, unmastered at its recommended level, unseen for the longest, never-issued ones first | `topics[*].mastered_since`, `topics[*].mastered_level`, `topics[*].last_issued`, and the topic catalog in the binary |
+| Otherwise: a topic within reach, unmastered at its recommended level, unseen for the longest, never-issued ones first, and those given on one day by the place of each one's last task | `topics[*].mastered_since`, `topics[*].mastered_level`, `topics[*].last_issued`, the order of `recent` and the topic of an unanswered `current_task`, and the topic catalog in the binary |
 | The recommended point — level and difficulty — from the corridor | `ratings.theta`, `ratings.answers`, `topics[t].delta`, `topics[t].answers`, and the levels of the topic |
 | The setting: an interest on one task in three, taken in turn | `student.interests`, **`ratings.answers`** and every topic's **`skipped`** |
 | The two traps | `topics[t].traps`, topped up from the reference tasks of that topic and level in the binary |

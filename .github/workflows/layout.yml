@@ -1,0 +1,75 @@
+# The widget's layout in every language the cards speak and in the
+# pseudo-language, at every width, in Chromium and in WebKit: after every push
+# to main, and by hand on any branch, so that a branch that brings
+# dictionaries can be measured in all of them before it is merged. Nothing
+# waits for it: a language whose cards do not fit marks its commit red, a pull
+# request of its own mends it, and every other change ships as usual. A pull
+# request measures three languages, in a job of the checks.
+name: Widget layout
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # A change to this file runs before it is merged: the button to run a
+  # workflow by hand is there only once the workflow is on main.
+  pull_request:
+    paths:
+      - '.github/workflows/layout.yml'
+
+permissions:
+  contents: read
+
+# The runs of a branch go one at a time: a newer one waits for the one under
+# way and takes the place of any still waiting, so that a red mark stands on a
+# commit whose run went to its end. On a pull request a newer push ends the
+# run of the one before it.
+concurrency:
+  group: layout-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  layout:
+    name: Every language ${{ matrix.part }}/${{ strategy.job-total }}
+    runs-on: ubuntu-24.04
+    # Read from the lines a run prints, on 2026-10-10: the two engines measure
+    # at once, after some 45 s of setting up, a page in 36 s in Chromium and
+    # 52 s in WebKit on average, 86 s and 70 s at most. Sixty-five languages
+    # at three widths are 195 pages an engine, up to 20 of them a part, some
+    # 18 minutes of WebKit's and 23 at its slowest. The limit holds a page
+    # measured twice and cards given up on, and scripts slower to draw than
+    # the ones measured.
+    timeout-minutes: 40
+    # This job stays on the runner: the browsers run in an image of their own,
+    # which needs a Docker daemon. The widget's packages are installed here, by
+    # the Node the development image pins, and the image runs over them.
+    #
+    # Ten parts, half the twenty runners of GitHub's free plan at once, so
+    # that the pull requests' checks never wait for one. Every part runs to its
+    # end, so that a card that fails in one hides nothing the others find.
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/just
+      - uses: ./.github/actions/node
+      - name: Measure the cards
+        run: just web-layout --shard ${{ matrix.part }}/${{ strategy.job-total }}
+      # What the browsers found, and a picture of every card written right to
+      # left, are kept whether the run passed or not: they are what is looked
+      # at either way.
+      - name: Keep what the layout showed
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: widget-layout-${{ matrix.part }}
+          path: web/layout/
+          retention-days: 14

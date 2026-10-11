@@ -253,6 +253,7 @@
     },
     "correct_answer": "E",
     "solution": "The frog lands only on even stones: 0, 2, 4, 6, 8, 10, 12, ... Only 12 is even.",
+    "solution_picture": {"kind": "number_line", "from": 0, "to": 12, "step": 1, "marks": [{"at": 0}, {"at": 2}, {"at": 4}, {"at": 6}, {"at": 8}, {"at": 10}, {"at": 12}]},
     "distractors": {
       "A": {
         "trap": "wrong_parity",
@@ -1343,6 +1344,8 @@
     },
     "correct_answer": "E",
     "solution": "After Anna, lamps 2, 4, 6 and 8 are on. Ben switches lamps 3, 6 and 9: lamps 3 and 9 go on, and lamp 6 goes off. Now lamps 2, 3, 4, 8 and 9 are on: 5 lamps.",
+    "solution_picture": {"kind": "row", "items": [{"label": "1"}, {"label": "2", "mark": "ring"}, {"label": "3", "mark": "ring"}, {"label": "4", "mark": "ring"}, {"label": "5"}, {"label": "6"}, {"label": "7"}, {"label": "8", "mark": "ring"}, {"label": "9", "mark": "ring"}]},
+    "solution_total": "4 − 1 + 2 = 5",
     "distractors": {
       "A": {
         "trap": "answered_other_question",
@@ -1929,6 +1932,7 @@
     "correct_answer": "B",
     "hint": "Follow one frog: what do all the points it lands on have in common?",
     "solution": "A jumping frog moves twice the distance between it and the frog it jumps over, and twice a whole number is even. So each frog stays on even points or on odd points, as it started: P and R always sit on even points, and Q on odd ones. Of the options, only P at 0, Q at 5 and R at 4 keeps to this. It can be reached: Q jumps over R to 3, R jumps over Q to 4, and Q jumps over R to 5.",
+    "solution_picture": {"kind": "number_line", "from": 0, "to": 6, "step": 1, "marks": [{"at": 0, "label": "P"}, {"at": 4, "label": "R"}, {"at": 5, "label": "Q"}]},
     "distractors": {
       "A": {
         "trap": "wrong_parity",

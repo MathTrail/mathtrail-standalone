@@ -331,17 +331,19 @@ func showsTasksOf(t *testing.T, shipped *content.Content, examples []map[string]
 // The reference tasks a package shows are the topic's own at the level of the
 // brief and the requested difficulty, and they come as a model is to see them:
 // without the id, the topic and the level the package already names, and
-// without the solver the model is not shown. The topic is one with no
-// pictures, so that none of the three is there for its picture alone.
+// without the solver the model is not shown. The topic's questions draw
+// nothing, and its task that draws its solution is among the first three of
+// the difficulty asked for, so that none of the three is there for a picture
+// alone.
 func TestAPackageShowsReferenceTasksAsTheModelIsToSeeThem(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	_, got := packageFor(t, shipped, request("arithmetic.tricks", rating.Grades12, 3, 0))
+	_, got := packageFor(t, shipped, request("arithmetic.tricks", rating.Grades12, 1, 0))
 
 	var questions []string
 	for _, task := range shipped.Examples() {
-		if task.Topic == "arithmetic.tricks" && task.GradeLevel == rating.Grades12 && task.Difficulty == 3 {
+		if task.Topic == "arithmetic.tricks" && task.GradeLevel == rating.Grades12 && task.Difficulty == 1 {
 			questions = append(questions, task.Question)
 		}
 	}
@@ -361,54 +363,66 @@ func TestAPackageShowsReferenceTasksAsTheModelIsToSeeThem(t *testing.T) {
 	}
 }
 
-// A package shows a reference task that draws wherever its topic has one at
-// the level of the brief, whatever the difficulty and wherever the turns have
-// come to: a model shown no picture describes none. The task comes without
-// what the model is not shown.
-func TestAPackageShowsATaskThatDrawsWhereItsLevelHasOne(t *testing.T) {
+// A package shows a reference task that draws its solution, whatever the
+// topic, the level, the difficulty and wherever the turns have come to, and a
+// reference task that draws wherever its level has one: every task the model
+// writes draws its solution, and a model shown no picture describes none. The
+// tasks come without what the model is not shown.
+func TestAPackageShowsATaskThatDrawsAndOneThatDrawsItsSolution(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	type place struct {
-		topic string
-		level rating.GradeLevel
-	}
-	drawsAt := map[place]bool{}
+	drawn := map[string]bool{}
 	for _, task := range shipped.Examples() {
 		if task.Picture != nil {
-			drawsAt[place{task.Topic, task.GradeLevel}] = true
+			drawn[task.Topic+" "+string(task.GradeLevel)] = true
 		}
 	}
-	if len(drawsAt) == 0 {
-		t.Fatal("no reference task draws, so nothing here was tested")
+	for _, topic := range shipped.Topics() {
+		for _, level := range topic.GradeLevels {
+			wantEveryPackageToDrawASolution(t, shipped, topic.ID, level, drawn[topic.ID+" "+string(level)])
+		}
 	}
-	for at := range drawsAt {
-		for difficulty := 1; difficulty <= 5; difficulty++ {
-			for answers := range 5 {
-				_, got := packageFor(t, shipped, request(at.topic, at.level, difficulty, answers))
-				wantATaskThatDraws(t, got.Examples,
-					fmt.Sprintf("%s at %s, difficulty %d, after %d answers", at.topic, at.level, difficulty, answers))
+}
+
+// wantEveryPackageToDrawASolution fails unless every package of a topic at a
+// level, at every difficulty and wherever the turns have come to, shows a
+// reference task that draws its solution — and one that draws, where the
+// level has one.
+func wantEveryPackageToDrawASolution(t *testing.T, shipped *content.Content, topic string, level rating.GradeLevel,
+	levelDraws bool,
+) {
+	t.Helper()
+
+	for difficulty := 1; difficulty <= 5; difficulty++ {
+		for answers := range 5 {
+			_, got := packageFor(t, shipped, request(topic, level, difficulty, answers))
+			where := fmt.Sprintf("%s at %s, difficulty %d, after %d answers", topic, level, difficulty, answers)
+			wantAnExampleWith(t, got.Examples, "solution_picture", where)
+			if levelDraws {
+				wantAnExampleWith(t, got.Examples, "picture", where)
 			}
 		}
 	}
 }
 
-// wantATaskThatDraws fails unless one of the examples a package shows has a
-// picture, and carries nothing the model is not shown.
-func wantATaskThatDraws(t *testing.T, examples []map[string]json.RawMessage, where string) {
+// wantAnExampleWith fails unless one of the examples a package shows has the
+// member given — its picture, or the picture of its solution — and carries
+// nothing the model is not shown.
+func wantAnExampleWith(t *testing.T, examples []map[string]json.RawMessage, member, where string) {
 	t.Helper()
 
 	drawn := slices.IndexFunc(examples, func(example map[string]json.RawMessage) bool {
-		_, there := example["picture"]
+		_, there := example[member]
 		return there
 	})
 	if drawn < 0 {
-		t.Errorf("%s: no example draws", where)
+		t.Errorf("%s: no example has a %s", where, member)
 		return
 	}
 	for _, hidden := range []string{"id", "topic", "grade_level", "solver"} {
 		if _, there := examples[drawn][hidden]; there {
-			t.Errorf("%s: an example that draws carries %q, which the model is not shown", where, hidden)
+			t.Errorf("%s: an example with a %s carries %q, which the model is not shown", where, member, hidden)
 		}
 	}
 }
@@ -483,9 +497,9 @@ func shownAsHeld(t *testing.T, shown shownPicture, held *content.PictureExample)
 		bytes.Equal(shown.Picture, compact.Bytes())
 }
 
-// Every kind a topic's reference tasks draw is among the examples its package
-// carries: a model shown a reference task drawing a picture of a kind has its
-// example beside it.
+// Every kind a topic's reference tasks draw, for their question or for their
+// solution, is among the examples its package carries: a model shown a
+// reference task drawing a picture of a kind has its example beside it.
 func TestATopicCarriesAnExampleOfEveryKindItsReferenceTasksDraw(t *testing.T) {
 	t.Parallel()
 
@@ -497,9 +511,10 @@ func TestATopicCarriesAnExampleOfEveryKindItsReferenceTasksDraw(t *testing.T) {
 		}
 	}
 	for _, task := range shipped.Examples() {
-		if kind := picture.KindOf(task.Picture); task.Picture != nil &&
-			!slices.Contains(carried[task.Topic], picture.Kind(kind)) {
-			t.Errorf("%s draws a %s, and the examples of %s hold none", task.ID, kind, task.Topic)
+		for _, drawn := range []json.RawMessage{task.Picture, task.SolutionPicture} {
+			if kind := picture.KindOf(drawn); drawn != nil && !slices.Contains(carried[task.Topic], picture.Kind(kind)) {
+				t.Errorf("%s draws a %s, and the examples of %s hold none", task.ID, kind, task.Topic)
+			}
 		}
 	}
 }

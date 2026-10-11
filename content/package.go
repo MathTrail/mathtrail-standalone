@@ -180,14 +180,16 @@ type packageChild struct {
 // id, its topic and level, which the package says already, and its solver,
 // which the model is not shown.
 type packageExample struct {
-	Difficulty    int                   `json:"difficulty"`
-	Question      string                `json:"question"`
-	Picture       json.RawMessage       `json:"picture,omitempty"`
-	Options       map[string]string     `json:"options"`
-	CorrectAnswer string                `json:"correct_answer"`
-	Hint          string                `json:"hint,omitempty"`
-	Solution      string                `json:"solution"`
-	Distractors   map[string]Distractor `json:"distractors"`
+	Difficulty      int                   `json:"difficulty"`
+	Question        string                `json:"question"`
+	Picture         json.RawMessage       `json:"picture,omitempty"`
+	Options         map[string]string     `json:"options"`
+	CorrectAnswer   string                `json:"correct_answer"`
+	Hint            string                `json:"hint,omitempty"`
+	Solution        string                `json:"solution"`
+	SolutionPicture json.RawMessage       `json:"solution_picture,omitempty"`
+	SolutionTotal   string                `json:"solution_total,omitempty"`
+	Distractors     map[string]Distractor `json:"distractors"`
 }
 
 // packageLimits are what the task is held to when it is handed in: how long a
@@ -246,7 +248,8 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 		task := &examples[i]
 		contents.Examples = append(contents.Examples, packageExample{
 			Difficulty: task.Difficulty, Question: task.Question, Picture: task.Picture, Options: task.Options,
-			CorrectAnswer: task.CorrectAnswer, Hint: task.Hint, Solution: task.Solution, Distractors: task.Distractors,
+			CorrectAnswer: task.CorrectAnswer, Hint: task.Hint, Solution: task.Solution,
+			SolutionPicture: task.SolutionPicture, SolutionTotal: task.SolutionTotal, Distractors: task.Distractors,
 		})
 	}
 	return contents, nil
@@ -293,8 +296,8 @@ func twoPlaces(x float64) float64 { return math.Round(x*100) / 100 }
 // those of the requested difficulty first, then of the nearest, then of the
 // next nearest, taken from that level — or, where the topic has nothing at
 // that level, from the level below — with one that draws among them wherever
-// the level has one. Within one difficulty the tasks take turns by the child's
-// answer count.
+// the level has one, and one that draws its solution wherever the level has
+// one. Within one difficulty the tasks take turns by the child's answer count.
 func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty, answers int) []Example {
 	for known := level.Known(); known; level, known = levelBelow(level) {
 		var pool []Example
@@ -304,7 +307,8 @@ func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty,
 			}
 		}
 		if len(pool) > 0 {
-			return withADrawnTask(nearest(pool, difficulty, answers), pool, difficulty, answers)
+			picked := withADrawnTask(nearest(pool, difficulty, answers), pool, difficulty, answers)
+			return withADrawnSolution(picked, pool, difficulty, answers)
 		}
 	}
 	return nil
@@ -338,6 +342,62 @@ func withADrawnTask(picked, pool []Example, difficulty, answers int) []Example {
 func anyDraws(tasks []Example) bool {
 	for i := range tasks {
 		if tasks[i].draws() {
+			return true
+		}
+	}
+	return false
+}
+
+// withADrawnSolution is the tasks picked for a package with one that draws its
+// solution among them, where the pool has one: every task the model writes
+// draws its solution, and a model shown no picture of a solution describes
+// none. When none of those picked draws its solution, the task that draws its
+// solution nearest the difficulty comes last, after those of the difficulty
+// asked for, as a task shown for its picture does, and one of those picked
+// leaves for it (givingWay). Tasks that draw their solution at one difficulty
+// take turns by the answer count, as all tasks of a difficulty do.
+func withADrawnSolution(picked, pool []Example, difficulty, answers int) []Example {
+	if len(picked) == 0 || anyDrawsItsSolution(picked) {
+		return picked
+	}
+	var drawn []Example
+	for i := range pool {
+		if pool[i].drawsItsSolution() {
+			drawn = append(drawn, pool[i])
+		}
+	}
+	if len(drawn) == 0 {
+		return picked
+	}
+	coming := nearest(drawn, difficulty, answers)[0]
+	leaving := givingWay(picked, coming.draws())
+	shown := slices.Delete(slices.Clone(picked), leaving, leaving+1)
+	return append(shown, coming)
+}
+
+// givingWay is the place of the task that leaves those picked for a task that
+// draws its solution. A task coming with a picture of its own takes the last
+// place, where a task shown only for its picture stands, so that the tasks of
+// the difficulty asked for are not given up twice. Any other takes the place
+// of the last task with no picture, so that a task picked for its picture
+// stays, or of the last of all, where every one has a picture and the others
+// still draw.
+func givingWay(picked []Example, comingDraws bool) int {
+	if !comingDraws {
+		for i := len(picked) - 1; i >= 0; i-- {
+			if !picked[i].draws() {
+				return i
+			}
+		}
+	}
+	return len(picked) - 1
+}
+
+// anyDrawsItsSolution says whether any of some reference tasks carries a
+// picture of its solution.
+func anyDrawsItsSolution(tasks []Example) bool {
+	for i := range tasks {
+		if tasks[i].drawsItsSolution() {
 			return true
 		}
 	}

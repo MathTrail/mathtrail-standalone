@@ -295,6 +295,18 @@ func TestNoWrittenTaskIsANearCopyOfAnotherOrOfAReferenceTask(t *testing.T) {
 	}
 }
 
+// Every written task draws its solution, as every task the service takes
+// does.
+func TestEveryWrittenTaskDrawsItsSolution(t *testing.T) {
+	t.Parallel()
+
+	for _, task := range lesson.Written() {
+		if task.Body.SolutionPicture == nil {
+			t.Errorf("%q draws no picture of its solution", task.Body.Question)
+		}
+	}
+}
+
 // Every written task is handed in as the model writes one: the parts of the
 // task under the names the service reads them by, the picture and the picture
 // of the solution of the first among them.

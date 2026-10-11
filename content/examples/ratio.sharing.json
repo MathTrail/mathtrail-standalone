@@ -51,6 +51,8 @@
     "correct_answer": "B",
     "hint": "How many equal parts do the 56 shells make altogether?",
     "solution": "Box A has 3 parts and box B has 4, so the 56 shells make 7 equal parts of 8 shells each. Box A holds 3 × 8 = 24 shells.",
+    "solution_picture": {"kind": "bars", "bars": [{"label": "A", "segments": [{"size": 8, "label": "8"}, {"size": 8, "label": "8"}, {"size": 8, "label": "8"}], "value": "24"}, {"label": "B", "segments": [{"size": 8, "label": "8"}, {"size": 8, "label": "8"}, {"size": 8, "label": "8"}, {"size": 8, "label": "8"}], "value": "32"}], "notes": ["A + B = 56"]},
+    "solution_total": "56 ÷ 7 × 3 = 24",
     "distractors": {
       "A": {
         "trap": "ratio_total_confusion",

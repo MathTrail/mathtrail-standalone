@@ -69,7 +69,7 @@ func (s *Service) showResultTool() Tool {
 		Description: "Draws the card of how the child's answer to the task on the card went, once the answer is " +
 			"recorded by you with submit_answer: whether it was right and which option is, what went wrong on the " +
 			"way to a wrong one and whether that mistake has come up before, the solution step by step with its " +
-			"picture where it has one, the topic, and how the child's rating in the topic moved — during the trial " +
+			"picture, the topic, and how the child's rating in the topic moved — during the trial " +
 			"series, how many of its tasks are done instead — with the buttons for another task and for the topic. " +
 			"An answer given on the card turns that card into the same. Call it with the task's id. A task with no " +
 			"answer yet shows nothing of it, and a " +

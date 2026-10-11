@@ -129,6 +129,70 @@ func answerIt(t *testing.T, session *mcp.ClientSession, id, answer string, hint 
 	return call(t, session, "submit_answer", arguments)
 }
 
+// The card tells the clock of its device with the answer, and the file keeps
+// it for the day of the ceilings. An answer given in the chat tells none and
+// leaves the clock as it was, and a clock no time zone keeps is passed over
+// while the answer counts.
+func TestTheCardTellsTheFamilysClockWithTheAnswer(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		told any
+		want int
+	}{
+		{"the card's clock", -5 * 60, -5 * 60},
+		{"no clock, as the model answers", nil, 60},
+		{"a clock no time zone keeps", 7, 60},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := raceOnTheCard(t, rating.TrialAnswers)
+			p.SetClock(60)
+			kept := keptAsIs(t, p)
+			_, session := lesson(t, kept)
+
+			arguments := map[string]any{"task_id": p.CurrentTask.ID, "answer": "C"}
+			if tc.told != nil {
+				arguments["utc_offset"] = tc.told
+			}
+			if result := answered(t, call(t, session, "submit_answer", arguments)); !result.Correct {
+				t.Errorf("submit_answer = %+v, want the right answer recorded", result)
+			}
+			if got, _ := loadKept(t, kept); got.Daily.UTCOffset != tc.want || got.CurrentTask.Answered == nil {
+				t.Errorf("the file keeps the clock %d and the answer %+v, want the clock %d and the answer",
+					got.Daily.UTCOffset, got.CurrentTask.Answered, tc.want)
+			}
+		})
+	}
+}
+
+// An answer whose file another instance wrote first is recorded again on what
+// is there now, and the card's clock with it: the clock is part of the
+// answer's change, not of its first write alone.
+func TestAnAnswerMadeAgainKeepsTheCardsClock(t *testing.T) {
+	t.Parallel()
+
+	p := raceOnTheCard(t, rating.TrialAnswers)
+	kept := &overtaking{Storage: keptAsIs(t, p), edit: func(p *profile.Profile) { p.Student.Notes = "Likes puzzles." }}
+	h, session := lesson(t, kept)
+	kept.armed.Store(true)
+
+	answered(t, call(t, session, "submit_answer", map[string]any{
+		"task_id": p.CurrentTask.ID, "answer": "C", "utc_offset": -5 * 60,
+	}))
+	h.settle()
+	if outcome := lateOutcome(t, h, "submit_answer"); outcome != "remade" {
+		t.Errorf("the answer's write went %q, want remade on the other instance's file", outcome)
+	}
+	got, _ := loadKept(t, kept.Storage)
+	if got.Daily.UTCOffset != -5*60 || got.Student.Notes != "Likes puzzles." || got.CurrentTask.Answered == nil {
+		t.Errorf("the file keeps the clock %d, the notes %q and the answer %+v, want the card's clock, the other "+
+			"instance's notes and the answer", got.Daily.UTCOffset, got.Student.Notes, got.CurrentTask.Answered)
+	}
+}
+
 // answered is the payload of an answer that was told how it went.
 func answered(t *testing.T, result *mcp.CallToolResult) *resultPayload {
 	t.Helper()
