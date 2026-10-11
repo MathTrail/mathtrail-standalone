@@ -9,16 +9,17 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// The ideas of a topic are the content's own: ideasPerList of them for each
-// level the topic is taught at, the best known first, each the mathematics a
-// task is built on rather than its plot. A package names the one its task is
-// built on, after the tasks of the topic the child has left behind, so that
-// the tasks of a topic go through its ideas one after another — the same list
-// in every chat, where a list the model wrote for itself would start again
-// from its favourite idea each time.
+// The ideas of a topic are the content's own: profile.IdeasPerList of them for
+// each level the topic is taught at, each the mathematics a task is built on
+// rather than its plot, and no two of them one task told twice. A package
+// names the one its task is built on, an idea the child has not been given in
+// its round, so that the tasks of a topic go through its ideas before any
+// comes back — the same list in every chat, where a list the model wrote for
+// itself would start again from its favourite idea each time.
 
 const (
 	// ideasDir holds one file for each topic, named by the topic's id.
@@ -111,12 +112,12 @@ func loadIdeaFile(src fs.FS, topic *Topic) (ideaFile, []byte, error) {
 	return read, raw, nil
 }
 
-// checkIdeas checks one level's list: ideasPerList ideas, each a line of its
-// own within the length of one, and no two the same once their case and their
-// spaces are set aside.
+// checkIdeas checks one level's list: profile.IdeasPerList ideas, each a line
+// of its own within the length of one, and no two the same once their case and
+// their spaces are set aside.
 func checkIdeas(p *problems, level rating.GradeLevel, list []string) {
-	if len(list) != ideasPerList {
-		p.addf("level %q: %d ideas, and a list holds %d", level, len(list), ideasPerList)
+	if len(list) != profile.IdeasPerList {
+		p.addf("level %q: %d ideas, and a list holds %d", level, len(list), profile.IdeasPerList)
 	}
 	seen := make(map[string]int, len(list))
 	for i, idea := range list {

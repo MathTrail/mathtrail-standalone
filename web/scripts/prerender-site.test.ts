@@ -17,8 +17,6 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import catalog from "../../content/catalogs/topics.json";
 import data from "../../site/data.json";
 import fixture from "../../site/research/testdata/research.json";
-import widgetEnglish from "../locales/en.json";
-import widgetRussian from "../locales/ru.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
 import { address, outputPath } from "../src/site/addresses.ts";
 import {
@@ -31,8 +29,8 @@ import {
 	photos,
 } from "../src/site/brand.ts";
 import { frontPage } from "../src/site/content.ts";
-import english from "../src/site/locales/en.json";
-import russian from "../src/site/locales/ru.json";
+import { siteDictionaries } from "../src/site/words.ts";
+import { dictionaries as widgetDictionaries } from "../src/widget/dictionaries.ts";
 import {
 	historyDirectory as checkedHistoryDirectory,
 	photoDirectory as checkedPhotoDirectory,
@@ -49,6 +47,71 @@ import {
 } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
+
+// languages are the site's languages, those of its dictionaries, each of its
+// pages written in every one of them; the tests below name none of them, so
+// that a language joins the site with no test changed.
+const languages: readonly string[] = [...siteDictionaries.keys()].sort(
+	byCodeUnits,
+);
+
+// siteText is what the site's words say under key in locale.
+function siteText(locale: string, key: string): string {
+	const said = siteDictionaries.get(locale)?.[key];
+	if (typeof said !== "string") {
+		throw new Error(`the site's words in ${locale} say nothing under ${key}`);
+	}
+	return said;
+}
+
+// cardWordsIn are the widget's words in locale, the dictionary a card on a
+// page of that language speaks.
+function cardWordsIn(locale: string) {
+	const words = widgetDictionaries.get(locale);
+	if (words === undefined) {
+		throw new Error(`the widget has no words in ${locale}`);
+	}
+	return words;
+}
+
+// pageNames are the site's pages, each by the name it has in every language.
+const pageNames: readonly string[] = [
+	frontPage,
+	"about",
+	"coach",
+	"help",
+	"privacy",
+	"research",
+	"service",
+	"techniques",
+	"terms",
+	"topics",
+	...[
+		"arithmetic-with-a-trick",
+		"calendar-and-age",
+		"clocks",
+		"divisibility-and-remainders",
+		"enumeration",
+		"figures-on-a-grid",
+		"gaps-and-boundaries",
+		"knights-and-liars",
+		"ordering",
+		"overlapping-groups",
+		"parity-and-alternation",
+		"parts-and-shares",
+		"percentages",
+		"pigeonhole-principle",
+		"ratios-and-sharing",
+		"weighing-and-pouring",
+		"winning-strategy",
+	].map((slug) => `topics/${slug}`),
+	"why",
+];
+
+// pageFile is the path of the page named name in locale below the site's root.
+function pageFile(locale: string, name: string): string {
+	return outputPath(address(locale, name));
+}
 
 // font is the directory of the font package the site sets its text in.
 const font = dirname(
@@ -69,22 +132,17 @@ const fontFiles = [
 // loads: the home pages, whose demo brings their cards alive — the English one
 // is the bare domain's — and the pages Why, whose script moves the pictures of
 // the history on.
-const scripted: ReadonlyMap<string, string> = new Map([
-	["index.html", "/assets/demo.js"],
-	["ru/index.html", "/assets/demo.js"],
-	["en/why/index.html", "/assets/why.js"],
-	["ru/why/index.html", "/assets/why.js"],
-]);
+const scripted: ReadonlyMap<string, string> = new Map(
+	languages.flatMap((locale) => [
+		[pageFile(locale, frontPage), "/assets/demo.js"],
+		[pageFile(locale, "why"), "/assets/why.js"],
+	]),
+);
 
 // carded are the pages that draw a card of the widget.
-const carded: readonly string[] = [
-	"en/topics/index.html",
-	"en/why/index.html",
-	"index.html",
-	"ru/index.html",
-	"ru/topics/index.html",
-	"ru/why/index.html",
-];
+const carded: readonly string[] = languages.flatMap((locale) =>
+	[frontPage, "topics", "why"].map((name) => pageFile(locale, name)),
+);
 
 // moved is the page at the address the English front page moved from: it
 // only sends its reader on, and is no page of a language.
@@ -97,10 +155,9 @@ const framed: readonly string[] = ["assets/coach-prototype.html"];
 
 // adding is the word of every button that asks a reader to add MathTrail, by
 // the language of its page.
-const adding: Readonly<Record<string, string>> = {
-	en: english["nav.add"],
-	ru: russian["nav.add"],
-};
+const adding: Readonly<Record<string, string>> = Object.fromEntries(
+	languages.map((locale) => [locale, siteText(locale, "nav.add")]),
+);
 
 // pagesIn are the paths of the pages below dir: every HTML file but a document
 // a page frames.
@@ -306,8 +363,6 @@ describe("the site built from this repository", () => {
 					"assets/demo.js",
 					"assets/favicon.svg",
 					"assets/noto-license.txt",
-					"assets/og-en.png",
-					"assets/og-ru.png",
 					"assets/onest-cyrillic-wght-normal.woff2",
 					"assets/onest-latin-wght-normal.woff2",
 					"assets/onest-license.txt",
@@ -319,66 +374,14 @@ describe("the site built from this repository", () => {
 					"assets/photos/younger-son.webp",
 					"assets/style.css",
 					"assets/tokens.css",
-					"en/about/index.html",
-					"en/coach/index.html",
-					"en/help/index.html",
-					"en/index.html",
-					"en/privacy/index.html",
-					"en/research/index.html",
-					"en/service/index.html",
-					"en/techniques/index.html",
-					"en/terms/index.html",
-					"en/topics/arithmetic-with-a-trick/index.html",
-					"en/topics/calendar-and-age/index.html",
-					"en/topics/clocks/index.html",
-					"en/topics/divisibility-and-remainders/index.html",
-					"en/topics/enumeration/index.html",
-					"en/topics/figures-on-a-grid/index.html",
-					"en/topics/gaps-and-boundaries/index.html",
-					"en/topics/index.html",
-					"en/topics/knights-and-liars/index.html",
-					"en/topics/ordering/index.html",
-					"en/topics/overlapping-groups/index.html",
-					"en/topics/parity-and-alternation/index.html",
-					"en/topics/parts-and-shares/index.html",
-					"en/topics/percentages/index.html",
-					"en/topics/pigeonhole-principle/index.html",
-					"en/topics/ratios-and-sharing/index.html",
-					"en/topics/weighing-and-pouring/index.html",
-					"en/topics/winning-strategy/index.html",
-					"en/why/index.html",
-					"index.html",
 					"robots.txt",
-					"ru/about/index.html",
-					"ru/coach/index.html",
-					"ru/help/index.html",
-					"ru/index.html",
-					"ru/privacy/index.html",
-					"ru/research/index.html",
-					"ru/service/index.html",
-					"ru/techniques/index.html",
-					"ru/terms/index.html",
-					"ru/topics/arithmetic-with-a-trick/index.html",
-					"ru/topics/calendar-and-age/index.html",
-					"ru/topics/clocks/index.html",
-					"ru/topics/divisibility-and-remainders/index.html",
-					"ru/topics/enumeration/index.html",
-					"ru/topics/figures-on-a-grid/index.html",
-					"ru/topics/gaps-and-boundaries/index.html",
-					"ru/topics/index.html",
-					"ru/topics/knights-and-liars/index.html",
-					"ru/topics/ordering/index.html",
-					"ru/topics/overlapping-groups/index.html",
-					"ru/topics/parity-and-alternation/index.html",
-					"ru/topics/parts-and-shares/index.html",
-					"ru/topics/percentages/index.html",
-					"ru/topics/pigeonhole-principle/index.html",
-					"ru/topics/ratios-and-sharing/index.html",
-					"ru/topics/weighing-and-pouring/index.html",
-					"ru/topics/winning-strategy/index.html",
-					"ru/why/index.html",
 					"sitemap.xml",
+					moved,
 				],
+				...languages.map((locale) => `assets/og-${locale}.png`),
+				...languages.flatMap((locale) =>
+					pageNames.map((name) => pageFile(locale, name)),
+				),
 			].sort(byCodeUnits),
 		);
 	});
@@ -461,10 +464,14 @@ describe("the site built from this repository", () => {
 				framing[page] = frames;
 			}
 		}
-		expect(framing).toEqual({
-			"en/coach/index.html": ["/assets/coach-prototype.html"],
-			"ru/coach/index.html": ["/assets/coach-prototype.html"],
-		});
+		expect(framing).toEqual(
+			Object.fromEntries(
+				languages.map((locale) => [
+					pageFile(locale, "coach"),
+					["/assets/coach-prototype.html"],
+				]),
+			),
+		);
 	});
 
 	// The prototype unpacks itself in the browser from data it carries, much of
@@ -608,10 +615,8 @@ describe("the site built from this repository", () => {
 	});
 
 	test("carries on the home page what its demo needs: the lesson's task, the widget's words in the page's language alone, and an answer for every option", async () => {
-		for (const [locale, words] of [
-			["en", widgetEnglish],
-			["ru", widgetRussian],
-		] as const) {
+		for (const locale of languages) {
+			const words = cardWordsIn(locale);
 			const html = await readFile(join(out, homeFile(locale)), "utf8");
 			const [, carried] =
 				/<script type="application\/json" data-demo>([^<]*)<\/script>/.exec(
@@ -636,12 +641,14 @@ describe("the site built from this repository", () => {
 	test("builds the demo into one file, with no dictionary of the widget, no zod and nothing of a host's library", async () => {
 		const demo = await readFile(join(out, "assets", "demo.js"), "utf8");
 		const named = new Set(catalog.map((topic) => topic.name));
-		const long = [widgetEnglish, widgetRussian].flatMap((words) =>
-			Object.values(words).filter(
-				(said): said is string =>
-					typeof said === "string" && said.length > 24 && !named.has(said),
-			),
-		);
+		const long = languages
+			.map(cardWordsIn)
+			.flatMap((words) =>
+				Object.values(words).filter(
+					(said): said is string =>
+						typeof said === "string" && said.length > 24 && !named.has(said),
+				),
+			);
 
 		expect(demo).not.toContain("_zod");
 		expect(demo).not.toContain("ui/initialize");
@@ -675,9 +682,7 @@ describe("the site built from this repository", () => {
 					...html.matchAll(/<meta property="og:image:alt" content="([^"]+)"/g),
 				].map(([, alt]) => alt),
 				page,
-			).toEqual([
-				locale === "ru" ? russian["share.picture"] : english["share.picture"],
-			]);
+			).toEqual([siteText(locale, "share.picture")]);
 		}
 	});
 
@@ -689,7 +694,7 @@ describe("the site built from this repository", () => {
 	});
 
 	test("shows on the page of the topics every topic of the catalog, and every link between them", async () => {
-		for (const locale of ["en", "ru"]) {
+		for (const locale of languages) {
 			const html = await readFile(
 				join(out, locale, "topics", "index.html"),
 				"utf8",
@@ -713,7 +718,7 @@ describe("the site built from this repository", () => {
 	test("draws the page of every topic the catalog publishes, which the page of the topics leads to", async () => {
 		const published = catalog.filter((topic) => topic.site_page);
 		expect(published).not.toEqual([]);
-		for (const locale of ["en", "ru"]) {
+		for (const locale of languages) {
 			const topics = await readFile(
 				join(out, locale, "topics", "index.html"),
 				"utf8",
@@ -732,7 +737,7 @@ describe("the site built from this repository", () => {
 	});
 
 	test("gives on the privacy policy's page one address to write to, the policy's and the footer's", async () => {
-		for (const locale of ["en", "ru"]) {
+		for (const locale of languages) {
 			const html = await readFile(
 				join(out, locale, "privacy", "index.html"),
 				"utf8",
@@ -750,7 +755,7 @@ describe("the site built from this repository", () => {
 		const locales = (await readdir(out, { withFileTypes: true }))
 			.filter((entry) => entry.isDirectory() && entry.name !== "assets")
 			.map((entry) => entry.name);
-		expect(locales).toEqual(expect.arrayContaining(["en", "ru"]));
+		expect([...locales].sort(byCodeUnits)).toEqual(languages);
 		for (const locale of locales) {
 			const html = await readFile(join(out, homeFile(locale)), "utf8");
 			const links = (list: string) => {
@@ -767,14 +772,13 @@ describe("the site built from this repository", () => {
 			const group = html.match(
 				/<nav class="s-navlinks"[^>]*>.*?<span class="s-nav-group" role="group" aria-label="([^"]*)">(.*?)<\/span>/s,
 			);
-			const words = locale === "ru" ? russian : english;
 
 			expect(menu.slice(-3).map(({ href }) => href)).toEqual([
 				`/${locale}/research/`,
 				`/${locale}/service/`,
 				`/${locale}/about/`,
 			]);
-			expect(group?.[1]).toBe(words["nav.technical"]);
+			expect(group?.[1]).toBe(siteText(locale, "nav.technical"));
 			expect(
 				[...(group?.[2] ?? "").matchAll(/<a href="([^"]+)"/g)].map(
 					([, href]) => href,
@@ -836,7 +840,7 @@ describe("the site built from this repository", () => {
 	});
 
 	test("writes, on the page about who makes it and on the help, to the address the privacy policy names", async () => {
-		for (const locale of ["en", "ru"]) {
+		for (const locale of languages) {
 			const addresses = async (page: string) =>
 				[
 					...(
@@ -862,7 +866,7 @@ describe("the site built from this repository", () => {
 	});
 
 	test("shows on the page about who makes it, in every language, each of the family's photographs at its size, saying what it shows", async () => {
-		for (const locale of ["en", "ru"]) {
+		for (const locale of languages) {
 			const shown = imagesIn(
 				await readFile(join(out, locale, "about", "index.html"), "utf8"),
 			).filter(({ src }) => src.startsWith(photoDirectory));
@@ -899,7 +903,7 @@ describe("the site built from this repository", () => {
 			group.techniques.map((technique) => technique.id),
 		);
 		expect(ids).not.toEqual([]);
-		for (const locale of ["en", "ru"]) {
+		for (const locale of languages) {
 			const html = await readFile(
 				join(out, locale, "techniques", "index.html"),
 				"utf8",

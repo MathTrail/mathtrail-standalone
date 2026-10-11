@@ -4,12 +4,12 @@
 // chat's model writes a task to: what the task is about, the level it is
 // written for and how hard it is inside that level, what it is dressed in,
 // which mistakes its wrong options should lead to, and what may not appear in
-// it at all.
+// it at all — and names the idea of the topic's list the task is built on.
 //
 // Nothing here is random and nothing here is a model: the same profile always
-// produces the same brief. That is what makes the rule a baseline the model
-// can be measured against, and it is why this package needs no mocks to be
-// tested — a profile in, a brief out.
+// produces the same brief and names the same idea. That is what makes the rule
+// a baseline the model can be measured against, and it is why this package
+// needs no mocks to be tested — a profile in, a brief out.
 //
 // The rule reads the summary of each topic and the short window of recent
 // answers, never a full history, because a full history is not kept. It never
@@ -285,31 +285,24 @@ func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (prof
 // awaits says a task is written ahead of the answer to the task on the card.
 // That task comes before it, whatever answer it gets, so whatever counts what
 // the child has left behind counts the task on the card among it already: its
-// place in the trial series, and the idea and the reference tasks of its
-// package are what they will be once that answer is in.
+// place in the trial series, and the reference tasks of its package, are what
+// they will be once that answer is in.
 func awaits(p *profile.Profile, ahead bool) bool {
 	return ahead && p.InFlight() != nil
 }
 
-// Behind is how many answers the child has given and how many tasks of a
-// topic they have left behind, answered or skipped, as a task of that topic
-// written now counts them: with the task on the card among them when the task
-// is written ahead of its answer. A package built from them names a task
-// written ahead the idea after the one the task on the card was built on, when
-// the two share a topic, and the same idea and reference tasks before that
-// answer as after it. A skip of the task on the card moves no answer, so after
-// one the reference tasks are those of the answers before it, while the idea
-// stays: a task skipped is among the tasks of its topic.
-func Behind(p *profile.Profile, topic string, ahead bool) (answers, topicTasks int) {
-	stats := p.Topics[topic]
-	answers, topicTasks = p.Ratings.Answers, stats.Answers+stats.Skipped
+// AnswersBehind is how many answers the child has given, as a task written now
+// counts them: with the answer to the task on the card among them when the task
+// is written ahead of that answer. The reference tasks of a package turn with
+// it, so a task written ahead is shown the same ones before that answer as
+// after it. A skip of the task on the card moves no answer, so after one the
+// reference tasks are those of the answers before it.
+func AnswersBehind(p *profile.Profile, ahead bool) int {
+	answers := p.Ratings.Answers
 	if awaits(p, ahead) {
 		answers++
-		if p.InFlight().Topic == topic {
-			topicTasks++
-		}
 	}
-	return answers, topicTasks
+	return answers
 }
 
 // writtenAhead is what the rationale of a task written ahead opens with: that

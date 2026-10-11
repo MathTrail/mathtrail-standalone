@@ -16,6 +16,7 @@ import (
 	"github.com/leanovate/gopter/prop"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
@@ -26,8 +27,8 @@ import (
 // on nothing else; the copies handed out of the content, which must share no
 // memory with it; the catalog of traps, which is read only when every trap has
 // its advice; and the ideas of a topic, a list of which is read only when it
-// holds none twice, and which a package must name the whole list of before it
-// comes back.
+// holds none twice, and of which a package names the one its request named or
+// none at all.
 
 // instructionFilesFrom turns generated texts into a set of files whose names
 // differ, the way a directory listing always hands them over. Two files of one
@@ -290,39 +291,31 @@ func TestATrapCatalogReadsOnlyWithEveryTrapsAdvice(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// The idea a package names is what moves a model with no memory of the tasks
-// before along a topic's ideas. Whatever the count it is given — a file can
-// hold any — it names an idea of the list by its place on it, the tasks of one
-// round come to every idea once, and the next round comes to them again in the
-// same order.
+// The idea a package names is the one its request named. Whatever idea a
+// request holds — a file can hold any — a place on the list named in a round
+// is named by the words at that place, and anything else names no idea at all
+// rather than the wrong one.
 func TestTheIdeaHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 
 	list := sampleIdeas(rating.Grades12)
 	properties := gopter.NewProperties(nil)
-	properties.Property("the idea named is the one at its place on the list", prop.ForAll(
-		func(tasks int) bool {
-			idea := ideaOf(list, tasks)
-			return idea.Number >= 1 && idea.Number <= len(list) && idea.Text == list[idea.Number-1] && idea.Round >= 1
+	properties.Property("an idea on the list is named by the words at its place", prop.ForAll(
+		func(number, round int) bool {
+			idea, err := ideaOf(list, profile.Idea{Number: number, Round: round})
+			return err == nil && idea.Number == number && idea.Round == round && idea.Text == list[number-1]
 		},
-		gen.Int(),
+		gen.IntRange(1, profile.IdeasPerList),
+		gen.IntRange(1, 1<<30),
 	))
-	properties.Property("a list's worth of tasks in a row comes to every idea once", prop.ForAll(
-		func(start int) bool {
-			met := map[string]bool{}
-			for tasks := start; tasks < start+ideasPerList; tasks++ {
-				met[ideaOf(list, tasks).Text] = true
-			}
-			return len(met) == ideasPerList
+	properties.Property("an idea off the list or of no round names nothing", prop.ForAll(
+		func(number, round int) bool {
+			_, err := ideaOf(list, profile.Idea{Number: number, Round: round})
+			named := number >= 1 && number <= len(list) && round >= 1
+			return (err == nil) == named
 		},
-		gen.IntRange(0, 1<<30),
-	))
-	properties.Property("a list's worth of tasks later comes the same idea, a round on", prop.ForAll(
-		func(tasks int) bool {
-			now, later := ideaOf(list, tasks), ideaOf(list, tasks+ideasPerList)
-			return later.Number == now.Number && later.Text == now.Text && later.Round == now.Round+1
-		},
-		gen.IntRange(0, 1<<30),
+		gen.OneGenOf(gen.Int(), gen.IntRange(-1, profile.IdeasPerList+1)),
+		gen.OneGenOf(gen.Int(), gen.IntRange(-1, 2)),
 	))
 	properties.TestingRun(t)
 }
@@ -355,10 +348,10 @@ func TestAListOfIdeasIsTakenOnlyAsIdeasEachOfItsOwn(t *testing.T) {
 			}
 			p := &problems{file: ideasDir}
 			checkIdeas(p, rating.Grades12, list)
-			return (p.err() == nil) == (length == ideasPerList && len(ideas) == length)
+			return (p.err() == nil) == (length == profile.IdeasPerList && len(ideas) == length)
 		},
-		gen.SliceOfN(ideasPerList+1, gen.IntRange(0, 3*pool-1)),
-		gen.IntRange(ideasPerList-1, ideasPerList+1),
+		gen.SliceOfN(profile.IdeasPerList+1, gen.IntRange(0, 3*pool-1)),
+		gen.IntRange(profile.IdeasPerList-1, profile.IdeasPerList+1),
 	))
 	properties.TestingRun(t)
 }

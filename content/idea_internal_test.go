@@ -8,6 +8,7 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
@@ -17,7 +18,7 @@ func ideaPath(topic string) string { return ideasDir + "/" + topic + ideaSuffix 
 // sampleIdeas is a list with nothing wrong with it: as many ideas as a list
 // holds, each of its own.
 func sampleIdeas(level rating.GradeLevel) []string {
-	list := make([]string, ideasPerList)
+	list := make([]string, profile.IdeasPerList)
 	for i := range list {
 		list[i] = fmt.Sprintf("Idea %d of the topic at %s.", i+1, level)
 	}
@@ -66,8 +67,8 @@ func TestEveryTopicHasAListOfIdeasAtEachOfItsLevels(t *testing.T) {
 	}
 	for _, topic := range shipped.topics {
 		for _, level := range topic.GradeLevels {
-			if got := len(shipped.ideas[topic.ID][level]); got != ideasPerList {
-				t.Errorf("%s at %s has %d ideas, want %d", topic.ID, level, got, ideasPerList)
+			if got := len(shipped.ideas[topic.ID][level]); got != profile.IdeasPerList {
+				t.Errorf("%s at %s has %d ideas, want %d", topic.ID, level, got, profile.IdeasPerList)
 			}
 		}
 	}

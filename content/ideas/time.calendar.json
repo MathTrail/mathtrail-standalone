@@ -1,38 +1,38 @@
 {
   "1-2": [
-    "Days of the week counted forward: the day after tomorrow, or a few days on.",
-    "Days of the week counted back: what day it was a few days ago.",
-    "Ages in a few years, or a few years ago.",
+    "Days of the week counted forward or back: tomorrow, the day before yesterday, or some days on or ago.",
+    "Ages some years on or some years ago, and the difference between two ages, which stays the same.",
     "Weeks and days: the days in a few weeks.",
-    "How many years older one child is than another, a difference that stays the same.",
     "Holidays from one day to another, both ends counted.",
-    "Days left until a birthday, across the end of a month.",
-    "Yesterday and tomorrow, from what today is.",
-    "The same date of the next month, when this month has 30 days.",
-    "Today, told by what the day before yesterday was."
+    "Dates across the end of a month: the days left until a birthday, or the date some days later.",
+    "A month's page: the day of the week of a date, from the day the 1st falls on.",
+    "Something done every few days: how many times it comes in a month.",
+    "The months in order: the month that comes some months after another, across the new year.",
+    "Two birthdays in one year: the child born earlier in the year is the older one.",
+    "School days and days off: how many of each there are in a few weeks."
   ],
   "3-4": [
-    "The day of the week some weeks and days ahead.",
+    "The day of the week some days ahead: some weeks and days on, or the 1st of next month from the 1st of this one.",
     "How many times as old a parent is as a child.",
     "Days in a few months together.",
     "Full weeks in a year, and the days left over.",
     "An age on a birthday, from the year of birth.",
-    "The first day of the next month, from the first day of this one.",
+    "A birthday on 29 February: the birthdays on the real date in a run of years, with a leap year every fourth.",
     "An age now, from an age some years ago.",
     "A festival across the end of a month: how many days it lasts.",
     "Ages in a ratio that add up to a given total.",
     "The dates of all the Sundays of a month, from the date of one of them."
   ],
   "5-6": [
-    "The day of the week a year later, when a leap day falls between.",
-    "The date a given number of days after the start of a leap year.",
+    "The day of the week of a date one or more years later, each leap day between adding a day.",
+    "The number of a day in a leap year or another, and the date that day falls on.",
     "An age, from what it will be in some years and what it was some years ago.",
     "The ages of two people at two moments, ten years apart.",
     "The rule of leap years, the century years among them.",
     "Three generations: ages that add up, and how old each was when the next was born.",
     "A family's ages that add up now and some years ago, when one child was not yet born.",
     "The next year in which a date falls on the same day of the week.",
-    "The day of the week of a birthday years later, across several leap years.",
-    "The number of a day in a year, counted from 1 January."
+    "Something that happens every so many hours, such as every 50 hours: the day of the week and the hour it comes round.",
+    "Two things done every few days, such as every 4th and every 6th day: the next day they fall together."
   ]
 }

@@ -23,13 +23,14 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 )
 
-// request asks for a task on a topic at a level and a difficulty, for a child
-// of the youngest grade of that level with an interest to dress it in, notes
-// and prohibitions: everything a package can carry. The corridor is worked out
-// over the whole ladder, the most points a topic can have.
+// request asks for a task on a topic at a level and a difficulty, built on the
+// first idea of the topic's list there, for a child of the youngest grade of
+// that level with an interest to dress it in, notes and prohibitions:
+// everything a package can carry. The corridor is worked out over the whole
+// ladder, the most points a topic can have.
 func request(topic string, level rating.GradeLevel, difficulty, answers int) *content.Request {
 	return &content.Request{
-		Language: "en", Grade: level.FirstGrade(), Answers: answers,
+		Language: "en", Grade: level.FirstGrade(), Answers: answers, Idea: profile.Idea{Number: 1, Round: 1},
 		Brief: profile.Brief{
 			PedagogicalGoal: profile.GoalNewTopic, TargetConcept: topic, GradeLevel: level, Difficulty: difficulty,
 			Setting:        "space",
@@ -233,36 +234,32 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 	}
 }
 
-// A package names the idea of the topic its task is built on: the next on the
-// topic's list at the brief's level after each task of the topic the child has
-// left behind, and round the list again after its last, a round more each
-// time.
+// A package names the idea of the topic its task is built on, as the request
+// named it: the words at its place on the topic's list at the brief's level,
+// and the round of the list it was named in.
 func TestAPackageNamesTheIdeaItsTaskIsBuiltOn(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
 	listed := ideasOf(t, "counting.gaps")[rating.Grades34]
 	for _, tc := range []struct {
-		name          string
-		tasks         int
-		number, round int
+		name  string
+		named profile.Idea
 	}{
-		{"the first task of a topic", 0, 1, 1},
-		{"the next task of it", 1, 2, 1},
-		{"the last idea of the list", 9, 10, 1},
-		{"the list come round", 10, 1, 2},
-		{"a third time round", 23, 4, 3},
-		{"a count no profile can hold", -3, 1, 1},
+		{"the first idea of the list", profile.Idea{Number: 1, Round: 1}},
+		{"the last idea of the list", profile.Idea{Number: profile.IdeasPerList, Round: 1}},
+		{"an idea of a later round", profile.Idea{Number: 4, Round: 3}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			asked := request("counting.gaps", rating.Grades34, 3, 0)
-			asked.TopicTasks = tc.tasks
+			asked.Idea = tc.named
 			_, got := packageFor(t, shipped, asked)
-			if got.Idea.Number != tc.number || got.Idea.Round != tc.round || got.Idea.Text != listed[tc.number-1] {
-				t.Errorf("idea after %d tasks = %+v, want number %d, round %d, the list's %q",
-					tc.tasks, got.Idea, tc.number, tc.round, listed[tc.number-1])
+			if want := listed[tc.named.Number-1]; got.Idea.Number != tc.named.Number ||
+				got.Idea.Round != tc.named.Round || got.Idea.Text != want {
+				t.Errorf("idea = %+v, want number %d, round %d, the list's %q",
+					got.Idea, tc.named.Number, tc.named.Round, want)
 			}
 		})
 	}
@@ -669,8 +666,10 @@ func longestRationale(t *testing.T, shipped *content.Content, topic string, at r
 // A request the package cannot be built from makes no package at all, rather
 // than one the model cannot read or cannot write a task to: a topic or a skill
 // the catalogs do not have, which would reach the model undescribed, a level
-// the topic is not taught at, which has no reference tasks and no limits, and a
-// corridor that is not a number, which a damaged profile could hold.
+// the topic is not taught at, which has no reference tasks and no limits, an
+// idea the topic's list does not have, which would name nothing to build the
+// task on, and a corridor that is not a number, which a damaged profile could
+// hold.
 func TestARequestThePackageCannotBeBuiltFromMakesNoPackage(t *testing.T) {
 	t.Parallel()
 
@@ -690,6 +689,15 @@ func TestARequestThePackageCannotBeBuiltFromMakesNoPackage(t *testing.T) {
 		}},
 		{"a level there is not", func(asked *content.Request) {
 			asked.Brief.GradeLevel = "7-8"
+		}},
+		{"no idea named", func(asked *content.Request) {
+			asked.Idea = profile.Idea{}
+		}},
+		{"an idea past the end of the list", func(asked *content.Request) {
+			asked.Idea = profile.Idea{Number: profile.IdeasPerList + 1, Round: 1}
+		}},
+		{"an idea named in no round", func(asked *content.Request) {
+			asked.Idea = profile.Idea{Number: 3, Round: 0}
 		}},
 		{"a corridor that is not a number", func(asked *content.Request) {
 			asked.Corridor.BetaMin = math.NaN()
@@ -793,10 +801,10 @@ func guideExampleAsked() *profile.Brief {
 }
 
 // The guide introduces its example by the idea a package names for its brief,
-// the first on the topic's list as a child's first task of a topic is given,
-// and the example's core idea says the mathematics in a sentence or two, as
-// the guide asks. An example on another idea, or one whose core idea runs on,
-// would teach the model the very thing it is told not to do.
+// the first on the topic's list, and the example's core idea says the
+// mathematics in a sentence or two, as the guide asks. An example on another
+// idea, or one whose core idea runs on, would teach the model the very thing
+// it is told not to do.
 func TestTheGuidesExampleIsBuiltOnTheIdeaItsPackageNames(t *testing.T) {
 	t.Parallel()
 

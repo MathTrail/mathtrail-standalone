@@ -9,6 +9,7 @@ import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
 import { renderSite } from "./render";
 import { topicPage } from "./TopicPage";
+import { dictionariesOf } from "./testing/dictionaries";
 
 const browser = new Window({
 	settings: {
@@ -235,6 +236,7 @@ const render = (sources = sourcesWith(words), given = data, drawn = art) =>
 	renderSite({
 		base: "https://example.test",
 		sources,
+		dictionaries: dictionariesOf(sources),
 		frame,
 		data: given,
 		pages: pagesOf(given, drawn),
@@ -439,10 +441,13 @@ describe("a topic's page is refused when", () => {
 	// Ordering's page is published and drawn by the template, and no reference
 	// task of ordering names a trap: its page would have no trap to explain.
 	test("no reference task of its topic names a trap, the commonest of which the page explains", () => {
+		const sources = sourcesWith(words);
+
 		expect(() =>
 			renderSite({
 				base: "https://example.test",
-				sources: sourcesWith(words),
+				sources,
+				dictionaries: dictionariesOf(sources),
 				frame,
 				data,
 				pages: new Map([
@@ -456,10 +461,13 @@ describe("a topic's page is refused when", () => {
 	});
 
 	test("its topic has no drawings of its own", () => {
+		const sources = sourcesWith(words);
+
 		expect(() =>
 			renderSite({
 				base: "https://example.test",
-				sources: sourcesWith(words),
+				sources,
+				dictionaries: dictionariesOf(sources),
 				frame,
 				data,
 				pages: pagesOf(data, undefined),

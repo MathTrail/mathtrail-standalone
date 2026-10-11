@@ -1,23 +1,23 @@
 {
   "1-2": [
-    "Adding numbers in pairs that make ten.",
-    "I thought of a number and added to it: undo the addition.",
-    "I thought of a number and took away from it: undo the subtraction.",
-    "Adding a number and its partner to a round number first.",
+    "Adding in a clever order: numbers paired to make ten or a round number first.",
+    "A hidden number with a step or two done to it: undo the steps, the last one first.",
     "Adding the same number again and again: counting the groups.",
-    "Two steps done to a hidden number: undo them in reverse order.",
     "Adding nines as tens and taking the ones back.",
-    "Sums of numbers that can be grouped into equal pairs.",
+    "A run of numbers added by pairing the first with the last.",
     "Taking away by counting up from the smaller number.",
-    "A missing number in a sum, found by taking away."
+    "A long row of plus and minus signs, taken in pairs that each give the same.",
+    "Taking away many numbers one after another: add them up first, then take the sum away.",
+    "Multiplying in a clever order: a two and a five first, to make ten.",
+    "The same number added and then taken away again cancels out, whatever lies between."
   ],
   "3-4": [
     "Multiplying in a clever order: 25 with 4, 5 with 2.",
-    "I thought of a number and multiplied it: undo the multiplication.",
+    "A hidden number with a few steps done to it: undo them, the last one first.",
     "Adding in pairs that make a round hundred.",
     "Adding 999, 99 and 9 as round numbers, less one each.",
     "The sum of consecutive odd numbers.",
-    "I thought of a number and did two steps: undo them in reverse order.",
+    "A common factor taken out: 17 × 4 + 17 × 6 worked out as 17 × 10.",
     "Multiplying by 9 or 11 as by 10, with a small change.",
     "The sum of a run of numbers, its first and last paired.",
     "Taking away a sum: subtracting each part in turn.",
@@ -28,11 +28,11 @@
     "A chain of operations on a hidden number, undone from the end.",
     "Products grouped into tens, hundreds and thousands.",
     "A number trick that gives the same answer whatever the number thought of.",
-    "A number plus a part of itself gives a total: find the number.",
+    "A number from a total of parts of it: the number and half of it, or a half and a third of it, make a given sum.",
     "A two-digit number and the number with its digits swapped.",
     "The sum of all the digits of all the numbers in a range.",
     "A difference of two squares, as a sum times a difference.",
-    "Fractions of a number added together, such as a half and a third of it.",
+    "A sum written in letters, each letter a digit and no two letters the same: the digits that make it true.",
     "A long sum of alternating plus and minus signs, taken in pairs."
   ]
 }

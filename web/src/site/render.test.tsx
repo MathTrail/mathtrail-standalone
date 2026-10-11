@@ -141,9 +141,9 @@ const components = new Map<string, Drawn>([
 	["guides/sample", { draw: Sample }],
 ]);
 
-// The site's words, with the three the test's menus need in both languages.
-const dictionaries = new Map([
-	...siteDictionaries,
+// The site's words in the test's two languages and in no other, whichever
+// languages the site is written in, with the three the test's menus need.
+const dictionaries: ReadonlyMap<string, Dictionary> = new Map([
 	[
 		"en",
 		{
@@ -358,22 +358,41 @@ describe("a locale's document", () => {
 		expect(attributes(privacy, "footer .s-brand", "href")).toEqual(["/ru/"]);
 	});
 
-	test("offers every language of the site, the one being read marked", () => {
-		expect(attributes(privacy, ".s-seg a", "href")).toEqual([
+	test("offers every language of the site by its own name, the one being read named by its code and ticked", () => {
+		expect(texts(privacy, ".s-lang > summary")).toEqual(["Язык RU"]);
+		expect(attributes(privacy, ".s-lang-list", "aria-label")).toEqual(["Язык"]);
+		expect(attributes(privacy, ".s-lang-list a", "href")).toEqual([
 			"/en/privacy/",
 			"/ru/privacy/",
 		]);
-		expect(texts(privacy, ".s-seg a")).toEqual(["EN", "RU"]);
-		expect(attributes(privacy, ".s-seg a", "title")).toEqual([
-			"English",
-			"Русский",
+		expect(texts(privacy, ".s-lang-list a")).toEqual(["English", "Русский"]);
+		expect(attributes(privacy, ".s-lang-list a", "lang")).toEqual(["en", "ru"]);
+		expect(attributes(privacy, ".s-lang-list a", "hreflang")).toEqual([
+			"en",
+			"ru",
 		]);
-		expect(attributes(privacy, ".s-seg a", "lang")).toEqual(["en", "ru"]);
-		expect(attributes(privacy, ".s-seg a", "aria-current")).toEqual([
+		expect(attributes(privacy, ".s-lang-list a", "aria-current")).toEqual([
 			"",
 			"page",
 		]);
-		expect(attributes(privacy, ".s-seg", "aria-label")).toEqual(["Язык"]);
+		expect(
+			[...privacy.querySelectorAll(".s-lang-list a")].map(
+				(link) => link.querySelector("svg") !== null,
+			),
+		).toEqual([false, true]);
+	});
+
+	// The picker and the folded menu are one group of disclosures, so that a
+	// browser closes the one when the other opens, with no script.
+	test("opens its languages and its folded menu one at a time", () => {
+		expect(attributes(privacy, "header details", "class")).toEqual([
+			"s-lang",
+			"s-menu",
+		]);
+		expect(attributes(privacy, "header details", "name")).toEqual([
+			"s-nav",
+			"s-nav",
+		]);
 	});
 
 	test("closes with the frame's documents under their titles, the code and the address to write to", () => {
@@ -443,7 +462,7 @@ describe("a page a component draws", () => {
 		expect(attributes(sample, 'link[rel="canonical"]', "href")).toEqual([
 			"https://example.test/en/guides/sample/",
 		]);
-		expect(attributes(sample, ".s-seg a", "href")).toEqual([
+		expect(attributes(sample, ".s-lang-list a", "href")).toEqual([
 			"/en/guides/sample/",
 			"/ru/guides/sample/",
 		]);
@@ -564,7 +583,7 @@ describe("the menu", () => {
 		const doc = page(bare, "ru/guide/index.html");
 
 		expect(doc.querySelector(".s-navlinks")).toBeNull();
-		expect(doc.querySelector("details")).toBeNull();
+		expect(doc.querySelector(".s-menu")).toBeNull();
 	});
 
 	test("tags a page still in the making as in beta, beside its word", () => {
@@ -683,7 +702,7 @@ describe("the bare domain", () => {
 		expect(attributes(privacy, "header .s-brand", "href")).toEqual(["/"]);
 		expect(attributes(privacy, "footer .s-brand", "href")).toEqual(["/"]);
 		expect(
-			attributes(page(files, "ru/index.html"), ".s-seg a", "href"),
+			attributes(page(files, "ru/index.html"), ".s-lang-list a", "href"),
 		).toEqual(["/", "/ru/"]);
 	});
 });

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // withField puts one key into the JSON of a fixture, replacing what is there.
@@ -299,6 +300,9 @@ func FuzzParse(f *testing.F) {
 	f.Add(`{"schema_version":1,"rating_days":[{"date":"2026-09-20","deltas":{"counting.gaps":0.1},"theta":2.5}]}`)
 	f.Add(`{"schema_version":1,"rating_days":[{},{"deltas":{"":1e400}}]}`)
 	f.Add(`{"schema_version":1,"rating_days":[{"date":"2026-09-20","deltas":null,"theta":2.5,"unkept":"2026-09-30"}]}`)
+	f.Add(`{"schema_version":1,"topics":{"counting.gaps":{"ideas":{"1-2":{"given":[3,3,11],"round":0},"7-8":null}}}}`)
+	f.Add(`{"schema_version":1,"topics":{"counting.gaps":{"ideas":{"3-4":{"given":null,"round":1073741824}}}}}`)
+	f.Add(`{"schema_version":1,"open_request":{"idea":{"number":11,"round":-1}},"ready_task":{"idea":{"number":"4"}}}`)
 	f.Add(`{"schema_version":99}`)
 	f.Add("{")
 	f.Add("")
@@ -407,21 +411,34 @@ func TestACountLeavesRoomForOneMore(t *testing.T) {
 	const most = 1 << 30
 	for _, tc := range []struct {
 		name string
-		set  func(p *profile.Profile, count int)
+		set  func(t *testing.T, p *profile.Profile, count int)
 	}{
-		{"the revision", func(p *profile.Profile, count int) { p.Revision = count }},
-		{"the answers", func(p *profile.Profile, count int) { p.Ratings.Answers = count }},
-		{"the failures in a row", func(p *profile.Profile, count int) { p.Ratings.ConsecutiveFailures = count }},
-		{"the day's tasks", func(p *profile.Profile, count int) { p.Daily.Failed = count }},
-		{"a topic's answers", func(p *profile.Profile, count int) {
+		{"the revision", func(_ *testing.T, p *profile.Profile, count int) { p.Revision = count }},
+		{"the answers", func(_ *testing.T, p *profile.Profile, count int) { p.Ratings.Answers = count }},
+		{"the failures in a row", func(_ *testing.T, p *profile.Profile, count int) { p.Ratings.ConsecutiveFailures = count }},
+		{"the day's tasks", func(_ *testing.T, p *profile.Profile, count int) { p.Daily.Failed = count }},
+		{"a topic's answers", func(_ *testing.T, p *profile.Profile, count int) {
 			topic := p.Topics["counting.gaps"]
 			topic.Answers = count
 			p.Topics["counting.gaps"] = topic
 		}},
-		{"a trap fallen for", func(p *profile.Profile, count int) {
+		{"a trap fallen for", func(_ *testing.T, p *profile.Profile, count int) {
 			topic := p.Topics["counting.gaps"]
 			topic.Traps = map[string]int{"off_by_one": count}
 			p.Topics["counting.gaps"] = topic
+		}},
+		{"a round of a topic's ideas", func(_ *testing.T, p *profile.Profile, count int) {
+			topic := p.Topics["counting.gaps"]
+			topic.Ideas = map[rating.GradeLevel]profile.IdeaRound{rating.Grades12: {Given: []int{2}, Round: count}}
+			p.Topics["counting.gaps"] = topic
+		}},
+		{"the round of a request's idea", func(_ *testing.T, p *profile.Profile, count int) {
+			brief := briefOn("counting.gaps")
+			p.Ask(&brief, profile.TutorRule, "en", asked).Idea = profile.Idea{Number: 2, Round: count}
+		}},
+		{"the round of a kept task's idea", func(t *testing.T, p *profile.Profile, count int) {
+			_, kept := keepOne(t, p, newSealer(t), "counting.gaps")
+			kept.Idea.Round = count
 		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -433,7 +450,7 @@ func TestACountLeavesRoomForOneMore(t *testing.T) {
 				{most + 1, false, false},
 			} {
 				p := parseFixture(t, "olya")
-				tc.set(p, step.count)
+				tc.set(t, p, step.count)
 				step.check(t, p)
 			}
 		})

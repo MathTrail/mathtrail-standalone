@@ -44,6 +44,11 @@ export type LanguageLink = {
 	readonly current: boolean;
 };
 
+// navDisclosures names the header's disclosures as one group, the language
+// picker and the folded menu, so that a browser closes the one it has open
+// when the other opens.
+const navDisclosures = "s-nav";
+
 /**
  * Header is the bar on top of a page: the product's mark and name, leading to
  * the front page of the reader's language; the site's menu, when it has one;
@@ -73,14 +78,14 @@ export function Header({
 				{hasMenu && <Menu class="s-navlinks" links={menu} />}
 				{(hasMenu || languages.length > 0 || action !== undefined) && (
 					<div class="s-nav-tools">
-						{languages.length > 0 && <LanguageSwitch languages={languages} />}
+						{languages.length > 0 && <LanguagePicker languages={languages} />}
 						{action !== undefined && (
 							<a class="s-btn s-btn-filled s-nav-action" href={action.href}>
 								{action.label}
 							</a>
 						)}
 						{hasMenu && (
-							<details class="s-menu">
+							<details class="s-menu" name={navDisclosures}>
 								<summary>
 									<Icon name="menu" size={24} />
 									<span class="s-hidden">{words.text("nav.menu")}</span>
@@ -170,30 +175,58 @@ function MenuAnchor({ link }: { link: MenuLink }) {
 	);
 }
 
-// LanguageSwitch offers the page in each language of the site, by the
-// language's code, with its own name for itself on hover.
-function LanguageSwitch({ languages }: { languages: readonly LanguageLink[] }) {
+// LanguagePicker offers the page in each language of the site: a pill that
+// names the language being read by its code, and under it, opened with no
+// script, the languages by their own names, the one being read ticked.
+function LanguagePicker({ languages }: { languages: readonly LanguageLink[] }) {
 	const words = useSiteWords();
+	const read = languages.find((language) => language.current);
 	return (
-		<nav class="s-seg" aria-label={words.text("nav.language")}>
-			{languages.map(({ locale, href, name, current }) => (
-				<a
-					key={locale}
-					href={href}
-					hreflang={locale}
-					lang={locale}
-					title={name}
-					aria-current={current ? "page" : undefined}
-				>
-					{shortName(locale)}
-				</a>
-			))}
-		</nav>
+		<details class="s-lang" name={navDisclosures}>
+			<summary class="s-lang-pill">
+				<Icon name="globe" size={17} />
+				<span class="s-hidden">{words.text("nav.language")} </span>
+				{read === undefined ? undefined : shortName(read.locale)}
+				<Icon name="chevron-down" size={14} className="s-lang-chevron" />
+			</summary>
+			<nav class="s-lang-list" aria-label={words.text("nav.language")}>
+				{inPickerOrder(languages).map(({ locale, href, name, current }) => (
+					<a
+						key={locale}
+						href={href}
+						hreflang={locale}
+						lang={locale}
+						aria-current={current ? "page" : undefined}
+					>
+						<span dir="auto">{name}</span>
+						{current && <Icon name="check" size={14} className="s-lang-tick" />}
+					</a>
+				))}
+			</nav>
+		</details>
 	);
 }
 
-// shortName is how the switch names a language: its subtag, as a code —
-// EN, RU.
+// letters orders the languages' names as the letters of every script are
+// ordered: the Latin ones first, then the Cyrillic, the Arabic and the Han,
+// and each script by its own letters.
+const letters = new Intl.Collator("en");
+
+/**
+ * inPickerOrder are the languages in the order the picker lists them: by
+ * their own names, in one order on every page, so that a reader finds a
+ * language where they found it before.
+ */
+export function inPickerOrder(
+	languages: readonly LanguageLink[],
+): LanguageLink[] {
+	return [...languages].sort((one, other) =>
+		letters.compare(one.name, other.name),
+	);
+}
+
+// shortName is how the picker names the language being read: its subtag, as
+// a code — EN, RU.
 function shortName(locale: string): string {
 	return (locale.split("-", 1)[0] ?? locale).toUpperCase();
 }

@@ -87,12 +87,14 @@ export function directionOf(tag: string): "ltr" | "rtl" {
 	return script !== undefined && rightToLeftScripts.has(script) ? "rtl" : "ltr";
 }
 
-// candidatesOf are the tags a wanted language may be found under, in the
-// order they are tried, written as a dictionary's name writes them: those
-// written in the script the language is wanted in, and none for a tag that
-// names no language. Extensions, such as a numbering system, say nothing about
-// the words and are left out.
-function candidatesOf(tag: string | undefined): string[] {
+/**
+ * candidatesOf are the tags a wanted language may be found under, in the
+ * order they are tried, written as a dictionary's name writes them: those
+ * written in the script the language is wanted in, and none for a tag that
+ * names no language. Extensions, such as a numbering system, say nothing about
+ * the words and are left out.
+ */
+export function candidatesOf(tag: string | undefined): string[] {
 	const locale = tag === undefined ? undefined : localeOf(tag);
 	// An undetermined language is read from its first subtag: newer engines
 	// leave the locale's language undefined for it, older ones say "und".

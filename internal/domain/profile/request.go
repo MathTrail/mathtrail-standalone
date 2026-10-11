@@ -101,7 +101,8 @@ func (p *Profile) Ask(brief *Brief, mode TutorMode, language string, now time.Ti
 // the last one. The last closes the request with nothing handed to the child,
 // and the day's count of failed generations goes up: the fuse that stops a
 // model which cannot satisfy the checks from asking again for ever. The count
-// of accepted tasks stays where it is — a refused attempt is not a task.
+// of accepted tasks stays where it is — a refused attempt is not a task — and
+// the request's idea is not given.
 func (p *Profile) Refuse(now time.Time) (exhausted bool, err error) {
 	if p.OpenRequest == nil {
 		return false, ErrNoRequest
@@ -178,16 +179,17 @@ func (p *Profile) Issue(written *Written, secret *TaskSecret, sealer Sealer, now
 	task.Sealed = sealed
 
 	p.OpenRequest = nil
-	p.handOut(task, now)
+	p.handOut(task, request.Idea, now)
 	return p.CurrentTask, nil
 }
 
 // handOut puts a task on the child's card. The task left there without an
 // answer is recorded as skipped. The new task's fingerprint joins those of the
 // tasks already given, the oldest leaving when there are too many; its topic
-// records the day; and the day's count of accepted tasks — the unit of the
-// daily limit — goes up.
-func (p *Profile) handOut(task *CurrentTask, now time.Time) {
+// records the day and the idea the task was built on, which is given from now
+// on; and the day's count of accepted tasks — the unit of the daily limit —
+// goes up.
+func (p *Profile) handOut(task *CurrentTask, idea Idea, now time.Time) {
 	if flying := p.InFlight(); flying != nil {
 		p.leave(flying, now)
 	}
@@ -198,6 +200,7 @@ func (p *Profile) handOut(task *CurrentTask, now time.Time) {
 	}
 	topic := p.Topics[task.Topic]
 	topic.LastIssued = DateOf(now)
+	topic.gave(task.GradeLevel, idea)
 	p.putTopic(task.Topic, &topic)
 	p.CountAccepted(now)
 }

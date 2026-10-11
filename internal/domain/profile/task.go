@@ -90,6 +90,11 @@ type OpenRequest struct {
 	// ID must come back with the task. Anything else is a request that has
 	// been superseded.
 	ID string `json:"id"`
+	// Idea is the idea of the topic's list the task is to be built on, named
+	// when the request was opened. It is given — kept among the ideas of its
+	// round — only once the task reaches the child, so a request that comes to
+	// nothing leaves the idea for the next.
+	Idea Idea `json:"idea,omitzero"`
 	// Language is the lesson's language, which the task is written in: the one
 	// the parent chose when the request was opened, or else the chat's.
 	Language string `json:"language"`

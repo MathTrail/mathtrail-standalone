@@ -49,6 +49,12 @@ type Topic struct {
 	// Delta corrects the overall level for this topic — a child may count
 	// well and reason about parity badly.
 	Delta float64 `json:"delta"`
+	// Ideas is how far the child has come through the topic's list of ideas
+	// at each level: the ideas the tasks handed out were built on, by round.
+	// The next task is built on an idea not yet given in its round, so that
+	// the tasks of a topic go through its ideas before any comes back. A
+	// topic with no task built on an idea yet has none.
+	Ideas map[rating.GradeLevel]IdeaRound `json:"ideas,omitempty"`
 	// LastIssued is the day a task of this topic was last accepted, and is
 	// absent for a topic never issued, which the rule puts first. It moves
 	// when a task is accepted rather than when the topic is chosen: a
@@ -69,11 +75,9 @@ type Topic struct {
 	MasteredSince *Date `json:"mastered_since"`
 	// Skipped is how many tasks of this topic were left without an answer when
 	// another was asked for. No rating reads it: it is for the parent, who can
-	// see from it that hard tasks are being leafed past, and, added to the
-	// answers, it counts the tasks of the topic the child has been through,
-	// which picks the idea of the topic the next one is built on; over every
-	// topic, it counts the tasks behind the child, which pick the ones dressed
-	// in an interest.
+	// see from it that hard tasks are being leafed past, and, over every topic
+	// and with the answers, it counts the tasks behind the child, which pick
+	// the ones dressed in an interest.
 	Skipped int `json:"skipped,omitzero"`
 	// TopStreak is the run of correct answers at the harder half of the
 	// corridor with no hint — the run the earlier rule mastered a topic by.

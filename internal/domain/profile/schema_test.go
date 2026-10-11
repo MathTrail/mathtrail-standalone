@@ -630,3 +630,142 @@ func TestTheSchemaNamesEveryoneWhoChoosesATask(t *testing.T) {
 		}
 	}
 }
+
+// The schema and the service hold the ideas given to one contract, as they
+// hold the history: whatever the schema allows, the service reads and writes
+// back as the schema allows, and whatever it refuses, the service refuses as a
+// rule broken, never as bytes that are no profile — but for a value of the
+// wrong type. The service reads a little more: a null where the record may be
+// left out, and an idea of nothing at all, read as none.
+func TestTheSchemaAndTheServiceHoldTheIdeasAlike(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name    string
+		part    string // where the case writes: the topic's ideas, or the open request's idea
+		raw     string
+		allowed bool  // whether the schema allows the file
+		refused error // what the service refuses it as, or nil when it reads it
+	}{
+		{"a round of a list", "ideas", `{"1-2": {"given": [3, 7], "round": 2}}`, true, nil},
+		{"a round with no idea given in it yet", "ideas", `{"1-2": {"given": [], "round": 2}}`, true, nil},
+		{"rounds of two levels", "ideas", `{"1-2": {"given": [1], "round": 1}, "5-6": {"given": [10], "round": 4}}`, true, nil},
+		{"no record at all", "ideas", `null`, false, nil},
+		{"a level there is not", "ideas", `{"7-8": {"given": [1], "round": 1}}`, false, profile.ErrInvalid},
+		{"a round before the first", "ideas", `{"1-2": {"given": [1], "round": 0}}`, false, profile.ErrInvalid},
+		{"a round of no number", "ideas", `{"1-2": {"given": [1]}}`, false, profile.ErrInvalid},
+		{"an idea before the first place", "ideas", `{"1-2": {"given": [0], "round": 1}}`, false, profile.ErrInvalid},
+		{"an idea past the end of the list", "ideas", `{"1-2": {"given": [11], "round": 1}}`, false, profile.ErrInvalid},
+		{"an idea given twice", "ideas", `{"1-2": {"given": [3, 3], "round": 1}}`, false, profile.ErrInvalid},
+		{"ideas given as null", "ideas", `{"1-2": {"given": null, "round": 1}}`, false, profile.ErrInvalid},
+		{"ideas given as nothing", "ideas", `{"1-2": {"round": 1}}`, false, profile.ErrInvalid},
+		{"ideas given as words", "ideas", `{"1-2": {"given": "3, 7", "round": 1}}`, false, profile.ErrMalformed},
+		{"an idea named", "idea", `{"number": 10, "round": 2}`, true, nil},
+		{"an idea of nothing at all", "idea", `{"number": 0, "round": 0}`, false, nil},
+		{"an idea past the end of the list named", "idea", `{"number": 11, "round": 1}`, false, profile.ErrInvalid},
+		{"an idea named in no round", "idea", `{"number": 3}`, false, profile.ErrInvalid},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			file := withIdeaPart(t, tc.part, tc.raw)
+			if err := againstTheSchema(t, file); (err == nil) != tc.allowed {
+				t.Errorf("the schema says %v about %s, want it allowed: %v", err, tc.raw, tc.allowed)
+			}
+			read, err := profile.Parse(file)
+			if tc.refused != nil {
+				if !errors.Is(err, tc.refused) {
+					t.Errorf("Parse() error = %v about %s, want %v", err, tc.raw, tc.refused)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Parse() error = %v about %s, want it read", err, tc.raw)
+			}
+			wantWrittenAsTheSchemaAllows(t, read)
+		})
+	}
+}
+
+// withIdeaPart is a profile with a request open on counting.gaps, as the file
+// holds it, with the ideas of that topic, or the idea of the request, written
+// as raw says.
+func withIdeaPart(t *testing.T, part, raw string) []byte {
+	t.Helper()
+
+	p := parseFixture(t, "dima")
+	brief := briefOn("counting.gaps")
+	p.Ask(&brief, profile.TutorRule, "en", asked).Idea = profile.Idea{Number: 1, Round: 1}
+	written, err := profile.Marshal(p)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v, want nil", err)
+	}
+	var file map[string]any
+	if unread := json.Unmarshal(written, &file); unread != nil {
+		t.Fatalf("the file is not a JSON object: %v", unread)
+	}
+	var value any
+	if unread := json.Unmarshal([]byte(raw), &value); unread != nil {
+		t.Fatalf("the case is not JSON: %v", unread)
+	}
+	topics, _ := file["topics"].(map[string]any)
+	topic, _ := topics["counting.gaps"].(map[string]any)
+	request, _ := file["open_request"].(map[string]any)
+	if topic == nil || request == nil {
+		t.Fatal("the file holds no counting.gaps or no open request to write the case into")
+	}
+	if part == "ideas" {
+		topic["ideas"] = value
+	} else {
+		request["idea"] = value
+	}
+	edited, err := json.Marshal(file)
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v, want nil", err)
+	}
+	return edited
+}
+
+// The schema tells a reader how long a list of ideas is, in each place it
+// names an idea by its place on one, and that is the length the service holds
+// the lists to.
+func TestTheSchemaStatesHowLongAListOfIdeasIs(t *testing.T) {
+	t.Parallel()
+
+	var document struct {
+		Defs struct {
+			IdeaRound struct {
+				Properties struct {
+					Given struct {
+						MaxItems any `json:"maxItems"`
+						Items    struct {
+							Maximum any `json:"maximum"`
+						} `json:"items"`
+					} `json:"given"`
+				} `json:"properties"`
+			} `json:"ideaRound"`
+			Idea struct {
+				Properties struct {
+					Number struct {
+						Maximum any `json:"maximum"`
+					} `json:"number"`
+				} `json:"properties"`
+			} `json:"idea"`
+		} `json:"$defs"`
+	}
+	if err := json.Unmarshal(profile.Schema(), &document); err != nil {
+		t.Fatalf("the schema is not a JSON document: %v", err)
+	}
+	for _, tc := range []struct {
+		where string
+		got   any
+	}{
+		{"ideaRound.given.maxItems", document.Defs.IdeaRound.Properties.Given.MaxItems},
+		{"ideaRound.given.items.maximum", document.Defs.IdeaRound.Properties.Given.Items.Maximum},
+		{"idea.number.maximum", document.Defs.Idea.Properties.Number.Maximum},
+	} {
+		if tc.got != float64(profile.IdeasPerList) {
+			t.Errorf("the schema states %s as %v, want %d", tc.where, tc.got, profile.IdeasPerList)
+		}
+	}
+}

@@ -218,8 +218,9 @@ type asking struct {
 	byPerson bool
 }
 
-// ask opens a request for a task to be written now, the task left on the card
-// without an answer recorded as skipped, and draws the card the task comes to.
+// ask opens a request for a task to be written now, on an idea of its topic
+// the child has not been given in its round, the task left on the card without
+// an answer recorded as skipped, and draws the card the task comes to.
 func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
 	asked *asking, now time.Time,
 ) (Reply[requestOut], error) {
@@ -227,6 +228,7 @@ func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Pro
 	request := p.Ask(asked.brief, asked.mode, p.Student.LessonLanguage(asked.language), now)
 	noteTaskRequest(ctx, request.ID)
 	request.Asked = asked.byPerson
+	request.Idea = tutor.NextIdea(p, request.Brief.TargetConcept, request.Brief.GradeLevel)
 	if err := s.canPackage(p, request); err != nil {
 		return Reply[requestOut]{}, err
 	}

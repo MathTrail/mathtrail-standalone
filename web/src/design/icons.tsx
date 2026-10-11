@@ -15,12 +15,18 @@ const tick = "M7.5 12.5l3 3 6-6.5";
 const drawings = {
 	"chevron-right": { d: "M9.5 7l5 5-5 5", tone: text },
 	"chevron-left": { d: "M14.5 7l-5 5 5 5", tone: text },
+	"chevron-down": { d: "M7 9.5l5 5 5-5", tone: text },
 	check: { d: "M5 12.5l4.5 4.5L19 7.5", tone: text },
 	cross: { d: "M6.5 6.5l11 11M17.5 6.5l-11 11", tone: text },
 	dash: { d: "M6 12h12", tone: text },
 	hint: { d: "M9.5 17v-2.5a5.5 5.5 0 1 1 5 0V17ZM10.5 20h3", tone: text },
 	trap: { d: "M12 3.5 21.5 20h-19ZM12 9.5V14M12 17v.01", tone: text },
 	menu: { d: "M4 7h16M4 12h16M4 17h16", tone: text },
+	// The globe is a ring with its equator and two meridians.
+	globe: {
+		d: "M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",
+		tone: text,
+	},
 	chat: {
 		d: "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z",
 		tone: text,

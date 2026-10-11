@@ -6,6 +6,7 @@ import { readSiteData } from "./data";
 import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
 import { renderSite } from "./render";
+import { dictionariesOf } from "./testing/dictionaries";
 
 const browser = new Window({
 	settings: {
@@ -185,9 +186,12 @@ const frame: Frame = {
 	footer: ["privacy", "terms"],
 };
 
+const sources = sourcesWith(words());
+
 const site = {
 	base: "https://example.test",
-	sources: sourcesWith(words()),
+	sources,
+	dictionaries: dictionariesOf(sources),
 	pages,
 	frame,
 	data,

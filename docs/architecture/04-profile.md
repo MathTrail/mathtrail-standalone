@@ -25,11 +25,11 @@ flowchart LR
         svc["service<br/>schema_version, student_id, revision, dates, app version"]
         kid["student<br/>pseudonym, grade, interests, constraints, notes, language, topic of the lessons"]
         rat["ratings<br/>θ, the start, answers, consecutive failures"]
-        top["per-topic summary<br/>δ, counters, last issued, traps, mastery and its level"]
+        top["per-topic summary<br/>δ, counters, last issued, traps, mastery and its level,<br/>the ideas given at each level"]
         rec["recent<br/>the last 20 answers and skips,<br/>each answer with the levels before it"]
         days["rating days<br/>the levels each of the last 7 days began at"]
         fpr["fingerprints<br/>up to 200 sketches, no texts"]
-        req["open request<br/>id, brief, attempts, tutor mode"]
+        req["open request<br/>id, brief, idea, attempts, tutor mode"]
         cur["current task<br/>open part, the answer once given,<br/>and one sealed block"]
         rdy["ready task<br/>the next one, written ahead and kept,<br/>open part and one sealed block"]
         day["daily counters<br/>accepted and failed, UTC date"]
@@ -131,7 +131,8 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | `wrong_streak` | integer | Wrong answers in a row in this topic, which is what mastery is lost by. It is counted rather than read back out of `recent` for the same reason `top_streak` is: the window is pruned, and a run that has to be exact cannot be read from something that forgets |
 | `mastered_since` | date or null | Set when the cautious estimate declares the topic mastered (SPEC 2.5); the progress screen reads it |
 | `mastered_level` | level or null | The level mastery is held at — `1-2`, `3-4` or `5-6`: the highest level of the topic, at or below the task's, the cautious estimate cleared — set and cleared together with `mastered_since`. A topic counts as mastered only while its recommended point stays at this level or below, so mastery at `1-2` does not keep a topic out of the rotation once its tasks come from `3-4`; a mastery declared at a higher level moves it up, and nothing moves it down (SPEC 2.5) |
-| `skipped` | integer | Tasks of this topic left without an answer when a new one was asked for (R98). No rating reads it: the progress screen shows it to the parent, and, added to `answers`, it counts the tasks of the topic the child has been through, which picks the idea of the topic the next task is built on (R205, R242) — the task on the card among them for a task written ahead (R243). Summed over every topic and added to `ratings.answers`, it counts the tasks behind the child, which pick the ones dressed in an interest (R283) |
+| `skipped` | integer | Tasks of this topic left without an answer when a new one was asked for (R98). No rating reads it: the progress screen shows it to the parent, and, summed over every topic and added to `ratings.answers`, it counts the tasks behind the child, which pick the ones dressed in an interest (R283) |
+| `ideas` | map of level → `{given, round}`, absent while no idea is given | How far the child has come through the topic's list of ideas at each level: the round the list is on, from 1, and the ideas handed out in it, by their places on the list, the earliest first. A request is opened on an idea not yet given in its round, and the idea is given when its task is handed out; once all ten are given, the next idea opens the next round, and it is never the one given last (SPEC 3.2, R296) |
 | `traps` | map of trap id → count | How often this child fell for each trap in this topic, ever. The rule picks the two most frequent (prototype 5.7). The map of misconceptions counts the history window instead, so that a mistake the child has left behind drops off it (R136) |
 
 ### The history window
@@ -183,6 +184,7 @@ Two hundred is four days at the most a day gives, fifty tasks, and two weeks of 
 | `tutor_mode` | `rule`, `llm` or `person` | Whether the model kept the rule's topic and difficulty or chose its own with a reason, or the task is on the topic a person keeps the lessons to (SPEC 3.6) — the comparison the prototype's D43 set up |
 | `language` | BCP 47 tag | The language of the chat, so the task is written in it (О-14) |
 | `brief` | object | The brief exactly as the model received it: goal, topic, level, difficulty, setting, traps, constraints, excluded skills (prototype 5.1, minus `motivate`, removed by О-34) |
+| `idea` | `{number, round}`, absent for a request an earlier build opened | The idea of the topic's list at the brief's level the task is to be built on, named when the request is opened: one the child has not been given in its round. It is given once the task is handed out, so a request that comes to nothing leaves it to the next (SPEC 3.2, R296) |
 | `ahead` | boolean, absent when false | The task is written ahead and kept once accepted, rather than handed to a child who waits for it (R235) |
 | `asked` | boolean, absent when false | A person asked for the topic, the level or the difficulty, so the task written ahead after it is set the same (R237) |
 | `lesson_topic` | string, absent for none | The topic the lessons were kept to when a request ahead was opened, which the task kept is held to (SPEC 3.7) |
@@ -217,11 +219,12 @@ The solver program is kept although it is never run again: it is the record that
 | `id` | open | The id it will have on the card, its request's, and the one its seal is tied to, so that handing it out moves it there as it is |
 | `topic`, `grade_level`, `difficulty`, `language`, `tutor_mode` | open | Where it stands, as its request asked, and who chose it |
 | `wording`, `picture`, `options`, `hint`, `fingerprint`, `instructions_version` | open | What the card will show, the sketch that joins the past tasks once it is handed out, and the guide it was written to |
+| `idea` | open, absent when its request named none | The idea it was built on, which joins the ideas given in its round once it is handed out (R296) |
 | `lesson_topic`, `excluded_skills` | open | What it was written for: it is let go once the lessons are kept to another topic, or a skill is kept out that it was not asked to keep out (SPEC 3.7) |
 | `attempts`, `opened_at`, `written_at` | open | How its writing went, for the line about it when it is handed out |
 | `sealed` | sealed | As the current task's, sealed as an unanswered task on the card is |
 
-It moves nothing about the child until it is handed out: not the fingerprints, not the topic's day, not the daily counter.
+It moves nothing about the child until it is handed out: not the fingerprints, not the topic's day or the ideas given, not the daily counter.
 
 ### The daily counters
 
@@ -262,6 +265,7 @@ The check for this task is that the prototype's rule (its SPEC 5.7) can be compu
 | The recommended point — level and difficulty — from the corridor | `ratings.theta`, `ratings.answers`, `topics[t].delta`, `topics[t].answers`, and the levels of the topic |
 | The setting: an interest on one task in three, taken in turn | `student.interests`, **`ratings.answers`** and every topic's **`skipped`** |
 | The two traps | `topics[t].traps`, topped up from the reference tasks of that topic and level in the binary |
+| The idea of the topic's list a request is opened on | `topics[t].ideas` at the brief's level and `student_id`, and the lists of ideas in the binary |
 | The prohibitions carried into the brief | `student.excluded_skills` |
 | A topic chosen for the lessons? Then it is set in place of the rule's, at its recommended point | `student.lesson_topic`, once `ratings.answers` is past the trial series, and the topic catalog in the binary |
 
@@ -283,9 +287,10 @@ Pretty-printed JSON with sorted keys, not a compact line: the parent can open th
 | The current task, open part | 2 KB | 4 KB |
 | The current task, sealed block | 4 KB | 8 KB |
 | The history of the ratings: the levels before each of 20 entries, and 7 days of 30 topics' corrections | 14 KB | 15 KB |
-| **Total** | **≈ 60 KB** | **≈ 79 KB** |
+| The ideas given: a round of each list met, up to 35 of ten ideas | 1–2 KB | 9 KB |
+| **Total** | **≈ 62 KB** | **≈ 88 KB** |
 
-The target was 64 KB, and the history of the ratings takes a file near the caps past it, to about 80 KB, while a typical one stays within it (R165). The caps that keep it there are the ones above — 500 characters of notes, 20 recent answers, 200 fingerprints, 30-odd topics, 7 days of the ratings — and the texts of a task, which the structure check holds to what a card shows (SPEC 5.2); they are enforced on every write, not checked afterwards, and past a list's cap its oldest entry goes. Nothing else grows, so nothing is pruned for size. What the service does hold is a ceiling: no file is written past 1 MiB, the most a store reads back, since a file the store could not read again would be taken for damage and rolled back. And every count in the file — the revision, the answers, the streaks, the day's tasks — is held below 2^30, about a billion, with a file read only when each has room for one more: whatever reads can take the next write (R126).
+The target was 64 KB, and the history of the ratings takes a file near the caps past it, to about 80 KB, and the ideas given to about 88 KB, while a typical one stays within it (R165, R296). The caps that keep it there are the ones above — 500 characters of notes, 20 recent answers, 200 fingerprints, 30-odd topics, 7 days of the ratings — and the texts of a task, which the structure check holds to what a card shows (SPEC 5.2); they are enforced on every write, not checked afterwards, and past a list's cap its oldest entry goes. Nothing else grows, so nothing is pruned for size. What the service does hold is a ceiling: no file is written past 1 MiB, the most a store reads back, since a file the store could not read again would be taken for damage and rolled back. And every count in the file — the revision, the answers, the streaks, the day's tasks — is held below 2^30, about a billion, with a file read only when each has room for one more: whatever reads can take the next write (R126).
 
 **Pruning has a floor, because the rule reads the window.** After a failure the rule needs the topic of the last answer, which it takes from the end of `recent` (SPEC section 3), so an empty window would leave it with nothing to consolidate. `recent` therefore never goes below **5** answers. Skips share the window with answers under one rule: when an entry has to go, the oldest goes — unless it is one of the five most recent answers, and then the oldest skip goes instead. A new skip therefore stays and shows, and a run of skips cannot push out the answers the rule and the trial series read (R98). And the rule does not trust even that: a window that is empty anyway, in a profile restored from an older revision or edited by hand, is read as "nothing to consolidate" and the rule falls through to a new topic. A pure function that panics on its own input is a bug, not a guarantee.
 
@@ -308,6 +313,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
 - **Nor did the rule of mastery** (R187). The counters keep meaning how many answers there were; the cautious estimate reads them as the uncertainty's n and m beside the step. `mastered_since` and `mastered_level` keep meaning the day and the level a topic is held mastered at, declared now by the cautious estimate. `top_streak` is counted as it was, though no rule reads it, so a file means to an older build what it did: removing it, or no longer counting it, would change what a file of version 1 holds. `ratings.mastery_rule` is optional and marks a file whose masteries the cautious estimate declared; a file without it counts none mastered until its next answer clears them. An older build reads past it and drops it when it writes, so after a rollback and a new rollout the masteries the older build declared are cleared again — they are the earlier rule's.
 - **Nor did the task written ahead** (R235). `ready_task`, and `ahead`, `asked` and `lesson_topic` on the request and the current task, are optional and left out when unset: a file without them reads as before. An older build reads past them and drops them when it writes, so after a rollback a task kept is lost, and a request written ahead is handed out to the card as one the child waits for. A file written while a card could take a task may still hold `taken_after` and `kept`, which nothing reads any more: they are read past and dropped at the next write (R252).
 - **Nor did the pictures** (R269). `picture`, on the current task and on the task kept, is optional and left out for a task with none: a file without it reads as before. A task written before keeps its text drawing, `drawing`, which nothing shows any more: it is read past and dropped at the next write, as `taken_after` and `kept` are. An older build reads past `picture` and drops it when it writes, so after a rollback a task loses its picture and is told in its words alone, which carry every fact the task needs.
+- **Nor did the ideas given** (R296). `topics[t].ideas`, and `idea` on the request and on the task kept, are optional and left out while unset: a file without them reads as before, every list on its first round, and a request without an idea is given the one a request opened now would name. An older build reads past them and drops them when it writes, so after a rollback every list starts its round again. The numbers in them are places on lists of ten: a list that grows keeps their meaning, and one that shrank would change it, which is a version and a migration.
 - **The sealed block carries its own version** inside the ciphertext and is migrated or dropped on its own: a task on the card is worth less than a profile.
 - Unknown fields at the current version are ignored on read and are not written back — forward compatibility is the refusal above, not a bag of leftovers.
 
@@ -439,6 +445,16 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "answers": 9,
       "correct": 7,
       "delta": 0.31,
+      "ideas": {
+        "3-4": {
+          "given": [
+            7,
+            2,
+            9
+          ],
+          "round": 1
+        }
+      },
       "last_issued": "2026-09-20",
       "mastered_level": null,
       "mastered_since": null,

@@ -1323,31 +1323,126 @@ func TestAnUnansweredTaskIsSkippedByTheNextAsk(t *testing.T) {
 	}
 }
 
-// The package names the idea of the topic its task is built on by the tasks
-// of the topic the child has left behind, answered or skipped: a task skipped
-// by the next ask moves the next one on to another idea, as an answer does.
-func TestThePackageNamesTheIdeaByTheTopicsTasksLeftBehind(t *testing.T) {
+// The package names an idea of the topic's list not yet given in its round:
+// with every idea of the round given but one, that one, and with every idea of
+// the round given, an idea of the next round other than the one given last.
+// The request keeps the idea, and the package names the idea the request
+// keeps.
+func TestThePackageNamesAnIdeaNotYetGivenInItsRound(t *testing.T) {
 	t.Parallel()
 
-	p := raceOnTheCard(t, rating.TrialAnswers)
-	if p.Topics == nil {
-		p.Topics = map[string]profile.Topic{}
-	}
-	ordering := p.Topics["logic.ordering"]
-	ordering.Answers, ordering.Correct, ordering.Skipped = 12, 9, 3
-	p.Topics["logic.ordering"] = ordering
-	_, session := lesson(t, keptAsIs(t, p))
+	for _, tc := range []struct {
+		name   string
+		given  profile.IdeaRound
+		wanted string
+		holds  func(profile.Idea) bool
+	}{
+		{"every idea of the round given but one", profile.IdeaRound{Given: []int{1, 2, 3, 4, 5, 6, 8, 9, 10}, Round: 2},
+			"idea 7 of round 2", func(idea profile.Idea) bool { return idea == profile.Idea{Number: 7, Round: 2} }},
+		{"every idea of the round given", profile.IdeaRound{Given: []int{3, 1, 4, 2, 5, 9, 6, 8, 7, 10}, Round: 2},
+			"an idea of round 3 but 10", func(idea profile.Idea) bool { return idea.Round == 3 && idea.Number != 10 }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// The race on the card is left for another race: the sixteenth task of the
-	// topic, and the second time round the list.
-	coming := wantComing(t, call(t, session, "next_task", raceChoice))
-	type idea struct{ Number, Round int }
-	var got idea
-	if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, coming.RequestID))["idea"], &got); err != nil {
+			p := raceOnTheCard(t, rating.TrialAnswers)
+			ordering := p.Topics["logic.ordering"]
+			ordering.Ideas = map[rating.GradeLevel]profile.IdeaRound{rating.Grades12: tc.given}
+			if p.Topics == nil {
+				p.Topics = map[string]profile.Topic{}
+			}
+			p.Topics["logic.ordering"] = ordering
+			kept := keptAsIs(t, p)
+			_, session := lesson(t, kept)
+
+			// The race on the card is left for another race, at the same level.
+			coming := wantComing(t, call(t, session, "next_task", raceChoice))
+			var named profile.Idea
+			if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, coming.RequestID))["idea"], &named); err != nil {
+				t.Fatalf("read the package's idea: %v", err)
+			}
+			opened, _ := loadKept(t, kept)
+			if !tc.holds(named) || opened.OpenRequest == nil || opened.OpenRequest.Idea != named {
+				t.Errorf("the package names %+v and the request keeps %+v, want %s in both",
+					named, opened.OpenRequest, tc.wanted)
+			}
+		})
+	}
+}
+
+// A request that runs out of attempts gives no idea: nothing it was asked for
+// reached the child, so the request opened after it names the same idea again.
+func TestARequestOutOfAttemptsGivesNoIdea(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	first := askForTheRace(t, session, kept)
+	for range profile.MaxAttempts {
+		call(t, session, "submit_task", broken(first))
+	}
+	p, _ := loadKept(t, kept)
+	if p.OpenRequest != nil || p.Topics["logic.ordering"].Ideas != nil {
+		t.Fatalf("after the last refusal the request is %+v and the ideas given %+v, want neither",
+			p.OpenRequest, p.Topics["logic.ordering"].Ideas)
+	}
+	if again := askForTheRace(t, session, kept); first.Idea == (profile.Idea{}) || again.Idea != first.Idea {
+		t.Errorf("the request after the one out of attempts names %+v, want the same idea, %+v", again.Idea, first.Idea)
+	}
+}
+
+// A request an earlier build opened named no idea, and still has its package:
+// the idea a request opened now would name, which nothing given has moved since
+// the request was opened. Asking for the package writes nothing.
+func TestARequestThatNamedNoIdeaStillHasAPackage(t *testing.T) {
+	t.Parallel()
+
+	p := fuzzProfile(t)
+	if p.OpenRequest.Idea != (profile.Idea{}) {
+		t.Fatalf("the request is opened on %+v, want it to name no idea", p.OpenRequest.Idea)
+	}
+	want := tutor.NextIdea(p, "logic.ordering", rating.Grades12)
+	kept := keptAsIs(t, p)
+	_, before := loadKept(t, kept)
+	_, session := lesson(t, kept)
+
+	var named profile.Idea
+	if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, fuzzRequest))["idea"], &named); err != nil {
 		t.Fatalf("read the package's idea: %v", err)
 	}
-	if want := (idea{Number: 7, Round: 2}); got != want {
-		t.Errorf("idea = %+v after 12 answers, 3 skips and the race left, want %+v", got, want)
+	if named != want {
+		t.Errorf("the package names %+v, want the idea a request opened now names, %+v", named, want)
+	}
+	if _, after := loadKept(t, kept); after != before {
+		t.Errorf("the profile's revision moved from %v to %v, want get_package to write nothing", before, after)
+	}
+}
+
+// A request an earlier build opened named no idea, and its task gives the idea
+// its package named once it is handed out, so the request after it, at the same
+// level, names another.
+func TestATaskOfARequestThatNamedNoIdeaGivesTheIdeaItsPackageNamed(t *testing.T) {
+	t.Parallel()
+
+	p := fuzzProfile(t)
+	request := *p.OpenRequest
+	kept := keptAsIs(t, p)
+	_, session := lesson(t, kept)
+
+	var named profile.Idea
+	if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, fuzzRequest))["idea"], &named); err != nil {
+		t.Fatalf("read the package's idea: %v", err)
+	}
+	if text := textOf(t, call(t, session, "submit_task", raceOn(&request))); !strings.HasPrefix(text, "Accepted") {
+		t.Fatalf("submit_task for the race said %q, want it accepted", text)
+	}
+	handed, _ := loadKept(t, kept)
+	given := handed.Topics["logic.ordering"].Ideas[rating.Grades12]
+	if !slices.Equal(given.Given, []int{named.Number}) || given.Round != named.Round {
+		t.Errorf("the ideas given are %+v, want the one the package named, %+v", given, named)
+	}
+	if again := askForTheRace(t, session, kept); again.Idea.Number == named.Number {
+		t.Errorf("the request after it names %+v, want another idea than the one given, %+v", again.Idea, named)
 	}
 }
 

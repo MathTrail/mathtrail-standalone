@@ -15,9 +15,12 @@ import (
 // keptAt is when the tests of this file have a task written ahead accepted.
 var keptAt = asked.Add(40 * time.Second)
 
-// keepOne has the model write a task ahead on p, on topic, and the checks
-// accept it at the second attempt: the request it was written for, and the
-// task kept.
+// keptIdea is the idea the tasks this file keeps are built on.
+var keptIdea = profile.Idea{Number: 4, Round: 2}
+
+// keepOne has the model write a task ahead on p, on topic and on keptIdea, and
+// the checks accept it at the second attempt: the request it was written for,
+// and the task kept.
 func keepOne(t *testing.T, p *profile.Profile, sealer profile.Sealer, topic string) (*profile.OpenRequest, *profile.ReadyTask) {
 	t.Helper()
 
@@ -26,6 +29,7 @@ func keepOne(t *testing.T, p *profile.Profile, sealer profile.Sealer, topic stri
 	if err != nil {
 		t.Fatalf("AskAhead() error = %v, want nil", err)
 	}
+	request.Idea = keptIdea
 	if _, refused := p.Refuse(asked); refused != nil {
 		t.Fatalf("Refuse() error = %v, want nil", refused)
 	}
@@ -37,10 +41,11 @@ func keepOne(t *testing.T, p *profile.Profile, sealer profile.Sealer, topic stri
 }
 
 // A task written ahead is kept, not handed out: it stands where its request
-// asked, sealed under the id it will have on the card, and its request is
-// closed. Nothing about the child moves — the task has not reached them, so it
-// is neither among the tasks given nor counted against the day, and the task
-// on the card stays where it is.
+// asked, on the idea its request named, sealed under the id it will have on
+// the card, and its request is closed. Nothing about the child moves — the
+// task has not reached them, so it is neither among the tasks given nor
+// counted against the day, its idea is not given, and the task on the card
+// stays where it is.
 func TestATaskWrittenAheadIsKeptUntilTheChildAsks(t *testing.T) {
 	t.Parallel()
 
@@ -58,6 +63,7 @@ func TestATaskWrittenAheadIsKeptUntilTheChildAsks(t *testing.T) {
 		GradeLevel:          rating.Grades12,
 		Hint:                written().Hint,
 		ID:                  profile.TaskIDFor(request.ID),
+		Idea:                keptIdea,
 		InstructionsVersion: written().InstructionsVersion,
 		Language:            "en",
 		OpenedAt:            profile.At(asked),
@@ -91,7 +97,8 @@ func TestATaskWrittenAheadIsKeptUntilTheChildAsks(t *testing.T) {
 // kept rather than written while the child waited. It is handed
 // out as any task is: the task left on the card without an answer is recorded
 // as skipped, the new one's fingerprint joins the tasks given, its topic
-// records the day, and the day's count goes up.
+// records the day and gives the idea it was built on, and the day's count goes
+// up.
 func TestAKeptTaskIsHandedOutAsItWasWritten(t *testing.T) {
 	t.Parallel()
 
@@ -145,6 +152,10 @@ func TestAKeptTaskIsHandedOutAsItWasWritten(t *testing.T) {
 	}
 	if day := p.Topics["counting.gaps"].LastIssued; !day.Equal(profile.DateOf(handed).Time) {
 		t.Errorf("the topic was last given on %v, want %v", day, profile.DateOf(handed))
+	}
+	given := p.Topics["counting.gaps"].Ideas[rating.Grades12]
+	if want := (profile.IdeaRound{Given: []int{keptIdea.Number}, Round: keptIdea.Round}); !reflect.DeepEqual(given, want) {
+		t.Errorf("the topic gives %+v, want the kept task's idea, %+v", given, want)
 	}
 	if today := p.Daily.Today(handed); today.Accepted != 1 {
 		t.Errorf("the day counts %d tasks, want the one handed out", today.Accepted)
@@ -421,6 +432,9 @@ func TestAKeptTaskIsHeldToTheRulesOfTheFile(t *testing.T) {
 		{"nobody who chose it", func(r *profile.ReadyTask) { r.TutorMode = "" }, "ready_task.tutor_mode"},
 		{"four options", func(r *profile.ReadyTask) { delete(r.Options, "E") }, "ready_task offers 4 options"},
 		{"a blank option", func(r *profile.ReadyTask) { r.Options["B"] = " " }, `ready_task.options shows nothing under "B"`},
+		{"an idea past the end of its list", func(r *profile.ReadyTask) { r.Idea.Number = profile.IdeasPerList + 1 },
+			"ready_task.idea is number 11"},
+		{"an idea named in no round", func(r *profile.ReadyTask) { r.Idea.Round = 0 }, "ready_task.idea is number 4 in round 0"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

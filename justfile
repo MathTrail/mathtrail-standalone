@@ -681,13 +681,16 @@ _site-check:
 # photographed in Chromium, from the image the widget's layout is measured
 # in. They are written over site/assets/, for the change to be looked at
 # before it is kept; a change to the home page's first screen deserves new
-# ones.
-# Photograph the site's sharing pictures
+# ones. Given --language and a tag, as often as there are languages to take,
+# it takes those alone and leaves the others' pictures as they are. The
+# arguments reach the script as arguments, never as its text.
+# Photograph the site's sharing pictures, of every language or of those given
 [working-directory('web')]
-site-og: site _playwright-pinned
+[positional-arguments]
+site-og *args: site _playwright-pinned
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
-        {{ PLAYWRIGHT_IMAGE }} node scripts/og.ts
+        {{ PLAYWRIGHT_IMAGE }} node scripts/og.ts "$@"
 
 # The width the site's menu folds at: for every language of the site, in
 # Chromium with a classic scroll bar and in WebKit, the narrowest width at

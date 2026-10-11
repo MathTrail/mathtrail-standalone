@@ -6,6 +6,7 @@ import { readSiteData } from "./data";
 import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
 import { renderSite } from "./render";
+import { dictionariesOf } from "./testing/dictionaries";
 
 const browser = new Window({
 	settings: {
@@ -142,6 +143,7 @@ const frame: Frame = {
 const files = renderSite({
 	base: "https://example.test",
 	sources,
+	dictionaries: dictionariesOf(sources),
 	pages,
 	frame,
 	data,
@@ -242,6 +244,7 @@ describe("the page of the topics", () => {
 			renderSite({
 				base: "https://example.test",
 				sources,
+				dictionaries: dictionariesOf(sources),
 				pages,
 				frame,
 				data: dataWith(fewer),

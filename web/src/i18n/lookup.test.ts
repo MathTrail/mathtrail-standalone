@@ -1,44 +1,26 @@
 import { describe, expect, test } from "vitest";
 import { chooseLocale, directionOf, fallbacksOf, intlLocales } from "./lookup";
+import vectors from "./testdata/lookup.json";
 
-// The two languages the widget speaks today, and a wider set such as its
-// dictionaries will make, to see how a tag finds its language among them.
-const today = new Set(["en", "ru"]);
-const wider = new Set(["en", "es", "pt", "ru", "zh-Hans"]);
-
+// A language is found among others whole, then shorter, then in the script it
+// is usually written in, but never cut past its script: a bare language
+// stands for the script it is usually written in, and a reader of another
+// script is not given it — Traditional characters are not the Simplified, nor
+// Shahmukhi the Gurmukhi. Norwegian named as a whole is Bokmål, which most of
+// its readers write; Nynorsk is a standard of its own. The cases are kept in
+// a file of their own, the one rule a language is read by wherever it is
+// read.
 describe("the dictionary chosen for a language", () => {
-	test.each([
-		["ru-RU", "ru"],
-		["ru", "ru"],
-		["en-GB", "en"],
-		["es-MX", "en"],
-		["pt-BR", "en"],
-		["kk", "en"],
-		["be-BY", "en"],
-		["xx", "en"],
-		["und-RU", "en"],
-		["und", "en"],
-		["ru-Latn", "en"],
-		["not a language", "en"],
-		["", "en"],
-		[undefined, "en"],
-	])("for %s, of en and ru, is %s", (tag, want) => {
-		expect(chooseLocale([tag], today)).toBe(want);
+	test.each(
+		vectors.flatMap(({ among, read }) =>
+			Object.entries(read).map(([tag, want]) => [tag, among, want] as const),
+		),
+	)("for %j among %j is %s", (tag, among, want) => {
+		expect(chooseLocale([tag], new Set(among))).toBe(want);
 	});
 
-	test.each([
-		["es-MX", "es"],
-		["es-419", "es"],
-		["pt-BR", "pt"],
-		["PT-br", "pt"],
-		["zh-CN", "zh-Hans"],
-		["zh-Hans-CN", "zh-Hans"],
-		["zh", "zh-Hans"],
-		["zh-TW", "en"],
-		["ru-RU-u-nu-latn", "ru"],
-		["tlh", "en"],
-	])("for %s, among more languages, is %s", (tag, want) => {
-		expect(chooseLocale([tag], wider)).toBe(want);
+	test("for no language at all is English", () => {
+		expect(chooseLocale([undefined], new Set(["en", "ru"]))).toBe("en");
 	});
 
 	test.each([
@@ -50,37 +32,7 @@ describe("the dictionary chosen for a language", () => {
 		[["not a language", "ru-RU"], "ru"],
 		[["kk", "es-MX"], "en"],
 	])("for %j, most wanted first, is %s", (wanted, want) => {
-		expect(chooseLocale(wanted, today)).toBe(want);
-	});
-
-	// A bare language stands for the script it is usually written in, and a
-	// reader of another script is not given it: Traditional characters are not
-	// the Simplified, nor Shahmukhi the Gurmukhi.
-	test.each([
-		["zh-CN", "zh"],
-		["zh-SG", "zh"],
-		["zh-TW", "en"],
-		["zh-Hant", "en"],
-		["sr", "sr"],
-		["sr-Latn-RS", "en"],
-		["pa", "pa"],
-		["pa-Arab", "en"],
-	])("for %s, where the bare languages have words, is %s", (tag, want) => {
-		expect(chooseLocale([tag], new Set(["en", "zh", "sr", "pa"]))).toBe(want);
-	});
-
-	// Norwegian named as a whole is Bokmål, which most of its readers write;
-	// Nynorsk is a standard of its own, which has no words of its own here.
-	test.each([
-		["no", "nb"],
-		["no-NO", "nb"],
-		["NO-no", "nb"],
-		["nb", "nb"],
-		["nb-NO", "nb"],
-		["nn", "en"],
-		["nn-NO", "en"],
-	])("for %s, where Bokmål has words, is %s", (tag, want) => {
-		expect(chooseLocale([tag], new Set(["en", "nb"]))).toBe(want);
+		expect(chooseLocale(wanted, new Set(["en", "ru"]))).toBe(want);
 	});
 });
 

@@ -119,26 +119,36 @@ func (s *Service) noPackage(p *profile.Profile, now time.Time) Reply[any] {
 }
 
 // packageFor is what the model is handed to write the request's task from: the
-// brief the request keeps, the chances around it for this child now, the child
-// as the task is to be pitched at them, and how far the child has come — the
-// answers the reference tasks turn with and the tasks of the topic its idea
-// moves with, the task on the card among them when the request is for the
-// task after it.
+// brief the request keeps, the idea its task is built on, the chances around it
+// for this child now, the child as the task is to be pitched at them, and the
+// answers the reference tasks turn with, the one awaited for the task on the
+// card among them when the request is for the task after it.
 func (s *Service) packageFor(p *profile.Profile, request *profile.OpenRequest) ([]byte, error) {
-	answers, topicTasks := tutor.Behind(p, request.Brief.TargetConcept, request.Ahead)
 	pack, err := s.content.Package(&content.Request{
-		Language:   request.Language,
-		Brief:      request.Brief,
-		Corridor:   tutor.CorridorIn(p, s.content, request.Brief.TargetConcept),
-		Grade:      p.Student.Grade,
-		Notes:      p.Student.Notes,
-		Answers:    answers,
-		TopicTasks: topicTasks,
+		Language: request.Language,
+		Brief:    request.Brief,
+		Corridor: tutor.CorridorIn(p, s.content, request.Brief.TargetConcept),
+		Grade:    p.Student.Grade,
+		Notes:    p.Student.Notes,
+		Answers:  tutor.AnswersBehind(p, request.Ahead),
+		Idea:     requestIdea(p, request),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("mcp: build the package: %w", err)
 	}
 	return pack, nil
+}
+
+// requestIdea is the idea a request's task is built on: the one the request
+// named when it was opened, or, for a request an earlier build opened, which
+// named none, the one a request opened now would name. Nothing given changes
+// while a request is open, so its package and its task are built on one idea
+// whenever either is asked for.
+func requestIdea(p *profile.Profile, request *profile.OpenRequest) profile.Idea {
+	if request.Idea != (profile.Idea{}) {
+		return request.Idea
+	}
+	return tutor.NextIdea(p, request.Brief.TargetConcept, request.Brief.GradeLevel)
 }
 
 // packageText puts the package after the words about it, where the model reads
