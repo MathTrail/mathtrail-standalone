@@ -52,6 +52,15 @@ type rule struct {
 	// mastery makes the test of mastery a rule puts in the service's place
 	// for a child; nil for a rule that keeps the service's own.
 	mastery func() masteryTest
+	// masteryOnSettled has the rule's mastery read the level less what it
+	// still owes, for a rule that keeps a debt.
+	masteryOnSettled bool
+}
+
+// owes is an estimator that keeps a debt: what wrong answers still owe a
+// topic's level.
+type owes interface {
+	owed(topic string) float64
 }
 
 // world is what every run shares: the catalog, its topics, the levels each
@@ -259,9 +268,20 @@ func (s *session) master(brief *profile.Brief, beta float64, recorded *profile.R
 	a := masteryAnswer{
 		topic: topic, level: brief.GradeLevel, beta: beta, correct: correct, hint: hint, chance: recorded.Probability,
 		answers: s.p.Ratings.Answers, inTopic: summary.Answers, wrongRun: summary.WrongStreak,
-		estimate: s.est.level(topic), levels: s.w.levels[topic],
+		estimate: s.masteryEstimate(topic), levels: s.w.levels[topic],
 	}
 	recorded.Mastered, recorded.Unmastered = s.mastering.judged(s.p, &a, profile.DateOf(s.now))
+}
+
+// masteryEstimate is the level a rule's own mastery reads in a topic: the
+// rule's level, less what it still owes for a rule that reads mastery off the
+// level a debt has settled at.
+func (s *session) masteryEstimate(topic string) float64 {
+	estimate := s.est.level(topic)
+	if debtor, keeps := s.est.(owes); keeps && s.r.masteryOnSettled {
+		estimate -= debtor.owed(topic)
+	}
+	return estimate
 }
 
 // advance moves the clock to the next task: at once, or to the next morning

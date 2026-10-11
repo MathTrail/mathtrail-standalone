@@ -6,8 +6,7 @@ import english from "../../locales/en.json";
 import russian from "../../locales/ru.json";
 import { onAMachineSpeaking } from "../i18n/testing/machine";
 import { openWords } from "../i18n/words";
-import siteEnglish from "../site/locales/en.json";
-import siteRussian from "../site/locales/ru.json";
+import { siteDictionaries } from "../site/words";
 import { cardWords, catalogSkills, lessonLanguages } from "./dictionaries";
 import {
 	countryName,
@@ -103,21 +102,18 @@ describe("the catalogs' names", () => {
 });
 
 describe("the groups of topics", () => {
-	// The card names a group as the site's page of topics does, in the two
-	// languages the site is written in, so that a link from one leads to a
-	// part of the page under the same name.
-	test.each(topicGroups.map((group) => group.id))(
-		"the group %s is named as the site names it",
-		(id) => {
-			const key = `group.${id}`;
-			expect(groupName(inEnglish, id)).toBe(
-				siteEnglish[key as keyof typeof siteEnglish],
-			);
-			expect(groupName(inRussian, id)).toBe(
-				siteRussian[key as keyof typeof siteRussian],
-			);
-		},
-	);
+	// The card names a group as the site's page of topics does, in every
+	// language the site is written in, so that a link from one leads to a part
+	// of the page under the same name.
+	test.each(
+		[...siteDictionaries.keys()].flatMap((locale) =>
+			topicGroups.map((group) => [locale, group.id]),
+		),
+	)("in %s, the group %s is named as the site names it", (locale, id) => {
+		expect(groupName(cardWords(locale, undefined), id)).toBe(
+			siteDictionaries.get(locale)?.[`group.${id}`],
+		);
+	});
 
 	test("the card has no words for are called by their ids", () => {
 		expect(groupName(inEnglish, "puzzles")).toBe("puzzles");

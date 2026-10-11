@@ -1,0 +1,267 @@
+# The page of the topic of ordering, for a parent, in Spanish. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
+
+title: Ordenación
+description: Qué son los problemas de ordenación, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+# The words every drawing of the page writes its four children in: the
+# initial of each, and the name.
+art:
+  ann: A
+  ann-name: Ana
+  ben: B
+  ben-name: Bruno
+  kate: C
+  kate-name: Clara
+  dan-name: Diego
+  taller: mide más
+
+hero:
+  lead: >-
+    ¿Quién mide más, quién es mayor, quién llegó primero? En estos problemas
+    hay que unir unas cuantas comparaciones en un solo orden: por estatura,
+    por edad, por el puesto en una cola o en una carrera. Para muchos niños y
+    niñas es la primera cadena de razonamientos, en la que cada dato es un
+    eslabón y no puede faltar ninguno.
+  method: Dibujar una línea y colocar a todos en ella
+  teaches: A unir los datos en una sola imagen y a leer una comparación en los dos sentidos
+  # The words of its drawing: the clues and the rule over it, and the line's
+  # two ends in it.
+  art:
+    line: Datos
+    clue-1: «Ana es más alta que Bruno»
+    clue-2: «Clara es más baja que Bruno»
+    clue-3: «Diego es más bajo que Clara»
+    rule: colocarlos en una sola línea
+    top: quien más mide
+    bottom: quien menos mide
+
+basis:
+  title: Las reglas de la línea
+  cards:
+    - title: Cada dato es una flecha
+      text: >-
+        «Ana es más alta que Bruno» pone a Ana antes que Bruno en la línea.
+        Compare lo que compare —la estatura, la edad o el puesto en una
+        carrera—, un dato dice quién va primero.
+      art:
+        clue: «Ana es más alta que Bruno»
+    - title: Se lee en los dos sentidos
+      text: >-
+        «Bruno es más bajo que Ana» dice lo mismo que «Ana es más alta que
+        Bruno». Dé la vuelta a los datos para que todos apunten en el mismo
+        sentido antes de colocarlos en la línea.
+      art:
+        clue: «Ana es más alta que Bruno»
+        turned: «Bruno es más bajo que Ana»
+    - title: La cadena continúa
+      text: >-
+        Si Ana es más alta que Bruno y Bruno es más alto que Clara, entonces
+        Ana también es más alta que Clara, aunque ningún dato lo diga.
+      art:
+        implied: Ana es más alta que Clara
+
+idea:
+  title: Todos los datos en el mismo sentido
+  lead: Construya la línea dato a dato, después de reformular cada uno con «más alto que». Cada paso añade una persona nueva a la línea.
+  table:
+    head:
+      - El dato
+      - Dicho con «más alto que»
+      - La línea hasta ahora
+    rows:
+      - - «Ana es más alta que Bruno»
+        - Ana es **más alta** que Bruno
+        - Ana > Bruno
+      - - «Clara es más baja que Bruno»
+        - Bruno es **más alto** que Clara
+        - Ana > Bruno > Clara
+      - - «Diego es más bajo que Clara»
+        - Clara es **más alta** que Diego
+        - Ana > Bruno > Clara > Diego
+  # The words of the drawings of the table: the note on a clue turned round.
+  art:
+    turned: al revés
+  note:
+    title: Por qué importa
+    text: >-
+      La mayoría de los errores aquí vienen de leer un dato al revés: «más
+      bajo» tomado por «más alto», «después» por «antes». Un dato al que se
+      le ha dado la vuelta antes de colocarlo en la línea ya no se puede leer
+      mal.
+
+method:
+  title: "Cómo resolverlo: dibujar la línea"
+  lead: >-
+    Dibuje una línea del más alto al más bajo, o del primero al último, y
+    coloque en ella los datos uno a uno, primero los seguros. Quien todavía no
+    tiene sitio espera al siguiente dato. Los ejemplos de abajo van del más
+    sencillo a uno de olimpiada.
+  steps:
+    - Poner todos los datos en el mismo sentido
+    - Colocar los datos en la línea, primero los seguros
+    - Leer la respuesta y comprobar con ella cada dato
+  # The key under the steps: what the drawings' rings and outlines mean.
+  legend:
+    added: "un anillo azul: lo que añade este paso"
+    free: un sitio aún libre
+    block: "un bloque: dos que van siempre juntos"
+
+examples:
+  - title: Tres barcas
+    question: >-
+      Tres barcas hicieron una carrera: una roja, una azul y una verde. La
+      barca roja llegó después de la azul. La barca verde llegó antes que la
+      azul. ¿Qué barca ganó?
+    steps:
+      - >-
+        Le damos la vuelta al primer dato: la barca roja llegó después de la
+        azul, así que la azul llegó antes que la roja.
+      - >-
+        En la línea, empezando por la izquierda: la azul y después la roja. La
+        barca verde llegó antes que la azul, así que va delante de las dos:
+        verde, azul, roja.
+      - >-
+        La primera de la línea es la barca verde. Comprobación: la roja
+        después de la azul, sí; la verde antes que la azul, sí.
+    answer: Ganó la barca verde.
+    badge: "1"
+    art:
+      red: roja
+      blue: azul
+      green: verde
+      before: antes
+      waits: espera
+  - title: La cola del comedor
+    question: >-
+      Cinco niños hacen cola en el comedor: Lucía, Mateo, Nora, Omar y Pablo.
+      Nora es la tercera. Omar está justo detrás de Nora. Mateo está en algún
+      lugar por delante de Lucía, y Lucía no es la última. ¿Quién ocupa el
+      último puesto?
+    steps:
+      - >-
+        Anotamos lo seguro: Nora es la tercera, y Omar, justo detrás de ella,
+        es el cuarto. Los puestos 1, 2 y 5 quedan para Mateo, Lucía y Pablo.
+      - >-
+        Lucía no es la última, así que es la primera o la segunda. Mateo está
+        en algún lugar por delante de ella, por lo que no puede ser la primera:
+        Lucía es la segunda, y Mateo, el primero.
+      - >-
+        El único puesto que queda, el quinto, es el de Pablo. Comprobamos cada
+        dato: se cumplen todos.
+    answer: El último es Pablo.
+    badge: P
+    note:
+      title: Cada dato cuenta
+      text: >-
+        Sin «Lucía no es la última», Lucía también podría ser la última: el
+        dato corto con «no» es el que decide la cola.
+    art:
+      lena: L
+      lena-name: Lucía
+      max: M
+      max-name: Mateo
+      nina: N
+      nina-name: Nora
+      oleg: O
+      oleg-name: Omar
+      pavel: P
+      pavel-name: Pablo
+      wait: esperan
+      waits: espera
+      other: Sin ese dato, también valdría esta cola
+  - title: Seis corredores
+    question: >-
+      Seis corredores terminaron una carrera sin empates: Alba, Blas, César,
+      Diana, Enzo y Fátima. Blas llegó justo después de Alba. César llegó
+      después de Diana, pero antes que Alba. Fátima llegó justo antes que
+      Enzo, y Enzo no fue el último. Diana no fue la primera. ¿Quién ganó?
+    steps:
+      - >-
+        Buscamos los bloques: «Blas justo después de Alba» forma Alba-Blas, y
+        «Fátima justo antes que Enzo» forma Fátima-Enzo. Diana, después César
+        y después el bloque Alba-Blas van en ese orden.
+      - >-
+        Diana no fue la primera, así que alguien llegó antes que ella. César,
+        Alba y Blas llegaron todos después de Diana: solo Fátima y Enzo pueden
+        ir delante de ella, y van juntos.
+      - >-
+        Así que Fátima-Enzo abre la carrera: Fátima, Enzo, Diana, César, Alba,
+        Blas. Enzo no es el último, como dice el dato. Se cumplen todos los
+        datos.
+    answer: Ganó Fátima.
+    badge: F
+    note:
+      title: Los bloques se mueven juntos
+      text: >-
+        Cuando un dato dice «justo después», los dos corredores van uno al lado
+        del otro, vayan donde vayan. Trátelos como un solo bloque, y seis
+        corredores se convierten en cuatro piezas que colocar.
+    art:
+      ada: A
+      ada-name: Alba
+      bob: B
+      bob-name: Blas
+      cid: C
+      cid-name: César
+      dot: D
+      dot-name: Diana
+      eli: E
+      eli-name: Enzo
+      fay: F
+      fay-name: Fátima
+      blocks: bloques
+      order: orden
+      only: en el «?» solo caben
+      six: 6 corredores
+      four: 4 bloques
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      El niño o la niña usa un dato y pasa por alto otro, a menudo uno corto
+      con «no», y en la línea queda sitio para una respuesta incorrecta.
+    say: «¿Qué dato no has usado todavía?»
+    art:
+      question: Se pasa por alto el dato «Lucía no es la última»
+  reversed_relation:
+    shows: >-
+      «Clara es más baja que Bruno» se coloca en la línea como si Clara fuera
+      más alta: el dato se lee al revés, y la respuesta sale invertida.
+    say: «Entonces, ¿quién mide más? Dilo al revés».
+    art:
+      clue: «Clara es más baja que Bruno»
+  stopped_early:
+    shows: >-
+      El niño o la niña ve que uno es más bajo que otro y responde con eso,
+      aunque la cadena sigue: Bruno es más bajo que Ana, pero Clara es todavía
+      más baja.
+    say: «¿Hay alguien más allá en la línea?»
+    art:
+      clue-1: «Bruno es más bajo que Ana»
+      clue-2: «Clara es más baja que Bruno»
+      who: ¿Quién mide menos?
+
+home:
+  - title: Toda la familia en fila
+    text: >-
+      Ponga a todos en fila en casa, por estatura y después por edad, y diga
+      cada dato en voz alta: «Papá es más alto que mamá, así que papá va
+      primero».
+  - title: La línea antes que la respuesta
+    text: >-
+      Pida la línea en papel antes que la respuesta. Un dibujo muestra
+      enseguida si falta un dato o si está al revés.
+  - title: El juego del revés
+    text: >-
+      Pruebe este juego rápido: usted dice «el gato es más pequeño que el
+      perro», y su hijo o hija lo dice al revés: «el perro es más grande que
+      el gato».
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de ordenación

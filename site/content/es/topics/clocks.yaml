@@ -1,0 +1,217 @@
+# The page of the topic of clocks, for a parent, in Spanish. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
+
+title: Relojes
+description: Qué son los problemas de relojes y de tiempo, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+# The words the page's drawings write a length of time in.
+art:
+  minutes: "{count} min"
+  hours: "{count} h"
+  both: "{hours} h {minutes} min"
+
+hero:
+  lead: >-
+    Un paseo empieza a las 4:50 y dura 25 minutos: ¿a qué hora termina? En
+    estos problemas, el niño o la niña suma y resta tiempo, y la dificultad
+    está en que una hora tiene 60 minutos, no 100. La mayoría de los errores
+    aparecen al pasar la hora en punto, el mediodía o la medianoche.
+  method: Llegar a la hora en punto y luego seguir
+  teaches: A contar el tiempo pasando por la hora en punto y por la medianoche, y a distinguir la hora que marca el reloj del tiempo que dura algo
+  # The words of its drawing: the walk over it, and what its line of time
+  # shows under it.
+  art:
+    line: Un paseo de 25 minutos desde las 4:50
+    whole: primero hasta la hora en punto, luego seguir
+
+basis:
+  title: Las reglas del reloj
+  cards:
+    - title: Una hora tiene 60 minutos
+      text: >-
+        No 100. Así que las 8:50 y 20 minutos más son las 9:10, no las 8:70, y
+        110 minutos son 1 hora y 50 minutos, no 1 hora y 10.
+    - title: Pasando por la hora en punto
+      text: >-
+        Para sumar tiempo pasando de una hora a la siguiente, llegue primero a
+        la hora en punto y sume el resto después: desde las 8:50, 10 minutos
+        hasta las 9:00, y luego 10 más.
+    - title: Un día tiene 24 horas
+      text: >-
+        Después de las 23:59 vienen las 0:00 del día siguiente. De las 22:00 a
+        las 6:00 hay 2 horas hasta la medianoche y 6 horas después de ella.
+      art:
+        midnight: "las 0:00 son la medianoche, el comienzo del día siguiente"
+
+idea:
+  title: Pasando por la hora en punto
+  lead: ¿Cuánto tiempo pasa de una hora a otra? Haga por el camino una parada en la hora en punto. Así, una resta difícil se convierte en dos pasos fáciles.
+  table:
+    head:
+      - Desde y hasta
+      - Pasando por la hora en punto
+      - Cuánto tiempo
+    rows:
+      - - de 8:40 a 9:15
+        - 20 min + 15 min
+        - 35 min
+      - - de 10:50 a 12:30
+        - 10 min + 1 h 30 min
+        - 1 h 40 min
+      - - de 22:30 a 6:00
+        - 1 h 30 min + 6 h
+        - 7 h 30 min
+  note:
+    title: Por qué importa
+    text: >-
+      Restar en columna una hora de otra, 9:15 − 8:40, invita al niño o la
+      niña a contar una hora como 100 minutos en vez de 60. Contar hacia
+      delante pasando por la hora en punto nunca lleva a ese error.
+
+method:
+  title: "Cómo resolverlo: una línea del tiempo"
+  lead: >-
+    Dibuje una línea y ponga en ella las horas en orden, la más temprana a la
+    izquierda. Llegue a la hora en punto, avance luego por horas enteras y
+    después sume los minutos que quedan. Los ejemplos de abajo van del más
+    sencillo a uno de olimpiada.
+  steps:
+    - Poner las horas en una línea, la más temprana primero
+    - Llegar a la hora en punto y luego seguir
+    - Sumar los tramos y comprobar que la respuesta queda antes o después, como debe ser
+  # The key under the steps: what the drawings' boxes and arrows mean.
+  legend:
+    whole: una hora en punto
+    lasts: cuánto dura
+
+examples:
+  - title: La clase de natación
+    question: >-
+      La clase de natación de Tomás empieza a las 3:45 y dura 40 minutos. ¿A
+      qué hora termina?
+    steps:
+      - "De las 3:45 a la hora en punto, las 4:00, hay 15 minutos."
+      - "Después de las 4:00 quedan 40 − 15 = 25 minutos."
+      - "Las 4:00 y 25 minutos más son las 4:25."
+    answer: A las 4:25.
+    note:
+      title: ¿Por qué no las 3:85?
+      text: >-
+        45 + 40 = 85, pero un reloj no tiene 85 minutos: al llegar a 60 cambia
+        la hora. Si primero se llega a la hora en punto, nunca sale una hora
+        así.
+    art:
+      start: empieza la clase, que dura 40 minutos
+      split: 40 minutos = 15 hasta las 4:00 + 25 después
+      never: esa hora no existe
+      right: correcto
+  - title: El torneo de ajedrez
+    question: >-
+      Un torneo de ajedrez tiene 5 rondas. Cada ronda dura 50 minutos, y entre
+      cada dos rondas hay un descanso de 15 minutos. La primera ronda empieza a
+      las 10:00. ¿A qué hora termina la última ronda?
+    steps:
+      - "5 rondas de 50 minutos: 5 × 50 = 250 minutos de juego."
+      - >-
+        Los descansos solo están entre rondas, así que hay 4, no 5:
+        4 × 15 = 60 minutos.
+      - >-
+        250 + 60 = 310 minutos, es decir, 5 horas y 10 minutos. Las 10:00 y 5
+        horas y 10 minutos más son las 15:10.
+    answer: A las 15:10.
+    note:
+      title: ¿Por qué no las 13:10?
+      text: >-
+        310 minutos no son 3 horas y 10 minutos: una hora tiene 60 minutos, no
+        100. 310 = 5 × 60 + 10.
+    art:
+      round: una ronda, 50 min
+      break: un descanso, 15 min
+      rounds: 5 × 50 = 250 minutos
+      breaks: "un descanso menos que rondas: 4 × 15 = 60"
+      total: 310 min = 5 × 60 + 10
+      hours: 5 horas de 60 minutos, y 10 más
+  - title: Dos ciudades
+    question: >-
+      La abuela va en avión a ver a Ana, que vive en otra ciudad. El avión
+      despega a las 8:00 según los relojes de la ciudad de la abuela y aterriza
+      a las 8:30 según los de la ciudad de Ana. Los relojes de la ciudad de Ana
+      marcan 4 horas menos que los de la ciudad de la abuela. ¿Cuánto dura el
+      vuelo?
+    steps:
+      - >-
+        Las 8:00 y las 8:30 se leen en relojes distintos, así que primero
+        pasamos las dos horas a un mismo reloj: el de la abuela.
+      - "Cuando los relojes de la ciudad de Ana marcan las 8:30, los de la abuela marcan 4 horas más: las 12:30."
+      - "De las 8:00 a las 12:30 en un mismo reloj hay 4 horas y 30 minutos."
+    answer: 4 horas y 30 minutos.
+    badge: "4:30"
+    note:
+      title: ¿Media hora?
+      text: >-
+        8:30 − 8:00 es media hora solo si las dos horas son del mismo reloj.
+        Las horas de dos ciudades se comparan después de pasar una de ellas al
+        reloj de la otra.
+    art:
+      take-off: despegue, hora de la abuela
+      landing: aterrizaje, hora de Ana
+      grandma-clock: el reloj de la abuela
+      ann-clock: el reloj de Ana
+      at-ann: hora de Ana
+      at-grandma: hora de la abuela
+      grandma: la abuela
+      ann: Ana
+      other: relojes distintos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_operation:
+    shows: >-
+      El niño o la niña hace una operación que la pregunta no pide: suma dos
+      horas del reloj como si fueran cantidades, de modo que las 3 y las 5 dan
+      las 8, o multiplica donde solo hace falta contar hacia delante. Una hora
+      del reloj es un punto en una línea, no una cantidad.
+    say: «¿Es la hora que marca el reloj o cuánto tiempo dura algo?»
+    art:
+      question: "De las 3:00 a las 5:00: ¿cuánto tiempo pasa?"
+  time_unit_mixup:
+    shows: >-
+      Los minutos se cuentan como si una hora tuviera 100: las 3:45 y 40
+      minutos más se convierten en las 3:85, o 310 minutos en 3 horas y 10
+      minutos.
+    say: «¿Cuántos minutos tiene una hora?»
+    art:
+      question: "Las 3:45 y 40 minutos más"
+  reversed_relation:
+    shows: >-
+      Antes y después se intercambian: el niño o la niña cuenta hacia atrás
+      cuando la pregunta va hacia delante, o suma una diferencia horaria que
+      había que restar, y el avión aterriza antes de despegar.
+    say: «¿La respuesta tiene que ser antes o después del comienzo?»
+    art:
+      question: Despegue a las 8:00 en el reloj de la abuela
+      before: ¿aterrizaje antes del despegue?
+
+home:
+  - title: Un reloj de agujas
+    text: >-
+      Tenga un reloj de agujas donde el niño o la niña pueda verlo y pregunte
+      de pasada: ¿qué hora será dentro de un cuarto de hora? ¿Y qué hora era
+      hace veinte minutos?
+  - title: ¿Cuánto falta?
+    text: >-
+      Antes de ver unos dibujos animados o de salir a pasear, calcule a ojo con
+      el niño o la niña cuánto falta y luego compruébelo en el reloj. Una
+      espera de verdad hace que cada minuto cuente.
+  - title: Un plan para el día
+    text: >-
+      Escriba el plan de un día libre con horas: un paseo de 11:30 a 12:15, la
+      comida a las 12:30. ¿Cuánto dura cada parte y cuánto tiempo hay entre
+      una y otra?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de relojes

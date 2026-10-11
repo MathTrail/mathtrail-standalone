@@ -1,0 +1,8 @@
+seed=20261001
+experiment=E-A3
+children=4000
+answers=200
+rules=debt
+version=v0.5.5-dirty
+go=go1.27.2
+arch=amd64

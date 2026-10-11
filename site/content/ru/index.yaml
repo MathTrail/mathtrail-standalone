@@ -165,11 +165,12 @@ connect:
     # the third.
     steps:
       open: В Claude откройте {connectors}.
-      add: Нажмите **+** и выберите **Add custom connector**.
-      paste: "Вставьте адрес:"
-      sign: "Нажмите **Add**, затем **Connect** и войдите через Google. MathTrail попросит разрешения хранить один файл в вашем Google Диске — профиль ребёнка. Разрешите это на экране Google: без этого файла прогрессу негде храниться."
+      add: Нажмите **+ Add** и выберите **Add custom connector**.
+      paste: "Назовите коннектор MathTrail и вставьте адрес:"
+      sign: "Нажмите **Continue** и ещё раз **Continue**: настройки входа, которые находит Claude, менять не нужно. Затем нажмите **Add**, потом **Connect** и войдите через Google. MathTrail попросит разрешения хранить один файл в вашем Google Диске — профиль ребёнка. Разрешите это на экране Google: без этого файла прогрессу негде храниться."
       chat: "В чате нажмите **+** → **Connectors**, включите MathTrail и напишите: «Давай задачу MathTrail»."
-    # Claude's own names for the page, the same in every language.
+    # Claude's own names for the page, as Claude writes them in the page's
+    # language, and in English where Claude does not speak it.
     connectors: Customize → Connectors
     note: На бесплатном тарифе можно подключить один свой коннектор.
   chatgpt:

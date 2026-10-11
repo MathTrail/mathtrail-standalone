@@ -1,0 +1,247 @@
+# The page of the topic of weighing and pouring, for a parent, in Spanish. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Balanzas y jarras
+description: Qué son los problemas de balanzas y jarras, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+# The words the page's drawings write a jug's size, a step and a move in.
+art:
+  litres: "{count} l"
+  step: paso
+  pour: trasvasar
+  empty: vaciar
+  fill: llenar
+  top: completar
+
+hero:
+  lead: >-
+    Con una jarra de 5 litros y otra de 3 litros, ¿cómo se miden exactamente
+    4 litros? Con una balanza y sin pesas, ¿cómo se encuentra la única moneda
+    más ligera entre muchas? En estos problemas, quien resuelve planea una
+    secuencia corta de pasos, y cada regla cuenta: las jarras no tienen
+    marcas y la balanza no tiene pesas. Es un primer contacto con los
+    algoritmos: planes que funcionan pase lo que pase.
+  method: Anotar cada estado y buscar el camino más corto
+  teaches: A planear los pasos de antemano y a pensar en cada resultado de una pesada
+  # The words of its drawing: what is measured over it, and what each pair of
+  # jugs is.
+  art:
+    line: Medir 4 litros con jarras de 5 y 3 litros
+    pair: "cada par es un estado: lo que tiene cada jarra"
+
+basis:
+  title: Las reglas de balanzas y jarras
+  cards:
+    - title: Un estado son todas las jarras
+      text: >-
+        Anote lo que tiene cada jarra después de cada paso: 5 y 0, luego 2 y 3.
+        Una lista de estados muestra adónde se puede llegar y por dónde ya se
+        ha pasado.
+    - title: Tres resultados
+      text: >-
+        Una balanza puede inclinarse a la izquierda, a la derecha o quedar en
+        equilibrio, así que cada pesada tiene tres resultados. Divida las
+        monedas en tres grupos, no en dos.
+      art:
+        left: izquierda
+        level: equilibrio
+        right: derecha
+    - title: Cada regla cuenta
+      text: >-
+        Sin marcas en las jarras, sin tirar agua, pesas en un solo platillo:
+        cada regla cambia qué pasos se permiten y, por tanto, la respuesta.
+      art:
+        no-marks: sin marcas
+        pour-out: tirar agua
+        unless: salvo que el problema lo permita
+        weight: una pesa
+        one-pan: solo en un platillo
+
+idea:
+  title: Tres resultados de una pesada
+  lead: Cada pesada tiene tres resultados, así que puede dividir las monedas en tres grupos. De eso depende cuántas monedas puede abarcar un número dado de pesadas.
+  table:
+    head:
+      - Pesadas
+      - Resultados
+      - Monedas que abarcan
+    rows:
+      - - "1"
+        - "3"
+        - hasta 3
+      - - "2"
+        - 3 × 3 = 9
+        - hasta 9
+      - - "3"
+        - 3 × 3 × 3 = 27
+        - hasta 27
+  note:
+    title: Por qué importa
+    text: >-
+      Quien pesa la mitad de las monedas contra la otra mitad gasta más pesadas
+      de las necesarias. Ver que una balanza responde de tres maneras, no de
+      dos, es toda la idea, y reaparece más adelante en informática, en la
+      búsqueda.
+
+method:
+  title: "Cómo resolverlo: una tabla de estados"
+  lead: >-
+    Para los trasvases, haga una tabla con una columna por jarra y una fila por
+    paso, y pruebe desde cada fila todos los pasos permitidos hasta que
+    aparezca el objetivo; la primera vez que aparece da el menor número de
+    pasos. Para las pesadas, planee qué hacer después de cada uno de los tres
+    resultados. Los ejemplos de abajo van del más sencillo a uno de olimpiada.
+  steps:
+    - Anotar el estado, lo que hay en cada jarra o platillo
+    - Probar desde él todos los pasos permitidos
+    - Parar al llegar al objetivo y contar los pasos
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    goal: objetivo alcanzado
+
+examples:
+  - title: Un litro
+    question: >-
+      Una cocinera tiene una jarra vacía de 3 litros, otra vacía de 5 litros y
+      un grifo. Las jarras no tienen marcas. En un paso, llena una jarra con el
+      grifo, vacía una jarra o trasvasa de una jarra a la otra hasta que la
+      primera se vacía o la segunda se llena. ¿Cuántos pasos como mínimo hacen
+      falta para tener exactamente 1 litro en una jarra?
+    steps:
+      - Llenamos la jarra de 3 litros y trasvasamos el agua a la de 5 litros, que ahora tiene 3 litros.
+      - >-
+        Volvemos a llenar la jarra de 3 litros y trasvasamos de ella hasta que
+        la grande se llena: solo caben 2 litros más.
+      - "En la jarra pequeña queda 1 litro, tras 4 pasos: llenar, trasvasar, llenar, trasvasar."
+    answer: 4 pasos.
+    note:
+      title: ¿Por qué no menos?
+      text: >-
+        En una tabla de todos los estados a los que se llega en tres pasos o
+        menos no aparece 1 litro: las jarras solo tienen 0, 2, 3 o 5 litros. El
+        primer litro aparece después del cuarto paso.
+    art:
+      jugs: jarras de 3 y 5 litros, sin marcas
+      rows: 4 pasos, 4 filas tras las jarras vacías
+      three: "en 3 pasos:"
+      no-litre: el litro no aparece
+  - title: Ocho monedas
+    question: >-
+      Hay 8 monedas que parecen iguales. Una de ellas es falsa y pesa menos que
+      las demás, que pesan todas lo mismo. ¿Cuántas pesadas como mínimo hacen
+      falta en una balanza sin pesas para encontrar con seguridad la falsa?
+    steps:
+      - Ponemos 3 monedas en cada platillo y apartamos 2.
+      - >-
+        Si un platillo sube, la falsa está entre sus 3 monedas: pesamos 1
+        contra 1, y la más ligera es la falsa, o lo es la tercera moneda si
+        quedan en equilibrio.
+      - >-
+        Si los platillos quedan en equilibrio, la falsa es una de las 2
+        apartadas: las pesamos una contra otra. En cualquier caso bastan 2
+        pesadas, y 1 no basta: solo tiene 3 resultados para 8 monedas.
+    answer: 2 pesadas.
+    note:
+      title: ¿Por qué no 4 y 4?
+      text: >-
+        Pesar 4 contra 4 deja 4 monedas después de la primera pesada, y 4
+        monedas necesitan 2 pesadas más: 3 en total. Con grupos de tres, también
+        el resultado «equilibrio» hace su parte del trabajo.
+    art:
+      one-lighter: una de las 8 pesa menos
+      three: 3 contra 3
+      aside: apartadas
+      lighter: la izquierda pesa menos
+      one: 1 contra 1
+      found: la más ligera es la falsa; si hay equilibrio, la tercera
+      level: equilibrio
+      of-two: de las 2 apartadas
+      never-level: nunca en equilibrio
+      four-left: quedan 4 → 2 pesadas más
+  - title: Cien monedas
+    question: >-
+      Entre 100 monedas que parecen iguales, una es falsa y pesa menos que las
+      demás, que pesan todas lo mismo. ¿Cuántas pesadas como mínimo hacen falta
+      en una balanza sin pesas para encontrar con seguridad la falsa?
+    steps:
+      - >-
+        Cada pesada tiene 3 resultados, así que 4 pesadas distinguen como mucho
+        3 × 3 × 3 × 3 = 81 casos. Son menos que las 100 monedas, así que 4
+        pesadas no bastan.
+      - >-
+        Ponemos 33 monedas en cada platillo y apartamos 34: pase lo que pase,
+        quedan como mucho 34 monedas. Del mismo modo, 34 se reducen como mucho
+        a 12, luego a 4, luego a 2 y luego a 1.
+      - Son 5 pesadas, en las que las monedas pasan de 100 a 34, 12, 4, 2 y 1.
+    answer: 5 pesadas.
+    note:
+      title: Las dos mitades de una demostración
+      text: >-
+        La respuesta necesita las dos: un plan que encuentra la falsa en 5
+        pesadas y el recuento de resultados que muestra que 4 nunca pueden
+        bastar. Las respuestas de olimpiada sobre «el mínimo» siempre tienen
+        estas dos mitades.
+    art:
+      aside: apartadas
+      numbers: los números sobre las flechas cuentan las pesadas
+      plan: el plan
+      always: 5 pesadas siempre la encuentran
+      bound: la cota
+      at-most: 4 distinguen como mucho 81 casos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Se rompe una regla del problema sin darse cuenta: se tira agua aunque el
+      problema no lo permite, se llena una jarra hasta una marca que no tiene
+      o se pone una pesa en el platillo de lo que se pesa.
+    say: «¿Qué pasos permite el problema?»
+    art:
+      question: Las jarras no tienen marcas
+      to-mark: llenar «hasta 1 litro»
+      after-pouring: 1 litro, trasvasando
+  stopped_early:
+    shows: >-
+      El plan se detiene antes de tener la certeza: una pesada encuentra el
+      grupo con la falsa y la búsqueda termina ahí, o los trasvases se detienen
+      en 2 litros cuando el objetivo era 1.
+    say: «Sea cual sea el resultado de la balanza, ¿ya lo sabes con seguridad?»
+    art:
+      question: Después de la primera pesada
+      here: «está aquí», pero ¿cuál?
+      one-more: una pesada más
+  off_by_one:
+    shows: >-
+      Los pasos se cuentan con uno de más o de menos: se olvida el primer
+      llenado con el grifo o se cuenta dos veces el último trasvase.
+    say: "«Vuelve a contar en la tabla: una fila, un paso»."
+    art:
+      question: Una fila de la tabla, un paso
+      three: 3 pasos
+      four: 4 pasos
+      empty: vacías → 4 estados
+
+home:
+  - title: Jarras en el fregadero
+    text: >-
+      Tome dos tazas de distinto tamaño e intente medir una cantidad distinta
+      de la que cabe en cada una. El fregadero es el mejor laboratorio, y el
+      agua derramada no hace daño.
+  - title: Encuentre el más ligero
+    text: >-
+      Esconda un objeto más ligero entre varios que parezcan iguales y
+      encuéntrelo con una balanza de casa, o con una percha y dos bolsas.
+      Cuente las pesadas.
+  - title: Primero, el plan
+    text: >-
+      Antes de trasvasar o de pesar, escriba el plan en forma de tabla y
+      compruébelo paso a paso. La habilidad está en planear primero, no en la
+      suerte.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de balanzas y jarras

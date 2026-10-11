@@ -1,0 +1,8 @@
+seed=20261001
+experiment=sweep
+children=300
+answers=200
+rules=debt-look
+version=v0.5.5-dirty
+go=go1.27.2
+arch=amd64

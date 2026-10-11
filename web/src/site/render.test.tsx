@@ -79,7 +79,11 @@ const sources = new Map([
 		new Map([
 			[
 				"index.md",
-				text("MathTrail", "Олимпиадная математика в чате.", "# MathTrail\n"),
+				text(
+					"MathTrail",
+					"Олимпиадная математика в чате.",
+					"# MathTrail\n\nПрочтите [политику приватности](/en/privacy/).\n",
+				),
 			],
 			[
 				"privacy.md",

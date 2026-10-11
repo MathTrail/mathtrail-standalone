@@ -1,0 +1,224 @@
+# The page of the topic of ratios and sharing, for a parent, in Spanish. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Razones y repartos
+description: Qué son los problemas de razones y repartos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+# The words the page's drawings name their people and boxes in.
+art:
+  ann: Ana
+  ben: Bruno
+  a: A
+  b: B
+
+hero:
+  lead: >-
+    Ana y Bruno se reparten 35 caramelos en la razón 3 a 4. ¿Cuántos recibe
+    cada uno? En estos problemas, una razón dice cuántas partes iguales recibe
+    cada uno, no cuántas cosas. Contar primero las partes y calcular cuánto
+    vale una convierte cualquier problema de razones en una división.
+  method: Contar las partes y luego calcular cuánto vale una
+  teaches: A entender una razón como partes iguales y a aumentar o reducir una receta
+  # The words of its drawing: what is shared over it, and what the parts come
+  # to under it.
+  art:
+    line: 35 caramelos en la razón 3 a 4
+    parts: 7 partes = 35, una parte = 5
+    shares: Ana 3 × 5 = 15, Bruno 4 × 5 = 20
+
+basis:
+  title: Las reglas de las razones
+  cards:
+    - title: Una razón son partes
+      text: >-
+        3 a 4 significa: por cada 3 partes iguales de uno, 4 del otro. En total
+        son 7 partes iguales, no 3 ni 4.
+      art:
+        seven: 3 a 4 son 7 partes iguales
+    - title: Primero, una parte
+      text: >-
+        Divida el total entre el número de partes para hallar una parte y
+        después multiplique por el número de cada uno: 35 : 7 = 5, así que 3
+        partes son 15 y 4 partes son 20.
+      art:
+        one: "35 : 7 = 5 en una parte"
+    - title: Multiplicar los dos números
+      text: >-
+        Una razón no cambia si sus dos números se multiplican por el mismo
+        número: 3 a 4 es lo mismo que 6 a 8 o que 30 a 40. Así crece una
+        receta.
+
+idea:
+  title: Contar las partes
+  lead: Sea cual sea la razón, sume primero sus números. Ese es el número de partes iguales en que se divide el todo.
+  table:
+    head:
+      - Qué se reparte
+      - Partes
+      - Una parte y el reparto
+    rows:
+      - - 35 caramelos, 3 a 4
+        - 3 + 4 = 7
+        - "35 : 7 = 5, así que 15 y 20"
+      - - 60 cartas, 1 a 2 a 3
+        - 1 + 2 + 3 = 6
+        - "60 : 6 = 10, así que 10, 20 y 30"
+      - - 45 abalorios, 2 a 7
+        - 2 + 7 = 9
+        - "45 : 9 = 5, así que 10 y 35"
+  note:
+    title: Por qué importa
+    text: >-
+      El error más frecuente es dividir entre uno de los números de la razón en
+      vez de entre su suma: 35 : 3 o 35 : 4. Si se dibuja una casilla por cada
+      parte, es imposible pasar por alto la suma.
+
+method:
+  title: "Cómo resolverlo: una casilla por cada parte"
+  lead: >-
+    Dibuje una casilla por cada parte de la razón, con una fila de casillas
+    para cada participante del reparto. Cuente todas las casillas, calcule
+    cuánto vale una y después complete lo que le toca a cada uno. Los ejemplos
+    de abajo van del más sencillo a uno de olimpiada.
+  steps:
+    - Dibujar una casilla por cada parte
+    - Calcular cuánto vale una casilla
+    - Completar lo que le toca a cada uno y comprobar el total
+  # The key under the steps: what a tile of the drawings means.
+  legend:
+    one: una parte y lo que vale
+    spoken: las partes de las que habla el problema
+
+examples:
+  - title: Hongos
+    question: >-
+      Mateo y Lucía recogen 45 hongos entre los dos. Por cada 4 hongos que
+      recoge Mateo, Lucía recoge 5. ¿Cuántos hongos recoge Lucía?
+    steps:
+      - 4 a 5 significa 4 partes para Mateo y 5 para Lucía, 9 partes iguales en total.
+      - "Una parte son 45 : 9 = 5 hongos."
+      - "Lucía tiene 5 partes: 5 × 5 = 25 hongos. Comprobación: Mateo tiene 20, y 20 + 25 = 45."
+    answer: 25 hongos.
+    note:
+      title: "¿Por qué no 45 : 5?"
+      text: >-
+        45 : 5 = 9 divide solo entre el número de Lucía. Los 45 hongos son las 9
+        partes, las de Mateo y las de Lucía juntas.
+    art:
+      max: M
+      lena: L
+      together: 45 hongos entre los dos
+      max-name: Mateo
+      lena-name: Lucía
+      nine: 9 casillas, 45 hongos
+      each: "45 : 9 = 5 en cada casilla"
+      only-lena: solo Lucía
+  - title: El coro
+    question: >-
+      En un coro hay 4 niños por cada 7 niñas, y hay 9 niñas más que niños.
+      ¿Cuántos niños y niñas cantan en el coro?
+    steps:
+      - >-
+        Los niños son 4 partes y las niñas 7 partes, así que las niñas tienen 3
+        partes más que los niños.
+      - "Esas 3 partes son las 9 niñas de más: una parte son 9 : 3 = 3 cantantes."
+      - >-
+        El coro tiene 4 + 7 = 11 partes: 11 × 3 = 33 niños y niñas.
+        Comprobación: 12 niños y 21 niñas, 9 niñas más.
+    answer: 33 niños y niñas.
+    note:
+      title: ¿Qué partes son las 9?
+      text: >-
+        Las 9 no son las 7 partes de las niñas, sino las 3 partes en que las
+        niñas superan a los niños. Dividir 9 entre 7 o entre 11 no da un número
+        entero de cantantes.
+    art:
+      boys: niños
+      girls: niñas
+      nine: 9 niñas
+      choir: 11 casillas × 3 = 33
+      this-nine: esto son 9
+  - title: Dos cajas
+    question: >-
+      En dos cajas hay canicas en la razón 3 a 1. Después de pasar 10 canicas
+      de la primera caja a la segunda, las dos cajas tienen el mismo número de
+      canicas. ¿Cuántas canicas hay en total?
+    steps:
+      - >-
+        Pasar canicas de una caja a la otra no cambia el total: es el mismo
+        antes y después.
+      - >-
+        Antes, el total son 4 partes y la primera caja tiene 3 de ellas.
+        Después tiene la mitad del total, 2 de esas mismas 4 partes. Así que
+        ha dado 1 parte.
+      - >-
+        Esa parte son las 10 canicas que se pasaron: el total es 4 × 10 = 40.
+        Comprobación: 30 y 10 antes, 20 y 20 después.
+    answer: 40 canicas.
+    note:
+      title: Lo que no cambia
+      text: >-
+        Los problemas de razones a menudo esconden algo que no cambia: aquí, el
+        total. Medir las dos razones en partes de ese mismo total es lo que
+        permite compararlas.
+    art:
+      box-a: caja A
+      box-b: caja B
+      four: 4 partes en total, antes y después
+      before: antes
+      after: después
+      part: 1 parte
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ratio_total_confusion:
+    shows: >-
+      Los números de la razón se toman por partes del total: 4 a 5 se lee como
+      4 de cada 5, o los 45 hongos se dividen entre 5 en vez de entre las
+      4 + 5 = 9 partes.
+    say: «¿Cuántas partes iguales hay en total?»
+    art:
+      question: 45 hongos, 4 a 5
+      one: en una parte
+  wrong_operation:
+    shows: >-
+      Se suma donde la razón pide multiplicar: para 6 personas más, la receta
+      lleva 6 huevos más, cuando los huevos tienen que crecer en proporción a
+      las personas.
+    say: «Si hay el doble de personas, ¿qué pasa con los huevos?»
+    art:
+      question: 3 huevos para 2 personas, ¿y para 8?
+  answered_other_question:
+    shows: >-
+      Se calcula una cantidad, pero se responde con la que no es: los hongos de
+      Mateo en vez de los de Lucía, o una parte, 3 cantantes, en vez del coro
+      entero.
+    say: «¿Por la parte de quién pregunta el problema?»
+    art:
+      question: ¿Cuántos hongos recoge Lucía?
+      max: M
+      lena: L
+
+home:
+  - title: Cocinar siguiendo una razón
+    text: >-
+      Preparen en familia una bebida o una masa siguiendo una razón: una taza
+      de zumo por cada tres de agua. Después preparen el doble y miren qué se
+      duplica.
+  - title: Casillas en papel
+    text: >-
+      En cualquier reparto en casa, de caramelos o de tareas domésticas,
+      dibuje una casilla por cada parte y complételas. Las casillas piensan por
+      usted.
+  - title: Mapas y maquetas
+    text: >-
+      Miren la escala de un mapa o de un coche en miniatura: 1 a 50 significa
+      que cada centímetro representa 50. Midan algo en familia y pásenlo a
+      tamaño real.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de razones y repartos

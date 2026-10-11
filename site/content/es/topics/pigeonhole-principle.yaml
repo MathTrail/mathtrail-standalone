@@ -1,0 +1,218 @@
+# The page of the topic of the pigeonhole principle, for a parent, in Spanish.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Principio del palomar
+description: Qué son los problemas del principio del palomar, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+hero:
+  lead: >-
+    Cinco palomas llegan volando a cuatro nidos: en algún nido tendrá que haber
+    dos. En estos problemas, el niño o la niña demuestra que algo tiene que
+    ocurrir por mala que sea la suerte: dos calcetines del mismo color sacados
+    de un cajón a oscuras, dos cumpleaños en el mismo mes. Es el primer
+    encuentro con el razonamiento sobre el peor caso, y no sobre el caso
+    afortunado.
+  method: Llevar la peor suerte hasta el final y sumar uno
+  teaches: A demostrar que algo tiene que ocurrir, y no solo que puede ocurrir
+  # The words of its drawing: the pigeons and the cages over it, and what the
+  # seating always comes to.
+  art:
+    line: Cinco palomas, cuatro nidos
+    seat: colóquelas como quiera
+    two: dos
+    always: se coloquen como se coloquen, en algún nido hay dos
+
+basis:
+  title: Las reglas del peor caso
+  cards:
+    - title: Más palomas que nidos
+      text: >-
+        Si hay más palomas que nidos, en algún nido hay al menos dos. Repártalas
+        de la forma más equitativa que quiera: siempre sobra una.
+    - title: Para asegurarse
+      text: >-
+        «Para asegurarse» quiere decir: salga lo que salga de la bolsa. Así que
+        imagine que todo va tan mal como puede ir y vea hasta dónde puede
+        llegar la mala suerte.
+      art:
+        luck: buena suerte
+        not-counted: no cuenta
+        bad-luck: mala suerte
+    - title: Uno más lo decide
+      text: >-
+        Cuando la mala suerte se agota, con cada color sacado una vez y cada
+        nido ocupado una vez, el siguiente da por fuerza lo que se busca.
+      art:
+        eighth: una por cada día; la octava forma pareja
+
+idea:
+  title: La peor suerte y luego uno más
+  lead: Cada pregunta trata de lo que es seguro. La respuesta es hasta dónde puede llegar la mala suerte, más uno.
+  table:
+    head:
+      - Para tener con seguridad
+      - La mala suerte puede dar primero
+      - Así que hacen falta
+    rows:
+      - - dos personas nacidas el mismo día de la semana
+        - una nacida en cada uno de los 7 días
+        - 7 + 1 = 8 personas
+      - - una bola roja, entre 6 azules y 4 rojas
+        - las 6 bolas azules
+        - 6 + 1 = 7 bolas
+      - - dos bolas rojas, entre 6 azules y 4 rojas
+        - las 6 bolas azules y una roja
+        - 6 + 1 + 1 = 8 bolas
+  note:
+    title: Por qué importa
+    text: >-
+      Los niños y las niñas suelen contar con la suerte: «A lo mejor saco dos
+      rojas a la primera». Un problema que dice «para asegurarse» pregunta qué
+      pasa con la peor suerte, y la costumbre de pensar en ella vale más que
+      cualquier fórmula.
+
+method:
+  title: "Cómo resolverlo: la peor suerte y luego uno más"
+  lead: >-
+    Identifique los nidos, como los colores, los meses o los días de la semana,
+    y lleve la peor suerte hasta el final: saque todo lo que todavía no da lo
+    que pide la pregunta. El siguiente lo dará por fuerza. Los ejemplos de
+    abajo van del más sencillo a uno de olimpiada.
+  steps:
+    - Encontrar los nidos y las palomas
+    - Llevar la peor suerte hasta el final
+    - Sumar uno y comprobar que lo decide
+  # The key under the steps: what the drawings' bracket and ring mean.
+  legend:
+    bad-luck: mala suerte
+    decides: uno más, el que lo decide
+
+examples:
+  - title: Caramelos en un frasco
+    question: >-
+      En un frasco hay 8 caramelos de limón y 2 de naranja. Sin mirar, ¿cuántos
+      caramelos tiene que sacar Álex para asegurarse de tener uno de naranja?
+    steps:
+      - Álex quiere un caramelo de naranja. La peor suerte es sacar uno de limón tras otro.
+      - >-
+        Solo hay 8 caramelos de limón: después de esos 8, en el frasco solo
+        quedan los de naranja.
+      - "El 9.º caramelo será por fuerza de naranja: 8 + 1 = 9."
+    answer: 9 caramelos.
+    art:
+      lemon: de limón, 8
+      orange: de naranja, 2
+      unlucky: sin suerte
+      all-lemons: los 8 de limón
+      lemons: 8 de limón
+  - title: Dos calcetines negros
+    question: >-
+      En un cajón hay 8 calcetines negros, 6 blancos y 2 de rayas, todos
+      mezclados. A oscuras, ¿cuántos calcetines tiene que sacar Hugo para
+      asegurarse de tener dos negros?
+    steps:
+      - >-
+        La peor suerte: primero salen los calcetines que no son negros. Hay 6
+        blancos y 2 de rayas: 8 calcetines, ninguno de ellos negro.
+      - >-
+        La mala suerte aún puede seguir: el siguiente calcetín es negro, pero
+        solo uno. Son 9 calcetines y solo uno negro entre ellos.
+      - >-
+        El 10.º calcetín será por fuerza negro también, porque solo quedan
+        calcetines negros. Así que 10 calcetines.
+    answer: 10 calcetines.
+    note:
+      title: ¿Por qué no 9?
+      text: >-
+        Después de los 6 calcetines blancos y los 2 de rayas, la mala suerte
+        tiene un turno más: un solo calcetín negro. Dos negros solo son seguros
+        con el 10.º.
+    art:
+      black: negros, 8
+      white: blancos, 6
+      striped: de rayas, 2
+      no-black: 8, ninguno negro
+      not-black: 8 que no son negros
+      one: uno
+      only-one: 9 calcetines, y solo uno negro
+  - title: Sumas en una cuadrícula
+    question: >-
+      En cada casilla de una cuadrícula de 2 por 2 hay un 1, un 2 o un 3. Suma
+      los dos números de cada fila, de cada columna y de cada diagonal. ¿Es
+      cierto que, entre estas seis sumas, siempre hay dos iguales?
+    steps:
+      - >-
+        Contemos los nidos: la suma de dos números elegidos entre 1, 2 y 3 es
+        uno de los números 2, 3, 4, 5 y 6, cinco valores en total.
+      - "Contemos las palomas: 2 filas, 2 columnas y 2 diagonales dan 6 sumas."
+      - >-
+        Seis sumas y solo cinco valores: dos de las sumas tienen que ser
+        iguales, sean cuales sean los números de la cuadrícula.
+    answer: Sí, siempre.
+    badge: Sí
+    note:
+      title: Los nidos no siempre son cajas
+      text: >-
+        Aquí los nidos son los valores que puede tomar una suma, y las palomas,
+        las líneas de la cuadrícula. El arte de estos problemas está en ver qué
+        hace de nido.
+    art:
+      example: "por ejemplo: 1, 2 o 3 en cada casilla"
+      cages: 5 nidos, las sumas posibles
+      row: fila
+      column: col.
+      diagonal: diag.
+      pigeons: 6 sumas, 6 palomas
+      two: "6 palomas en 5 nidos: en algún nido hay dos"
+      cages-name: nidos
+      pigeons-name: palomas
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  best_case_not_worst:
+    shows: >-
+      El niño o la niña cuenta con la suerte: «Si los dos primeros calcetines
+      son negros, bastan dos». La pregunta dice «para asegurarse», y esas
+      palabras dejan fuera precisamente la suerte.
+    say: «¿Y si tienes la peor suerte posible?»
+    art:
+      question: Dos negros, con seguridad
+  ignored_condition:
+    shows: >-
+      Se pierde una palabra de la pregunta: «dos calcetines negros» se lee como
+      «dos calcetines del mismo color», o «uno de cada color», como «de un
+      mismo color».
+    say: «Lee otra vez la pregunta. ¿De qué tienes que asegurarte exactamente?»
+    art:
+      question: "Se piden: dos calcetines **negros**"
+      black-pair: un par que sea negro
+  off_by_one:
+    shows: >-
+      Quien resuelve lleva la peor suerte hasta el final y se detiene ahí,
+      olvidando el uno más que lo decide, o bien suma uno de más.
+    say: «Después de la peor suerte, ¿qué te da el siguiente?»
+    art:
+      question: 8 de limón y 2 de naranja
+
+home:
+  - title: Calcetines a oscuras
+    text: >-
+      Meta en una bolsa calcetines de dos o tres colores y vayan sacándolos con
+      los ojos cerrados: ¿cuántos hacen falta para tener un par con seguridad?
+      Pruébenlo varias veces. La suerte cambia; la respuesta, no.
+  - title: ¿Tiene que pasar o puede pasar?
+    text: >-
+      Cuando su hijo o hija diga «podría pasar», pregunte: «¿Y podría no
+      pasar?». La diferencia entre «puede» y «tiene que» es todo el tema.
+  - title: Buscar los nidos
+    text: >-
+      Busquen nidos en las cuentas de todos los días: los siete días de la
+      semana, los doce meses, las cuatro estaciones. «Somos 30: ¿seguro que hay
+      dos que cumplen años el mismo mes?».
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema del principio del palomar

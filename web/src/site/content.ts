@@ -183,7 +183,8 @@ const pageName = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/;
  * measured against. A source that cannot be read stops the build with the
  * file it came from, and so do a site with no locale, a locale with no text,
  * a page two files of one locale both write, a page some locale lacks, words
- * that say other things than the English ones, and a reference locale with no
+ * that say other things than the English ones, a document whose headings,
+ * links or code are not the English one's, and a reference locale with no
  * front page: the address the product is listed under is built from it.
  */
 export function readTexts(sources: Sources, reference: string): Texts {
@@ -221,6 +222,7 @@ export function readTexts(sources: Sources, reference: string): Texts {
 		);
 	}
 	checkWords(texts, reference);
+	checkOutlines(sources, reference);
 	return { ...texts, front: summaryOf(front) };
 }
 
@@ -296,6 +298,53 @@ function checkWords(texts: Omit<Texts, "front">, reference: string): void {
 			}
 		}
 	}
+}
+
+// checkOutlines holds every language's documents to the reference locale's:
+// the same headings, each as deep, the same links and images, each to the same
+// address, and the same code, in the same order. A translation changes a document's
+// words, and nothing that leads somewhere or is written as it is. Every locale
+// has every document by now, under the same file.
+function checkOutlines(sources: Sources, reference: string): void {
+	for (const [file, english] of sources.get(reference) ?? []) {
+		if (!file.endsWith(".md")) {
+			continue;
+		}
+		const ours = outlineOf(english);
+		for (const [locale, files] of sources) {
+			const theirs = outlineOf(files.get(file) ?? "");
+			const at = [...Array(Math.max(ours.length, theirs.length)).keys()].find(
+				(index) => theirs[index] !== ours[index],
+			);
+			if (at !== undefined) {
+				throw new Error(
+					`${locale}/${file}: the headings, links, images and code disagree with the English: ${theirs[at] ?? "nothing"} comes where the English has ${ours[at] ?? "nothing"}`,
+				);
+			}
+		}
+	}
+}
+
+// outlineOf is what a document's body holds that a translation keeps, in
+// order: each heading by its depth, each link and image by its address and each
+// piece of code as it is written.
+function outlineOf(source: string): string[] {
+	const outline: string[] = [];
+	commonMark.walkTokens(
+		commonMark.lexer(parseDocument(source).body),
+		(token) => {
+			if (token.type === "heading") {
+				outline.push(`a heading of level ${token.depth}`);
+			} else if (token.type === "link") {
+				outline.push(`a link to ${token.href}`);
+			} else if (token.type === "image") {
+				outline.push(`an image of ${token.href}`);
+			} else if (token.type === "codespan" || token.type === "code") {
+				outline.push(`the code ${JSON.stringify(token.text)}`);
+			}
+		},
+	);
+	return outline;
 }
 
 // pageText reads one file of the site's texts, path being where it is below

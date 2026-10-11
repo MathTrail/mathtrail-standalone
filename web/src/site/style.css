@@ -13400,6 +13400,15 @@ a.s-related-card:hover {
 	outline-offset: 2px;
 }
 
+/* On a phone the segments of every switch keep less room on their sides, so
+   that the scenarios of a lesson stay in one row in a language of longer
+   words. */
+@media (max-width: 479px) {
+	.s-service-switch .s-service-option-face {
+		padding-inline: 12px;
+	}
+}
+
 /* The map: three columns of parts, each part the label of its choice, and
    under them the panel that holds the choices and says what the part chosen
    does. With a part chosen, the others fade, and the rules of the page's head

@@ -1,0 +1,225 @@
+title: Estudio
+description: Las cifras detrás de MathTrail. Cómo sus comprobaciones impiden que un problema llegue al niño o la niña mientras tenga algo mal, cómo se sitúa su modelo del estudiante frente a sus objetivos y de dónde salen sus problemas de referencia.
+
+hero:
+  badge: Para público técnico
+  title: El modelo escribe,
+  title_end: el servicio comprueba.
+  lead: Cómo MathTrail deja que un problema llegue al niño o la niña solo cuando ha superado {count} {noun}, y qué no ven las comprobaciones.
+  paper: El artículo completo · PDF, {count} {noun}
+  code: Código y datos
+  flow:
+    task: problema
+    example: Una valla de {length} m tiene un poste cada {gap} m, con los dos extremos incluidos. ¿Cuántos postes hay?
+    solver: solucionador
+    sum: "{length} ÷ {gap} + {one} = {posts} → {letter}"
+    hands_in: el problema y su solucionador
+    back: rechazado, devuelto
+    twice: el solucionador se ejecuta dos veces
+    asks: una sola opción correcta · palabras al alcance del grado · ninguna repetición de problemas anteriores
+    passed: superó todas las comprobaciones
+    sealed: la respuesta, sellada hasta que el niño o la niña responda
+  grades: "{first}.º–{last}.º de primaria"
+  licence: código abierto, MIT
+
+theses:
+  title: Cuatro cosas que muestra el artículo
+  writes:
+    title: Escribe el modelo del chat
+    text: Cada problema lo escribe el modelo del chat que la familia ya usa, en el idioma del niño o la niña y con una historia que le resulta cercana. MathTrail no llama a ningún modelo propio. Es un servicio pequeño y determinista que no guarda nada del niño o la niña entre una petición y la siguiente.
+    model: El modelo del chat
+    model_does: escribe
+    service: MathTrail
+    service_does: comprueba
+    child: El niño o la niña
+    child_does: resuelve
+  twice:
+    title: El solucionador se ejecuta dos veces
+    text: Junto con el problema, el modelo escribe un programa corto que calcula la respuesta e indica la letra de la opción correcta. El servicio lo ejecuta, desplaza las letras {count} {noun} hacia delante, de modo que {from} pasa a ser {to}, y lo ejecuta otra vez. Un programa que calcula la respuesta la encuentra en su nuevo lugar; uno que escribió la letra a mano, no. La segunda ejecución se hace cuando la primera elige una sola opción.
+    first: Primera ejecución
+    second: Segunda ejecución, letras desplazadas
+    picks: → {letter}
+    caption: Un programa que escribió «{letter}» a mano señala {value} en la segunda ejecución, y el problema se rechaza.
+  sealed:
+    title: La respuesta está sellada
+    text: La respuesta, la solución, las explicaciones y el solucionador se cifran y se guardan en el perfil del niño o la niña, en el Google Drive de la familia. Hasta que el niño o la niña responde, no están en nada de lo que el servicio entrega a la tarjeta o al modelo del chat, ni en ninguno de sus registros.
+    sees: Lo que ve el niño o la niña
+    seen: el enunciado · el dibujo · las opciones · la pista
+    hidden: Sellado hasta la respuesta
+    kept: la respuesta · la solución · las explicaciones
+    cipher: XChaCha20-Poly1305 · vinculado al niño o la niña y al problema
+    outside: Lo que el sello no alcanza es el propio chat. El modelo que escribió el problema conoce su respuesta, y el registro de las herramientas a las que llamó, que guarda el propio chat, se la muestra a cualquier persona adulta que lo abra.
+  reach:
+    title: Un poco más difícil, pero a su alcance
+    text: El modelo del estudiante predice con qué probabilidad resolverá un problema el niño o la niña, y el servicio pide aquel cuya probabilidad está más cerca del {middle}, el centro del corredor que va del {low} al {high}. Al principio, el niño o la niña hace una serie de prueba de {trial}, que sirve para encontrar el punto de partida.
+    guess: c = {guess}, acertar al azar una de {options}
+    corridor: el corredor buscado
+
+model:
+  title: El modelo del estudiante frente a sus objetivos
+  lead: Con qué precisión sigue el servicio al niño o la niña, en qué medida mantiene los problemas a su alcance, con qué seguridad declara un tema dominado y qué se le muestra al final de una serie. Las cifras son del banco de pruebas, con estudiantes simulados, y se calculan a partir del mismo código con el que se construye este sitio.
+  run:
+    commit: commit {commit} · {date}
+    size: "{children} × {answers}"
+    seed: semilla {seed}
+  paper: El artículo describe la regla tal como estaba en el commit con el que se calcularon sus cifras, {commit}. Esta página sigue al servicio tal como funciona ahora, así que no coincide con el artículo.
+  key:
+    service: el servicio ahora
+    interval: intervalo del {interval}
+    goal: el objetivo
+    ceiling: el techo, una estimación que conoce el nivel real de cada estudiante
+  groups:
+    step: Cómo sigue la estimación al niño o la niña
+    mastery: Cómo se declara el dominio
+    screen: Qué ve el niño o la niña al final de una serie
+    screen_note: respuestas {first}–{last} · el objetivo es no superar el valor de las respuestas {earlyfirst}–{earlylast}
+    context: Para comparar, sin objetivo
+  rows:
+    lag:
+      name: El retraso respecto a quien aprende
+      unit: logits, menos es mejor · el mejor valor posible es {best}
+    corridor_learning:
+      name: Problemas en el corredor {low}–{high}
+      unit: quien aprende · proporción de problemas, más es mejor
+    jump_unsettled:
+      name: Sin ponerse al día tras un salto
+      unit: proporción de estudiantes, menos es mejor
+    false_mastery_static:
+      name: Dominios declarados por error
+      unit: proporción de los dominios declarados, menos es mejor
+    false_mastery_wide:
+      name: Dominios declarados por error, temas alejados entre sí
+      unit: proporción de los dominios declarados, menos es mejor
+    late_mastery_static:
+      name: Respuestas hasta declarar un dominio
+      unit: respuestas, menos es mejor
+    late_mastery_wide:
+      name: Respuestas hasta declarar un dominio, temas alejados entre sí
+      unit: respuestas, menos es mejor
+    card_move_static:
+      name: Cuánto se mueve la puntuación
+      unit: puntos en la mayoría de las respuestas, menos es mejor
+    rank_changes_static:
+      name: Con qué frecuencia cambia la etapa
+      unit: cambios cada cien respuestas, menos es mejor
+    card_move_learning:
+      name: La puntuación, quien aprende
+      unit: puntos en la mayoría de las respuestas, menos es mejor
+    rank_changes_learning:
+      name: La etapa, quien aprende
+      unit: cambios cada cien respuestas, menos es mejor
+    error_static:
+      name: El error de la estimación tras {after}
+      unit: quien no avanza · logits, menos es mejor
+    corridor_static:
+      name: Problemas en el corredor {low}–{high}
+      unit: quien no avanza · proporción de problemas, más es mejor
+  interval: "{low}–{high}"
+  goal_at_most: objetivo ≤ {bound}
+  goal_at_least: objetivo ≥ {bound}
+  ceiling: techo {value}
+  marks:
+    reached:
+      name: Alcanzado
+      means: Todo el intervalo queda del lado favorable del objetivo.
+    on_the_edge:
+      name: En el límite
+      means: El intervalo contiene el objetivo.
+    not_reached:
+      name: No alcanzado
+      means: Todo el intervalo queda del lado desfavorable del objetivo.
+    baseline:
+      name: Referencia
+      means: El objetivo sale de la propia cifra del servicio, así que es el listón para la próxima regla y no una prueba de esta.
+
+live:
+  title: Datos reales
+  lead: Si las promesas del modelo se cumplen con niños y niñas reales, mes a mes. Las cifras salen del registro de respuestas, sin nombres y sin el texto de ningún problema.
+  rule: Un tramo solo se muestra si reúne {children} o más y {answers} o más, y cada recuento se redondea a un múltiplo de {rounded}. Un tramo más pequeño se omite en lugar de fundirse con otro.
+  measures:
+    chances: Prometido → cumplido
+    kept_up: Cumplido − prometido, según el número de respuestas
+    share: La proporción de aciertos en los problemas que elige la regla
+  frame:
+    coming:
+      badge: Próximamente
+      when: Las cifras llegan cuando se ha contado un mes completo, a principios del mes siguiente.
+    too_few:
+      badge: Aún sin datos suficientes
+      when: En {month}, el número de estudiantes que respondieron a los problemas de la regla fue demasiado bajo para mostrar ninguna cifra.
+  ready:
+    month: "En {month}: {children} y {answers} a los problemas que eligió la regla."
+    weighed: Solo se tienen en cuenta las respuestas a los problemas que eligió la regla, tras la serie de prueba de {trial} y sin la pista, de todos los chats juntos.
+    corridor: La proporción de problemas en el corredor no se puede medir con respuestas reales, porque cada problema se responde una sola vez.
+    columns:
+      promised: Prometido
+      came_true: Cumplido
+      answers: Respuestas
+      children: Estudiantes
+    chances:
+      none: Este mes ningún tramo de probabilidad prometida reúne suficientes estudiantes para mostrarse.
+      shown:
+        caption: Cada tramo de probabilidad prometida es un punto, más grande cuantas más respuestas reúne. Sobre la diagonal discontinua, la promesa se cumplió, y la franja es el corredor en el que la regla elige los problemas.
+        up: ↑ proporción de aciertos
+        across: probabilidad prometida →
+        ideal: promesa cumplida
+        band: corredor
+        range: "{from}–{to}"
+        heading: Probabilidad prometida
+    kept_up:
+      none: Este mes ningún tramo de respuestas reúne suficientes estudiantes para mostrarse.
+      shown:
+        caption: Una respuesta correcta cuenta como uno y una incorrecta como cero; a eso se le resta la probabilidad prometida, y la diferencia se promedia sobre las respuestas. A la derecha de la línea discontinua, los estudiantes acertaron más de lo prometido, y cada bigote abarca un error estándar hacia cada lado, calculado por estudiante.
+        range: "{first}–{last}"
+        open: "{first} en adelante"
+        heading: Número de respuesta
+        margin: Cumplido menos prometido
+        error: Error estándar
+    share:
+      expected: esperado ≈ {middle}, el centro del corredor
+      caption: La regla pide el problema cuya probabilidad está más cerca del {middle}, el centro del corredor que va del {low} al {high}. El punto es la proporción de respuestas correctas, y la línea discontinua, el centro del corredor.
+
+sources:
+  title: De dónde salen los problemas de referencia
+  lead: Los derechos de autor no protegen las ideas, pero sí los textos. Por eso de un libro solo se toman la idea de un problema y su respuesta, y el enunciado, la historia, las opciones y las trampas se escriben de nuevo.
+  authors:
+    perelman:
+      name: Yákov Perelmán
+      books:
+        firsthundred: For Young Mathematicians. The First Hundred Puzzles
+        secondhundred: The Second Hundred Puzzles
+        living: «Matemáticas recreativas»
+        arithmetic: «Aritmética recreativa»
+        quick: Quick Reckoning
+    ignatyev:
+      name: Yemelián Ignátiev
+      books:
+        wit: «En el reino del ingenio»
+    dudeney:
+      name: Henry E. Dudeney
+      books:
+        amusements: «Diversiones matemáticas»
+        canterbury: «Los acertijos de Canterbury»
+    loyd:
+      name: Sam Loyd
+      books:
+        cyclopedia: Cyclopedia of Puzzles
+    carroll:
+      name: Lewis Carroll
+      books:
+        tangled: «Un cuento enmarañado»
+        pillow: «Problemas de almohada»
+  died: † {year}
+  public: De dominio público
+  public_note: Los derechos de autor de estos libros ya han expirado. Pertenecen a todo el mundo, y cualquiera puede usarlos gratis.
+  total: En total, {count} {noun}
+  each: cada uno con su solucionador y una trampa detrás de cada opción incorrecta
+  level: "{count} · {first}.º–{last}.º de primaria"
+  note: El estilo sigue el de las colecciones soviéticas. Un problema de referencia no tiene un campo para su fuente, así que no se puede decir de quién es la idea de cada problema.
+
+paper:
+  title: El artículo completo
+  ready: Sus métodos, tablas, protocolos, limitaciones y ética, en inglés.
+  waiting: Sus métodos, tablas, protocolos, limitaciones y ética. El PDF llegará con la próxima versión.
+  open: Abrir el PDF
+  code: Código en GitHub

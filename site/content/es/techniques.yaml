@@ -1,0 +1,356 @@
+# The page of the techniques of olympiad problem solving, for a parent, in
+# Spanish. Which techniques there are, their groups and order, the topics each
+# one leads to, and each example's level and the answer its solver proves are
+# the site's data; the words here follow them, technique by technique. The
+# pictures of a technique's steps are laid out by the page, and only their
+# words are here.
+
+title: Técnicas de resolución de problemas
+description: Las técnicas que resuelven muchos problemas de olimpiada matemática a la vez, cada una con un problema, un dibujo y una solución paso a paso, y una pista sobre cuál probar.
+
+hero:
+  title: Técnicas para resolver problemas de olimpiada matemática
+  lead: >-
+    Un problema de olimpiada no trae un método ya hecho. Lo que hay, en
+    cambio, son técnicas que funcionan en muchos problemas a la vez. Aquí
+    están las {count} que aparecen con más frecuencia, cada una con un
+    problema, un dibujo y una solución.
+  advice: >-
+    Intente resolver el problema con su hijo o hija antes de abrir la solución.
+    Lo que más importa es darse cuenta de qué técnica funcionó, para
+    reconocerla la próxima vez.
+
+start:
+  title: Por dónde empezar cualquier problema
+  lead: >-
+    Antes de elegir una técnica, conviene pasar por cuatro pasos. El
+    matemático George Pólya los expuso en su libro
+    *Cómo plantear y resolver problemas* (1945).
+  steps:
+    - title: Comprender el problema
+      text: Dilo con tus propias palabras. ¿Qué sabes? ¿Qué tienes que encontrar?
+    - title: Concebir un plan
+      text: ¿A qué te recuerda? ¿Qué técnica de esta página podrías probar?
+    - title: Ejecutar el plan
+      text: Paso a paso, apuntando lo que sale en cada paso.
+    - title: Examinar la solución
+      text: Sustituye la respuesta en el enunciado. ¿Encaja todo? ¿Podría haber otra respuesta?
+
+groups:
+  see:
+    title: Ver el problema
+    lead: >-
+      Primero hay que entender el problema. Estas técnicas convierten las
+      palabras en un dibujo, una tabla o un ejemplo pequeño.
+  find:
+    title: Encontrar la respuesta
+    lead: >-
+      Cuando ya está claro qué pasa, estas técnicas llevan a la respuesta sin
+      perder nada por el camino.
+  prove:
+    title: Demostrarlo
+    lead: >-
+      En una olimpiada, muchas veces la pregunta no es «¿cuántos?», sino
+      «¿puede pasar?». Entonces no basta con contar: hay que explicar por qué
+      no puede ser de otra manera.
+
+techniques:
+  draw:
+    name: Dibujar el problema
+    what: >-
+      Un dibujo o un esquema convierte las palabras en algo que se puede mirar.
+      Bastan líneas, puntos y flechas; no hace falta que quede bonito.
+    when: «tantos más que», edades, trayectos, partes de un todo.
+    task: >-
+      Un hermano tiene 4 años más que su hermana. Entre los dos tienen 16 años.
+      ¿Cuántos años tiene el hermano?
+    steps:
+      - Dibujamos la edad de la hermana como una barra, y la del hermano como la misma barra más 4 años.
+      - "Quitamos los 4 años de más: 16 − 4 = 12. Son dos barras iguales."
+      - "Una barra es 12 ÷ 2 = 6 años: es la hermana. El hermano tiene 6 + 4 = 10."
+    answer: El hermano tiene 10 años.
+    # Under each step's picture, what it shows: the bars are the sister's age
+    # and the brother's, as the page's words name them.
+    pictures:
+      sum: "arriba: la hermana, abajo: el hermano; juntos, 16 años"
+      less: 16 − 4 = 12, dos barras iguales
+      found: el hermano tiene 6 + 4 = 10
+    caption: >-
+      El esquema muestra lo que cuesta retener en la cabeza: sin los cuatro
+      años de más, hermano y hermana tienen la misma edad.
+  table:
+    name: Hacer una tabla
+    what: >-
+      Cuando hay muchos datos, cuesta tenerlos todos en la cabeza. Una tabla
+      los guarda por usted: cada dato es una cruz, y donde a una fila le queda
+      una sola casilla libre, ahí está la respuesta.
+    when: varias personas, varias cosas y datos con «no».
+    task: >-
+      Adrián, Bea y Vera tienen un gato, un perro y un loro, una mascota cada
+      uno. Adrián no tiene el gato. Bea tiene miedo a los perros. El gato no
+      vive con Bea. ¿Quién tiene cada mascota?
+    steps:
+      - "Ponemos una cruz por cada dato: Adrián, no el gato; Bea, no el perro; el gato, no con Bea."
+      - "A Bea le queda una sola casilla: el loro. Así que ni Adrián ni Vera tienen el loro."
+      - A Adrián le queda el perro, y a Vera, el gato.
+    answer: Adrián tiene el perro; Bea, el loro; Vera, el gato.
+    pictures:
+      children:
+        anya: Adrián
+        borya: Bea
+        vera: Vera
+      pets:
+        cat: gato
+        dog: perro
+        parrot: loro
+    caption: El número pequeño de cada casilla es el paso de la solución en el que se marcó.
+  small-numbers:
+    name: Empezar con números pequeños
+    aka: Un caso particular
+    what: >-
+      Cuando los números son grandes y no se ve por dónde empezar, resuelva el
+      mismo problema con números pequeños. Descubra la regla y luego aplíquela
+      a los grandes.
+    when: números grandes, «cien», «mil», filas largas.
+    task: >-
+      A lo largo de un camino de 100 metros se ponen postes, uno cada 5 metros,
+      también en los dos extremos. ¿Cuántos postes hacen falta?
+    steps:
+      - "Cien metros no se pueden dibujar, así que tomamos un camino de 10 m. Postes en 0, 5 y 10 m: 3 postes para 2 espacios."
+      - "Con 15 y 20 m pasa lo mismo: siempre hay un poste más que espacios."
+      - En 100 m hay 100 ÷ 5 = 20 espacios, así que hay 21 postes.
+    answer: 21 postes.
+    # Under each road, its length, its gaps and its posts; under the table,
+    # what its columns hold.
+    pictures:
+      ten: "10 m: 2 espacios, 3 postes"
+      fifteen: "15 m: 3 espacios, 4 postes"
+      twenty: "20 m: 4 espacios, 5 postes"
+      table: el camino en metros, sus espacios y sus postes
+    caption: >-
+      La regla ya se ve en un camino corto; después basta con aplicarla a cien
+      metros.
+  systematic:
+    name: Enumerar con orden
+    what: >-
+      Enumerar al azar acaba dejando algo fuera o contándolo dos veces.
+      Enumerar con orden es hacerlo de forma sistemática: primero según un
+      rasgo, después según el siguiente. Para eso viene bien un diagrama de
+      árbol.
+    when: «de cuántas maneras», «cuántos números», «escribe todas las opciones».
+    task: >-
+      ¿Cuántos números distintos de dos cifras se pueden formar con las cifras
+      2, 4, 6 y 8, si ninguna cifra se repite en un mismo número?
+    steps:
+      - "Elegimos un orden: primero la cifra de las decenas, después la de las unidades."
+      - La cifra de las decenas es 2, 4, 6 u 8. Cada una deja otras tres para las unidades.
+      - "Los escribimos rama a rama: 24, 26, 28, 42, 46, 48, 62, 64, 68, 82, 84, 86. No falta ninguno y ninguno se repite."
+    answer: 12 números.
+    pictures:
+      first: la primera cifra es una de cuatro
+      total: 4 ramas × 3 números = 12
+    caption: "El árbol no deja escapar nada: cada primera cifra tiene sus propias ramas."
+  backwards:
+    name: Empezar por el final
+    aka: Ir hacia atrás
+    what: >-
+      Cuando sepa cómo termina la historia y le pregunten cómo empezó, vaya
+      hacia atrás. Convierta cada acción en su contraria: «se comió» en
+      «devolvió», «multiplicó» en «dividió».
+    when: se sabe qué salió al final y hay que averiguar qué había al principio.
+    task: >-
+      En un frutero había manzanas. Sofía se comió la mitad. Después Pedro se
+      comió la mitad de las que quedaban y una manzana más. Quedaron 2
+      manzanas. ¿Cuántas manzanas había al principio?
+    steps:
+      - "Empezamos por lo que sabemos: al final quedaron 2 manzanas."
+      - "Antes de Pedro: devolvemos la manzana de más, 2 + 1 = 3. Eso era la mitad, así que había 6."
+      - "Antes de Sofía: 6 era la mitad, así que había 12. Comprobación: 12 → 6 → 6 − 3 − 1 = 2."
+    answer: 12 manzanas.
+    pictures:
+      end: al final
+      undo-petya: +1, ×2
+      undo-tanya: ×2
+      check: "comprobación:"
+    caption: >-
+      Se va de derecha a izquierda y se hace todo al revés: «se comió la mitad»
+      pasa a ser «por 2», y «se comió una más», «más 1».
+  all-the-same:
+    name: Suponer que todos son iguales
+    aka: El método de la falsa suposición
+    what: >-
+      Cuando un problema tiene cosas de dos tipos, imagine que todas son del
+      mismo tipo. Calcule cuánto se aleja el resultado y verá cuántas hay que
+      cambiar.
+    when: "dos tipos de cosas y un total conocido: cabezas y patas, monedas de dos valores."
+    task: >-
+      En un corral pasean gallinas y conejos. Entre todos tienen 10 cabezas y
+      28 patas. ¿Cuántos conejos hay en el corral?
+    steps:
+      - Supongamos que las 10 son gallinas. Entonces hay 10 × 2 = 20 patas.
+      - "En realidad hay 28 patas: 8 más."
+      - "Cada conejo en lugar de una gallina añade 2 patas: 8 ÷ 2 = 4 conejos. Comprobación: 4 × 4 + 6 × 2 = 28."
+    answer: 4 conejos.
+    # What each counter under the problem stands for.
+    legend:
+      hen: una gallina, 2 patas
+      rabbit: un conejo, 4 patas
+    pictures:
+      guess: "= 20 patas"
+      short: faltan patas
+      fits: "4 conejos y 6 gallinas: 16 + 12 = 28 patas"
+    caption: >-
+      Primero se cuenta como si todos fueran iguales, y después se cambian
+      exactamente los que hagan falta para que cuadre.
+  pattern:
+    name: Buscar un patrón
+    what: >-
+      Mire los primeros pasos y busque lo que se repite. El trozo que se repite
+      permite saltar muy adelante sin dibujar todo lo que hay en medio.
+    when: "patrones, filas, el calendario: «¿cuál será el vigésimo?», «¿cuál será el centésimo?»."
+    task: >-
+      Unas banderas cuelgan en este orden: roja, amarilla, verde, azul, y luego
+      otra vez roja, amarilla, verde, azul, y así sucesivamente. ¿De qué color
+      es la bandera número 23?
+    steps:
+      - "Buscamos el trozo que se repite: roja, amarilla, verde, azul, cuatro banderas."
+      - 23 banderas son 5 grupos completos de cuatro, es decir, 20 banderas, y 3 más.
+      - La número 23 es la tercera de su grupo de cuatro, y la tercera siempre es verde.
+    answer: Verde.
+    pictures:
+      sum: 23 = 4 × 5 + 3
+      last: 21.ª, 22.ª, 23.ª
+    caption: >-
+      No hace falta dibujar veintitrés banderas: basta con ver qué lugar ocupa
+      la bandera dentro de su grupo de cuatro.
+  opposite:
+    name: Suponer lo contrario
+    aka: Reducción al absurdo
+    what: >-
+      Para demostrar que algo no puede ser, suponga que sí puede y siga el
+      razonamiento hasta dar con una contradicción. Casi todos los problemas de
+      caballeros y mentirosos se resuelven así.
+    when: «¿puede pasar?», «demuestra que es imposible», quién dice la verdad.
+    task: >-
+      En una isla viven caballeros, que siempre dicen la verdad, y mentirosos,
+      que siempre mienten. Adrián dijo: «Bea es mentirosa». Bea dijo: «Adrián y
+      yo somos los dos caballeros». ¿Quién es quién?
+    steps:
+      - >-
+        **Supongamos que Bea es de los caballeros.** Entonces sus palabras son
+        verdad, y Adrián también es caballero. Pero Adrián, que es caballero,
+        dijo que Bea es mentirosa. **Contradicción.**
+      - "Así que Bea es mentirosa, y sus palabras son falsas: no es verdad que Adrián y ella sean los dos caballeros. Eso encaja."
+      - Adrián dijo «Bea es mentirosa», y es verdad. Solo un caballero dice cosas verdaderas, así que Adrián es caballero.
+    answer: Adrián es caballero, y Bea es mentirosa.
+    # Who said what, under the problem, each by a letter of their name.
+    legend:
+      anya: A
+      borya: B
+      anya-said: «Bea es mentirosa»
+      borya-said: «Adrián y yo somos los dos caballeros»
+    pictures:
+      said: «Bea es mentirosa»
+      false: «los dos caballeros» es falso
+      true: «Bea es mentirosa» es verdad
+    caption: Un camino lleva a un callejón sin salida, así que el otro es el correcto.
+  parity:
+    name: Fijarse en la paridad
+    what: >-
+      A veces no hace falta saberlo todo: basta con saber si un número es par o
+      impar. Si algo cambia entre par e impar en cada paso, el número de pasos
+      dice enseguida dónde se puede acabar y dónde no.
+    when: saltos, movimientos, intercambios, «uno sí y otro no», «¿puede salir?».
+    task: >-
+      Un saltamontes está en el cero de una recta numérica. Cada salto lo lleva
+      exactamente 1 a la izquierda o a la derecha. ¿Puede volver al cero
+      después de 5 saltos?
+    steps:
+      - "Coloreamos las casillas alternando: pares e impares."
+      - "Cada salto cambia el color: de una casilla par a una impar, y al revés."
+      - Después de 5 saltos, que es un número impar, el saltamontes estará sin duda en una casilla impar, y el cero es par.
+    answer: No, no puede.
+    # The pictures hold no words: what their colours and pointers mean is said
+    # under them.
+    pictures:
+      colours: las azules son pares, las de color naranja son impares, la flecha marca el punto de partida
+      jumps: cada salto y el color de la casilla en la que cae
+      after: tras el 5.º salto, solo casillas impares
+    caption: >-
+      No hace falta seguir adónde fue exactamente el saltamontes: basta con
+      seguir el color de su casilla.
+  pigeonhole:
+    name: Palomas y nidos
+    aka: El principio del palomar
+    what: >-
+      Si hay más palomas que nidos, en algún nido habrá al menos dos palomas.
+      Suena obvio, pero permite demostrar cosas que parecen imposibles de
+      comprobar.
+    when: «demuestra que tiene que haber», «al menos dos», «con seguridad».
+    task: >-
+      ¿Cuántas veces hay que tirar un dado para asegurarse de que algún número
+      salga al menos dos veces?
+    steps:
+      - "Un dado tiene 6 números: son 6 «nidos». Las tiradas son las «palomas»."
+      - "Después de 6 tiradas, todos los números todavía pueden ser distintos: 1, 2, 3, 4, 5, 6."
+      - "A la séptima tirada ya no le queda ningún nido libre: algún número sale por segunda vez. Así que 7 tiradas."
+    answer: 7 tiradas.
+    pictures:
+      throw: un punto azul es una tirada
+      seventh: la 7.ª tirada cae en una casilla ya ocupada
+    caption: Aunque las seis primeras tiradas sean todas distintas, la séptima tiene que repetir una de ellas.
+  mirror:
+    name: Repetir las jugadas en espejo
+    aka: Una estrategia simétrica
+    what: >-
+      En los juegos de dos jugadores, a menudo gana quien sabe repetir en
+      espejo las jugadas del otro. Así siempre se tiene una respuesta, mientras
+      el rival tenga una jugada.
+    when: "juegos de dos jugadores: «¿quién gana jugando bien?»."
+    task: >-
+      Una tira tiene 9 casillas. Dos jugadores, por turnos, ponen una ficha en
+      una casilla vacía que no esté al lado de una ocupada. Pierde quien no
+      pueda poner ficha. ¿Dónde debe poner el primer jugador la primera ficha
+      para ganar, juegue como juegue el otro?
+    steps:
+      - En la primera jugada, ponemos una ficha en el centro, en la quinta casilla.
+      - "Respondemos a cada jugada del rival con su reflejo: la casilla opuesta, al otro lado del centro."
+      - Si la casilla del rival estaba libre y no tocaba ninguna ficha, su reflejo también. Así que el rival es el primero en quedarse sin jugadas.
+    answer: En el centro, la 5.ª casilla, y después repetir en espejo cada jugada.
+    # What the colours and the numbers in the strip's cells mean.
+    legend:
+      first: el primer jugador
+      second: el otro jugador
+      moves: el número indica el orden de la jugada
+    pictures:
+      answer: el otro jugador toma la 1.ª; la respuesta, la 9.ª
+      stuck: "cada casilla libre está al lado de una ocupada: el otro jugador ha perdido"
+    caption: >-
+      Una tira tiene un solo centro, y cada una de las demás casillas tiene su
+      reflejo. Por eso el primer jugador nunca se queda sin jugadas.
+
+labels:
+  when: "Cuándo sirve:"
+  task: Problema · {grades}
+  show: Ver la solución
+  hide: Ocultar la solución
+  topics: "En los temas:"
+
+cues:
+  title: Qué técnica probar
+  lead: >-
+    Una pista a partir de las palabras del enunciado. No es una regla: muchos
+    problemas admiten dos técnicas a la vez.
+  if: Si el problema tiene…
+  try: …pruebe
+  rows:
+    - «tantos más que», edades, partes de un todo
+    - muchas personas, cosas y datos con «no»
+    - números grandes, y no se sabe por dónde empezar
+    - «de cuántas maneras», «cuántos números»
+    - se conoce el final y se pregunta por el principio
+    - dos tipos de cosas y un total
+    - "algo que se repite: «¿cuál será el vigésimo?»"
+    - «¿puede pasar?», «demuestra que es imposible»
+    - «con seguridad», «al menos dos»
+    - "un juego de dos: «¿quién gana?»"

@@ -26,6 +26,15 @@ const (
 	heldOutDirectory  = "held-out"
 )
 
+// The seed, the name and the directory of the run kept for confirming a debt.
+// The children held out for the step and mastery were spent confirming the
+// model of mastery, so a debt is confirmed on children of its own.
+const (
+	debtHeldOutSeed       = 20261012
+	debtHeldOutExperiment = "held-out-debt"
+	debtHeldOutDirectory  = "held-out-debt"
+)
+
 // masterSeed is where every random draw of a run comes from, and experiment
 // names the run in every seed it draws. The command line may set either before
 // the run starts; nothing changes them during it.

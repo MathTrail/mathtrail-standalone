@@ -44,11 +44,14 @@ const moveCap = 1023
 // screenRecord is what a child was shown in each window: how far the rating
 // of the topic answered moved on the card after each answer, how often the
 // overall rank and the answered topic's rank changed, and over how many
-// answers.
+// answers; and, apart for the two kinds of answer, how far the card fell after
+// the wrong ones and how many right ones left it where it stood.
 type screenRecord struct {
 	moves                     [len(screenWindows)][]uint16
 	rankChanges, topicChanges [len(screenWindows)]int
 	answers                   [len(screenWindows)]int
+	fallen, wrongs            [len(screenWindows)]int
+	still, rights             [len(screenWindows)]int
 }
 
 // after records what the child is shown once the rule has taken answer k in,
@@ -64,6 +67,15 @@ func (sr *screenRecord) after(s *session, topic string, o *observedAnswer, k int
 	}
 	before, after := rating.Elo(o.estimate), rating.Elo(s.est.level(topic))
 	move := rating.Shown(after) - rating.Shown(before)
+	if o.correct {
+		sr.rights[at]++
+		if move == 0 {
+			sr.still[at]++
+		}
+	} else {
+		sr.wrongs[at]++
+		sr.fallen[at] -= move
+	}
 	if move < 0 {
 		move = -move
 	}
@@ -88,6 +100,24 @@ func rankChanges(at int, topic bool) func(r *childResult) (float64, bool) {
 		}
 		answers := r.screen.answers[at]
 		return 100 * float64(changes) / float64(answers), answers > 0
+	}
+}
+
+// fallAfterWrong is how far the card fell, in rating points, after the wrong
+// answers of a window, over how many there were: summed over the children of a
+// sample, the mean fall after a wrong answer — what a mistake costs on screen.
+func fallAfterWrong(at int) func(r *childResult) (num, den float64) {
+	return func(r *childResult) (num, den float64) {
+		return float64(r.screen.fallen[at]), float64(r.screen.wrongs[at])
+	}
+}
+
+// stillAfterRight is how many right answers of a window left the card where it
+// stood, over how many there were: the share of right answers that showed the
+// child nothing for them.
+func stillAfterRight(at int) func(r *childResult) (num, den float64) {
+	return func(r *childResult) (num, den float64) {
+		return float64(r.screen.still[at]), float64(r.screen.rights[at])
 	}
 }
 

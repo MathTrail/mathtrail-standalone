@@ -78,7 +78,7 @@ A topic is **truly mastered** at a level when the child's true chance on a task 
 | R5 late mastery | `r5_late_answers`, `r5_never` | For a topic and level the child truly masters, the answers in the topic until the rule declares it, and the share never declared |
 | R6 lag | `r6_lag`, `r6_jump_answers`, `r6_jump_unsettled` | The estimate less the truth from the 101st answer on, below zero when the estimate lags behind; after a jump or a drop, the answers until the error stays under 0.5 for ten answers, and the share of children it never does for |
 | R7 placement | `r7_error_5`, `r7_error_10`, `r7_longest_wrong`, `r7_hard_first` | The error of the overall level after 5 and 10 answers, the longest run of wrong answers among the first 15, and the share of the first 10 tasks whose true chance is below 0.50 |
-| R8 the screen | `r8_move_p95_W`, `r8_rank_W`, `r8_topic_rank_W` | What the child is shown, in two windows W of answers, 6–20 (`6_20`), the first after the trial series, which shows no rating, and 150–200 (`150_200`): how far the topic's rating on the card moves after an answer, `|before − after|` in rating points as the card shows them, at the 95th percentile of every answer in the window of every child of the cell; and how many times in a hundred answers the overall rank, on the progress screen, and the rank of the topic answered change |
+| R8 the screen | `r8_move_p95_W`, `r8_rank_W`, `r8_topic_rank_W`, `r8_wrong_fall_W`, `r8_right_still_W` | What the child is shown, in two windows W of answers, 6–20 (`6_20`), the first after the trial series, which shows no rating, and 150–200 (`150_200`): how far the topic's rating on the card moves after an answer, `|before − after|` in rating points as the card shows them, at the 95th percentile of every answer in the window of every child of the cell; how many times in a hundred answers the overall rank, on the progress screen, and the rank of the topic answered change; how far the card falls after a wrong answer, in rating points, over every wrong answer in the window of every child — what a mistake costs on screen; and the share of right answers after which the card shows the same number |
 
 | R9 the later against the earlier | `r9_kept_up_6_50`, `r9_kept_up_101_200`, `r9_kept_up_later_less_earlier` | The answers after the trial series and without the hint of the cell's children with answers in both ranges: a right one as 1 and a wrong one as 0, less the chance the service promised, written to two places, on average over their answers 6–50 and over their answers 101–200; and the later less the earlier |
 | R10 masteries taken back | `r10_shown`, `r10_taken_back_5`, `r10_taken_back_10` | How many topics a child was shown as mastered — on an answer that declared a mastery the progress shows, while it did not show the topic before —, and the share of them taken back, at the second wrong answer in a row in the topic, within the first 5 and 10 answers there after it, by Kaplan–Meier: a mastery the run stopped following earlier, at its end or at the topic shown as mastered again, counts for the answers it was followed through |
@@ -152,6 +152,59 @@ The rule of mastery is chosen in the same way, over the step already chosen, wit
 - **Better, the choice and the confirmation** as for the step. **The exit** is the baseline, kept as it is: the service's rule of mastery over the step chosen, which no check is asked of.
 
 **The pilot.** Before the decision run, the candidates are run on the sweep's children, a thousand a cell (`-rules mastery-pilot`). A candidate is stopped there when, on some generator, the whole 95 % interval of its difference from the baseline in masteries never declared lies above 2 percentage points: the author's tolerance, not widened by the bench's resolution. If every candidate is stopped, the decision run waits for the author (R175).
+
+### Choosing how a wrong answer is charged
+
+A debt over the model chosen is chosen in the same way (T101.1, decided by the author on 2026-10-11, before any candidate ran). Its aim is the screen, not the estimate: a single wrong answer should cost the child little on the card, while the model stays an honest estimate and still brings a child placed too high down. **"The service" here is the baseline: the model chosen, `floor_0.05+cautious_z1`, the model the service runs.** The baseline is also the exit, kept as it is when no candidate meets the criterion.
+
+- **Constraints,** on point estimates:
+  - on G0 and G2-half, in both windows, the card's fall after a wrong answer, `r8_wrong_fall_W`, is at most half the baseline's;
+  - on the same, the share of right answers after which the card shows the same number, `r8_right_still_W`, is at most 10 % — a debt paid with the whole of a right answer's gain would show the child nothing for about half their right answers;
+  - on G0, the bias after 200 answers, `r1_mean_200`, is at most 0.15 of a rank, 0.143 logit: the price the author accepts while a debt is open, a child who stays put shown a little above where they stand;
+  - the screen's, as for the step and mastery, against the baseline's numbers in answers 6–20.
+- **Not worse than the baseline,** with the bench's resolution as for the step:
+  - the error after 200 answers (0.01 logit) and the corridor (1 point) on every generator;
+  - false masteries (2 points) on every generator, since the mastery chosen reads the level a debt keeps higher;
+  - the lag, `r6_lag`, by the size of its mean, as the step's goal reads it — an estimate that overshoots the children on the whole is no nearer for being above them, so a debt that keeps the level high cannot pass for following a learner — on G2, G2-half and G2-fading (0.01 logit);
+  - the answers until the estimate catches up, `r6_jump_answers`, on G3 and G3-drop (1 answer);
+  - on G1 and G0, the error of the overall level after 10 answers, `r7_error_10` (0.01 logit), and the longest run of wrong answers among the first 15, `r7_longest_wrong` (0.1 answer): a debt follows a child placed too high down more slowly, and these are where that would show first.
+- **The score:** the share of the way from the baseline to perfect — a card no wrong answer moves — closed on the card's fall after a wrong answer in both windows, on G0 and G2-half alike.
+- **Better, the choice and the confirmation** as for the step: the author's debt is the main candidate; the backup is chosen over it only by the margin, which a debt that takes more of a wrong answer's charge at once never closes, so in effect only where the author's is not eligible. The confirmation runs once, on children held out for a debt, at the decision size. **The exit** is the baseline, kept as it is.
+
+## The candidates of the debt
+
+The debts put forward, written down before any of them ran. A debt goes over the step chosen and keeps the mastery chosen: on a wrong answer, it takes at once the share of the step's charge that the answer's place in its topic's run of wrong answers names — the run the service keeps as `wrong_streak`, which a right answer ends and the trial series counts like any answer — and owes the rest, the overall level its part and the topic's offset its own; on a right answer, it gives a share of the step's gain to what is owed and raises the level by the rest. The trial series charges nothing and owes nothing.
+
+| Rule | First wrong in a run | Second | Third and later | Right answer pays | Kind |
+|---|---|---|---|---|---|
+| `floor_0.05+debt_0.1_0.4_p0.8+cautious_z1` | a tenth | two fifths | the whole | four fifths of its gain, one unit for one | main, the author's |
+| `floor_0.05+debt_0.2_0.4_p0.8+cautious_z1` | a fifth | two fifths | the whole | four fifths, one for one | backup |
+| `floor_0.05+debt_0.1_0.4_p1+cautious_z1` | a tenth | two fifths | the whole | the whole gain, one for one | comparison |
+| `floor_0.05+debt_0.1_0.4_p0.8_x2+cautious_z1` | a tenth | two fifths | the whole | four fifths, each unit clearing two | comparison: the pace the debt was first put forward with |
+| `floor_0.05+debt_0.1_0.4_p0.8+cautious_z1_settled` | as the author's | | | | comparison: mastery read off the level less what it owes |
+
+Paid one unit for one, every unit owed is charged in the end: the level less what it owes moves as the step alone would, and a test holds the bench's debt to that on any run of answers. A payment that clears two units for one forgives half of what is owed — the pace the debt was first put forward with, then over a first share of a fifth and no second one, which the simulations of 2026-10-11 found to show a child who stays put 0.45 of a rank too high after 100 answers. A payment of the whole gain shows the child nothing for a right answer while anything is owed, which is what the goal of the right answers left still holds.
+
+### What the runs came to
+
+The rough look, 300 children a cell on the sweep's children (`results/debt-look/`), and the decision run, 4,000 a cell on the working children (`results/debt/`), came to the same: **no debt meets the criterion, and the exit is taken — the model the service runs, kept as it is.** The children held out for a debt stay held out.
+
+The author's debt does what it was put forward for. It meets every goal: the card's fall after a wrong answer is 18.8 rating points in answers 6–20 and 8.1 in 150–200, against the baseline's 68.3 and 34.3; right answers leave the card still 0.3 % of the time at most; and a child who stays put is shown 0.128 logit above where they stand after 200 answers, within the 0.143 the author accepted. Its estimate stands higher than the baseline's, which shortens the lag of a child who learns — by 0.147 logit on G2-half — and has it catch up after a jump ten answers sooner: the same open debt, not a closer following.
+
+It fails 48 of the 66 checks of not worse, each by more than its tolerance with the whole interval. What an open debt costs is that every decision reading the level reads it a little high. On the decision run, its difference from the baseline on the same children:
+
+| Check | Generator | The author's debt less the baseline | Tolerance |
+|---|---|---:|---:|
+| Error after 200 answers, `r1_rms_200` | G0 | +0.031 [0.026, 0.037] | 0.010 |
+| Tasks in the corridor, `r3_inside` | G0 | −2.5 points [−2.8, −2.3] | 1 point |
+| False masteries, `r4_false` | G0 | +3.7 points [3.3, 4.2] | 2 points |
+| Error of the overall level after 10 answers, `r7_error_10` | G1 | +0.040 [0.037, 0.043] | 0.010 |
+| Longest run of wrong answers among the first 15, `r7_longest_wrong` | G1 | +0.14 [0.12, 0.15] | 0.1 |
+| Error after 200 answers | G3-drop | +0.30 [0.29, 0.31] | 0.011 |
+| Answers until the estimate catches up after a drop, `r6_jump_answers` | G3-drop | +36.7 [35.6, 37.8] | 1.6 |
+| Tasks in the corridor | G3-drop | −7.8 points [−8.0, −7.5] | 1 point |
+
+Tasks drift above the corridor, since they are chosen at a level that still owes; the mastery chosen declares on that level, and false masteries rise — read off the level less what it owes, they fall to 1.0 %, but the corridor and the error stay as they are; and a child whose level drops at once makes wrong answers that each take a tenth or two fifths of their charge between right ones, so the estimate follows the drop down some 37 answers later. The backup, a fifth of the first charge, fails 38 checks, the same way and a little less; the comparisons fail more, and the payment at twice the pace most of all: it shows a child who stays put 0.38 logit above where they stand after 200 answers, past the 0.143 accepted, where the baseline shows them 0.10 below.
 
 ## The candidates of mastery
 
@@ -571,7 +624,7 @@ The rules the choice turned on, on every generator; every rule of the run is in 
 
 A run given `-held-out` draws from seeds kept for confirmation: seed 20261003, experiment `held-out`. It runs the confirmation alone — the model of mastery chosen beside the step it is chosen over, or, before one is, the step chosen; either beside the service, the slow constant step and the oracle — refuses to run before a step is chosen, or when the choice it would confirm came to its exit, which is taken without a confirmation, refuses `-seed`, `-experiment` and any other `-rules` beside it, and writes under `held-out` in the directory it is given, never over the working run. They were drawn once, for the model of mastery chosen (`results/held-out/`); the step's choice came to its exit, which needs no confirmation. A set that has been looked at is held out no longer, so no other choice is confirmed on them.
 
-The sweep and its refinement draw children of their own too, the paper's seed under the experiment `sweep`, and refuse `-seed` and `-experiment` likewise. A test proves that no child of any generator is drawn alike in any two of the three sets — the working children, the held-out ones and the sweep's.
+The sweep and its refinement draw children of their own too, the paper's seed under the experiment `sweep`, and refuse `-seed` and `-experiment` likewise. A debt is confirmed on children held out for it alone, seed 20261012, experiment `held-out-debt`, written under `held-out-debt` (`-rules debt-confirmation`), which refuses to run before a debt is chosen; its rough look draws the sweep's children. A test proves that no child of any generator is drawn alike in any two of the four sets — the working children, the held-out ones, the sweep's and those held out for a debt.
 
 ## The service against the earlier rule
 
@@ -699,7 +752,10 @@ A child who stays put still comes out a little under its promise early on and ne
   - `just learners -rules mastery-pilot -children 1000` — the pilot of mastery, on the sweep's children, about three minutes;
   - `just learners -rules mastery -children 4000` — the decision run of mastery, about a quarter of an hour;
   - `just learners -rules ahead` — the service's path as it is and with the next task written ahead, a thousand children a cell, about a minute and a half;
-  - `just learners -held-out -children 4000` — the confirmation of the last candidate chosen, once, about ten minutes: the model of mastery chosen over the step. It was run for that model and is not run again.
+  - `just learners -held-out -children 4000` — the confirmation of the last candidate chosen, once, about ten minutes: the model of mastery chosen over the step. It was run for that model and is not run again;
+  - `just learners -rules debt-look -children 300` — a rough look at the debts, on the sweep's children;
+  - `just learners -rules debt -children 4000` — the decision run of a debt;
+  - `just learners -rules debt-confirmation -children 4000` — its confirmation on the children held out for it, once a debt is chosen.
 - `just ci-learners` runs [the guard](#the-guard), a few seconds on the development machine, and prints its table; `just ci-learners -update` records its bands again.
 - `just research-data` makes the data of the site's page "Research" (`docs/research-page.md`), in about twenty seconds on the development machine, or at once when the numbers of the same build of the bench are kept. It runs two commands of the bench:
   - `learners page -inputs <key> -out <file>` runs the seven cells of the page's board, the service on G0, G0-topics1, G2-half and G3 and the oracle on G0, G2-half and G3, a thousand children a cell on the paper's seeds, and writes their numbers, each goal read as the criteria read it, with the product's counts and constants;
@@ -710,11 +766,11 @@ A child who stays put still comes out a little under its promise early on and ne
 
 ## The results
 
-`tools/learners/results/` keeps the whole run of the bench's own set, as the line every change to the student model is measured from, and beside it, each in its own directory, the runs the step was chosen by: `sweep/`, `refine/` and `decision/` — and `parts/` when a chosen candidate needs them, which the exit did not — and the runs the rule of mastery was chosen by: `mastery-pilot/`, `mastery/` and `held-out/`, the confirmation of the model chosen; and `ahead/`, the service's path with the next task written ahead. Every run writes:
+`tools/learners/results/` keeps the whole run of the bench's own set, as the line every change to the student model is measured from, and beside it, each in its own directory, the runs the step was chosen by: `sweep/`, `refine/` and `decision/` — and `parts/` when a chosen candidate needs them, which the exit did not — and the runs the rule of mastery was chosen by: `mastery-pilot/`, `mastery/` and `held-out/`, the confirmation of the model chosen; `ahead/`, the service's path with the next task written ahead; and the runs a debt is chosen by: `debt-look/`, `debt/` and `held-out-debt/`. Every run writes:
 
 - `summary.md`, the numbers a change is judged by at a glance, for every rule: the error after 200 answers on G0, the share in the corridor on G0 and G2, the share of false masteries on G0, the lag on G2, and the share of G3's children not caught up after the jump;
 - `scenarios.md`, every rule on every generator, measure by measure: the error after 200 answers, the corridor, false masteries, the lag, the children not caught up after a jump or a drop, and the error of the overall level after ten answers;
-- `criterion.md` and `criterion.csv`, the criterion evaluated for every rule: the choice it comes to, or on the held-out children the confirmation; each constraint with its value, interval, bound and verdict, whether its goal is reached, on the edge or not reached, and the score with its interval; beside them, the bench's resolution of each check of not worse;
+- `criterion.md` and `criterion.csv`, the criterion evaluated for every rule: the choice it comes to, or on the held-out children the confirmation; each constraint with its value, interval, bound and verdict, whether its goal is reached, on the edge or not reached, and the score with its interval; beside them, the bench's resolution of each check of not worse; a check that reads a measure's size names it `abs(…)`;
 - `cells.csv`, every measure of every cell, with its interval — but for the sweep and the refinement, where it would run to tens of megabytes and any run gives it again to the last digit, so it is not kept;
 - `comparisons.csv`, the groups of comparisons: four, and a fifth in `ahead/`, the service against its path written ahead;
 - `run.txt`, what the run was given and what computed it: the seed, the name, the children and answers, the set of rules, the service's version, Go's, and the processor's architecture.

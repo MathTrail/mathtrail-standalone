@@ -1,0 +1,214 @@
+# The page of the topic of divisibility and remainders, for a parent, in
+# Spanish. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Divisibilidad y restos
+description: Qué son los problemas de divisibilidad y restos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+hero:
+  lead: >-
+    29 alumnos van de excursión, y en cada coche caben 4. ¿Cuántos coches hacen
+    falta? En estos problemas, el niño o la niña divide con resto y después
+    decide qué significa ese resto: un coche más, un caramelo que sobra, un
+    sitio en la fila siguiente. Los criterios de divisibilidad responden a
+    «¿es divisible?» sin hacer ninguna división.
+  method: Escribir el número como grupos completos y lo que sobra
+  teaches: A entender el resto con las palabras del propio problema y a comprobar la divisibilidad sin dividir
+  # The words of its drawing: what it divides over it, and what the division
+  # comes to under it.
+  art:
+    line: 14 objetos en grupos de 3
+    groups: 4 grupos completos y sobran 2
+
+basis:
+  title: Las reglas de la división
+  cards:
+    - title: El resto es menor que el divisor
+      text: >-
+        Al dividir entre 7, el resto es 0, 1, 2, y así hasta 6. Si sale 7 o
+        más, cabe un grupo más.
+      art:
+        remainders: "restos al dividir entre 7: de 0 a 6"
+    - title: Qué significa el resto
+      text: >-
+        29 alumnos en coches de 4 son 7 coches llenos y sobra 1 alumno, así que
+        hacen falta 8 coches. Con la misma división, la respuesta puede ser 7,
+        8 o 1: lo decide la pregunta.
+      art:
+        cars: 29 = 7 × 4 + 1, así que hacen falta 8 coches
+    - title: Reglas prácticas
+      text: >-
+        Un número es divisible entre 2 si su última cifra es par; entre 5, si
+        termina en 0 o en 5, y entre 3 o entre 9, si la suma de sus cifras lo
+        es.
+      # The rules on its drawing, the digits each looks at in bold.
+      art:
+        by-two: entre 2
+        even: "la última cifra es par: 13**6**"
+        by-five: entre 5
+        five: "termina en 0 o en 5: 24**5**"
+        by-three: entre 3 y 9
+        digits: "la suma de sus cifras: 3 + 8 + 1 + 6 = **18**"
+
+idea:
+  title: Grupos y lo que sobra
+  lead: Todo número entero se puede escribir como grupos completos y lo que sobra. La pregunta decide cuál de las dos cosas quiere.
+  table:
+    head:
+      - La pregunta
+      - La división · en azul, lo que se pregunta
+      - La respuesta
+    rows:
+      - - ¿Cuántos coches de 4 plazas necesitan 29 alumnos?
+        - 29 = 7 × 4 + 1
+        - 8 coches
+      - - "29 caramelos repartidos entre 4 niños: ¿cuántos le tocan a cada uno?"
+        - 29 = 7 × 4 + 1
+        - 7 caramelos a cada uno
+      - - ¿Cuántos de los 29 caramelos sobran?
+        - 29 = 7 × 4 + 1
+        - 1 caramelo
+  note:
+    title: Por qué importa
+    text: >-
+      La división es la misma en todas las filas; solo cambia el significado.
+      Quien divide bien puede, aun así, dar el número de grupos completos
+      cuando la pregunta pide el resto, u olvidar el coche para el último
+      alumno.
+
+method:
+  title: "Cómo resolverlo: grupos completos y un resto"
+  lead: >-
+    Escriba el número como grupos completos y lo que sobra. Después lea otra
+    vez la pregunta y decida qué pide: los grupos, el resto o un grupo más.
+    Cuando pide el número más pequeño o la cifra que cumple alguna condición,
+    vaya probando por orden. Los ejemplos de abajo van del más sencillo a uno
+    de olimpiada.
+  steps:
+    - Separar en grupos completos y un resto
+    - Decidir qué pide la pregunta
+    - Comprobar la respuesta con el enunciado
+  # The key under the steps: what the drawings' groups mean.
+  legend:
+    group: un grupo completo
+    rest: lo que sobra
+
+examples:
+  - title: Autobuses para una excursión
+    question: >-
+      150 alumnos van de excursión escolar, y cada autobús tiene 40 plazas.
+      ¿Cuántos autobuses hacen falta?
+    steps:
+      - "Contamos los alumnos en grupos de 40: 150 = 3 × 40 + 30. Se llenan tres autobuses y quedan 30 alumnos."
+      - Esos 30 alumnos también necesitan un autobús, aunque no vaya lleno.
+      - 3 + 1 = 4 autobuses.
+    answer: 4 autobuses.
+    note:
+      title: ¿Por qué no 3 o 30?
+      text: >-
+        3 es el número de autobuses llenos, y 30, cuántos alumnos van en el
+        último. La pregunta pide todos los autobuses que hacen falta.
+    art:
+      seats: 40 plazas
+      pupils: 150 alumnos
+      left: sobran
+      part: 30 de 40 plazas
+      full: llenos
+      last: en el último
+      all: todos los autobuses
+  - title: El asterisco de 38*6
+    question: >-
+      ¿Qué cifra hay que poner en lugar del asterisco en 38*6 para que el
+      número se pueda dividir entre 9 sin que sobre nada?
+    steps:
+      - Un número es divisible entre 9 exactamente cuando lo es la suma de sus cifras.
+      - >-
+        Las cifras conocidas suman 3 + 8 + 6 = 17, y el asterisco es una cifra
+        del 0 al 9, así que la suma está entre 17 y 26.
+      - "El único número del 17 al 26 divisible entre 9 es el 18, así que el asterisco es 1: 3816 = 9 × 424."
+    answer: La cifra 1.
+    note:
+      title: ¿Y entre 3?
+      text: >-
+        Para el 3, la suma tiene que ser divisible entre 3: 18, 21 y 24 lo son,
+        así que el asterisco puede ser 1, 4 o 7. El criterio del 9 es más
+        estricto, y aquí deja una sola cifra.
+    art:
+      sum: ¿la suma de las cifras es divisible entre 9?
+  - title: Cien doses
+    question: >-
+      Se multiplican cien doses: 2 × 2 × 2 × … × 2. ¿Cuál es la última cifra
+      del resultado?
+    steps:
+      - >-
+        Miramos la última cifra mientras multiplicamos los doses uno a uno: 2,
+        4, 8, 16, 32, 64, 128, 256. Las últimas cifras son 2, 4, 8 y 6, y
+        luego se repiten.
+      - >-
+        El patrón tiene 4 cifras, y 100 = 25 × 4: el centésimo dos cierra la
+        vuelta número 25 del patrón, en su 4.º lugar.
+      - En el 4.º lugar del patrón está el 6, así que el resultado termina en 6.
+    answer: "6."
+    note:
+      title: Restos disfrazados
+      text: >-
+        Solo importaba el resto de dividir 100 entre 4: dice en qué lugar del
+        patrón cae el centésimo dos. Los restos responden a muchas preguntas
+        sobre cosas que se repiten: últimas cifras, días de la semana, lugares
+        en círculo.
+    art:
+      first: en azul, la primera vuelta del patrón
+      rounds: 25 vueltas de 4 doses = 100 doses
+      place: "resto 0: el último lugar de una vuelta, el 4.º"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  remainder_vs_quotient:
+    shows: >-
+      Los grupos completos y el resto se intercambian: el niño o la niña da los
+      30 alumnos que sobran cuando la pregunta pide autobuses, o toma 25, el
+      número de vueltas completas del patrón, por el lugar dentro de él.
+    say: «¿La pregunta es sobre los grupos completos o sobre lo que sobra?»
+    art:
+      question: ¿Cuántos autobuses hacen falta?
+      left: alumnos que sobran
+      buses: autobuses
+  off_by_one:
+    shows: >-
+      La respuesta sale con un grupo de más o de menos: se olvida el autobús
+      de los últimos 30 alumnos, 3 en vez de 4, o los lugares de un patrón se
+      cuentan desde 0 en vez de desde 1.
+    say: «¿Lo que sobra necesita un grupo más?»
+    art:
+      question: 150 alumnos, 40 plazas por autobús
+  missed_case:
+    shows: >-
+      Se encuentra un caso y la búsqueda se detiene: el asterisco es 1, y el
+      niño o la niña no comprueba si 4 y 7 también valen cuando la pregunta es
+      sobre el 3.
+    say: «¿Has probado todas las cifras del 0 al 9?»
+    art:
+      question: 38*6 es divisible entre 3
+      more: ¿y ya está?
+
+home:
+  - title: Repartir con resto
+    text: >-
+      Reparta caramelos o cartas entre la familia y diga el resultado en dos
+      partes: cuántos le tocan a cada uno y cuántos sobran.
+  - title: La prueba de las cifras
+    text: >-
+      Invente números grandes y compruebe si son divisibles entre 3 y entre 9
+      sumando sus cifras; después, divídalos con la calculadora para ver que
+      la regla funciona.
+  - title: Cosas que se repiten
+    text: >-
+      Busque patrones que vuelvan a empezar: los días de la semana, los colores
+      de un collar, las últimas cifras de 3, 9, 27, 81. Pregunte qué viene 50
+      pasos más adelante.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de divisibilidad y restos

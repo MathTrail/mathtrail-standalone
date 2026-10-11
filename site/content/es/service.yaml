@@ -1,0 +1,476 @@
+title: Cómo funciona el servicio
+description: "Cómo funciona MathTrail por dentro: las partes del servicio y cómo se conectan, una clase llamada a llamada, dónde vive su estado, el archivo del perfil en el Drive de la familia y qué se sella en él."
+hero:
+  badge: Para público técnico
+  title: Cómo funciona el servicio
+  lead: "MathTrail se sitúa entre el chat que una familia ya usa y su Google Drive. El modelo del chat escribe cada problema, y el servicio decide si llega hasta el niño o la niña. Es un solo programa: no llama a ningún modelo propio y no guarda nada entre peticiones."
+  chips:
+    - Un binario de Go en Cloud Run
+    - Sin estado
+    - Sin base de datos
+    - Sin llamadas propias a LLM
+    - MCP 2026-07-28 · MCP Apps
+  figure: MathTrail en tres niveles
+  client:
+    title: Cliente de chat
+    tag: 1 · cliente
+    others: otros hosts de MCP Apps
+    note: El modelo del chat escribe el problema, y la tarjeta se lo muestra al niño o la niña.
+  mcp: "{via} · llamadas a herramientas por HTTPS"
+  cloud:
+    title: MathTrail en Google Cloud
+    tag: 2 · ejecución
+    sub: Cloud Run · un binario de Go · sin estado
+    core: "El núcleo: cálculo puro"
+    around: "A su alrededor: OAuth, el servidor MCP, la tarjeta, el sellado, los límites."
+  drive: "{via} · con el propio token de la familia"
+  storage:
+    title: Google Drive
+    tag: 3 · almacenamiento
+    note: "Un archivo por cada niño o niña, en el propio Drive de la familia: lo único que se guarda a largo plazo."
+map:
+  title: El mapa
+  lead: "Quién habla con quién. Ni el niño o la niña ni la persona adulta llegan directamente a MathTrail: hablan con el host del chat. Todo lo que hay en el bloque central es parte de un mismo proceso, no un servicio aparte. Elija cualquier parte para ver qué hace y con qué se conecta."
+  legend: Partes del servicio
+  whole: Ninguna parte elegida
+  hint: "Elija una parte del mapa: todo lo que se conecta con ella sigue resaltado, y lo demás se atenúa."
+  linked: Se conecta con
+  reset: Borrar ✕
+  columns:
+    family:
+      title: El chat de la familia
+      sub: Claude en el navegador, en el ordenador y en el teléfono · ChatGPT
+    service:
+      title: MathTrail
+      sub: Un binario de Go · Cloud Run · un dominio propio
+      tag: entre las partes, simples llamadas a funciones
+    outside:
+      title: Google y GitHub
+      sub: Los únicos servicios fuera del binario
+  groups:
+    people:
+      title: Personas
+      short: El chat de la familia
+    host:
+      title: Host del chat
+      short: Host del chat
+    entry:
+      title: La entrada
+      short: MathTrail · la entrada
+    tools:
+      title: "Herramientas: leer el perfil, calcular, volver a escribirlo"
+      short: MathTrail · herramientas
+    core:
+      title: Cálculo puro, sin red
+      short: MathTrail · cálculo puro
+    around:
+      title: Alrededor del núcleo
+      short: MathTrail · alrededor del núcleo
+    account:
+      title: La cuenta de Google de la familia
+      short: La cuenta de Google de la familia
+    cloud:
+      title: Google Cloud
+      short: Google Cloud
+    github:
+      title: GitHub
+      short: GitHub
+  parts:
+    adult:
+      name: Persona adulta
+      sub: Madre, padre o docente · quien inicia sesión
+      about: "Madre, padre o docente. Es titular tanto de la cuenta del chat como de la cuenta de Google: conecta MathTrail, inicia sesión una vez, crea el perfil, lleva la clase en el chat y sigue el progreso. Es la única persona que inicia sesión y la única que escribe."
+    kid:
+      name: Niño o niña
+      sub: 1.º–6.º de primaria · sin inicio de sesión propio
+      about: De 1.º a 6.º de primaria. Resuelve los problemas en la tarjeta, dentro del chat de la persona adulta. No tiene inicio de sesión propio.
+    model:
+      name: El modelo del host
+      sub: Escribe el problema, el solucionador, las explicaciones
+      about: Claude o ChatGPT. Escribe el problema, un solucionador en Starlark, una explicación para cada opción incorrecta y una autocomprobación; lleva la clase con palabras allí donde no se dibujan tarjetas. MathTrail en sí no llama a ningún modelo.
+    appsrt:
+      name: Entorno de ejecución de MCP Apps
+      sub: El marco aislado en el que vive la tarjeta
+      about: Dibuja la tarjeta en un marco aislado, le pasa el idioma, la plataforma y el tamaño, y reenvía las llamadas propias de la tarjeta con el token del host; la propia tarjeta nunca ve el token.
+    cimd:
+      name: Documento de metadatos del cliente
+      sub: El client_id del host es una dirección HTTPS
+      about: El host se identifica con una dirección HTTPS. MathTrail obtiene el documento de esa dirección, con protección contra SSRF, en lugar de mantener un registro de clientes.
+    router:
+      name: Enrutador HTTP
+      sub: /mcp · /oauth/* · /health
+      about: "La única entrada: /health, /mcp, los endpoints de OAuth y .well-known. Tiempos de espera, un límite al tamaño del cuerpo, una comprobación de Origin; el emisor es su propio dominio, y cualquier otro Host recibe un 404."
+    authsrv:
+      name: Servidor de autorización
+      sub: OAuth 2.1 + PKCE, consentimiento
+      about: "MathTrail es su propio servidor OAuth 2.1 con PKCE: metadatos, una pantalla de consentimiento propia, inicio de sesión con Google, tokens, renovación y revocación. Todo lo que guardaría un servidor con estado va sellado en tokens y cookies."
+    mcpsrv:
+      name: Servidor MCP
+      sub: Streamable HTTP, sin estado
+      about: "El protocolo: Streamable HTTP 2026-07-28, sin estado, sobre el SDK oficial de Go. Enumera y llama a las herramientas, sirve la tarjeta como recurso ui:// y entrega al modelo sus instrucciones con su versión."
+    limits:
+      name: Límites
+      sub: Por dirección, por cuenta, por día
+      about: Un ritmo por dirección antes de iniciar sesión y por cuenta después, y un tope general, todo en memoria; luego, los topes diarios, que cuenta el perfil. Pasado un límite, una frase sencilla que el modelo transmite.
+    tools:
+      name: Herramientas
+      about: "Doce herramientas con la misma forma: leer el perfil, calcular, volver a escribirlo. El modelo llama a la mayoría; la tarjeta llama a las suyas: para el problema, la respuesta, el progreso y el formulario del perfil. Nada secreto entra nunca en un resultado."
+    rule:
+      name: La regla
+      sub: Tema, objetivo, corredor de dificultad
+      about: "Elige el encargo de forma determinista: tras un error, el mismo tema, para afianzarlo; si no, el tema que lleva más tiempo sin aparecer; la dificultad, del corredor donde la probabilidad de acertar es del 70–85 %."
+    rating:
+      name: Puntuaciones
+      sub: θ, δ, β · Elo sobre TRI
+      about: P = 0,2 + 0,8·σ(θ + δ − β). Elo solo se mueve según si una respuesta es correcta, con un paso que se va reduciendo; una escala de ajedrez y once etapas; un tema cuenta como dominado según una estimación prudente.
+    checks:
+      name: Comprobaciones
+      sub: Lo que debe superar un problema enviado
+      about: "Lo que debe superar un problema enviado: su estructura y cinco opciones diferentes, las letras del idioma de la clase, explicaciones distintas, el solucionador, la autocomprobación, la legibilidad, los casi duplicados y el dibujo: su formato, sus etiquetas cotejadas con el enunciado y que no lleve escrita la respuesta. Todos los fallos se comunican de una sola vez."
+    solver:
+      name: Solucionador
+      sub: Entorno aislado de Starlark, límite de pasos
+      about: Ejecuta el programa en Starlark del modelo, que prueba las opciones; exactamente una debe resultar correcta. Límites de pasos y de tiempo, sin red y sin archivos.
+    content:
+      name: Contenido
+      sub: Catálogos, problemas de referencia, instrucciones
+      about: "Todo lo que va incorporado en el binario y no es código: los catálogos de temas, trampas y habilidades, los problemas de referencia, los esquemas, las plantillas de solucionadores, un ejemplo de cada tipo de dibujo y las instrucciones del modelo con su versión."
+    widget:
+      name: Widget
+      sub: La tarjeta · un archivo HTML
+      about: "La tarjeta: Preact compilado en un solo archivo HTML que no carga nada de fuera, con los diccionarios de los idiomas dentro. El diseño funciona desde 320 px, y los botones se pulsan bien con el dedo."
+    store:
+      name: Almacén
+      sub: El perfil y el problema actual
+      about: Encuentra el perfil por una marca oculta, compara antes de escribir, concilia dos pestañas, restaura el archivo desde las revisiones fijadas de Drive cuando la persona adulta lo pide, y no se sale de un pequeño presupuesto de llamadas a Drive.
+    seal:
+      name: Sellado
+      sub: Tokens y la respuesta sellada
+      about: "Un mecanismo, dos funciones: sella el inicio de sesión y los tokens de Google dentro de los tokens que guarda el host, y la respuesta de un problema —la del problema actual y la del escrito por adelantado— dentro del perfil. Las claves vienen de Secret Manager y rotan según el id de la clave."
+    logs:
+      name: Registro
+      sub: Resúmenes, sin datos personales
+      about: "Un resumen estructurado por llamada: la herramienta, el resultado, la duración, la versión de las instrucciones; los intentos y los motivos de un rechazo, como eventos del problema. Sin datos personales, sin texto de problemas, sin respuestas."
+    boot:
+      name: Contenedor y configuración
+      sub: Entorno, versión, apagado
+      about: Conecta las partes entre sí y las cierra en orden inverso, trabaja con tiempos de espera y un apagado ordenado, lee toda su configuración del entorno y se niega a arrancar en Cloud Run con opciones de desarrollo activadas.
+    goauth:
+      name: Google OAuth
+      sub: Solo drive.file
+      about: El inicio de sesión de la persona adulta, solo con el permiso drive.file, la renovación y la revocación. Revocar cualquier token pone fin a todo el acceso.
+    gdrive:
+      name: Drive API v3
+      sub: El único almacenamiento a largo plazo
+      about: "El único almacenamiento a largo plazo: un perfil JSON en una carpeta visible llamada MathTrail, en el Drive de la familia, que se lee y se escribe con el propio token de la familia."
+    sm:
+      name: Secret Manager
+      sub: Claves de sellado, el secreto de cliente
+      about: "Las claves de sellado y el secreto de cliente de Google: versiones fijadas, que se leen una vez al arrancar una instancia."
+    ar:
+      name: Artifact Registry
+      sub: La imagen, por su resumen
+      about: La imagen de cada revisión, por su resumen; las imágenes antiguas se eliminan.
+    clog:
+      name: Cloud Logging
+      sub: El destino de stdout
+      about: El destino del stdout del servicio. Las líneas con las que se cuenta a los niños y las niñas se guardan 62 días en un bucket propio.
+    bq:
+      name: BigQuery → Data Studio
+      sub: Recuentos guardados durante años
+      about: Los recuentos de uso se guardan durante años y se vuelven a calcular cada noche; ninguna tabla contiene el nombre con el que se cuenta a un niño o una niña. Un informe privado y otro público, que no muestra ningún grupo de menos de diez niños y niñas.
+    ga:
+      name: Actions
+      sub: Compilación, comprobaciones, despliegue
+      about: La compilación, las comprobaciones, la publicación de la imagen y el despliegue mediante la Federación de identidades para cargas de trabajo, sin claves de cuentas de servicio.
+    pages:
+      name: Pages
+      sub: Este sitio, la política y las condiciones
+      about: "Este sitio: las páginas de los temas, y la política de privacidad y las condiciones de uso a las que enlaza la pantalla de consentimiento."
+  links:
+    adult-model: el chat, y el problema con palabras donde no se dibuja ninguna tarjeta
+    kid-appsrt: el problema y sus botones
+    adult-authsrv: inicio de sesión con Google y consentimiento, en un navegador
+    model-router: llamadas a herramientas por HTTPS
+    appsrt-router: "las llamadas propias de la tarjeta: el problema, la respuesta, el progreso, el formulario del perfil"
+    mcpsrv-appsrt: la tarjeta como recurso ui://
+    authsrv-cimd: obtiene el documento del cliente
+    router-authsrv: /oauth/*
+    router-mcpsrv: /mcp
+    router-limits: se comprueban antes y después de iniciar sesión
+    mcpsrv-tools: tools/call
+    widget-mcpsrv: el HTML incorporado
+    content-mcpsrv: las instrucciones del servidor
+    tools-rule: elige el encargo
+    tools-rating: actualiza las puntuaciones
+    tools-checks: comprueba un problema enviado
+    tools-store: lee y escribe el perfil
+    tools-content: el paquete para escribir un problema
+    tools-limits: topes diarios
+    tools-seal: sella la respuesta y la abre
+    rule-content: los catálogos
+    checks-solver: ejecuta el programa
+    checks-content: esquemas y límites
+    authsrv-seal: tokens y cookies
+    boot-router: lo construye y lo arranca
+    tools-logs: eventos
+    authsrv-logs: eventos
+    store-logs: eventos
+    limits-logs: eventos
+    store-gdrive: el archivo, con el token de la familia
+    authsrv-goauth: código, token, renovación, revocación
+    sm-boot: secretos en el entorno al arrancar
+    sm-seal: las claves de sellado
+    ar-boot: una revisión, por su resumen
+    logs-clog: stdout
+    clog-bq: se vuelve a contar cada noche
+    ga-ar: la imagen
+    ga-pages: publica el sitio
+    authsrv-pages: enlaces a la política y las condiciones
+    appsrt-pages: la página de un tema
+flow:
+  title: Una clase, llamada a llamada
+  lead: "El modelo y la tarjeta llaman a las mismas herramientas y se apoyan en una única fuente de verdad: el archivo del perfil en el Drive de la familia. Para que la clase siga, no necesitan decirse nada."
+  legend: Escenario
+  scenarios:
+    task: Problema
+    answer: Respuesta
+    signin: Acceso
+  kinds:
+    call: una llamada
+    reply: su respuesta
+    host: dentro del host
+  actors:
+    adult: Persona adulta
+    kid: Niño o niña
+    card: Tarjeta
+    model: Modelo del host
+    service: MathTrail
+    drive: Drive
+    browser: Navegador de la familia
+    host: Host
+    google: Google
+  task:
+    rows:
+      - «un problema nuevo, por favor»
+      - next_task
+      - "El host dibuja la tarjeta en cuanto empieza la llamada: «Preparando el siguiente problema…»"
+      - límites · la regla elige el tema, el nivel y la dificultad
+      - escribir la petición abierta
+      - "la petición está abierta: obtén el paquete"
+      - get_package
+      - encargo · 3 problemas de referencia · trampas · plantillas · ejemplos de dibujos
+      - El modelo escribe el problema, un solucionador en Starlark y una autocomprobación
+      - "submit_task: hasta 3 intentos"
+      - comprobaciones · el solucionador debe encontrar exactamente una opción correcta
+      - el problema pasa a ser el actual, con su respuesta sellada
+      - "read_task: la tarjeta pregunta cada 4 s"
+      - texto · dibujo · cinco opciones · pista, sin la respuesta
+    caption: "Cada llamada lee además el perfil desde Drive; esas lecturas se omiten. La tarjeta que espera nunca ve el paquete: sus problemas de referencia llevan sus respuestas. Mientras el niño o la niña resuelve, el modelo escribe por adelantado el siguiente problema con prepare_task, y cuando se pide otro, next_task lo pone enseguida en una tarjeta nueva, sin esta espera."
+  answer:
+    rows:
+      - pulsa C
+      - "submit_answer: el chat no gasta ningún turno"
+      - solo la primera respuesta · ahora se abre el sello · θ y δ solo se mueven según si es correcta
+      - escribir las puntuaciones y el historial
+      - correcta o no · la trampa detrás de C · el dibujo de la solución · los pasos · la puntuación antes → después
+      - La tarjeta se convierte en el repaso de la respuesta, en el lugar del problema
+      - "ui/update-model-context: una línea, que se lee con el siguiente mensaje de la persona adulta"
+      - «¿por qué hay un poste más?»
+      - responde sobre este mismo problema, completando la tarjeta
+    caption: La pulsación registra la respuesta antes de que se explique nada, y la tarjeta se convierte enseguida en el repaso de la respuesta. El chat no gasta ningún turno y el modelo no dibuja nada. El modelo lee la línea de la tarjeta con el siguiente mensaje de la persona adulta y responde a una pregunta sobre el problema sin volver a contar lo que muestra la tarjeta. Si la línea que el host envía al modelo se pierde, el modelo se pone al día en su siguiente llamada.
+  signin:
+    rows:
+      - POST /mcp, sin token
+      - 401 · dónde están los metadatos
+      - abre /oauth/authorize · PKCE S256
+      - authorize
+      - "Una pantalla de consentimiento propia: qué cliente, y adónde devolverá a la persona adulta"
+      - inicio de sesión con Google · solo drive.file
+      - de vuelta, con el código de Google
+      - /oauth/callback
+      - intercambiar el código
+      - "/about: ¿de quién es este Drive?"
+      - id de usuario = HMAC de la cuenta de Drive · los tokens de Google, sellados en nuestro código
+      - 302 · code = mt1.c.…
+      - devuelve el código
+      - /oauth/token · código + verificador
+      - acceso 15 min · actualización 30 días
+    caption: "La persona adulta inicia sesión una sola vez. El servicio no guarda nada de este intercambio: la petición viaja sellada en el parámetro state, y los tokens de Google, en un código sellado."
+  machine:
+    title: El problema actual como máquina de estados
+    lead: Cada regla de «solo una vez» es un campo del perfil, que se comprueba dentro de la misma lectura, cálculo y escritura. Ninguna otra cosa recuerda nada.
+    forward:
+      - encargo listo
+      - sellado, entregado
+      - registrada una vez
+    turns:
+      - "rechazado, quedan intentos: no más de tres por petición"
+      - tres rechazos, o 15 minutos desde que se abrió la petición; no se gastan problemas del día, y tres rechazos cuentan como una petición fallida del día
+      - "«Otro problema» antes de una respuesta: se registra como en blanco y la puntuación no cambia"
+      - cualquier respuesta posterior —desde una segunda pestaña o desde el modelo— recibe el primer resultado y no escribe nada
+      - el siguiente problema, en una tarjeta nueva; el ya respondido deja de ser el actual
+      - "el siguiente problema ya estaba escrito: next_task lo pone enseguida en una tarjeta nueva, saltándose requested"
+      - el sello ya no se puede abrir porque la clave ha rotado dos veces; no se registra nada
+state:
+  title: Dónde vive el estado
+  lead: "Todo lo que un servidor con estado guardaría en una base de datos lo guarda otro: en un token sellado que conserva el chat, en una cookie del navegador de la familia o en el propio Drive de la familia. Reinicie el servicio o arranque una segunda copia: no se pierde nada."
+  self:
+    label: El propio MathTrail
+    value: Nada
+    note: Ni cuentas, ni sesiones, ni registros de clientes, ni tokens de Google. Cada petición lleva todo lo que necesita.
+  stores:
+    tokens:
+      title: El almacén de tokens del chat
+      sub: Tokens sellados, opacos para el host
+      rows:
+        access:
+          name: Token de acceso
+          life: 15 min
+        refresh:
+          name: Token de actualización
+          life: 30 días, ≤ 90
+      note: Dentro van sellados los tokens de Google, un id de usuario opaco para los límites y el país desde el que la persona adulta inició sesión.
+    browser:
+      title: El navegador de la familia
+      sub: Dos cookies, sin sesión
+      rows:
+        approvals:
+          name: Clientes aprobados
+          life: 180 días
+        csrf:
+          name: Protección del inicio de sesión (CSRF)
+          life: 10 min
+      note: Perderlas cuesta una pantalla de consentimiento más, o volver a iniciar sesión.
+    drive:
+      title: El Drive de la familia
+      sub: Lo único que se guarda a largo plazo
+      rows:
+        profile:
+          life: hasta que se elimine
+      note: El perfil, las puntuaciones y el problema actual, con su respuesta sellada. La persona adulta puede abrir el archivo, y Drive guarda su historial.
+    secrets:
+      title: Secret Manager
+      sub: Se leen una vez, al arrancar una instancia
+      rows:
+        keys:
+          name: Claves de sellado
+          sub: tras una rotación, la clave anterior se sigue aceptando
+          life: 90 días
+        client:
+          name: Secreto de cliente de Google
+          life: fijado
+    memory:
+      title: La memoria de la instancia
+      sub: "Solo cachés: se pierden al reiniciar, y nada se rompe"
+      rows:
+        rates:
+          name: Contadores de ritmo de peticiones
+          life: minutos
+        location:
+          name: Dónde está el archivo del perfil
+          life: 10 min
+        clients:
+          name: Documentos de los clientes
+          life: de 5 min a 24 h
+  absent:
+    title: Lo que la v1 deja fuera a propósito
+    items:
+      - Una base de datos
+      - Colas
+      - Un almacén de sesiones
+      - Una caché compartida
+      - Un banco de problemas ya escritos
+      - Un cliente de API de LLM
+      - REST y OpenAPI
+profile:
+  title: El archivo del perfil
+  lead: "Un niño o niña, un archivo JSON: no una caché de alguna verdad guardada en un servidor, sino la verdad misma. Cada bloque tiene un tope que se respeta en cada escritura, así que el archivo nunca crece sin límite: uno normal no pasa de la meta, y uno cerca de sus topes la supera. Los problemas pasados se guardan como huellas, no como texto."
+  size: Tamaño del archivo
+  legend: Qué tamaño mostrar
+  typical: Normalmente
+  cap: Cerca de los topes
+  total: "≈ {kb} KB"
+  kb: "{kb} KB"
+  goal: "meta {kb} KB"
+  segment: "{name} · {typical} / {cap} KB"
+  heads:
+    block: Bloque
+    holds: Qué contiene
+    writers: Quién lo escribe
+    size: Tamaño
+  blocks:
+    fingerprints:
+      name: Huellas
+      holds: Hasta 200 esbozos de los problemas entregados, para comprobar los casi duplicados; sin texto, sin tema, sin fecha
+    history:
+      name: Historial de puntuaciones
+      holds: Dónde estaban θ y el δ del tema antes de cada respuesta reciente, y θ y cada tema al comienzo de cada uno de los últimos 7 días con respuestas
+    ratings:
+      name: Puntuaciones y temas
+      holds: "θ y el punto de partida del niño o la niña; para cada tema: δ, las respuestas, las trampas en las que cayó, el dominio y su nivel"
+    recent:
+      name: Respuestas recientes
+      holds: Las últimas 20 respuestas y problemas en blanco, y nunca menos de las 5 respuestas que lee la regla
+    sealed:
+      name: Problema actual, sellado
+      holds: La respuesta, la trampa detrás de cada opción incorrecta, la solución y el solucionador, en una sola cadena opaca
+    open:
+      name: Problema actual, abierto
+      holds: "Lo que muestra la tarjeta: el texto, el dibujo, cinco opciones, la pista y, después de responder, la propia respuesta"
+    request:
+      name: Petición abierta
+      holds: "Mientras se escribe el problema: su id, el encargo, los intentos usados y quién eligió el tema"
+    service:
+      name: Servicio y niño o niña
+      holds: La versión del esquema, un UUID aleatorio, la revisión; el seudónimo, el grado, los intereses, las anotaciones; los contadores del día
+  every-write: cada escritura
+  note: "Un problema escrito por adelantado está junto al actual y pesa más o menos lo mismo. El archivo no contiene los textos de los problemas pasados, ni la respuesta en claro hasta que el niño o la niña haya respondido, ni nada que nombre a la persona adulta, ni una etapa: las etapas se calculan cuando se muestran. Drive no tiene escritura condicional, así que el archivo se vuelve a leer antes de guardar y, si ha cambiado, la escritura se rechaza: dos pestañas nunca se sobrescriben entre sí en silencio."
+seal:
+  title: Qué se sella y por cuánto tiempo
+  lead: "Un mismo mecanismo cumple dos funciones: sella el inicio de sesión dentro de los tokens que guarda el chat, y la respuesta de un problema —la del actual y la del escrito por adelantado— dentro del perfil. Cada sello lleva su propósito, así que un token de acceso no puede hacerse pasar por un token de actualización, ni una respuesta sellada por ninguna otra cosa."
+  token:
+    title: Un token, desglosado
+    version: versión del formato
+    purpose: propósito
+    purposes:
+      c: código
+      a: acceso
+      r: actualización
+      d: cliente
+      s: state
+      k: consentimiento
+      t: respuesta de un problema
+    key: id de la clave
+    key-note: se toma de la propia clave, así que una rotación pasa inadvertida
+    cipher: texto cifrado
+    cipher-note: XChaCha20-Poly1305, un nonce aleatorio de 192 bits
+    note: "No es un JWT: nadie más que el servicio lo lee, y de una cadena opaca no puede filtrarse ningún claim a un registro."
+  life:
+    title: Vigencias, en escala logarítmica
+    ticks:
+      - 1 min
+      - 1 h
+      - 1 día
+      - 1 semana
+      - 6 meses
+    items:
+      code:
+        name: Código de autorización
+        life: 60 s
+      signin:
+        name: Inicio de sesión en curso
+        life: 10 min
+      access:
+        name: Token de acceso
+        life: 15 min
+      refresh:
+        name: Token de actualización
+        life: 30 días deslizantes, 90 como máximo
+      key:
+        name: Clave de sellado
+        life: se rota cada 90 días
+      approvals:
+        name: Clientes aprobados
+        life: 180 días
+    note: Un servidor sin estado no puede marcar un código como usado, así que la ventana del código se mantiene pequeña. Tras una rotación, la clave anterior se sigue aceptando, de modo que ni un token ni una respuesta sellada se pierden cuando cambia la clave.

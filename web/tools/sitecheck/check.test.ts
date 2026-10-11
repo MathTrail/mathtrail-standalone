@@ -103,6 +103,17 @@ describe("check", () => {
 		expect(await check(dir, options())).toEqual([]);
 	});
 
+	test("passes a page that writes fractions and powers, which are no digits", async () => {
+		const dir = await site((files) => {
+			files["index.html"] = pageAt("/", addresses).replace(
+				"</body>",
+				"<p>½ of 10² is 50.</p></body>",
+			);
+		});
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
 	const broken: {
 		name: string;
 		change?: (files: Record<string, string>) => void;
@@ -120,6 +131,40 @@ describe("check", () => {
 			},
 			rule: "link",
 			contains: "en/privacy/index.html",
+		},
+		{
+			name: "a number written in the digits of another script",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					"</body>",
+					"<p>١٢ и ۴</p></body>",
+				);
+			},
+			rule: "digits",
+			contains: "digits other than 0 to 9: ١ ٢ ۴",
+		},
+		{
+			name: "a digit of another script written by its number",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					"</body>",
+					"<p>&#x661;&#1634;</p></body>",
+				);
+			},
+			rule: "digits",
+			contains: "digits other than 0 to 9: ١ ٢",
+		},
+		{
+			name: "a digit of another script in an attribute",
+			change: (files) => {
+				files["index.html"] = pageAt("/", addresses).replace(
+					"</body>",
+					'<img src="/assets/photos/us.webp" alt="Grade ३"></body>',
+				);
+				files["assets/photos/us.webp"] = "x";
+			},
+			rule: "digits",
+			contains: "३",
 		},
 		{
 			name: "a stylesheet loaded from somebody else's domain",

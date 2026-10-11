@@ -5,8 +5,9 @@ import { anchorName, type CatalogTopic, gradesOf } from "./topics";
  * Technique is a technique of problem solving as the page of the techniques
  * shows it, as far as no language changes it: its name, which is its anchor
  * on the page, the topics of the catalog it leads to, the example it is
- * worked through on, and the badge its answer shows: the answer itself where
- * it is a whole number, and a tick, a cross or a dot where it is words.
+ * worked through on with the answer its solver proves, and the badge that
+ * answer shows: the answer itself where it is a whole number, and a tick, a
+ * cross or a dot where it is words.
  */
 export type Technique = {
 	readonly id: string;
@@ -81,7 +82,7 @@ export function readTechniques(
 				example: exampleOf(
 					technique.id,
 					topics.length === 0 ? catalog : topics,
-					technique.example.level,
+					technique.example,
 				),
 				badge: badgeOf(technique.id, technique.example.answer, technique.badge),
 			};
@@ -140,18 +141,19 @@ function badgeOf(id: string, answer: string, mark: string | undefined): string {
 	return mark;
 }
 
-// exampleOf is the example of the technique called id set at level, which
-// has to be a level one of topics is taught at: the technique's own, or the
-// whole catalog's for a technique that leads to no topic.
+// exampleOf is the example of the technique called id as the site's data
+// lists it, with the answer its solver proves. Its level has to be one that
+// one of topics is taught at: the technique's own, or the whole catalog's for
+// a technique that leads to no topic.
 function exampleOf(
 	id: string,
 	topics: readonly CatalogTopic[],
-	level: string,
+	{ level, answer }: { level: string; answer: string },
 ): Example {
 	if (!topics.some((topic) => topic.grade_levels.includes(level))) {
 		throw new Error(
 			`the example of ${id} is set at ${level}, a level none of its topics is taught at`,
 		);
 	}
-	return { grades: gradesOf([level]) };
+	return { grades: gradesOf([level]), answer };
 }

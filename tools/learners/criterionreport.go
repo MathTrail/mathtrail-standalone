@@ -113,13 +113,13 @@ func writeResolutions(b *strings.Builder, resolutions []checkResolution, childre
 		res := &resolutions[i]
 		if !res.has {
 			fmt.Fprintf(b, "| %s | %s | %s | %s | %s | %s | %s |\n",
-				res.check.generator, res.check.metric, decimals3(res.check.tolerance), noNumber, decimals3(res.tolerance), noNumber, noNumber)
+				res.check.generator, res.check.label(), decimals3(res.check.tolerance), noNumber, decimals3(res.tolerance), noNumber, noNumber)
 			continue
 		}
 		atDecision := res.se * math.Sqrt(float64(children)/decisionChildren)
 		toleranceAtDecision := max(res.check.tolerance, resolutionWidths*atDecision)
 		fmt.Fprintf(b, "| %s | %s | %s | %s | %s | %s | %s |\n",
-			res.check.generator, res.check.metric, decimals3(res.check.tolerance), strconv.FormatFloat(res.se, 'f', 4, 64),
+			res.check.generator, res.check.label(), decimals3(res.check.tolerance), strconv.FormatFloat(res.se, 'f', 4, 64),
 			decimals3(res.tolerance), percent1(passChance(res.tolerance, res.se, children >= decisionChildren)), percent1(passChance(toleranceAtDecision, atDecision, true)))
 	}
 }

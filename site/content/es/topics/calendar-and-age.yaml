@@ -1,0 +1,226 @@
+# The page of the topic of the calendar and age, for a parent, in Spanish. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Calendario y edades
+description: Qué son los problemas de días de la semana, fechas y edades, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+hero:
+  lead: >-
+    Hoy es martes: ¿qué día será dentro de 30 días? Mamá tiene 30 años y Ana,
+    6: ¿cuántos años tendrá Ana cuando mamá tenga el doble de años que ella?
+    En estos problemas, el niño o la niña trabaja con semanas, meses y años, y
+    la mayoría se apoya en dos hechos: la semana se repite cada 7 días, y la
+    diferencia entre dos edades nunca cambia.
+  method: Quitar las semanas enteras, conservar la diferencia de edad
+  teaches: A contar días y años sin contarlos uno a uno
+  # The words of its drawing: a month whose Tuesdays stand in one column.
+  art:
+    line: La semana se repite cada 7 días
+    tuesdays: todos los martes en una columna, separados por 7 días
+
+basis:
+  title: Las reglas del calendario
+  cards:
+    - title: La semana se repite
+      text: >-
+        Cada 7 días vuelve el mismo día de la semana. Así que, para 30 días más
+        adelante, solo importan los 2 días que quedan después de 4 semanas
+        enteras.
+      art:
+        week: 7 d
+        month: 30 días = 4 semanas y 2 días más
+    - title: Los dos extremos de un periodo
+      text: >-
+        Del 3 al 10 de mayo hay 7 días de diferencia, pero unas vacaciones del 3
+        al 10 duran 8 días, porque cuentan tanto el primer día como el último.
+      art:
+        holidays: "del 3 al 10: 8 días de vacaciones"
+    - title: La diferencia se mantiene
+      text: >-
+        Mamá tiene ahora 24 años más que Ana, y dentro de 10 años seguirá
+        teniendo 24 más: cada año, las dos cumplen un año más.
+      art:
+        now: ahora
+        then: dentro de 10 años
+        anya: Ana
+        mum: mamá
+
+idea:
+  title: Quitar las semanas enteras
+  lead: ¿Qué día de la semana será dentro de tantos días? Solo importa lo que queda después de las semanas enteras.
+  table:
+    head:
+      - Dentro de cuántos días
+      - Semanas enteras y días que sobran
+      - Si hoy es lunes
+    rows:
+      - - "10"
+        - 1 semana y 3 días
+        - jueves
+      - - "15"
+        - 2 semanas y 1 día
+        - martes
+      - - "30"
+        - 4 semanas y 2 días
+        - miércoles
+      - - "100"
+        - 14 semanas y 2 días
+        - miércoles
+  # The words of the drawings of whole weeks and the days left over.
+  art:
+    week: 7 d
+    weeks: 14 × 7 d
+  note:
+    title: Por qué importa
+    text: >-
+      Contar cien días con los dedos es lento y es fácil equivocarse. Quitando
+      las semanas enteras, todo se reduce a avanzar un día o dos.
+
+method:
+  title: "Cómo resolverlo: buscar lo que no cambia"
+  lead: >-
+    Busque lo que se mantiene igual: la semana se repite cada 7 días, y la
+    diferencia entre dos edades nunca cambia. Apóyese en ello para quitar lo
+    que no importa, y cuente solo lo que queda. Los ejemplos de abajo van del
+    más sencillo a uno de olimpiada.
+  steps:
+    - Buscar lo que se repite o no cambia
+    - Quitar las semanas enteras o trabajar con la diferencia de edad
+    - Contar lo que queda y comprobar si cuentan los dos extremos
+  # The key under the steps: what the drawings' blocks and colours mean.
+  legend:
+    week: 7 d
+    whole: una semana entera
+    day: un día que sobra
+    difference: la diferencia de edad
+
+examples:
+  - title: Regar las flores
+    question: >-
+      Clara riega las flores cada 3 días. La primera vez las riega un lunes.
+      ¿Qué día de la semana las riega por 4.ª vez?
+    steps:
+      - >-
+        Del 1.er riego al 4.º hay 3 intervalos de 3 días, no 4:
+        3 × 3 = 9 días.
+      - 9 días son una semana y 2 días más.
+      - Una semana después del lunes vuelve a ser lunes, y 2 días más tarde es miércoles.
+    answer: Un miércoles.
+    badge: Mié
+    note:
+      title: ¿Por qué no el sábado?
+      text: >-
+        Con 4 × 3 = 12 días se cuenta también un intervalo después del 4.º
+        riego. Entre 4 riegos hay 3 intervalos, igual que entre 4 postes.
+    art:
+      monday: Lun
+      first: el primer riego, un lunes; después, cada 3 días
+      three-days: 3 días
+      gaps: 3 intervalos × 3 días = 9 días
+      week: 7 d
+      numbers: bajo cada día azul, el número del riego
+      no-gap: después del 4.º riego no hay intervalo
+  - title: Vera y papá
+    question: >-
+      Papá tiene 28 años más que Vera. Dentro de 4 años, la edad de papá será 3
+      veces la de Vera. ¿Cuántos años tiene Vera ahora?
+    steps:
+      - "La diferencia nunca cambia: dentro de 4 años, papá seguirá teniendo 28 años más."
+      - >-
+        Entonces la edad de papá es tres veces la de Vera, como en el dibujo.
+        Las dos partes de más son los 28 años, así que una parte es 28 : 2 = 14.
+      - >-
+        Dentro de 4 años Vera tendrá 14, así que ahora tiene 14 − 4 = 10.
+        Comprobación: papá tiene ahora 38, y dentro de 4 años tendrá
+        42 = 3 × 14.
+    answer: 10 años.
+    art:
+      now: ahora
+      then: dentro de 4 años
+      vera: Vera
+      dad: papá
+      difference: "naranja: la diferencia, 28 años"
+      parts: "dentro de 4 años: 2 partes = 28, una parte = 14"
+      check: "comprobación: 38 + 4 = 42 = 3 × 14"
+  - title: Tres sábados pares
+    question: >-
+      En cierto mes, tres sábados caen en fechas pares. ¿Qué día de la semana
+      es el 25 de ese mes?
+    steps:
+      - >-
+        Los sábados llegan cada 7 días, y 7 es impar, así que sus fechas se
+        alternan: par, impar, par, impar…
+      - >-
+        Para que haya tres pares hacen falta cinco sábados, y el primero en
+        fecha par. El quinto llega 28 días después del primero y todavía tiene
+        que caber en el mes, así que el primero cae como muy tarde el día 3. La
+        única fecha par entre las tres primeras es el 2: los sábados son los
+        días 2, 9, 16, 23 y 30.
+      - El 23 es sábado, así que el 25, dos días después, es lunes.
+    answer: Lunes.
+    badge: Lun
+    note:
+      title: Pares e impares en el calendario
+      text: >-
+        La clave de este problema es la paridad: 7 es impar, así que las fechas
+        de un mismo día de la semana se alternan entre par e impar de una
+        semana a otra.
+    art:
+      even: "azul: par, naranja: impar"
+      first: primer sábado
+      fifth: quinto sábado
+      saturdays: los sábados, en azul, y el 25 es lunes
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      La cuenta de días sale con uno de más o de menos: el niño o la niña
+      cuenta hoy como el primero de los días que vienen, ve 4 intervalos entre
+      4 riegos o deja fuera uno de los extremos de un periodo, como en unas
+      vacaciones de lunes a domingo.
+    say: "«¿Cuál es el día 1: hoy o mañana?»"
+    art:
+      gaps: Los intervalos entre 4 riegos
+  wrong_operation:
+    shows: >-
+      El niño o la niña hace una operación que la pregunta no pide: suma las
+      dos edades cuando se pregunta cuántos años más tiene una persona que la
+      otra, o resta una fecha de otra cuando están en meses distintos.
+    say: "«Dilo con palabras: ¿el número crece, disminuye o se queda igual?»"
+    art:
+      older: ¿Cuántos años más tiene mamá (30) que Ana (6)?
+  ignored_condition:
+    shows: >-
+      Se pierde de vista un dato del calendario o del enunciado: que este mes
+      tiene 30 días y no 31, o que 365 días son semanas enteras y un día más.
+    say: «¿Cuántos días tiene este mes?»
+    art:
+      year: 365 días después de un lunes
+      weeks: 52 × 7 d
+      monday: Lun
+      tuesday: Mar
+
+home:
+  - title: Un calendario en la pared
+    text: >-
+      Cuelgue un calendario de papel al alcance del niño o la niña y hágale
+      preguntas: ¿qué día de la semana cae el día 1 del mes que viene?
+      ¿Cuántos viernes hay este mes?
+  - title: Las edades de la familia
+    text: >-
+      Apunte las edades de toda la familia y las diferencias entre ellas. Un
+      año después, vuelva a mirarlas: las edades han cambiado y las
+      diferencias no.
+  - title: La cuenta atrás
+    text: >-
+      Cuente con el niño o la niña los días que faltan para un cumpleaños o una
+      fiesta, primero de uno en uno y luego por semanas enteras, y compruebe
+      que las dos formas coinciden.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de calendario y edades

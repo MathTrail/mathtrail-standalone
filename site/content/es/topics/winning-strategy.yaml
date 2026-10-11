@@ -1,0 +1,246 @@
+# The page of the topic of games with a winning strategy, for a parent, in
+# Spanish. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Juegos con estrategia ganadora
+description: Qué son los problemas de juegos con estrategia ganadora, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+# The words the page's drawings say of a position.
+art:
+  loses: pierde quien tiene el turno
+  wins: gana
+
+hero:
+  lead: >-
+    Hay 20 cerillas en la mesa, y los jugadores toman por turnos 1, 2 o 3.
+    Gana quien toma la última cerilla. ¿Puede el primer jugador ganar siempre?
+    En estos problemas, quien resuelve busca un plan que gane haga lo que haga
+    el otro jugador, y lo encuentra yendo hacia atrás desde el final de la
+    partida y averiguando qué posiciones son perdedoras para quien tiene el
+    turno en ellas.
+  method: Ir hacia atrás desde el final y hallar las posiciones perdedoras
+  teaches: A encontrar un plan que gane haga lo que haga el otro jugador
+  # The words of its drawing: the game it is drawn for.
+  art:
+    line: Se toman 1, 2 o 3 cerillas; gana quien toma la última
+
+basis:
+  title: Las reglas de los juegos
+  cards:
+    - title: Desde el final
+      text: >-
+        Empiece por el final de la partida, donde está claro quién gana, y vaya
+        hacia atrás: una posición es perdedora cuando todas las jugadas desde
+        ella llevan a una posición ganadora para el otro jugador.
+      art:
+        back: desde 0, el final de la partida, hacia números mayores
+    - title: Dejar al otro una posición perdedora
+      text: >-
+        Una jugada ganadora deja al otro jugador una posición perdedora. Si no
+        hay ninguna jugada así, la posición es perdedora, por muy hábil que sea
+        quien tiene el turno.
+      art:
+        take: tomar 2
+        losing: perdedora para el otro
+    - title: Copiar y reflejar
+      text: >-
+        En muchos juegos, quien gana mantiene el equilibrio: responde a cada
+        jugada de modo que las dos jugadas sumen lo mismo, o hace la misma
+        jugada en el lado simétrico.
+      art:
+        they: el rival
+        answer: la respuesta
+
+idea:
+  title: Posiciones perdedoras
+  lead: En el juego de tomar 1, 2 o 3 cerillas, en el que gana quien toma la última, las posiciones que pierden para quien tiene el turno se repiten cada 4.
+  table:
+    head:
+      - Cerillas que quedan
+      - La mejor jugada
+      - Por qué
+    rows:
+      - - 1, 2 o 3
+        - tomarlas todas
+        - gana quien toma la última
+      - - "4"
+        - ninguna gana
+        - tras cualquier jugada, el otro jugador toma el resto
+      - - 5, 6 o 7
+        - tomar 1, 2 o 3 para dejar 4
+        - el otro jugador recibe 4, una posición perdedora
+      - - "8"
+        - ninguna gana
+        - toda jugada deja 5, 6 o 7
+  note:
+    title: Por qué importa
+    text: >-
+      Los niños y las niñas suelen creer que el primer jugador tiene que
+      ganar, o juegan esperando que el otro jugador se equivoque. Una
+      estrategia ganadora funciona contra el mejor juego posible, y encontrarla
+      obliga a pensar desde el final, un hábito que vale mucho más que los
+      juegos.
+
+method:
+  title: "Cómo resolverlo: desde el final de la partida"
+  lead: >-
+    Escriba las posiciones de la más pequeña a la más grande. Marque una
+    posición como perdedora cuando todas las jugadas desde ella llevan a una
+    ganadora, y como ganadora cuando alguna jugada lleva a una perdedora. La
+    jugada ganadora desde el principio es la que deja una posición perdedora.
+    Los ejemplos de abajo van del más sencillo a uno de olimpiada.
+  steps:
+    - Empezar por las posiciones del final
+    - Marcar cada una como ganadora o perdedora, de la más pequeña en adelante
+    - Hallar la jugada que deja al otro jugador una perdedora
+
+examples:
+  - title: Caramelos en un cuenco
+    question: >-
+      Hay 23 caramelos en un cuenco. Sara y Leo juegan por turnos, y empieza
+      Sara. En cada turno se toman 1, 2, 3 o 4 caramelos. Gana quien toma el
+      último caramelo. ¿Cuántos caramelos debe tomar Sara en su primera jugada
+      para asegurarse de ganar?
+    steps:
+      - >-
+        Desde el final: si quedan de 1 a 4 caramelos, quien tiene el turno los
+        toma todos y gana. Si quedan 5, cualquier jugada deja de 1 a 4 al otro
+        jugador, así que 5 pierde.
+      - >-
+        Del mismo modo pierden 10, 15 y 20: se tome lo que se tome, el otro
+        jugador puede dejar en el cuenco el siguiente múltiplo de 5.
+      - >-
+        Así que Sara toma 3 y deja 20. Tome lo que tome Leo, Sara toma lo que
+        falta hasta 5 y deja 15, 10, 5 y, al final, nada.
+    answer: 3 caramelos.
+    note:
+      title: ¿Por qué no tomar 4?
+      text: >-
+        Tomar 4 deja 19, y Leo toma 4 y deja 15, una posición perdedora para
+        Sara. Contra quien no se equivoca, solo gana la primera jugada que lleva
+        a un múltiplo de 5.
+    art:
+      sweets: 23 caramelos, de 1 a 4 por jugada
+      kim: Sara −3
+      answer: Leo toma x, Sara toma 5 − x
+      leo: Leo −4
+      lost: posición perdedora para Sara
+  - title: El paseo del rey
+    question: >-
+      Un rey está en la esquina inferior izquierda de un tablero de 5 por 5.
+      Dos jugadores, por turnos, lo mueven una casilla hacia arriba, una
+      casilla a la derecha o una casilla en diagonal hacia arriba y a la
+      derecha. Gana quien lleva el rey a la esquina superior derecha. ¿Quién
+      gana si los dos juegan lo mejor posible?
+    steps:
+      - >-
+        Contamos cuántas filas y cuántas columnas le quedan al rey por
+        recorrer. Desde una casilla que está a una jugada de la esquina, quien
+        tiene el turno gana enseguida.
+      - >-
+        Una casilla es perdedora para quien tiene el turno cuando los dos
+        números son pares: cualquier jugada vuelve impar alguno de ellos, y el
+        otro jugador puede volver a dejar los dos pares.
+      - >-
+        El rey empieza a 4 filas y 4 columnas de la esquina, dos números pares,
+        así que el primer jugador pierde. El segundo responde siempre con una
+        jugada a una casilla par y llega a la esquina.
+    answer: El segundo jugador.
+    badge: 2.º
+    note:
+      title: Empezar no basta
+      text: >-
+        Aquí el primer jugador pierde haga lo que haga. En cada juego nuevo vale
+        la pena comprobarlo desde el final antes de dar por hecho que la
+        primera jugada gana.
+    art:
+      moves: "jugadas: arriba, derecha, en diagonal arriba y a la derecha"
+      green: verde, victoria en una jugada
+      red: puntos rojos, derrota para quien tiene el turno
+      start: el rey empieza en una casilla perdedora
+  - title: La margarita
+    question: >-
+      Una margarita tiene 12 pétalos en círculo. Dos jugadores, por turnos,
+      arrancan o bien un pétalo, o bien dos pétalos que crecen uno al lado del
+      otro, sin hueco entre ellos. Gana quien arranca el último pétalo. ¿Quién
+      gana si los dos juegan lo mejor posible?
+    steps:
+      - >-
+        Arranque lo que arranque el primer jugador, un pétalo o dos, el círculo
+        se abre y queda una fila de 11 o de 10 pétalos.
+      - >-
+        El segundo jugador arranca del centro mismo de esa fila: un pétalo si
+        la fila es de 11, o dos si es de 10. Quedan dos filas iguales, en lados
+        opuestos.
+      - >-
+        A partir de ahí, el segundo jugador copia cada jugada en la otra fila.
+        Siempre que el primero puede jugar, el segundo también, así que el
+        segundo arranca el último pétalo.
+    answer: El segundo jugador.
+    badge: 2.º
+    note:
+      title: ¿Por qué el centro?
+      text: >-
+        Partir la fila en dos partes iguales hace simétrica la posición.
+        Copiando no se puede perder: la copia de una jugada siempre está
+        permitida, porque la otra fila es exactamente igual.
+    art:
+      eleven: el primero arrancó uno y quedó una fila de 11
+      two-rows: dos filas de 5 pétalos
+      mirror: el primero arrancó en la fila azul y el segundo lo copió en la naranja
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Se pierde de vista una regla del juego: una jugada toma 5 caramelos
+      cuando se permiten como mucho 4, o el rey se mueve a la izquierda, cosa
+      que las reglas prohíben. Un plan basado en una jugada no permitida no
+      gana nada.
+    say: «¿Qué jugadas permiten las reglas?»
+    art:
+      question: De 1 a 4 caramelos por jugada
+      five: tomar 5
+      three: tomar 3
+  first_move_assumed:
+    shows: >-
+      Se da por hecho que empezar basta para ganar: «Empieza Sara, así que gana
+      Sara». En muchos juegos, como el paseo del rey, el primer jugador pierde
+      haga lo que haga.
+    say: «¿Y si el otro jugador no se equivoca?»
+    art:
+      question: El paseo del rey
+      first: gana el primero
+      second: el segundo
+  best_case_not_worst:
+    shows: >-
+      El plan solo funciona si el otro jugador se equivoca: Sara toma 4 y
+      espera que luego Leo tome menos de los que debe. Una estrategia ganadora
+      tiene que responder a la mejor jugada del otro jugador.
+    say: «¿Cuál es la mejor respuesta del otro jugador a eso?»
+    art:
+      question: Primera jugada de Sara desde 23
+      leo: Leo −4
+
+home:
+  - title: Juegue a las cerillas
+    text: >-
+      Juegue con el niño o la niña a tomar 1, 2 o 3 cerillas de un montón de
+      15, y déjele empezar. Gane unas cuantas veces y luego pregunte por qué
+      vuelven una y otra vez los múltiplos de 4.
+  - title: Copie la jugada
+    text: >-
+      En cualquier juego con un tablero simétrico, pruebe a copiar la jugada
+      del otro jugador en el lado opuesto. Pregunte cuándo funciona la copia y
+      cuándo falla.
+  - title: Cambien los papeles
+    text: >-
+      Cuando el niño o la niña encuentre un plan ganador, cambien los papeles:
+      ahora empieza usted. Explicar por qué desde ahí el plan pierde es la
+      mitad más profunda del tema.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de juegos con estrategia ganadora

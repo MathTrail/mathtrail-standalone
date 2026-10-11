@@ -1,0 +1,55 @@
+# The page "About", for a parent, in Spanish: who makes MathTrail — one family,
+# each of us under a role — and where to write. The children go by their place
+# in the family, never by name, and each of us by the key our photograph goes
+# by. The address and the link to the code are the footer's, which the page
+# fills in.
+
+title: Nosotros
+description: "MathTrail es obra de una familia: quién hace qué y cómo contactarnos."
+
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
+hero:
+  title: MathTrail es obra de una familia
+  lead: >-
+    MathTrail nació del cariño de unos padres. Somos cuatro: papá construye la
+    plataforma, mamá mantiene el proyecto acogedor y en orden, nuestro inquieto
+    hijo mayor, con los ojos brillantes, devora los problemas nuevos, y el
+    pequeño se limita a resoplar con dulzura a nuestro lado y nos recuerda para
+    qué hacemos todo esto.
+  photo: Los cuatro a la mesa con un pastel de chocolate; papá tiene en brazos al hijo menor.
+
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
+team:
+  title: Quién es quién
+  members:
+    mum:
+      role: Directora general de todo
+      name: Mamá
+      text: Autora de la idea y diseñadora principal del proyecto. Define los requisitos del producto y se ocupa también de todo lo demás, es decir, ¡absolutamente de todo!
+      photo: Mamá con una chaqueta beige, sonriendo.
+    dad:
+      role: Portabebés full-stack
+      name: Papá
+      text: Escribe código con una mano y acuna al bebé con la otra. Despliega estrictamente después de la siesta; si no, producción se despierta y llora.
+      photo: Papá con el hijo menor en una mochila portabebés sobre el pecho; el bebé lleva protectores auditivos.
+    older-son:
+      role: Cascaproblemas en jefe
+      name: Hijo mayor
+      text: Resuelve los problemas nuevos antes que nadie y dice con sinceridad dónde no se entienden.
+      photo: El hijo mayor sostiene un juguete hecho con piezas de Lego, rodeado de garabatos blancos de estrellas y una corona.
+    younger-son:
+      role: Becario de I+D (pruebas de choque)
+      name: Hijo menor
+      text: De momento, pone a prueba la resistencia de los juguetes. Le quedan un par de años para su primer problema.
+      photo: El hijo menor, boca abajo sobre una alfombra mullida, con un osito de peluche al lado.
+
+contact:
+  title: ¿Ha encontrado un error o tiene una idea?
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: "Escríbanos a {address} o {issue}: lo leemos todo."
+  issue: abra una incidencia en GitHub
+  write: Escríbanos
+  github: GitHub

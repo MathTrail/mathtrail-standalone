@@ -1,0 +1,87 @@
+# The page of the topics, in Spanish: what a child's tasks are about, how the
+# topics build on one another, and every topic of the catalog with a drawing
+# and a line for the parent. A topic's name is the card's own, from the
+# widget's words; its grades and its links are the catalog's, and its group
+# the site's data.
+
+title: Temas de MathTrail
+description: Todos los temas en los que MathTrail propone problemas, cómo se apoyan unos en otros y de qué trata cada uno.
+
+hero:
+  title: Qué problemas resuelve su hijo o hija
+  lead: Cada problema de MathTrail pertenece a un tema. Aquí están todos, cómo son sus problemas y cómo unos temas se apoyan en otros.
+  # The name of the child the card on this page shows, an invented one.
+  child: Cometa
+  caption: El progreso tal como lo muestra un chat, con una etapa en cada tema. El niño o la niña y las cifras son de ejemplo.
+
+map:
+  title: Cómo se relacionan los temas
+  lead: Unos temas se apoyan en otros. La enumeración de casos hace falta tanto para el principio del palomar como para caballeros y mentirosos. Si el niño o la niña se atasca en un tema difícil, conviene dar un paso atrás, al tema en el que este se apoya.
+  layers:
+    - step: Paso 1
+      name: Fundamentos
+      lead: Casi sin conocimientos previos.
+    - step: Paso 2
+      name: Reglas
+      lead: Lo que se razonaba a mano se convierte en una regla.
+    - step: Paso 3
+      name: Problemas difíciles
+      lead: Varias ideas que hay que tener en mente a la vez.
+  hint: Pase el puntero sobre un tema, o llegue a él con la tecla Tab, para resaltar en qué se apoya y a qué abre paso.
+  # Said under the map while a topic is pointed at: its name, every topic
+  # below it, and every topic above it.
+  say: "**{topic}** · primero: {before} · abre paso a: {after}"
+  foundation: nada, es un fundamento
+  summit: nada, es una cima
+  legend:
+    first: Primero
+    topic: Tema
+    then: Después
+
+groups:
+  label: Grupos de temas
+  logic: "Razonar: suponer, sacar la consecuencia, encontrar la contradicción."
+  counting: Contar todos los casos sin dejar ninguno fuera.
+  time: Relojes, días de la semana y años, y lo que cambia con ellos.
+  numbers: Números en los que la idea importa más que la rapidez de cálculo.
+  parts: "Un todo dividido en partes: fracciones, porcentajes y razones."
+  games: Encontrar el plan que funciona haga lo que haga el otro jugador o la balanza.
+
+# Every topic of the catalog, by its slug: a line for the parent. Its card's
+# drawing is the site's data, one of the site's own small drawings and never a
+# reference task's, and it reads no words of this file.
+topics:
+  ordering:
+    phrase: "Quién mide más, quién es mayor, quién va más rápido: ordenar a todos a partir de unos pocos datos."
+  knights-and-liars:
+    phrase: Unos siempre dicen la verdad y los otros siempre mienten. Averiguar quién es quién por lo que dicen.
+  enumeration:
+    phrase: Enumerar todos los casos con orden, para no perder ninguno ni contar ninguno dos veces.
+  gaps-and-boundaries:
+    phrase: "Postes y espacios, pisos y escaleras: cuándo sumar uno y cuándo no."
+  clocks:
+    phrase: "Cuánto tiempo ha pasado y qué hora será: las agujas, la esfera, el paso por el mediodía."
+  calendar-and-age:
+    phrase: Días de la semana, meses y edades. La diferencia de edad nunca cambia, y la semana vuelve a empezar.
+  pigeonhole-principle:
+    phrase: Si hay más palomas que nidos, en algún nido tiene que haber dos.
+  parity-and-alternation:
+    phrase: "Par e impar, uno sí y otro no: lo que se puede saber sin contarlo todo."
+  arithmetic-with-a-trick:
+    phrase: "Calcular con ingenio: reordenar, agrupar y ver el camino fácil antes de hacer las cuentas."
+  weighing-and-pouring:
+    phrase: Encontrar la moneda falsa con el menor número de pesadas, o medir agua con jarras sin marcas.
+  parts-and-shares:
+    phrase: "La mitad, un tercio, un cuarto: la parte de un todo, y el todo a partir de su parte."
+  percentages:
+    phrase: Cuánto es eso en porcentaje, y de qué. El uno por ciento es la centésima parte.
+  ratios-and-sharing:
+    phrase: Repartir en la razón 2 a 3 y averiguar cuánto es una parte.
+  figures-on-a-grid:
+    phrase: Área y perímetro contando casillas. Cortar, encajar y contar sin saltarse ninguna.
+  divisibility-and-remainders:
+    phrase: Si un número se divide sin resto, y qué sobra cuando no es así.
+  overlapping-groups:
+    phrase: Hay niños y niñas que van a dos clubes a la vez. Cómo no contar a nadie dos veces.
+  winning-strategy:
+    phrase: ¿Quién se lleva la última cerilla? Buscar las posiciones que ganan, haga lo que haga el otro jugador.

@@ -1,0 +1,225 @@
+# The page of the topic of overlapping groups, for a parent, in Spanish. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Grupos que se superponen
+description: Qué son los problemas de grupos que se superponen, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+hero:
+  lead: >-
+    Unos niños van al club de ajedrez, otros a fútbol, algunos a los dos y
+    otros a ninguno. En estos problemas los grupos se superponen, y el truco
+    está en contar a cada uno exactamente una vez. Dos círculos dibujados en
+    un papel convierten una pregunta confusa en cuatro números.
+  method: Dibujar los círculos y empezar por el centro
+  teaches: A contar sin contar dos veces y a decir qué significa cada número
+  # The words of its drawing: what the two circles are, and what their middle
+  # means.
+  art:
+    line: Los clubes de la clase
+    chess: ajedrez
+    football: fútbol
+    middle: en el centro, quienes van a los dos
+
+basis:
+  title: Las reglas de los dos círculos
+  cards:
+    - title: Al sumar, hay quien cuenta dos veces
+      text: >-
+        Al sumar los dos grupos, quienes están en ambos se cuentan dos veces,
+        una en cada grupo. Réstelos una vez, y cada cual cuenta una sola vez.
+      art:
+        choir: coro 14
+        art: arte 11
+        twice: "14 + 11 = 25, pero 4 se han contado dos veces: 25 − 4 = 21"
+    - title: Hay quien no está en ninguno
+      text: >-
+        Nadie tiene por qué estar en un grupo. La clase entera son quienes
+        están en al menos un grupo y quienes no están en ninguno.
+      art:
+        class: toda la clase
+        none: 9 en ningún grupo
+    - title: Cuando no se conoce el centro
+      text: >-
+        Si el enunciado no dice cuántos están en los dos grupos, ese número
+        solo se puede acotar: cuanto más tienen en común los grupos, menos niños
+        hay en al menos uno de ellos.
+      art:
+        little: poco en común
+        much: mucho en común
+
+idea:
+  title: Cuatro partes del dibujo
+  lead: >-
+    30 alumnos: 14 cantan en el coro, 11 van al taller de arte y 4 hacen las
+    dos cosas. Rellene el dibujo del centro hacia fuera.
+  table:
+    head:
+      - La parte
+      - Cuántos
+      - Cómo se calcula
+    rows:
+      - - En los dos
+        - "4"
+        - es un dato
+      - - Solo coro
+        - 14 − 4 = 10
+        - el coro sin quienes están en los dos
+      - - Solo arte
+        - 11 − 4 = 7
+        - el taller de arte sin quienes están en los dos
+      - - En ninguno
+        - 30 − 10 − 7 − 4 = 9
+        - el resto
+  note:
+    title: Por qué importa
+    text: >-
+      La mayoría de las respuestas incorrectas vienen de sumar los dos grupos
+      y olvidar que el centro se ha contado dos veces, o de dar «solo coro»
+      cuando la pregunta pedía el coro entero. Rellenar el dibujo del centro
+      hacia fuera evita las dos cosas.
+
+method:
+  title: "Cómo resolverlo: del centro hacia fuera"
+  lead: >-
+    Dibuje dos círculos que se superpongan. Escriba primero el centro, quienes
+    están en los dos; después cada círculo sin el centro, y al final quienes
+    quedan fuera. Si no se conoce el centro, pruebe los valores que podría
+    tomar y vea cuáles encajan. Los ejemplos de abajo van del más sencillo a
+    uno de olimpiada.
+  steps:
+    - Dibujar los círculos
+    - Rellenar el centro y después el resto
+    - Comprobar que las partes suman el total
+  # The key under the steps: what a ring on a number means.
+  legend:
+    filled: "un anillo azul: lo que se rellena en este paso"
+
+examples:
+  - title: Hermanas y hermanos
+    question: >-
+      En un grupo de 24 niños, 15 tienen una hermana, 11 tienen un hermano y
+      6 tienen tanto una hermana como un hermano. ¿Cuántos niños no tienen ni
+      hermana ni hermano?
+    steps:
+      - >-
+        Dibujamos dos círculos que se superponen, «hermana» y «hermano». En el
+        centro: los 6 niños que tienen hermana y hermano.
+      - "Solo hermana: 15 − 6 = 9. Solo hermano: 11 − 6 = 5."
+      - "Dentro de los círculos: 9 + 6 + 5 = 20 niños. Fuera de ellos: 24 − 20 = 4."
+    answer: 4 niños.
+    art:
+      sister: hermana
+      brother: hermano
+      all: "total: 24"
+      only: 15 − 6 = 9 · 11 − 6 = 5
+      out: 24 − 20 = 4 fuera
+  - title: Manzanas y peras
+    question: >-
+      En un grupo de 25 niños, a 18 les gustan las manzanas y a 16, las peras.
+      ¿Cuál es el menor número de niños a los que podrían gustarles las dos
+      frutas?
+    steps:
+      - >-
+        Para que el centro sea lo más pequeño posible, separamos todo lo que se
+        pueda el grupo de las manzanas del grupo de las peras.
+      - >-
+        Por separado necesitarían 18 + 16 = 34 sitios, y solo hay 25 niños:
+        34 − 25 = 9 de ellos tienen que estar en los dos círculos.
+      - >-
+        9 es posible: a 9 solo les gustan las manzanas, a 7 solo las peras y a
+        9 las dos; 25 en total, sin que nadie quede fuera.
+    answer: 9 niños.
+    note:
+      title: ¿Y como máximo?
+      text: >-
+        Como máximo, a los 16 a quienes les gustan las peras podrían gustarles
+        también las manzanas. El centro está entre 9 y 16, y la pregunta pedía
+        el extremo menor.
+    art:
+      apples: manzanas
+      kids: niños
+      pears: peras
+      ends: manzanas desde el extremo izquierdo, peras desde el derecho
+      violet: "en violeta, a quienes les gustan las dos: 9"
+      all: "total: 25"
+      inside: los 16 de las peras, todos dentro de las manzanas
+  - title: Tres asignaturas
+    question: >-
+      Hay 20 alumnos, y a cada uno le gusta al menos una de tres asignaturas:
+      matemáticas, lectura y dibujo. A 12 les gustan las matemáticas, a 10 la
+      lectura y a 9 el dibujo. A nadie le gustan las tres. ¿A cuántos alumnos
+      les gustan exactamente dos asignaturas?
+    steps:
+      - >-
+        Sumamos los tres números: 12 + 10 + 9 = 31. Si a un alumno le gusta
+        una asignatura, cuenta una vez en esta suma; si le gustan dos, cuenta
+        dos veces.
+      - >-
+        Hay 20 alumnos, así que en la suma sobran 31 − 20 = 11: uno por cada
+        alumno que cuenta dos veces.
+      - >-
+        Así que a 11 alumnos les gustan exactamente dos asignaturas.
+        Comprobación: a 9 les gusta una y a 11 les gustan dos, y
+        9 + 2 × 11 = 31.
+    answer: 11 alumnos.
+    note:
+      title: Contar dos veces a propósito
+      text: >-
+        Aquí el truco no está en los círculos, sino en la suma: cada alumno le
+        añade uno por cada asignatura que le gusta. Los problemas de olimpiada
+        sobre grupos a menudo se basan en contar lo mismo de dos maneras.
+    art:
+      maths: matemáticas 12
+      reading: lectura 10
+      drawing: dibujo 9
+      once: una vez
+      twice: dos veces
+      each: uno por cabeza, 20; de más, 31 − 20 = 11
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      El niño o la niña suma los dos grupos, 15 y 11, y toma la suma por el
+      total del grupo: quienes están en los dos grupos se cuentan dos veces.
+    say: «¿Has contado a alguien en los dos círculos?»
+    art:
+      question: Hermana 15, hermano 11, ambos 6
+  answered_other_question:
+    shows: >-
+      El niño o la niña encuentra una parte del dibujo y la da como respuesta,
+      aunque la pregunta era sobre otra: «en los dos» en vez de «en ninguno»,
+      o «solo coro» en vez del coro entero.
+    say: «Señala en el dibujo la parte por la que se pregunta».
+    art:
+      question: "La pregunta: ¿cuántos no tienen ni hermana ni hermano?"
+  missed_case:
+    shows: >-
+      Se deja fuera una parte del dibujo: se resta del total un grupo y se
+      olvida el otro, o no se vuelven a sumar quienes están en los tres grupos.
+    say: «¿Están rellenas todas las partes del dibujo?»
+    art:
+      question: "24 niños: hermana 15, hermano 11, ambos 6"
+
+home:
+  - title: Dos aros en el suelo
+    text: >-
+      Ponga en el suelo dos aros, o dos cuerdas cerradas en círculo, de modo
+      que se superpongan, y clasifique juguetes en ellos: «rojos» y «blandos».
+      Un oso rojo y blando va en el centro.
+  - title: ¿Seis quiénes?
+    text: >-
+      Cuando su hijo o hija responda «seis», pregunte: «¿Seis quiénes?». Seis
+      en los dos clubes y seis en ninguno son respuestas distintas.
+  - title: Una encuesta en familia
+    text: >-
+      Haga dos preguntas a la familia, por ejemplo a quién le gusta el té y a
+      quién el cacao, y dibuje los círculos con su hijo o hija. El centro es
+      donde el recuento suele fallar.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de grupos que se superponen

@@ -85,10 +85,11 @@ const data = readSiteData(
 );
 
 // technique is the words of a technique: draw alone has a second name, and
-// each has three steps, the words its steps' pictures write, and the key under
-// them where its pictures have one.
+// each has three steps, the words its steps' pictures write, the key under
+// them where its pictures have one, and the answer its solver proves.
 const technique = (
 	id: string,
+	answer: string,
 	pictures: readonly string[],
 	legend: readonly string[] = [],
 	aka = false,
@@ -103,7 +104,7 @@ const technique = (
 	`      - First step of ${id}.`,
 	`      - Second step of ${id}.`,
 	`      - Third step of ${id}.`,
-	`    answer: The answer of ${id}.`,
+	`    answer: The answer of ${id} is ${answer}.`,
 	"    pictures:",
 	...pictures.map((label) => `      ${label}: ${label} of ${id}`),
 	...(legend.length > 0 ? ["    legend:"] : []),
@@ -135,9 +136,19 @@ const words = (rows = 2) =>
 		"    title: Prove it",
 		"    lead: Explain why.",
 		"techniques:",
-		...technique("draw", ["sum", "less", "found"], [], true),
-		...technique("mirror", ["answer", "stuck"], ["first", "second", "moves"]),
-		...technique("all-the-same", ["guess", "short", "fits"], ["hen", "rabbit"]),
+		...technique("draw", "1", ["sum", "less", "found"], [], true),
+		...technique(
+			"mirror",
+			"2",
+			["answer", "stuck"],
+			["first", "second", "moves"],
+		),
+		...technique(
+			"all-the-same",
+			"3",
+			["guess", "short", "fits"],
+			["hen", "rabbit"],
+		),
 		"labels:",
 		'  when: "When it helps:"',
 		"  task: Problem · {grades}",
@@ -276,7 +287,7 @@ describe("the page of the techniques", () => {
 			fold?.querySelectorAll(".s-worked-step .s-step-picture"),
 		).toHaveLength(3);
 		expect(fold?.querySelector(".s-answer")?.textContent).toContain(
-			"The answer of draw.",
+			"The answer of draw is 1.",
 		);
 		expect(
 			card("draw")?.querySelector(".s-technique-question")?.closest("details"),
@@ -344,6 +355,22 @@ describe("the page of the techniques", () => {
 			renderSite({ ...site, sources: sourcesWith(words(1)) }),
 		).toThrow(
 			"the hint has 1 rows in the words of the page, and 2 in site/data.json",
+		);
+	});
+
+	test("is refused when a technique's answer leaves out the number its solver proves", () => {
+		expect(() =>
+			renderSite({
+				...site,
+				sources: sourcesWith(
+					words().replace(
+						"answer: The answer of mirror is 2.",
+						"answer: The answer of mirror is two.",
+					),
+				),
+			}),
+		).toThrow(
+			'en/techniques.yaml: techniques.mirror.answer says "The answer of mirror is two.", and the example\'s solver proves "2"',
 		);
 	});
 

@@ -1,0 +1,195 @@
+# The page of the topic of arithmetic with a trick, for a parent, in Spanish.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Aritmética con truco
+description: Qué son los problemas de cálculo ingenioso y de «he pensado un número», cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+
+hero:
+  lead: >-
+    ¿Cuánto es 19 + 23 + 81 + 77? Si se suma en orden, son tres sumas con
+    llevadas; si se agrupa en parejas, 19 + 81 y 23 + 77, queda 100 + 100. En
+    estos problemas las cuentas son fáciles una vez que se encuentra el orden
+    adecuado, y los acertijos de «he pensado un número» se resuelven
+    deshaciendo los pasos desde el final. La habilidad está en mirar antes de
+    calcular.
+  method: Buscar el orden fácil antes de calcular
+  teaches: A reagrupar una suma o un producto y a deshacer una cadena de pasos desde el final
+  # The words of its drawing: the sum's numbers paired colour by colour into
+  # two easy hundreds.
+  art:
+    pairs: sumar las parejas del mismo color
+    look: primero mirar, luego calcular
+
+basis:
+  title: Las reglas del cálculo ingenioso
+  cards:
+    - title: En cualquier orden
+      text: >-
+        Los números se pueden sumar o multiplicar en cualquier orden y agrupar
+        como se quiera: 25 × 9 × 4 es 25 × 4 × 9, es decir, 100 × 9.
+    - title: Números redondos
+      text: >-
+        Busque parejas que den 10, 100 o 1000: 36 + 64, 25 × 4, 125 × 8. Con un
+        número redondo es fácil seguir calculando.
+    - title: Deshacer desde el final
+      text: >-
+        En «he pensado un número», vaya hacia atrás desde el resultado y deshaga
+        cada paso: lo que se sumó se resta, y lo que se duplicó se divide entre
+        dos.
+      art:
+        undoes: se deshace con
+        back: ir hacia atrás desde el resultado
+
+idea:
+  title: Mirar antes de calcular
+  lead: La misma suma puede ser larga o corta. Antes de calcular, busque las parejas y los grupos que dan números redondos.
+  table:
+    head:
+      - El problema
+      - El camino fácil
+      - La respuesta
+    rows:
+      - - 19 + 23 + 81 + 77
+        - (19 + 81) + (23 + 77)
+        - "200"
+      - - 4 × 19 × 25
+        - (4 × 25) × 19
+        - "1900"
+      - - 1 + 2 + 3 + … + 10
+        - cinco parejas que suman 11, como 1 + 10 y 2 + 9
+        - "55"
+  # The words of the drawings of the easy way, all rows' in one place.
+  art:
+    pairs: cinco parejas que suman 11
+  note:
+    title: Por qué importa
+    text: >-
+      En las olimpiadas se ponen a propósito sumas que son lentas por el
+      camino largo: el reto es darse cuenta del atajo. Quien busca primero las
+      parejas aprende a ver cómo está construido un problema, y eso importa
+      mucho más allá de la aritmética.
+
+method:
+  title: "Cómo resolverlo: buscar números redondos"
+  lead: >-
+    Antes de calcular, mire el problema entero. Forme parejas que sumen un
+    número redondo, ponga juntos los factores que dan 10 o 100 y, en una
+    cadena de pasos, empiece por el final y deshágalos uno a uno. Los ejemplos
+    de abajo van del más sencillo a uno de olimpiada.
+  steps:
+    - Mirar primero el problema entero
+    - Reagrupar en números redondos o deshacer desde el final
+    - Comprobar la respuesta de otra manera
+  # The key under the steps: what the drawings' colours mean.
+  legend:
+    pair: un color, una pareja
+    undo: un paso que deshace
+
+examples:
+  - title: Parejas que suman diez
+    question: >-
+      ¿Cuánto es 6 + 7 + 8 + 2 + 3 + 4?
+    steps:
+      - "Buscamos parejas que sumen 10. Aquí hay tres: 6 + 4, 7 + 3 y 8 + 2."
+      - Tres decenas son 30.
+      - "Así que 6 + 7 + 8 + 2 + 3 + 4 = 30, sin ninguna llevada."
+    answer: "30."
+    note:
+      title: El camino largo
+      text: >-
+        6 + 7 = 13, luego 21, 23, 26 y 30. La respuesta es la misma, pero son
+        cinco pasos en vez de uno, y cada paso es una ocasión de equivocarse.
+    art:
+      tens: un color, una pareja que suma diez
+  - title: Un número por descubrir
+    question: >-
+      María pensó un número. Lo duplicó, le sumó 7 y dividió el resultado entre
+      3. Obtuvo 9. ¿Qué número pensó María?
+    steps:
+      - Vamos desde el final y deshacemos cada paso, empezando por el último.
+      - >-
+        Dividió entre 3 y obtuvo 9, así que antes tenía 9 × 3 = 27. Sumó 7, así
+        que antes tenía 27 − 7 = 20.
+      - "Duplicó el número, así que era 20 : 2 = 10. Comprobación: 10 × 2 + 7 = 27, y 27 : 3 = 9."
+    answer: "10."
+    note:
+      title: Deshacer en orden inverso
+      text: >-
+        El último paso que se hizo es el primero que se deshace, igual que los
+        zapatos se quitan antes que los calcetines. Si se deshacen los pasos en
+        el mismo orden en que se hicieron, sale un número equivocado.
+    art:
+      masha: María
+      back: desde el final
+      check: prueba
+      "on": ponerse
+      "off": quitarse
+      socks: calcetines
+      shoes: zapatos
+  - title: Dos productos grandes
+    question: >-
+      ¿Cuánto es 2026 × 2026 − 2027 × 2025? Calcúlalo sin multiplicar los
+      números grandes.
+    steps:
+      - >-
+        Los dos productos esconden 2026 × 2025: 2026 × 2026 es 2026 × 2025 más
+        otro 2026.
+      - Y 2027 × 2025 es 2026 × 2025 más otro 2025.
+      - "Así que la diferencia es 2026 − 2025 = 1, sin haber multiplicado nada grande."
+    answer: "1."
+    note:
+      title: Pruébelo con números pequeños
+      text: >-
+        Lo mismo funciona con cualquier número: 5 × 5 − 6 × 4 = 25 − 24 = 1.
+        Probar un truco primero con números pequeños es la forma más segura de
+        confiar en él.
+    art:
+      cancel: las partes iguales se anulan y quedan las tiras
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  stopped_early:
+    shows: >-
+      El trabajo se queda a medias: se suman dos de las tres parejas y se
+      olvida la tercera, o se deshace un solo paso de la cadena y su resultado
+      se da como respuesta.
+    say: «¿Has usado todos los números y has deshecho todos los pasos?»
+  wrong_operation:
+    shows: >-
+      Un paso se deshace con la misma operación en vez de con la contraria: se
+      vuelve a sumar 7 en lugar de restarlo, o se divide 9 entre 3 en lugar de
+      multiplicarlo.
+    say: «¿Qué deshace una suma? ¿Y qué deshace una división?»
+    art:
+      undo: Deshacer «+ 7» desde 27
+  number_from_text:
+    shows: >-
+      Un número del enunciado se toma como respuesta: el 9 que obtuvo María, o
+      el 7 que sumó, en lugar del número que pensó.
+    say: «¿Es el número que obtuvo o el que pensó?»
+    art:
+      question: ¿Qué número pensó María?
+      got: lo que obtuvo María
+      thought: lo que pensó
+
+home:
+  - title: Parejas que suman diez
+    text: >-
+      Escriba seis u ocho números pequeños en tarjetas y pida al niño o la
+      niña que encuentre las parejas que suman 10 antes de sumarlos todos.
+  - title: Adivina mi número
+    text: >-
+      Juegue a «he pensado un número» en los dos sentidos: usted dice los pasos
+      y el resultado, y el niño o la niña encuentra el número; después, es el
+      niño o la niña quien inventa los pasos.
+  - title: Compras con ingenio
+    text: >-
+      En una tienda, sume los precios en un orden ingenioso: 99 es 100 menos 1,
+      y 49 y 51 suman 100. Primero redondear, después corregir.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Dame un problema de aritmética con truco

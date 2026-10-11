@@ -1,0 +1,44 @@
+# Notes for whoever translates the site
+
+The site is written in English, the source, and in Russian, written beside it; every other language is translated from the English with the Russian beside it. The texts are the pages' words, `site/content/<locale>/*.yaml` and `topics/*.yaml`, the three documents beside them, `help.md`, `privacy.md` and `terms.md`, and the site's dictionary, `web/src/site/locales/<locale>.json`. This file is the brief every language follows; `<locale>.md` beside it holds one language's own rules and its glossary. Nothing is built from this folder.
+
+## What every text follows
+
+- **The card's rules.** What [the card's notes](../../web/locales/notes/README.md) ask of every text holds here too: nothing that shows whether the child is a boy or a girl, the slots as they are, the plural forms the language's own, no character a reader cannot see, and MathTrail a name.
+- **Who reads.** A parent or a tutor, who runs the lesson in the chat; the pages "Service" and "Research" are written for technical readers, and say so. The reader is spoken to with the polite "you" where the language has one, as the card's dictionary speaks to the parent. What a parent may say to the child — the quotes under "What to say", the questions of a tip — speaks to the child as the card does, with the informal "you".
+- **The file's shape.** Keys, their order, the slots `{…}` and the emphasis `*…*` and `**…**` stay as the English file has them, and the build refuses anything else. A text that holds `: ` or begins with `*` is quoted. Comments are notes in English and stay as they are, but for the language the first one names: "in English" becomes "in Spanish", as the Russian files say "in Russian".
+- **Topics, traps and groups.** Their names are the card's words, which the pages fill in through slots. Where a page writes a topic's name out — its title and description, which hold no slot, the words a parent writes to ask for a task on it, and a few sentences that name topics — it is written exactly as the card's dictionary, `web/locales/<locale>.json`, says it.
+- **Numbers.** An example's numbers, options and answer are the English ones: the translation never changes a task. A number an example writes in digits stays in digits, with no separator between its thousands, and every digit on the site is one of 0–9. An example's answer states the numbers of the answer its solver proves and no other, as does a badge that writes numbers, and the build refuses one that does not. Outside the examples a number is written as the build writes the language's numbers, and as the language's conventions want it, such as a century in Roman numerals.
+- **People and letters.** People in the examples get names common in the language, as the Russian gives Tom the name Тёма. Where a badge or a drawing shows a name's first letter, the new name keeps it or the badge changes with it, and no two people of one drawing share a letter. The letters that name islanders and points on the site's own drawings may follow the language's alphabet, as the Russian writes А, Б, В, the same in the words and in the drawings. A card's picture names its points in Latin capitals alone, and in the questions of the cards on the home page and on "Why" a lone Latin capital inside a sentence is read as a label of the picture, so none is written there that the English does not have.
+- **Interface text quoted.** Four kinds, each from its own source:
+  - Claude's and ChatGPT's buttons and menus are written as each one's own help writes them in the language, and the glossary names the page. A platform with no interface in the language keeps the English, as the Russian does for Claude. Where the language's wording cannot be found, the text says what the reader sees rather than quoting it, and the place goes on the list for the author's reading.
+  - Google's names — Drive, its bin, the apps connected to an account — are written as Google's help writes them in the language.
+  - The card's words — its buttons, its waits, its tabs — are copied exactly from the card's dictionary.
+  - MathTrail's own sign-in pages speak English alone, so what a text quotes of them stays English.
+- **The documents.** Help, the privacy policy and the terms keep the English one's headings, its links and images, every address the same as the English, other sites' included, and its code in backticks, in the same order: the build refuses another outline. The legal texts are translated sentence by sentence, neither adding nor softening anything. "ALT EdTech", the contact address and the last section, "Languages", which says that the English text prevails, stay.
+- **What the words may say.** A translation promises nothing the English does not: nothing beyond what the program checks, no claim without the source the English gives it, no name of the contest the project started from, and a number about the product only through its slot (SPEC 8.12.2).
+- **"Research"** writes no digit in its words: its numbers come through slots. Its books go by the titles of their editions in the language, where there are such editions, and as the English page names them where there are none.
+- **"Coach"** frames the coach's prototype, which speaks English alone and is never translated; the page around it is translated.
+- **Not translated:** MathTrail, Claude, ChatGPT, Google, Google Drive, GitHub, Starlark, MCP, OAuth, Elo, the names of plans (Free, Plus, Pro, Max, Business, Enterprise, Education), addresses and code.
+- **Short where the room is short.** The menu's entries, `nav.*` in the site's dictionary, share one row with the mark and the tools, so each is as short as the language allows.
+
+## Adding a language
+
+In the order the Spanish pilot proved:
+
+1. The site's dictionary, `web/src/site/locales/<locale>.json`: the keys of `en.json` in its order, indented with tabs, each plural text in the categories CLDR gives the language. `group.*` is what the card's dictionary calls the groups, and `thumb.*` the letters the topic's page draws for a knight and a liar.
+2. The fold of the menu, `just site-fold`, while the pages are still copies of the English ones: when the menu needs more room than in every language before, shorter entries come first, and only then does the width at which the menu folds move, in `web/src/site/style.css`.
+3. The language's glossary, `<locale>.md` here, and then the pages and the documents, every text of the English, with the Russian beside it.
+4. The picture a shared link shows, `just site-og --language <locale>`, looked at before it is kept.
+5. The language's addresses in `web/tools/sitecheck/published.ts`, in the order the other languages have them, and the language in `siteLanguages`, `internal/transport/mcp/site.go`.
+6. `just ci-site`, which weighs every page against its 600 KiB, and the other checks.
+7. The language's row in the table of SPEC 8.12.2 that says who wrote the site's words.
+8. A list of the places the author reads first: whatever the translator was unsure of, every quoted interface text, the legal texts' key sentences, and the glossary's choices.
+
+A language lands whole, in one change: the build refuses a dictionary with no texts and texts with no dictionary, a test of the server holds `siteLanguages` to the dictionaries, a test of the build wants the picture, and the card's tests want the addresses.
+
+## What holds a translation
+
+- **The build** (`npm run build:site`): the keys, their order, the slots and the plural forms; an example's answer and the numbers its solver proves; a document's outline and the English one's.
+- **The site's checker** (`just ci-site`): every page there in every language, its links, its weight, and no digit but 0–9.
+- **A reader**, for everything else: the meaning, the numbers of the questions and the steps, the tone. A number that a text writes and the English text does not, or the other way round, is worth a look.

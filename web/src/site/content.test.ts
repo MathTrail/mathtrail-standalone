@@ -275,3 +275,73 @@ describe("the texts of a site", () => {
 		expect(() => readTexts(broken, "en")).toThrow(want);
 	});
 });
+
+describe("a document in another language", () => {
+	// english is the English privacy policy: headings of two depths, a link, an
+	// image and a piece of code.
+	const english = text(
+		"Privacy",
+		"# Privacy\n\nRead [the help](../help/) and keep `drive.file`.\n\n![The file](../file.png)\n\n## Languages\n\nThe English text holds.\n",
+	);
+	// sourcesWith is a site whose Russian privacy policy has the body given.
+	const sourcesWith = (body: string) =>
+		new Map([
+			[
+				"en",
+				new Map([
+					["index.md", text("Home")],
+					["privacy.md", english],
+				]),
+			],
+			[
+				"ru",
+				new Map([
+					["index.md", text("Главная")],
+					["privacy.md", text("Приватность", body)],
+				]),
+			],
+		]);
+	const translated =
+		"# Приватность\n\nПрочтите [помощь](../help/) и оставьте `drive.file`.\n\n![Файл](../file.png)\n\n## Языки\n\nДействует английский текст.\n";
+
+	test("says it in its own words, keeping the English one's headings, links, images and code", () => {
+		expect(() => readTexts(sourcesWith(translated), "en")).not.toThrow();
+	});
+
+	test.each([
+		[
+			"a heading of another depth",
+			translated.replace("## Языки", "### Языки"),
+			"a heading of level 3 comes where the English has a heading of level 2",
+		],
+		[
+			"a link to another address",
+			translated.replace("(../help/)", "(../help/es/)"),
+			"a link to ../help/es/ comes where the English has a link to ../help/",
+		],
+		[
+			"an image of another address",
+			translated.replace("(../file.png)", "(https://example.test/file.png)"),
+			"an image of https://example.test/file.png comes where the English has an image of ../file.png",
+		],
+		[
+			"code written otherwise",
+			translated.replace("`drive.file`", "`drive.archivo`"),
+			'the code "drive.archivo" comes where the English has the code "drive.file"',
+		],
+		[
+			"a link left out",
+			translated.replace("[помощь](../help/)", "помощь"),
+			'the code "drive.file" comes where the English has a link to ../help/',
+		],
+		[
+			"a heading more at its end",
+			`${translated}\n## Ещё\n`,
+			"a heading of level 2 comes where the English has nothing",
+		],
+	])("is refused for %s, naming its file", (_, body, want) => {
+		expect(() => readTexts(sourcesWith(body), "en")).toThrow(
+			`ru/privacy.md: the headings, links, images and code disagree with the English: ${want}`,
+		);
+	});
+});

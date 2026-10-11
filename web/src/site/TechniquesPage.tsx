@@ -6,7 +6,7 @@ import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { StepDrawing, TaskLegend } from "./TechniqueSteps";
 import { allTechniques, type Technique, type Techniques } from "./techniques";
-import { Answer, WorkedSteps } from "./WorkedSteps";
+import { Answer, provedAnswer, WorkedSteps } from "./WorkedSteps";
 import { gradesText, useSiteWords } from "./words";
 
 /**
@@ -217,7 +217,7 @@ function TechniqueCard({
 					/>
 					<p class="s-technique-caption">{page.text(`${at}.caption`)}</p>
 					<Answer label={words.text("topic.answer")} badge={technique.badge}>
-						{page.text(`${at}.answer`)}
+						{provedAnswer(page, `${at}.answer`, technique.example.answer)}
 					</Answer>
 				</div>
 			</details>

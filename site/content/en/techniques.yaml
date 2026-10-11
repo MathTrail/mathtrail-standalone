@@ -312,7 +312,7 @@ techniques:
       - With the first move, put a counter in the middle, the fifth cell.
       - "Answer every move of the opponent with its mirror: the cell opposite, across the middle."
       - If the opponent's cell was free and not next to a counter, so is its mirror. So the opponent runs out of moves first.
-    answer: In the middle, the fifth cell, and then mirror every move.
+    answer: In the middle, the 5th cell, and then mirror every move.
     # What the colours and the numbers in the strip's cells mean.
     legend:
       first: the first player
