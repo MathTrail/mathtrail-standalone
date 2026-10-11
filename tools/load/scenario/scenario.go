@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/lesson"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/report"
 )
@@ -122,6 +123,12 @@ type scenario struct {
 	starts   bool
 }
 
+// ceilingPauses are the pauses a failing child takes before the day refuses
+// it one more request, at the service's default ceiling of failed requests:
+// one before every request and one before each attempt handed in for it, and
+// one before the request the day refuses.
+const ceilingPauses = 1 + config.DefaultDailyFailed*(1+profile.MaxAttempts)
+
 // scenarios are the scenarios there are, by name.
 var scenarios = map[string]scenario{
 	Lesson: {
@@ -206,15 +213,16 @@ var scenarios = map[string]scenario{
 		},
 	},
 	Ceiling: {
-		// Five failed requests is the day's ceiling as the service starts with
-		// it: twenty-seven calls with the profile's own two, one every one and
-		// a half seconds, well within the pace of an account, so that what
-		// refuses the account is the day and nothing else. Two minutes is the
-		// most the run waits for the day to refuse one more. One other account
-		// reads its profile once every five seconds meanwhile.
+		// A pause of one and a half seconds before every step keeps the calls
+		// well within the pace of an account, so that what refuses the account
+		// is the day and nothing else. The run waits for that refusal four
+		// times as long as the pauses before it take, which leaves the calls
+		// between them their own time. One other account reads its profile once
+		// every five seconds meanwhile.
 		defaults: func() Options {
 			o := common(Ceiling)
-			o.Duration, o.Children, o.Pace = 2*time.Minute, 1, 1500*time.Millisecond
+			o.Children, o.Pace = 1, 1500*time.Millisecond
+			o.Duration = 4 * ceilingPauses * o.Pace
 			return o
 		},
 		reads: []string{readsDuration, readsChildren, readsPace, readsTimeout, readsAccounts},
