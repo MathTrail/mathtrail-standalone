@@ -9,6 +9,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
@@ -76,7 +77,9 @@ type gradesOut struct {
 // to the overall one, are null together: while the trial series runs, and
 // before its first answer; how it moved by its own answers is absent with
 // them. The skipped tasks are for the parent to see. Its slug names its page
-// on the site, which a card links to once the page is published.
+// on the site, which a card links to once the page is published. A topic on
+// pause says so, and an earlier card that knows nothing of pauses shows it as
+// it did before.
 type topicOut struct {
 	Topic    string      `json:"topic"`
 	Slug     string      `json:"slug"`
@@ -89,6 +92,7 @@ type topicOut struct {
 	Correct  int         `json:"correct"`
 	Mastered bool        `json:"mastered"`
 	Skipped  int         `json:"skipped"`
+	Paused   bool        `json:"paused,omitempty"`
 	Change   *changesOut `json:"change,omitempty"`
 }
 
@@ -136,7 +140,8 @@ func (s *Service) getProgressTool() Tool {
 		Title: "Show the child's progress",
 		Description: "Shows the child's progress: the overall rating on a chess-like scale with its rank and how far " +
 			"through the rank it has come, each topic met or within reach now with a rank of its own, ahead of or " +
-			"behind the overall one, the topics mastered, the latest answers and how many tasks were left without " +
+			"behind the overall one or paused while its easiest tasks are too hard, the topics mastered, the " +
+			"latest answers and how many tasks were left without " +
 			"one, the mistakes that keep coming back, what comes next, and where the profile's file is kept. It " +
 			"also tells what moved since the last answer and over the last seven days, each topic by its own " +
 			"answers. Its card draws the rank, not the rating's number. The scale is one for grades 1 to 6, so an " +
@@ -291,6 +296,7 @@ func (s *Service) topicsOf(topics []progress.Topic) []topicOut {
 			Correct:  topic.Correct,
 			Mastered: topic.Mastered,
 			Skipped:  topic.Skipped,
+			Paused:   topic.Paused,
 		}
 		if standing := topic.Standing; standing != nil {
 			compared := string(topic.Compared)
@@ -470,13 +476,17 @@ func (s *Service) mistakesText(mistakes []progress.Mistake) string {
 }
 
 // topicsText names every topic met and what it is, with its rating and rank
-// once there are some, how the rank stands to the overall one, and the tasks
-// of it the child left without an answer; then, by name, the topics within
-// reach that the child has not met yet.
+// once there are some, how the rank stands to the overall one or that it is on
+// pause, and the tasks of it the child left without an answer; then, by name,
+// the topics within reach that the child has not met yet; and what a topic
+// behind and a topic on pause mean for the turns, when there is one.
 func (s *Service) topicsText(topics []progress.Topic) string {
 	met := make([]string, 0, len(topics))
 	var unmet []string
+	behind, paused := false, false
 	for _, topic := range topics {
+		behind = behind || topic.Compared == progress.Behind && !topic.Paused
+		paused = paused || topic.Paused
 		if topic.Answers == 0 && topic.Skipped == 0 {
 			unmet = append(unmet, s.topicName(topic.ID))
 			continue
@@ -487,10 +497,20 @@ func (s *Service) topicsText(topics []progress.Topic) string {
 	if len(met) > 0 {
 		words = "Topics: " + strings.Join(met, "; ") + "."
 	}
-	if len(unmet) == 0 {
-		return words
+	if len(unmet) > 0 {
+		words = joined(words, "Not met yet, and within reach now: "+strings.Join(unmet, ", ")+".")
 	}
-	return joined(words, "Not met yet, and within reach now: "+strings.Join(unmet, ", ")+".")
+	if behind {
+		words = joined(words, "Among the topics given on the same day, a topic behind the overall rank waits half "+
+			"as long for its turn, so in a lesson it comes round about twice as often as the others.")
+	}
+	if paused {
+		words = joined(words, fmt.Sprintf("A topic paused is one whose easiest tasks are still too hard: it "+
+			"leaves the turns, and once in %d tasks a paused topic comes back as a probe, its easiest task; a "+
+			"right answer to the probe takes the topic off the pause. The adult can also keep the lessons to it.",
+			tutor.ProbeEvery))
+	}
+	return words
 }
 
 // topicMet is one topic the child has met, in words.
@@ -501,10 +521,12 @@ func (s *Service) topicMet(topic *progress.Topic) string {
 	}
 	if standing := topic.Standing; standing != nil {
 		part += fmt.Sprintf(", rating %d, rank %d", standing.Rating, standing.Rank)
-		switch topic.Compared {
-		case progress.Ahead:
+		switch {
+		case topic.Paused:
+			part += ", paused"
+		case topic.Compared == progress.Ahead:
 			part += ", ahead of the overall rank"
-		case progress.Behind:
+		case topic.Compared == progress.Behind:
 			part += ", behind the overall rank"
 		}
 	}

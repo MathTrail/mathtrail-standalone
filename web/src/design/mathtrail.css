@@ -1447,6 +1447,30 @@ button.mt-bar {
 	line-height: 18px;
 	color: var(--text-muted);
 }
+/* A topic on pause stands apart on a tint of its own, a little wider than the
+   list, its word in the pause's colour and a line of what the pause means
+   under its course. The tint reaches 12px past the list on either side as two
+   shadows, which are painted and not laid out, so that nothing of the row
+   stands outside the list. */
+.mt-rank-row-paused {
+	margin-block: 6px;
+	border-radius: 10px;
+	background: var(--paused-tint);
+	box-shadow:
+		-12px 0 0 var(--paused-tint),
+		12px 0 0 var(--paused-tint);
+}
+.mt-rank-row-paused .mt-rank-word {
+	font-weight: 600;
+	color: var(--paused-word);
+}
+.mt-rank-row-line {
+	margin: 0;
+	font-size: 13px;
+	line-height: 19px;
+	color: var(--paused-line);
+	text-wrap: pretty;
+}
 .mt-rank-row-name {
 	font-size: 15px;
 	line-height: 22px;
@@ -2131,6 +2155,11 @@ button.mt-bar {
 }
 .mt-topic-chip-value {
 	font-weight: 600;
+}
+/* The mark above a probe, in the colour a topic on pause is said in. */
+.mt-probe-chip {
+	font-weight: 600;
+	color: var(--paused-word);
 }
 
 /* Waiting: the course a task takes, step by step under its title. */

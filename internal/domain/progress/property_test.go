@@ -136,6 +136,47 @@ func TestTheTopicsListedAreTheOnesMetOrWithinReach(t *testing.T) {
 	properties.TestingRun(t)
 }
 
+// Wherever the child stands, a topic is shown on pause exactly when the rule
+// has it on pause, every such topic is listed, and a topic is shown behind
+// exactly when the child is behind in it as the rule reads that: what the
+// screen says of a topic and how often the rule sets it are one reading.
+func TestTheProgressReadsPauseAndBehindAsTheRuleDoes(t *testing.T) {
+	t.Parallel()
+
+	catalog := embedded(t)
+	ids := catalog.TopicIDs()
+	properties := gopter.NewProperties(nil)
+	properties.Property("paused as the rule pauses, behind as the rule reads behind", prop.ForAll(
+		func(theta float64, deltas []float64) bool {
+			p := fixture(t, "petya")
+			p.Ratings.Theta = theta
+			for at, delta := range deltas {
+				kept := p.Topics[ids[at]]
+				kept.Delta = delta
+				p.Topics[ids[at]] = kept
+			}
+			summary, err := progress.Of(p, catalog, today)
+			if err != nil {
+				return false
+			}
+			paused := tutor.PausedTopics(p, catalog)
+			shown := 0
+			for _, topic := range summary.Topics {
+				if topic.Paused {
+					shown++
+				}
+				if topic.Paused != slices.Contains(paused, topic.ID) ||
+					(topic.Compared == progress.Behind) != p.Behind(topic.ID) {
+					return false
+				}
+			}
+			return shown == len(paused)
+		},
+		gen.Float64Range(-4, 9), gen.SliceOfN(len(ids), gen.Float64Range(-3, 3)),
+	))
+	properties.TestingRun(t)
+}
+
 // Whatever the window holds, the map lists exactly the traps behind at least
 // the threshold of its answers, each with how many answers it was behind, the
 // most frequent first — and says of each of them, and of no other, that it

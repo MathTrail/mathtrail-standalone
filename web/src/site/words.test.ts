@@ -76,6 +76,21 @@ describe("two texts side by side", () => {
 			"",
 		],
 		["a count and a noun that opens with emphasis", "12", "*問*", ""],
+		// A long run of emphasis is pinned by the space it gives, not by how
+		// long it takes: a clock in a test fails on a loaded machine, and the
+		// run is read once by how wordSpace is written.
+		[
+			"a Japanese word closed by a long run of emphasis and a Latin word",
+			`問${"*".repeat(5000)}`,
+			"Claude",
+			"",
+		],
+		[
+			"a text with a long run of emphasis short of its end and a noun",
+			`12${"_".repeat(5000)}x`,
+			"tasks",
+			" ",
+		],
 	])("%s are set apart by %j", (_, before, after, space) => {
 		expect(wordSpace(before, after)).toBe(space);
 	});

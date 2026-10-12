@@ -76,7 +76,7 @@ func answeringAs(t *testing.T, p *profile.Profile, id, topic string, point ratin
 func give(t *testing.T, p *profile.Profile, id, choice string, at time.Time) profile.Recorded {
 	t.Helper()
 
-	recorded, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: at}, newSealer(t), everyLevel)
+	recorded, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: at}, newSealer(t), profile.Judging{Taught: everyLevel})
 	if err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
@@ -260,7 +260,7 @@ func TestATaskWhoseSealWillNotOpenTakesNoAnswer(t *testing.T) {
 	id := answering(t, p, "counting.gaps", 3)
 	before := p.Ratings
 
-	_, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Minute)}, newOtherSealer(t), everyLevel)
+	_, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Minute)}, newOtherSealer(t), profile.Judging{Taught: everyLevel})
 	if !errors.Is(err, profile.ErrSealed) {
 		t.Errorf("Record() error = %v, want %v", err, profile.ErrSealed)
 	}
@@ -282,13 +282,13 @@ func TestAnAnswerToSomethingElseIsRefused(t *testing.T) {
 	p := parseFixture(t, "dima")
 	before := p.Ratings
 
-	_, err := p.Record(profile.Answered{TaskID: "tsk_nothing", Choice: rightLetter, At: issued}, newSealer(t), everyLevel)
+	_, err := p.Record(profile.Answered{TaskID: "tsk_nothing", Choice: rightLetter, At: issued}, newSealer(t), profile.Judging{Taught: everyLevel})
 	if !errors.Is(err, profile.ErrNoTask) {
 		t.Errorf("Record() error = %v, want %v", err, profile.ErrNoTask)
 	}
 
 	answering(t, p, "counting.gaps", 3)
-	_, err = p.Record(profile.Answered{TaskID: "tsk_answered_yesterday", Choice: rightLetter, At: issued}, newSealer(t), everyLevel)
+	_, err = p.Record(profile.Answered{TaskID: "tsk_answered_yesterday", Choice: rightLetter, At: issued}, newSealer(t), profile.Judging{Taught: everyLevel})
 	if !errors.Is(err, profile.ErrOtherTask) {
 		t.Errorf("Record() error = %v, want %v", err, profile.ErrOtherTask)
 	}
@@ -401,7 +401,7 @@ func TestWhatCountsTowardMastering(t *testing.T) {
 			id := answering(t, p, topic, tc.difficulty)
 			recorded, err := p.Record(profile.Answered{
 				TaskID: id, Choice: tc.choice, HintUsed: tc.hint, At: issued.Add(time.Minute),
-			}, newSealer(t), everyLevel)
+			}, newSealer(t), profile.Judging{Taught: everyLevel})
 			if err != nil {
 				t.Fatalf("Record() error = %v, want nil", err)
 			}
@@ -456,7 +456,7 @@ func TestAnAnswerNamingNoOptionIsRefused(t *testing.T) {
 			id := answering(t, p, "counting.gaps", 3)
 			before := p.Ratings
 
-			_, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: issued.Add(time.Minute)}, newSealer(t), everyLevel)
+			_, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: issued.Add(time.Minute)}, newSealer(t), profile.Judging{Taught: everyLevel})
 			if !errors.Is(err, profile.ErrNoSuchOption) {
 				t.Errorf("Record() error = %v, want %v", err, profile.ErrNoSuchOption)
 			}
@@ -530,7 +530,7 @@ func TestAnAnswerToldAgainNeedsTheSeal(t *testing.T) {
 	give(t, p, id, rightLetter, issued.Add(time.Minute))
 	ratings, window := p.Ratings, len(p.Recent)
 
-	_, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Hour)}, newOtherSealer(t), everyLevel)
+	_, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Hour)}, newOtherSealer(t), profile.Judging{Taught: everyLevel})
 	if !errors.Is(err, profile.ErrSealed) {
 		t.Errorf("Record() error = %v, want %v", err, profile.ErrSealed)
 	}
@@ -571,7 +571,7 @@ func TestOnlyAnAnswerRecordedHereIsToldAgain(t *testing.T) {
 			tc.edit(t, p, id)
 			ratings, window := p.Ratings, len(p.Recent)
 
-			told, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Hour)}, newSealer(t), everyLevel)
+			told, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Hour)}, newSealer(t), profile.Judging{Taught: everyLevel})
 			if !errors.Is(err, profile.ErrSealed) || told.Right != "" || told.Solution != "" {
 				t.Errorf("Record() = %+v, %v; want %v and nothing told", told, err, profile.ErrSealed)
 			}
@@ -724,7 +724,7 @@ func TestAnAnswerTheTaskCannotBeSealedWithMovesNothing(t *testing.T) {
 	ratings, window, sealed := p.Ratings, len(p.Recent), p.CurrentTask.Sealed
 
 	answer := profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Minute)}
-	if _, err := p.Record(answer, sealsNoMore{newSealer(t)}, everyLevel); err == nil {
+	if _, err := p.Record(answer, sealsNoMore{newSealer(t)}, profile.Judging{Taught: everyLevel}); err == nil {
 		t.Fatal("Record() error = nil, want the sealing's failure")
 	}
 	if p.Ratings != ratings || len(p.Recent) != window || p.CurrentTask.Answered != nil || p.CurrentTask.Sealed != sealed {

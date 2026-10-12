@@ -45,14 +45,14 @@
         "read_as": "size",
         "better": "lower",
         "bound": {
-          "value": 0.26685142366741327,
+          "value": 0.24944862003745744,
           "own": true
         },
         "values": {
           "service": {
-            "value": 0.5930031637053628,
-            "low": 0.4179339026942466,
-            "high": 0.7753442469853072,
+            "value": 0.5543302667499054,
+            "low": 0.37442066935473695,
+            "high": 0.7338536560667847,
             "mark": "baseline"
           },
           "ceiling": {
@@ -73,21 +73,21 @@
         "read_as": "value",
         "better": "higher",
         "bound": {
-          "value": 0.44062500000000004,
+          "value": 0.445115,
           "own": true
         },
         "values": {
           "service": {
-            "value": 0.3765,
-            "low": 0.308,
-            "high": 0.446,
+            "value": 0.3845,
+            "low": 0.3215,
+            "high": 0.449,
             "mark": "baseline"
           },
           "ceiling": {
             "of": "oracle",
-            "value": 0.6140000000000001,
-            "low": 0.5889999999999999,
-            "high": 0.6395
+            "value": 0.6089999999999999,
+            "low": 0.5924999999999999,
+            "high": 0.6305000000000001
           }
         }
       },
@@ -134,9 +134,9 @@
         },
         "values": {
           "service": {
-            "value": 0.010752688172043012,
+            "value": 0.03260869565217391,
             "low": 0,
-            "high": 0.03571428571428571,
+            "high": 0.07142857142857142,
             "mark": "reached"
           },
           "ceiling": {
@@ -162,10 +162,10 @@
         },
         "values": {
           "service": {
-            "value": 0.11688311688311688,
-            "low": 0.01652892561983471,
-            "high": 0.25,
-            "mark": "on_the_edge"
+            "value": 0.08974358974358974,
+            "low": 0.00819672131147541,
+            "high": 0.2,
+            "mark": "reached"
           },
           "ceiling": {
             "of": "perfect",
@@ -185,14 +185,14 @@
         "read_as": "value",
         "better": "lower",
         "bound": {
-          "value": 7.065217391304348,
+          "value": 6.802816901408451,
           "own": true
         },
         "values": {
           "service": {
-            "value": 4.7101449275362315,
-            "low": 3.588235294117647,
-            "high": 6.415384615384616,
+            "value": 4.535211267605634,
+            "low": 3.6206896551724137,
+            "high": 5.933333333333334,
             "mark": "baseline"
           },
           "ceiling": {
@@ -213,14 +213,14 @@
         "read_as": "value",
         "better": "lower",
         "bound": {
-          "value": 5.43,
+          "value": 5.4,
           "own": true
         },
         "values": {
           "service": {
-            "value": 3.62,
-            "low": 2.3513513513513513,
-            "high": 4.564102564102564,
+            "value": 3.6,
+            "low": 2.3859649122807016,
+            "high": 4.527777777777778,
             "mark": "baseline"
           },
           "ceiling": {
@@ -247,7 +247,7 @@
         "values": {
           "service": {
             "value": 42,
-            "low": 38,
+            "low": 39,
             "high": 43,
             "mark": "reached"
           },
@@ -269,10 +269,10 @@
         },
         "values": {
           "service": {
-            "value": 1.1764705882352942,
-            "low": 0,
-            "high": 3.5294117647058827,
-            "mark": "reached"
+            "value": 4.509803921568627,
+            "low": 0.7843137254901961,
+            "high": 9.019607843137255,
+            "mark": "on_the_edge"
           },
           "ceiling": null
         }
@@ -292,9 +292,9 @@
         },
         "values": {
           "service": {
-            "value": 37,
+            "value": 40,
             "low": 34,
-            "high": 40,
+            "high": 44,
             "mark": "reached"
           },
           "ceiling": null
@@ -315,10 +315,10 @@
         },
         "values": {
           "service": {
-            "value": 0.7843137254901961,
+            "value": 0.588235294117647,
             "low": 0,
-            "high": 2.352941176470588,
-            "mark": "on_the_edge"
+            "high": 1.3725490196078431,
+            "mark": "reached"
           },
           "ceiling": null
         }
@@ -335,9 +335,9 @@
         "bound": null,
         "values": {
           "service": {
-            "value": 0.41954304736729303,
-            "low": 0.37217226876967535,
-            "high": 0.46293749644619553,
+            "value": 0.4740055904308697,
+            "low": 0.4197527752495282,
+            "high": 0.5235962721768526,
             "mark": null
           },
           "ceiling": {
@@ -360,16 +360,16 @@
         "bound": null,
         "values": {
           "service": {
-            "value": 0.4805,
-            "low": 0.45649999999999996,
-            "high": 0.504,
+            "value": 0.45949999999999996,
+            "low": 0.43000000000000005,
+            "high": 0.48550000000000004,
             "mark": null
           },
           "ceiling": {
             "of": "oracle",
-            "value": 0.623,
-            "low": 0.602,
-            "high": 0.645
+            "value": 0.6234999999999999,
+            "low": 0.604,
+            "high": 0.6439999999999999
           }
         }
       }

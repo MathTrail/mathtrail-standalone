@@ -180,17 +180,34 @@ func (s *session) writeLevels() {
 }
 
 // take is what a lesson does with an answer once the task is set and
-// answered: the service records it, the rule's estimate takes it in, and the
-// rule's own mastery, if it has one, judges it.
+// answered: the service records it, the rule's estimate takes it in, lifted
+// as the service lifts its own when the answer was a right one to a probe,
+// and the rule's own mastery, if it has one, judges it.
 func (s *session) take(brief *profile.Brief, mode profile.TutorMode, draws *answerDraws, correct, hint bool, k int) (profile.Recorded, error) {
+	topic := brief.TargetConcept
+	before := s.est.level(topic)
 	recorded, err := s.answer(brief, mode, draws, correct, hint)
 	if err != nil {
 		return profile.Recorded{}, err
 	}
 	point := rating.Point{GradeLevel: brief.GradeLevel, Difficulty: brief.Difficulty}
-	s.learn(brief.TargetConcept, point.Beta(), correct, k)
+	s.learn(topic, point.Beta(), correct, k)
+	if correct && recorded.Probe {
+		s.lift(topic, before)
+	}
 	s.master(brief, point.Beta(), &recorded, correct, hint)
 	return recorded, nil
+}
+
+// lift raises the rule's level in a topic after a right answer to a probe,
+// for a rule that takes the lift: before is where the rule stood in the topic
+// ahead of the answer. The service's own estimate is the profile, which its
+// answer has lifted already.
+func (s *session) lift(topic string, before float64) {
+	ladder := s.w.ladders[topic]
+	if l, lifts := s.est.(lifter); lifts && len(ladder) > 0 {
+		l.lifted(topic, before, ladder[0])
+	}
 }
 
 // answer issues the task and records the child's answer as the service does.
@@ -209,7 +226,8 @@ func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *an
 		s.ahead = &chosen{brief: next, mode: nextMode}
 	}
 	s.now = s.now.Add(answerTime)
-	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: hint, At: s.now}, s.w.sealer, s.w.levels[brief.TargetConcept])
+	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: hint, At: s.now}, s.w.sealer,
+		tutor.JudgingOf(s.p, s.w.catalog))
 }
 
 // issue puts the task on the child's card as the service does, and is the

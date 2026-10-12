@@ -73,6 +73,18 @@ type Answered struct {
 	At       time.Time
 }
 
+// Judging is what the catalog and the rule know of the task on the card,
+// which the profile cannot tell by itself.
+type Judging struct {
+	// Taught is the levels the task's topic is taught at, which its mastery
+	// is judged among, the easiest of them the one a probe lifts the topic to.
+	Taught []rating.GradeLevel
+	// Probe says the task is a probe: set by the rule in a topic it put on
+	// pause because even its easiest task stood out of reach. A right answer
+	// to it takes the topic off the pause.
+	Probe bool
+}
+
 // Given is the answer a task was given, kept with the task while it stays on
 // the card. An answer sent twice — from a second tab, after a reply lost on its
 // way, or by the model recording what the card already did — is told what was
@@ -139,9 +151,13 @@ type Recorded struct {
 	// Unmastered when it lost it. Both cannot be true of one answer.
 	Mastered   bool
 	Unmastered bool
+	// Probe marks an answer to a probe, which a right one lifted off its
+	// topic's pause.
+	Probe bool
 	// Again marks an answer recorded by an earlier call and only told again
 	// now. Nothing moved, and what only recording it knew — the chance, the
-	// pace, whether mastery was won or lost — is not told again.
+	// pace, whether mastery was won or lost, whether it was a probe — is not
+	// told again.
 	Again bool
 }
 
@@ -181,9 +197,10 @@ func choosable(choice string) bool { return choice == DontKnow || solver.Place(c
 // does not open.
 //
 // The caller is left with a profile to write when the answer was recorded now,
-// and with nothing to write when it was only told again. taught is the levels
-// the topic of the task is taught at, which its mastery is judged among.
-func (p *Profile) Record(answer Answered, sealer Sealer, taught []rating.GradeLevel) (Recorded, error) {
+// and with nothing to write when it was only told again. judging is what the
+// catalog and the rule know of the task: the levels its topic is taught at and
+// whether it is a probe.
+func (p *Profile) Record(answer Answered, sealer Sealer, judging Judging) (Recorded, error) {
 	task := p.CurrentTask
 	switch {
 	case task == nil:
@@ -210,7 +227,7 @@ func (p *Profile) Record(answer Answered, sealer Sealer, taught []rating.GradeLe
 	if err != nil {
 		return Recorded{}, err
 	}
-	recorded := p.apply(task, &answer, &secret, taught)
+	recorded := p.apply(task, &answer, &secret, &judging)
 	task.Sealed = resealed
 	return recorded, nil
 }
@@ -238,9 +255,10 @@ func (p *Profile) Told(taskID string, sealer Sealer) (Recorded, error) {
 }
 
 // apply records an answer the task has not had before and keeps it with the
-// task. Only correctness moves the level; the hint is written beside the
-// answer and changes what comes next through the runs of the topic.
-func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret, taught []rating.GradeLevel) Recorded {
+// task. Only correctness moves the level, and a right answer to a probe lifts
+// its topic off the pause besides; the hint is written beside the answer and
+// changes what comes next through the runs of the topic.
+func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret, judging *Judging) Recorded {
 	p.clearEarlierMasteries()
 	correct, trap := judge(answer.Choice, secret)
 	topic := p.Topics[task.Topic]
@@ -263,6 +281,11 @@ func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret,
 	} else {
 		updated := rating.Update(before, point.Beta(), correct)
 		moved, probability = updated.State, updated.Probability
+		if correct && judging.Probe {
+			if easiest := rating.Points(judging.Taught...); len(easiest) > 0 {
+				moved = rating.Lifted(moved, before.Level(), easiest[0])
+			}
+		}
 	}
 
 	// The day starts from the levels as they stand before this answer moves
@@ -293,9 +316,10 @@ func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret,
 	recorded := toldOf(task, secret)
 	recorded.Probability = probability
 	recorded.Pace = paceOf(task.IssuedAt.Time, answer.At)
+	recorded.Probe = judging.Probe
 	recorded.Mastered, recorded.Unmastered = topic.master(&judged{
 		correct: correct, hint: answer.HintUsed, at: answer.At, probability: probability,
-		task: task.GradeLevel, taught: taught, moved: moved,
+		task: task.GradeLevel, taught: judging.Taught, moved: moved,
 	})
 	p.putTopic(task.Topic, &topic)
 

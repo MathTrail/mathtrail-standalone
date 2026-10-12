@@ -89,7 +89,7 @@ sequenceDiagram
     M->>MT: next_task, with the chat language and, if it wants, its own topic or difficulty and a reason
     Note over W: the host draws the card as the call starts: "Preparing the next task…", the topic being picked
     MT->>D: read the profile
-    Note over MT: the daily and rate limits · the rule picks topic, goal and corridor ·<br/>the model's override, or a topic a person chose, is recorded as tutor_mode · the open request is written down:<br/>id, brief, the idea to build on — one of the topic's list not yet given in its round —, attempts 0, started at
+    Note over MT: the daily and rate limits · the rule picks topic, goal and corridor, once in six tasks a probe of a topic on pause ·<br/>the model's override, or a topic a person chose, is recorded as tutor_mode · the open request is written down:<br/>id, brief, the idea to build on — one of the topic's list not yet given in its round —, attempts 0, started at
     MT->>D: write the profile
     MT-->>M: request open: get its package, write the task, hand it in
     MT-->>W: the task on its way — the request, whose card it is, its language, and no package
@@ -142,7 +142,7 @@ sequenceDiagram
     Note over W: no model turn is spent — the press goes straight to the server (О-42) —<br/>the card carries along whether the hint was opened
     W->>MT: submit_answer — task id, option C, hint flag
     MT->>D: read the profile
-    Note over MT: this is the current task · it has not been answered before ·<br/>pace from the time it was handed out · θ and δ updated from correctness alone (О-33) ·<br/>the sealed block is opened only now
+    Note over MT: this is the current task · it has not been answered before ·<br/>pace from the time it was handed out · θ and δ updated from correctness alone (О-33), a right answer to a probe lifting its topic into reach ·<br/>the sealed block is opened only now
     MT-->>W: the result screen — the verdict, the trap behind C, the picture of the solution,<br/>the solution step by step, the rating before and after, the choice of the topic
     MT->>D: write the profile — after the answer, in the same request (R255)
     Note over W: the card turns into how the answer went, in the task's place (R286) ·<br/>Another task and the choice of the topic at its foot

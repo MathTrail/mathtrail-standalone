@@ -209,15 +209,17 @@ export function TaskInCard({
 						doneWith={asked}
 						onAnswer={answer}
 						chip={
-							givenOnTheChoice(handed, choosing.chosen) &&
 							!isSettled(lesson.answer) &&
-							!asked && (
+							!asked &&
+							(givenOnTheChoice(handed, choosing.chosen) ? (
 								<TopicChip
 									choosing={choosing}
 									topic={task.topic}
 									locked={topicLocked}
 								/>
-							)
+							) : (
+								task.probe === true && <ProbeChip />
+							))
 						}
 					/>
 				) : (
@@ -320,9 +322,23 @@ function givenOnTheChoice(handed: HandedTask, chosen: string | null): boolean {
 	return handed.topic_choice?.chosen === topic && chosen === topic;
 }
 
+// ProbeChip is the mark above a probe: a task the coach set in a topic on
+// pause, whose easiest tasks are too hard yet, so that the child and the adult
+// know it may be hard. It is said in the pause's colour, as the topic's pause
+// is on the progress.
+function ProbeChip() {
+	const words = useWords();
+	return (
+		<div class="mt-chip mt-topic-chip mt-probe-chip">
+			<span class="mt-chip-text">{words.text("task.probe")}</span>
+		</div>
+	);
+}
+
 // TaskBody is the task itself, until the card turns into how its answer
 // went: the mark of the topic the lessons are kept to, when the task is on it,
-// its question, its picture, the hint while it is shown and the task is not
+// or of a probe, when it is one; its question, its picture, the hint while it
+// is shown and the task is not
 // done with, and the options — to press unless locked. A card done with, its
 // next task asked of the chat, no longer asks for a pick.
 function TaskBody({

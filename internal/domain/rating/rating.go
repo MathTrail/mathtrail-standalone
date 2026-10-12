@@ -24,7 +24,11 @@
 // meets easier tasks straight away rather than after a run of failures. Only
 // correctness enters either. A hint, a slow answer, a run of failures — all of
 // it is recorded elsewhere and changes what the child is asked next, never
-// what the rating says the child knows.
+// what the rating says the child knows. One kind of task is read for more than
+// its correctness: a probe, set in a topic put on pause because even its
+// easiest task stood out of reach. A right answer to it lifts the topic to
+// where that task is in reach again, since the probe was set to find out
+// whether it is.
 //
 // A task's difficulty is never updated. A task is written for one child and
 // handed out once, so there is no second child whose answer could sharpen the

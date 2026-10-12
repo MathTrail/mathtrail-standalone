@@ -131,6 +131,19 @@ func (p *Profile) LevelIn(topic string) float64 {
 	return rating.State{Theta: p.Ratings.Theta, Delta: p.Topics[topic].Delta}.Level()
 }
 
+// Behind reports whether the child stands behind in a topic: once the trial
+// series is over, a topic with answers whose rank is below the overall rank,
+// each read off its rating as it is shown. A topic with no answer has no rank
+// of its own yet, and during the series there is no overall rank to be behind.
+// It is the one reading of being behind, so that the word a topic is shown
+// with and how often it comes round cannot disagree.
+func (p *Profile) Behind(topic string) bool {
+	if p.Ratings.InTrial() || p.Topics[topic].Answers <= 0 {
+		return false
+	}
+	return rating.Rank(rating.Elo(p.LevelIn(topic))) < rating.Rank(rating.Elo(p.Ratings.Theta))
+}
+
 // LastAnswer is the answer the child gave last, and whether there has been one
 // at all. It is what every tool's result tells the model about, so that a
 // model that missed the card's own message learns from its next call that the

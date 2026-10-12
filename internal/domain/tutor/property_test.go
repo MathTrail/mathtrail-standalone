@@ -18,8 +18,9 @@ import (
 
 // The rule promises things for every child rather than for the five in the
 // fixtures: the same profile always gives the same brief, the brief can always
-// be filled, a topic out of reach is never set while another is within reach,
-// and a child who grows never loses a topic that was open to them. The first
+// be filled, a topic out of reach is set while another is within reach only as
+// a probe of a topic on pause, and a child who grows never loses a topic that
+// was open to them. The first
 // is what makes the rule a baseline worth comparing a model against; the
 // others are what keep a child from being set what they would only fail, or
 // left with nothing because their profile happened to be unusual.
@@ -172,15 +173,17 @@ func TestTheRuleHoldsItsProperties(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// What is within reach decides what the rule sets, and it only ever grows with
-// the child.
-func TestTheRuleKeepsWithinReach(t *testing.T) {
+// A topic out of reach comes only as a probe of a topic on pause, and a
+// probe's turn sets one whenever there is one, unless a failure is being
+// worked over.
+func TestOutOfReachOnlyAProbeIsSet(t *testing.T) {
 	t.Parallel()
 
 	c := stepped()
 	properties := gopter.NewProperties(nil)
 
-	properties.Property("a topic out of reach is never set while another is within reach", prop.ForAll(
+	properties.Property("a topic out of reach is set while another is within reach only as a probe: "+
+		"on a probe's turn, and a topic on pause", prop.ForAll(
 		func(s *seed) bool {
 			p := s.build()
 			brief, _, err := tutor.Next(p, c, tutor.Choice{})
@@ -188,10 +191,40 @@ func TestTheRuleKeepsWithinReach(t *testing.T) {
 				return false
 			}
 			anyInReach := slices.ContainsFunc(c.topics, func(topic string) bool { return inReach(p, c, topic) })
-			return !anyInReach || inReach(p, c, brief.TargetConcept)
+			if !anyInReach || inReach(p, c, brief.TargetConcept) {
+				return true
+			}
+			return tutor.ProbeDue(p) && slices.Contains(tutor.PausedTopics(p, c), brief.TargetConcept)
 		},
 		genSeed(),
 	))
+
+	properties.Property("on a probe's turn a topic on pause is set, unless a failure is being worked over", prop.ForAll(
+		func(s *seed) bool {
+			p := s.build()
+			paused := tutor.PausedTopics(p, c)
+			if !tutor.ProbeDue(p) || len(paused) == 0 {
+				return true
+			}
+			brief, _, err := tutor.Next(p, c, tutor.Choice{})
+			if err != nil {
+				return false
+			}
+			return brief.PedagogicalGoal == profile.GoalReinforce || slices.Contains(paused, brief.TargetConcept)
+		},
+		genSeed(),
+	))
+
+	properties.TestingRun(t)
+}
+
+// What is within reach decides what the rule sets in its turns, and it only
+// ever grows with the child.
+func TestTheRuleKeepsWithinReach(t *testing.T) {
+	t.Parallel()
+
+	c := stepped()
+	properties := gopter.NewProperties(nil)
 
 	properties.Property("a child who grows loses no topic that was open", prop.ForAll(
 		func(s *seed, gain float64) bool {
@@ -372,17 +405,64 @@ func TestTopicsTakeTurnsWithinADay(t *testing.T) {
 	}
 	properties := gopter.NewProperties(nil)
 
-	properties.Property("while the window holds the whole day, a topic set anew is the one whose last task came first",
+	properties.Property("while the window holds the whole day, a topic set anew from the turns is the one that "+
+		"has waited longest, a topic behind counting its wait twice, and any other is a probe of a topic on pause, "+
+		"set on a probe's turn", prop.ForAll(func(d *daySeed) bool {
+		return !slices.ContainsFunc(playDay(t, catalog, sealer, d, profile.MaxRecent), func(s step) bool {
+			switch {
+			case !s.anew:
+				return false
+			case s.probe():
+				return !s.probeDue || !slices.Contains(s.paused, s.topic)
+			case s.probeDue && len(s.paused) > 0:
+				return true // a probe's turn went to the turns
+			default:
+				return s.topic != s.waitedLongest
+			}
+		})
+	}, genDay()))
+
+	properties.Property("however long the day, a topic set anew from the turns is never the one just given "+
+		"while another waits", prop.ForAll(func(d *daySeed) bool {
+		return !slices.ContainsFunc(playDay(t, catalog, sealer, d, longDay), func(s step) bool {
+			return s.anew && !s.probe() && len(s.waiting) > 1 && s.topic == s.previous
+		})
+	}, genDay()))
+
+	properties.TestingRun(t)
+}
+
+// However long a day, the probes keep to their turns, and a right answer to
+// one leaves its topic within reach.
+func TestTheDaysProbeTopicsOnPause(t *testing.T) {
+	t.Parallel()
+
+	catalog := cached(embedded(t))
+	sealer, err := taskSeal()
+	if err != nil {
+		t.Fatalf("build the seal: %v", err)
+	}
+	properties := gopter.NewProperties(nil)
+
+	properties.Property("however long the day, no two probes come within ProbeEvery tasks of each other",
 		prop.ForAll(func(d *daySeed) bool {
-			return !slices.ContainsFunc(playDay(t, catalog, sealer, d, profile.MaxRecent), func(s step) bool {
-				return s.anew && s.topic != s.waitedLongest
-			})
+			last := -tutor.ProbeEvery
+			for at, s := range playDay(t, catalog, sealer, d, longDay) {
+				if !s.probe() {
+					continue
+				}
+				if at-last < tutor.ProbeEvery {
+					return false
+				}
+				last = at
+			}
+			return true
 		}, genDay()))
 
-	properties.Property("however long the day, a topic set anew is never the one just given while another waits",
+	properties.Property("however long the day, a right answer to a probe leaves its topic within reach",
 		prop.ForAll(func(d *daySeed) bool {
 			return !slices.ContainsFunc(playDay(t, catalog, sealer, d, longDay), func(s step) bool {
-				return s.anew && len(s.waiting) > 1 && s.topic == s.previous
+				return s.probe() && s.right && !s.reachedAfter
 			})
 		}, genDay()))
 
@@ -414,13 +494,22 @@ func genDay() gopter.Gen {
 
 // step is one task of a simulated day: the topic the rule set, and whether it
 // set it anew rather than to go over a failure; the topics it chose among, and
-// of them the one whose last task came first, worked out from the order the
-// day gave its tasks in; and the topic of the task before.
+// of them the one that has waited longest, worked out from the order the day
+// gave its tasks in; the topic of the task before; whether the task took a
+// probe's turn, and the topics on pause when it did; and how its answer went,
+// whether it was right and whether its topic was within reach after it.
 type step struct {
 	topic, waitedLongest, previous string
 	anew                           bool
 	waiting                        []string
+	probeDue                       bool
+	paused                         []string
+	right, reachedAfter            bool
 }
+
+// probe reports whether the step set a topic outside the turns: the only
+// other topic a rule sets anew is one on pause.
+func (s *step) probe() bool { return s.anew && !slices.Contains(s.waiting, s.topic) }
 
 // playDay sets a new child of the seed so many tasks in a row, all on one day,
 // as the service would hand them out, and says what each came to.
@@ -435,22 +524,28 @@ func playDay(t *testing.T, catalog tutor.Catalog, sealer profile.Sealer, d *dayS
 	steps := make([]step, 0, tasks)
 	for place := 1; place <= tasks; place++ {
 		waiting := waitingFor(p, catalog)
+		behind := map[string]bool{}
+		for _, topic := range waiting {
+			behind[topic] = p.Behind(topic)
+		}
+		due, paused := tutor.ProbeDue(p), tutor.PausedTopics(p, catalog)
 		next, mode, err := tutor.Next(p, catalog, tutor.Choice{})
 		if err != nil {
 			t.Fatalf("Next() error = %v, want nil", err)
 		}
-		set := step{topic: next.TargetConcept, waitedLongest: firstGiven(waiting, given),
-			anew: next.PedagogicalGoal == profile.GoalNewTopic, waiting: waiting}
+		set := step{topic: next.TargetConcept, waitedLongest: waitedLongestOf(waiting, given, place, behind),
+			anew: next.PedagogicalGoal == profile.GoalNewTopic, waiting: waiting, probeDue: due, paused: paused}
 		if len(steps) > 0 {
 			set.previous = steps[len(steps)-1].topic
 		}
-		steps = append(steps, set)
 
 		task := handedOut(t, p, &next, mode, sealer, now)
 		given[task.Topic] = place
 		if random.Float64() >= d.Left {
-			answeredByChance(t, catalog, p, task, truth, sealer, random)
+			set.right = answeredByChance(t, catalog, p, task, truth, sealer, random)
+			set.reachedAfter = slices.Contains(tutor.WithinReach(p, catalog), task.Topic)
 		}
+		steps = append(steps, set)
 		now = now.Add(3 * time.Minute)
 	}
 	return steps
@@ -470,12 +565,27 @@ func waitingFor(p *profile.Profile, catalog tutor.Catalog) []string {
 	return waiting
 }
 
-// firstGiven is the topic whose last task came first: one never given before
-// any other, and the first in catalog order of a tie.
-func firstGiven(topics []string, given map[string]int) string {
+// waitedLongestOf is the topic that has waited longest by the day's own
+// record, for the task at place: one never given before any other; then the
+// one whose last task stands furthest from place, twice as far for a topic
+// behind; then the one whose last came first; and the first in catalog order
+// of a tie.
+func waitedLongestOf(topics []string, given map[string]int, place int, behind map[string]bool) string {
+	wait := func(topic string) int {
+		since := place - given[topic]
+		if behind[topic] {
+			return 2 * since
+		}
+		return since
+	}
 	first := topics[0]
 	for _, topic := range topics[1:] {
-		if given[topic] < given[first] {
+		switch {
+		case given[first] == 0:
+			// Never given: nothing comes before it, and catalog order settles a tie.
+		case given[topic] == 0:
+			first = topic
+		case wait(topic) > wait(first), wait(topic) == wait(first) && given[topic] < given[first]:
 			first = topic
 		}
 	}

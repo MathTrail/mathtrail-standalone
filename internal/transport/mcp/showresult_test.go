@@ -224,7 +224,7 @@ func TestAnAnswerStillOnItsWayIsWaitedFor(t *testing.T) {
 				t.Fatalf("Marshal() error = %v", err)
 			}
 			if _, err := p.Record(profile.Answered{TaskID: p.CurrentTask.ID, Choice: "A", At: lessonDay},
-				sealer(t), rating.GradeLevels()); err != nil {
+				sealer(t), profile.Judging{Taught: rating.GradeLevels()}); err != nil {
 				t.Fatalf("Record() error = %v", err)
 			}
 			lagged := &answerLags{Storage: keptAsIs(t, p), before: before, stale: tc.stale}
@@ -268,7 +268,7 @@ func TestATaskOffTheCardShowsNoMoreThanHowItWent(t *testing.T) {
 
 	p := raceOnTheCard(t, rating.TrialAnswers)
 	id := p.CurrentTask.ID
-	if _, err := p.Record(profile.Answered{TaskID: id, Choice: "A", At: lessonDay}, sealer(t), rating.GradeLevels()); err != nil {
+	if _, err := p.Record(profile.Answered{TaskID: id, Choice: "A", At: lessonDay}, sealer(t), profile.Judging{Taught: rating.GradeLevels()}); err != nil {
 		t.Fatalf("Record() error = %v", err)
 	}
 	p.DiscardTask()
@@ -296,7 +296,7 @@ func TestAnAnswerWhoseSealIsLostIsToldNoMore(t *testing.T) {
 
 	p := raceOnTheCard(t, rating.TrialAnswers)
 	if _, err := p.Record(profile.Answered{TaskID: p.CurrentTask.ID, Choice: "C", At: lessonDay},
-		sealer(t), rating.GradeLevels()); err != nil {
+		sealer(t), profile.Judging{Taught: rating.GradeLevels()}); err != nil {
 		t.Fatalf("Record() error = %v", err)
 	}
 	kept := keptAsIs(t, p)

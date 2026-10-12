@@ -1422,6 +1422,55 @@ describe("the moves", () => {
 	});
 });
 
+describe("a topic on pause", () => {
+	// pausedOrdering is the progress that moved, with Ordering on pause: the
+	// topic reached a new rank over the week, and the pause is said all the
+	// same.
+	const pausedOrdering = {
+		...moving,
+		topics: moving.topics.map((topic) =>
+			topic.topic === "logic.ordering" ? { ...topic, paused: true } : topic,
+		),
+	};
+
+	test("says so in place of where its rank stands and how it moved, and what the pause means", async () => {
+		const { root } = await drawOpened(pausedOrdering);
+
+		const [ordering, ...others] = root.querySelectorAll(".mt-rank-row");
+		expect(ordering?.classList.contains("mt-rank-row-paused")).toBe(true);
+		const word = ordering?.querySelector(".mt-rank-word");
+		expect(word?.textContent).toBe("paused");
+		expect(word?.hasAttribute("data-way")).toBe(false);
+		expect(ordering?.querySelector(".mt-rank-row-line")?.textContent).toBe(
+			"Hard for now. It will come back as a check — the easiest task in the topic.",
+		);
+		expect(
+			others.filter(
+				(row) =>
+					row.classList.contains("mt-rank-row-paused") ||
+					row.querySelector(".mt-rank-row-line") !== null,
+			),
+		).toEqual([]);
+	});
+
+	test.each([
+		["a progress from before the pauses", moving],
+		[
+			"a mark that does not read",
+			{
+				...moving,
+				topics: moving.topics.map((topic) => ({ ...topic, paused: "yes" })),
+			},
+		],
+	])("is not drawn from %s", async (_, payload) => {
+		const { root } = await drawOpened(payload);
+
+		expect(root.querySelector(".mt-rank-row-paused")).toBeNull();
+		expect(root.querySelector(".mt-rank-row-line")).toBeNull();
+		expect(topics(root)[0]?.[1]).toBe("↑new rankRank 4");
+	});
+});
+
 describe("a progress screen nobody outlives", () => {
 	// stillHost is a host that answers nothing: a screen drawn on its own,
 	// over no card, has nobody to call.

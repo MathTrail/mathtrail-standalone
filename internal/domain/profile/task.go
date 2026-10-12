@@ -14,7 +14,8 @@ type Goal string
 const (
 	// GoalReinforce works the same ground again after a failure.
 	GoalReinforce Goal = "reinforce"
-	// GoalNewTopic moves on to a topic the child has not met.
+	// GoalNewTopic moves on: to a topic not given yet, to the one that has
+	// waited longest, or to a probe of a topic on pause.
 	GoalNewTopic Goal = "new_topic"
 )
 

@@ -139,7 +139,7 @@ func (s *Service) waitForAhead(ctx context.Context, account store.Account, p *pr
 		skipped = &left
 		s.events.write(ctx, account, eventTaskSkipped, s.skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
 	}
-	s.events.write(ctx, account, eventTaskRequested, requestFields(request, true)...)
+	s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, request, true)...)
 	return request, skipped, nil
 }
 

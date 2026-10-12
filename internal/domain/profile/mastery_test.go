@@ -62,7 +62,7 @@ func answerTaughtAt(t *testing.T, p *profile.Profile, point rating.Point, number
 		Choice:   choice,
 		HintUsed: hint,
 		At:       issued.Add(time.Duration(number) * time.Hour),
-	}, newSealer(t), taught)
+	}, newSealer(t), profile.Judging{Taught: taught})
 	if err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}

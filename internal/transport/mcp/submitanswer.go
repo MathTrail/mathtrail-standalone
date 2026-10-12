@@ -199,7 +199,7 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 func (s *Service) recordAgain(account store.Account, given profile.Answered, clock *int, now time.Time) change {
 	return func(p *profile.Profile) (made, error) {
 		masteredBefore := p.CurrentTask != nil && tutor.Mastered(p, s.content, p.CurrentTask.Topic)
-		recorded, err := p.Record(given, s.sealer, s.taughtOf(p))
+		recorded, err := p.Record(given, s.sealer, tutor.JudgingOf(p, s.content))
 		switch {
 		case errors.Is(err, profile.ErrNoTask), errors.Is(err, profile.ErrOtherTask):
 			return made{state: gone}, nil
@@ -257,16 +257,6 @@ func (s *Service) recordedFields(p *profile.Profile, account store.Account, reco
 	)
 }
 
-// taughtOf is the levels the topic of the task on the card is taught at, which
-// its mastery is judged among; none when there is no task, which Record turns
-// away before it judges anything.
-func (s *Service) taughtOf(p *profile.Profile) []rating.GradeLevel {
-	if p.CurrentTask == nil {
-		return nil
-	}
-	return s.content.LevelsOf(p.CurrentTask.Topic)
-}
-
 // recordAnswer applies the answer inside a span of its own, which says how it
 // went in the words a line about it uses and in no others: whether it was
 // right, and the trap of the catalog it fell for. Neither letter reaches it, nor
@@ -275,7 +265,7 @@ func (s *Service) recordAnswer(ctx context.Context, p *profile.Profile, answer p
 	_, span := s.tracer.Start(ctx, "record_answer")
 	defer span.End()
 
-	recorded, err := p.Record(answer, s.sealer, s.taughtOf(p))
+	recorded, err := p.Record(answer, s.sealer, tutor.JudgingOf(p, s.content))
 	switch {
 	case errors.Is(err, profile.ErrSealed):
 		span.SetStatus(codes.Error, "the task could not be opened")
@@ -535,6 +525,7 @@ func (s *Service) answerFields(recorded *profile.Recorded, answers int) []zap.Fi
 		zap.String("pace", string(recorded.Pace)),
 		zap.Float64("chance", math.Round(recorded.Probability*100)/100),
 		zap.String("tutor_mode", chooserOf(recorded.TutorMode)),
+		zap.Bool("probe", recorded.Probe),
 		zap.Int("trial", recorded.Trial),
 	}
 	if recorded.Trial == 0 {

@@ -112,7 +112,7 @@ func (s *Service) prepare(ctx context.Context, account store.Account, in *prepar
 	}
 	s.sayLetGo(ctx, account, gone)
 	if opened != nil {
-		s.events.write(ctx, account, eventTaskRequested, requestFields(opened, false)...)
+		s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, opened, false)...)
 	}
 	return reply, nil
 }

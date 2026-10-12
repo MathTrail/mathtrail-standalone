@@ -210,7 +210,7 @@ func TestATaskWrittenAheadCountsTheSameBeforeTheAnswerToTheCardAsAfter(t *testin
 			task := onTheCardFromTheRule(t, p, c, sealer)
 			answers, ideas := tutor.AnswersBehind(p, true), ideasNamed(p, c)
 			answer := profile.Answered{TaskID: task.ID, Choice: choice, At: day.Add(2 * time.Minute)}
-			if _, err := p.Record(answer, sealer, c.LevelsOf(task.Topic)); err != nil {
+			if _, err := p.Record(answer, sealer, tutor.JudgingOf(p, c)); err != nil {
 				t.Errorf("Record() error = %v, want nil", err)
 				return false
 			}

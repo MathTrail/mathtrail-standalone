@@ -112,8 +112,35 @@ const unspacedStart = /^[\p{sc=Han}\u3000-\u30ff\uff01-\uff60]/u;
  * everywhere else, "12 tasks".
  */
 export function wordSpace(before: string, after: string): string {
-	return unspacedEnd.test(before.replace(/[*_]+$/u, "")) ||
-		unspacedStart.test(after.replace(/^[*_]+/u, ""))
+	return unspacedEnd.test(emphasisLeftOffEnd(before)) ||
+		unspacedStart.test(emphasisLeftOffStart(after))
 		? ""
 		: " ";
+}
+
+// emphasisLeftOffEnd is a text with the signs of an emphasis at its end left
+// off, walked back from the end rather than matched: a pattern anchored at the
+// end tries each sign of a run as where the run starts, and reads a long run
+// that stops short of the end over and over.
+function emphasisLeftOffEnd(text: string): string {
+	let end = text.length;
+	while (end > 0 && emphasisSign(text[end - 1])) {
+		end -= 1;
+	}
+	return text.slice(0, end);
+}
+
+// emphasisLeftOffStart is a text with the signs of an emphasis at its start
+// left off.
+function emphasisLeftOffStart(text: string): string {
+	let start = 0;
+	while (start < text.length && emphasisSign(text[start])) {
+		start += 1;
+	}
+	return text.slice(start);
+}
+
+// emphasisSign reports whether a character is one Markdown marks an emphasis with.
+function emphasisSign(character: string | undefined): boolean {
+	return character === "*" || character === "_";
 }

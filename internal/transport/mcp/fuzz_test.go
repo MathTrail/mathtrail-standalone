@@ -300,7 +300,7 @@ func FuzzShowResultArguments(f *testing.F) {
 		}
 		waiting, answered := raceOnTheCard(t, rating.TrialAnswers), raceOnTheCard(t, rating.TrialAnswers)
 		if _, err := answered.Record(profile.Answered{TaskID: answered.CurrentTask.ID, Choice: "A", At: lessonDay},
-			sealer(t), rating.GradeLevels()); err != nil {
+			sealer(t), profile.Judging{Taught: rating.GradeLevels()}); err != nil {
 			t.Fatalf("Record() error = %v", err)
 		}
 

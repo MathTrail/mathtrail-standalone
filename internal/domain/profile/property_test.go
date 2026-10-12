@@ -208,7 +208,7 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 			for p, choice := range map[*profile.Profile]string{unsure: profile.DontKnow, mistaken: wrongLetter} {
 				id := answeringAt(t, p, topic, point)
 				if _, err := p.Record(profile.Answered{TaskID: id, Choice: choice, HintUsed: hint, At: issued.Add(time.Minute)},
-					newSealer(t), everyLevel); err != nil {
+					newSealer(t), profile.Judging{Taught: everyLevel}); err != nil {
 					return false
 				}
 			}
