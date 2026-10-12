@@ -453,6 +453,56 @@ The alternative is “{range}º ano”, closest to the card's “3º ano” pill
 
 The authors' names: Yakov Perelman, as the Revista Brasileira de Ensino de Física writes him (Hemus's books print “J. Perelman”); Iemelian Ignátiev, in the Portuguese transliteration of Russian (“Ie” for Е, as in “Ievguêni”, and the stress marked); Henry E. Dudeney, Sam Loyd and Lewis Carroll as they are.
 
+## Search words
+
+Gathered on 2026-10-12 from Google's suggestions for Brazil, and briefly for Portugal, and the titles of the first results; they show that a phrase is typed, not how often, and [the brief](README.md#search-words) says how a text uses them.
+
+**Who searches, and how.** In Brazil Google is 88 % of searches and Bing 10 %. Parents type one year, “3 ano”, “3º ano”, “3° ano” with the degree sign, “3 ano fundamental”, or a stage, “fundamental 1”; nobody types a range. The years 1 to 5 are “Fundamental I” and 6 to 9 “Fundamental II”, so the site's six years cross the line. `topics.grades`, “Anos {range}”, matches the typed “N ano” loosely. In Portugal parents type “3 ano” as well, and “percentagem” where the card says “Porcentagem”.
+
+**What parents type**, strongest first:
+
+1. “desafios matemáticos”, “para o N ano”;
+2. “problemas de matemática” with “N ano”, “para crianças” or “com respostas”, which leans to school sums;
+3. “raciocínio lógico”, “para crianças”;
+4. “problemas de lógica”, “para crianças”;
+5. “olimpíada de matemática” with a grade, among contests' names; the card's “problemas de olimpíada de matemática” is never suggested;
+6. “desafios de lógica”, “charadas matemáticas” and “enigmas matemáticos”, which lean to riddles.
+
+**The head's title.**
+
+- A topic's page: **“{topic}: problemas para os anos {range}”**. Topics are searched as “problemas de …” with a year, “problemas com horas 3 ano”, “problemas de frações 5 ano”, and “para os anos {range}” is the home page's lead. The longest, “Jogos com estratégia vencedora: problemas para os anos 5–6”, is 58 units; “olimpíada” would push four topics past 60. The other way, “{topic}: desafios para os anos {range}”, 57 at most, takes the parents' “desafios”.
+- Any other page: **“{page} — MathTrail”**, the spaced travessão the glossary keeps; the longest, “Técnicas de resolução de problemas — MathTrail”, is 46.
+
+**Topics.** ⚑ marks a card's name nobody types.
+
+| Topic | The card | What parents type |
+|---|---|---|
+| ordering | “Ordenação” ⚑ | nothing found; “ordem crescente e decrescente” is another school topic |
+| knights and liars | “Cavaleiros e mentirosos” ⚑ | nothing for parents; “verdades e mentiras” is the preparation for adult public exams |
+| enumeration | “Enumeração de casos” ⚑ | “problemas de contagem”, “árvore de possibilidades” |
+| gaps and boundaries | “Intervalos e extremos” ⚑ | nothing found |
+| clocks | “Relógios” | “problemas com horas”, “horas e minutos” |
+| calendar and age | “Calendário e idades” | “problemas de idade” |
+| pigeonhole principle | “Princípio da casa dos pombos” | the same; “princípio das gavetas” |
+| parity and alternation | “Paridade e alternância” ⚑ | nothing found |
+| arithmetic with a trick | “Aritmética com truque” ⚑ | “cálculo mental”, “truques de matemática”, “pensei em um número” |
+| weighing and pouring | “Balanças e jarras” ⚑ | “desafio dos baldes”; “problema das jarras” and “moeda falsa” rarely |
+| parts and shares | “Partes de um todo” ⚑ | “problemas de frações”; the card's name is a crossword's clue |
+| percentages | “Porcentagem” | the same; “percentagens” in Portugal |
+| ratios and sharing | “Razões e divisão proporcional” | “divisão proporcional”, “razão e proporção” |
+| figures on a grid | “Figuras na malha quadriculada” | the same; “área e perímetro na malha quadriculada” |
+| divisibility and remainders | “Divisibilidade e restos” | “critérios de divisibilidade”, “problemas de divisão com resto” |
+| overlapping groups | “Grupos que se sobrepõem” ⚑ | “diagrama de Venn”, “problemas com conjuntos” |
+| games with a winning strategy | “Jogos com estratégia vencedora” ⚑ | “jogo do Nim” |
+
+**Descriptions** can carry “desafios matemáticos”, “raciocínio lógico”, “problemas de lógica”, “ensino fundamental”, on "Techniques" “estratégias de resolução de problemas” and “Polya”, and on "Why" “olimpíadas de matemática”. “Com respostas” and “resolvidos” fit a topic's page and "Techniques" only. Today the descriptions of the home page, 176 characters, and "Techniques", 186, run past 160, and that of "Topics" carries none of these words.
+
+**Not to use.**
+
+- Contests and exams: OBMEP and its levels, “Canguru de Matemática”, “Olimpíada de Matemática sem Fronteiras”, OBM, “Olimpíada Paulista”, the Portuguese olympiads, ENEM.
+- “BNCC” and its codes, which are teachers' words, and “verdades e mentiras” or “raciocínio lógico para concursos”, which are adults' exams.
+- “para imprimir”, which the site does not give.
+
 ## Places for the author's reading
 
 - `topics.grades`, “Anos {range}”, against “{range}º ano”.

@@ -20,6 +20,12 @@
 // the child's answers say. One thing a person says does steer it: a topic the
 // child or the adult chose for the lessons, which every task is set on once
 // the trial series is over, at the level and the difficulty the answers say.
+//
+// The topics take turns, and two kinds take them differently. A topic the
+// child is behind in comes round twice as often as the rest. A topic on pause
+// — met, and out of reach now that even its easiest task is too hard — leaves
+// the turns and comes back once in ProbeEvery tasks as a probe at that task,
+// whose right answer takes it off the pause.
 package tutor
 
 import (
@@ -343,6 +349,14 @@ func LessonTopic(p *profile.Profile, catalog Catalog) string {
 // them is given the topics whose easiest task is the easiest the catalog has,
 // since nothing easier exists; a topic taught at no level is never given.
 func WithinReach(p *profile.Profile, catalog Catalog) []string {
+	topics, _ := reach(p, catalog)
+	return topics
+}
+
+// reach is the topics WithinReach gives, and whether they are the easiest the
+// catalog has, given to a child below every topic, rather than topics the
+// child is within reach of.
+func reach(p *profile.Profile, catalog Catalog) (topics []string, atTheBottom bool) {
 	var open, bottom []string
 	lowest := math.Inf(1)
 	for _, topic := range catalog.TopicIDs() {
@@ -362,9 +376,9 @@ func WithinReach(p *profile.Profile, catalog Catalog) []string {
 		}
 	}
 	if len(open) > 0 {
-		return open
+		return open, false
 	}
-	return bottom
+	return bottom, true
 }
 
 // choose picks the topic and the goal, and says in words what the choice
@@ -396,9 +410,21 @@ func choose(p *profile.Profile, catalog Catalog, open []string, awaited bool) (t
 		}
 	}
 
+	// On a probe's turn, a topic on pause, the one that has waited longest:
+	// set at its easiest task, it finds out whether the topic is still out of
+	// reach, however unlikely the child is to solve it.
+	if probeDue(p) {
+		if paused := PausedTopics(p, catalog); len(paused) > 0 {
+			topic = oldest(p, paused)
+			return topic, profile.GoalNewTopic, fmt.Sprintf(
+				"%s; one task in %d probes a topic on pause, met and out of reach now, and %s has waited longest",
+				now, ProbeEvery, topic)
+		}
+	}
+
 	// Otherwise something new: a topic within reach and not mastered at the
 	// level its tasks now come from, the ones never given first and then the
-	// one unseen for the longest.
+	// one unseen for the longest, a topic behind counting its wait twice.
 	candidates := unmastered(p, catalog, open)
 	allMastered := len(candidates) == 0
 	if allMastered {
@@ -408,9 +434,12 @@ func choose(p *profile.Profile, catalog Catalog, open []string, awaited bool) (t
 	}
 
 	topic = oldest(p, candidates)
-	when := "never given yet"
-	if !p.Topics[topic].LastIssued.IsZero() {
-		when = "given longest ago"
+	when := "given longest ago"
+	switch {
+	case p.Topics[topic].LastIssued.IsZero():
+		when = "never given yet"
+	case p.Behind(topic):
+		when = "that has waited longest, its rank behind the overall one and its wait counted twice"
 	}
 	if allMastered {
 		return topic, profile.GoalNewTopic,
@@ -479,25 +508,50 @@ func MasteredTopics(p *profile.Profile, catalog Catalog) int {
 // last given, and once a lesson has given every topic once, they all share
 // that day: were the day the last word, catalog order would settle the tie,
 // and the rest of the day would go to whichever of them the catalog lists
-// first. So within a day, the tasks behind the child say which came first.
-// Candidates arrive in catalog order and the walk keeps the first of any tie,
-// so the order of a map never reaches the answer.
+// first. So within a day, the tasks behind the child say which has waited
+// longest — and a topic the child is behind in counts its wait twice, so that
+// it comes round twice as often as the rest. Candidates arrive in catalog
+// order and the walk keeps the first of any tie, so the order of a map never
+// reaches the answer.
 func oldest(p *profile.Profile, candidates []string) string {
-	places := lastPlaces(p)
+	waits := waitsOf(p)
 	best := candidates[0]
 	for _, topic := range candidates[1:] {
-		if waitedLonger(p, places, topic, best) {
+		if waits.waitedLonger(topic, best) {
 			best = topic
 		}
 	}
 	return best
 }
 
+// waits is what the topics' turns are read from: the child, where each
+// topic's last task stands among the tasks behind the child, and how many
+// tasks those places count.
+type waits struct {
+	p      *profile.Profile
+	places map[string]int
+	seen   int
+}
+
+// waitsOf reads the turns off a profile: the history window, and the task on
+// the card while it waits for its answer, since a brief built then is for a
+// task after it.
+func waitsOf(p *profile.Profile) waits {
+	seen := len(p.Recent)
+	if p.InFlight() != nil {
+		seen++
+	}
+	return waits{p: p, places: lastPlaces(p), seen: seen}
+}
+
 // waitedLonger reports whether a topic has waited longer than another: by the
-// day each was last given, and between two given on the same day, by the
-// place of each one's last task.
-func waitedLonger(p *profile.Profile, places map[string]int, topic, than string) bool {
-	mine, theirs := p.Topics[topic].LastIssued, p.Topics[than].LastIssued
+// day each was last given, the older first; between two given on the same
+// day, one of which the window holds no task of, that one, given before all
+// the window holds; between two it holds, by how far each one's last task
+// stands from the task being chosen, twice as far for a topic behind; and
+// between two that waited as long, by which came first.
+func (w *waits) waitedLonger(topic, than string) bool {
+	mine, theirs := w.p.Topics[topic].LastIssued, w.p.Topics[than].LastIssued
 	switch {
 	case mine.IsZero() && theirs.IsZero():
 		return false // both untouched: catalog order already settled it
@@ -507,9 +561,31 @@ func waitedLonger(p *profile.Profile, places map[string]int, topic, than string)
 		return false
 	case !mine.Equal(theirs.Time):
 		return mine.Before(theirs.Time)
-	default:
-		return places[topic] < places[than]
+	case w.places[topic] == 0 && w.places[than] == 0:
+		return false // both out of the window: catalog order already settled it
+	case w.places[topic] == 0 && w.places[than] != 0:
+		return true // out of the window: given before all it holds, however far behind the other
+	case w.places[than] == 0 && w.places[topic] != 0:
+		return false
 	}
+	if mine, theirs := w.of(topic), w.of(than); mine != theirs {
+		return mine > theirs
+	}
+	return w.places[topic] < w.places[than]
+}
+
+// of is how far a topic's last task stands from the task being chosen, in
+// tasks, twice as far for a topic the child is behind in. Counted to the task
+// being chosen, so that a turn every n tasks is a distance of n, the doubling
+// halves the distance between a topic's turns; counted to the task before it,
+// a topic behind would come round less than twice as often. A topic none of
+// whose tasks the places hold was given before all of them.
+func (w *waits) of(topic string) int {
+	since := w.seen + 1 - w.places[topic]
+	if w.p.Behind(topic) {
+		return 2 * since
+	}
+	return since
 }
 
 // lastPlaces is where each topic's last task stands among the tasks the child

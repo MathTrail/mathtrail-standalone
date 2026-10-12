@@ -78,6 +78,10 @@ const handedTask = z.object({
 		picture: z.optional(pictureFormat).catch(undefined),
 		options,
 		hint: z.string(),
+		// A probe, set by the rule in a topic on pause while even its easiest
+		// tasks are too hard, is marked as one; a task from a release before
+		// probes, or a mark that does not read, is no probe.
+		probe: z.optional(z.boolean()).catch(undefined),
 	}),
 	// The lesson's language, which the card's words are in; a card from before
 	// it travelled with the task has none.
@@ -661,6 +665,10 @@ const progressReport = z.object({
 			answers: z.number().int().nonnegative(),
 			mastered: z.boolean(),
 			skipped: z.number().int(),
+			// A topic on pause, met and out of reach while even its easiest
+			// tasks are too hard, says so; a progress from before pauses, or a
+			// mark that does not read, draws its topics as it did then.
+			paused: z.optional(z.boolean()).catch(undefined),
 			change: moves,
 			// A progress from before the topics' pages has neither, and one
 			// that does not read is read as none: the topic is drawn with no

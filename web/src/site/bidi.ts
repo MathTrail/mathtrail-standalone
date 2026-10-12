@@ -70,27 +70,45 @@ export function leftToRightSpans(
 // end in, holds only brackets it both opens and closes, and cuts no stretch
 // the text holds as one.
 function settled(text: string, wholes: readonly Span[], found: Span): Span {
-	let [start, end] = found;
+	let span = found;
 	let was: Span;
 	do {
-		was = [start, end];
-		while (start < end && /\s/u.test(text[start] ?? "")) {
-			start += 1;
+		was = span;
+		span = outsideWholes(wholes, bracketed(text, trimmed(text, span)));
+	} while (span[0] !== was[0] || span[1] !== was[1]);
+	const [start, end] = span;
+	return start < end ? span : [start, start];
+}
+
+// trimmed is a stretch with the spaces at its start left off, cut back to end
+// in what a run may end in.
+function trimmed(text: string, [start, end]: Span): Span {
+	let from = start;
+	let to = end;
+	while (from < to && /\s/u.test(text[from] ?? "")) {
+		from += 1;
+	}
+	while (from < to && !ends.test(text[to - 1] ?? "")) {
+		to -= 1;
+	}
+	return [from, to];
+}
+
+// outsideWholes is a stretch whose ends cut no stretch the text holds as one:
+// an end inside one moves out of it, the start past the whole's end and the
+// end back to the whole's start.
+function outsideWholes(wholes: readonly Span[], [start, end]: Span): Span {
+	let from = start;
+	let to = end;
+	for (const [wholeStart, wholeEnd] of wholes) {
+		if (wholeStart < from && from < wholeEnd) {
+			from = wholeEnd;
 		}
-		while (start < end && !ends.test(text[end - 1] ?? "")) {
-			end -= 1;
+		if (wholeStart < to && to < wholeEnd) {
+			to = wholeStart;
 		}
-		[start, end] = bracketed(text, [start, end]);
-		for (const [from, to] of wholes) {
-			if (from < start && start < to) {
-				start = to;
-			}
-			if (from < end && end < to) {
-				end = from;
-			}
-		}
-	} while (start !== was[0] || end !== was[1]);
-	return start < end ? [start, end] : [start, start];
+	}
+	return [from, to];
 }
 
 // bracketed is a stretch cut back to the brackets it both opens and closes:

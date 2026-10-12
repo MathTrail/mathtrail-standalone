@@ -490,6 +490,63 @@ The alternative is 「小学{range}年生」, 「小学3–4年生」, as the ca
 
 The authors' names: ヤコフ・ペレリマン, as his Japanese publishers write the surname (Japanese Wikipedia writes ヤコブ and also ペレルマン); エメリヤン・イグナーチェフ, the surname as his Japanese edition writes it and the given name as Japanese writes Емельян; ヘンリー・E・デュードニー, サム・ロイド and ルイス・キャロル as Japanese writes them.
 
+## Search words
+
+Gathered on 2026-10-12 from Google's suggestions for Japan and the titles of the first results; they show that a phrase is typed, not how often, and [the brief](README.md#search-words) says how a text uses them.
+
+**Who searches, and how.** Google is 59 % of searches in Japan, Bing 31 % and Yahoo! 8 %, and Yahoo! JAPAN answers with Google's engine. Parents type a grade as 「小3」, 「3年生」 or 「小学3年生」, a band as 「低学年」 or 「高学年」, and frame the whole with 「小学生」. `topics.grades`, 「{range}年生」, matches them; the chips leave out the 「小学」 the card's 「小学1〜6年生」 has.
+
+**What parents type**, strongest first:
+
+1. 「論理パズル」 and 「算数パズル」, with 「小学生」;
+2. 「算数 難問」;
+3. 「思考力」 and 「思考力問題」;
+4. 「算数 おもしろ問題」;
+5. 「頭の体操」, also the title of a series of books;
+6. 「応用問題」 and 「発展問題」, the school's words for problems beyond the textbook;
+7. 「文章題」, the school's word for a problem in words, best with a topic;
+8. 「特殊算」, the cram schools' name for the named kinds of problem, seven of which are the site's topics.
+
+**The head's title.**
+
+- A topic's page: **「{topic}の問題（小学{range}年生）」**. 「〇〇の問題」 is how parents type a topic and how every topic's description names it, and 「小学」 sets the pages apart from the same names at high school, 「場合の数と確率」 or 「鳩の巣原理 大学入試」. The longest, 「てんびんと水の移しかえの問題（小学3–6年生）」, is 43 units. The other way, 「{topic}の問題と解き方（{range}年生）」, 47 at most, takes 解き方 and loses 小学.
+- Any other page: **「{page}｜MathTrail」**, a full-width bar with no space beside it, as the glossary sets full-width marks; Japanese sites put no dash before the site's name.
+
+**Topics.** ⚑ marks a card's name nobody types. Where the card writes a word in kana and parents in kanji, search finds both, and the kanji may stand once beside the card's word.
+
+| Topic | The card | What parents type |
+|---|---|---|
+| ordering | 「順番の推理」 ⚑ | 「推理算」, 「論理パズル」 |
+| knights and liars | 「正直者とうそつき」 | 「正直者と嘘つき」, 「嘘つき問題」 |
+| enumeration | 「場合の数」 | the same; 「樹形図」 |
+| gaps and boundaries | 「植木算」 | the same |
+| clocks | 「時計と時間」 | 「時刻と時間」; not 「時計算」, the angles of a clock's hands |
+| calendar and age | 「カレンダーと年れい」 ⚑ | 「日暦算」, 「年齢算」 |
+| pigeonhole principle | 「ハトの巣原理」 | 「鳩の巣原理」 |
+| parity and alternation | 「偶奇と交互」 ⚑ | 「偶数と奇数の問題」 |
+| arithmetic with a trick | 「計算のくふう」 | 「計算の工夫」, 「工夫して計算」 |
+| weighing and pouring | 「てんびんと水の移しかえ」 ⚑ | 「天秤の問題」, 「油分け算」 |
+| parts and shares | 「部分と全体」 ⚑ | 「相当算」, 「分数の文章題」; the card's name is a book's title |
+| percentages | 「百分率」 | the same; 「割合」 |
+| ratios and sharing | 「比と比例配分」 ⚑ | 「比の問題」; 「比例配分」 alone is shares in a company |
+| figures on a grid | 「方眼紙の図形」 ⚑ | 「面積と周りの長さ」 |
+| divisibility and remainders | 「倍数・約数とあまり」 | 「倍数と約数」, 「あまりのあるわり算」 |
+| overlapping groups | 「集合算」 | the same; 「ベン図」 |
+| games with a winning strategy | 「必勝法のあるゲーム」 | 「必勝法」, 「石取りゲーム」 |
+
+The cram schools' names, 「推理算」, 「日暦算」, 「年齢算」, 「相当算」, 「油分け算」, name a kind of problem only, never with 「受験」 or 「入試」.
+
+**Descriptions** can carry 「小学生」, 「思考力」, 「算数パズル」, 「論理パズル」, 「解き方」, 「考え方」 and 「無料」, a fact. Today only the description of "Service" runs past 160 units, to 178, and that of "Topics" carries none of these words.
+
+**Not to use.**
+
+- Contests and exams: 「キッズBEE」, 「ジュニア算数オリンピック」, 「思考力検定」, 「算数検定」, 「中学受験」, 「中学入試」.
+- Brands: 「思考力プラス」, 「なぞぺー」, 「算数脳」.
+- What the site does not give: 「プリント」, 「問題集」, 「ドリル」.
+- 「てんびん算」, a cram schools' method for concentrations.
+
+**For the author.** 「算数オリンピック」 is the name of a Japanese contest, and parents who type it look for that contest. The card and this glossary use it for the kind of problem, and the home page's title and description, "Techniques" and "Why" lead with it. The search words would keep it in the prose and lead titles and descriptions with 「思考力」, 「算数パズル」 or 「論理パズル」.
+
 ## Places for the author's reading
 
 - The people of the examples: Japanese names in katakana with no suffix, and the first katakana in place of an initial, so ordering's badges become 「タ」 and 「フ」 and Kate's bead 「エ」. The alternative is hiragana names with さん, the textbook style, which would have to drop the さん in every drawing.

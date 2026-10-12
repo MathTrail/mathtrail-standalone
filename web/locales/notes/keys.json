@@ -207,6 +207,13 @@
 		"address": "none",
 		"mind": "'Closed' is said of the task. 'Further down the chat' is where the newest task's card is."
 	},
+	"task.probe": {
+		"reader": "both",
+		"where": "A mark above a task the coach set as a probe: a check of a topic on pause, whose easiest tasks are still too hard, so that the child and the adult know the task may be hard.",
+		"length": "label",
+		"address": "none",
+		"mind": "A check of the topic, never a test of the child: it finds out whether the topic comes back into the lessons. The same word as 'a check' in progress.paused_line."
+	},
 	"topic_choice.label": {
 		"reader": "both",
 		"where": "'Topic:' before the chosen topic on the topic button under a task, and on the mark above a task given on that topic.",
@@ -672,14 +679,14 @@
 		"where": "A small word before a topic's rank at the end of its row: the topic's rank is above the overall rank.",
 		"length": "label",
 		"address": "none",
-		"mind": "One of three words with progress.even and progress.behind. It describes the topic's rank, not the child, and sits beside 'Rank N'."
+		"mind": "One of three words with progress.even and progress.behind. It describes the topic's rank, not the child, and sits beside 'Rank N'. A topic on pause has progress.paused in their place."
 	},
 	"progress.behind": {
 		"reader": "both",
 		"where": "A small word before a topic's rank at the end of its row: the topic's rank is below the overall rank.",
 		"length": "label",
 		"address": "none",
-		"mind": "One of three words with progress.ahead and progress.even. It describes the topic's rank, not the child: a plain fact, not a reproach."
+		"mind": "One of three words with progress.ahead and progress.even. It describes the topic's rank, not the child: a plain fact, not a reproach. A topic on pause has progress.paused in their place."
 	},
 	"progress.no_rank": {
 		"reader": "both",
@@ -908,7 +915,21 @@
 		"where": "A small word before a topic's rank at the end of its row: the topic's rank equals the overall rank.",
 		"length": "label",
 		"address": "none",
-		"mind": "One of three words with progress.ahead and progress.behind: level with the overall rank."
+		"mind": "One of three words with progress.ahead and progress.behind: level with the overall rank. A topic on pause has progress.paused in their place."
+	},
+	"progress.paused": {
+		"reader": "both",
+		"where": "A small word before a topic's rank at the end of its row, in the pause's colour: the topic is on pause, its easiest tasks still too hard. It takes the place of ahead, even or behind, and of the words of a move.",
+		"length": "label",
+		"address": "none",
+		"mind": "Said of the topic, as ahead, even and behind are: paused for now, not stopped for good, and nothing said of the child."
+	},
+	"progress.paused_line": {
+		"reader": "both",
+		"where": "A line under the course of a topic on pause, on the tint the topic stands apart on: what the pause means.",
+		"length": "sentence",
+		"address": "none",
+		"mind": "The topic is the subject of both sentences: where the language gives the topic's word a gender, the words agree with it, never with the child. 'A check' is the probe task.probe marks: the topic's easiest task, set to see whether it is in reach again."
 	},
 	"progress.note_rank_up": {
 		"reader": "both",

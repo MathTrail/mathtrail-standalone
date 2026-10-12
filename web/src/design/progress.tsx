@@ -464,6 +464,10 @@ export type RankRow = {
 	way?: MoveWay;
 	name?: string;
 	segments: Parameters<typeof Segments>[0];
+	// A topic on pause is drawn set apart, its word in the pause's colour and
+	// a line under its course that says what the pause means.
+	paused?: boolean;
+	line?: string;
 };
 
 /**
@@ -493,7 +497,13 @@ export function RankList({
 			{legend}
 			<ul>
 				{rows.map((row) => (
-					<li key={row.id} class="mt-rank-row">
+					<li
+						key={row.id}
+						class={classes(
+							"mt-rank-row",
+							row.paused === true && "mt-rank-row-paused",
+						)}
+					>
 						<div class="mt-rank-row-top">
 							<span class="mt-rank-row-start">
 								<span class="mt-row-label">
@@ -528,6 +538,9 @@ export function RankList({
 							</span>
 						</div>
 						<Segments {...row.segments} />
+						{row.line !== undefined && (
+							<p class="mt-rank-row-line">{row.line}</p>
+						)}
 					</li>
 				))}
 			</ul>

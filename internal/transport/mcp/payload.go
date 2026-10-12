@@ -455,7 +455,10 @@ func (s *Service) nextText(next *progress.Recommendation) string {
 			s.topicDescribed(next.Topic), next.GradeLevel, next.Difficulty)
 	}
 	why := "as something new"
-	if next.Goal == profile.GoalReinforce {
+	switch {
+	case next.Probe:
+		why = "as a probe of a topic on pause, to see whether its easiest task is in reach again"
+	case next.Goal == profile.GoalReinforce:
 		why = "to go over it again after a mistake"
 	}
 	return fmt.Sprintf("Next, the rule suggests %s at level %s, difficulty %d, %s.",

@@ -242,7 +242,7 @@ func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Pro
 		s.events.write(ctx, account, eventTaskSkipped, s.skippedFields(skipped.Topic, skipped.GradeLevel, skipped.Difficulty)...)
 		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", skipped.TaskID)
 	}
-	s.events.write(ctx, account, eventTaskRequested, requestFields(request, false)...)
+	s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, request, false)...)
 	return Reply[requestOut]{
 		Text: joined(lead, fmt.Sprintf("Request %s is open, in %s. You write its task: get the package to write it "+
 			"from with get_package and request_id %s, now, then hand the task in with submit_task and the same "+
@@ -301,7 +301,7 @@ func (s *Service) serveReady(ctx context.Context, account store.Account, p *prof
 			aheadNextText),
 			lessonLanguageText(&p.Student)) + "\n\n" + taskWords(task),
 		Payload: requestOut{
-			Screen: screenTask, Task: cardOf(task), TopicChoice: choice, LastAnswer: lastAnswerOf(p),
+			Screen: screenTask, Task: s.cardOf(p, task), TopicChoice: choice, LastAnswer: lastAnswerOf(p),
 			Child: childLineOf(&p.Student), Language: task.Language,
 		},
 	}
@@ -354,7 +354,7 @@ func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profi
 	if err := s.canPackage(p, request); err != nil {
 		return Reply[requestOut]{}, err
 	}
-	s.events.write(ctx, account, eventTaskRequested, requestFields(request, true)...)
+	s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, request, true)...)
 
 	lead := fmt.Sprintf("Request %[1]s is already open, in %[2]s. If you have written its task, hand it in with "+
 		"submit_task and request_id %[1]s. If you have not, a turn cut short say, the task is yours to write: get "+
@@ -442,14 +442,19 @@ func (s *Service) skippedFields(topic string, level rating.GradeLevel, difficult
 }
 
 // requestFields are what the line about a request keeps of it: where the task
-// is to stand, why, who chose it, and whether it is written ahead.
-func requestFields(request *profile.OpenRequest, alreadyOpen bool) []zap.Field {
+// is to stand, why, who chose it, whether it is a probe of a topic on pause,
+// and whether it is written ahead. Whether it is a probe is read off the
+// child as they stand when the line is written, as a card reads it: a request
+// written ahead and told of again after an answer that took its topic off the
+// pause is no probe any more.
+func (s *Service) requestFields(p *profile.Profile, request *profile.OpenRequest, alreadyOpen bool) []zap.Field {
 	return []zap.Field{
 		zap.String("topic", request.Brief.TargetConcept),
 		zap.String("level", string(request.Brief.GradeLevel)),
 		zap.Int("difficulty", request.Brief.Difficulty),
 		zap.String("goal", string(request.Brief.PedagogicalGoal)),
 		zap.String("tutor_mode", string(request.TutorMode)),
+		zap.Bool("probe", tutor.Probes(p, s.content, request.Brief.TargetConcept, request.TutorMode)),
 		zap.Bool("already_open", alreadyOpen),
 		zap.Bool("ahead", request.Ahead),
 	}

@@ -239,7 +239,7 @@ func answeredByChance(t *testing.T, catalog tutor.Catalog, p *profile.Profile, t
 		choice = "B"
 	}
 	answered := profile.Answered{TaskID: task.ID, Choice: choice, At: task.IssuedAt.Add(2 * time.Minute)}
-	if _, err := p.Record(answered, sealer, catalog.LevelsOf(task.Topic)); err != nil {
+	if _, err := p.Record(answered, sealer, tutor.JudgingOf(p, catalog)); err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
 	return correct

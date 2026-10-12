@@ -72,7 +72,8 @@ var events = map[string][]string{
 	},
 	"mcp_panic": {"panic", "stack", "method", "user"},
 	"task_requested": {
-		"topic", "level", "difficulty", "goal", "tutor_mode", "already_open", "ahead", "by_card", "instructions_version", "user",
+		"topic", "level", "difficulty", "goal", "tutor_mode", "probe", "already_open", "ahead", "by_card",
+		"instructions_version", "user",
 	},
 	"task_skipped": {"topic", "level", "difficulty", "instructions_version", "user"},
 	"solver_run":   {"status", "steps", "duration_ms", "instructions_version", "user"},
@@ -104,7 +105,7 @@ var events = map[string][]string{
 	// sets.
 	"answer_recorded": {
 		"topic", "level", "difficulty", "correct", "trap", "hint_used", "confused", "pace",
-		"chance", "tutor_mode", "trial", "answers_bucket", "instructions_version", "user",
+		"chance", "tutor_mode", "probe", "trial", "answers_bucket", "instructions_version", "user",
 		"learner", "grade", "cohort", "topics_mastered",
 	},
 	"topic_mastered": {"learner", "topic", "grade", "instructions_version", "user"},
@@ -210,11 +211,11 @@ func Fits(event, field string, value any) bool {
 		return wholeWithin(value, lowestGrade, highestGrade)
 	case "topics_mastered":
 		return wholeWithin(value, 0, mostTopicsMastered)
-	case "drawing", "ready", "by_card":
+	case "drawing", "ready", "by_card", "probe":
 		// Whether the task came with a drawing, which a line written before
 		// pictures says, and never the drawing itself, which is the task's
-		// text; whether it was written ahead and kept; and whether a card took
-		// it.
+		// text; whether it was written ahead and kept; whether a card took it;
+		// and whether it was a probe of a topic on pause.
 		_, isBool := value.(bool)
 		return isBool
 	}

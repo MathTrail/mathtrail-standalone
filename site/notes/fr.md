@@ -477,6 +477,61 @@ The alternative is «Niv. {range}», the card's own abbreviation, should a chip 
 
 The authors' names: Yakov Perelman, as Dunod writes him (Mir's French editions write "Ya. Pérelman"); Emelian Ignatiev, as French writes Russian names; Henry E. Dudeney, as Fantaisium writes him; Sam Loyd and Lewis Carroll as they are.
 
+## Search words
+
+Gathered on 2026-10-12 from Google's suggestions for France, Belgium, Switzerland and Canada, and the titles of the first results; they show that a phrase is typed, not how often, and [the brief](README.md#search-words) says how a text uses them. The country changes the lists little.
+
+**Who searches, and how.** In France Google is 88 % of searches and Bing 6 %; in Belgium, Canada and Switzerland Bing is 9–12 %. French parents type the class's name, «cm2», «cm1», «ce2», «cp», «6ème» or «cycle 3»; Belgian ones «3e primaire», those of Québec «3e année», those of Romandie «5P». `topics.grades`, «Niveaux {range}», matches none of them, and in France «niveau 3» reads as the collège's «3e».
+
+**What parents type**, strongest first:
+
+1. «énigmes mathématiques» or «énigmes maths» with a class;
+2. «problèmes de logique» with a class or «avec correction»;
+3. «défi maths», «défis mathématiques»;
+4. «casse-tête mathématiques»;
+5. «jeux mathématiques», «jeux de logique»;
+6. «devinettes mathématiques»;
+7. «résolution de problèmes».
+
+«Maths d’olympiade» and «problèmes d’olympiades» are never suggested: in French search «olympiades» are contests.
+
+**The head's title.**
+
+- A topic's page: **«{topic} : énigmes de maths, niveaux {range}»**, with a no-break space before the colon. «Énigmes … maths» is the strongest query, and «niveaux {range}» is `topics.grades`. The longest, «Groupes qui se chevauchent : énigmes de maths, niveaux 5–6», is 58 units; «énigmes mathématiques» would push three topics past 60. The other way, «{topic} : défis maths, niveaux {range}», 53 at most, takes the parents' «défis».
+- Any other page: **«{page} — MathTrail»**, with a no-break space before the dash, as the glossary writes a dash alone; the longest, «Techniques de résolution de problèmes — MathTrail», is 49.
+
+**Topics.** ⚑ marks a card's name nobody types.
+
+| Topic | The card | What parents type |
+|---|---|---|
+| ordering | «Mise en ordre» ⚑ | only «problèmes de logique»; the card's name is a crossword's clue |
+| knights and liars | «Chevaliers et menteurs» ⚑ | «énigme du menteur», «l’île aux menteurs» |
+| enumeration | «Énumération des cas» ⚑ | «problèmes de dénombrement» with a class, «arbre des possibles» |
+| gaps and boundaries | «Intervalles et bornes» | «problème des intervalles», «piquets et intervalles»; «bornes» is analysis |
+| clocks | «Horloges» ⚑ | «calcul de durées», «problèmes de durées», «lire l’heure»; «horloges» are wall clocks |
+| calendar and age | «Calendrier et âges» ⚑ | «problèmes d’âge», which lean to the collège's equations |
+| pigeonhole principle | «Principe des tiroirs» | the same |
+| parity and alternation | «Parité et alternance» ⚑ | «pair et impair», rarely |
+| arithmetic with a trick | «Calculs astucieux» | the same; «astuces de calcul mental» |
+| weighing and pouring | «Pesées et transvasements» ⚑ | «énigme des bidons», «transvasement», «énigme de la balance» |
+| parts and shares | «Parties d’un tout» ⚑ | «problèmes de fractions»; the card's name is a crossword's clue |
+| percentages | «Pourcentages» | the same |
+| ratios and sharing | «Rapports et partages» ⚑ | «proportionnalité», «partage proportionnel», «problèmes de partage» |
+| figures on a grid | «Figures sur quadrillage» | «aire et périmètre»; the card's name leads to copying figures |
+| divisibility and remainders | «Divisibilité et restes» | «critères de divisibilité», «division euclidienne» |
+| overlapping groups | «Groupes qui se chevauchent» ⚑ | «diagramme de Venn» |
+| games with a winning strategy | «Jeux à stratégie gagnante» ⚑ | «jeu de Nim», «jeu des allumettes» |
+
+**Descriptions** can carry «énigmes mathématiques», «problèmes de logique», «primaire», which reads alike in all four countries, on "Techniques" «résolution de problèmes», and «raisonnement» as a noun. «Avec correction» fits a topic's page and "Techniques" only. Today the descriptions of the home page, 193 characters, and "Techniques", 195, run past 160.
+
+**Not to use.**
+
+- Contests: «Olympiades de mathématiques», «maths olympiades», «Kangourou des mathématiques», «rallye maths».
+- What the site does not give: «pdf», «à imprimer».
+- «développer le raisonnement», a promise.
+
+**For the author.** The site's own words for its kind, «maths d’olympiade» and «problèmes d’olympiade», written 34 times, among them the titles of the home page and "Why", are never suggested. France searches by «CP» to «CM2» and «6e», which the glossary leaves out to stay alike in every country; a description can say «primaire», but «du CP à la 6e» writes grades a description cannot take.
+
 ## Places for the author's reading
 
 - The menu: «Étude» for «Recherche», in the menu, the page's title and the footer alike, keeps the French row under the Russian, and keeps a French reader from taking the entry for a search; the other way out is «Recherche» everywhere and a fold some 30 px wider for every language.

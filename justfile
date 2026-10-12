@@ -1829,12 +1829,12 @@ ci-load *args: docker-build
     one -scenario saturation -children 80 -rate 27 -env MATHTRAIL_RATE_INSTANCE_PER_MIN=1000000 -memory-ceiling 96m
     one -scenario limits -memory-ceiling 64m
     one -scenario cold -memory-ceiling 64m
-    one -scenario adversarial -variants appends -memory-ceiling 256m
-    one -scenario adversarial -variants helper -memory-ceiling 128m
+    one -scenario adversarial -variants appends -memory-ceiling 288m
+    one -scenario adversarial -variants helper -memory-ceiling 160m
     one -scenario adversarial -variants tuples -memory-ceiling 960m
     one -scenario adversarial -variants pairs -memory-ceiling 960m
     one -scenario adversarial -variants sets -memory-ceiling 960m
-    one -scenario adversarial -variants product -memory-ceiling 288m
+    one -scenario adversarial -variants product -memory-ceiling 544m
     exit "$worst"
 
 # The load tool's tests, with the race detector

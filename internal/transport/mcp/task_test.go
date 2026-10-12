@@ -2213,7 +2213,7 @@ func TestATaskHandedOutOverAnAnsweredOneSkipsNothing(t *testing.T) {
 	t.Parallel()
 
 	on := raceOnTheCard(t, 0)
-	if _, err := on.Record(profile.Answered{TaskID: on.CurrentTask.ID, Choice: "C", At: lessonDay}, sealer(t), rating.GradeLevels()); err != nil {
+	if _, err := on.Record(profile.Answered{TaskID: on.CurrentTask.ID, Choice: "C", At: lessonDay}, sealer(t), profile.Judging{Taught: rating.GradeLevels()}); err != nil {
 		t.Fatalf("Record() error = %v, want the race answered", err)
 	}
 	asked := fuzzProfile(t).OpenRequest.Brief

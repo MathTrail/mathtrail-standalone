@@ -482,6 +482,61 @@ An Arabic title goes in «»; an English one stays plain, as the Spanish page wr
 
 The authors' names, as Arabic Wikipedia writes them: «ياكوف بيرلمان», «يميليان إغناتيف» (no article; written as Arabic writes Russian names), «هنري إ. دوديني», «سام لويد», «لويس كارول». `sources.died`, "† {year}", is «ت {year}»: Arabic marks a death year with «ت», for «توفي», where the English uses a dagger, and the letter shows no gender.
 
+## Search words
+
+Gathered on 2026-10-12 from Google's suggestions for Egypt, Saudi Arabia, Morocco and Jordan, and the titles of the first results; they show that a phrase is typed, not how often, and [the brief](README.md#search-words) says how a text uses them. The suggestions are the same in every country, so these words are the whole Arab world's.
+
+**Who searches, and how.** Google is 94–98 % of searches, Bing 2–4 %. Parents type a grade in words, never in digits: «الصف الثالث الابتدائي», «ثالث ابتدائي», in Jordan «الصف الثالث الأساسي», in Morocco «المستوى الثالث ابتدائي». The word most of them share is «ابتدائي». `topics.grades`, «الصفوف {range}», is the noun of Egypt, the Gulf and the Levant, and a title keeps its digits through the slot; a description can name the stage in words.
+
+**What parents type**, strongest first:
+
+1. «ألغاز رياضيات للأطفال», with «مع الحل» or a grade;
+2. «أسئلة ذكاء رياضيات», with a grade or «للأطفال»;
+3. «مسائل ذكاء للأطفال», the nearest to the site's «مسائل»;
+4. «مسائل رياضيات» with «ابتدائي» or a grade, which leans to homework;
+5. «مسائل أولمبياد رياضيات», whose suggestions are mostly for older pupils;
+6. «ألغاز منطقية»;
+7. «استراتيجيات حل المسائل» and «خطة حل المسألة»;
+8. «التفكير المنطقي» and «تنمية التفكير المنطقي».
+
+**The head's title.**
+
+- A topic's page: **«{topic}: مسائل أولمبياد رياضيات للصفوف {range}»**. Without the article, «مسائل أولمبياد رياضيات» reads as olympiad problems in general, where «أولمبياد الرياضيات» reads as the named school contest; «رياضيات» says what a topic's name such as «الساعات» does not; and «للصفوف {range}» is `topics.grades` with «لـ», as the home page's lead writes it. The longest, «ألعاب باستراتيجية رابحة: مسائل أولمبياد رياضيات للصفوف 5–6», is 58 units. The other way, «{topic}: مسائل بأسلوب الأولمبياد للصفوف {range}», 59 at most, is the card's own wording without «رياضيات».
+- Any other page: **«{page} — MathTrail»**, the card's dash; the longest, «لماذا رياضيات الأولمبياد — MathTrail», is 36.
+
+**Topics.** ⚑ marks a card's name nobody types.
+
+| Topic | The card | What parents type |
+|---|---|---|
+| ordering | «الترتيب» ⚑ | «ألغاز منطقية»; «الترتيب» is the lesson on ascending and descending order |
+| knights and liars | «الفرسان والكذابون» ⚑ | «لغز الصادق والكاذب», «لغز الحارسين» |
+| enumeration | «حصر الحالات» ⚑ | «مبدأ العد», «الرسم الشجري», «عدد الطرق الممكنة»; the card's name is a school's census forms |
+| gaps and boundaries | «الفواصل والحدود» ⚑ | nothing found |
+| clocks | «الساعات» | «مسائل الوقت», «الزمن المنقضي» |
+| calendar and age | «التقويم والأعمار» ⚑ | «مسائل الأعمار» |
+| pigeonhole principle | «مبدأ برج الحمام» | the same |
+| parity and alternation | «الزوجية والتناوب» ⚑ | «الأعداد الزوجية والفردية»; «الزوجية» alone is marriage |
+| arithmetic with a trick | «حساب فيه خدعة» ⚑ | «خدع رياضية», «حيل رياضية» |
+| weighing and pouring | «الوزن وسكب السوائل» ⚑ | «لغز الميزان», «لغز القطعة النقدية المزيفة» |
+| parts and shares | «الأجزاء والحصص» ⚑ | «مسائل الكسور» |
+| percentages | «النسب المئوية» | the same, «مسائل النسبة المئوية» |
+| ratios and sharing | «النسب والتقسيم» ⚑ | «النسبة والتناسب», «التقسيم التناسبي» |
+| figures on a grid | «أشكال على ورق المربعات» | «المساحة والمحيط»; «ورق المربعات» is drawing |
+| divisibility and remainders | «قابلية القسمة والبواقي» | the same; «باقي القسمة» |
+| overlapping groups | «المجموعات المتداخلة» ⚑ | «مخطط فن» |
+| games with a winning strategy | «ألعاب باستراتيجية رابحة» ⚑ | nothing that is maths: «ألعاب رياضيات» are games for screens |
+
+**Descriptions** can carry «مسائل رياضيات», «ألغاز رياضيات للأطفال», the stage in words, «المرحلة الابتدائية», on "Techniques" «استراتيجيات حل المسائل», and on "Why" «التفكير المنطقي», which the page's own sources back. «مع الحل» fits a topic's page and "Techniques" only; the home page's honest word is «شرح الخطأ». Today every description is within 160, and that of "Topics" carries only «مسائل».
+
+**Not to use.**
+
+- Contests and tests: «كانجارو», «موهبة», «مسابقة الأولمبياد العلمية», the school olympiads of Palestine, Algeria and Tunisia, «القدرات».
+- Homework and what the site does not give: «pdf», «مذكرة», «الترم», «حل كتاب», «امتحان».
+- «للموهوبين», which sorts children, and «اختبار ذكاء» or «ينمّي الذكاء», a test and a promise.
+- Words that search reads as something else: «الغاز» without its hamza, gas; «ألعاب رياضية», sports; «الصادق والكاذب» without «لغز»; «أشكال فن».
+
+**For the author.** Parents type «استراتيجيات حل المسائل», where the glossary calls a technique «أسلوب», which is never suggested; a description can say both. Parents type «فكر في رقم», and the glossary keeps «عدد» for a number.
+
 ## Places for the author's reading
 
 - The plural «أنتم» for the reader throughout, where the card mostly writes the impersonal «يمكن…» and in a few keys the singular «ـك» (`data.label`, `data.export_*`, `first_run.label`, `first_run.fill`); `topic.path` is «أنتم هنا» and `topic.ask` «اطلبوا مسألة في هذا الموضوع».

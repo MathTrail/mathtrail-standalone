@@ -27,6 +27,15 @@ type follower interface {
 	followed(topic string, beta float64, correct bool, estimate float64)
 }
 
+// lifter is an estimator that takes the lift a right answer to a probe gives
+// its topic, as the service takes it: the service's step and every variant of
+// it, which keep an overall level and a topic's offset and raise the offset.
+// The bench's other rules — the filter, the whole history, the two speeds,
+// the stored uncertainty and Glicko-2 — take none.
+type lifter interface {
+	lifted(topic string, before float64, easiest rating.Point)
+}
+
 // structure is how an estimator splits a child's level.
 type structure string
 
@@ -147,6 +156,15 @@ func (s *stepRule) followed(topic string, _ float64, correct bool, estimate floa
 	if s.debt != nil {
 		s.debt.counted(topic, correct)
 	}
+}
+
+// lifted raises the topic's offset after a right answer to a probe, once the
+// answer's step is taken, exactly as the service raises its correction: the
+// level in the topic at least the lift above before, where it stood ahead of
+// the answer, and at least where its easiest point is in reach.
+func (s *stepRule) lifted(topic string, before float64, easiest rating.Point) {
+	stepped := rating.State{Theta: s.theta, Delta: s.delta[topic]}
+	s.delta[topic] = rating.Lifted(stepped, before, easiest).Delta
 }
 
 // owed is what a topic's level owes, nothing for a rule that keeps no debt.

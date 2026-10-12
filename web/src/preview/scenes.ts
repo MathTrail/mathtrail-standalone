@@ -307,6 +307,11 @@ export function scenesIn(language: string): Scene[] {
 			name: "topic chosen, the choice shut",
 			payload: withTopicChoice(handed, { chosen: longestTopicIn(language) }),
 		},
+		// A probe: the mark above it says the task checks a topic on pause.
+		{
+			name: "task, a probe of a topic on pause",
+			payload: { ...offering, task: { ...offering.task, probe: true } },
+		},
 		{
 			name: "topic choice, a child in grade 1",
 			payload: withTopicChoice({
@@ -677,6 +682,16 @@ export function scenesIn(language: string): Scene[] {
 			play: everyFold,
 		},
 		{
+			name: "progress, a topic on pause",
+			payload: onePaused,
+			play: everyFold,
+		},
+		{
+			name: "progress, three topics on pause",
+			payload: threePaused,
+			play: everyFold,
+		},
+		{
 			name: "progress, a week that cannot be told yet",
 			payload: weekUntold,
 			play: everyFold,
@@ -791,6 +806,10 @@ export function scenesIn(language: string): Scene[] {
 		{ name: "first sign-in, a profile refused", payload: firstRunRefused },
 		{ name: "a card it cannot show", payload: { screen: "result" } },
 		{ name: "long texts", payload: longTexts },
+		{
+			name: "long texts, a probe",
+			payload: { ...longTexts, task: { ...longTexts.task, probe: true } },
+		},
 		// Room the host keeps above and below the card, which is the chat's to
 		// scroll past and none of the card's.
 		{
@@ -1284,6 +1303,44 @@ const withNewTopic = {
 			},
 		},
 	],
+};
+
+// pausedAt is a topic of the progress put on pause, its easiest tasks too
+// hard for now: at the first rank, share of the way through it, a step back
+// over the week and still since the last task.
+function pausedAt(topic: (typeof withNewTopic.topics)[number], share: number) {
+	return {
+		...topic,
+		rating: ratingAt(1, share),
+		rank: 1,
+		share,
+		compared: "behind",
+		mastered: false,
+		paused: true,
+		change: {
+			last_task: { rank: 1, share, moved: "same" },
+			week: { rank: 1, share: share + 12, moved: "back" },
+		},
+	};
+}
+
+// onePaused is how the ranks moved, with Parity and alternation on pause.
+const onePaused = {
+	...moving,
+	topics: moving.topics.map((topic) =>
+		topic.topic === "parity.alternation" ? pausedAt(topic, 17) : topic,
+	),
+};
+
+// threePaused is how the ranks moved, with Clocks first answered over the week
+// and three topics on pause, each saying so and what it means.
+const threePaused = {
+	...withNewTopic,
+	topics: withNewTopic.topics.map((topic, at) =>
+		["counting.gaps", "parity.alternation", "time.clocks"].includes(topic.topic)
+			? pausedAt(topic, 17 + 10 * (at % 3))
+			: topic,
+	),
 };
 
 // weekUntold is how the ranks moved, with the week one the history cannot

@@ -437,6 +437,59 @@ The alternative is «Primaria {range}», the way textbooks label a year («Matem
 
 The authors' names: Yákov Perelmán and Yemelián Ignátiev, as Spanish writes Russian names; Henry E. Dudeney, Sam Loyd and Lewis Carroll as they are.
 
+## Search words
+
+Gathered on 2026-10-12 from Google's suggestions for Spain, Mexico, Argentina and Colombia, and the titles of the first results; they show that a phrase is typed, not how often, and [the brief](README.md#search-words) says how a text uses them. The country changes the lists little: which variant a phrase belongs to shows in its words, «3 primaria» against «tercer grado».
+
+**Who searches, and how.** Google is 88–94 % of searches in all four countries. In Spain parents type «3 primaria», «3 de primaria», «tercero de primaria»; in Mexico and Argentina «tercer grado», «3er grado», «6to de primaria»; in Colombia primary school ends with grade 5. «Primaria» is the one word all four share, and `topics.grades`, «{range} de primaria», carries it; «grado», which Latin America types, is in no title.
+
+**What parents type**, strongest first:
+
+1. «problemas de lógica», «para niños» or with a grade;
+2. «problemas de razonamiento matemático» with a grade, a school subject in Peru and Mexico;
+3. «retos matemáticos», «para niños de primaria»;
+4. «acertijos matemáticos para niños», which leans to riddles;
+5. «problemas matemáticos para niños de primaria», which leans to school sums;
+6. «problemas de olimpiadas matemáticas de primaria», in the plural, among many contests' names;
+7. «desafíos matemáticos» with a grade, also the name of two series of school books.
+
+**The head's title.**
+
+- A topic's page: **«{topic}: problemas de {range} de primaria»**. «Problemas» heads every query about a topic, «problemas de relojes 3 primaria», «problemas de edades», and «{range} de primaria» is `topics.grades`. The longest, «Juegos con estrategia ganadora: problemas de 5–6 de primaria», is 60 units; «problemas para …», more natural, would reach 62, and «olimpiada» fits beside the grades in no form. The other way, «{topic}: retos para {range} de primaria», 58 at most, takes the parents' «retos».
+- Any other page: **«{page} | MathTrail»**. The glossary turns the English spaced dash into a colon or a comma, and a colon cannot set the site's name apart; the longest, «Técnicas de resolución de problemas | MathTrail», is 47.
+
+**Topics.** ⚑ marks a card's name nobody types.
+
+| Topic | The card | What parents type |
+|---|---|---|
+| ordering | «Ordenación» ⚑ | in Latin America «ordenamiento lineal», «orden de información»; in Spain «problemas de ordenación» leads to combinatorics |
+| knights and liars | «Caballeros y mentirosos» ⚑ | «verdades y mentiras»; «caballeros y escuderos», the Spanish name of Smullyan's puzzles |
+| enumeration | «Enumeración de casos» ⚑ | «problemas de conteo», «combinatoria para niños», «diagrama de árbol» |
+| gaps and boundaries | «Intervalos y extremos» ⚑ | «problemas de cortes y estacas»; the card's name is calculus |
+| clocks | «Relojes» | the same; «problemas con horas y minutos» |
+| calendar and age | «Calendario y edades» | «problemas de edades» and «problemas de calendario», each alone |
+| pigeonhole principle | «Principio del palomar» | the same, with «de Dirichlet» |
+| parity and alternation | «Paridad y alternancia» ⚑ | nothing found |
+| arithmetic with a trick | «Aritmética con truco» ⚑ | «trucos de cálculo mental»; «método del cangrejo» for working backwards |
+| weighing and pouring | «Balanzas y jarras» ⚑ | «problemas de balanzas», «problema de las jarras», «trasvases», «moneda falsa»: each half, never the pair |
+| parts and shares | «Partes de un todo» ⚑ | «problemas de fracciones»; the card's name is a crossword's clue |
+| percentages | «Porcentajes» | the same |
+| ratios and sharing | «Razones y repartos» | «problemas de razones y proporciones», «repartos proporcionales» |
+| figures on a grid | «Figuras en cuadrícula» ⚑ | «área y perímetro en cuadrícula»; the card's name is drawing and colouring |
+| divisibility and remainders | «Divisibilidad y restos» | «problemas de divisibilidad», «criterios de divisibilidad» |
+| overlapping groups | «Grupos que se superponen» ⚑ | «problemas de diagramas de Venn», «problemas de conjuntos» |
+| games with a winning strategy | «Juegos con estrategia ganadora» ⚑ | «juego del Nim», «juegos matemáticos de estrategia»; «estrategia ganadora» alone is gambling and trading |
+
+Several of these names come from Peru's school subject «razonamiento matemático»: «cortes y estacas», «verdades y mentiras», «método del cangrejo», «trasvases». A first line uses one only where it means exactly the card's topic.
+
+**Descriptions** can carry «problemas de lógica», «razonamiento matemático», «retos matemáticos», «de primaria», and on "Techniques" «estrategias para resolver problemas» and «método de Pólya». «Resueltos» fits a topic's page and "Techniques" only. Today the descriptions of the home page, 181 characters, "Techniques", 172, and "Why", 179, run past 160, and that of "Topics" carries none of these words.
+
+**Not to use.**
+
+- Contests and exams: «Canguro matemático», «Olimpiada Matemática Española» and the regional olympiads, «Ñandú», OMA, SIMOC, «Olimpiada Mexicana de Matemáticas», «Torneos de Matemáticas», «Concurso de Primavera»; books and schools: Rubiños, San Marcos, Edelvives, Larousse.
+- «pdf», which the site does not give, and «altas capacidades», which sorts children.
+- «técnicas de resolución de problemas» alone, which search reads as psychology.
+
 ## Places for the author's reading
 
 - `topics.grades`, «{range} de primaria», against «Primaria {range}».

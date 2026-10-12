@@ -6,6 +6,14 @@
 # Secrets
 .env
 
+# A child's profile brought out of a parent's Drive to look into a lesson,
+# under either name the service gives it in Drive, wherever it is saved, or as
+# anything kept beside a draft: its tasks and answers are a child's data,
+# which never enter the repository. The profiles the tests read are made up
+# and named otherwise.
+mathtrail-profile*.json
+/draft/**/*.json
+
 # Build and test output
 bin/
 dist/

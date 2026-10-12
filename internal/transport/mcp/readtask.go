@@ -158,7 +158,7 @@ func (s *Service) taskStands(ctx context.Context, p *profile.Profile, requestID 
 		if err != nil {
 			return Reply[awaitedOut]{}, fmt.Errorf("mcp: the choice of the topic: %w", err)
 		}
-		awaited.Screen, awaited.Task, awaited.Language, awaited.TopicChoice = screenTask, cardOf(task), task.Language, choice
+		awaited.Screen, awaited.Task, awaited.Language, awaited.TopicChoice = screenTask, s.cardOf(p, task), task.Language, choice
 		return Reply[awaitedOut]{Text: fmt.Sprintf("Task %s is on the child's card.", task.ID), Payload: awaited}, nil
 	case profile.TaskBeingWritten:
 		noteTaskRequest(ctx, requestID)

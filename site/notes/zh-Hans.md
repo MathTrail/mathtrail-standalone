@@ -462,6 +462,60 @@ The alternative is «适合{range}年级», "for grades 3–4", which says whom 
 
 The authors' names: «雅科夫·别莱利曼», as every Chinese edition of his books writes him; «叶梅利扬·伊格纳季耶夫», the standard transcription of the Russian, with no edition to follow; «亨利·E. 杜德尼», as 《坎特伯雷趣题》 names him (Chinese Wikipedia writes 杜德耐); «萨姆·劳埃德»; «刘易斯·卡罗尔». A Chinese title goes in 《》, and an English one stays as the English page gives it, with no marks. `died`, «† {year}», is «卒于{year}年»: the cross reads as nothing in Chinese.
 
+## Search words
+
+Gathered on 2026-10-12 from Google's suggestions for Singapore and Malaysia and the titles of the first results, among them pages mainland parents read; they show that a phrase is typed, not how often, and [the brief](README.md#search-words) says how a text uses them.
+
+**Who searches, and how.** In Singapore and Malaysia Google is over 90 % of searches. On the mainland Google is closed, Baidu is 47 % and Bing 22 %, and GitHub Pages, which serves the site, answers Baidu's crawler with an error, so there the site can be found through Bing at most. Parents type a grade in Chinese numerals, 「三年级」 or 「小学三年级」, and a range in digits, 「1-6年级」; Singapore and Malaysia also write 「小一」 to 「小六」. `topics.grades`, «{range}年级», matches a typed range.
+
+**What parents type**, strongest first:
+
+1. «奥数题», «小学奥数»;
+2. a grade and «奥数题», «三年级奥数题»;
+3. «数学思维题», «数学思维训练», the name mainland courses have sold 奥数 under since 2018;
+4. «逻辑推理题»;
+5. «应用题»;
+6. «趣味数学题»;
+7. «奥数练习题».
+
+**The head's title.**
+
+- A topic's page: **«{topic}（{range}年级奥数题）»**, the commonest shape of the pages that compete, with the topic, the grades and 奥数题, and with no 小学, as the glossary keeps 年级 alone. The longest, «比与按比例分配（5–6年级奥数题）», is 31 units. The other way, «{topic}：例题与解法（{range}年级奥数）», 41 at most, adds 例题 and 解法.
+- Any other page: **«{page}｜MathTrail»**, full-width, with no space beside it, as the glossary sets full-width marks.
+
+**Topics.** ⚑ marks a card's name nobody types.
+
+| Topic | The card | What parents type |
+|---|---|---|
+| ordering | «排序推理» ⚑ | «逻辑推理题», «比高矮» |
+| knights and liars | «真假话问题» | the same, rarely; «逻辑推理» |
+| enumeration | «枚举法» | the same; «简单枚举», «搭配问题» |
+| gaps and boundaries | «植树问题» | the same |
+| clocks | «钟表与时间» ⚑ | «经过的时间», «时、分、秒»; not «钟表问题», the angles of a clock's hands |
+| calendar and age | «日历与年龄» ⚑ | «年龄问题», «星期几问题» |
+| pigeonhole principle | «抽屉原理» | the same; «鸽巢问题» |
+| parity and alternation | «奇偶性与交替» | «奇偶性问题», «奇数和偶数» |
+| arithmetic with a trick | «巧算» | the same; «速算与巧算» |
+| weighing and pouring | «称重与倒水» ⚑ | «找次品», «倒水问题» |
+| parts and shares | «分数应用题» | the same |
+| percentages | «百分数» | the same; «百分数应用题» |
+| ratios and sharing | «比与按比例分配» | «按比例分配», «比的应用», rarely |
+| figures on a grid | «方格纸上的图形» ⚑ | «周长和面积», «数方格»; «方格纸» is paper to print |
+| divisibility and remainders | «整除与余数» | «有余数的除法», «余数问题» |
+| overlapping groups | «容斥原理» | the same; «重叠问题» |
+| games with a winning strategy | «必胜策略» | the same; «抢30», «取火柴游戏» |
+
+**Descriptions** can carry «奥数题», «数学思维», «逻辑推理», «解题方法», «解题思路» and «免费», a fact, and on "Why" what parents ask, «奥数有什么用». Today no description is over its 160 units, and that of "Topics" names no topic.
+
+**Not to use.**
+
+- Contests: «数学思维大激斗», «数霸杯», SASMO, SIMOC, SMKC, NMOS, «奥数比赛».
+- Exams and formats: «小升初», «题库», «大全», «100道», «pdf», «错题本»; the brand «举一反三».
+- «小三» for a grade, which on the mainland also means a mistress.
+- Words that search reads as something else: «天平» alone, a sign of the zodiac; «整除», programming; «按比例分配» alone, spreadsheets.
+
+**For the author.** «小学» is the strongest framing parents type, «小学奥数», and the glossary keeps 年级 alone.
+
 ## Places for the author's reading
 
 - Claude's labels, from its Chinese help: the Chinese interface came out unannounced in October 2026 and was not seen; a look at it settles the buttons. The other way is English labels with the Chinese help's beside them, at twice the length.

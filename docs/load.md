@@ -9,7 +9,7 @@ The load tool in `tools/load` (R124) starts the service from its image in a cont
 - `just ci-load` runs every scenario of a container against the image of the working tree, each held to the memory in the table at the end of this page. It is what the weekly workflow runs. The two scenarios of the deployed service are run by hand (below).
 - `just load <scenario> [flags]` runs one scenario. For example, `just load adversarial -memory 512m` or `just load saturation -env MATHTRAIL_SOLVER_CONCURRENCY=4`.
 
-The numbers below were taken on 2026-09-29 on the development machine: Docker inside the devcontainer, cgroups of the second version, kernel 7.1.5. A shared runner or a vCPU of the platform is slower than this machine, so times will differ there; what a run keeps in memory and whether an instance survives do not depend on the machine.
+The numbers below, but for the peaks of GitHub's runners in "The weekly check", were taken on 2026-09-29 on the development machine: Docker inside the devcontainer, cgroups of the second version, kernel 7.1.5. A shared runner or a vCPU of the platform is slower than this machine, so times will differ there. What a run keeps in memory and whether an instance survives do not depend on the machine. A peak does: besides what a run keeps, it counts what the run has let go of and the collector has not yet taken back, and whatever else the kernel charges to the instance, and most runs peak higher on GitHub's runners than here (see "The weekly check").
 
 ## The instance
 
@@ -119,7 +119,7 @@ The recorded fix is a solver in a process of its own with a memory limit on it (
 The check has to fail when the numbers stop seeing each other. `just ci-load -env MATHTRAIL_SOLVER_CONCURRENCY=32` runs every scenario with thirty-two slots on one processor, and it fails:
 
 - `tuples`, `pairs` and `sets` end the instance for want of memory, and the calls in flight on it go unanswered: 42 to 52 refused and 7 to 15 reset in each;
-- `appends`, `helper` and `product` hold more than their ceilings;
+- `appends`, `helper` and `product` hold more than the ceilings they had then, 256m, 128m and 288m;
 - the lesson, both saturations, the limits and the cold starts stay clean, since they build nothing a slot more could multiply.
 
 ## Cold starts
@@ -139,21 +139,23 @@ Five starts of the service, each an instance of its own:
 
 The workflow fails on what the service should never do: a status of an error, a call nobody answered, a panic, an instance killed or ended by itself, a service that does not come back, or a peak past the ceiling its run is held to. Latencies and throughput fail nothing.
 
-Each ceiling is the peak measured here, plus the larger of a quarter and 32 MiB, rounded up to 32 MiB. The solvers that keep hundreds of MiB are the exception. Their peak is wherever the collector chose to work, anywhere up to the soft limit: `sets` peaked at 411 MiB in one run and at 580 in another. So they are held just under the instance, at 960 MiB:
+Each ceiling is the highest peak measured, here or on GitHub's runners, plus the larger of a quarter and 32 MiB, rounded up to 32 MiB. The solvers that keep hundreds of MiB are the exception. Their peak is wherever the collector chose to work, anywhere up to the soft limit: `sets` peaked at 411 MiB in one run and at 580 in another. So they are held just under the instance, at 960 MiB:
 
-| Run | Peak measured | Ceiling |
-|---|---|---|
-| `lesson` | 14 MiB | 64m |
-| `saturation` | 16 MiB | 64m |
-| `saturation`, eighty in flight | 36 MiB | 96m |
-| `limits` | 17–18 MiB | 64m |
-| `cold` | 12–13 MiB | 64m |
-| `adversarial` `appends` | 177–183 MiB | 256m |
-| `adversarial` `helper` | 83–92 MiB | 128m |
-| `adversarial` `tuples` | 773–782 MiB | 960m |
-| `adversarial` `pairs` | 668–705 MiB | 960m |
-| `adversarial` `sets` | 411–580 MiB | 960m |
-| `adversarial` `product` | 179–208 MiB | 288m |
+| Run | Peak here | Peak on the runners | Ceiling |
+|---|---|---|---|
+| `lesson` | 14 MiB | 20–22 MiB | 64m |
+| `saturation` | 16 MiB | 18–23 MiB | 64m |
+| `saturation`, eighty in flight | 36 MiB | 35–41 MiB | 96m |
+| `limits` | 17–18 MiB | 22–29 MiB | 64m |
+| `cold` | 12–13 MiB | 16–20 MiB | 64m |
+| `adversarial` `appends` | 177–183 MiB | 198–210 MiB | 288m |
+| `adversarial` `helper` | 83–92 MiB | 104–113 MiB | 160m |
+| `adversarial` `tuples` | 773–782 MiB | 826–955 MiB | 960m |
+| `adversarial` `pairs` | 668–705 MiB | 762–837 MiB | 960m |
+| `adversarial` `sets` | 411–580 MiB | 423–626 MiB | 960m |
+| `adversarial` `product` | 179–208 MiB | 263–414 MiB | 544m |
+
+The runners' peaks are those of the workflow's first four runs, from 2026-09-29 to 2026-10-12. Most runs peaked higher there than here, and `product` most of all. It keeps little and lets go of a great deal, so its peak is mostly garbage the collector has not yet taken back, and how much that comes to depends on the machine: about 265 MiB on the runners where a run of `loop` took about 160 ms, and 400–414 MiB on those where it took 70–76 ms. Its first ceiling, 288m from this machine's peaks alone, failed both runs on the faster runners.
 
 The ceilings of the small runs catch a regression in the service's own footprint, such as a leak or a cache that grows. For `tuples`, `pairs` and `sets`, it is the instance being killed for its memory that catches a regression.
 
@@ -186,4 +188,5 @@ just load ceiling -url https://mcp.mathtrail.app -accounts load,parent
 - **A hand-in for no open request is free to the account.** It spends no attempt, and the sandbox runs both of its runs before the profile is read. One account handing in solvers that spend their whole clock can keep the single slot of an instance busy, and the others on that instance then wait or are told it is busy; a freed slot goes to whoever waited longest. A limit on the sandbox time of an account, or a check of the request before the solver runs, would close this. It is not decided.
 - **Time inside a single call.** A set of keys that hash alike is built in quadratic time inside one call, which the clock cannot stop. It is the same class as the long sorts R53 records.
 - **The gap of the language**, above.
-- **The runner.** The ceilings were measured on the development machine. The first runs of the workflow on a GitHub runner confirm them or move them.
+- **The planted regression against the raised ceilings.** It has not been run on a processor at full speed since `appends`, `helper` and `product` were raised to 288m, 160m and 544m. On 2026-10-12 the development machine's processor stayed near 600 MHz under load. There the check still failed, through `helper` and the three heaviest runs, while `appends` and `product` stayed within their ceilings; but a run that slow does too little before the clock stops it for that to say anything. At full speed on 2026-09-29, four slots alone took `appends`, `helper` and `product` to 428, 270 and 838 MiB, past even the raised ceilings.
+- **The ceiling of the heaviest runs.** On a runner `tuples` peaked at 955 MiB with its instance alive, 5 MiB under its ceiling of 960m. A peak between that ceiling and the instance's 1 GiB fails the check although nothing was killed. Whether to hold these runs nearer the instance, or to leave them to the kill alone, is not decided.

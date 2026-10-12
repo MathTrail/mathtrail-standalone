@@ -79,7 +79,7 @@ export function openReader(
 	};
 	const written = (value: string | number): string =>
 		typeof value === "number" ? numbers.format(value) : value;
-	const rightToLeft = directionOf(locale) === "rtl";
+	const arrange = directionOf(locale) === "rtl" ? keptLeftToRight : inOrder;
 
 	const page: PageReader = {
 		locale,
@@ -93,7 +93,7 @@ export function openReader(
 					return typeof value === "object" ? value : written(value);
 				},
 				where,
-				rightToLeft,
+				arrange,
 			);
 		},
 		plain(key, slots = {}) {
@@ -175,29 +175,28 @@ type Piece = {
 	readonly kind: "words" | "filling" | "emphasis";
 };
 
-// drawnText is a text's tokens drawn: on a page written right to left with
-// each run that reads left to right, a sum or a piece of code, set apart in
-// an element of that direction.
+// Arrange draws a text from its pieces, as its page's direction wants: in
+// their order, or, on a page written right to left, with each run that reads
+// left to right, a sum or a piece of code, set apart in an element of that
+// direction.
+type Arrange = (pieces: readonly Piece[]) => ComponentChildren;
+
+// drawnText is a text's tokens drawn and arranged.
 function drawnText(
 	tokens: readonly Token[],
 	fill: (name: string) => string | VNode,
 	where: string,
-	rightToLeft: boolean,
+	arrange: Arrange,
 ): ComponentChildren {
-	return arranged(
-		tokens.flatMap((token) => piecesOf(token, fill, where, rightToLeft)),
-		rightToLeft,
+	return arrange(
+		tokens.flatMap((token) => piecesOf(token, fill, where, arrange)),
 	);
 }
 
-// arranged is a text drawn from its pieces, as its page's direction wants.
-function arranged(
-	pieces: readonly Piece[],
-	rightToLeft: boolean,
-): ComponentChildren {
-	return rightToLeft
-		? keptLeftToRight(pieces)
-		: pieces.map((piece) => piece.drawn);
+// inOrder is a text drawn from its pieces in their order, as a page written
+// left to right wants it.
+function inOrder(pieces: readonly Piece[]): ComponentChildren {
+	return pieces.map((piece) => piece.drawn);
 }
 
 // piecesOf is one token of a text in its pieces: words with their slots
@@ -209,7 +208,7 @@ function piecesOf(
 	token: Token,
 	fill: (name: string) => string | VNode,
 	where: string,
-	rightToLeft: boolean,
+	arrange: Arrange,
 ): Piece[] {
 	switch (token.type) {
 		case "text":
@@ -219,12 +218,12 @@ function piecesOf(
 		case "em":
 		case "strong": {
 			const inner = (token.tokens ?? []).flatMap((part) =>
-				piecesOf(part, fill, where, rightToLeft),
+				piecesOf(part, fill, where, arrange),
 			);
 			const Emphasis = token.type;
 			return [
 				{
-					drawn: <Emphasis>{arranged(inner, rightToLeft)}</Emphasis>,
+					drawn: <Emphasis>{arrange(inner)}</Emphasis>,
 					plain: inner.map((piece) => piece.plain).join(""),
 					kind: "emphasis",
 				},

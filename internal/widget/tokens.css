@@ -58,6 +58,11 @@
      back is a coral, not the red of a wrong answer. */
   --gain: #1f7a4c;
   --loss: #b9472b;
+  /* A topic on pause: the tint it stands apart on, the word that says so and
+     the line under its course that says what the pause means. */
+  --paused-tint: rgba(134,150,245,0.10);
+  --paused-word: #4a54c4;
+  --paused-line: #4a4741;
   /* A screen being read: the faint shapes of what is coming and the track a
      bar runs along, and the sheen that passes over its outline. */
   --skeleton: #ebe9e4;
@@ -116,6 +121,9 @@
   --ramp-5: #4ade80;
   --gain: #5fd090;
   --loss: #f08f78;
+  --paused-tint: rgba(134,150,245,0.10);
+  --paused-word: #a9b0f7;
+  --paused-line: #c3c0b9;
   --skeleton: #2f2e2b;
   --sheen: rgba(255,255,255,0.045);
   --page: #141312;
@@ -212,6 +220,9 @@
   --ramp-5: #4ade80;
   --gain: #5fd090;
   --loss: #f08f78;
+  --paused-tint: rgba(134,150,245,0.10);
+  --paused-word: #a9b0f7;
+  --paused-line: #c3c0b9;
   --skeleton: #2f2e2b;
   --sheen: rgba(255,255,255,0.045);
   --page: #141312;

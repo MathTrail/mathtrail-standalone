@@ -327,8 +327,14 @@ function Verdict({
  * A cell with no such colon is a verdict with no reason.
  */
 export function verdictOf(cell: string): [string, string] {
-	const parted = /^(.*?)\s*(?::\s+|：\s*)(.*)$/su.exec(cell);
-	return parted === null ? [cell, ""] : [parted[1] ?? "", parted[2] ?? ""];
+	const colon = /:\s|：/u.exec(cell);
+	if (colon === null) {
+		return [cell, ""];
+	}
+	return [
+		cell.slice(0, colon.index).trimEnd(),
+		cell.slice(colon.index + colon[0].length).trimStart(),
+	];
 }
 
 // Count is how many cases there are: an equals sign and the number.

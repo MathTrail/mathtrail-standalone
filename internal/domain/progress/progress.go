@@ -94,22 +94,27 @@ type Topic struct {
 	// Skipped is how many of its tasks were left without an answer. It is for
 	// the parent, who can see from it that hard tasks are being leafed past.
 	Skipped int
-	// InReach says the rule could set the topic now.
+	// InReach says the rule could set the topic in its turns now.
 	InReach bool
+	// Paused says the topic is on pause: met, and out of reach now that even
+	// its easiest task is too hard, it comes back only as a probe.
+	Paused bool
 	// Changes are how the topic's own standing moved since the last answer
 	// and over the week, nil together with its standing.
 	Changes Changes
 }
 
 // Recommendation is what the rule would set next: the topic, the point of the
-// ladder, and why now — and whether the topic is the one a person chose for the
-// lessons rather than the rule's own.
+// ladder, and why now — whether the topic is the one a person chose for the
+// lessons rather than the rule's own, and whether it is a probe of a topic on
+// pause.
 type Recommendation struct {
 	Topic      string
 	GradeLevel rating.GradeLevel
 	Difficulty int
 	Goal       profile.Goal
 	Chosen     bool
+	Probe      bool
 }
 
 // Of is where the child whose profile this is stands today, a date in UTC,
@@ -165,6 +170,7 @@ func Recommend(p *profile.Profile, catalog tutor.Catalog) (Recommendation, error
 		Difficulty: brief.Difficulty,
 		Goal:       brief.PedagogicalGoal,
 		Chosen:     mode == profile.TutorPerson,
+		Probe:      tutor.Probes(p, catalog, brief.TargetConcept, mode),
 	}, nil
 }
 
@@ -176,7 +182,7 @@ func Recommend(p *profile.Profile, catalog tutor.Catalog) (Recommendation, error
 // overall one rank for rank, so that the word beside it agrees with the names
 // drawn.
 func topics(p *profile.Profile, catalog tutor.Catalog, overall *Standing) []Topic {
-	reachable := tutor.WithinReach(p, catalog)
+	reachable, paused := tutor.WithinReach(p, catalog), tutor.PausedTopics(p, catalog)
 	listed := []Topic{}
 	for _, id := range catalog.TopicIDs() {
 		summary := p.Topics[id]
@@ -191,23 +197,26 @@ func topics(p *profile.Profile, catalog tutor.Catalog, overall *Standing) []Topi
 			Mastered: tutor.Mastered(p, catalog, id),
 			Skipped:  summary.Skipped,
 			InReach:  slices.Contains(reachable, id),
+			Paused:   slices.Contains(paused, id),
 		}
 		if overall != nil && summary.Answers > 0 {
 			topic.Standing = standing(p.LevelIn(id))
-			topic.Compared = compared(topic.Standing.Rank, overall.Rank)
+			topic.Compared = compared(p.Behind(id), topic.Standing.Rank, overall.Rank)
 		}
 		listed = append(listed, topic)
 	}
 	return listed
 }
 
-// compared is how rank stands to the overall rank.
-func compared(rank, overall int) Comparison {
+// compared is how rank stands to the overall rank: behind as the profile reads
+// it, which is the reading the rule gives a topic its turns by, and otherwise
+// ahead above the overall rank and even with it.
+func compared(behind bool, rank, overall int) Comparison {
 	switch {
+	case behind:
+		return Behind
 	case rank > overall:
 		return Ahead
-	case rank < overall:
-		return Behind
 	default:
 		return Even
 	}

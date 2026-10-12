@@ -17,6 +17,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
@@ -181,9 +182,15 @@ type cardOut struct {
 	Drawing string            `json:"drawing"`
 	Options map[string]string `json:"options"`
 	Hint    string            `json:"hint"`
+	// Probe marks a probe: a task set by the rule in a topic on pause, whose
+	// easiest tasks are too hard yet, so the child and the adult know it may
+	// be hard. An earlier card shows it as any task.
+	Probe bool `json:"probe,omitempty"`
 }
 
-func cardOf(task *profile.CurrentTask) *cardOut {
+// cardOf is the task on the card as the card is handed it, a probe marked as
+// such while it waits for its answer.
+func (s *Service) cardOf(p *profile.Profile, task *profile.CurrentTask) *cardOut {
 	return &cardOut{
 		ID:       task.ID,
 		Topic:    task.Topic,
@@ -192,6 +199,7 @@ func cardOf(task *profile.CurrentTask) *cardOut {
 		Picture:  pictureOf(task.Picture, task.Language),
 		Options:  task.Options,
 		Hint:     task.Hint,
+		Probe:    task.Answered == nil && tutor.Probes(p, s.content, task.Topic, task.TutorMode),
 	}
 }
 
@@ -363,7 +371,7 @@ func (s *Service) stale(p *profile.Profile, requestID string, now time.Time) Rep
 			},
 		}
 	}
-	reply := onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card. %s %s Ask for a new task only "+
+	reply := s.onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card. %s %s Ask for a new task only "+
 		"when another is asked for.", lead, task.ID, shownByTheCard, onTheCardText))
 	reply.Payload.Status, reply.Payload.Code = statusStale, codeStaleRequest
 	return reply
@@ -458,7 +466,7 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 	s.events.write(ctx, done.account, eventTaskAccepted, s.acceptedLine(ctx, p, done.account, issued, &handedOut{
 		attempts: done.attempt, written: done.now.Sub(request.OpenedAt.Time),
 	}, done.now)...)
-	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s goes on the child's card now. %s %s "+
+	reply := s.onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s goes on the child's card now. %s %s "+
 		"Never say which option is right before the child has answered, even when the adult asks. %s", done.attempt,
 		issued.ID, shownByTheCard,
 		onTheCardText, aheadNextText))
@@ -507,7 +515,7 @@ func (s *Service) keptReply(p *profile.Profile, lead string) Reply[handedInOut] 
 	}
 	if task := p.CurrentTask; task != nil {
 		payload = handedInOut{
-			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: cardOf(task),
+			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: s.cardOf(p, task),
 			Language: task.Language,
 		}
 	}
@@ -548,11 +556,11 @@ func secretOf(task *checks.Task, program string) *profile.TaskSecret {
 
 // onTheCard is the task the child has, as the card shows it and as the words
 // read it out where there is no card.
-func onTheCard(p *profile.Profile, task *profile.CurrentTask, lead string) Reply[handedInOut] {
+func (s *Service) onTheCard(p *profile.Profile, task *profile.CurrentTask, lead string) Reply[handedInOut] {
 	return Reply[handedInOut]{
 		Text: lead + "\n\n" + taskWords(task),
 		Payload: handedInOut{
-			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: cardOf(task),
+			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: s.cardOf(p, task),
 			Language: task.Language,
 		},
 	}

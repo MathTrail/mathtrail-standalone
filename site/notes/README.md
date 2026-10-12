@@ -42,3 +42,15 @@ A language lands whole, in one change: the build refuses a dictionary with no te
 - **The build** (`npm run build:site`): the keys, their order, the slots, the emphasis and the plural forms; an example's answer and the numbers its solver proves; a document's outline and its emphasis, the English one's.
 - **The site's checker** (`just ci-site`): every page there in every language, its links, its weight, and no digit but 0–9.
 - **A reader**, for everything else: the meaning, the numbers of the questions and the steps, the tone. A number that a text writes and the English text does not, or the other way round, is worth a look.
+
+## Search words
+
+A page's title, its description and the first lines of a topic's page are what a search engine matches and shows, so they say what the page says in the words parents type. Each language's notes list those words under "Search words"; `en.md` and `ru.md` hold nothing else, since the English and the Russian need no glossary. The lists were gathered on 2026-10-12 from Google's suggestions, Yandex's as well for Russian, and the titles of the first results: they show that a phrase is typed, not how often, and they are read again when the site's own search reports have numbers.
+
+- **The card's names stay.** A topic is named as the card names it. The name parents type, where it is another, goes beside it, in the first line or the description, never instead of it.
+- **No contest's name.** No contest, olympiad, exam, textbook or publisher is named, and "olympiad" is never written as the name of one: a contest's name brings readers who look for that contest, and the brief keeps one contest out of every text.
+- **Only what the site gives.** No "printable", "worksheet", "pdf" or "download": the site has none of them. "With answers" and "with solutions" fit a page that shows a worked solution, a topic's page or "Techniques", and never the home page, whose card keeps the answer until the child answers.
+- **No label and no promise.** No word that sorts children, such as "gifted", and no benefit the page's sources do not show, such as "develops critical thinking".
+- **Not what leads elsewhere.** Each list names the phrases that search reads as something else, a shop's orders or a crossword's clue, and a text avoids them.
+- **Whole in a result.** A title fits in 60 units and a description in 160, a character as wide as a Chinese one counting two: a search result cuts what is longer.
+- **No number typed.** A grade is a number about the product, so a description, which takes no slot, names the school stage in words or leaves the grades out.

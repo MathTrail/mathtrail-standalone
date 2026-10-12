@@ -484,10 +484,10 @@ type TopicRow = RankRow & { reading?: Reading };
 // topicRows are the topics listed, each with its rank, how that stands to the
 // overall one — or how it moved by its own answers over the while shown, when
 // a while is — and its course of the ranks in the ramp's step for it, striped
-// where it moved; or, with no rank yet, its course drawn open and the word why
-// — the trial series still running, or no answer in the topic so far. A topic
-// of a progress from before the topics had ranks is drawn with an empty
-// course, saying nothing.
+// where it moved; a topic on pause set apart, saying so and what it means; or,
+// with no rank yet, its course drawn open and the word why — the trial series
+// still running, or no answer in the topic so far. A topic of a progress from
+// before the topics had ranks is drawn with an empty course, saying nothing.
 function topicRows(
 	words: Words<Key>,
 	report: ProgressReport,
@@ -508,11 +508,18 @@ function topicRows(
 					? undefined
 					: readingOf(moveOver(topic.change, shown));
 			const moved = movedWord(words, reading);
+			// A topic on pause says so whatever moved: the pause is what the
+			// adult needs to know of it, its course shows how it moved.
+			const paused = topic.paused === true;
 			return {
 				...row,
 				reading,
-				word: moved?.word ?? comparedWord(words, topic.compared),
-				way: moved?.way,
+				word: paused
+					? words.text("progress.paused")
+					: (moved?.word ?? comparedWord(words, topic.compared)),
+				way: paused ? undefined : moved?.way,
+				paused,
+				line: paused ? words.text("progress.paused_line") : undefined,
 				name: words.text("progress.rank", { rank: topic.rank }),
 				segments: {
 					of: ranks,

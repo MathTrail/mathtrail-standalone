@@ -465,6 +465,59 @@ The alternative is «Klasse {range}», the way German workbooks label a span («
 
 The authors' names: Jakow Perelman and Jemeljan Ignatjew, as German writes Russian names (the GDR editions print «J. I. Perelman»); Henry E. Dudeney, Sam Loyd and Lewis Carroll as they are.
 
+## Search words
+
+Gathered on 2026-10-12 from Google's suggestions for Germany, Austria and Switzerland, and the titles of the first results; they show that a phrase is typed, not how often, and [the brief](README.md#search-words) says how a text uses them. The country changes the lists little.
+
+**Who searches, and how.** In Germany Google is 88 % of searches and Bing 7 %; in Austria and Switzerland Bing is 11–12 %. Parents type «klasse 3» or «3. klasse», a span as «klasse 3 4» or «klasse 5 6», never «Klassen»; and «grundschule» or «gymnasium». In Austria grades 5 and 6 start again as «1. Klasse» of the Mittelschule or the Gymnasium, so «Klassen 5–6» misses them. Parents also search by age, «logikrätsel für kinder 8 jahre», where the site speaks of grades only.
+
+**What parents type**, strongest first:
+
+1. «Knobelaufgaben» with «Mathe», «Klasse N» or «Grundschule», far ahead of every other phrase, in all three countries and in the titles of Klett, Auer and the school blogs;
+2. «Matherätsel», «Mathe-Rätsel für Kinder»;
+3. «Logikrätsel für Kinder», «Logicals»;
+4. «knifflige» or «schwierige Matheaufgaben» with a grade;
+5. «mit Lösungen», after any of these;
+6. «logisches Denken»;
+7. «Problemlösestrategien».
+
+**The head's title.**
+
+- A topic's page: **«{topic}: Knobelaufgaben, Klassen {range}»**. «Knobelaufgaben … Klasse N» is the shape most parents' queries take, and «Klassen {range}» is `topics.grades`. The longest, «Parität und abwechselnde Muster: Knobelaufgaben, Klassen 1–6», is 60 units, and with « – » in place of the colon 61. The other way, «{topic}: Matherätsel, Klassen {range}», 57 at most, says «Mathe» itself, since Knobelaufgaben are set in German lessons too; «Olympiade-Aufgaben» would reach 64 and names the contest in German search.
+- Any other page: **«{page} – MathTrail»**, the spaced en dash of the glossary and of the home page's title; the longest, «So funktioniert der Dienst – MathTrail», is 38.
+
+**Topics.** ⚑ marks a card's name nobody types.
+
+| Topic | The card | What parents type |
+|---|---|---|
+| ordering | «Reihenfolgen» ⚑ | only «Logikrätsel», «Logicals»; «reihenfolgen» leads to films and planets |
+| knights and liars | «Ritter und Lügner» ⚑ | «Ritter und Knappen», the name of the German Wikipedia's article; «Ritter und Schurken»; «Lügner-Rätsel» |
+| enumeration | «Systematisches Probieren» | the same; «Kombinatorik» with «Grundschule» or a grade |
+| gaps and boundaries | «Pfosten und Zwischenräume» ⚑ | «Zaunpfahlproblem», rarely |
+| clocks | «Uhren» ⚑ | «Uhrzeit» with a grade, «Zeitspannen berechnen»; «uhren» is shopping |
+| calendar and age | «Kalender und Alter» ⚑ | «Altersrätsel», which leans to equations; «Kalender Aufgaben Grundschule» |
+| pigeonhole principle | «Schubfachprinzip» | the same |
+| parity and alternation | «Parität und abwechselnde Muster» ⚑ | «gerade und ungerade Zahlen» |
+| arithmetic with a trick | «Knifflige Rechenaufgaben» | the same; «Rechentricks», «geschicktes Rechnen», «Rechenvorteile», «Ich denke mir eine Zahl» |
+| weighing and pouring | «Wiegen und Umfüllen» ⚑ | «Umfüllrätsel», «Balkenwaage Rätsel» |
+| parts and shares | «Teile und Anteile» ⚑ | «Brüche», «Bruchteile», «Anteile berechnen» |
+| percentages | «Prozentrechnung» | the same |
+| ratios and sharing | «Verhältnisse und Verteilung» ⚑ | «Verhältnisrechnung»; not «Verteilungsrechnung», which is economics |
+| figures on a grid | «Figuren auf Karopapier» | «Flächeninhalt und Umfang»; the card's name leads to drawing |
+| divisibility and remainders | «Teilbarkeit und Reste» | «Teilbarkeitsregeln», «Division mit Rest» |
+| overlapping groups | «Überlappende Gruppen» ⚑ | «Mengendiagramm», «Venn-Diagramm Aufgaben», «Schnittmenge» |
+| games with a winning strategy | «Spiele mit Gewinnstrategie» ⚑ | «Nim-Spiel», «Strategiespiele Mathe Grundschule»; «Gewinnstrategie» alone is board games and the lottery |
+
+**Descriptions** can carry «Knobelaufgaben», which the glossary lists for "puzzle" and the German site never writes, «Matherätsel», «Logikrätsel», «Grundschule», «kostenlos», a fact, on "Techniques" «Problemlösestrategien», and on "Why" «logisches Denken», as a noun and never with «fördern». «Mit Lösungen» fits a topic's page and "Techniques" only. Today the descriptions of the home page, 184 characters, and "Techniques", 206, run past 160, and none of the four main pages has «Knobelaufgaben».
+
+**Not to use.**
+
+- Contests: «Mathe-Olympiade» and «Mathematik-Olympiade» with their rounds, «Känguru der Mathematik».
+- What the site does not give: «pdf», «zum Ausdrucken», «Arbeitsblätter».
+- «Denkaufgaben» and «Denksportaufgaben», whose suggestions are for older people, and «Begabtenförderung», which sorts children.
+
+**For the author.** «Mathe-Olympiade» is the everyday name of the national contest, and the card's lead, the glossary and the home page write «im Stil der Mathe-Olympiade»; «Olympiade-Mathematik» on the site draws readers who look for that contest. Parents type the singular «Klasse», which the glossary's other choice for `topics.grades`, «Klasse {range}», would match word for word.
+
 ## Places for the author's reading
 
 - The menu: «Studie» for «Forschung» and «Team» for «Über uns», in the menu, the pages' titles and the footer alike. Without them the German row is the widest of all (about 1200 px against the Russian's 1163); with them it is the narrowest of the three. The other way out is the plain words everywhere and a fold some 40 px wider for every language.
