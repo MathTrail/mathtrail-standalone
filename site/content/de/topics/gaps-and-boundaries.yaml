@@ -6,12 +6,12 @@
 # commonest, counted in its reference tasks.
 
 title: Pfosten und Zwischenräume
-description: Worum es bei „Pfosten und Zwischenräume“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+description: Worum es bei „Pfosten und Zwischenräume“ (Zaunpfahlproblem) geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
 
 hero:
   lead: >-
     Sechs Bäume in einer Reihe: Wie viele Zwischenräume liegen dazwischen? Ein
-    Baumstamm in fünf Stücken: Wie viele Schnitte? In diesen Aufgaben zählt ein
+    Baumstamm in fünf Stücken: Wie viele Schnitte? In diesen Aufgaben, bekannt als Zaunpfahlproblem, zählt ein
     Kind entweder die Dinge oder die Zwischenräume dazwischen, und die beiden
     Zahlen unterscheiden sich um eins. Aus genau dieser Eins kommen die meisten
     falschen Antworten, und eine schnelle Zeichnung eines kleinen Falls bringt das

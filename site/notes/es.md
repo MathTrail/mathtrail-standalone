@@ -456,7 +456,7 @@ Gathered on 2026-10-12 from Google's suggestions for Spain, Mexico, Argentina an
 **The head's title.**
 
 - A topic's page: **«{topic}: problemas de {range} de primaria»**. «Problemas» heads every query about a topic, «problemas de relojes 3 primaria», «problemas de edades», and «{range} de primaria» is `topics.grades`. The longest, «Juegos con estrategia ganadora: problemas de 5–6 de primaria», is 60 units; «problemas para …», more natural, would reach 62, and «olimpiada» fits beside the grades in no form. The other way, «{topic}: retos para {range} de primaria», 58 at most, takes the parents' «retos».
-- Any other page: **«{page} | MathTrail»**. The glossary turns the English spaced dash into a colon or a comma, and a colon cannot set the site's name apart; the longest, «Técnicas de resolución de problemas | MathTrail», is 47.
+- Any other page: **«{page} | MathTrail»**. The glossary turns the English spaced dash into a colon or a comma, and a colon cannot set the site's name apart; the longest, «Estrategias para resolver problemas de olimpiada | MathTrail», is 60.
 
 **Topics.** ⚑ marks a card's name nobody types.
 
@@ -482,7 +482,7 @@ Gathered on 2026-10-12 from Google's suggestions for Spain, Mexico, Argentina an
 
 Several of these names come from Peru's school subject «razonamiento matemático»: «cortes y estacas», «verdades y mentiras», «método del cangrejo», «trasvases». A first line uses one only where it means exactly the card's topic.
 
-**Descriptions** can carry «problemas de lógica», «razonamiento matemático», «retos matemáticos», «de primaria», and on "Techniques" «estrategias para resolver problemas» and «método de Pólya». «Resueltos» fits a topic's page and "Techniques" only. Today the descriptions of the home page, 181 characters, "Techniques", 172, and "Why", 179, run past 160, and that of "Topics" carries none of these words.
+**Descriptions** can carry «problemas de lógica», «razonamiento matemático», «retos matemáticos», «de primaria», and on "Techniques" «estrategias para resolver problemas» and «método de Pólya». «Resueltos» fits a topic's page and "Techniques" only.
 
 **Not to use.**
 

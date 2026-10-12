@@ -21,7 +21,7 @@ Gathered on 2026-10-12 from Yandex's and Google's suggestions and the titles of 
 **The head's title.**
 
 - A topic's page: **«{topic}: олимпиадные задачи, {range} класс»**. «Задачи на {topic}» would not do: the topic's name would have to change its case, «на рыцарей и лжецов». The longest, «Отношения и деление на части: олимпиадные задачи, 5–6 класс», is 59 units. The other way, «{topic} — олимпиадные задачи, {range} класс», reaches 60.
-- Any other page: **«{page} — MathTrail»**; the longest, «Приёмы решения олимпиадных задач — MathTrail», is 44.
+- Any other page: **«{page} — MathTrail»**; the longest, «Приёмы решения олимпиадных задач по математике — MathTrail», is 58.
 
 **Topics.** ⚑ marks a card's name nobody types.
 
@@ -45,9 +45,9 @@ Gathered on 2026-10-12 from Yandex's and Google's suggestions and the titles of 
 | overlapping groups | Пересекающиеся группы ⚑ | «круги Эйлера», a method's name |
 | games with a winning strategy | Игры с выигрышной стратегией ⚑ | little anywhere: «выигрышная стратегия» is noughts and crosses, chess and an informatics exam |
 
-«Задачи на части» goes to the page of ratios and «задачи на доли» to the page of parts, so that the two pages do not compete. The first lines already carry the searched word for most topics; they do not for ordering («логические задачи»), the pigeonhole principle (the lead has no «Дирихле», though the title has), overlapping groups («круги Эйлера») and games.
+«Задачи на отношения» and «пропорции» go to the page of ratios, and «дроби» to the page of parts; each page also keeps its card's name, so «части» stands in both. The first line of ordering, enumeration, the pigeonhole principle and overlapping groups gives its searched name too.
 
-**Descriptions** can carry «олимпиадные задачи по математике», «логические задачи», «нестандартные задачи», which the page «Зачем» uses itself, and «бесплатно», a fact. «С решениями» fits a topic's page and «Приёмы» only. Today the home page's description runs to 169 characters and has «олимпиадная математика для детей» but not the phrase parents type, and «Темы» carries none of these words.
+**Descriptions** can carry «олимпиадные задачи по математике», «логические задачи», «нестандартные задачи», which the page «Зачем» uses itself, and «бесплатно», a fact. «С решениями» fits a topic's page and «Приёмы» only.
 
 **Not to use.**
 

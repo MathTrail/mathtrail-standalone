@@ -6,7 +6,7 @@
 # in its reference tasks.
 
 title: Relógios
-description: O que são os problemas de relógios e de tempo, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+description: O que são os problemas de relógios, horas e minutos, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
 
 # The words the page's drawings write a length of time in.
 art:
@@ -17,9 +17,9 @@ art:
 hero:
   lead: >-
     Um passeio começa às 4:50 e dura 25 minutos: a que horas termina? Nestes
-    problemas, a criança soma e subtrai tempo, e a pegadinha é que uma hora
-    tem 60 minutos, não 100. A maioria dos erros acontece ao passar pela hora
-    cheia, pelo meio-dia ou pela meia-noite.
+    problemas com horas, a criança soma e subtrai tempo, e a pegadinha é que uma
+    hora tem 60 minutos, não 100. A maioria dos erros acontece ao passar pela
+    hora cheia, pelo meio-dia ou pela meia-noite.
   method: Chegar à hora cheia e depois seguir
   teaches: A contar o tempo passando pela hora cheia e pela meia-noite e a distinguir a hora que o relógio marca do tempo que passa
   # The words of its drawing: the walk over it, and what its line of time

@@ -6,16 +6,16 @@
 # commonest, counted in its reference tasks.
 
 title: Intervalles et bornes
-description: Ce que sont les problèmes d’intervalles et bornes, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+description: Ce que sont les problèmes d’intervalles et bornes, dont celui des piquets, comment on les résout, où les enfants se trompent et comment les aider à la maison.
 
 hero:
   lead: >-
     Six arbres en ligne : combien d’intervalles entre eux ? Un tronc en cinq
-    morceaux : combien de coupes ? Dans ces problèmes, l’enfant compte soit
-    les objets, soit les intervalles entre eux, et les deux nombres diffèrent
-    d’une unité. C’est de cette unité que viennent la plupart des mauvaises
-    réponses, et c’est un rapide dessin d’un petit cas qui remet les choses
-    en place.
+    morceaux : combien de coupes ? Dans ces problèmes de piquets et
+    d’intervalles, l’enfant compte soit les objets, soit les intervalles entre
+    eux, et les deux nombres diffèrent d’une unité. C’est de cette unité que
+    viennent la plupart des mauvaises réponses, et c’est un rapide dessin d’un
+    petit cas qui remet les choses en place.
   method: Dessiner un petit cas et compter dessus
   teaches: À distinguer les objets des intervalles entre eux et à vérifier une règle sur un dessin
   # The words of its drawing: the fence and the rule over it, and the two

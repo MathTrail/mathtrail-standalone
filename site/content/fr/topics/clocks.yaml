@@ -6,7 +6,7 @@
 # its reference tasks.
 
 title: Horloges
-description: Ce que sont les problèmes d’horloges et de temps, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+description: Ce que sont les problèmes d’horloges et de durées, comment on les résout, où les enfants se trompent et comment les aider à la maison.
 
 # The words the page's drawings write a length of time in.
 art:
@@ -17,10 +17,10 @@ art:
 hero:
   lead: >-
     Une promenade commence à 4:50 et dure 25 minutes : à quelle heure se
-    termine-t-elle ? Dans ces problèmes, l’enfant ajoute et retire du temps,
-    et la difficulté, c’est qu’une heure compte 60 minutes, et non 100. C’est
-    en passant l’heure pile, midi ou minuit que se produisent la plupart des
-    erreurs.
+    termine-t-elle ? Dans ces calculs de durées, l’enfant ajoute et retire du
+    temps, et la difficulté, c’est qu’une heure compte 60 minutes, et non 100.
+    C’est en passant l’heure pile, midi ou minuit que se produisent la plupart
+    des erreurs.
   method: Aller jusqu’à l’heure pile, puis continuer
   teaches: À compter le temps en passant l’heure pile et minuit, et à distinguer l’heure qu’indique une horloge d’une durée
   # The words of its drawing: the walk over it, and what its line of time

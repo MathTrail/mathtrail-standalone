@@ -1218,13 +1218,15 @@ reviewer-grant service="mathtrail":
 
 # -- The directories --------------------------------------------------------
 
-# The icons a listing in the chats' directories shows: the site's logo drawn
-# square, 1024 pixels a side with its corners clear, once as it is and once
-# with a rim around its tile for a dark page, photographed in Chromium from the
-# image the widget's layout is measured in. They are written over
-# plugin/assets/, for the change to be looked at before it is kept; a change
-# to the logo deserves new ones.
-# Draw the directories' icons from the site's logo
+# The pictures of the site's logo: the icons a listing in the chats'
+# directories shows, drawn square, 1024 pixels a side with its corners clear,
+# once as it is and once with a rim around its tile for a dark page, and the
+# site's icon as a picture, 192 pixels a side, for a search engine that takes
+# no SVG; photographed in Chromium from the image the widget's layout is
+# measured in. They are written over plugin/assets/ and site/assets/, for the
+# change to be looked at before it is kept; a change to the logo deserves new
+# ones.
+# Draw the directories' icons and the site's picture of its logo
 [working-directory('web')]
 plugin-icons: _playwright-pinned
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \

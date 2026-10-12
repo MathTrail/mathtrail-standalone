@@ -10,11 +10,12 @@ description: Worum es beim Schubfachprinzip geht, wie man solche Aufgaben löst,
 
 hero:
   lead: >-
-    Fünf Tauben fliegen in vier Käfige: In einem Käfig sitzen dann zwangsläufig
-    zwei. In diesen Aufgaben beweist ein Kind, dass etwas auch beim größten Pech
-    passieren muss: zwei Socken derselben Farbe aus einer dunklen Schublade,
-    zwei Geburtstage im selben Monat. Es ist die erste Begegnung mit
-    Überlegungen, die vom ungünstigsten Fall ausgehen statt vom glücklichen.
+    Fünf Tauben fliegen in vier Käfige: In einem Käfig sitzen dann nach dem
+    Schubfachprinzip zwangsläufig zwei. In diesen Aufgaben beweist ein Kind,
+    dass etwas auch beim größten Pech passieren muss: zwei Socken derselben
+    Farbe aus einer dunklen Schublade, zwei Geburtstage im selben Monat. Es ist
+    die erste Begegnung mit Überlegungen, die vom ungünstigsten Fall ausgehen
+    statt vom glücklichen.
   method: Das größte Pech durchspielen, dann eins dazunehmen
   teaches: Beweisen, dass etwas passieren muss, nicht nur, dass es passieren kann
   # The words of its drawing: the pigeons and the cages over it, and what the

@@ -14,6 +14,8 @@
 	"nav.technical": "Páginas técnicas",
 	"nav.about": "Sobre",
 	"share.picture": "A página inicial do MathTrail: a sua promessa ao lado do cartão de um problema, como um chat o mostra.",
+	"title.page": "{page} — MathTrail",
+	"title.topic": "{topic}: problemas para os anos {range}",
 	"cite.one": "{first}, {year}",
 	"cite.two": "{first} e {second}, {year}",
 	"cite.many": "{first} et al., {year}",

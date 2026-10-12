@@ -6,7 +6,7 @@
 # its reference tasks.
 
 title: Knights and liars
-description: What knights-and-liars problems are, how they are solved, where children go wrong, and how to help at home.
+description: What knights-and-liars problems (knights and knaves) are, how they are solved, where kids go wrong, and how to help at home.
 
 # The words every drawing of the page writes its islanders in: the letters
 # of a knight and of a liar, and the islanders' own.
@@ -20,9 +20,10 @@ art:
 hero:
   lead: >-
     On an island live knights, who always tell the truth, and liars, who always
-    lie. From what they say, you have to work out who is who. For many children
-    this is their first meeting with real logical reasoning: make an
-    assumption, follow where it leads, and notice a contradiction.
+    lie: the puzzles also known as knights and knaves. From what they say, you
+    have to work out who is who. For many children this is their first meeting
+    with real logical reasoning: make an assumption, follow where it leads, and
+    notice a contradiction.
   method: "“Suppose this one is a knight…”"
   teaches: To reason step by step, and to check yourself
   # The words of its drawing: the key of the letters over it, and in it the

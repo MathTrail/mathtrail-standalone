@@ -282,9 +282,14 @@ const statesIn = (root: Element) =>
 
 describe("the home page", () => {
 	// The page reads in full as it is built: its one script brings it alive,
-	// and the data it carries for the script is JSON no browser runs.
+	// and the data it carries, for a search engine and for the script, is JSON
+	// no browser runs.
 	test("reads in full as it is built, its cards inert, and loads the cards' stylesheet", () => {
-		expect(all("script", "type")).toEqual(["application/json", "module"]);
+		expect(all("script", "type")).toEqual([
+			"application/ld+json",
+			"application/json",
+			"module",
+		]);
 		expect(all("script[src]", "src")).toEqual(["/assets/demo.js"]);
 		expect(all('link[rel="stylesheet"]', "href")).toContain("/assets/card.css");
 		expect(home.querySelectorAll(".s-card")).toHaveLength(7);

@@ -6,15 +6,15 @@
 # its reference tasks.
 
 title: Calendar and age
-description: What problems about days of the week, dates and ages are, how they are solved, where children go wrong, and how to help at home.
+description: What problems about days of the week, dates and ages are, how they are solved, where kids go wrong, and how to help at home.
 
 hero:
   lead: >-
     Today is Tuesday: what day will it be in 30 days? Mum is 30 and Ann is 6:
-    how old will Ann be when Mum is twice her age? In these tasks a child works
-    with weeks, months and years, and two facts carry most of them: the week
-    comes round every 7 days, and the difference between two ages never
-    changes.
+    how old will Ann be when Mum is twice her age? In these calendar and age
+    problems a child works with weeks, months and years, and two facts carry
+    most of them: the week comes round every 7 days, and the difference between
+    two ages never changes.
   method: Drop the whole weeks, keep the difference of ages
   teaches: To count days and years without counting them one by one
   # The words of its drawing: a month whose Tuesdays stand in one column.

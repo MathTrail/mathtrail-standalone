@@ -1,11 +1,15 @@
 // The site's checker. It reads a built site and reports what a browser, a
 // crawler or a reviewer would otherwise each find broken separately: a link
 // that leads nowhere, a page that quietly fetches from somebody else's domain,
-// a head that a search result cannot be built from, a locale that lost a page,
-// a page, or a document a page frames, that grew past its budget, an address
-// the site handed out and lost, a page it serves without having listed it
-// among the addresses it keeps, a script that loads more than itself, or
-// sends or keeps something, and a page that writes a digit other than 0 to 9.
+// a head that a search result cannot be built from, that states a thing twice
+// or whose title or description runs longer than a result shows, two pages of
+// a language a search result cannot tell apart,
+// structured data a search engine would misread or that leads off the site,
+// a locale that lost a page, a page, or a document a page frames, that grew
+// past its budget, an address the site handed out and lost, a page it serves
+// without having listed it among the addresses it keeps, a script that loads
+// more than itself, or sends or keeps something, and a page that writes a
+// digit other than 0 to 9.
 //
 // It reads the finished directory and nothing of what drew it, so it keeps
 // judging the same way whatever builds the site.
@@ -61,11 +65,13 @@ export type Options = {
 /** Rule names the rule a finding breaks. */
 export type Rule =
 	| "digits"
+	| "duplicate"
 	| "external"
 	| "head"
 	| "link"
 	| "published"
 	| "script"
+	| "structured"
 	| "translation"
 	| "weight";
 
@@ -163,6 +169,7 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 			...head(page, pages, files, options),
 			...weight(page, files, loads, options),
 			...digits(page),
+			...structured(page, pages, options),
 		);
 	}
 	// A document a page frames is held to what a page is held to about the
@@ -177,6 +184,7 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 	findings.push(
 		...stylesheetLinks(loads, files),
 		...translations(pages, options),
+		...duplicates(pages),
 		...stylesheets(sheets),
 		...scripts(await readScripts(dir, files)),
 		...publishedAddresses(files, pages, options),
@@ -389,8 +397,11 @@ function external(page: Page): Finding[] {
 }
 
 // head reports a head that a search result, a shared link or a screen reader
-// cannot be built from. The picture a shared link shows is the site's own, a
-// file it serves: a link to it that leads nowhere shows a preview with none.
+// cannot be built from, that states its title, its description or its address
+// twice, leaving a search engine to choose, or whose title or description runs
+// longer than a search result shows whole. The picture a shared link shows is
+// the site's own, a file it serves: a link to it that leads nowhere shows a
+// preview with none.
 function head(
 	page: Page,
 	pages: Map<string, Page>,
@@ -417,6 +428,30 @@ function head(
 	if (page.description === "") {
 		report("the page has no description");
 	}
+	const lengths: [string, string, number][] = [
+		["title", page.title, titleUnits],
+		["description", page.description, descriptionUnits],
+	];
+	for (const [what, text, shown] of lengths) {
+		const units = unitsOf(text);
+		if (units > shown) {
+			report(
+				`the ${what} runs to ${units} units, and a search result shows ${shown} whole`,
+			);
+		}
+	}
+	const stated: [string, number][] = [
+		["title", page.stated.title],
+		["description", page.stated.description],
+		["canonical address", page.stated.canonical],
+	];
+	for (const [what, times] of stated) {
+		if (times > 1) {
+			report(
+				`the head states a ${what} ${times} times, and a search engine reads one`,
+			);
+		}
+	}
 	for (const picture of page.images) {
 		const problem = pictureProblem(picture, page, files, options);
 		if (problem !== undefined) {
@@ -440,6 +475,50 @@ function head(
 		}
 	}
 	return findings;
+}
+
+// titleUnits and descriptionUnits are how long a title and a description can
+// run and still show whole in a search result on a computer's screen: about
+// as many Latin letters, half as many Chinese characters.
+const titleUnits = 60;
+const descriptionUnits = 160;
+
+// wide matches what a search result sets twice as wide as a Latin letter: a
+// Chinese character, kana, hangul, an emoji, and the marks, symbols and
+// letters made as wide as they are.
+const wide =
+	/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Emoji_Presentation}\u2e80-\u2fdf\u3000-\u303f\u30fb\u30fc\u3200-\u33ff\ufe10-\ufe19\ufe30-\ufe4f\uff01-\uff60\uffe0-\uffe6]/u;
+
+// narrow matches what the wide scripts also hold set as narrow as a Latin
+// letter: the half-width katakana and hangul.
+const narrow = /[\uff61-\uffdc]/u;
+
+// invisible matches what takes no room of its own: a mark that sits on the
+// character before it, such as an accent written apart or a tone mark, and a
+// character that only formats, such as a mark of direction or a soft hyphen.
+const invisible = /[\p{M}\p{Cf}]/u;
+
+// spaces matches a run of the white space HTML collapses to one space, as a
+// search result shows it.
+const spaces = /[\t\n\f\r ]+/g;
+
+// graphemes splits text into what a reader sees as one character each: a
+// letter with its accents, a syllable of hangul, an emoji with its modifiers.
+const graphemes = new Intl.Segmenter("und", { granularity: "grapheme" });
+
+// unitsOf is how long text runs in a search result, its white space collapsed
+// and each character a reader sees counted once: as two when it is wide, as
+// none when it takes no room, and as one otherwise.
+function unitsOf(text: string): number {
+	let units = 0;
+	for (const { segment } of graphemes.segment(text.replace(spaces, " "))) {
+		const base = String.fromCodePoint(segment.codePointAt(0) ?? 0);
+		if (invisible.test(base)) {
+			continue;
+		}
+		units += wide.test(base) && !narrow.test(base) ? 2 : 1;
+	}
+	return units;
 }
 
 // canonicalProblem is what is wrong with the address page names as its own, or
@@ -509,6 +588,151 @@ function expectedAlternates(
 		.filter((locale) => pages.has(at(locale)))
 		.map((locale) => [locale, options.base + at(locale)]);
 	return [...alternates, ["x-default", options.base + at(reference)]];
+}
+
+// duplicates reports two pages of a language under one title or one
+// description: a search result could not tell them apart. A page that sends
+// its reader on at once stands for the page it sends them to, and says what
+// that page says.
+function duplicates(pages: Map<string, Page>): Finding[] {
+	const findings: Finding[] = [];
+	for (const part of ["title", "description"] as const) {
+		const holders = new Map<string, Page[]>();
+		for (const page of pages.values()) {
+			if (page.refresh || page[part] === "") {
+				continue;
+			}
+			const key = `${page.locale}\n${page[part]}`;
+			holders.set(key, [...(holders.get(key) ?? []), page]);
+		}
+		for (const group of holders.values()) {
+			for (const page of group) {
+				const others = group
+					.filter((other) => other !== page)
+					.map((other) => other.file)
+					.sort(byCodeUnits);
+				if (others.length > 0) {
+					findings.push({
+						path: page.file,
+						rule: "duplicate",
+						message: `its ${part} is also the ${part} of ${others.join(", ")}`,
+					});
+				}
+			}
+		}
+	}
+	return findings;
+}
+
+// vocabulary names the words the site's structured data is written in; the
+// checker holds it apart from the builder's, which it never reads.
+const vocabulary = "https://schema.org";
+
+// structured reports structured data a search engine would misread, or that
+// leads off the site: a block that is no JSON or speaks other words, a type the
+// site does not write, the site's name said on any page but the front page of
+// the bare domain, which is the one a search engine reads it from, or for
+// another address, and a path whose steps are out of order, have no words, or
+// lead to a page the site does not have.
+function structured(
+	page: Page,
+	pages: Map<string, Page>,
+	options: Options,
+): Finding[] {
+	const findings: Finding[] = [];
+	for (const text of page.structured) {
+		const problem = structuredProblem(text, page, pages, options);
+		if (problem !== undefined) {
+			findings.push({ path: page.file, rule: "structured", message: problem });
+		}
+	}
+	return findings;
+}
+
+// structuredProblem is what is wrong with one block of page's structured data,
+// or undefined when nothing is.
+function structuredProblem(
+	text: string,
+	page: Page,
+	pages: Map<string, Page>,
+	options: Options,
+): string | undefined {
+	let data: unknown;
+	try {
+		data = JSON.parse(text);
+	} catch {
+		return "a block of structured data is no JSON";
+	}
+	if (!isRecord(data)) {
+		return "a block of structured data is no object";
+	}
+	if (data["@context"] !== vocabulary) {
+		return `structured data speaks ${JSON.stringify(data["@context"])}, and the site's speaks "${vocabulary}"`;
+	}
+	switch (data["@type"]) {
+		case "WebSite":
+			return siteNameProblem(data, page, options);
+		case "BreadcrumbList":
+			return pathProblem(data, pages, options);
+		default:
+			return `structured data of the type ${JSON.stringify(data["@type"])}, and the site writes WebSite and BreadcrumbList alone`;
+	}
+}
+
+// siteNameProblem is what is wrong with the site's name as page says it.
+function siteNameProblem(
+	data: Record<string, unknown>,
+	page: Page,
+	options: Options,
+): string | undefined {
+	if (page.address !== "/") {
+		return "the site's name is said away from the front page of the bare domain, the one page a search engine reads it from";
+	}
+	if (data.url !== `${options.base}/`) {
+		return `the site's name is said for ${JSON.stringify(data.url)}, and the site is "${options.base}/"`;
+	}
+	if (typeof data.name !== "string" || data.name.trim() === "") {
+		return "the site's name is said with no name";
+	}
+	return undefined;
+}
+
+// pathProblem is what is wrong with a path a page tells a search engine: its
+// steps stand at 1, 2 and on, each has words and names a page of the site.
+function pathProblem(
+	data: Record<string, unknown>,
+	pages: Map<string, Page>,
+	options: Options,
+): string | undefined {
+	const steps = data.itemListElement;
+	if (!Array.isArray(steps) || steps.length === 0) {
+		return "a path with no steps";
+	}
+	for (const [at, step] of steps.entries()) {
+		const which = `step ${at + 1} of the path`;
+		if (!isRecord(step) || step["@type"] !== "ListItem") {
+			return `${which} is no ListItem`;
+		}
+		if (step.position !== at + 1) {
+			return `${which} stands at position ${JSON.stringify(step.position)}`;
+		}
+		if (typeof step.name !== "string" || step.name.trim() === "") {
+			return `${which} has no words`;
+		}
+		const url = typeof step.item === "string" ? URL.parse(step.item) : null;
+		if (url?.origin !== options.base) {
+			return `${which} leads to ${JSON.stringify(step.item)}, which is not on ${options.base}`;
+		}
+		if (!pages.has(url.pathname)) {
+			return `${which} leads to "${url.href}", a page the site does not have`;
+		}
+	}
+	return undefined;
+}
+
+// isRecord says whether value is an object whose fields can be read.
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 // translations reports a locale missing a page the reference locale has, which

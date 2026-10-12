@@ -14,6 +14,8 @@
 	"nav.technical": "Технические страницы",
 	"nav.about": "О нас",
 	"share.picture": "Главная MathTrail: обещание и рядом карточка задачи, как её рисует чат.",
+	"title.page": "{page} — MathTrail",
+	"title.topic": "{topic}: олимпиадные задачи, {range} класс",
 	"cite.one": "{first}, {year}",
 	"cite.two": "{first} и {second}, {year}",
 	"cite.many": "{first} и др., {year}",

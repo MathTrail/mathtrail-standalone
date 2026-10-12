@@ -14,6 +14,8 @@
 	"nav.technical": "الصفحات التقنية",
 	"nav.about": "من نحن",
 	"share.picture": "الصفحة الرئيسية لموقع MathTrail: وعده بجانب بطاقة مسألة، كما ترسمها الدردشة.",
+	"title.page": "{page} — MathTrail",
+	"title.topic": "{topic}: مسائل أولمبياد رياضيات للصفوف {range}",
 	"cite.one": "{first}، {year}",
 	"cite.two": "{first} و{second}، {year}",
 	"cite.many": "{first} وآخرون، {year}",

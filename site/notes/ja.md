@@ -536,7 +536,7 @@ Gathered on 2026-10-12 from Google's suggestions for Japan and the titles of the
 
 The cram schools' names, 「推理算」, 「日暦算」, 「年齢算」, 「相当算」, 「油分け算」, name a kind of problem only, never with 「受験」 or 「入試」.
 
-**Descriptions** can carry 「小学生」, 「思考力」, 「算数パズル」, 「論理パズル」, 「解き方」, 「考え方」 and 「無料」, a fact. Today only the description of "Service" runs past 160 units, to 178, and that of "Topics" carries none of these words.
+**Descriptions** can carry 「小学生」, 「思考力」, 「算数パズル」, 「論理パズル」, 「解き方」, 「考え方」 and 「無料」, a fact.
 
 **Not to use.**
 

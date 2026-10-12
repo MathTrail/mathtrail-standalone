@@ -6,7 +6,7 @@
 # the topic's commonest, counted in its reference tasks.
 
 title: Jogos com estratégia vencedora
-description: O que são os problemas de jogos com estratégia vencedora, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+description: O que são os problemas de jogos com estratégia vencedora, entre eles o jogo do Nim, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
 
 # The words the page's drawings say of a position.
 art:
@@ -15,11 +15,12 @@ art:
 
 hero:
   lead: >-
-    Há 20 palitos de fósforo na mesa, e os jogadores, alternadamente, tiram 1,
-    2 ou 3 deles. Quem tirar o último palito ganha. O primeiro jogador pode
-    ganhar sempre? Nestes problemas, a criança procura um plano que ganhe faça
-    o que fizer o outro jogador, e o encontra começando pelo fim do jogo e
-    descobrindo quais posições perdem para quem precisa jogar a partir delas.
+    Há 20 palitos de fósforo na mesa, e os jogadores, alternadamente, tiram 1, 2
+    ou 3 deles. Quem tirar o último palito ganha, como no jogo do Nim. O
+    primeiro jogador pode ganhar sempre? Nestes problemas, a criança procura um
+    plano que ganhe faça o que fizer o outro jogador, e o encontra começando
+    pelo fim do jogo e descobrindo quais posições perdem para quem precisa jogar
+    a partir delas.
   method: Começar pelo fim e achar as posições perdedoras
   teaches: A encontrar um plano que ganhe faça o que fizer o outro jogador
   # The words of its drawing: the game it is drawn for.

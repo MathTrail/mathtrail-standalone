@@ -10,11 +10,11 @@ description: Qué son los problemas de días de la semana, fechas y edades, cóm
 
 hero:
   lead: >-
-    Hoy es martes: ¿qué día será dentro de 30 días? Mamá tiene 30 años y Ana,
-    6: ¿cuántos años tendrá Ana cuando mamá tenga el doble de años que ella?
-    En estos problemas, el niño o la niña trabaja con semanas, meses y años, y
-    la mayoría se apoya en dos hechos: la semana se repite cada 7 días, y la
-    diferencia entre dos edades nunca cambia.
+    Hoy es martes: ¿qué día será dentro de 30 días? Mamá tiene 30 años y Ana, 6:
+    ¿cuántos años tendrá Ana cuando mamá tenga el doble de años que ella? En
+    estos problemas de calendario y de edades, el niño o la niña trabaja con
+    semanas, meses y años, y la mayoría se apoya en dos hechos: la semana se
+    repite cada 7 días, y la diferencia entre dos edades nunca cambia.
   method: Quitar las semanas enteras, conservar la diferencia de edad
   teaches: A contar días y años sin contarlos uno a uno
   # The words of its drawing: a month whose Tuesdays stand in one column.

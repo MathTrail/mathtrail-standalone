@@ -14,6 +14,8 @@
 	"nav.technical": "Technical pages",
 	"nav.about": "About",
 	"share.picture": "The home page of MathTrail: its promise beside the card of a task, as a chat draws it.",
+	"title.page": "{page} — MathTrail",
+	"title.topic": "{topic}: olympiad problems, grades {range}",
 	"cite.one": "{first}, {year}",
 	"cite.two": "{first} and {second}, {year}",
 	"cite.many": "{first} et al., {year}",

@@ -5,6 +5,7 @@ import { fallbackLocale } from "../i18n/lookup";
 import { byCodeUnits } from "../i18n/order";
 import { type Dictionary, openWords, type Words } from "../i18n/words";
 import { cardWords } from "../widget/dictionaries";
+import { topicName } from "../widget/names";
 import {
 	address,
 	alternatesOf,
@@ -13,7 +14,7 @@ import {
 	parseBase,
 	sectionAddress,
 } from "./addresses";
-import { sharingPicturePath } from "./brand";
+import { sharingPicturePath, siteName } from "./brand";
 import {
 	frontPage,
 	readTexts,
@@ -34,7 +35,15 @@ import { cname, robots, sitemap } from "./metadata";
 import { type Page, sitePages } from "./pages";
 import { openReader } from "./reader";
 import { type PageFrame, SitePage } from "./SitePage";
-import { type SiteKey, SiteWords, siteDictionaries } from "./words";
+import { breadcrumbList, type StructuredData, webSite } from "./structured";
+import { topicPath } from "./TopicPage";
+import type { Topic } from "./topics";
+import {
+	gradesRange,
+	type SiteKey,
+	SiteWords,
+	siteDictionaries,
+} from "./words";
 
 /**
  * SiteFile is one file of the built site: where it goes below the site's root,
@@ -176,16 +185,81 @@ function headOf(
 	name: string,
 	{ title, description }: Summary,
 ): Head {
+	const words = site.wordsOf(locale);
+	const topic = topicOfPage(site.data, name);
 	return {
 		lang: locale,
-		dir: site.wordsOf(locale).dir,
-		title,
+		dir: words.dir,
+		title: titleOf(words, name, title, topic),
 		description,
 		canonical: site.base + address(locale, name),
 		alternates: alternatesOf(site.texts, site.base, name),
 		image: site.base + sharingPicturePath(locale),
-		imageAlt: site.wordsOf(locale).text("share.picture"),
+		imageAlt: words.text("share.picture"),
+		structuredData: structuredDataOf(site, locale, name, topic),
 	};
+}
+
+// topicOfPage is the topic whose page the page name is, if it is one.
+function topicOfPage(data: SiteData, name: string): Topic | undefined {
+	return data.topics.all.find(
+		(topic) => topic.sitePage && name === `topics/${topic.slug}`,
+	);
+}
+
+// titleOf is the title the page name gives in its head, built from its own
+// title, which the footer shows alone for the pages it leads to. A topic's
+// page names the topic, the kind of problem and its grades in its language's
+// pattern; a page whose own title names the site keeps it as it is; any other
+// page adds the site's name. A topic's page is titled by the topic's name as
+// the card says it, or a search result would name the topic one way and the
+// card another.
+function titleOf(
+	words: Words<SiteKey>,
+	name: string,
+	title: string,
+	topic: Topic | undefined,
+): string {
+	if (topic !== undefined) {
+		const card = topicName(cardWords(words.locale, undefined), topic.id);
+		if (title !== card) {
+			throw new Error(
+				`${words.locale}/${name}: its title "${title}" is not the card's name of the topic, "${card}": a topic is named as the card names it`,
+			);
+		}
+		return words.text("title.topic", {
+			topic: title,
+			range: gradesRange(words.locale, topic.grades),
+		});
+	}
+	return title.includes(siteName)
+		? title
+		: words.text("title.page", { page: title });
+}
+
+// structuredDataOf is what the page name of a locale tells a search engine in
+// schema.org's words: the front page of the bare domain, the only one a
+// search engine reads a site's name from, says it, and a topic's page tells
+// the path to it that it shows. No other page says anything there.
+function structuredDataOf(
+	site: Site,
+	locale: string,
+	name: string,
+	topic: Topic | undefined,
+): StructuredData[] {
+	const served = address(locale, name);
+	if (served === address(fallbackLocale, frontPage)) {
+		return [webSite(site.base + served)];
+	}
+	if (topic !== undefined) {
+		return [
+			breadcrumbList(
+				site.base,
+				topicPath(site.wordsOf(locale), site.data, topic),
+			),
+		];
+	}
+	return [];
 }
 
 // frameOf is the frame the page name of a locale is set in: its menu, with
@@ -253,7 +327,8 @@ function footerOf(site: Site, locale: string): FooterLink[] {
 
 // moved draws the page at the address the reference locale's front page moved
 // from: it sends the reader on to the front page, and its head is that page's
-// but for the translations, which are the front page's to name.
+// but for the translations and the site's name, which are the front page's to
+// say.
 function moved(site: Site): string {
 	return page(
 		site.wordsOf(fallbackLocale),
@@ -261,6 +336,7 @@ function moved(site: Site): string {
 			head={{
 				...headOf(site, fallbackLocale, frontPage, site.texts.front),
 				alternates: [],
+				structuredData: [],
 			}}
 			to={address(fallbackLocale, frontPage)}
 		/>,

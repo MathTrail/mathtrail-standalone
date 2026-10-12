@@ -4,8 +4,8 @@
 # from the widget's words; its grades and its links are the catalog's, and its
 # group the site's data.
 
-title: MathTrail 的专题
-description: MathTrail 出题涉及的全部专题、专题之间如何层层递进，以及每个专题讲的是什么。
+title: 奥数题的专题
+description: MathTrail 给孩子的奥数题涵盖的全部专题，从逻辑推理题、钟表与时间，到抽屉原理和百分数，以及专题之间如何层层递进。
 
 hero:
   title: 您的孩子要做哪些题

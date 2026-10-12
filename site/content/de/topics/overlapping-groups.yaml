@@ -6,14 +6,15 @@
 # commonest, counted in its reference tasks.
 
 title: Überlappende Gruppen
-description: Worum es bei „Überlappende Gruppen“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+description: Worum es bei „Überlappende Gruppen“ geht, also um Venn-Diagramme, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
 
 hero:
   lead: >-
     Manche Kinder gehen in die Schach-AG, manche zum Fußball, manche machen
     beides und manche keins von beidem. In diesen Aufgaben überlappen sich die
-    Gruppen, und der Trick besteht darin, jedes Kind genau einmal zu zählen.
-    Zwei Kreise auf Papier machen aus einer verwirrenden Frage vier Zahlen.
+    Gruppen, und der Trick besteht darin, jedes Kind genau einmal zu zählen. Ein
+    Venn-Diagramm, zwei Kreise auf Papier, macht aus einer verwirrenden Frage
+    vier Zahlen.
   method: Die Kreise zeichnen und in der Mitte anfangen
   teaches: Zählen, ohne doppelt zu zählen, und sagen, was jede Zahl bedeutet
   # The words of its drawing: what the two circles are, and what their middle

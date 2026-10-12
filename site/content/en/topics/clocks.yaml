@@ -6,7 +6,7 @@
 # reference tasks.
 
 title: Clocks
-description: What problems about clocks and time are, how they are solved, where children go wrong, and how to help at home.
+description: What clock and elapsed-time problems are, how they are solved, where kids go wrong, and how to help at home.
 
 # The words the page's drawings write a length of time in.
 art:
@@ -17,9 +17,9 @@ art:
 hero:
   lead: >-
     A walk starts at 4:50 and lasts 25 minutes: when does it end? In these
-    tasks a child adds and takes away time, and the catch is that an hour has
-    60 minutes, not 100. Going past the whole hour, past noon or past midnight
-    is where most mistakes happen.
+    elapsed-time tasks a child adds and takes away time, and the catch is that
+    an hour has 60 minutes, not 100. Going past the whole hour, past noon or
+    past midnight is where most mistakes happen.
   method: Step to the whole hour, then go on
   teaches: To count time across the hour and across midnight, and to tell a time on the clock from a length of time
   # The words of its drawing: the walk over it, and what its line of time

@@ -6,7 +6,7 @@
 # in its reference tasks.
 
 title: Énumération des cas
-description: Ce que sont les problèmes d’énumération des cas, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+description: Ce que sont les problèmes d’énumération des cas et de dénombrement, comment on les résout, où les enfants se trompent et comment les aider à la maison.
 
 # The words every drawing of the page writes its people in: the three
 # children's letters, and Lea's and Tom's initials.
@@ -19,10 +19,10 @@ art:
 
 hero:
   lead: >-
-    Combien de nombres peut-on écrire avec ces chiffres ? Combien de poignées
-    de main, de tenues ou de façons de se mettre en file ? Dans ces problèmes,
-    on écrit chaque cas dans un ordre qui garantit qu’aucun ne se perd et
-    qu’aucun n’est compté deux fois. Une liste qui suit une règle est le
+    Combien de nombres peut-on écrire avec ces chiffres ? Combien de poignées de
+    main, de tenues ou de façons de se mettre en file ? Dans ces problèmes de
+    dénombrement, on écrit chaque cas dans un ordre qui garantit qu’aucun ne se
+    perd et qu’aucun n’est compté deux fois. Une liste qui suit une règle est le
     premier outil de l’enfant quand la question est trop grande pour qu’on en
     devine la réponse.
   method: Énumérer les cas selon une règle

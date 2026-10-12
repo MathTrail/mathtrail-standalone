@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: 钟表与时间
-description: 什么是关于钟表与时间的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+description: 什么是关于钟表与时间的题（时刻和经过的时间），怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
 
 # The words the page's drawings write a length of time in.
 art:
@@ -16,7 +16,7 @@ art:
 
 hero:
   lead: >-
-    散步从4:50开始，持续25分钟：几点结束？在这类题里，孩子要对时间做加减，难点在于一小时是60分钟，而不是100分钟。大多数错误都出在跨过整点、中午12点或午夜的时候。
+    散步从4:50开始，持续25分钟：几点结束？在这类关于经过时间的题里，孩子要对时间做加减，难点在于一小时是60分钟，而不是100分钟。大多数错误都出在跨过整点、中午12点或午夜的时候。
   method: 先走到整点，再往后算
   teaches: 跨过整点和午夜计算时间，并能分清时刻和经过的时间
   # The words of its drawing: the walk over it, and what its line of time

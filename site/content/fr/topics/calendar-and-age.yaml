@@ -10,12 +10,12 @@ description: Ce que sont les problèmes de jours de la semaine, de dates et d’
 
 hero:
   lead: >-
-    Aujourd’hui, c’est mardi : quel jour serons-nous dans 30 jours ? Maman a
-    30 ans et Anna en a 6 : quel âge aura Anna quand l’âge de Maman sera le
-    double du sien ? Dans ces problèmes, l’enfant travaille avec les semaines,
-    les mois et les années, et la plupart reposent sur deux faits : la semaine
-    recommence tous les 7 jours, et la différence entre deux âges ne change
-    jamais.
+    Aujourd’hui, c’est mardi : quel jour serons-nous dans 30 jours ? Maman a 30
+    ans et Anna en a 6 : quel âge aura Anna quand l’âge de Maman sera le double
+    du sien ? Dans ces problèmes de calendrier et d’âges, l’enfant travaille
+    avec les semaines, les mois et les années, et la plupart reposent sur deux
+    faits : la semaine recommence tous les 7 jours, et la différence entre deux
+    âges ne change jamais.
   method: Retirer les semaines entières, garder la différence d’âge
   teaches: À compter les jours et les années sans les compter un par un
   # The words of its drawing: a month whose Tuesdays stand in one column.

@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: Balanças e jarras
-description: O que são os problemas de balanças e jarras, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+description: O que são os problemas de balanças e jarras, da moeda falsa ao desafio dos baldes, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
 
 # The words the page's drawings write a jug's size, a step and a move in.
 art:
@@ -20,11 +20,11 @@ art:
 hero:
   lead: >-
     Com uma jarra de 5 litros e outra de 3 litros, como medir exatamente 4
-    litros? Com uma balança de pratos e sem pesos, como achar a única moeda
-    mais leve entre muitas? Nestes problemas, a criança planeja uma sequência
-    curta de passos, e cada regra conta: jarras sem marcas, balança sem pesos.
-    É um primeiro contato com algoritmos, planos que funcionam aconteça o que
-    acontecer.
+    litros? Com uma balança de pratos e sem pesos, como achar a única moeda mais
+    leve entre muitas? Nestes problemas, como o desafio dos baldes, a criança
+    planeja uma sequência curta de passos, e cada regra conta: jarras sem
+    marcas, balança sem pesos. É um primeiro contato com algoritmos, planos que
+    funcionam aconteça o que acontecer.
   method: Anotar cada estado e procurar o caminho mais curto
   teaches: A planejar os passos com antecedência e a pensar em cada resultado de uma pesagem
   # The words of its drawing: what is measured over it, and what each pair of

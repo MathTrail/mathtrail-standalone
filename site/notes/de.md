@@ -18,7 +18,7 @@ The German half of [the brief](README.md): the rules the German texts follow on 
   - The people of the examples have a gender, as in the English: «Dora kam nicht als Erste ins Ziel».
 - **An example's question is a task for the child**, as a task on the card is, so it speaks to the child with «du»: «Finde es heraus, ohne die großen Zahlen zu multiplizieren», «Wie viele …?». The words around it speak to the reader. A step the English writes as an order to the reader is an infinitive, as the card's advice is written (`advice.off_by_one`: «Vor der Antwort eine kurze Skizze zeichnen …»): «Die erste Angabe umdrehen: …», «Die 6 Haltestellen als Punkte zeichnen.» A tip for home speaks «Sie»: «Hängen Sie einen Kalender auf …».
 - **What a topic teaches**, `hero.teaches`, goes on from its label «Was man dabei lernt», so it is an infinitive group with no «zu», its first word capitalised, as German writes learning goals: «Hinweise zu einem Bild verbinden und einen Vergleich in beide Richtungen lesen», «Schritt für Schritt schließen und sich selbst prüfen». `hero.method`, after the label «Der Kniff», is an infinitive group the same way: «Eine Linie zeichnen und alle darauf einordnen».
-- **Sentences every topic's page shares** read the same on every page: `method.lead` ends «Die Beispiele unten reichen von ganz einfach bis Olympiade-Niveau.», and `description` ends «…, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.» A description opens with the topic's name: «Worum es bei „Reihenfolgen“ geht, wie man solche Aufgaben löst, …», and keeps every fact the English one adds to it: «Worum es bei „Figuren auf Karopapier“ geht, also um Flächeninhalt und Umfang, …».
+- **Sentences every topic's page shares** read the same on every page: `method.lead` ends «Die Beispiele unten reichen von ganz einfach bis Olympiade-Niveau.», and `description` ends «…, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.» A description opens with the topic's name: «Worum es bei „Reihenfolgen“ geht, wie man solche Aufgaben löst, …», and keeps every fact the English one adds to it: «Worum es bei „Figuren auf Karopapier“ (Flächeninhalt und Umfang) geht, …».
 - **The card's words, exactly.** A topic's name written out in a sentence is the card's, in „…“ with its capital and uninflected, as the card writes „{topic}“ in `topic_choice.ask`: «zum Thema „Systematisches Probieren“», «Aufgaben wie „Ritter und Lügner“». Unquoted it stands only where it is an ordinary noun the sentence needs no other form of: «das Schubfachprinzip», «die Prozentrechnung». Never a paraphrase, though the English sometimes paraphrases ("putting things in order"), and never an inflected name: «beim systematischen Probieren» is a paraphrase.
 
 ## Typography
@@ -484,7 +484,7 @@ Gathered on 2026-10-12 from Google's suggestions for Germany, Austria and Switze
 **The head's title.**
 
 - A topic's page: **«{topic}: Knobelaufgaben, Klassen {range}»**. «Knobelaufgaben … Klasse N» is the shape most parents' queries take, and «Klassen {range}» is `topics.grades`. The longest, «Parität und abwechselnde Muster: Knobelaufgaben, Klassen 1–6», is 60 units, and with « – » in place of the colon 61. The other way, «{topic}: Matherätsel, Klassen {range}», 57 at most, says «Mathe» itself, since Knobelaufgaben are set in German lessons too; «Olympiade-Aufgaben» would reach 64 and names the contest in German search.
-- Any other page: **«{page} – MathTrail»**, the spaced en dash of the glossary and of the home page's title; the longest, «So funktioniert der Dienst – MathTrail», is 38.
+- Any other page: **«{page} – MathTrail»**, the spaced en dash of the glossary and of the home page's title; the longest, «Problemlösestrategien für Mathe-Knobelaufgaben – MathTrail», is 58.
 
 **Topics.** ⚑ marks a card's name nobody types.
 
@@ -508,7 +508,7 @@ Gathered on 2026-10-12 from Google's suggestions for Germany, Austria and Switze
 | overlapping groups | «Überlappende Gruppen» ⚑ | «Mengendiagramm», «Venn-Diagramm Aufgaben», «Schnittmenge» |
 | games with a winning strategy | «Spiele mit Gewinnstrategie» ⚑ | «Nim-Spiel», «Strategiespiele Mathe Grundschule»; «Gewinnstrategie» alone is board games and the lottery |
 
-**Descriptions** can carry «Knobelaufgaben», which the glossary lists for "puzzle" and the German site never writes, «Matherätsel», «Logikrätsel», «Grundschule», «kostenlos», a fact, on "Techniques" «Problemlösestrategien», and on "Why" «logisches Denken», as a noun and never with «fördern». «Mit Lösungen» fits a topic's page and "Techniques" only. Today the descriptions of the home page, 184 characters, and "Techniques", 206, run past 160, and none of the four main pages has «Knobelaufgaben».
+**Descriptions** can carry «Knobelaufgaben», which the glossary lists for "puzzle" and the German site never writes, «Matherätsel», «Logikrätsel», «Grundschule», «kostenlos», a fact, on "Techniques" «Problemlösestrategien», and on "Why" «logisches Denken», as a noun and never with «fördern». «Mit Lösungen» fits a topic's page and "Techniques" only.
 
 **Not to use.**
 

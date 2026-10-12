@@ -15,6 +15,7 @@ import type { Example, SiteData } from "./data";
 import { connectAddress } from "./home";
 import type { Page, PageProps } from "./pages";
 import type { PageReader } from "./reader";
+import type { Crumb } from "./structured";
 import { TableFrame } from "./TableFrame";
 import { TopicThumb } from "./TopicThumbs";
 import type { Group, Topic } from "./topics";
@@ -65,13 +66,14 @@ function TopicPage({
 	topic,
 	art,
 }: PageProps & { readonly topic: Topic; readonly art: TopicArt }) {
+	const words = useSiteWords();
 	const card = cardWords(page.locale, undefined);
 	const name = topicName(card, topic.id);
 	const group = groupOf(data, topic);
 	return (
 		<>
 			<section class="s-wrap s-subject">
-				<Path page={page} group={group} name={name} />
+				<Path steps={topicPath(words, data, topic)} />
 				<Hero page={page} topic={topic} group={group} name={name} art={art} />
 				<Contents page={page} />
 			</section>
@@ -136,29 +138,47 @@ function trapsOf(data: SiteData, topic: Topic): readonly string[] {
 	return traps;
 }
 
-// Path is the way from the page of the topics to this one, through the group
-// the topic is shown in there.
-function Path({
-	page,
-	group,
-	name,
-}: {
-	page: PageReader;
-	group: Group;
-	name: string;
-}) {
+/**
+ * topicPath is the way from the page of the topics to topic's page, through
+ * the group the topic is shown in there, the page itself the last step: the
+ * path the page shows at its top and the one it tells a search engine, in the
+ * site's words and the card's name of the topic.
+ */
+export function topicPath(
+	words: Words<SiteKey>,
+	data: SiteData,
+	topic: Topic,
+): Crumb[] {
+	const topics = address(words.locale, "topics");
+	const group = groupOf(data, topic);
+	return [
+		{ name: words.text("nav.topics"), href: topics },
+		{ name: words.text(groupKey(group)), href: `${topics}#${group.id}` },
+		{
+			name: topicName(cardWords(words.locale, undefined), topic.id),
+			href: address(words.locale, `topics/${topic.slug}`),
+		},
+	];
+}
+
+// Path is the way to the page, steps leading to it and the page itself the
+// last, which is no link.
+function Path({ steps }: { steps: readonly Crumb[] }) {
 	const words = useSiteWords();
-	const topics = address(page.locale, "topics");
 	return (
 		<nav class="s-path" aria-label={words.text("topic.path")}>
 			<ol>
-				<li>
-					<a href={topics}>{words.text("nav.topics")}</a>
-				</li>
-				<li>
-					<a href={`${topics}#${group.id}`}>{words.text(groupKey(group))}</a>
-				</li>
-				<li aria-current="page">{name}</li>
+				{steps.map(({ name, href }, at) =>
+					at === steps.length - 1 ? (
+						<li key={href} aria-current="page">
+							{name}
+						</li>
+					) : (
+						<li key={href}>
+							<a href={href}>{name}</a>
+						</li>
+					),
+				)}
 			</ol>
 		</nav>
 	);

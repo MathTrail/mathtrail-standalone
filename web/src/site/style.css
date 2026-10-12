@@ -1140,9 +1140,36 @@ a:hover {
 	font-size: 0.875rem;
 }
 
-.s-topic-foot a {
-	font-weight: 500;
+/* A card is one link, the topic's name, whose box covers the whole card, as a
+   related topic's card on a topic's page is a link all over; the sign at its
+   foot takes the colours a link has, and the name shows the link's focus as
+   every link does. */
+.s-topic-card {
+	position: relative;
+}
+
+.s-topic-link {
+	color: inherit;
 	text-decoration: none;
+}
+
+.s-topic-link::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+}
+
+.s-topic-link:hover {
+	color: inherit;
+}
+
+.s-topic-more {
+	color: var(--s-accent);
+	font-weight: 500;
+}
+
+.s-topic-card:hover .s-topic-more {
+	color: var(--s-accent-hover);
 }
 
 /* Beside a card taller than itself, the first screen's words stand a little

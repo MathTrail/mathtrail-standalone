@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: 枚举法
-description: 什么是枚举法的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+description: 什么是枚举法的题（如搭配问题），怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
 
 # The words every drawing of the page writes its people in: the three
 # children's letters, and Lea's and Tom's initials.
@@ -19,7 +19,7 @@ art:
 
 hero:
   lead: >-
-    用这几个数字能写出多少个数？能握多少次手，能搭配出多少套衣服，排成一队有多少种排法？这类题要按一定的顺序把每一种情况都列出来，保证一种也不漏，一种也不重复数。按规则列出的清单，是孩子面对大得没法猜的问题时的第一件工具。
+    用这几个数字能写出多少个数？能握多少次手，能搭配出多少套衣服，排成一队有多少种排法？这类搭配问题要按一定的顺序把每一种情况都列出来，保证一种也不漏，一种也不重复数。按规则列出的清单，是孩子面对大得没法猜的问题时的第一件工具。
   method: 按规则列举各种情况
   teaches: 按顺序有条理地思考，并能看出什么时候不必一一写出也能数清情况
   # The words of its drawing: the question and the rule over it, and the count

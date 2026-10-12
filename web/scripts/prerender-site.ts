@@ -25,6 +25,8 @@ import {
 	coachPrototypePath,
 	coachScreenPath,
 	historyPicturePath,
+	markPath,
+	markPicturePath,
 	type Photo,
 	photoPath,
 	photos,
@@ -104,7 +106,7 @@ type Made = { readonly path: string; readonly data: string | Buffer };
 /**
  * buildSite builds the site into out: the pages its texts make, the
  * stylesheet and the font files it names, the font's licence, the design's
- * tokens, the mark, the pictures a shared link shows, the family's
+ * tokens, the mark and its picture, the pictures a shared link shows, the family's
  * photographs, the pictures of the history the page "Why" tells, the paper the page "Research" offers, and the coach's
  * prototype with the licence of the fonts it carries. Every file is made
  * before anything is written, so a build that fails at any step leaves the
@@ -146,8 +148,8 @@ export async function buildSite({
 		)),
 		...(await buildStyles()),
 		// The tokens are the very file the widget and the sign-in pages read,
-		// so the site takes its fonts and sizes from where they do; the mark is
-		// the site's own.
+		// so the site takes its fonts and sizes from where they do; the mark
+		// and its picture are the site's own, and go out as they are kept.
 		{
 			path: "assets/tokens.css",
 			data: await readFile(
@@ -155,8 +157,12 @@ export async function buildSite({
 			),
 		},
 		{
-			path: "assets/favicon.svg",
-			data: await readFile(join(repository, "site", "assets", "favicon.svg")),
+			path: markPath.slice(1),
+			data: await readFile(join(repository, "site", markPath.slice(1))),
+		},
+		{
+			path: markPicturePath.slice(1),
+			data: await readFile(join(repository, "site", markPicturePath.slice(1))),
 		},
 		// The font's licence travels with its files, as the licence asks of
 		// every copy of the font.

@@ -6,7 +6,7 @@
 # its reference tasks.
 
 title: Ordenación
-description: Qué son los problemas de ordenación, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+description: Qué son los problemas de ordenación u ordenamiento lineal, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
 
 # The words every drawing of the page writes its four children in: the
 # initial of each, and the name.
@@ -22,11 +22,11 @@ art:
 
 hero:
   lead: >-
-    ¿Quién mide más, quién es mayor, quién llegó primero? En estos problemas
-    hay que unir unas cuantas comparaciones en un solo orden: por estatura,
-    por edad, por el puesto en una cola o en una carrera. Para muchos niños y
-    niñas es la primera cadena de razonamientos, en la que cada dato es un
-    eslabón y no puede faltar ninguno.
+    ¿Quién mide más, quién es mayor, quién llegó primero? En estos problemas de
+    lógica hay que unir unas cuantas comparaciones en un solo orden: por
+    estatura, por edad, por el puesto en una cola o en una carrera. Para muchos
+    niños y niñas es la primera cadena de razonamientos, en la que cada dato es
+    un eslabón y no puede faltar ninguno.
   method: Dibujar una línea y colocar a todos en ella
   teaches: A unir los datos en una sola imagen y a leer una comparación en los dos sentidos
   # The words of its drawing: the clues and the rule over it, and the line's

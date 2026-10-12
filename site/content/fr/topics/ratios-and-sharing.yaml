@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: Rapports et partages
-description: Ce que sont les problèmes de rapports et partages, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+description: Ce que sont les problèmes de rapports et partages proportionnels, comment on les résout, où les enfants se trompent et comment les aider à la maison.
 
 # The words the page's drawings name their people and boxes in.
 art:
@@ -17,11 +17,11 @@ art:
 
 hero:
   lead: >-
-    Anna et Basile se partagent 35 bonbons dans le rapport 3 à 4. Combien
-    chacun en reçoit-il ? Dans ces problèmes, un rapport indique combien de
-    parts égales reçoit chacun, et non combien d’objets. En comptant d’abord
-    les parts et en cherchant ce que vaut une part, on transforme tout problème
-    de rapport en une division.
+    Anna et Basile se partagent 35 bonbons dans le rapport 3 à 4. Combien chacun
+    en reçoit-il ? Dans ces problèmes de partage proportionnel, un rapport
+    indique combien de parts égales reçoit chacun, et non combien d’objets. En
+    comptant d’abord les parts et en cherchant ce que vaut une part, on
+    transforme tout problème de rapport en une division.
   method: Compter les parts, puis trouver ce que vaut une part
   teaches: À voir un rapport comme des parts égales et à augmenter ou réduire les quantités d’une recette
   # The words of its drawing: what is shared over it, and what the parts come

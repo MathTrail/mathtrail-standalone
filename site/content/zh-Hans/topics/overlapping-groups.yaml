@@ -6,11 +6,11 @@
 # the topic's commonest, counted in its reference tasks.
 
 title: 容斥原理
-description: 什么是容斥原理的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+description: 什么是容斥原理的题（也叫重叠问题），怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
 
 hero:
   lead: >-
-    有的孩子参加象棋小组，有的去踢足球，有的两样都参加，还有的哪样都不参加。这类题里的组彼此相交，窍门在于每个人都恰好只数一次。在纸上画两个圆，一道让人糊涂的题就变成了四个数。
+    有的孩子参加象棋小组，有的去踢足球，有的两样都参加，还有的哪样都不参加。这类重叠问题里的组彼此相交，窍门在于每个人都恰好只数一次。在纸上画两个圆，一道让人糊涂的题就变成了四个数。
   method: 画出圆圈，从中间开始填
   teaches: 不重复地计数，并能说出每个数代表什么
   # The words of its drawing: what the two circles are, and what their middle

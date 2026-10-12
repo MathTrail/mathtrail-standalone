@@ -6,7 +6,7 @@
 # its reference tasks.
 
 title: Mise en ordre
-description: Ce que sont les problèmes de mise en ordre, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+description: Ce que sont les problèmes de logique de mise en ordre, comment on les résout, où les enfants se trompent et comment les aider à la maison.
 
 # The words every drawing of the page writes its four children in: the
 # initial of each, and the name.
@@ -23,10 +23,10 @@ art:
 hero:
   lead: >-
     Qui est plus grand, qui est plus âgé, qui est arrivé le premier ? Dans ces
-    problèmes, il faut réunir quelques comparaisons en un seul ordre : par
-    taille, par âge, par place dans une file ou dans une course. Pour beaucoup
-    d’enfants, c’est la première chaîne de raisonnement, où chaque donnée est
-    un maillon et où aucune ne peut manquer.
+    problèmes de logique, il faut réunir quelques comparaisons en un seul
+    ordre : par taille, par âge, par place dans une file ou dans une course.
+    Pour beaucoup d’enfants, c’est la première chaîne de raisonnement, où chaque
+    donnée est un maillon et où aucune ne peut manquer.
   method: Tracer une ligne et y placer tout le monde
   teaches: À réunir les données en une seule image et à lire une comparaison dans les deux sens
   # The words of its drawing: the clues and the rule over it, and the line's

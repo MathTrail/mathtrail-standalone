@@ -471,7 +471,7 @@ Gathered on 2026-10-12 from Google's suggestions for Brazil, and briefly for Por
 **The head's title.**
 
 - A topic's page: **“{topic}: problemas para os anos {range}”**. Topics are searched as “problemas de …” with a year, “problemas com horas 3 ano”, “problemas de frações 5 ano”, and “para os anos {range}” is the home page's lead. The longest, “Jogos com estratégia vencedora: problemas para os anos 5–6”, is 58 units; “olimpíada” would push four topics past 60. The other way, “{topic}: desafios para os anos {range}”, 57 at most, takes the parents' “desafios”.
-- Any other page: **“{page} — MathTrail”**, the spaced travessão the glossary keeps; the longest, “Técnicas de resolução de problemas — MathTrail”, is 46.
+- Any other page: **“{page} — MathTrail”**, the spaced travessão the glossary keeps; the longest, “Estratégias para resolver problemas de olimpíada — MathTrail”, is 60.
 
 **Topics.** ⚑ marks a card's name nobody types.
 
@@ -495,7 +495,7 @@ Gathered on 2026-10-12 from Google's suggestions for Brazil, and briefly for Por
 | overlapping groups | “Grupos que se sobrepõem” ⚑ | “diagrama de Venn”, “problemas com conjuntos” |
 | games with a winning strategy | “Jogos com estratégia vencedora” ⚑ | “jogo do Nim” |
 
-**Descriptions** can carry “desafios matemáticos”, “raciocínio lógico”, “problemas de lógica”, “ensino fundamental”, on "Techniques" “estratégias de resolução de problemas” and “Polya”, and on "Why" “olimpíadas de matemática”. “Com respostas” and “resolvidos” fit a topic's page and "Techniques" only. Today the descriptions of the home page, 176 characters, and "Techniques", 186, run past 160, and that of "Topics" carries none of these words.
+**Descriptions** can carry “desafios matemáticos”, “raciocínio lógico”, “problemas de lógica”, “ensino fundamental”, on "Techniques" “estratégias de resolução de problemas” and “Polya”, and on "Why" “olimpíadas de matemática”. “Com respostas” and “resolvidos” fit a topic's page and "Techniques" only.
 
 **Not to use.**
 

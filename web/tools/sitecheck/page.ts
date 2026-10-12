@@ -66,6 +66,17 @@ export type Page = {
 	 * script reads.
 	 */
 	digits: string[];
+	/**
+	 * stated counts how many times the page's own head states its title, its
+	 * description and its address: a search engine reads one of each, and
+	 * which of two it reads is its own choice.
+	 */
+	stated: { title: number; description: number; canonical: number };
+	/**
+	 * structured are the texts of the page's own blocks of structured data, as
+	 * they are written.
+	 */
+	structured: string[];
 };
 
 // subresourceRels are the link relations a browser acts on by itself. A
@@ -215,6 +226,8 @@ export function parsePage(file: string, html: string, reference: string): Page {
 		references: [],
 		ids: new Set(),
 		digits: digitsOf(html),
+		stated: { title: 0, description: 0, canonical: 0 },
+		structured: [],
 	};
 	walk(parse(html), page);
 	return page;
@@ -261,7 +274,7 @@ function readElement(element: Element, page: Page, inTemplate: boolean): void {
 
 // readOwn takes what only the page's own elements give it: an anchor, its
 // language and direction, its title, its description, the pictures a shared
-// link to it shows, and what its refresh does.
+// link to it shows, what its refresh does, and its structured data.
 function readOwn(element: Element, page: Page): void {
 	const id = attribute(element, "id");
 	if (id !== "") {
@@ -275,12 +288,16 @@ function readOwn(element: Element, page: Page): void {
 		case "title":
 			// The page's title is the first title of the document's own: one inside
 			// an SVG names the drawing, not the page.
-			if (page.title === "" && element.namespaceURI === htmlNamespace) {
-				page.title = textOf(element).trim();
+			if (element.namespaceURI === htmlNamespace) {
+				page.stated.title += 1;
+				if (page.title === "") {
+					page.title = textOf(element).trim();
+				}
 			}
 			break;
 		case "meta":
 			if (attribute(element, "name").toLowerCase() === "description") {
+				page.stated.description += 1;
 				page.description = attribute(element, "content").trim();
 			} else if (attribute(element, "property").toLowerCase() === "og:image") {
 				page.images.push(attribute(element, "content").trim());
@@ -291,8 +308,19 @@ function readOwn(element: Element, page: Page): void {
 				page.refresh = refreshOf(attribute(element, "content"));
 			}
 			break;
+		case "script":
+			if (
+				attribute(element, "type").trim().toLowerCase() === structuredDataType
+			) {
+				page.structured.push(textOf(element));
+			}
+			break;
 	}
 }
+
+// structuredDataType is the type of a script that holds structured data: JSON
+// a search engine reads and a browser never runs.
+const structuredDataType = "application/ld+json";
 
 // htmlSpaces are the characters HTML skips as white space: tab, line feed, form
 // feed, carriage return and space, and no other.
@@ -366,6 +394,7 @@ function readLink(element: Element, page: Page, inTemplate: boolean): void {
 	const rel = attribute(element, "rel").trim().toLowerCase();
 	if (rel === "canonical") {
 		if (!inTemplate) {
+			page.stated.canonical += 1;
 			page.canonical = attribute(element, "href");
 		}
 	} else if (rel === "alternate") {

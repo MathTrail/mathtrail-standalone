@@ -2,6 +2,7 @@ import { Window } from "happy-dom";
 import { afterAll, describe, expect, test } from "vitest";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
+import { openWords } from "../i18n/words";
 import type { TopicArt } from "./art/art";
 import { Kind } from "./art/pictures";
 import { readSiteData } from "./data";
@@ -10,6 +11,7 @@ import { type Page, sitePages } from "./pages";
 import { renderSite } from "./render";
 import { topicPage } from "./TopicPage";
 import { dictionariesOf } from "./testing/dictionaries";
+import { gradesRange, type SiteKey, siteDictionaries } from "./words";
 
 const browser = new Window({
 	settings: {
@@ -126,7 +128,7 @@ const pictured: TopicArt = {
 // words are the page's words for that catalog, the same in each language: its
 // first example with a note and its second with none.
 const words = [
-	"title: Knights",
+	"title: Knights and liars",
 	"description: About knights.",
 	"hero:",
 	"  lead: Who is who.",
@@ -194,20 +196,38 @@ const words = [
 const document = (title: string) =>
 	`---\ntitle: ${title}\ndescription: D\n---\n\n# ${title}\n`;
 
+// inRussian are words for the page of knights and liars under the Russian
+// card's name of the topic, which a topic's page is titled by.
+const inRussian = (english: string) =>
+	english.replace("title: Knights and liars\n", "title: Рыцари и лжецы\n");
+
+// orderingNames are the card's names of ordering, which its page's title is,
+// by locale.
+const orderingNames: Record<string, string> = {
+	en: "Ordering",
+	ru: "Упорядочивание",
+};
+
 // sourcesWith is the site's texts with these words for the page of knights
-// and liars, in English, and in Russian unless russian is given.
+// and liars, in English, and in Russian unless russian is given, under the
+// Russian card's name either way.
 const sourcesWith = (english: string, russian = english) =>
 	new Map(
-		Object.entries({ en: english, ru: russian }).map(([locale, knights]) => [
-			locale,
-			new Map([
-				["index.md", document("Home")],
-				["privacy.md", document("Privacy")],
-				["terms.md", document("Terms")],
-				["topics/ordering.yaml", "title: Ordering\ndescription: O\n"],
-				["topics/knights.yaml", knights],
-			]),
-		]),
+		Object.entries({ en: english, ru: inRussian(russian) }).map(
+			([locale, knights]) => [
+				locale,
+				new Map([
+					["index.md", document("Home")],
+					["privacy.md", document("Privacy")],
+					["terms.md", document("Terms")],
+					[
+						"topics/ordering.yaml",
+						`title: ${orderingNames[locale]}\ndescription: O\n`,
+					],
+					["topics/knights.yaml", knights],
+				]),
+			],
+		),
 	);
 
 // A frame with no menu, since the site drawn here has no page of the topics.
@@ -283,6 +303,40 @@ describe("a topic's page", () => {
 		]);
 		expect(all(".s-path a")).toEqual(["Topics", "Logic"]);
 		expect(all('.s-path [aria-current="page"]')).toEqual(["Knights and liars"]);
+	});
+
+	test("tells a search engine the path it shows, each step at its full address", () => {
+		const blocks = [
+			...knights.querySelectorAll('script[type="application/ld+json"]'),
+		].map((block) => JSON.parse(block.textContent ?? ""));
+		const steps: { position: number; name: string; item: string }[] =
+			blocks[0]?.itemListElement ?? [];
+
+		expect(blocks.map((block) => block["@type"])).toEqual(["BreadcrumbList"]);
+		expect(steps.map(({ position }) => position)).toEqual([1, 2, 3]);
+		expect(steps.map(({ name }) => name)).toEqual([
+			...all(".s-path a"),
+			...all('.s-path [aria-current="page"]'),
+		]);
+		expect(steps.map(({ item }) => item)).toEqual([
+			...all(".s-path a", "href").map((href) => `https://example.test${href}`),
+			...all('link[rel="canonical"]', "href"),
+		]);
+	});
+
+	test("is titled by the topic's name as the card says it, in its language's pattern with the topic's grades", () => {
+		const titled = (locale: string, topic: string) =>
+			openWords<SiteKey>(locale, siteDictionaries).text("title.topic", {
+				topic,
+				range: gradesRange(locale, [3, 6]),
+			});
+		const russian = pageAt("ru/topics/knights/index.html");
+
+		expect(knights.title).toBe(titled("en", "Knights and liars"));
+		expect(russian.title).toBe(titled("ru", "Рыцари и лжецы"));
+		expect(all('meta[property="og:title"]', "content")).toEqual([
+			knights.title,
+		]);
 	});
 
 	test("names the topic as the card does, beside its group and the catalog's grades", () => {
@@ -392,7 +446,7 @@ describe("a topic's page", () => {
 
 	// The drawings of the page drawn here draw no picture as a card draws one,
 	// and the clock's do.
-	test("reads in full with no script, and loads the card's stylesheet only where its drawings draw a picture", () => {
+	test("reads in full with no script that runs, and loads the card's stylesheet only where its drawings draw a picture", () => {
 		const clock = pageAt(
 			"en/topics/knights/index.html",
 			render(sourcesWith(words), data, pictured),
@@ -402,7 +456,12 @@ describe("a topic's page", () => {
 				link.getAttribute("href"),
 			);
 
-		expect(knights.querySelector("script")).toBeNull();
+		expect(
+			[...knights.querySelectorAll("script")].map((script) => [
+				script.getAttribute("type"),
+				script.hasAttribute("src"),
+			]),
+		).toEqual([["application/ld+json", false]]);
 		expect(sheets(knights)).not.toContain("/assets/card.css");
 		expect(
 			clock.querySelector(".s-subject-panel svg.mt-picture"),
@@ -413,6 +472,11 @@ describe("a topic's page", () => {
 
 describe("a topic's page is refused when", () => {
 	test.each([
+		[
+			"its title is not the card's name of the topic",
+			words.replace("title: Knights and liars\n", "title: Knights\n"),
+			'en/topics/knights: its title "Knights" is not the card\'s name of the topic, "Knights and liars"',
+		],
 		[
 			"its words explain a trap that is not among the topic's commonest",
 			words.replace("  ignored_condition:", "  missed_case:"),

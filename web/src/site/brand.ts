@@ -42,6 +42,22 @@ export const contactAddress = "altedtech.info@gmail.com";
 export const markPath = "/assets/favicon.svg";
 
 /**
+ * markPicturePath is where the logo is served as a picture: the icon a search
+ * engine shows beside the site's results, which takes a PNG and no SVG. It is
+ * drawn from the mark by the script that draws the directories' icons, again
+ * whenever the mark changes, and kept in the site's own assets under the same
+ * name; like the mark's, its address never changes.
+ */
+export const markPicturePath = "/assets/favicon.png";
+
+/**
+ * markPictureSide is the side of that picture, in pixels: square and larger
+ * than 48, as the search engine asks of the icon it shows, and stated by every
+ * page so that a browser knows its size before fetching it.
+ */
+export const markPictureSide = 192;
+
+/**
  * coachPrototypePath is where the prototype of the coach is served: the coach
  * is a product of its own, still in the making, and its prototype is the
  * mockup a reader can try, the export of the tool it was drawn in. The page

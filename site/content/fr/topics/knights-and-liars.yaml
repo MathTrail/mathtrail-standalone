@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: Chevaliers et menteurs
-description: Ce que sont les problèmes de chevaliers et menteurs, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+description: Ce que sont les problèmes de chevaliers et menteurs, ou énigmes du menteur, comment on les résout, où les enfants se trompent et comment les aider à la maison.
 
 # The words every drawing of the page writes its islanders in: the letters
 # of a knight and of a liar, and the islanders' own.
@@ -19,11 +19,11 @@ art:
 
 hero:
   lead: >-
-    Sur une île vivent des chevaliers, qui disent toujours la vérité, et des
-    menteurs, qui mentent toujours. D’après ce qu’ils disent, il faut trouver
-    qui est qui. Pour beaucoup d’enfants, c’est leur première rencontre avec
-    un vrai raisonnement logique : faire une hypothèse, voir où elle mène et
-    repérer une contradiction.
+    Sur l’île aux menteurs vivent des chevaliers, qui disent toujours la vérité,
+    et des menteurs, qui mentent toujours. D’après ce qu’ils disent, il faut
+    trouver qui est qui. Pour beaucoup d’enfants, c’est leur première rencontre
+    avec un vrai raisonnement logique : faire une hypothèse, voir où elle mène
+    et repérer une contradiction.
   method: « Supposons que celui-ci soit un chevalier… »
   teaches: À raisonner pas à pas et à vérifier son raisonnement
   # The words of its drawing: the key of the letters over it, and in it the

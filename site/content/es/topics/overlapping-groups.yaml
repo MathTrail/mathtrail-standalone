@@ -6,14 +6,14 @@
 # commonest, counted in its reference tasks.
 
 title: Grupos que se superponen
-description: Qué son los problemas de grupos que se superponen, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+description: Qué son los problemas de grupos que se superponen y diagramas de Venn, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
 
 hero:
   lead: >-
-    Unos niños van al club de ajedrez, otros a fútbol, algunos a los dos y
-    otros a ninguno. En estos problemas los grupos se superponen, y el truco
-    está en contar a cada uno exactamente una vez. Dos círculos dibujados en
-    un papel convierten una pregunta confusa en cuatro números.
+    Unos niños van al club de ajedrez, otros a fútbol, algunos a los dos y otros
+    a ninguno. En estos problemas los grupos se superponen, y el truco está en
+    contar a cada uno exactamente una vez. Un diagrama de Venn, dos círculos
+    dibujados en un papel, convierte una pregunta confusa en cuatro números.
   method: Dibujar los círculos y empezar por el centro
   teaches: A contar sin contar dos veces y a decir qué significa cada número
   # The words of its drawing: what the two circles are, and what their middle

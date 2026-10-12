@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: 正直者とうそつき
-description: 正直者とうそつきの問題とはどんなものか、どう解くのか、子どもがつまずきやすいところ、家庭でできることを紹介します。
+description: 嘘つき問題とも呼ばれる、正直者とうそつきの問題とはどんなものか、どう解くのか、子どもがつまずきやすいところ、家庭でできることを紹介します。
 
 # The words every drawing of the page writes its islanders in: the letters
 # of a knight and of a liar, and the islanders' own.
@@ -19,7 +19,7 @@ art:
 
 hero:
   lead: >-
-    ある島には、いつも本当のことを言う正直者と、いつもうそを言ううそつきが住んでいます。住人たちの言葉から、だれが正直者で、だれがうそつきかを見分けなければなりません。多くの子どもにとって、これが本格的な論理的推論との最初の出会いになります。仮定を立て、そこから何が導かれるかをたどり、矛盾に気づくのです。
+    ある島には、いつも本当のことを言う正直者と、いつもうそを言ううそつきが住んでいます。うそつき問題とも呼ばれるこのパズルでは、住人たちの言葉から、だれが正直者で、だれがうそつきかを見分けなければなりません。多くの子どもにとって、これが本格的な論理的推論との最初の出会いになります。仮定を立て、そこから何が導かれるかをたどり、矛盾に気づくのです。
   method: 「この人が正直者だと仮定すると…」
   teaches: 順を追って考え、自分で確かめる力
   # The words of its drawing: the key of the letters over it, and in it the
