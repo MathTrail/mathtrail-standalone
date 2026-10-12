@@ -1,0 +1,247 @@
+# The page of the topic of games with a winning strategy, for a parent, in
+# German. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Spiele mit Gewinnstrategie
+description: Worum es bei „Spiele mit Gewinnstrategie“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+# The words the page's drawings say of a position.
+art:
+  loses: verliert, wer am Zug ist
+  wins: gewinnt
+
+hero:
+  lead: >-
+    Auf dem Tisch liegen 20 Streichhölzer, und zwei Personen nehmen abwechselnd
+    1, 2 oder 3 davon. Wer das letzte Streichholz nimmt, gewinnt. Kann, wer
+    anfängt, immer gewinnen? In diesen Aufgaben sucht ein Kind einen Plan, der
+    gewinnt, ganz gleich, was das Gegenüber tut, und findet ihn, indem es vom
+    Spielende aus rückwärts arbeitet: Es ermittelt, in welchen Stellungen
+    verliert, wer von dort aus ziehen muss.
+  method: Vom Spielende rückwärts arbeiten und die Verluststellungen finden
+  teaches: Einen Plan finden, der gewinnt, ganz gleich, was das Gegenüber tut
+  # The words of its drawing: the game it is drawn for.
+  art:
+    line: 1, 2 oder 3 Streichhölzer nehmen; wer das letzte nimmt, gewinnt
+
+basis:
+  title: Die Regeln der Spiele
+  cards:
+    - title: Vom Ende her
+      text: >-
+        Beginnen Sie am Ende des Spiels, wo feststeht, wer gewinnt, und gehen
+        Sie zurück: Eine Stellung ist verloren, wenn jeder Zug von ihr aus zu
+        einer führt, die für das Gegenüber gewonnen ist.
+      art:
+        back: von 0, dem Spielende, hinauf zu größeren Zahlen
+    - title: Eine Verluststellung überlassen
+      text: >-
+        Ein Gewinnzug hinterlässt dem Gegenüber eine Verluststellung. Gibt es
+        keinen solchen Zug, ist die Stellung verloren, so klug man auch spielt.
+      art:
+        take: 2 nehmen
+        losing: verloren fürs Gegenüber
+    - title: Nachmachen und spiegeln
+      text: >-
+        In vielen Spielen sorgt, wer gewinnt, für Ausgleich: Jeder Zug wird so
+        beantwortet, dass beide Züge zusammen immer dieselbe Summe ergeben, oder
+        mit demselben Zug auf der gespiegelten Seite.
+      art:
+        they: Zug
+        answer: Antwort
+
+idea:
+  title: Verluststellungen
+  lead: Im Spiel, in dem man 1, 2 oder 3 Streichhölzer nimmt und das letzte Streichholz gewinnt, wiederholen sich die Stellungen, in denen verliert, wer am Zug ist, alle 4 Streichhölzer.
+  table:
+    head:
+      - Übrige Streichhölzer
+      - Der beste Zug
+      - Warum
+    rows:
+      - - 1, 2 oder 3
+        - alle nehmen
+        - das letzte Streichholz gewinnt
+      - - "4"
+        - kein Zug gewinnt
+        - nach jedem Zug nimmt das Gegenüber den Rest
+      - - 5, 6 oder 7
+        - 1, 2 oder 3 nehmen, sodass 4 bleiben
+        - das Gegenüber bekommt 4, eine Verluststellung
+      - - "8"
+        - kein Zug gewinnt
+        - jeder Zug lässt 5, 6 oder 7 übrig
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Kinder glauben oft, wer anfängt, müsse gewinnen, oder sie spielen in der
+      Hoffnung, dass das Gegenüber einen Fehler macht. Eine Gewinnstrategie
+      funktioniert gegen das bestmögliche Spiel des Gegenübers, und wer sie
+      finden will, muss vom Ende her denken – eine Gewohnheit, die sich weit
+      über Spiele hinaus lohnt.
+
+method:
+  title: "Lösungsweg: vom Ende des Spiels her"
+  lead: >-
+    Schreiben Sie die Stellungen auf, von der kleinsten aufwärts. Markieren Sie
+    eine Stellung als Verluststellung, wenn jeder Zug von ihr aus zu einer
+    Gewinnstellung führt, und als Gewinnstellung, wenn irgendein Zug zu einer
+    Verluststellung führt. Der Gewinnzug am Anfang ist der, der eine
+    Verluststellung hinterlässt. Die Beispiele unten reichen von ganz einfach
+    bis Olympiade-Niveau.
+  steps:
+    - Mit den Stellungen am Spielende beginnen
+    - Jede als Gewinn- oder Verluststellung markieren, von der kleinsten aufwärts
+    - Den Zug finden, der dem Gegenüber eine Verluststellung hinterlässt
+
+examples:
+  - title: Bonbons in einer Schale
+    question: >-
+      In einer Schale liegen 23 Bonbons. Kim und Leo ziehen abwechselnd, und
+      Kim fängt an. Wer am Zug ist, nimmt 1, 2, 3 oder 4 Bonbons. Wer den
+      letzten Bonbon nimmt, gewinnt. Wie viele Bonbons muss Kim beim ersten Zug
+      nehmen, um sicher zu gewinnen?
+    steps:
+      - >-
+        Vom Ende her: Sind noch 1 bis 4 Bonbons übrig, nimmt, wer am Zug ist,
+        alle und gewinnt. Sind noch 5 übrig, lässt jeder Zug dem Gegenüber 1 bis
+        4, also ist 5 eine Verluststellung.
+      - >-
+        Genauso sind 10, 15 und 20 Verluststellungen: Was man auch davon nimmt,
+        das Gegenüber kann die Schale auf das nächste Vielfache von 5 bringen.
+      - >-
+        Also nimmt Kim 3 und lässt 20 übrig. Was Leo auch nimmt, Kim ergänzt auf
+        5 und lässt 15, 10, 5 und zuletzt nichts übrig.
+    answer: 3 Bonbons.
+    note:
+      title: Warum nicht 4 nehmen?
+      text: >-
+        Nimmt Kim 4, bleiben 19, und Leo nimmt 4 und lässt 15 übrig, eine
+        Verluststellung für Kim. Gegen ein Gegenüber, das keine Fehler macht,
+        gewinnt nur der erste Zug auf ein Vielfaches von 5.
+    art:
+      sweets: 23 Bonbons, 1 bis 4 pro Zug
+      kim: Kim −3
+      answer: Leo nimmt x, Kim nimmt 5 − x
+      leo: Leo −4
+      lost: für Kim verloren
+  - title: Der Weg des Königs
+    question: >-
+      Ein König steht in der linken unteren Ecke eines Bretts mit 5 mal 5
+      Feldern. Zwei Personen ziehen ihn abwechselnd ein Feld nach oben, ein Feld
+      nach rechts oder ein Feld schräg nach rechts oben. Wer den König in die
+      rechte obere Ecke zieht, gewinnt. Wer gewinnt, wenn beide so gut wie
+      möglich spielen?
+    steps:
+      - >-
+        Zählen, wie viele Reihen und wie viele Spalten der König noch vor sich
+        hat. Von einem Feld einen Zug vor der Ecke gewinnt sofort, wer am Zug
+        ist.
+      - >-
+        Auf einem Feld verliert, wer am Zug ist, wenn beide Zahlen gerade sind:
+        Jeder Zug macht eine davon ungerade, und das Gegenüber kann beide wieder
+        gerade machen.
+      - >-
+        Der König steht anfangs 4 Reihen und 4 Spalten entfernt, beides gerade,
+        also verliert, wer anfängt. Wer als Zweites zieht, antwortet jedes Mal
+        mit einem Zug auf ein Feld mit zwei geraden Zahlen und erreicht die
+        Ecke.
+    answer: Wer als Zweites zieht.
+    badge: "2."
+    note:
+      title: Anfangen reicht nicht
+      text: >-
+        Hier verliert, wer anfängt, ganz gleich, wie man spielt. In jedem neuen
+        Spiel lohnt es sich, vom Ende her zu prüfen, bevor man annimmt, dass der
+        erste Zug gewinnt.
+    art:
+      moves: "Züge: nach oben, nach rechts, schräg nach rechts oben"
+      green: "grün: Gewinn mit einem Zug"
+      red: "rote Punkte: Wer hier am Zug ist, verliert"
+      start: der König startet in einer Verluststellung
+  - title: Das Gänseblümchen
+    question: >-
+      Ein Gänseblümchen hat 12 Blütenblätter im Kreis. Zwei Personen zupfen
+      abwechselnd entweder ein Blütenblatt ab oder zwei, die direkt
+      nebeneinander wachsen, ohne Lücke dazwischen. Wer das letzte Blütenblatt
+      abzupft, gewinnt. Wer gewinnt, wenn beide so gut wie möglich spielen?
+    steps:
+      - >-
+        Ganz gleich, ob beim ersten Zug ein Blütenblatt oder zwei abgezupft
+        werden: Der Kreis öffnet sich zu einer Reihe aus 11 oder 10
+        Blütenblättern.
+      - >-
+        Wer als Zweites zieht, zupft genau aus der Mitte dieser Reihe: ein
+        Blütenblatt aus einer Reihe von 11 oder zwei aus einer Reihe von 10.
+        Übrig bleiben zwei gleiche Reihen auf gegenüberliegenden Seiten.
+      - >-
+        Von da an macht, wer als Zweites zieht, jeden Zug in der anderen Reihe
+        nach. Kann, wer anfängt, noch ziehen, dann kann es das Gegenüber auch;
+        darum zupft, wer als Zweites zieht, das letzte Blütenblatt ab.
+    answer: Wer als Zweites zieht.
+    badge: "2."
+    note:
+      title: Warum die Mitte?
+      text: >-
+        Teilt man die Reihe in zwei gleiche Teile, wird die Stellung
+        symmetrisch. Nachmachen kann nicht verlieren: Die Kopie eines Zuges ist
+        immer erlaubt, weil die andere Reihe genau gleich aussieht.
+    art:
+      eleven: wer anfängt, zupft eins ab, und es bleibt eine Reihe von 11
+      two-rows: zwei Reihen mit je 5 Blütenblättern
+      mirror: wer anfängt, zupft in der blauen Reihe, das Gegenüber macht es in der orangefarbenen nach
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Eine Spielregel wird vergessen: Ein Zug nimmt 5 Bonbons, obwohl höchstens
+      4 erlaubt sind, oder der König zieht nach links, was die Regeln verbieten.
+      Ein Plan, der auf einem unerlaubten Zug beruht, gewinnt nichts.
+    say: „Welche Züge erlauben die Regeln?“
+    art:
+      question: 1 bis 4 Bonbons pro Zug
+      five: 5 nehmen
+      three: 3 nehmen
+  first_move_assumed:
+    shows: >-
+      Anzufangen gilt schon als Sieg: „Kim fängt an, also gewinnt Kim.“ In
+      vielen Spielen, etwa beim Weg des Königs, verliert, wer anfängt, ganz
+      gleich, wie man spielt.
+    say: „Und wenn das Gegenüber keinen Fehler macht?“
+    art:
+      question: Der Weg des Königs
+      first: wer anfängt, gewinnt
+      second: wer als Zweites zieht
+  best_case_not_worst:
+    shows: >-
+      Der Plan geht nur auf, wenn das Gegenüber einen Fehler macht: Kim nimmt 4
+      und hofft, dass Leo danach zu wenige nimmt. Eine Gewinnstrategie muss eine
+      Antwort auf den besten Zug des Gegenübers haben.
+    say: „Was ist die beste Antwort des Gegenübers darauf?“
+    art:
+      question: Kims erster Zug bei 23
+      leo: Leo −4
+
+home:
+  - title: Das Streichholzspiel spielen
+    text: >-
+      Spielen Sie das Spiel, bei dem man von 15 Streichhölzern 1, 2 oder 3
+      nimmt, und lassen Sie Ihr Kind anfangen. Gewinnen Sie ein paar Mal und
+      fragen Sie dann, warum die Vielfachen von 4 immer wiederkommen.
+  - title: Den Zug nachmachen
+    text: >-
+      Versuchen Sie in jedem Spiel auf einem symmetrischen Brett, den Zug des
+      Gegenübers auf der anderen Seite nachzumachen. Fragen Sie, wann die Kopie
+      funktioniert und wann sie scheitert.
+  - title: Die Seiten tauschen
+    text: >-
+      Wenn Ihr Kind einen Gewinnplan findet, tauschen Sie: Jetzt zieht Ihr Kind
+      als Zweites. Zu erklären, warum der Plan von dort aus verliert, ist die
+      tiefere Hälfte des Themas.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Spiele mit Gewinnstrategie“

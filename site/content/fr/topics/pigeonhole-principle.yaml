@@ -1,0 +1,226 @@
+# The page of the topic of the pigeonhole principle, for a parent, in French.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Principe des tiroirs
+description: Ce que sont les problèmes du principe des tiroirs, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+hero:
+  lead: >-
+    Cinq pigeons entrent dans quatre cages : l’une des cages en contient
+    forcément deux. Dans ces problèmes, l’enfant prouve que quelque chose doit
+    arriver, aussi malchanceux que soit le tirage : deux chaussettes de la
+    même couleur sorties d’un tiroir dans le noir, deux anniversaires dans le
+    même mois. C’est la première rencontre avec un raisonnement sur le pire
+    des cas plutôt que sur le cas chanceux.
+  method: Aller jusqu’au bout du pire des cas, puis ajouter un
+  teaches: À prouver que quelque chose doit arriver, et pas seulement que cela peut arriver
+  # The words of its drawing: the pigeons and the cages over it, and what the
+  # seating always comes to.
+  art:
+    line: Cinq pigeons, quatre cages
+    seat: placés comme on veut
+    two: deux
+    always: où qu’ils se posent, une cage en contient deux
+
+basis:
+  title: Les règles du pire des cas
+  cards:
+    - title: Plus de pigeons que de cages
+      text: >-
+        S’il y a plus de pigeons que de cages, une des cages en contient au
+        moins deux. Répartissez-les aussi équitablement que vous voulez : il y
+        en a toujours un de trop.
+    - title: À coup sûr
+      text: >-
+        « À coup sûr » veut dire : quoi qu’il sorte du sac. Imaginez donc que
+        tout se passe aussi mal que possible, et voyez jusqu’où la malchance
+        peut aller.
+      art:
+        luck: chance
+        not-counted: ne compte pas
+        bad-luck: malchance
+    - title: Un de plus, et c’est réglé
+      text: >-
+        Quand la malchance est épuisée, chaque couleur tirée une fois et chaque
+        cage occupée une fois, le suivant donne forcément ce que l’on cherche.
+      art:
+        eighth: un par jour ; le huitième forme une paire
+
+idea:
+  title: Le pire des cas, puis un de plus
+  lead: Chaque question demande ce qui est certain. La réponse, c’est jusqu’où peut aller la malchance, plus un.
+  table:
+    head:
+      - Pour avoir à coup sûr
+      - La malchance peut d’abord donner
+      - Il faut donc prendre
+    rows:
+      - - deux personnes nées le même jour de la semaine
+        - une personne pour chacun des 7 jours
+        - 7 + 1 = 8 personnes
+      - - une boule rouge, parmi 6 bleues et 4 rouges
+        - les 6 boules bleues
+        - 6 + 1 = 7 boules
+      - - deux boules rouges, parmi 6 bleues et 4 rouges
+        - les 6 boules bleues et une rouge
+        - 6 + 1 + 1 = 8 boules
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Les enfants comptent souvent sur la chance :
+      « Je vais peut-être tirer deux rouges tout de suite. » Un problème qui
+      dit « à coup sûr » demande ce qui se passe dans le pire des cas, et
+      l’habitude d’y penser vaut plus que n’importe quelle formule.
+
+method:
+  title: "Comment le résoudre : le pire des cas, puis un de plus"
+  lead: >-
+    Nommez les cages, par exemple les couleurs, les mois ou les jours de la
+    semaine, et allez jusqu’au bout du pire des cas : prenez tout ce qui ne
+    donne pas encore ce que demande la question. Le suivant le donnera
+    forcément. Les exemples ci-dessous vont du plus simple à un problème
+    d’olympiade.
+  steps:
+    - Trouver les cages et les pigeons
+    - Aller jusqu’au bout du pire des cas
+    - Ajouter un, et vérifier que c’est lui qui décide
+  # The key under the steps: what the drawings' bracket and ring mean.
+  legend:
+    bad-luck: malchance
+    decides: celui de plus, qui décide
+
+examples:
+  - title: Des bonbons dans un bocal
+    question: >-
+      Un bocal contient 8 bonbons au citron et 2 à l’orange. Sans regarder,
+      combien de bonbons faut-il que Sacha prenne pour avoir à coup sûr un
+      bonbon à l’orange ?
+    steps:
+      - Sacha veut un bonbon à l’orange. Le pire des cas, c’est citron après citron.
+      - >-
+        Il n’y a que 8 bonbons au citron : après ces 8, il ne reste que des
+        bonbons à l’orange dans le bocal.
+      - "Le 9e bonbon est forcément à l’orange : 8 + 1 = 9."
+    answer: 9 bonbons.
+    art:
+      lemon: citron, 8
+      orange: orange, 2
+      unlucky: pas de chance
+      all-lemons: les 8 au citron
+      lemons: 8 au citron
+  - title: Deux chaussettes noires
+    question: >-
+      Un tiroir contient 8 chaussettes noires, 6 blanches et 2 rayées, toutes
+      mélangées. Dans le noir, combien de chaussettes Gabriel doit-il prendre
+      pour avoir à coup sûr deux noires ?
+    steps:
+      - >-
+        Le pire des cas : les chaussettes qui ne sont pas noires sortent
+        d’abord. Il y a 6 blanches et 2 rayées, soit 8 chaussettes sans aucune
+        noire parmi elles.
+      - >-
+        La malchance peut encore durer : la chaussette suivante est noire,
+        mais une seule. Cela fait 9 chaussettes, et une seule noire parmi
+        elles.
+      - >-
+        La 10e chaussette est forcément noire, elle aussi, puisqu’il ne reste
+        que des chaussettes noires. Donc 10 chaussettes.
+    answer: 10 chaussettes.
+    note:
+      title: Pourquoi pas 9 ?
+      text: >-
+        Après les 6 chaussettes blanches et les 2 rayées, la malchance a encore
+        un tour : une seule chaussette noire. Deux noires ne sont certaines
+        qu’avec la 10e.
+    art:
+      black: noires, 8
+      white: blanches, 6
+      striped: rayées, 2
+      no-black: 8, aucune noire
+      not-black: 8 non noires
+      one: une
+      only-one: 9 chaussettes, une seule noire
+  - title: Des sommes dans une grille
+    question: >-
+      Chaque case d’une grille de 2 sur 2 contient 1, 2 ou 3. Additionne les
+      deux nombres de chaque ligne, de chaque colonne et de chaque diagonale.
+      Est-il vrai que, parmi ces six sommes, deux sont toujours égales ?
+    steps:
+      - >-
+        On compte les cages : une somme de deux nombres pris parmi 1, 2 et 3
+        vaut 2, 3, 4, 5 ou 6, soit cinq valeurs en tout.
+      - "On compte les pigeons : 2 lignes, 2 colonnes et 2 diagonales donnent 6 sommes."
+      - >-
+        Six sommes et seulement cinq valeurs : deux des sommes sont forcément
+        égales, quels que soient les nombres de la grille.
+    answer: Oui, toujours.
+    badge: Oui
+    note:
+      title: Les cages ne sont pas toujours des boîtes
+      text: >-
+        Ici, les cages sont les valeurs que peut prendre une somme, et les
+        pigeons sont les lignes, les colonnes et les diagonales de la grille.
+        Tout l’art de ces problèmes est de voir ce qui joue le rôle des cages.
+    art:
+      example: "par exemple : 1, 2 ou 3 dans chaque case"
+      cages: 5 cages, les sommes possibles
+      row: ligne
+      column: col.
+      diagonal: diag.
+      pigeons: 6 sommes, 6 pigeons
+      two: "6 pigeons dans 5 cages : une cage en contient deux"
+      cages-name: cages
+      pigeons-name: pigeons
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  best_case_not_worst:
+    shows: >-
+      L’enfant compte sur la chance :
+      « Si les deux premières chaussettes sont noires, deux suffisent. » La
+      question dit « à coup sûr », et c’est justement la chance qu’elle
+      exclut.
+    say: « Et si tu n’as vraiment pas de chance ? »
+    art:
+      question: Deux noires, à coup sûr
+  ignored_condition:
+    shows: >-
+      Un mot de la question se perd : « deux chaussettes noires » est lu comme
+      « deux chaussettes de la même couleur », ou « une de chaque couleur »
+      comme « une seule couleur ».
+    say: « Relis la question. Qu’est-ce que tu dois avoir à coup sûr, exactement ? »
+    art:
+      question: "On veut : deux chaussettes **noires**"
+      black-pair: une paire noire
+  off_by_one:
+    shows: >-
+      L’enfant va jusqu’au bout du pire des cas et s’arrête là, en oubliant
+      celui de plus qui décide, ou bien en ajoute un de trop.
+    say: « Après le pire des cas, que donne le suivant ? »
+    art:
+      question: 8 au citron et 2 à l’orange
+
+home:
+  - title: Des chaussettes dans le noir
+    text: >-
+      Mettez dans un sac des chaussettes de deux ou trois couleurs et
+      sortez-les les yeux fermés : combien en faut-il pour avoir une paire à
+      coup sûr ? Essayez plusieurs fois. La chance change, la réponse non.
+  - title: Doit arriver, ou peut arriver ?
+    text: >-
+      Quand l’enfant dit « ça pourrait arriver », demandez :
+      « Et ça pourrait ne pas arriver ? » La différence entre « peut » et
+      « doit », c’est tout le thème.
+  - title: Trouvez les cages
+    text: >-
+      Cherchez ensemble des cages dans les comptes de tous les jours : sept
+      jours dans la semaine, douze mois, quatre saisons.
+      « Nous sommes 30 : y en a-t-il forcément deux qui ont leur anniversaire
+      le même mois ? »
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Principe des tiroirs »

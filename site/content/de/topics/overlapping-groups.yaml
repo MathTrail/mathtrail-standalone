@@ -1,0 +1,223 @@
+# The page of the topic of overlapping groups, for a parent, in German. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Überlappende Gruppen
+description: Worum es bei „Überlappende Gruppen“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+hero:
+  lead: >-
+    Manche Kinder gehen in die Schach-AG, manche zum Fußball, manche machen
+    beides und manche keins von beidem. In diesen Aufgaben überlappen sich die
+    Gruppen, und der Trick besteht darin, jedes Kind genau einmal zu zählen.
+    Zwei Kreise auf Papier machen aus einer verwirrenden Frage vier Zahlen.
+  method: Die Kreise zeichnen und in der Mitte anfangen
+  teaches: Zählen, ohne doppelt zu zählen, und sagen, was jede Zahl bedeutet
+  # The words of its drawing: what the two circles are, and what their middle
+  # means.
+  art:
+    line: Die AGs der Klasse
+    chess: Schach
+    football: Fußball
+    middle: in der Mitte alle, die beides machen
+
+basis:
+  title: Die Regeln der zwei Kreise
+  cards:
+    - title: Addiert, doppelt gezählt
+      text: >-
+        Addiert man die beiden Gruppen, werden die Kinder, die in beiden sind,
+        doppelt gezählt, einmal in jeder. Ziehen Sie sie einmal ab, und jedes
+        Kind ist genau einmal gezählt.
+      art:
+        choir: Chor 14
+        art: Kunst 11
+        twice: "14 + 11 = 25, aber 4 davon sind doppelt gezählt: 25 − 4 = 21"
+    - title: Manche sind in keiner
+      text: >-
+        Niemand muss in einer Gruppe sein. Die ganze Klasse besteht aus denen,
+        die in mindestens einer Gruppe sind, und denen, die in keiner sind.
+      art:
+        class: die ganze Klasse
+        none: 9 in keiner Gruppe
+    - title: Wenn die Mitte nicht gegeben ist
+      text: >-
+        Wenn nicht gesagt wird, wie viele in beiden Gruppen sind, lässt sich
+        diese Zahl nur eingrenzen: Je mehr die Gruppen gemeinsam haben, desto
+        weniger Kinder sind in mindestens einer davon.
+      art:
+        little: wenig gemeinsam
+        much: viel gemeinsam
+
+idea:
+  title: Vier Teile des Bildes
+  lead: >-
+    30 Kinder: 14 singen im Chor, 11 gehen in die Kunst-AG und 4 machen
+    beides. Füllen Sie das Bild von der Mitte nach außen aus.
+  table:
+    head:
+      - Der Teil
+      - Wie viele
+      - Wie man sie findet
+    rows:
+      - - In beiden
+        - "4"
+        - gegeben
+      - - Nur Chor
+        - 14 − 4 = 10
+        - der Chor ohne die, die in beiden sind
+      - - Nur Kunst
+        - 11 − 4 = 7
+        - die Kunst-AG ohne die, die in beiden sind
+      - - In keiner
+        - 30 − 10 − 7 − 4 = 9
+        - alle anderen
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Die meisten falschen Antworten entstehen, weil die beiden Gruppen addiert
+      werden und vergessen wird, dass die Mitte doppelt gezählt wurde, oder weil
+      „nur Chor“ genannt wird, obwohl nach dem ganzen Chor gefragt war. Wer das
+      Bild von der Mitte nach außen ausfüllt, vermeidet beides.
+
+method:
+  title: "Lösungsweg: von der Mitte nach außen"
+  lead: >-
+    Zeichnen Sie zwei Kreise, die sich überlappen. Tragen Sie zuerst die Mitte
+    ein, also die, die in beiden sind, dann jeden Kreis ohne die Mitte und
+    zuletzt die, die außerhalb sind. Ist die Mitte nicht gegeben, probieren Sie
+    die Werte aus, die sie annehmen könnte, und schauen Sie, welche passen. Die
+    Beispiele unten reichen von ganz einfach bis Olympiade-Niveau.
+  steps:
+    - Die Kreise zeichnen
+    - Die Mitte ausfüllen, dann den Rest
+    - Prüfen, ob die Teile zusammen alle ergeben
+  # The key under the steps: what a ring on a number means.
+  legend:
+    filled: "ein blauer Ring: was dieser Schritt einträgt"
+
+examples:
+  - title: Schwestern und Brüder
+    question: >-
+      In einer Gruppe von 24 Kindern haben 15 eine Schwester, 11 einen Bruder
+      und 6 sowohl eine Schwester als auch einen Bruder. Wie viele Kinder haben
+      weder eine Schwester noch einen Bruder?
+    steps:
+      - >-
+        Zwei Kreise zeichnen, die sich überlappen: „Schwester“ und „Bruder“. In
+        die Mitte kommen die 6 Kinder, die beides haben.
+      - "Nur Schwester: 15 − 6 = 9. Nur Bruder: 11 − 6 = 5."
+      - "In den Kreisen: 9 + 6 + 5 = 20 Kinder. Außerhalb: 24 − 20 = 4."
+    answer: 4 Kinder.
+    art:
+      sister: Schwester
+      brother: Bruder
+      all: "alle: 24"
+      only: 15 − 6 = 9 · 11 − 6 = 5
+      out: 24 − 20 = 4 außerhalb
+  - title: Äpfel und Birnen
+    question: >-
+      In einer Gruppe von 25 Kindern mögen 18 Äpfel und 16 Birnen. Wie klein
+      kann die Zahl der Kinder sein, die beides mögen?
+    steps:
+      - >-
+        Damit die Mitte so klein wie möglich wird, die Kinder, die Äpfel mögen,
+        und die, die Birnen mögen, so weit wie möglich auseinanderhalten.
+      - >-
+        Getrennt bräuchten sie 18 + 16 = 34 Plätze, es gibt aber nur 25 Kinder:
+        34 − 25 = 9 von ihnen müssen in beiden Kreisen sein.
+      - >-
+        9 ist möglich: 9 mögen nur Äpfel, 7 nur Birnen und 9 beides, zusammen
+        25, und niemand bleibt außen vor.
+    answer: 9 Kinder.
+    note:
+      title: Und höchstens?
+      text: >-
+        Höchstens könnten alle 16 Kinder, die Birnen mögen, auch Äpfel mögen.
+        Die Mitte liegt zwischen 9 und 16, und gefragt war nach dem kleineren
+        Ende.
+    art:
+      apples: Äpfel
+      kids: Kinder
+      pears: Birnen
+      ends: Äpfel vom linken Ende, Birnen vom rechten
+      violet: "violett, wer beides mag: 9"
+      all: "alle: 25"
+      inside: alle 16, die Birnen mögen, innerhalb der Äpfel
+  - title: Drei Fächer
+    question: >-
+      Jedes von 20 Kindern mag mindestens eines von drei Fächern: Mathe, Lesen
+      und Kunst. 12 mögen Mathe, 10 Lesen und 9 Kunst. Niemand mag alle drei.
+      Wie viele Kinder mögen genau zwei Fächer?
+    steps:
+      - >-
+        Die drei Zahlen addieren: 12 + 10 + 9 = 31. Ein Kind, das ein Fach mag,
+        wird in dieser Summe einmal gezählt, und eines, das zwei mag, zweimal.
+      - >-
+        Es sind 20 Kinder, also sind 31 − 20 = 11 Zählungen zu viel, eine für
+        jedes Kind, das zweimal gezählt wurde.
+      - >-
+        Also mögen 11 Kinder genau zwei Fächer. Probe: 9 mögen eines und 11
+        mögen zwei, und 9 + 2 × 11 = 31.
+    answer: 11 Kinder.
+    note:
+      title: Absichtlich doppelt zählen
+      text: >-
+        Hier steckt der Trick nicht in den Kreisen, sondern in der Summe: Jedes
+        Kind fügt ihr für jedes Fach, das es mag, eins hinzu. Olympiade-Aufgaben
+        über Gruppen beruhen oft darauf, dieselbe Sache auf zwei Arten zu zählen.
+    art:
+      maths: Mathe 12
+      reading: Lesen 10
+      drawing: Kunst 9
+      once: einmal
+      twice: zweimal
+      each: eins pro Kind, 20; zu viel, 31 − 20 = 11
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      Das Kind addiert die beiden Gruppen, 15 und 11, und hält die Summe für die
+      Zahl der Kinder: Die, die in beiden Gruppen sind, werden doppelt gezählt.
+    say: „Wird jemand in beiden Kreisen gezählt?“
+    art:
+      question: Schwester 15, Bruder 11, beides 6
+  answered_other_question:
+    shows: >-
+      Das Kind findet einen Teil des Bildes und nennt ihn als Antwort, obwohl
+      nach einem anderen gefragt war: „in beiden“ statt „in keiner“ oder „nur
+      Chor“ statt des ganzen Chors.
+    say: „Zeig auf den Teil des Bildes, nach dem gefragt ist.“
+    art:
+      question: "Die Frage: Wie viele haben keins von beidem?"
+  missed_case:
+    shows: >-
+      Ein Teil des Bildes fehlt: Eine Gruppe wird von allen abgezogen und die
+      andere vergessen, oder die, die in allen drei Gruppen sind, werden nicht
+      wieder dazugezählt.
+    say: „Ist jeder Teil des Bildes ausgefüllt?“
+    art:
+      question: "24 Kinder: Schwester 15, Bruder 11, beides 6"
+
+home:
+  - title: Zwei Reifen auf dem Boden
+    text: >-
+      Legen Sie zwei Reifen oder zwei Schlaufen aus Schnur so auf den Boden,
+      dass sie sich überlappen, und sortieren Sie Spielsachen hinein: „rot“ und
+      „weich“. Ein weicher roter Bär kommt in die Mitte.
+  - title: Sechs wer?
+    text: >-
+      Wenn Ihr Kind „sechs“ antwortet, fragen Sie: „Sechs wer?“ Sechs in beiden
+      AGs und sechs in keiner sind verschiedene Antworten.
+  - title: Eine Umfrage in der Familie
+    text: >-
+      Stellen Sie der Familie zwei Fragen, etwa wer Tee mag und wer Kakao, und
+      zeichnen Sie die Kreise gemeinsam. In der Mitte geht beim Zählen meistens
+      etwas schief.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Überlappende Gruppen“

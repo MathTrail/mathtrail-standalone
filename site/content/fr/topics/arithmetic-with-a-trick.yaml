@@ -1,0 +1,198 @@
+# The page of the topic of arithmetic with a trick, for a parent, in French.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Calculs astucieux
+description: Ce que sont les problèmes de calculs astucieux et de « j’ai pensé à un nombre », comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+hero:
+  lead: >-
+    Combien font 19 + 23 + 81 + 77 ? Si on les additionne dans l’ordre, ce sont
+    trois additions avec retenue ; si on les groupe par paires, 19 + 81 et
+    23 + 77, cela donne 100 + 100. Dans ces problèmes, le calcul devient facile
+    dès qu’on a trouvé le bon ordre, et les énigmes « j’ai pensé à un nombre »
+    se résolvent en défaisant les étapes depuis la fin. Tout l’art est de
+    regarder avant de calculer.
+  method: Chercher l’ordre facile avant de calculer
+  teaches: À regrouper une somme ou un produit et à défaire une chaîne d’étapes depuis la fin
+  # The words of its drawing: the sum's numbers paired colour by colour into
+  # two easy hundreds.
+  art:
+    pairs: additionner les paires de même couleur
+    look: d’abord regarder, ensuite calculer
+
+basis:
+  title: Les règles des calculs astucieux
+  cards:
+    - title: Dans n’importe quel ordre
+      text: >-
+        On peut additionner ou multiplier des nombres dans n’importe quel ordre
+        et les grouper comme on veut : 25 × 9 × 4, c’est 25 × 4 × 9, soit
+        100 × 9.
+    - title: Nombres ronds
+      text: >-
+        Cherchez les paires qui donnent 10, 100 ou 1000 : 36 + 64, 25 × 4,
+        125 × 8. Avec un nombre rond, la suite du calcul est facile.
+    - title: Défaire depuis la fin
+      text: >-
+        Dans « j’ai pensé à un nombre », remontez depuis le résultat et défaites
+        chaque étape : ce qui a été ajouté est retiré, et ce qui a été doublé
+        est divisé par deux.
+      art:
+        undoes: se défait par
+        back: remonter depuis le résultat
+
+idea:
+  title: Regarder avant de calculer
+  lead: Le même calcul peut être long ou court. Avant de calculer, cherchez les paires et les groupes qui donnent des nombres ronds.
+  table:
+    head:
+      - Le problème
+      - Le chemin facile
+      - La réponse
+    rows:
+      - - 19 + 23 + 81 + 77
+        - (19 + 81) + (23 + 77)
+        - "200"
+      - - 4 × 19 × 25
+        - (4 × 25) × 19
+        - "1900"
+      - - 1 + 2 + 3 + … + 10
+        - cinq paires qui font 11, comme 1 + 10 et 2 + 9
+        - "55"
+  # The words of the drawings of the easy way, all rows' in one place.
+  art:
+    pairs: cinq paires qui font 11
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Aux olympiades, on donne exprès des sommes qui prennent du temps par le
+      chemin long : tout l’enjeu est de remarquer le raccourci. L’enfant qui
+      cherche d’abord les paires apprend à voir comment un problème est
+      construit, et cela compte bien au-delà de l’arithmétique.
+
+method:
+  title: "Comment le résoudre : chercher les nombres ronds"
+  lead: >-
+    Avant de calculer, regardez le problème en entier. Groupez par paires les
+    nombres qui font un nombre rond, placez côte à côte les facteurs qui
+    donnent 10 ou 100 et, dans une chaîne d’étapes, partez de la fin et
+    défaites-les une à une. Les exemples ci-dessous vont du plus simple à un
+    problème d’olympiade.
+  steps:
+    - Regarder d’abord le problème en entier
+    - Regrouper en nombres ronds, ou défaire depuis la fin
+    - Vérifier la réponse d’une autre façon
+  # The key under the steps: what the drawings' colours mean.
+  legend:
+    pair: une couleur, une paire
+    undo: une étape qui défait
+
+examples:
+  - title: Des paires qui font dix
+    question: >-
+      Combien font 6 + 7 + 8 + 2 + 3 + 4 ?
+    steps:
+      - "On cherche les paires qui font 10. Il y en a trois ici : 6 + 4, 7 + 3 et 8 + 2."
+      - Trois dizaines font 30.
+      - "Donc 6 + 7 + 8 + 2 + 3 + 4 = 30, sans aucune retenue."
+    answer: "30."
+    note:
+      title: Le chemin long
+      text: >-
+        6 + 7 = 13, puis 21, 23, 26 et 30. La réponse est la même, mais il faut
+        cinq étapes au lieu d’une, et chaque étape est une occasion de se
+        tromper.
+    art:
+      tens: une couleur, une paire qui fait dix
+  - title: Un nombre à trouver
+    question: >-
+      Manon a pensé à un nombre. Elle l’a doublé, a ajouté 7 et a divisé le
+      résultat par 3. Elle a obtenu 9. À quel nombre Manon a-t-elle pensé ?
+    steps:
+      - On part de la fin et on défait chaque étape, la dernière en premier.
+      - >-
+        Elle a divisé par 3 et obtenu 9, donc avant, elle avait 9 × 3 = 27.
+        Elle a ajouté 7, donc avant, elle avait 27 − 7 = 20.
+      - "Elle a doublé le nombre, donc c’était 20 : 2 = 10. Vérification : 10 × 2 + 7 = 27, et 27 : 3 = 9."
+    answer: "10."
+    note:
+      title: Défaire dans l’ordre inverse
+      text: >-
+        L’étape faite en dernier se défait en premier, comme on enlève ses
+        chaussures avant ses chaussettes. Défaire les étapes dans l’ordre où
+        elles ont été faites donne un mauvais nombre.
+    art:
+      masha: Manon
+      back: depuis la fin
+      check: vérifier
+      "on": mettre
+      "off": enlever
+      socks: chaussettes
+      shoes: chaussures
+  - title: Deux grands produits
+    question: >-
+      Combien font 2026 × 2026 − 2027 × 2025 ? Trouve-le sans multiplier les
+      grands nombres.
+    steps:
+      - >-
+        Les deux produits cachent 2026 × 2025 : 2026 × 2026, c’est 2026 × 2025
+        et encore un 2026.
+      - Et 2027 × 2025, c’est 2026 × 2025 et encore un 2025.
+      - "Donc la différence vaut 2026 − 2025 = 1, et on n’a multiplié aucun grand nombre."
+    answer: "1."
+    note:
+      title: Essayer sur de petits nombres
+      text: >-
+        Cela marche avec n’importe quels nombres : 5 × 5 − 6 × 4 = 25 − 24 = 1.
+        Essayer d’abord une astuce sur de petits nombres est le moyen le plus
+        sûr de pouvoir s’y fier.
+    art:
+      cancel: les parties égales s’annulent, il reste les bandes
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  stopped_early:
+    shows: >-
+      Le travail s’arrête avant la fin : on additionne deux des trois paires et
+      on oublie la troisième, ou on défait une seule étape de la chaîne et on
+      donne son résultat comme réponse.
+    say: « As-tu utilisé chaque nombre et défait chaque étape ? »
+  wrong_operation:
+    shows: >-
+      On défait une étape avec la même opération au lieu de l’opération
+      contraire : on ajoute de nouveau 7 au lieu de l’enlever, ou on divise 9
+      par 3 au lieu de le multiplier.
+    say: « Qu’est-ce qui défait une addition ? Et qu’est-ce qui défait une division ? »
+    art:
+      undo: Défaire « + 7 » à partir de 27
+  number_from_text:
+    shows: >-
+      Un nombre de l’énoncé devient la réponse : le 9 que Manon a obtenu, ou le
+      7 qu’elle a ajouté, au lieu du nombre auquel elle a pensé.
+    say: « Est-ce le nombre qu’elle a obtenu, ou celui auquel elle a pensé ? »
+    art:
+      question: À quel nombre Manon a-t-elle pensé ?
+      got: ce que Manon a obtenu
+      thought: le nombre pensé
+
+home:
+  - title: Des paires qui font dix
+    text: >-
+      Écrivez six ou huit petits nombres sur de petits cartons et demandez à
+      l’enfant de trouver les paires qui font 10 avant de tout additionner.
+  - title: Devinez mon nombre
+    text: >-
+      Jouez à « j’ai pensé à un nombre » dans les deux sens : vous donnez les
+      étapes et le résultat, et l’enfant trouve le nombre ; puis c’est l’enfant
+      qui invente les étapes.
+  - title: Des courses astucieuses
+    text: >-
+      Au magasin, additionnez les prix dans un ordre astucieux : 99, c’est 100
+      moins 1, et 49 et 51 font 100. D’abord arrondir, ensuite corriger.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Calculs astucieux »

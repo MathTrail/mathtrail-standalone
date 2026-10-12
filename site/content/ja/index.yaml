@@ -1,0 +1,186 @@
+# The home page, for a parent: what MathTrail is, why not just ask the chat,
+# how a lesson goes — the card of the widget at every step — and how to
+# connect. The grades, the names of the traps, the card's picture, options and
+# rating, the connector's address and the card's own words are not here: they
+# are the catalog's numbers, the site's data, the widget's words and the
+# site's own.
+
+title: MathTrail：いつものチャットで算数オリンピック
+description: いつものチャットで、子どものための算数オリンピックを。尽きることのないチェック済みの問題、間違い一つひとつの診断、そして子どもの進み具合の記録。
+
+hero:
+  free: 無料
+  open: オープンソース
+  title: 算数オリンピックを、いつものチャットで。
+  # The promise, word for word as the README gives it.
+  lead: 小学{range}年生向けの、チェック済みの算数オリンピック風の問題が、どの言語でも尽きることなく届きます。子どもの間違いを診断し、その進み具合を覚えています。
+  # How the task on the card was picked for the lesson's child: the child's
+  # topics, then the chance of a right answer and the reasons. The topics and
+  # the numbers are the site's data.
+  pick:
+    label: 次の問題がどう選ばれたか
+    title: ガルト向けに選んだ問題
+    skills: ガルトのスキル
+    why: この問題を選んだ理由
+    auto: 自動で選択
+    chance: 正解する確率{chance}：目標帯内
+    reasons:
+      - いちばん苦手なテーマ
+      - 最近の間違いをもう一度：1つずれる
+      - 5日間練習していない
+  see: レッスンを見る
+  note: お子さまが解いている間に、お茶でもどうぞ。
+
+# The frame a card stands in: the chat a parent already uses, with the
+# parent's message above the card.
+chat:
+  title: お使いのチャット
+  ask: 新しい問題をお願いします
+  progress: うちの子の進み具合はどうですか？
+
+pillars:
+  title: チャットに直接頼めばいいのでは？
+  lead: チャットの AI は問題を一瞬で書きますが、間違えるのも同じくらいあっという間です。正解の選択肢が2つあったり、解き方のつじつまが合わなかったり、数を変えただけの昨日の問題だったり。しかも、お子さまが言い張れば、喜んで同意してしまいます。MathTrail は、AI が得意なこと、つまり書くことは AI に任せ、それ以外はすべてプログラムでチェックします。
+  # A chat asked alone for a task. Its options, and which of them are right,
+  # are the site's data.
+  alone:
+    name: チャットだけ
+    ask: 3年生向けの算数オリンピックの問題を出してください
+    task: ある数は2でも3でもわり切れます。その数はどれでしょうか。
+    flag: 正解が2つ：誰もチェックしていない
+  # The chat alone against the chat with MathTrail, both asked what the chat
+  # alone was asked, point against point.
+  versus:
+    asked: 「{ask}」
+    alone:
+      - 正解の選択肢が2つあることも、1つもないこともある。
+      - 子どもが言い張ると、間違った答えにも同意する。
+      - お子さまがどこで間違えたかを忘れる。
+      - 何を頼めばいいかを知っている必要がある：テーマ、レベル、次にやること。
+      - 問題は毎回その場かぎりで、子どもがどう学ぶかのモデルがない。
+      - お子さまがすでに何を知っているかのマップがない。
+    ours:
+      name: チャット + MathTrail
+      points:
+        - 正解の選択肢はちょうど1つ：プログラム（ソルバー）がすべての場合を総当たりで確かめる。
+        - 答えはタップで記録され、言い張っても正解にはならない。
+        - スキルと間違いを覚えていて、次の問題を選ぶ。
+        - 「新しい問題」と言うだけ：テーマとレベルは MathTrail が選ぶ。
+        - 研究にもとづくスキルのモデル：IRT（項目反応理論）の上に組んだ Elo、11段階のランク。
+        - テーマごとのレーティングと、どのテーマがどのテーマを土台にしているかのマップ。
+  tiles:
+    # The languages are named each in itself; this follows them.
+    endless:
+      title: 問題は尽きません。
+      text: 問題は毎回、お子さまのテーマ、レベル、いちばん最近の間違いに合わせて、お使いのチャットの言語で新しく書かれます。決まった問題集から取り出すわけではありません。3問に1問は、お子さまの好きなことを題材にした問題です。
+      more: + 何語でも
+    checked:
+      title: プログラムが AI をチェックします。
+      text: 問題がお子さまに届くのは、すべてのチェックに通ってからです。正解の選択肢がちょうど1つであること、ソルバーが答えを再現できること、学年に合った読みやすさであること、くり返しでないこと。そして図がある場合は、問題文と同じ記号がつき、答えが書かれていないことです。
+      checks:
+        - 答えは1つ
+        - ソルバー
+        - 読みやすい
+        - くり返しでない
+    diagnosis:
+      title: 間違いが診断になります。
+      # The traps are the catalog's, under the names the card gives them.
+      text: 間違った選択肢には、それぞれ名前のついたひっかけがひそんでいます。たとえば「{first}」「{second}」「{third}」です。解説は正解からではなく、お子さまがどう考えたかから始まります。
+      trap: ひっかけ：柱ではなく間の数を数えた
+  behind:
+    title: 一つひとつの問題を支えるもの
+    # Under the words, what the parent says, and what MathTrail picks.
+    coach:
+      title: 先生でなくても大丈夫。
+      text: 算数オリンピックのテーマを知っている必要も、レベルを選ぶ必要もありません。「新しい問題」と言えば、次に何を練習するか、どのくらいの難しさにするかはコーチが決めます。
+      picked: テーマ + レベル：決定
+    research:
+      title: 研究にもとづくモデル。
+      text: 正解する確率は、心理測定学で使われるスキルのモデル、つまり IRT（項目反応理論）の上に組んだ Elo から求めます。問題の難しさは、子どもが70〜85%の確率で正解できるところに保たれます。
+      formula: P = 0.2 + 0.8·σ(θ + δ − β)
+    # Under the words, a topic between two it builds on, as the catalog has
+    # them.
+    map:
+      title: スキルとテーマのマップ。
+      text: MathTrail は、どのテーマがどのテーマを土台にしているかを知っています。たとえば、順番の推理と場合の数は、正直者とうそつきより先に学びます。そして、お子さまのレーティングをテーマごとに記録しています。
+
+lesson:
+  eyebrow: レッスンの流れ
+  title: 1問ずつ、お使いのチャットで。
+  lead: そばに座って見守ります。タップするのはお子さまです。各ステップの横には、その時点でチャットに表示されるカードがあります。
+  # The steps in the order a lesson takes them, each beside its card.
+  steps:
+    generating:
+      title: 問題を頼む
+      text: 「新しい問題をお願いします」と入力します。MathTrail がテーマと難易度を決め、チャットが問題を書き、お子さまが見る前に、プログラムがすべての答えをチェックします。
+    selected:
+      title: ボタンで答える
+      text: 選択肢はA〜Eの5つです。タップすると、どんな説明よりも先にすぐ答えが記録されるので、あとから言いくるめて正解にすることはできません。
+    hint:
+      title: 行きづまったら、答えではなくヒント
+      text: ヒントは、短いさくをかいてみるといった、とっかかりを示します。答えは、お子さまがどれかに決めるまで隠れたままです。
+    wrong:
+      title: 間違いが学びに変わる
+      text: 間違った選択肢には、それぞれあらかじめわかっているひっかけがひそんでいます。お子さまが答えると、カードは「こたえのふりかえり」に変わり、「柱ではなく、間の数を数えた」のように、お子さまの側から見たひっかけを示してから、解き方を順を追って説明します。
+    question:
+      title: 自分の言葉で「なぜ？」と聞く
+      text: 答えが記録されたら、「どうして柱が1本多いのですか？」のようにチャットで聞いてください。AI は、まさにこの問題について答えます。
+    progress:
+      title: 読んでわかる記録
+      text: 到達したランクとテーマごとのランク、くり返す間違い、次にやること。そして保護者向けには、得意なこととのばしたいことのふりかえりもあります。
+  # The name of the child the cards show, an invented one, which the first
+  # screen picks a task for.
+  child: ガルト
+  # Two messages of the chat beneath a card answered wrong: the adult's
+  # question and the model's reply, about the step and to nobody, for the adult
+  # to read out to the child. They are the site's words, never the card's.
+  chat:
+    label: チャットのイメージ
+    adult: 大人
+    model: AI
+    question: どうして柱が1本多いのですか？
+    reply: さくにそって左から見ていくと、どの間も柱で終わります。だから、間が4つなら柱も4本です。そして最初の柱は、それらすべての前に立っています。4 + 1 = 5。
+
+# The task of the lesson: a variant of a reference task, never one word for
+# word.
+task:
+  question: 長さ12メートルのさくがあります。3メートルごとに柱が立っていて、両はしにも柱があります。柱は何本ありますか。
+  hint: まず、もっと短いさくで考えてみよう。長さは6メートルで、柱は3メートルごとだよ。図をかいて、柱を数えてみよう。
+  # The trap behind each wrong option, as the card says it once that option
+  # is picked: the steps pick one, and the card on the first screen any.
+  traps:
+    a: 柱の数ではなく、柱と柱の間の長さを答えた。
+    b: 柱ではなく、間の数を数えた。
+    d: 長さを間の長さでわらずに、かけた。
+    e: 柱を数えずに、問題文にあるさくの長さをそのまま答えた。
+  # The solution, a sentence for each step the card numbers.
+  solution: 間の数は12 ÷ 3 = 4です。両はしに柱があるまっすぐなさくでは、柱は間より1本多くなります。柱は4 + 1 = 5本です。
+
+connect:
+  eyebrow: 接続方法
+  title: 数ステップで、最初の問題へ。
+  claude:
+    pill: 今すぐ使えます · Free プランでも
+    # The steps of Claude's own help on custom connectors; the address follows
+    # the third.
+    steps:
+      open: Claude で{connectors}を開きます。
+      add: "**+ 追加**を押し、**カスタムコネクタを追加**を選びます。"
+      paste: 名前に MathTrail と入力し、アドレスを貼り付けます：
+      sign: "**続行**を押し、もう一度**続行**を押します。Claude が検出した認証設定は、変更する必要はありません。次に**追加**、続いて**接続**を押し、Google でログインします。MathTrail は、お使いの Google ドライブにファイルを1つ保存する許可を求めます。お子さまのプロフィールのファイルです。Google の画面で許可してください。このファイルがないと、記録を保存する場所がありません。"
+      chat: チャットで、**+** → **コネクタ**を押して MathTrail をオンにし、「MathTrail の問題をやりましょう」と送ります。
+    # Claude's own names for the page, as Claude writes them in the page's
+    # language, and in English where Claude does not speak it.
+    connectors: カスタマイズ → コネクタ
+    note: Free プランで追加できるカスタムコネクタは1つです。
+  chatgpt:
+    pill: まだディレクトリにありません
+    text: ChatGPT の無料アカウントでは、ChatGPT のディレクトリにあるアプリしか追加できません。MathTrail が掲載されたら、名前で探して接続し、Google でログインしてください。現在はまだ掲載されていません。
+    dev: それまでは、Plus、Pro、Business、Enterprise、Education の各プランのウェブ版で、ChatGPT の開発者モードを使ってアドレスからアプリを追加できます。{openai}のとおり、開発者モードをオンにして、上のアドレスでアプリを追加してください。MathTrail は、ChatGPT ではまだテスト中です。
+    openai: OpenAI の説明
+  need: 必要なのは、Claude か ChatGPT のアカウントと、Google アカウントです。お子さまにはどちらも必要ありません。
+
+ask:
+  title: まずは1問から。
+  lead: MathTrail を Claude に追加しましょう。2分ほどで終わります。
+  code: GitHub でコードを見る

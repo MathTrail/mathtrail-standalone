@@ -1,0 +1,48 @@
+# The page "Coach", for a parent, in Japanese: a product of its own, still in
+# the making, that leads a child through a problem on a tablet, and its
+# prototype to try in a frame. The prototype speaks English alone in every
+# language of the page and is never translated. The number of techniques on
+# the first screen's second button is the site's data.
+
+title: コーチ
+description: 7〜12歳の子どもたちのためのコーチを作っています。子どもはタブレットで算数オリンピックの問題を解き、自分の力で考え抜きます。プロトタイプをお試しください。
+
+hero:
+  badge: 開発中
+  title: 子どもが自分で考える算数オリンピック
+  lead: 7〜12歳の子どもたちのためのコーチを作っています。子どもはタブレットで問題を解き、ノートと同じように、キャンバスに絵や字をかきこみます。子どもが選んだ相棒が4つのステップを案内し、考えを導く質問をします。相棒が答えを教えてしまうことはありません。答えを書くのは子ども自身です。
+  try: プロトタイプを試す
+  # A screen of the prototype beside the words: what it shows, for whoever
+  # cannot see it, and the line under it.
+  screen: MathTrail のプロトタイプ：子どもが相棒を選ぶところ
+  caption: プロトタイプの画面：子どもが、だれと一緒に解くかを選びます。下でお試しください。
+
+# What the coach is about, a card for each idea, under a heading a screen
+# reader alone says.
+ideas:
+  title: どんなコーチになるか
+  items:
+    - title: ポリアの4つのステップ
+      text: 理解する → 計画を立てる → 解く → 確かめる。ステップはいつも目に見えるところにあります。
+    - title: ノートのようなキャンバス
+      text: かいた図は、解き方の一部です。ヒントは1つずつ届き、選択肢から選ぶ形ではありません。
+    - title: 自分だけの相棒
+      text: キツネ、ロボット、フクロウ、ネコ、恐竜、または子どもが自分でかいた相棒。
+
+# The prototype in its frame: the frame's name for a screen reader, the line
+# under it, and the link that opens it alone.
+prototype:
+  frame: MathTrail：インタラクティブなプロトタイプ
+  caption: インタラクティブなプロトタイプ：解き方をかいてみてください
+  open: 全画面で開く ↗
+
+# What the prototype is, and what it only pretends to do yet.
+notes:
+  title: これはプロトタイプです
+  text: どこでもクリックでき、キャンバスにはマウスや指で絵をかけます。今のところ、画面の表示は英語です。
+  imitated:
+    title: 今はまだシミュレーションのみ
+    items:
+      - 手書きの文字や絵の認識
+      - 相棒の声
+      - 写真からの問題の読みこみ

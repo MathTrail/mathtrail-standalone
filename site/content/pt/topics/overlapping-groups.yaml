@@ -1,0 +1,222 @@
+# The page of the topic of overlapping groups, for a parent, in Portuguese. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Grupos que se sobrepõem
+description: O que são os problemas de grupos que se sobrepõem, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+hero:
+  lead: >-
+    Umas crianças vão ao clube de xadrez, outras ao futebol, algumas aos dois e
+    outras a nenhum. Nestes problemas, os grupos se sobrepõem, e o segredo é
+    contar todo mundo exatamente uma vez. Dois círculos desenhados no papel
+    transformam uma pergunta confusa em quatro números.
+  method: Desenhar os círculos e começar pelo meio
+  teaches: A contar sem contar duas vezes e a dizer o que cada número significa
+  # The words of its drawing: what the two circles are, and what their middle
+  # means.
+  art:
+    line: Os clubes da turma
+    chess: xadrez
+    football: futebol
+    middle: no meio, quem vai aos dois
+
+basis:
+  title: As regras dos dois círculos
+  cards:
+    - title: Na soma, o meio conta duas vezes
+      text: >-
+        Ao somar os dois grupos, as crianças que estão nos dois são contadas
+        duas vezes, uma em cada grupo. Desconte essas crianças uma vez, e cada
+        uma passa a ser contada uma vez só.
+      art:
+        choir: coral 14
+        art: artes 11
+        twice: "14 + 11 = 25, mas 4 contam duas vezes: 25 − 4 = 21"
+    - title: Há quem não esteja em nenhum
+      text: >-
+        Ninguém precisa estar em um grupo. A turma inteira é formada por quem
+        está em pelo menos um grupo e por quem não está em nenhum.
+      art:
+        class: a turma toda
+        none: 9 em nenhum grupo
+    - title: Quando o meio não é dado
+      text: >-
+        Se ninguém diz quantas crianças estão nos dois grupos, esse número só
+        pode ser delimitado: quanto mais os grupos têm em comum, menos crianças
+        estão em pelo menos um deles.
+      art:
+        little: pouco em comum
+        much: muito em comum
+
+idea:
+  title: Quatro partes do desenho
+  lead: >-
+    30 alunos: 14 cantam no coral, 11 vão ao clube de artes e 4 fazem as duas
+    coisas. Preencha o desenho do meio para fora.
+  table:
+    head:
+      - A parte
+      - Quantos
+      - Como se encontra
+    rows:
+      - - Nos dois
+        - "4"
+        - dado no enunciado
+      - - Só coral
+        - 14 − 4 = 10
+        - o coral sem quem está nos dois
+      - - Só artes
+        - 11 − 4 = 7
+        - o clube de artes sem quem está nos dois
+      - - Em nenhum
+        - 30 − 10 − 7 − 4 = 9
+        - o restante
+  note:
+    title: Por que isso importa
+    text: >-
+      A maioria das respostas erradas vem de somar os dois grupos e esquecer
+      que o meio foi contado duas vezes, ou de dar “só coral” quando a
+      pergunta pedia o coral inteiro. Preencher o desenho do meio para fora
+      evita as duas coisas.
+
+method:
+  title: "Como resolver: do meio para fora"
+  lead: >-
+    Desenhe dois círculos que se sobrepõem. Escreva primeiro o meio, quem está
+    nos dois, depois cada círculo sem o meio e, por último, quem fica de fora.
+    Quando o meio não é dado, teste os valores que ele pode ter e veja quais
+    servem. Os exemplos abaixo vão do mais simples a um de olimpíada.
+  steps:
+    - Desenhar os círculos
+    - Preencher o meio, depois o resto
+    - Conferir se as partes somam o total
+  # The key under the steps: what a ring on a number means.
+  legend:
+    filled: "um anel azul: o que este passo preenche"
+
+examples:
+  - title: Irmãs e irmãos
+    question: >-
+      Num grupo de 24 crianças, 15 têm irmã, 11 têm irmão, e 6 têm tanto irmã
+      quanto irmão. Quantas crianças não têm nem irmã nem irmão?
+    steps:
+      - >-
+        Desenhe dois círculos que se sobrepõem, “irmã” e “irmão”. No meio: as 6
+        crianças que têm os dois.
+      - "Só irmã: 15 − 6 = 9. Só irmão: 11 − 6 = 5."
+      - "Nos círculos: 9 + 6 + 5 = 20 crianças. Fora deles: 24 − 20 = 4."
+    answer: 4 crianças.
+    art:
+      sister: irmã
+      brother: irmão
+      all: "total: 24"
+      only: 15 − 6 = 9 · 11 − 6 = 5
+      out: 24 − 20 = 4 fora
+  - title: Maçãs e peras
+    question: >-
+      Num grupo de 25 crianças, 18 gostam de maçã e 16 gostam de pera. Qual é o
+      menor número de crianças que podem gostar das duas frutas?
+    steps:
+      - >-
+        Para o meio ficar o menor possível, separe ao máximo quem gosta de maçã
+        de quem gosta de pera.
+      - >-
+        Separados, os dois grupos precisariam de 18 + 16 = 34 lugares, mas só
+        há 25 crianças: 34 − 25 = 9 delas têm de estar nos dois círculos.
+      - >-
+        9 é possível: 9 gostam só de maçã, 7 só de pera e 9 das duas, 25 ao
+        todo, sem ninguém de fora.
+    answer: 9 crianças.
+    note:
+      title: E no máximo?
+      text: >-
+        No máximo, todas as 16 crianças que gostam de pera poderiam gostar de
+        maçã também. O meio fica entre 9 e 16, e a pergunta pedia o extremo
+        menor.
+    art:
+      apples: maçãs
+      kids: crianças
+      pears: peras
+      ends: maçãs a partir da ponta esquerda, peras da direita
+      violet: "em violeta, quem gosta das duas: 9"
+      all: "total: 25"
+      inside: as 16 que gostam de pera, todas dentro das maçãs
+  - title: Três matérias
+    question: >-
+      Há 20 alunos, e cada um gosta de pelo menos uma de três matérias:
+      matemática, leitura e artes. 12 gostam de matemática, 10 de leitura e 9
+      de artes. Ninguém gosta das três. Quantos alunos gostam de exatamente
+      duas matérias?
+    steps:
+      - >-
+        Some os três números: 12 + 10 + 9 = 31. Um aluno que gosta de uma
+        matéria entra uma vez nessa soma, e um que gosta de duas entra duas
+        vezes.
+      - >-
+        São 20 alunos, então há 31 − 20 = 11 contagens a mais, uma para cada
+        aluno que entrou duas vezes.
+      - >-
+        Então 11 alunos gostam de exatamente duas matérias. Conferindo: 9 gostam
+        de uma e 11 de duas, e 9 + 2 × 11 = 31.
+    answer: 11 alunos.
+    note:
+      title: Contar duas vezes de propósito
+      text: >-
+        Aqui o segredo não está nos círculos, mas na soma: cada aluno acrescenta
+        um a ela para cada matéria de que gosta. Os problemas de olimpíada sobre
+        grupos muitas vezes dependem de contar a mesma coisa de duas maneiras.
+    art:
+      maths: matemática 12
+      reading: leitura 10
+      drawing: artes 9
+      once: uma vez
+      twice: duas vezes
+      each: uma por aluno, 20; a mais, 31 − 20 = 11
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      A criança soma os dois grupos, 15 e 11, e toma a soma pelo número de
+      crianças: quem está nos dois grupos entra duas vezes na conta.
+    say: “Você contou alguém nos dois círculos?”
+    art:
+      question: Irmã 15, irmão 11, os dois 6
+  answered_other_question:
+    shows: >-
+      A criança encontra uma parte do desenho e a dá como resposta, embora a
+      pergunta fosse sobre outra: “nos dois” em vez de “em nenhum”, ou “só
+      coral” em vez do coral inteiro.
+    say: “Aponte no desenho a parte que a pergunta pede.”
+    art:
+      question: "A pergunta: quantas não têm nem irmã nem irmão?"
+  missed_case:
+    shows: >-
+      Uma parte do desenho fica de fora: um grupo é tirado do total e o outro é
+      esquecido, ou não se soma de volta quem está nos três grupos.
+    say: “Todas as partes do desenho estão preenchidas?”
+    art:
+      question: "24 crianças: irmã 15, irmão 11, os dois 6"
+
+home:
+  - title: Dois bambolês no chão
+    text: >-
+      Ponha no chão dois bambolês ou dois círculos de barbante que se
+      sobreponham, e separe brinquedos dentro deles: “vermelhos” e “macios”. Um
+      urso vermelho e macio vai no meio.
+  - title: Seis quem?
+    text: >-
+      Quando a criança responder “seis”, pergunte: “Seis quem?” Seis nos dois
+      clubes e seis em nenhum são respostas diferentes.
+  - title: Uma pesquisa em família
+    text: >-
+      Faça duas perguntas à família, como quem gosta de chá e quem gosta de
+      chocolate quente, e desenhe os círculos junto com a criança. É no meio que
+      a contagem costuma dar errado.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de grupos que se sobrepõem

@@ -55,6 +55,13 @@ func TestPagesAreLinkedInTheLanguageOfTheLessonTheSiteIsWrittenIn(t *testing.T) 
 		{"a region of the language of every page", tag("en-GB"), "en"},
 		{"a region of a language the site is not written in", tag("gd-GB"), "en"},
 		{"a language the site is not written in", tag("gd"), "en"},
+		{"Chinese with no region, written in the simplified script as a rule", tag("zh"), "zh-Hans"},
+		{"Chinese of the mainland", tag("zh-CN"), "zh-Hans"},
+		{"Chinese of Singapore", tag("zh-SG"), "zh-Hans"},
+		{"Chinese of Taiwan, in the traditional script the site is not written in", tag("zh-TW"), "en"},
+		{"Chinese in the traditional script", tag("zh-Hant"), "en"},
+		{"Chinese of Hong Kong, in the traditional script", tag("zh-HK"), "en"},
+		{"Chinese of Macau, in the traditional script", tag("zh-MO"), "en"},
 		{"a tag of nothing", tag("-"), "en"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

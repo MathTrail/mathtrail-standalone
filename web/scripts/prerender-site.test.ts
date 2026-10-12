@@ -321,7 +321,9 @@ async function command(args: string[]) {
 	return { code, said };
 }
 
-describe("the site built from this repository", () => {
+// Every test here reads the whole site the build made, every page of every
+// language, which takes longer than a test is given by default.
+describe("the site built from this repository", { timeout: 60_000 }, () => {
 	let out = "";
 
 	beforeAll(async () => {

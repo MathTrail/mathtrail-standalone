@@ -1,0 +1,226 @@
+# The page of the topic of ratios and sharing, for a parent, in French. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Rapports et partages
+description: Ce que sont les problèmes de rapports et partages, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+# The words the page's drawings name their people and boxes in.
+art:
+  ann: Anna
+  ben: Basile
+  a: A
+  b: B
+
+hero:
+  lead: >-
+    Anna et Basile se partagent 35 bonbons dans le rapport 3 à 4. Combien
+    chacun en reçoit-il ? Dans ces problèmes, un rapport indique combien de
+    parts égales reçoit chacun, et non combien d’objets. En comptant d’abord
+    les parts et en cherchant ce que vaut une part, on transforme tout problème
+    de rapport en une division.
+  method: Compter les parts, puis trouver ce que vaut une part
+  teaches: À voir un rapport comme des parts égales et à augmenter ou réduire les quantités d’une recette
+  # The words of its drawing: what is shared over it, and what the parts come
+  # to under it.
+  art:
+    line: 35 bonbons dans le rapport 3 à 4
+    parts: 7 parts = 35, une part = 5
+    shares: Anna 3 × 5 = 15, Basile 4 × 5 = 20
+
+basis:
+  title: Les règles des rapports
+  cards:
+    - title: Un rapport, ce sont des parts
+      text: >-
+        3 à 4 signifie : 3 parts égales pour l’un, 4 parts égales pour l’autre.
+        Ensemble, cela fait 7 parts égales, et non 3 ou 4.
+      art:
+        seven: 3 à 4, c’est 7 parts égales
+    - title: D’abord une part
+      text: >-
+        Divisez le total par le nombre de parts pour trouver une part, puis
+        multipliez par le nombre de parts de chacun : 35 : 7 = 5, donc 3 parts
+        font 15 et 4 parts font 20.
+      art:
+        one: "35 : 7 = 5 dans une part"
+    - title: Multiplier les deux nombres
+      text: >-
+        Un rapport ne change pas quand ses deux nombres sont multipliés par le
+        même nombre : 3 à 4, c’est aussi 6 à 8 et 30 à 40. C’est ainsi qu’on
+        agrandit une recette.
+
+idea:
+  title: Compter les parts
+  lead: Quel que soit le rapport, additionnez d’abord ses nombres. La somme dit en combien de parts égales le tout est découpé.
+  table:
+    head:
+      - À partager
+      - Parts
+      - Une part et le partage
+    rows:
+      - - 35 bonbons, 3 à 4
+        - 3 + 4 = 7
+        - "35 : 7 = 5, donc 15 et 20"
+      - - 60 cartes, 1 à 2 à 3
+        - 1 + 2 + 3 = 6
+        - "60 : 6 = 10, donc 10, 20 et 30"
+      - - 45 perles, 2 à 7
+        - 2 + 7 = 9
+        - "45 : 9 = 5, donc 10 et 35"
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      L’erreur la plus fréquente consiste à diviser par un seul des nombres du
+      rapport au lieu de leur somme : 35 : 3 ou 35 : 4. Avec une case dessinée
+      pour chaque part, impossible d’oublier la somme.
+
+method:
+  title: "Comment le résoudre : une case par part"
+  lead: >-
+    Dessinez une case pour chaque part du rapport, avec une rangée de cases
+    pour chacun de ceux qui partagent. Comptez toutes les cases, trouvez ce que
+    contient une case, puis remplissez la part de chacun. Les exemples
+    ci-dessous vont du plus simple à un problème d’olympiade.
+  steps:
+    - Dessiner une case pour chaque part
+    - Trouver ce que contient une case
+    - Remplir la part de chacun et vérifier le total
+  # The key under the steps: what a tile of the drawings means.
+  legend:
+    one: une part et ce qu’elle contient
+    spoken: les parts dont parle le problème
+
+examples:
+  - title: Des champignons
+    question: >-
+      Max et Léna cueillent ensemble 45 champignons. Chaque fois que Max en
+      cueille 4, Léna en cueille 5. Combien de champignons Léna cueille-t-elle ?
+    steps:
+      - 4 à 5 signifie 4 parts pour Max et 5 pour Léna, soit 9 parts égales en tout.
+      - "Une part vaut 45 : 9 = 5 champignons."
+      - "Léna a 5 parts : 5 × 5 = 25 champignons. Vérification : Max en a 20, et 20 + 25 = 45."
+    answer: 25 champignons.
+    note:
+      title: "Pourquoi pas 45 : 5 ?"
+      text: >-
+        45 : 5 = 9 divise par le seul nombre de Léna. Or les 45 champignons, ce
+        sont les 9 parts, celles de Max et celles de Léna ensemble.
+    art:
+      max: M
+      lena: L
+      together: 45 champignons en tout
+      max-name: Max
+      lena-name: Léna
+      nine: 9 cases, 45 champignons
+      each: "45 : 9 = 5 par case"
+      only-lena: seulement Léna
+  - title: La chorale
+    question: >-
+      Dans une chorale, il y a 4 garçons pour 7 filles, et 9 filles de plus que
+      de garçons. Combien d’enfants chantent dans la chorale ?
+    steps:
+      - >-
+        Les garçons font 4 parts et les filles 7 parts : les filles ont donc 3
+        parts de plus que les garçons.
+      - "Ces 3 parts, ce sont les 9 filles en plus : une part vaut 9 : 3 = 3 enfants."
+      - >-
+        La chorale fait 4 + 7 = 11 parts : 11 × 3 = 33 enfants. Vérification :
+        12 garçons et 21 filles, soit 9 filles de plus.
+    answer: 33 enfants.
+    note:
+      title: À quelles parts correspondent les 9 ?
+      text: >-
+        Les 9 ne sont pas les 7 parts des filles, mais les 3 parts que les
+        filles ont en plus des garçons. Diviser 9 par 7 ou par 11 ne donne pas
+        un nombre entier d’enfants.
+    art:
+      boys: garçons
+      girls: filles
+      nine: 9 filles
+      choir: 11 cases × 3 = 33
+      this-nine: ça fait 9
+  - title: Deux boîtes
+    question: >-
+      Deux boîtes contiennent des billes dans le rapport 3 à 1. On fait passer
+      10 billes de la première boîte dans la seconde, et les deux boîtes en
+      contiennent alors autant l’une que l’autre. Combien y a-t-il de billes en
+      tout ?
+    steps:
+      - >-
+        Faire passer des billes d’une boîte à l’autre ne change pas le total :
+        il est le même avant et après.
+      - >-
+        Avant, le total fait 4 parts, et la première boîte en contient 3.
+        Après, elle contient la moitié du total, soit 2 de ces mêmes 4 parts.
+        Elle a donc donné 1 part.
+      - >-
+        Cette part, ce sont les 10 billes déplacées : le total vaut 4 × 10 = 40.
+        Vérification : 30 et 10 avant, 20 et 20 après.
+    answer: 40 billes.
+    note:
+      title: Ce qui ne change pas
+      text: >-
+        Les problèmes de rapports cachent souvent quelque chose qui ne change
+        pas : ici, le total. C’est en mesurant les deux rapports en parts de ce
+        même total qu’on peut les comparer.
+    art:
+      box-a: boîte A
+      box-b: boîte B
+      four: 4 parts en tout, avant et après
+      before: avant
+      after: après
+      part: 1 part
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ratio_total_confusion:
+    shows: >-
+      Les nombres du rapport sont pris pour des parts du total : 4 à 5 est lu
+      comme 4 sur 5, ou les 45 champignons sont divisés par 5 au lieu de l’être
+      par les 4 + 5 = 9 parts.
+    say: « Combien y a-t-il de parts égales en tout ? »
+    art:
+      question: 45 champignons, 4 à 5
+      one: dans une part
+  wrong_operation:
+    shows: >-
+      L’enfant additionne là où le rapport demande de multiplier : pour 6
+      personnes de plus, la recette prend 6 œufs de plus, alors que les œufs
+      doivent augmenter dans la même proportion que le nombre de personnes.
+    say: « S’il y a deux fois plus de personnes, que deviennent les œufs ? »
+    art:
+      question: 3 œufs pour 2 personnes, et pour 8 ?
+  answered_other_question:
+    shows: >-
+      L’enfant trouve une part, mais en donne une autre que celle demandée : les
+      champignons de Max au lieu de ceux de Léna, ou une part, 3 enfants, au lieu
+      de toute la chorale.
+    say: « La question porte sur la part de qui ? »
+    art:
+      question: Combien de champignons Léna cueille-t-elle ?
+      max: M
+      lena: L
+
+home:
+  - title: Cuisiner avec un rapport
+    text: >-
+      Préparez ensemble une boisson ou une pâte en suivant un rapport : une
+      tasse de jus pour trois tasses d’eau. Puis préparez-en deux fois plus, et
+      regardez ce qui double.
+  - title: Des cases sur papier
+    text: >-
+      Pour tout partage à la maison, de bonbons ou de tâches ménagères, dessinez
+      une case pour chaque part et remplissez les cases. Les cases réfléchissent
+      pour vous.
+  - title: Cartes et maquettes
+    text: >-
+      Regardez l’échelle d’une carte ou d’une voiture miniature : 1 à 50
+      signifie que chaque centimètre en représente 50. Mesurez quelque chose
+      ensemble, puis calculez sa taille réelle.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Rapports et partages »

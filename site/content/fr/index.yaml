@@ -1,0 +1,186 @@
+# The home page, for a parent: what MathTrail is, why not just ask the chat,
+# how a lesson goes — the card of the widget at every step — and how to
+# connect. The grades, the names of the traps, the card's picture, options and
+# rating, the connector's address and the card's own words are not here: they
+# are the catalog's numbers, the site's data, the widget's words and the
+# site's own.
+
+title: "MathTrail : les maths d’olympiade dans votre chat"
+description: "Les maths d’olympiade pour les enfants, dans le chat que vous utilisez déjà : des problèmes vérifiés qui ne s’épuisent pas, un diagnostic de chaque erreur et la mémoire des progrès de l’enfant."
+
+hero:
+  free: Gratuit
+  open: Open source
+  title: Les maths d’olympiade, dans le chat que vous utilisez déjà.
+  # The promise, word for word as the README gives it.
+  lead: Un flot sans fin de problèmes de maths vérifiés, dans l’esprit des olympiades, pour les niveaux {range}, dans n’importe quelle langue, avec le diagnostic de l’erreur de l’enfant et la mémoire de ses progrès.
+  # How the task on the card was picked for the lesson's child: the child's
+  # topics, then the chance of a right answer and the reasons. The topics and
+  # the numbers are the site's data.
+  pick:
+    label: Comment le prochain problème a été choisi
+    title: Choisi pour Galt
+    skills: Compétences de Galt
+    why: Pourquoi ce problème
+    auto: Choix automatique
+    chance: "{chance} de chances de réussite : dans la zone"
+    reasons:
+      - thème le plus faible
+      - "revient sur une erreur récente : un de plus ou de moins"
+      - pas travaillé depuis 5 jours
+  see: Voir une leçon
+  note: Servez-vous un thé pendant que votre enfant résout le problème.
+
+# The frame a card stands in: the chat a parent already uses, with the
+# parent's message above the card.
+chat:
+  title: Votre chat
+  ask: Un nouveau problème, s’il te plaît
+  progress: Où en est mon enfant ?
+
+pillars:
+  title: Pourquoi ne pas simplement demander au chat ?
+  lead: "Un modèle de chat écrit un problème en une seconde, et se trompe tout aussi vite : deux réponses justes à la fois, une solution qui ne tient pas debout, le problème d’hier avec de nouveaux nombres. Et si votre enfant insiste, il lui donne volontiers raison. MathTrail laisse au modèle ce qu’il fait bien, écrire, et vérifie tout le reste avec un programme."
+  # A chat asked alone for a task. Its options, and which of them are right,
+  # are the site's data.
+  alone:
+    name: Le chat seul
+    ask: Un problème d’olympiade pour le niveau 3
+    task: Un nombre est divisible par 2 et par 3. Quel peut être ce nombre ?
+    flag: "Deux bonnes réponses : personne n’a vérifié"
+  # The chat alone against the chat with MathTrail, both asked what the chat
+  # alone was asked, point against point.
+  versus:
+    asked: "« {ask} »"
+    alone:
+      - Deux réponses peuvent être justes à la fois, ou aucune.
+      - Accepte une mauvaise réponse si l’enfant insiste.
+      - Oublie sur quoi votre enfant a buté.
+      - "Il faut savoir quoi demander : thèmes, niveaux, ce qui vient ensuite."
+      - Chaque problème est un cas isolé, sans modèle de la façon dont les enfants apprennent.
+      - Aucune carte de ce que votre enfant sait déjà.
+    ours:
+      name: Chat + MathTrail
+      points:
+        - "Une et une seule bonne réponse : un programme qui résout le problème passe en revue tous les cas."
+        - "La réponse est enregistrée d’un simple appui : impossible de la rendre juste en discutant."
+        - Retient les compétences et les erreurs, et choisit le problème suivant.
+        - "Il suffit de dire « un nouveau problème » : MathTrail choisit le thème et le niveau."
+        - "Un modèle de compétences fondé sur la recherche : Elo appuyé sur la TRI, 11 étapes."
+        - Un score dans chaque thème, et une carte des thèmes qui s’appuient les uns sur les autres.
+  tiles:
+    # The languages are named each in itself; this follows them.
+    endless:
+      title: Les problèmes ne s’épuisent pas.
+      text: Chaque problème est écrit spécialement pour le thème, le niveau et la dernière erreur de votre enfant, dans la langue de votre chat, au lieu d’être tiré d’une banque figée. Un problème sur trois est construit autour de ses centres d’intérêt.
+      more: + toute autre
+    checked:
+      title: Un programme vérifie le modèle.
+      text: "Un problème n’arrive à votre enfant qu’après avoir réussi toutes les vérifications : une seule bonne réponse, la réponse retrouvée par un solveur, un texte lisible pour le niveau scolaire, pas de doublon, et un dessin, s’il y en a un, dont les étiquettes sont celles de l’énoncé et qui ne montre pas la réponse."
+      checks:
+        - une seule réponse
+        - solveur
+        - lisible
+        - pas un doublon
+    diagnosis:
+      title: Une erreur est un diagnostic.
+      # The traps are the catalog's, under the names the card gives them.
+      text: "Chaque mauvaise réponse cache un piège qui porte un nom : « {first} », « {second} », « {third} ». L’explication part du raisonnement de votre enfant, pas de la bonne réponse."
+      trap: "Piège : on a compté les intervalles, pas les poteaux"
+  behind:
+    title: Ce qu’il y a derrière chaque problème
+    # Under the words, what the parent says, and what MathTrail picks.
+    coach:
+      title: Pas besoin de savoir enseigner.
+      text: "Inutile de connaître les thèmes d’olympiade ou de choisir un niveau. Dites « un nouveau problème » : le coach décide ce qu’il faut travailler ensuite, et à quel degré de difficulté."
+      picked: "thème + niveau : choisis"
+    research:
+      title: Un modèle fondé sur la recherche.
+      text: La probabilité de réussite vient d’un modèle de compétences utilisé en psychométrie, Elo appuyé sur la théorie de la réponse à l’item (TRI), et les problèmes restent là où l’enfant réussit dans 70–85 % des cas.
+      formula: P = 0,2 + 0,8·σ(θ + δ − β)
+    # Under the words, a topic between two it builds on, as the catalog has
+    # them.
+    map:
+      title: Une carte des compétences et des thèmes.
+      text: MathTrail sait quels thèmes s’appuient sur quels autres (la mise en ordre et l’énumération des cas viennent avant les chevaliers et menteurs) et garde le score de votre enfant dans chaque thème.
+
+lesson:
+  eyebrow: Comment se passe une leçon
+  title: Un problème à la fois, dans votre propre chat.
+  lead: Vous êtes à côté ; c’est votre enfant qui appuie. Chaque étape est accompagnée de la carte telle que le chat l’affiche à ce moment-là.
+  # The steps in the order a lesson takes them, each beside its card.
+  steps:
+    generating:
+      title: Demandez un problème
+      text: Écrivez « un nouveau problème, s’il te plaît ». MathTrail choisit le thème et la difficulté, le chat rédige le problème, et un programme vérifie chaque réponse avant que votre enfant ne le voie.
+    selected:
+      title: Répondre avec un bouton
+      text: "Cinq réponses proposées, de A à E. Un appui enregistre la réponse tout de suite, avant toute explication : aucune discussion ne peut donc la rendre juste."
+    hint:
+      title: Ça bloque ? Un indice, pas la réponse
+      text: L’indice montre par où commencer (dessiner une clôture plus courte), et la réponse reste cachée tant que votre enfant n’en a pas choisi une.
+    wrong:
+      title: Une mauvaise réponse devient une leçon
+      text: "Chaque mauvaise réponse cache un piège connu. Dès que votre enfant répond, la carte devient l’analyse de la réponse : elle nomme le piège du point de vue de votre enfant (« on a compté les intervalles au lieu des poteaux »), puis détaille la solution."
+    question:
+      title: Demandez pourquoi, avec vos propres mots
+      text: Une fois la réponse enregistrée, posez la question dans le chat (« pourquoi un poteau de plus ? »), et le modèle répond à propos de ce problème précis.
+    progress:
+      title: Des progrès faciles à lire
+      text: L’étape atteinte et celle de chaque thème, les erreurs qui reviennent, ce qui vient ensuite, et pour vous, un bilan de ce qui va bien et de ce qui reste à développer.
+  # The name of the child the cards show, an invented one, which the first
+  # screen picks a task for.
+  child: Galt
+  # Two messages of the chat beneath a card answered wrong: the adult's
+  # question and the model's reply, about the step and to nobody, for the adult
+  # to read out to the child. They are the site's words, never the card's.
+  chat:
+    label: Une illustration du chat
+    adult: L’adulte
+    model: Le modèle
+    question: Pourquoi un poteau de plus ?
+    reply: "Si l’on suit la clôture depuis la gauche, chaque intervalle se termine par un poteau : 4 intervalles donnent donc 4 poteaux, et le premier poteau se trouve avant tous les autres. 4 + 1 = 5."
+
+# The task of the lesson: a variant of a reference task, never one word for
+# word.
+task:
+  question: Une clôture mesure 12 mètres de long. Il y a un poteau tous les 3 mètres, y compris aux deux extrémités. Combien y a-t-il de poteaux ?
+  hint: Essaie d’abord avec une clôture plus courte, de 6 mètres, avec un poteau tous les 3 mètres. Dessine-la et compte les poteaux.
+  # The trap behind each wrong option, as the card says it once that option
+  # is picked: the steps pick one, and the card on the first screen any.
+  traps:
+    a: On a donné la distance entre les poteaux, pas le nombre de poteaux.
+    b: On a compté les intervalles au lieu des poteaux.
+    d: On a multiplié la longueur par la distance entre les poteaux au lieu de la diviser.
+    e: On a pris la longueur de la clôture dans l’énoncé au lieu de compter les poteaux.
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4 intervalles. Une clôture droite avec des poteaux aux deux extrémités compte un poteau de plus que d’intervalles. 4 + 1 = 5 poteaux.
+
+connect:
+  eyebrow: Connexion
+  title: Quelques étapes avant le premier problème.
+  claude:
+    pill: Fonctionne déjà · même avec le plan Free
+    # The steps of Claude's own help on custom connectors; the address follows
+    # the third.
+    steps:
+      open: Dans Claude, ouvrez {connectors}.
+      add: Cliquez sur **+ Ajouter** et choisissez **Ajouter un connecteur personnalisé**.
+      paste: "Nommez-le MathTrail et collez l’adresse :"
+      sign: "Cliquez sur **Continuer**, puis encore sur **Continuer** : les paramètres d’authentification que Claude détecte n’ont pas besoin d’être modifiés. Cliquez ensuite sur **Ajouter**, puis sur **Connecter**, et connectez-vous avec Google. MathTrail demande à conserver un fichier dans votre Google Drive : le profil de votre enfant. Accordez cette autorisation sur l’écran de Google : sans ce fichier, il n’y a nulle part où conserver les progrès."
+      chat: "Dans un chat, cliquez sur **+** → **Connecteurs**, activez MathTrail et dites : « Faisons un problème MathTrail. »"
+    # Claude's own names for the page, as Claude writes them in the page's
+    # language, and in English where Claude does not speak it.
+    connectors: Personnaliser → Connecteurs
+    note: Le plan Free autorise un seul connecteur personnalisé.
+  chatgpt:
+    pill: Pas encore dans l’annuaire
+    text: Les comptes ChatGPT gratuits n’ajoutent des applications que depuis l’annuaire de ChatGPT. Dès que MathTrail y figurera, cherchez-le par son nom, connectez-le, puis connectez-vous avec Google. Il n’y figure pas encore.
+    dev: "En attendant, le mode développeur de ChatGPT permet d’ajouter une application par son adresse, avec les forfaits Plus, Pro, Business, Enterprise et Education, sur le Web : activez-le et ajoutez une application avec l’adresse ci-dessus, comme {openai}. MathTrail est encore en cours de test dans ChatGPT."
+    openai: le décrit OpenAI
+  need: Il vous faut un compte Claude ou ChatGPT et un compte Google ; votre enfant n’a besoin ni de l’un ni de l’autre.
+
+ask:
+  title: Commencez par un problème.
+  lead: "Ajoutez MathTrail à Claude : cela prend environ deux minutes."
+  code: Voir le code sur GitHub

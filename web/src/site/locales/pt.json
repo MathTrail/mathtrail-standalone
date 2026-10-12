@@ -1,0 +1,122 @@
+{
+	"language.name": "Português",
+	"nav.language": "Idioma",
+	"nav.pages": "Páginas do site",
+	"nav.menu": "Menu",
+	"nav.topics": "Temas",
+	"nav.coach": "Treinador",
+	"nav.beta": "Beta",
+	"nav.add": "Adicionar ao Claude",
+	"nav.why": "Por quê",
+	"nav.techniques": "Técnicas",
+	"nav.research": "Estudo",
+	"nav.service": "Serviço",
+	"nav.technical": "Páginas técnicas",
+	"nav.about": "Sobre",
+	"share.picture": "A página inicial do MathTrail: a sua promessa ao lado do cartão de um problema, como um chat o mostra.",
+	"cite.one": "{first}, {year}",
+	"cite.two": "{first} e {second}, {year}",
+	"cite.many": "{first} et al., {year}",
+	"footer.links": "Links",
+	"footer.source": "GitHub",
+	"group.logic": "Lógica",
+	"group.counting": "Contagem",
+	"group.time": "Tempo",
+	"group.numbers": "Números com pegadinha",
+	"group.parts": "Partes de um todo",
+	"group.games": "Estratégias e jogos",
+	"topics.builds_on": "Depende de: {topics}",
+	"topics.opens": "Abre caminho para: {topics}",
+	"topics.grades": "Anos {range}",
+	"topics.more": "Saiba mais →",
+	"topics.soon": "Em breve",
+	"thumb.knight": "V",
+	"thumb.liar": "M",
+	"sign.divide": ":",
+	"sign.question": "?",
+	"techniques.count": {
+		"one": "{count} técnica",
+		"many": "{count} de técnicas",
+		"other": "{count} técnicas"
+	},
+	"research.tasks": {
+		"one": "problema de referência",
+		"many": "de problemas de referência",
+		"other": "problemas de referência"
+	},
+	"research.checks": {
+		"one": "verificação",
+		"many": "de verificações",
+		"other": "verificações"
+	},
+	"research.passed": {
+		"one": "verificação",
+		"many": "de verificações",
+		"other": "verificações"
+	},
+	"research.topics": {
+		"one": "tema",
+		"many": "de temas",
+		"other": "temas"
+	},
+	"research.traps": {
+		"one": "armadilha",
+		"many": "de armadilhas",
+		"other": "armadilhas"
+	},
+	"research.pages": {
+		"one": "página",
+		"many": "de páginas",
+		"other": "páginas"
+	},
+	"research.places": {
+		"one": "posição",
+		"many": "de posições",
+		"other": "posições"
+	},
+	"research.trial": {
+		"one": "problema",
+		"many": "de problemas",
+		"other": "problemas"
+	},
+	"research.answers": {
+		"one": "resposta",
+		"many": "de respostas",
+		"other": "respostas"
+	},
+	"research.given": {
+		"one": "resposta",
+		"many": "de respostas",
+		"other": "respostas"
+	},
+	"research.children": {
+		"one": "criança",
+		"many": "de crianças",
+		"other": "crianças"
+	},
+	"research.times": {
+		"one": "vez",
+		"many": "de vezes",
+		"other": "vezes"
+	},
+	"topic.path": "Você está aqui",
+	"topic.method": "A ideia-chave",
+	"topic.teaches": "O que ensina",
+	"topic.contents": "Nesta página",
+	"topic.solving": "Como se resolve",
+	"topic.example": "Exemplo {number} · {grades}",
+	"topic.answer": "Resposta",
+	"topic.traps": "Onde as crianças erram",
+	"topic.traps_lead": "O MathTrail explica cada resposta errada pela armadilha em que ela caiu. Estas são as mais comuns neste tema, com algo que você pode dizer à criança.",
+	"topic.trap": "Armadilha",
+	"topic.say": "O que dizer",
+	"topic.child": "Criança",
+	"topic.right": "Certo",
+	"topic.home": "Como ajudar em casa",
+	"topic.before": "Aprender antes",
+	"topic.after": "Abre caminho para",
+	"topic.ask": "Peça um problema deste tema",
+	"topic.all": "Todos os temas",
+	"copy.action": "Copiar",
+	"copy.done": "Copiado"
+}

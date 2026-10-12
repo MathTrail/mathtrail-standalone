@@ -1,0 +1,174 @@
+# The page of the topic of divisibility and remainders, for a parent, in
+# Simplified Chinese. The topic's name, its group, its grades and its traps'
+# names are not here: they are the card's words and the catalog's numbers. The
+# page's drawings, each example's level, and the answer its solver proves, are
+# the site's data; an example here is worked through to that answer. The traps
+# are the topic's commonest, counted in its reference tasks.
+
+title: 整除与余数
+description: 什么是关于整除与余数的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+hero:
+  lead: >-
+    29名学生去郊游，每辆车坐4人。需要几辆车？在这类题里，孩子要做有余数的除法，再判断这个余数意味着什么：多要一辆车、剩下一颗糖，还是下一排的一个座位。数的整除特征完全不用做除法，就能回答“能不能整除”。
+  method: 把数写成若干整组加上剩下的部分
+  teaches: 用题目里的话去理解余数，并能不做除法就判断能否整除
+  # The words of its drawing: what it divides over it, and what the division
+  # comes to under it.
+  art:
+    line: 14个东西，3个一组
+    groups: 4个整组，剩下2个
+
+basis:
+  title: 除法的规则
+  cards:
+    - title: 余数比除数小
+      text: >-
+        除以7时，余数可能是0、1、2……一直到6。如果余数算出来是7或更大，说明还能再分出一组。
+      art:
+        remainders: 除以7的余数：0到6
+    - title: 余数意味着什么
+      text: >-
+        29名学生坐4人一辆的车，是坐满7辆车、还剩1名学生，所以需要8辆车。同一个除法，答案可以是7、8或1：由问题决定。
+      art:
+        cars: 29 = 7 × 4 + 1，所以需要8辆车
+    - title: 判断整除的窍门
+      text: >-
+        个位是偶数的数能被2整除，个位是0或5的数能被5整除；能不能被3或9整除，就看各位数字之和能不能。
+      # The rules on its drawing, the digits each looks at in bold.
+      art:
+        by-two: 2的倍数
+        even: 个位是偶数：13**6**
+        by-five: 5的倍数
+        five: 个位是0或5：24**5**
+        by-three: 3、9的倍数
+        digits: 各位数字之和：3 + 8 + 1 + 6 = **18**
+
+idea:
+  title: 整组和剩下的部分
+  lead: 每个整数都可以写成若干整组加上剩下的部分。要的是哪一个，由问题决定。
+  table:
+    head:
+      - 问题
+      - 除法 · 蓝色是所问的部分
+      - 答案
+    rows:
+      - - 29名学生坐4座的车，需要几辆？
+        - 29 = 7 × 4 + 1
+        - 8辆车
+      - - 29颗糖分给4个孩子：每人分到几颗？
+        - 29 = 7 × 4 + 1
+        - 每人7颗
+      - - 这29颗糖分完后还剩几颗？
+        - 29 = 7 × 4 + 1
+        - 1颗糖
+  note:
+    title: 为什么重要
+    text: >-
+      每一行的除法都一样，变的只是含义。孩子即使除法算对了，也可能在问题问余数时答成整组的个数，或者忘了给最后一名学生安排一辆车。
+
+method:
+  title: 解法：整组和余数
+  lead: >-
+    把数写成若干整组加上剩下的部分。然后再读一遍问题，判断它要的是什么：组数、余数，还是再多一组。如果问的是最小的数，或者具有某种性质的数字，就按顺序一个一个地试。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 分成整组和余数
+    - 判断问题问的是什么
+    - 对照题目的文字检验答案
+  # The key under the steps: what the drawings' groups mean.
+  legend:
+    group: 一个整组
+    rest: 剩下的部分
+
+examples:
+  - title: 坐大巴去郊游
+    question: >-
+      150名学生参加学校的郊游，每辆大巴有40个座位。需要几辆大巴？
+    steps:
+      - 把学生按每40人一组来数：150 = 3 × 40 + 30。三辆大巴坐满，还剩30名学生。
+      - 这30名学生也需要一辆大巴，即使坐不满。
+      - 3 + 1 = 4辆大巴。
+    answer: 4辆大巴。
+    note:
+      title: 为什么不是3或30？
+      text: >-
+        3是坐满的大巴数，30是最后一辆车上的人数。问题问的是一共需要几辆大巴。
+    art:
+      seats: 40个座位
+      pupils: 150名学生
+      left: 剩下
+      part: 40个座位坐了30个
+      full: 坐满的
+      last: 最后一辆上
+      all: 全部大巴
+  - title: 38*6中的星号
+    question: >-
+      38*6中的星号处应该填哪个数字，才能使这个数除以9没有余数？
+    steps:
+      - 一个数和它的各位数字之和，要么都能被9整除，要么都不能。
+      - >-
+        已知的数字加起来是3 + 8 + 6 = 17，星号是0到9中的一个数字，所以各位数字之和在17到26之间。
+      - 在17到26之间，能被9整除的数只有18，所以星号是1：3816 = 9 × 424。
+    answer: 数字1。
+    note:
+      title: 被3整除呢？
+      text: >-
+        要被3整除，各位数字之和就得能被3整除：18、21和24都可以，所以星号可以是1、4或7。被9整除的特征更严格，这里只剩下一个数字。
+    art:
+      sum: 各位数字之和能被9整除吗？
+  - title: 一百个二
+    question: >-
+      把一百个二乘在一起：2 × 2 × 2 × … × 2。乘积的个位数字是几？
+    steps:
+      - >-
+        把这些二一个一个地乘上去，看个位数字：2、4、8、16、32、64、128、256。个位数字依次是2、4、8、6，然后重复。
+      - >-
+        这个规律4个一轮，而100 = 25 × 4：第一百个二正好结束规律的第25轮，落在这一轮的第4位。
+      - 规律的第4位是6，所以乘积的个位数字是6。
+    answer: "6。"
+    note:
+      title: 藏起来的余数
+      text: >-
+        真正起作用的只是100除以4的余数：它说明了第一百个二落在规律的哪一位。余数能回答许多关于重复出现的事物的问题：个位数字、星期几、围成一圈的位置。
+    art:
+      first: 蓝色是规律的第一轮
+      rounds: 25轮 × 4个二 = 100个二
+      place: 余数是0：一轮的最后一位，第4位
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  remainder_vs_quotient:
+    shows: >-
+      整组和余数换了位置：问题问的是大巴，孩子却答出剩下的30名学生；或者把规律的整轮数25当成了在规律中的位置。
+    say: “问题问的是整组，还是剩下的部分？”
+    art:
+      question: 需要几辆大巴？
+      left: 剩下的学生
+      buses: 辆大巴
+  off_by_one:
+    shows: >-
+      答案差了一组：忘了最后30名学生也要一辆大巴，答成3而不是4；或者数规律中的位置时从0数起，而不是从1数起。
+    say: “剩下的部分还需要再多一组吗？”
+    art:
+      question: 150名学生，每辆大巴40座
+  missed_case:
+    shows: >-
+      找到一种情况就不再找了：星号是1，可问题问的是被3整除时，孩子没有检查4和7是否也行。
+    say: “从0到9的每个数字都试过了吗？”
+    art:
+      question: 38*6能被3整除
+      more: 就这些吗？
+
+home:
+  - title: 有余数地分东西
+    text: >-
+      在家人之间分糖果或卡片，把结果分两部分说出来：每人分到几个，还剩几个。
+  - title: 数字和的检验
+    text: >-
+      编几个大数，把各位数字加起来，检验它们能不能被3整除、能不能被9整除，再用计算器除一除，看看规则灵不灵。
+  - title: 会重复的东西
+    text: >-
+      找一找周而复始的规律：星期几、项链上珠子的颜色，还有3、9、27、81的个位数字。问一问：往后数50步是什么？
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“整除与余数”的题

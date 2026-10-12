@@ -2,7 +2,7 @@ import type { ComponentChildren } from "preact";
 import type { Bar } from "../../design/picture/model";
 import type { Tone, Tones } from "../../design/picture/tones";
 import type { PageReader } from "../reader";
-import { Box, Key, Line, Op, Row, Say, Stack, Versus } from "../Sketch";
+import { Box, Divide, Key, Line, Op, Row, Say, Stack, Versus } from "../Sketch";
 import type { TopicArt } from "./art";
 import { Kind } from "./pictures";
 
@@ -366,7 +366,9 @@ export const art: TopicArt = {
 			note: ({ page, at }) => (
 				<Stack gap={8} align="start">
 					<Line gap={6}>
-						<Box size="sm">45 : 5</Box>
+						<Box size="sm">
+							45 <Divide /> 5
+						</Box>
 						<Op>=</Op>
 						<Box size="sm" ring="wrong">
 							9
@@ -374,7 +376,9 @@ export const art: TopicArt = {
 						<Say way="wrong">{page.text(`${at}.only-lena`)}</Say>
 					</Line>
 					<Line gap={6}>
-						<Box size="sm">45 : 9</Box>
+						<Box size="sm">
+							45 <Divide /> 9
+						</Box>
 						<Op>=</Op>
 						<Box size="sm" ring="right">
 							5
@@ -512,7 +516,9 @@ export const art: TopicArt = {
 				<Versus
 					child={
 						<>
-							<Box size="sm">45 : 5</Box>
+							<Box size="sm">
+								45 <Divide /> 5
+							</Box>
 							<Op>=</Op>
 							<Box size="sm" ring="wrong">
 								9
@@ -521,7 +527,9 @@ export const art: TopicArt = {
 					}
 					right={
 						<>
-							<Box size="sm">45 : 9</Box>
+							<Box size="sm">
+								45 <Divide /> 9
+							</Box>
 							<Op>=</Op>
 							<Box size="sm" ring="right">
 								5

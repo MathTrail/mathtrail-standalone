@@ -1,0 +1,172 @@
+# The page of the topic of parts and shares, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 分数应用题
+description: 什么是分数应用题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+hero:
+  lead: >-
+    小明吃了一张披萨的三分之一，小安吃了剩下的一半。谁吃得多？在这类题里，分数总是某个量的几分之几，而大部分难点就在于弄清是谁的几分之几：是整体的，还是剩下部分的。一张剪成几等份的纸条，比任何规则都更能把这一点讲清楚。
+  method: 把整体画成长条，再平均分成几份
+  teaches: 会问“是谁的几分之几？”，并能由部分求出整体
+  # The words of its drawing: the share over it, and what it comes to.
+  art:
+    line: 12的3/4
+    sum: 12的3/4 = 9
+    one: 一份是12 ÷ 4 = 3，3份是9
+
+basis:
+  title: 分数的规则
+  cards:
+    - title: 是谁的几分之几？
+      text: >-
+        分数总是某个量的几分之几。“剩下的四分之一”和“整体的四分之一”是不同的数，所以要先找出这个分数是谁的几分之几。
+      art:
+        whole: 整体的四分之一
+        rest: 剩下的四分之一
+    - title: 先求一份
+      text: >-
+        求20的3/4，就除以4，再取3份：15。已知一个数的3/4是15，求这个数，就除以3得到一份，再取4份：20。
+    - title: 各部分合成整体
+      text: >-
+        分出去的和剩下的合起来是一个整体。如果分出去1/3和1/4，就剩下1 − 1/3 − 1/4 = 5/12。
+
+idea:
+  title: 一份是多少
+  lead: 不管问的是什么，都先求出一份是多少，再按需要取几份。
+  table:
+    head:
+      - 已知
+      - 长条和一份
+      - 所求
+    rows:
+      - - 20的3/4
+        - 20 ÷ 4 = 5
+        - 3份，15
+      - - 一个数的3/4是15
+        - 15 ÷ 3 = 5
+        - 这个数，4份，20
+      - - 一个数的2/5是14
+        - 14 ÷ 2 = 7
+        - 这个数，5份，35
+  note:
+    title: 为什么重要
+    text: >-
+      分数题的错误大多不出在计算上，而出在整体上：几分之几算在了错误的量上。每一步之前都先大声说出整体是什么，就能发现这些错误。
+
+method:
+  title: 解法：画长条
+  lead: >-
+    把整体画成一条长条，分母是几，就把它平均分成几份。如果要取的是剩下部分的几分之几，就把剩下的部分画成一条新的长条。然后求出一份是多少。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 把整体画成一条长条
+    - 平均分成几份，需要时把剩下的部分再分
+    - 求出一份，再求题目要的几份
+  # The key under the steps: what the strips' colours mean.
+  legend:
+    given: 已经分出去的
+    sought: 所求的部分
+
+examples:
+  - title: 面包店的小面包
+    question: >-
+      一位面包师烤了60个小面包。到中午，他卖掉了一半；到傍晚，又卖掉了剩下的三分之二。还剩多少个小面包？
+    steps:
+      - 60个小面包的一半是30个，所以中午过后还剩30个。
+      - >-
+        剩下的三分之二是30个的三分之二，不是60个的：傍晚卖掉了30 ÷ 3 × 2 = 20个。
+      - 还剩30 − 20 = 10个。
+    answer: 10个小面包。
+    note:
+      title: 是谁的三分之二？
+      text: >-
+        全部60个小面包的三分之二是40个，而30 + 40 = 70个，比面包师烤的还多。“剩下的三分之二”要按那一刻还剩下的数量来算。
+    art:
+      rest: 剩下的是新的整体
+      evening: 傍晚卖掉20个
+      all: 中午前卖30 · 傍晚卖20 · 剩10
+      over: 30 + 40 = 70，超过了60
+  - title: 一本书的七分之几
+    question: >-
+      小涛星期一读了一本书的2/7，星期二读了这本书的3/7，这时还剩40页。这本书一共有多少页？
+    steps:
+      - 两天里，小涛一共读了这本书的2/7 + 3/7 = 5/7，所以还剩2/7。
+      - 这2/7就是那40页：七分之一是40 ÷ 2 = 20页。
+      - 整本书是七个七分之一：7 × 20 = 140页。
+    answer: 140页。
+    note:
+      title: 40是哪一部分？
+      text: >-
+        这40页是剩下的部分，也就是全书的2/7，而不是小涛读过的5/7。如果把它们当成5/7，这本书就只有56页，书里只剩16页。
+    art:
+      sevenths: 全书，7等份
+      monday: 周一
+      tuesday: 周二
+      read: 40不是读过的
+  - title: 集市上卖鸡蛋
+    question: >-
+      一位老奶奶在集市上卖鸡蛋。第一位顾客买走了全部鸡蛋的一半又半个。第二位顾客买走了剩下鸡蛋的一半又半个，第三位顾客也一样。这时鸡蛋全部卖完了，而且谁也没有打破鸡蛋。老奶奶原来有多少个鸡蛋？
+    steps:
+      - >-
+        从结尾往回推。第三位顾客买走了鸡蛋的一半又半个，结果一个也没剩：所以鸡蛋的一半就是半个，老奶奶那时有1个鸡蛋。
+      - >-
+        第二位顾客来之前也一样：买走一半又半个之后还剩1个，所以鸡蛋的一半是一个半，那时有3个鸡蛋。
+      - >-
+        第一位顾客来之前，鸡蛋的一半是三个半，所以原来有7个。检验：7 → 3 → 1 → 0。
+    answer: 7个鸡蛋。
+    note:
+      title: 倒推法
+      text: >-
+        如果每一次都是取剩下部分的几分之几，那么从结尾开始最容易：那里的数量是已知的。每往回推一步，就把一次拿走的还原回来：先加上那半个鸡蛋，再翻一倍。
+    art:
+      basket: 篮子里有几个鸡蛋？
+      third: 第三位顾客：这时有1个
+      third-took: 买走0.5 + ½ = 1个，剩0个
+      second: 第二位顾客：这时有3个
+      second-took: 买走1.5 + ½ = 2个，剩1个
+      first: 第一位顾客：这时有7个
+      first-took: 买走3.5 + ½ = 4个，剩3个
+      back: 往回推一步：+ ½，再 × 2
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  part_whole_swap:
+    shows: >-
+      几分之几算在了错误的量上：算的是全部60个小面包的三分之二，而不是剩下的30个的；或者把剩下的40页当成了小涛读过的部分。
+    say: “是谁的三分之二？在长条上指出来。”
+    art:
+      question: 剩下的三分之二
+      of-all: 60的2/3 =
+      of-rest: 30的2/3 =
+  answered_other_question:
+    shows: >-
+      把中途求出的数当成了答案：答的是傍晚卖掉的20个小面包，而不是剩下的；或者答的是小涛读过的100页，而不是整本书的页数。
+    say: “题目到底问的是什么？”
+    art:
+      question: 还剩多少个小面包？
+      evening: 傍晚卖掉的
+      left: 剩下的
+  stopped_early:
+    shows: >-
+      解题差一步就停下了：求出了全书的七分之一，也就是20页，却没有再算出整本书；或者减去了中午前卖掉的小面包，却忘了傍晚卖掉的。
+    say: “这是答案，还是通往答案的一步？”
+    art:
+      question: 这本书有多少页？
+
+home:
+  - title: 一起切一切
+    text: >-
+      把一个苹果、一张披萨或一张纸平均分成几份，说出每一份叫什么：二分之一、三分之一、四分之一。然后拿走几份，问一问还剩几分之几。
+  - title: 是谁的几分之几？
+    text: >-
+      菜谱或游戏里出现分数时，问一问：“是谁的三分之一？”答出这个问题，往往整道题就解决了。
+  - title: 长条
+    text: >-
+      在家里分东西时，不管分什么，都和孩子一起画一条长条：一个分成相等小格的长方形。本专题的每一道题都用得上它。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“分数应用题”的题

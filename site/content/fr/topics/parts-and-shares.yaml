@@ -1,0 +1,218 @@
+# The page of the topic of parts and shares, for a parent, in French. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Parties d’un tout
+description: Ce que sont les problèmes de parties d’un tout, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+hero:
+  lead: >-
+    Basile mange un tiers d’une pizza, et Anna la moitié de ce qui reste. Qui
+    en a mangé le plus ? Dans ces problèmes, une fraction est toujours une
+    fraction de quelque chose, et l’essentiel de la difficulté est de savoir
+    de quoi : du tout, ou de ce qui restait. Une bande de papier découpée en
+    parts égales le montre mieux que n’importe quelle règle.
+  method: Dessiner le tout comme une bande et la découper en parts égales
+  teaches: À demander « une partie de quoi ? » et à retrouver le tout à partir de sa partie
+  # The words of its drawing: the share over it, and what it comes to.
+  art:
+    line: 3/4 de 12
+    sum: 3/4 de 12 = 9
+    one: "12 : 4 = 3 dans une part, et 3 parts font 9"
+
+basis:
+  title: Les règles des parties
+  cards:
+    - title: Une partie de quoi ?
+      text: >-
+        Une fraction est toujours une fraction de quelque chose.
+        « Un quart du reste » et « un quart du tout » sont des nombres
+        différents : cherchez donc d’abord de quoi on prend la fraction.
+      art:
+        whole: un quart du tout
+        rest: un quart du reste
+    - title: En passant par une part
+      text: >-
+        Pour trouver les 3/4 de 20, on divise par 4 et on prend 3 parts : 15.
+        Pour trouver le tout quand ses 3/4 font 15, on divise par 3 pour avoir
+        une part et on prend 4 parts : 20.
+    - title: Les parties forment le tout
+      text: >-
+        Ce qui est donné et ce qui reste forment ensemble un tout. Si l’on
+        donne 1/3 et 1/4, il reste 1 − 1/3 − 1/4 = 5/12.
+
+idea:
+  title: Ce que vaut une part
+  lead: Quelle que soit la question, trouvez d’abord ce que vaut une part, puis prenez autant de parts qu’il en faut.
+  table:
+    head:
+      - On connaît
+      - La bande et une part
+      - On cherche
+    rows:
+      - - 3/4 de 20
+        - "20 : 4 = 5"
+        - 3 parts, 15
+      - - les 3/4 d’un nombre font 15
+        - "15 : 3 = 5"
+        - le nombre, 4 parts, 20
+      - - les 2/5 d’un nombre font 14
+        - "14 : 2 = 7"
+        - le nombre, 5 parts, 35
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      La plupart des erreurs avec les fractions ne sont pas dans les calculs,
+      mais dans le tout : on prend la fraction de la mauvaise quantité. Dire le
+      tout à voix haute avant chaque étape permet de les repérer.
+
+method:
+  title: "Comment le résoudre : dessiner une bande"
+  lead: >-
+    Dessinez le tout comme une longue bande et découpez-la en autant de parts
+    égales que l’indique le dénominateur de la fraction. Quand on prend une
+    fraction de ce qui reste, dessinez ce qui reste comme une nouvelle bande.
+    Puis trouvez ce que vaut une part. Les exemples ci-dessous vont du plus
+    simple à un problème d’olympiade.
+  steps:
+    - Dessiner le tout comme une bande
+    - La découper en parts égales, et redécouper le reste si besoin
+    - Trouver une part, puis les parts que demande la question
+  # The key under the steps: what the strips' colours mean.
+  legend:
+    given: déjà donné
+    sought: ce qu’on cherche
+
+examples:
+  - title: Petits pains à la boulangerie
+    question: >-
+      Un boulanger fait cuire 60 petits pains. Avant midi, il en vend la
+      moitié, et le soir, les deux tiers du reste. Combien de petits pains
+      reste-t-il ?
+    steps:
+      - "La moitié de 60 petits pains, c’est 30 : il reste donc 30 petits pains à midi."
+      - >-
+        Les deux tiers du reste, ce sont les deux tiers de 30, pas de 60 : le
+        soir, on vend 30 : 3 × 2 = 20 petits pains.
+      - Il reste 30 − 20 = 10 petits pains.
+    answer: 10 petits pains.
+    note:
+      title: Les deux tiers de quoi ?
+      text: >-
+        Les deux tiers des 60 petits pains feraient 40, et 30 + 40 = 70 petits
+        pains, c’est plus que ce que le boulanger a fait cuire.
+        « Les deux tiers du reste », c’est une fraction de ce qui reste à ce
+        moment-là.
+    art:
+      rest: le reste est un nouveau tout
+      evening: 20 vendus le soir
+      all: avant midi 30 · le soir 20 · reste 10
+      over: 30 + 40 = 70 ne tient pas dans 60
+  - title: Un livre en septièmes
+    question: >-
+      Lundi, Tom lit 2/7 d’un livre, et mardi, 3/7. Il lui reste alors
+      40 pages. Combien de pages compte le livre ?
+    steps:
+      - En deux jours, Tom lit 2/7 + 3/7 = 5/7 du livre, donc il en reste 2/7.
+      - "Ces 2/7, ce sont les 40 pages : un septième fait 40 : 2 = 20 pages."
+      - "Le livre entier, ce sont sept septièmes : 7 × 20 = 140 pages."
+    answer: 140 pages.
+    note:
+      title: Quelle partie fait 40 ?
+      text: >-
+        Les 40 pages sont ce qui reste, 2/7 du livre, et non les 5/7 que Tom a
+        lus. Prises pour les 5/7, elles donneraient un livre de 56 pages, dont
+        il ne resterait que 16 pages.
+    art:
+      sevenths: le livre, 7 parts égales
+      monday: lundi
+      tuesday: mardi
+      read: 40 n’est pas la partie lue
+  - title: Des œufs au marché
+    question: >-
+      Mamie vend des œufs au marché. Le premier client prend la moitié de ses
+      œufs et encore un demi-œuf. Le deuxième prend la moitié des œufs qui
+      restent et encore un demi-œuf, et le troisième fait de même. Après cela,
+      tous les œufs sont vendus, et personne n’a cassé d’œuf. Combien d’œufs
+      Mamie avait-elle ?
+    steps:
+      - >-
+        On part de la fin. Le troisième client a pris la moitié des œufs et
+        encore un demi-œuf, et il ne restait rien : la moitié des œufs était
+        donc un demi-œuf, et Mamie avait 1 œuf.
+      - >-
+        Avant le deuxième client, même chose : après la moitié des œufs et
+        encore un demi-œuf, il restait 1 œuf, donc la moitié des œufs était un
+        œuf et demi, et il y avait 3 œufs.
+      - >-
+        Avant le premier client, la moitié des œufs était trois œufs et demi,
+        donc il y en avait 7. Vérification : 7 → 3 → 1 → 0.
+    answer: 7 œufs.
+    note:
+      title: Partir de la fin
+      text: >-
+        Quand chaque part est prise sur ce qui reste, le plus simple est de
+        commencer par la fin : là, la quantité est connue. Chaque pas en
+        arrière défait une part : on ajoute le demi-œuf, puis on double.
+    art:
+      basket: combien d’œufs dans le panier ?
+      third: "le troisième client : il y en avait 1"
+      third-took: a pris 0,5 + ½ = 1, reste 0
+      second: "le deuxième client : il y en avait 3"
+      second-took: a pris 1,5 + ½ = 2, reste 1
+      first: "le premier client : il y en avait 7"
+      first-took: a pris 3,5 + ½ = 4, reste 3
+      back: "un pas en arrière : + ½, puis × 2"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  part_whole_swap:
+    shows: >-
+      La fraction est prise sur la mauvaise quantité : les deux tiers des
+      60 petits pains au lieu des 30 qui restent, ou les 40 pages qui restent
+      sont prises pour la partie que Tom a lue.
+    say: « Les deux tiers de quoi ? Montre-le sur la bande. »
+    art:
+      question: Les deux tiers du reste
+      of-all: 2/3 de 60 =
+      of-rest: 2/3 de 30 =
+  answered_other_question:
+    shows: >-
+      Un nombre trouvé en chemin devient la réponse : les 20 petits pains
+      vendus le soir au lieu de ceux qui restent, ou les 100 pages que Tom a
+      lues au lieu du livre entier.
+    say: « Que demande exactement la question ? »
+    art:
+      question: Combien reste-t-il de petits pains ?
+      evening: vendus le soir
+      left: restent
+  stopped_early:
+    shows: >-
+      La résolution s’arrête une étape trop tôt : on trouve un septième du
+      livre, 20 pages, sans jamais remonter au livre entier ; ou on retire les
+      petits pains vendus avant midi et on oublie ceux du soir.
+    say: « Est-ce la réponse, ou une étape pour y arriver ? »
+    art:
+      question: Combien de pages compte le livre ?
+
+home:
+  - title: Découpez ensemble
+    text: >-
+      Découpez une pomme, une pizza ou une feuille de papier en parts égales
+      et nommez-les : des moitiés, des tiers, des quarts. Puis retirez-en
+      quelques-unes et demandez quelle part il reste.
+  - title: Une partie de quoi ?
+    text: >-
+      Quand une fraction apparaît dans une recette ou un jeu, demandez :
+      « Un tiers de quoi ? » La réponse est souvent tout le problème.
+  - title: La bande
+    text: >-
+      Dessinez ensemble la bande chaque fois qu’on partage quelque chose à la
+      maison : un long rectangle découpé en cases égales. Elle convient à tous
+      les problèmes de ce thème.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Parties d’un tout »

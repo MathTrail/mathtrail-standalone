@@ -573,6 +573,10 @@ a:hover {
 	margin-block: 0 var(--space-16);
 }
 
+/* A document's title can be one word longer than a phone's width, as German's
+   "Datenschutzerklärung" is: it is hyphenated where the browser knows the
+   language, and broken where it does not, rather than pushing the page
+   sideways. */
 .s-doc h1 {
 	margin-block: 0 var(--space-24);
 	font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
@@ -580,6 +584,8 @@ a:hover {
 	line-height: 1.1;
 	letter-spacing: -0.03em;
 	text-wrap: balance;
+	overflow-wrap: break-word;
+	hyphens: auto;
 }
 
 .s-doc h1 + p {
@@ -1639,6 +1645,22 @@ a:hover {
 
 [dir="rtl"] {
 	--s-reading: -1;
+}
+
+/* A drawing and a formula are laid out left to right on every page, as the
+   card's pictures are. On a page written right to left, the words in them
+   still read in their own direction, the one their first letter sets, so
+   that «8 سلالم» is not drawn «سلالم 8» and a sum stays a sum. A card on the
+   page is drawn as a chat draws it, and keeps its own. */
+[dir="rtl"] [dir="ltr"]:not(bdi, .s-card *),
+[dir="rtl"] [dir="ltr"]:not(bdi, .s-card *) :not(bdi) {
+	unicode-bidi: plaintext;
+}
+
+/* Code, an address or a command, reads left to right on every page. */
+[dir="rtl"] code {
+	direction: ltr;
+	unicode-bidi: isolate;
 }
 
 .s-move {
@@ -14661,4 +14683,39 @@ a.s-related-card:hover {
 	.s-service-segment {
 		transition: none;
 	}
+}
+
+/* Chinese and Japanese set every character a full em wide and break a line
+   between any two of them, so a title as large as a Latin one holds a few
+   characters a line and is broken inside its words. There the titles of a
+   page and of its sections are drawn smaller, without the tightening of the
+   Latin letters, and broken between phrases where the browser can tell them,
+   as Chromium does in Japanese. */
+:root:is(:lang(ja), :lang(zh)) :is(h1, h2, h3) {
+	letter-spacing: normal;
+	word-break: auto-phrase;
+}
+
+:root:is(:lang(ja), :lang(zh))
+	:is(.s-hero, .s-coach-hero, .s-research-hero, .s-service-hero, .s-doc)
+	h1 {
+	font-size: clamp(1.625rem, 1.1rem + 2.4vw, 2.75rem);
+}
+
+:root:is(:lang(ja), :lang(zh))
+	:is(
+		.s-title,
+		.s-intro h2,
+		.s-ask-title,
+		.s-research-section > h2,
+		.s-service-section h2
+	) {
+	font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.125rem);
+}
+
+/* Chinese, Japanese and Arabic write no italic, which a browser would draw by
+   slanting the characters: a caption and an emphasis stand upright there, a
+   title of a book being set apart by its own brackets, 『…』, 《…》 and «…». */
+:root:is(:lang(ja), :lang(zh), :lang(ar)) :is(em, .s-technique-caption) {
+	font-style: normal;
 }

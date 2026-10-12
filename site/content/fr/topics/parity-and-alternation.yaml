@@ -1,0 +1,226 @@
+# The page of the topic of parity and alternation, for a parent, in French. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Parité et alternance
+description: Ce que sont les problèmes de parité et alternance, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+# The words the page's drawings say of a number and of a corner of the cube.
+art:
+  even: pair
+  odd: impair
+  start: départ
+
+hero:
+  lead: >-
+    15 enfants peuvent-ils former une ronde en alternant garçon, fille, garçon,
+    fille, sur tout le tour ? Dans ces problèmes, le pair et l’impair répondent
+    à la question sans tout compter ni essayer tous les cas : sur quelle rive
+    se trouve un bac, si un score est possible, qui joue le dernier coup. Pour
+    beaucoup d’enfants, la parité est leur première rencontre avec quelque
+    chose qui ne change pas, quels que soient les coups joués.
+  method: Observer ce que chaque coup fait à la parité
+  teaches: À répondre à « est-ce possible ? » sans essayer tous les cas
+  # The words of its drawing: who takes turns, the key of the colours, and
+  # what the two circles show.
+  art:
+    line: Garçons et filles alternent en cercle
+    boy: un garçon
+    girl: une fille
+    six: "6 enfants : ça marche"
+    five: "5 enfants : ça ne marche pas"
+    even: en cercle, l’alternance ne marche qu’avec un nombre pair d’enfants
+
+basis:
+  title: Les règles du pair et de l’impair
+  cards:
+    - title: Le pair se range par paires
+      text: >-
+        Un nombre pair d’objets se range par paires, sans qu’il en reste. Un
+        nombre impair en laisse toujours un sans paire.
+    - title: Seuls les impairs comptent
+      text: >-
+        Pair plus pair donne pair, impair plus impair donne pair, et pair plus
+        impair donne impair. Ainsi, qu’une somme soit paire ou non dépend
+        seulement de la quantité de nombres impairs qu’elle contient.
+    - title: À tour de rôle
+      text: >-
+        Quand deux choses alternent, l’une occupe les places impaires et l’autre
+        les places paires. En cercle, l’alternance ne peut faire tout le tour
+        que s’il y a un nombre pair de places.
+      art:
+        places: les garçons aux places impaires, les filles aux places paires
+
+idea:
+  title: Ne compter que les impairs
+  lead: Pour savoir si une somme est paire, inutile de la calculer. Comptez combien elle contient de nombres impairs.
+  table:
+    head:
+      - La somme
+      - Ses nombres impairs
+      - La somme est
+    rows:
+      - - 4 + 6 + 8
+        - aucun
+        - paire
+      - - 3 + 5
+        - "2"
+        - paire
+      - - 3 + 5 + 7
+        - "3"
+        - impaire
+      - - 1 + 2 + … + 10
+        - "5"
+        - impaire
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Beaucoup de questions d’olympiade demandent si une chose peut arriver ou
+      non. La parité peut répondre « non » sans essayer tous les cas : si
+      chaque coup garde un nombre pair et que l’objectif le veut impair, aucun
+      coup n’y mènera jamais.
+
+method:
+  title: "Comment le résoudre : suivre le pair et l’impair"
+  lead: >-
+    Trouvez dans le problème un nombre qui est pair ou impair : une quantité,
+    une somme, une place dans une rangée. Regardez ce que chaque coup ou chaque
+    étape lui fait, s’il change ou s’il reste le même, et comparez le départ
+    avec l’objectif. Les exemples ci-dessous vont du plus simple à un problème
+    d’olympiade.
+  steps:
+    - Trouver ce qui est pair ou impair
+    - Voir ce que chaque étape lui fait
+    - Comparer le départ avec l’objectif
+
+examples:
+  - title: Le bac
+    question: >-
+      Un bac transporte des voitures d’une rive à l’autre d’une rivière, aller
+      et retour, encore et encore. Il part de la rive gauche. Sur quelle rive
+      est-il après avoir traversé la rivière 7 fois ?
+    steps:
+      - Après 1 traversée, le bac est sur la rive droite, et après 2, de nouveau sur la rive gauche.
+      - >-
+        Toutes les deux traversées, il revient à son point de départ. Donc après
+        un nombre pair de traversées, il est sur la rive gauche, et après un
+        nombre impair, sur la rive droite.
+      - 7 est impair, donc le bac est sur la rive droite.
+    answer: Sur la rive droite.
+    badge: →
+    note:
+      title: Pourquoi ne pas simplement compter ?
+      text: >-
+        Pour 7 traversées, compter va vite. La règle répond aussi vite pour 100
+        traversées, et c’est la règle dont les problèmes plus difficiles ont
+        besoin.
+    art:
+      start: au départ, sur la rive gauche
+      none: 0 traversée
+      one: 1 traversée
+      two: 2 traversées
+      left: la rive gauche
+      right: la rive droite
+  - title: Quatre fléchettes
+    question: >-
+      Basile lance 4 fléchettes sur une cible dont les anneaux valent 1, 3, 5
+      et 7 points, et chaque fléchette touche la cible. Basile dit qu’il a
+      marqué 15 points. Cela peut-il être vrai ?
+    steps:
+      - Chaque anneau vaut un nombre impair de points.
+      - >-
+        Deux nombres impairs font une somme paire. 4 fléchettes, ce sont deux
+        paires, et chaque paire marque un nombre pair, donc les 4 fléchettes
+        ensemble marquent un nombre pair.
+      - 15 est impair, donc Basile ne peut pas l’avoir marqué.
+    answer: Non.
+    badge: ✕
+    note:
+      title: Et avec 3 fléchettes ?
+      text: >-
+        Trois nombres impairs font une somme impaire, et 15 est possible :
+        5 + 5 + 5, ou 7 + 7 + 1.
+    art:
+      darts: 4 fléchettes, toutes dans la cible
+      rings: chaque anneau est impair
+      only-even: et 4 fléchettes ne font que des scores pairs
+  - title: Une araignée sur un cube
+    question: >-
+      Une araignée est posée sur un sommet d’un cube en fil de fer. Chaque
+      minute, elle parcourt une arête jusqu’au sommet voisin. Peut-elle être de
+      retour au sommet d’où elle est partie après exactement 7 minutes ?
+    steps:
+      - >-
+        On colorie les sommets : le départ en blanc, ses voisins en noir, leurs
+        voisins en blanc, et ainsi de suite. Comme le montre le dessin, chaque
+        arête relie un sommet noir et un sommet blanc.
+      - >-
+        Donc la couleur change chaque minute : après 1 minute, l’araignée est
+        sur un sommet noir, après 2 sur un blanc, et après n’importe quel
+        nombre impair de minutes sur un noir.
+      - 7 est impair, et le départ est blanc. L’araignée ne peut pas être de retour.
+    answer: Non.
+    badge: ✕
+    note:
+      title: Et après 8 minutes ?
+      text: >-
+        Oui : parcourir quatre fois une arête aller et retour la ramène au
+        départ. Les couleurs disent quand c’est impossible ; qu’un nombre pair
+        de minutes suffise, il reste à le montrer.
+    art:
+      edge: une arête par minute
+      minutes: "minutes : un sommet blanc aux paires, un noir aux impaires"
+      seven: après 7 minutes
+      back: aller-retour × 4
+      eight: 8 minutes
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_parity:
+    shows: >-
+      Pair et impair sont intervertis : l’enfant conclut qu’après 7 traversées,
+      le bac est revenu à son point de départ, ou que quatre nombres impairs
+      font une somme impaire.
+    say: "« Essaie sur un petit cas : où est le bac après 1 traversée, après 2 ? »"
+    art:
+      question: Où est le bac après 7 traversées ?
+  ignored_condition:
+    shows: >-
+      Une condition du problème se perd : l’enfant trouve 15 points avec trois
+      fléchettes et oublie que Basile en a lancé quatre, ou choisit un nombre
+      qui convient à une donnée mais pas à l’autre.
+    say: « Relis l’énoncé. Ta réponse respecte-t-elle chacun de ses mots ? »
+    art:
+      question: "Fléchettes : 4"
+      three: 3 fléchettes
+      always: toujours pair
+  off_by_one:
+    shows: >-
+      Une place dans une rangée est comptée avec un de plus ou de moins : le
+      départ est pris pour la première traversée, ou une rangée qui commence et
+      finit par un garçon reçoit autant de garçons que de filles.
+    say: « Écris les premiers. Lequel est le numéro 1 ? »
+    art:
+      equal: autant de chaque
+
+home:
+  - title: Pair ou impair ?
+    text: >-
+      Cachez une poignée de boutons dans votre poing et laissez l’enfant
+      deviner : pair ou impair ? Puis vérifiez ensemble en rangeant les
+      boutons par paires.
+  - title: Qui joue le 10e coup ?
+    text: >-
+      Dans n’importe quel jeu à deux où l’on joue à tour de rôle, demandez
+      avant la fin : qui jouera le 10e coup ? Et le 15e ? La réponse vient du
+      pair et de l’impair, pas de la suite de la partie.
+  - title: Les numéros des maisons
+    text: >-
+      Dans une rue, regardez les numéros des maisons : pairs d’un côté,
+      impairs de l’autre. De quel côté sera le numéro 37 ?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Parité et alternance »

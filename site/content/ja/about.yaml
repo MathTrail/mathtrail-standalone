@@ -1,0 +1,51 @@
+# The page "About", for a parent, in Japanese: who makes MathTrail — one
+# family, each of us under a role — and where to write. The children go by
+# their place in the family, never by name, and each of us by the key our
+# photograph goes by. The address and the link to the code are the footer's,
+# which the page fills in.
+
+title: 私たち
+description: MathTrail を作っているのは、ひとつの家族です。だれが何を担当しているのかと、私たちへの連絡方法をご紹介します。
+
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
+hero:
+  title: MathTrail を作るのは、ひとつの家族
+  lead: >-
+    MathTrail は、わが子を思う気持ちから生まれました。私たちは4人家族です。パパはプラットフォームを作り、ママはプロジェクトを居心地よく、きちんと整え、じっとしていられない長男は目を輝かせて新しい問題をどんどん解き、次男はただそばですやすやと寝息を立てながら、私たちが何のためにがんばっているのかを思い出させてくれます。
+  photo: チョコレートケーキのあるテーブルを囲む私たち4人。パパが次男を抱っこしています。
+
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
+team:
+  title: メンバー紹介
+  members:
+    mum:
+      role: 最高なんでも責任者
+      name: ママ
+      text: アイデアの発案者で、プロジェクトのリードデザイナー。プロダクトの要件を定め、それ以外のこともすべて担当しています。つまり、本当に何もかもです！
+      photo: ベージュのジャケットを着て、ほほえんでいるママ。
+    dad:
+      role: フルスタック抱っこ係
+      name: パパ
+      text: 片手でコードを書き、もう一方の手で赤ちゃんをゆらしてあやします。デプロイは必ずお昼寝のあと。そうしないと、本番環境が目を覚まして泣き出してしまいます。
+      photo: 抱っこひもで次男を胸に抱いたパパ。次男は防音用のイヤーマフをつけています。
+    older-son:
+      role: 問題解き隊長
+      name: 長男
+      text: 新しい問題をだれよりも先に解き、どこがわかりにくいかを正直に教えてくれます。
+      photo: レゴブロックで作ったおもちゃを持つ長男。まわりには、星と王冠の白い落書きが描かれています。
+    younger-son:
+      role: R&D インターン（衝突テスト担当）
+      name: 次男
+      text: 今のところは、おもちゃの丈夫さをテストしています。初めての問題まで、あと2年ほどです。
+      photo: ふかふかのラグの上でうつぶせになっている次男。そばにはクマのぬいぐるみがあります。
+
+contact:
+  title: お気づきの間違いやアイデアはありませんか？
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: "{address} までメールをお送りいただくか、{issue}してください。お寄せいただいたものは、すべて読んでいます。"
+  issue: GitHub で Issue を作成
+  write: メールを送る
+  github: GitHub

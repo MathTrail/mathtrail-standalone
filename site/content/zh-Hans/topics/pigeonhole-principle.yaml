@@ -1,0 +1,178 @@
+# The page of the topic of the pigeonhole principle, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 抽屉原理
+description: 什么是抽屉原理的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+hero:
+  lead: >-
+    五只鸽子飞进四个鸽巢：一定有一个鸽巢里有两只。在这类题里，孩子要证明，不管运气多差，某件事都一定会发生：从黑漆漆的抽屉里摸出两只同色的袜子，两个人的生日在同一个月。这是孩子第一次接触这样的推理：考虑最坏的情况，而不是运气好的情况。
+  method: 把最倒霉的情况想到底，再加一
+  teaches: 证明某件事一定会发生，而不只是可能发生
+  # The words of its drawing: the pigeons and the cages over it, and what the
+  # seating always comes to.
+  art:
+    line: 五只鸽子，四个鸽巢
+    seat: 随便怎么放
+    two: 两只
+    always: 不管怎么放，总有一个鸽巢里有两只
+
+basis:
+  title: 最坏情况的规则
+  cards:
+    - title: 鸽子比鸽巢多
+      text: >-
+        如果鸽子比鸽巢多，总有一个鸽巢里至少有两只。不管分得多平均，总会多出一只。
+    - title: 保证
+      text: >-
+        “保证”的意思是：不管从袋子里摸出什么，都能做到。所以要设想一切都糟到不能再糟，看看坏运气最多能到哪一步。
+      art:
+        luck: 运气好
+        not-counted: 不算
+        bad-luck: 运气差
+    - title: 再多一个就定了
+      text: >-
+        当坏运气用完了，每种颜色都摸到过一次，每个鸽巢都各有一只，下一个就一定能得到想要的结果。
+      art:
+        eighth: 每天一只，第八只凑成一对
+
+idea:
+  title: 最倒霉的情况，再加一个
+  lead: 每道题问的都是什么能够保证。答案就是：坏运气最多能走到哪一步，再加一个。
+  table:
+    head:
+      - 要保证得到
+      - 运气差时可能先拿到
+      - 所以要拿
+    rows:
+      - - 两人出生在同一个星期几
+        - 7天里每天各有一人出生
+        - 7 + 1 = 8人
+      - - 从6个蓝球和4个红球中摸到一个红球
+        - 全部6个蓝球
+        - 6 + 1 = 7个球
+      - - 从6个蓝球和4个红球中摸到两个红球
+        - 全部6个蓝球和一个红球
+        - 6 + 1 + 1 = 8个球
+  note:
+    title: 为什么重要
+    text: >-
+      孩子们常常指望运气：“说不定我一下子就摸到两个红的。”题目里说“保证”，问的是运气最差时会怎样；养成这样想的习惯，比任何公式都更有用。
+
+method:
+  title: 解法：最倒霉的情况，再加一个
+  lead: >-
+    先说出鸽巢是什么，比如颜色、月份或星期几，再把最倒霉的情况想到底：把还不能满足题目要求的东西全都拿出来。下一个就一定能满足。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 找出鸽巢和鸽子
+    - 把最倒霉的情况想到底
+    - 加一个，并检查这样是否就能保证
+  # The key under the steps: what the drawings' bracket and ring mean.
+  legend:
+    bad-luck: 运气差
+    decides: 起决定作用的那一个
+
+examples:
+  - title: 罐子里的糖
+    question: >-
+      罐子里有8颗柠檬味的糖和2颗橙子味的糖。小华不看罐子，至少要拿几颗糖，才能保证拿到一颗橙子味的？
+    steps:
+      - 小华想要一颗橙子味的糖。最倒霉的情况是：拿到的一颗接一颗都是柠檬味的。
+      - >-
+        柠檬味的糖只有8颗：拿完这8颗以后，罐子里就只剩橙子味的了。
+      - 第9颗糖一定是橙子味的：8 + 1 = 9。
+    answer: 9颗糖。
+    art:
+      lemon: 柠檬味，8颗
+      orange: 橙子味，2颗
+      unlucky: 运气差
+      all-lemons: 全部8颗柠檬味
+      lemons: 8颗柠檬味
+  - title: 两只黑袜子
+    question: >-
+      抽屉里混放着8只黑袜子、6只白袜子和2只条纹袜子。小磊在黑暗中至少要拿几只袜子，才能保证拿到两只黑袜子？
+    steps:
+      - >-
+        最倒霉的情况：先拿到的都不是黑袜子。白袜子有6只，条纹袜子有2只，一共8只，里面一只黑的也没有。
+      - >-
+        坏运气还能继续：下一只是黑的，但只有一只。这样一共9只袜子，其中只有一只是黑的。
+      - >-
+        第10只袜子也一定是黑的，因为剩下的只有黑袜子了。所以要拿10只。
+    answer: 10只袜子。
+    note:
+      title: 为什么不是9只？
+      text: >-
+        拿完全部6只白袜子和2只条纹袜子以后，坏运气还能再来一次：只拿到一只黑袜子。要到第10只，才能保证有两只黑的。
+    art:
+      black: 黑色，8只
+      white: 白色，6只
+      striped: 条纹，2只
+      no-black: 8只，没有黑的
+      not-black: 8只不是黑的
+      one: 一只
+      only-one: 9只袜子，只有一只黑的
+  - title: 方格里的和
+    question: >-
+      在一个2 × 2的方格表里，每个格子填着1、2或3。把每一行、每一列和每条对角线上的两个数分别加起来。这六个和里，是不是总有两个相等？
+    steps:
+      - >-
+        数一数鸽巢：两个数都是1、2或3，它们的和只能是2、3、4、5、6中的一个，一共五个值。
+      - 数一数鸽子：2行、2列和2条对角线，一共得到6个和。
+      - >-
+        六个和，却只有五个值：不管方格里填的是什么数，一定有两个和相等。
+    answer: 是的，总是这样。
+    badge: 是
+    note:
+      title: 鸽巢不一定是盒子
+      text: >-
+        这里的鸽巢是和可能取的值，鸽子是方格表的各行、各列和对角线。这类题的诀窍，就在于看出什么充当了鸽巢。
+    art:
+      example: 例如：每格填1、2或3
+      cages: 5个鸽巢：可能的和
+      row: 行
+      column: 列
+      diagonal: 对角
+      pigeons: 6个和，6只鸽子
+      two: 6只鸽子放进5个鸽巢：总有一个鸽巢里有两只
+      cages-name: 鸽巢
+      pigeons-name: 鸽子
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  best_case_not_worst:
+    shows: >-
+      孩子指望运气：“如果前两只袜子都是黑的，拿两只就够了。”可是题目说的是“保证”，而“保证”恰恰排除了运气。
+    say: “要是你运气差到了极点呢？”
+    art:
+      question: 保证拿到两只黑的
+  ignored_condition:
+    shows: >-
+      题目里的一个词被漏掉了：“两只黑袜子”被读成了“两只同色的袜子”，或者“每种颜色各一只”被读成了“同一种颜色”。
+    say: “把题目再读一遍。到底要保证得到什么？”
+    art:
+      question: 要求：两只**黑**袜子
+      black-pair: 两只都是黑的
+  off_by_one:
+    shows: >-
+      孩子把最倒霉的情况想到了底，就停在那里，忘了起决定作用的那一个；或者多加了一个。
+    say: “最倒霉的情况过去以后，下一个会拿到什么？”
+    art:
+      question: 8颗柠檬味和2颗橙子味
+
+home:
+  - title: 黑暗中摸袜子
+    text: >-
+      把两三种颜色的袜子放进一个袋子，闭上眼睛一只一只往外拿：拿几只才能保证配成一双？多试几次。运气会变，答案却不变。
+  - title: 一定，还是可能？
+    text: >-
+      孩子说“有可能会这样”时，问一问：“那有没有可能不这样？”“可能”和“一定”的区别，就是这整个专题。
+  - title: 找鸽巢
+    text: >-
+      和孩子一起在日常的计数里找鸽巢：一周七天，一年十二个月，四个季节。“我们有30个人：一定有两个人在同一个月过生日吗？”
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“抽屉原理”的题

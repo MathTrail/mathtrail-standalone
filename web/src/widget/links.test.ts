@@ -32,6 +32,18 @@ describe("the address of a topic's page", () => {
 		).toBe("https://mathtrail.app/zh-Hans/topics/gaps-and-boundaries/");
 	});
 
+	test("is in the card's language when the card asks for the digits it writes, as a card on the site does", () => {
+		expect(pageAddress(site, "ru-u-nu-latn", gaps, "")).toBe(
+			"https://mathtrail.app/ru/topics/gaps-and-boundaries/",
+		);
+	});
+
+	test("is in English for a card whose language is no tag the platform reads", () => {
+		expect(pageAddress(site, "en_US", gaps, "")).toBe(
+			"https://mathtrail.app/en/topics/gaps-and-boundaries/",
+		);
+	});
+
 	test("is in English for a card in a language the site is not written in", () => {
 		expect(pageAddress(site, "fr", gaps, "#home")).toBe(
 			"https://mathtrail.app/en/topics/gaps-and-boundaries/#home",

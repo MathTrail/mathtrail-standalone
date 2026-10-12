@@ -1,0 +1,229 @@
+# The page of the topic of the calendar and age, for a parent, in German. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Kalender und Alter
+description: Worum es bei „Kalender und Alter“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+hero:
+  lead: >-
+    Heute ist Dienstag: Welcher Wochentag ist in 30 Tagen? Mama ist 30 und
+    Anna 6: Wie alt wird Anna sein, wenn Mama doppelt so alt ist wie sie? In
+    diesen Aufgaben rechnet ein Kind mit Wochen, Monaten und Jahren, und die
+    meisten davon beruhen auf zwei Tatsachen: Die Woche wiederholt sich alle 7
+    Tage, und der Altersunterschied zwischen zwei Menschen ändert sich nie.
+  method: Ganze Wochen weglassen, den Altersunterschied festhalten
+  teaches: Tage und Jahre zählen, ohne sie einzeln abzuzählen
+  # The words of its drawing: a month whose Tuesdays stand in one column.
+  art:
+    line: Die Woche wiederholt sich alle 7 Tage
+    tuesdays: alle Dienstage in einer Spalte, im Abstand von 7 Tagen
+
+basis:
+  title: Die Regeln des Kalenders
+  cards:
+    - title: Die Woche wiederholt sich
+      text: >-
+        Alle 7 Tage kommt derselbe Wochentag wieder. Für 30 Tage im Voraus
+        zählen deshalb nur die 2 Tage, die nach 4 ganzen Wochen übrig bleiben.
+      art:
+        week: 7 d
+        month: 30 Tage = 4 Wochen und noch 2 Tage
+    - title: Beide Enden eines Zeitraums
+      text: >-
+        Der 10. Mai liegt 7 Tage nach dem 3. Mai, aber Ferien vom 3. bis zum
+        10. dauern 8 Tage, weil der erste und der letzte Tag beide mitzählen.
+      art:
+        holidays: "vom 3. bis zum 10.: 8 Tage Ferien"
+    - title: Der Unterschied bleibt
+      text: >-
+        Mama ist jetzt 24 Jahre älter als Anna und wird auch in 10 Jahren 24
+        Jahre älter sein: Jedes Jahr werden beide um ein Jahr älter.
+      art:
+        now: jetzt
+        then: in 10 Jahren
+        anya: Anna
+        mum: Mama
+
+idea:
+  title: Ganze Wochen weglassen
+  lead: Welcher Wochentag ist in soundso vielen Tagen? Es zählt nur, was nach den ganzen Wochen übrig bleibt.
+  table:
+    head:
+      - In wie vielen Tagen
+      - Ganze Wochen und übrige Tage
+      - Wenn heute Montag ist
+    rows:
+      - - "10"
+        - 1 Woche und 3 Tage
+        - Donnerstag
+      - - "15"
+        - 2 Wochen und 1 Tag
+        - Dienstag
+      - - "30"
+        - 4 Wochen und 2 Tage
+        - Mittwoch
+      - - "100"
+        - 14 Wochen und 2 Tage
+        - Mittwoch
+  # The words of the drawings of whole weeks and the days left over.
+  art:
+    week: 7 d
+    weeks: 14 × 7 d
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Hundert Tage an den Fingern abzuzählen dauert lange, und man verzählt
+      sich leicht. Lässt man die ganzen Wochen weg, wird daraus ein Schritt
+      von einem oder zwei Tagen.
+
+method:
+  title: "Lösungsweg: finden, was sich nicht ändert"
+  lead: >-
+    Suchen Sie, was gleich bleibt: Die Woche wiederholt sich alle 7 Tage, und
+    der Altersunterschied zwischen zwei Menschen ändert sich nie. Lassen Sie
+    damit weg, was keine Rolle spielt, und zählen Sie nur, was übrig bleibt.
+    Die Beispiele unten reichen von ganz einfach bis Olympiade-Niveau.
+  steps:
+    - Finden, was sich wiederholt oder gleich bleibt
+    - Ganze Wochen weglassen oder mit dem Altersunterschied rechnen
+    - Den Rest zählen und prüfen, ob beide Enden mitzählen
+  # The key under the steps: what the drawings' blocks and colours mean.
+  legend:
+    week: 7 d
+    whole: eine ganze Woche
+    day: ein übriger Tag
+    difference: der Altersunterschied
+
+examples:
+  - title: Blumen gießen
+    question: >-
+      Klara gießt die Blumen alle 3 Tage. Zum ersten Mal gießt sie an einem
+      Montag. An welchem Wochentag gießt sie zum 4. Mal?
+    steps:
+      - >-
+        Vom 1. bis zum 4. Gießtag gibt es 3 Abstände von je 3 Tagen, nicht 4:
+        3 × 3 = 9 Tage.
+      - 9 Tage sind eine Woche und noch 2 Tage.
+      - Eine Woche nach einem Montag ist wieder Montag, und 2 Tage später ist Mittwoch.
+    answer: An einem Mittwoch.
+    badge: Mi
+    note:
+      title: Warum nicht Samstag?
+      text: >-
+        Mit 4 × 3 = 12 Tagen bekommt auch der 4. Gießtag noch einen Abstand
+        danach. Zwischen 4 Gießtagen liegen 3 Abstände, genau wie zwischen 4
+        Pfosten.
+    art:
+      monday: Mo
+      first: der erste Gießtag an einem Montag, dann alle 3 Tage
+      three-days: 3 Tage
+      gaps: 3 Abstände × 3 Tage = 9 Tage
+      week: 7 d
+      numbers: unter jedem blauen Tag die Nummer des Gießtags
+      no-gap: nach dem 4. Gießtag gibt es keinen Abstand
+  - title: Vera und Papa
+    question: >-
+      Papa ist 28 Jahre älter als Vera. In 4 Jahren wird er 3-mal so alt sein
+      wie sie. Wie alt ist Vera jetzt?
+    steps:
+      - "Der Unterschied ändert sich nie: In 4 Jahren ist Papa immer noch 28 Jahre älter."
+      - >-
+        Dann ist Papas Alter dreimal Veras Alter, wie in der Zeichnung. Die
+        zwei zusätzlichen Teile sind die 28 Jahre, also ist ein Teil
+        28 : 2 = 14.
+      - >-
+        In 4 Jahren ist Vera 14, jetzt ist sie also 14 − 4 = 10. Probe: Papa
+        ist jetzt 38, und in 4 Jahren ist er 42 = 3 × 14.
+    answer: 10 Jahre alt.
+    art:
+      now: jetzt
+      then: in 4 Jahren
+      vera: Vera
+      dad: Papa
+      difference: "orange: der Unterschied, 28 Jahre"
+      parts: "in 4 Jahren: 2 Teile = 28, ein Teil = 14"
+      check: "Probe: 38 + 4 = 42 = 3 × 14"
+  - title: Drei gerade Samstage
+    question: >-
+      In einem Monat fallen drei Samstage jeweils auf ein gerades Datum.
+      Welcher Wochentag ist der 25. dieses Monats?
+    steps:
+      - >-
+        Samstage kommen alle 7 Tage, und 7 ist ungerade, also wechseln sich
+        ihre Daten ab: gerade, ungerade, gerade, ungerade…
+      - >-
+        Drei gerade Samstage gibt es nur, wenn der Monat fünf Samstage hat und
+        der erste auf ein gerades Datum fällt. Der fünfte kommt 28 Tage nach
+        dem ersten und muss noch in den Monat passen, also ist der erste
+        spätestens am 3. Unter den ersten drei Tagen ist nur der 2. gerade: Die
+        Samstage sind am 2., 9., 16., 23. und 30.
+      - Der 23. ist ein Samstag, also ist der 25., zwei Tage später, ein Montag.
+    answer: Montag.
+    badge: Mo
+    note:
+      title: Gerade und ungerade im Kalender
+      text: >-
+        Der Schlüssel zu dieser Aufgabe ist die Parität: 7 ist ungerade, also
+        wechseln die Daten eines Wochentags jede Woche zwischen gerade und
+        ungerade.
+    art:
+      even: "blau: gerade, orange: ungerade"
+      first: erster Samstag
+      fifth: fünfter Samstag
+      saturdays: Samstage in Blau, und der 25. ist ein Montag
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      Die Zahl der Tage ist um eins daneben: Das Kind zählt den heutigen Tag
+      als ersten der kommenden Tage, findet 4 Abstände zwischen 4 Gießtagen
+      oder lässt ein Ende eines Zeitraums weg, etwa bei Ferien von Montag bis
+      Sonntag.
+    say: "„Welcher Tag ist Tag 1: heute oder morgen?“"
+    art:
+      gaps: Die Abstände zwischen 4 Gießtagen
+  wrong_operation:
+    shows: >-
+      Das Kind wählt eine Rechenart, die die Frage nicht verlangt: Es addiert
+      die beiden Altersangaben, wenn gefragt ist, um wie viel die eine Person
+      älter ist, oder zieht ein Datum vom anderen ab, wenn sie in
+      verschiedenen Monaten liegen.
+    say: "„Sag es mit Worten: Wird die Zahl größer, kleiner oder bleibt sie gleich?“"
+    art:
+      older: Um wie viel ist Mama (30) älter als Anna (6)?
+  ignored_condition:
+    shows: >-
+      Eine Tatsache aus dem Kalender oder aus der Aufgabe geht verloren: dass
+      dieser Monat 30 Tage hat und nicht 31 oder dass 365 Tage ganze Wochen
+      und noch ein Tag sind.
+    say: „Wie viele Tage hat dieser Monat?“
+    art:
+      year: 365 Tage nach einem Montag
+      weeks: 52 × 7 d
+      monday: Mo
+      tuesday: Di
+
+home:
+  - title: Ein Kalender an der Wand
+    text: >-
+      Hängen Sie einen Papierkalender dort auf, wo Ihr Kind ihn erreicht, und
+      stellen Sie Fragen dazu: Auf welchen Wochentag fällt der 1. des nächsten
+      Monats? Wie viele Freitage hat dieser Monat?
+  - title: Das Alter in der Familie
+    text: >-
+      Schreiben Sie das Alter aller Familienmitglieder und die Unterschiede
+      dazwischen auf. Schauen Sie ein Jahr später wieder hin: Die
+      Altersangaben haben sich geändert, die Unterschiede nicht.
+  - title: Countdown
+    text: >-
+      Zählen Sie gemeinsam die Tage bis zu einem Geburtstag oder Feiertag,
+      erst einzeln, dann in ganzen Wochen, und sehen Sie, dass beide Wege
+      dasselbe ergeben.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Kalender und Alter“

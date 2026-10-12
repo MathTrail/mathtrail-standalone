@@ -1,0 +1,272 @@
+# The page of the topic of ordering, for a parent, in French. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
+
+title: Mise en ordre
+description: Ce que sont les problèmes de mise en ordre, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+# The words every drawing of the page writes its four children in: the
+# initial of each, and the name.
+art:
+  ann: A
+  ann-name: Anna
+  ben: B
+  ben-name: Basile
+  kate: C
+  kate-name: Clara
+  dan-name: David
+  taller: dépasse
+
+hero:
+  lead: >-
+    Qui est plus grand, qui est plus âgé, qui est arrivé le premier ? Dans ces
+    problèmes, il faut réunir quelques comparaisons en un seul ordre : par
+    taille, par âge, par place dans une file ou dans une course. Pour beaucoup
+    d’enfants, c’est la première chaîne de raisonnement, où chaque donnée est
+    un maillon et où aucune ne peut manquer.
+  method: Tracer une ligne et y placer tout le monde
+  teaches: À réunir les données en une seule image et à lire une comparaison dans les deux sens
+  # The words of its drawing: the clues and the rule over it, and the line's
+  # two ends in it.
+  art:
+    line: Les données
+    clue-1: Anna est plus grande que Basile
+    clue-2: Clara est plus petite que Basile
+    clue-3: David est plus petit que Clara
+    rule: on les place sur une seule ligne
+    top: qui mesure le plus
+    bottom: qui mesure le moins
+
+basis:
+  title: Les règles de la ligne
+  cards:
+    - title: Chaque donnée est une flèche
+      text: >-
+        « Anna est plus grande que Basile » place Anna avant Basile sur la
+        ligne. Qu’une donnée compare la taille, l’âge ou une place dans une
+        course, elle dit qui vient en premier.
+      art:
+        clue: « Anna est plus grande que Basile »
+    - title: Se lit dans les deux sens
+      text: >-
+        « Basile est plus petit qu’Anna » dit la même chose que « Anna est plus
+        grande que Basile ». Retournez les données pour qu’elles pointent
+        toutes dans le même sens avant de les placer sur la ligne.
+      art:
+        clue: « Anna est plus grande que Basile »
+        turned: « Basile est plus petit qu’Anna »
+    - title: La chaîne continue
+      text: >-
+        Si Anna est plus grande que Basile, et Basile plus grand que Clara,
+        alors Anna est aussi plus grande que Clara, même si aucune donnée ne le
+        dit.
+      art:
+        implied: Anna est plus grande que Clara
+
+idea:
+  title: Toutes les données dans le même sens
+  lead: Construisez la ligne donnée par donnée, après avoir reformulé chacune avec « plus grand que ». Chaque étape ajoute une personne de plus sur la ligne.
+  table:
+    head:
+      - La donnée
+      - Reformulée avec « plus grand que »
+      - La ligne jusqu’ici
+    rows:
+      - - « Anna est plus grande que Basile »
+        - Anna est **plus grande** que Basile
+        - Anna > Basile
+      - - « Clara est plus petite que Basile »
+        - Basile est **plus grand** que Clara
+        - Anna > Basile > Clara
+      - - « David est plus petit que Clara »
+        - Clara est **plus grande** que David
+        - Anna > Basile > Clara > David
+  # The words of the drawings of the table: the note on a clue turned round.
+  art:
+    turned: retournée
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Ici, la plupart des erreurs viennent d’une donnée lue à l’envers :
+      « plus petit » pris pour « plus grand », « après » pour « avant ». Une
+      donnée retournée avant d’être placée sur la ligne ne peut plus être mal
+      lue.
+
+method:
+  title: "Comment le résoudre : tracer la ligne"
+  lead: >-
+    Tracez une ligne du plus grand au plus petit, ou du premier au dernier, et
+    placez-y les données une par une, en commençant par les plus sûres. Ceux
+    qu’on ne peut pas encore placer attendent la donnée suivante. Les exemples
+    ci-dessous vont du plus simple à un problème d’olympiade.
+  steps:
+    - Orienter toutes les données dans le même sens
+    - Placer les données sur la ligne, en commençant par les plus sûres
+    - Lire la réponse et la confronter à chaque donnée
+  # The key under the steps: what the drawings' rings and outlines mean.
+  legend:
+    added: "un anneau bleu : ce qu’ajoute cette étape"
+    free: une place encore libre
+    block: "un bloc : deux toujours côte à côte"
+
+examples:
+  - title: Trois bateaux
+    question: >-
+      Trois bateaux ont fait la course : un rouge, un bleu et un vert. Le
+      bateau rouge est arrivé après le bleu. Le bateau vert est arrivé avant le
+      bleu. Quel bateau a gagné ?
+    steps:
+      - >-
+        On retourne la première donnée : le bateau rouge est arrivé après le
+        bleu, donc le bleu est arrivé avant le rouge.
+      - >-
+        Sur la ligne, le premier à gauche : le bleu, puis le rouge. Le bateau
+        vert est arrivé avant le bleu, donc il passe devant les deux : vert,
+        bleu, rouge.
+      - >-
+        Le premier sur la ligne est le bateau vert. Vérification : rouge après
+        bleu, oui ; vert avant bleu, oui.
+    answer: Le bateau vert a gagné.
+    badge: "1"
+    art:
+      red: rouge
+      blue: bleu
+      green: vert
+      before: avant
+      waits: attend
+  - title: La file de la cantine
+    question: >-
+      Cinq enfants font la queue à la cantine : Léna, Max, Nina, Oscar et
+      Paul. Nina est la troisième. Oscar est juste derrière Nina. Max est
+      quelque part devant Léna, et Léna n’est pas la dernière. Qui est à la
+      dernière place ?
+    steps:
+      - >-
+        On note ce qui est sûr : Nina est la troisième, et Oscar, juste derrière
+        elle, est le quatrième. Les places 1, 2 et 5 restent pour Max, Léna et
+        Paul.
+      - >-
+        Léna n’est pas la dernière, donc elle est la première ou la deuxième.
+        Max est quelque part devant elle, donc elle ne peut pas être la
+        première : Léna est la deuxième, et Max le premier.
+      - >-
+        La seule place qui reste, la cinquième, est celle de Paul. On vérifie
+        chaque donnée : toutes sont respectées.
+    answer: Paul est à la dernière place.
+    badge: P
+    note:
+      title: Chaque donnée compte
+      text: >-
+        Sans « Léna n’est pas la dernière », Léna pourrait aussi être la
+        dernière : c’est la courte donnée avec « pas » qui règle la file.
+    art:
+      lena: L
+      lena-name: Léna
+      max: M
+      max-name: Max
+      nina: N
+      nina-name: Nina
+      oleg: O
+      oleg-name: Oscar
+      pavel: P
+      pavel-name: Paul
+      wait: attendent
+      waits: attend
+      other: Sans cette donnée, cette file conviendrait aussi
+  - title: Six coureurs
+    question: >-
+      Six coureurs ont terminé une course, sans ex æquo : Alice, Bruno, César,
+      Diane, Enzo et Fanny. Bruno est arrivé juste après Alice. César est
+      arrivé après Diane, mais avant Alice. Fanny est arrivée juste avant
+      Enzo, et Enzo n’était pas le dernier. Diane n’était pas la première. Qui
+      a gagné ?
+    steps:
+      - >-
+        On cherche les blocs : « Bruno juste après Alice » donne Alice-Bruno, et
+        « Fanny juste avant Enzo » donne Fanny-Enzo. Diane, puis César, puis le
+        bloc Alice-Bruno se suivent dans cet ordre.
+      - >-
+        Diane n’était pas la première, donc quelqu’un est arrivé avant elle.
+        César, Alice et Bruno sont tous arrivés après Diane : seuls Fanny et
+        Enzo peuvent être devant elle, et ils vont ensemble.
+      - >-
+        Donc Fanny-Enzo ouvre la course : Fanny, Enzo, Diane, César, Alice,
+        Bruno. Enzo n’est pas le dernier, comme le dit la donnée. Toutes les
+        données sont respectées.
+    answer: Fanny a gagné.
+    badge: F
+    note:
+      title: Les blocs bougent ensemble
+      text: >-
+        Quand une donnée dit « juste après », les deux coureurs restent côte à
+        côte, où qu’ils aillent. On les traite comme un seul bloc, et six coureurs
+        deviennent quatre éléments à placer.
+    art:
+      ada: A
+      ada-name: Alice
+      bob: B
+      bob-name: Bruno
+      cid: C
+      cid-name: César
+      dot: D
+      dot-name: Diane
+      eli: E
+      eli-name: Enzo
+      fay: F
+      fay-name: Fanny
+      blocks: blocs
+      order: ordre
+      only: seuls ceux-ci peuvent aller au « ? »
+      six: 6 coureurs
+      four: 4 blocs
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      L’enfant utilise une donnée et en saute une autre, souvent une courte
+      avec « pas », et la ligne laisse alors de la place à une mauvaise
+      réponse.
+    say: « Quelle donnée n’as-tu pas encore utilisée ? »
+    art:
+      question: La donnée « Léna n’est pas la dernière » est oubliée
+  reversed_relation:
+    shows: >-
+      La donnée « Clara est plus petite que Basile » est placée sur la ligne
+      comme si Clara était plus grande : elle est lue à l’envers, et la
+      réponse sort inversée.
+    say: « Alors, qui est le plus grand ? Dis-le dans l’autre sens. »
+    art:
+      clue: Clara est plus petite que Basile
+  stopped_early:
+    shows: >-
+      L’enfant trouve que l’un est plus petit qu’un autre et le donne comme
+      réponse, alors que la chaîne continue : Basile est plus petit qu’Anna,
+      mais Clara est encore plus petite.
+    say: « Y a-t-il quelqu’un plus loin sur la ligne ? »
+    art:
+      clue-1: Basile est plus petit qu’Anna
+      clue-2: Clara est plus petite que Basile
+      who: Qui mesure le moins ?
+
+home:
+  - title: Toute la famille en rang
+    text: >-
+      À la maison, mettez tout le monde en rang par taille, puis par âge, et
+      dites chaque donnée à voix haute : « Papa est plus grand que Maman, donc
+      Papa se met en premier. »
+  - title: La ligne avant la réponse
+    text: >-
+      Demandez la ligne sur papier avant la réponse. Un dessin montre tout de
+      suite si une donnée manque ou si elle est tournée dans le mauvais sens.
+  - title: Dis-le dans l’autre sens
+    text: >-
+      Jouez à un jeu rapide : vous dites « le chat est plus petit que le
+      chien », et l’enfant le redit dans l’autre sens : « le chien est plus
+      grand que le chat ».
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Mise en ordre »

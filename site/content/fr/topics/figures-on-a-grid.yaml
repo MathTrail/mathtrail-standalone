@@ -1,0 +1,227 @@
+# The page of the topic of figures on a square grid, for a parent, in French.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Figures sur quadrillage
+description: Ce que sont les problèmes d’aire et de périmètre sur papier quadrillé, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+hero:
+  lead: >-
+    Dessinez une figure sur papier quadrillé : combien de cases couvre-t-elle,
+    et quelle est la longueur de son bord ? Dans ces problèmes, l’aire se
+    compte en cases et le périmètre en côtés de case, et il est facile de
+    confondre les deux : un rectangle peut perdre la case d’un coin et garder
+    son périmètre. Tout l’art est de compter sans rien oublier et sans rien
+    compter deux fois.
+  method: Compter les côtés extérieurs de chaque case
+  teaches: À distinguer l’aire du périmètre et à compter cases et côtés sans en oublier ni en répéter aucun
+  # The words of its drawing: the figure over it, what each of its two copies
+  # counts, and what the numbers in the cells mean.
+  art:
+    line: Une figure de trois cases
+    area: aire, 3 cases
+    perimeter: périmètre, 8 côtés
+    out: "les nombres de droite : combien de côtés de chaque case donnent sur l’extérieur, 3 + 2 + 3 = 8"
+
+basis:
+  title: Les règles du quadrillage
+  cards:
+    - title: L’aire, ce sont des cases
+      text: >-
+        L’aire d’une figure sur papier quadrillé est le nombre de cases qu’elle
+        couvre. Deux demi-cases font une case entière.
+      art:
+        cells: 3 cases
+    - title: Le périmètre, ce sont des côtés
+      text: >-
+        Le périmètre est le nombre de côtés de case sur le bord. Un côté que
+        partagent deux cases de la figure est à l’intérieur et ne compte pas.
+      art:
+        shared: un côté partagé, à l’intérieur, ne compte pas
+    - title: Des choses différentes
+      text: >-
+        Deux figures de même aire peuvent avoir des périmètres différents :
+        quatre cases en ligne ont un périmètre de 10, et quatre en carré, de 8.
+      art:
+        perimeter: périmètre {count}
+
+idea:
+  title: Compter les côtés extérieurs
+  lead: Chaque case a 4 côtés. Un côté ne compte dans le périmètre que si aucune case de la figure ne se trouve derrière lui.
+  table:
+    head:
+      - La figure
+      - Aire, en cases
+      - Périmètre, en côtés
+    rows:
+      - - 1 case
+        - "1"
+        - "4"
+      - - 2 cases côte à côte
+        - "2"
+        - 4 + 4 − 2 = 6
+      - - 4 cases en ligne
+        - "4"
+        - "10"
+      - - un carré de 2 sur 2
+        - "4"
+        - "8"
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Pour le périmètre, les enfants comptent souvent les cases, ou tous les
+      côtés de toutes les cases, si bien que les côtés partagés comptent
+      double.
+      Ne compter que les côtés qui donnent sur l’extérieur évite les deux
+      erreurs.
+
+method:
+  title: "Comment le résoudre : faire le tour du bord"
+  lead: >-
+    Dessinez la figure sur papier quadrillé. Pour l’aire, comptez les cases
+    ligne par ligne. Pour le périmètre, faites le tour du bord et comptez les
+    côtés de case que vous longez. Quand une figure est découpée, énumérez les
+    morceaux dans un ordre qui ne permet ni d’en oublier un ni d’en compter un
+    deux fois. Les exemples ci-dessous vont du plus simple à un problème
+    d’olympiade.
+  steps:
+    - Dessiner la figure sur papier quadrillé
+    - Compter les cases pour l’aire, les côtés extérieurs pour le périmètre
+    - Vérifier en comptant d’une deuxième façon
+  # The key under the steps: what the drawings' lines and numbers mean.
+  legend:
+    border: le bord, le périmètre
+    cut: une coupe
+    count: "un nombre : combien de côtés donnent sur l’extérieur"
+
+examples:
+  - title: Une croix
+    question: >-
+      Une croix est formée de 5 cases : une au milieu, et une contre chacun de
+      ses quatre côtés. Quel est le périmètre de la croix, en côtés de case ?
+    steps:
+      - Chacun des 4 bras a 3 côtés qui donnent sur l’extérieur, ce qui fait 4 × 3 = 12 côtés pour les bras.
+      - La case du milieu n’a aucun côté sur l’extérieur, puisque chacun de ses côtés touche un bras.
+      - Le périmètre est donc de 12 côtés de case.
+    answer: 12 côtés de case.
+    note:
+      title: Une autre façon de compter
+      text: >-
+        5 cases ont 5 × 4 = 20 côtés. Les 4 côtés entre le milieu et les bras
+        sont comptés chacun deux fois, une fois depuis chaque case, et ils sont
+        à l’intérieur : 20 − 2 × 4 = 12.
+    art:
+      ends: 4 bras, 3 côtés chacun
+      middle: le milieu, 0
+      border: le bord, 12 côtés
+      inner: en rouge, les 4 côtés intérieurs
+  - title: Une bande en deux
+    question: >-
+      Une bande de 2 sur 4 cases est découpée le long des lignes du quadrillage
+      en deux morceaux de 4 cases chacun, et chaque morceau doit rester d’un
+      seul tenant. De combien de façons différentes peut-on la découper ?
+    steps:
+      - "Une coupe droite en long, par le milieu, donne deux rangées de 4 : 1 façon."
+      - "Une coupe droite en travers, par le milieu, donne deux carrés de 2 sur 2 : 1 façon."
+      - >-
+        Une coupe qui va en travers, puis en long, puis de nouveau en travers
+        donne deux formes en L, et sa marche peut aller d’un côté ou de
+        l’autre : 2 façons. En tout, 4 façons.
+    answer: 4 façons.
+    note:
+      title: Pourquoi pas 8 ?
+      text: >-
+        Si l’on énumère les morceaux un par un, on trouve chaque coupe deux
+        fois, une fois pour chacun de ses morceaux. Si l’on décide que le
+        premier morceau contient la case en haut à gauche, on compte chaque
+        coupe une seule fois.
+    art:
+      along: en long
+      across: en travers
+      step: une marche
+      back: dans l’autre sens
+      same: une seule et même coupe
+      dot: le point marque la case en haut à gauche, toujours dans la partie bleue
+  - title: Une diagonale
+    question: >-
+      Un rectangle de 3 sur 5 cases est dessiné sur papier quadrillé, et on
+      trace un segment d’un coin au coin opposé. Par combien de cases ce
+      segment passe-t-il ? Une case compte quand le segment traverse son
+      intérieur, et non quand il touche seulement un coin.
+    steps:
+      - >-
+        En allant d’un coin à l’autre, le segment entre dans une nouvelle case
+        chaque fois qu’il franchit une ligne du quadrillage à l’intérieur du
+        rectangle.
+      - >-
+        Il franchit 4 lignes dans un sens et 2 dans l’autre, et jamais deux à
+        la fois : 3 et 5 n’ont pas d’autre diviseur commun que 1, donc le
+        segment ne passe par aucun nœud du quadrillage en chemin.
+      - "Il commence dans 1 case, puis entre dans 4 + 2 = 6 autres : 7 cases en tout."
+    answer: 7 cases.
+    note:
+      title: Par un nœud
+      text: >-
+        Dans un rectangle de 4 sur 6 cases, le segment passe par un nœud du
+        quadrillage, où il franchit deux lignes à la fois et n’entre que dans
+        une case, pas dans deux. Il passe par 4 + 6 − 2 = 8 cases : 2 est le
+        plus grand nombre qui divise à la fois 4 et 6.
+    art:
+      points: les points, là où le segment franchit les lignes du quadrillage
+      down: 4 verticales
+      across: 2 horizontales
+      green: 1 + 4 + 2 = 7 cases vertes
+      node: "le point rouge est un nœud : 8 cases"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      La même chose est comptée deux fois : les côtés que partagent les cases
+      sont ajoutés au périmètre, ou chaque coupe de la bande est notée une fois
+      pour chacun de ses deux morceaux.
+    say: « As-tu compté un côté, ou une coupe, des deux côtés ? »
+    art:
+      question: Le périmètre de deux cases côte à côte
+  missed_case:
+    shows: >-
+      Un cas est oublié : une coupe dont la marche va dans l’autre sens, un
+      morceau de bord dans un coin rentrant, ou les dominos verticaux en plus
+      des horizontaux.
+    say: « Y a-t-il une façon que tu n’as pas encore essayée, dans l’autre sens ? »
+    art:
+      question: Les coupes d’une bande de 2 sur 4
+  ignored_condition:
+    shows: >-
+      Une condition est oubliée : un morceau qui n’est pas d’un seul tenant
+      est compté comme un morceau, une case qui ne touche que par un coin est comptée
+      comme voisine, ou l’on dit que le segment passe par une case qu’il ne
+      fait que toucher.
+    say: « As-tu vérifié que ce morceau, ou cette case, correspond vraiment à ce que dit l’énoncé ? »
+    art:
+      question: Chaque partie d’un seul tenant
+      broken: la partie bleue est en deux morceaux
+      whole: les deux parties d’un seul tenant
+
+home:
+  - title: Du papier quadrillé
+    text: >-
+      Gardez du papier quadrillé sous la main et dessinez ensemble des figures
+      de 4 ou 5 cases. Laquelle a le bord le plus long ? Laquelle a le plus
+      court ?
+  - title: Faites le tour du bord
+    text: >-
+      Comptez un périmètre en suivant le bord du doigt, côté par côté. Puis
+      comptez les côtés extérieurs de chaque case, et vérifiez que les deux
+      résultats concordent.
+  - title: Découpez et comptez
+    text: >-
+      Découpez une bande de papier en deux morceaux de même taille, de toutes
+      les façons que vous trouvez. Disposez-les de sorte qu’aucune façon ne
+      soit oubliée ni répétée.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Figures sur quadrillage »

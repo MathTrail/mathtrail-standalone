@@ -1,0 +1,194 @@
+# The page of the topic of arithmetic with a trick, for a parent, in Portuguese.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Aritmética com truque
+description: O que são os problemas de cálculo esperto e de “pensei em um número”, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+hero:
+  lead: >-
+    Quanto é 19 + 23 + 81 + 77? Somando na ordem, são três contas com vai um;
+    juntando em pares, 19 + 81 e 23 + 77, fica 100 + 100. Nestes problemas,
+    as contas ficam fáceis quando se acha a ordem certa, e os desafios de
+    “pensei em um número” se resolvem desfazendo os passos, começando pelo
+    fim. A habilidade está em olhar antes de calcular.
+  method: Procurar a ordem fácil antes de calcular
+  teaches: A reagrupar uma soma ou um produto e a desfazer uma sequência de passos, começando pelo fim
+  # The words of its drawing: the sum's numbers paired colour by colour into
+  # two easy hundreds.
+  art:
+    pairs: somar os pares da mesma cor
+    look: primeiro olhar, depois calcular
+
+basis:
+  title: As regras do cálculo esperto
+  cards:
+    - title: Em qualquer ordem
+      text: >-
+        Os números podem ser somados ou multiplicados em qualquer ordem e
+        agrupados de qualquer jeito: 25 × 9 × 4 é 25 × 4 × 9, ou seja, 100 × 9.
+    - title: Números redondos
+      text: >-
+        Procure pares que deem 10, 100 ou 1000: 36 + 64, 25 × 4, 125 × 8. Com
+        um número redondo, é fácil continuar a conta.
+    - title: Desfazer a partir do fim
+      text: >-
+        Num problema de “pensei em um número”, volte a partir do resultado e
+        desfaça cada passo: o que foi somado é subtraído, e o que foi dobrado
+        é dividido ao meio.
+      art:
+        undoes: se desfaz com
+        back: voltar a partir do resultado
+
+idea:
+  title: Olhar antes de calcular
+  lead: A mesma conta pode ser longa ou curta. Antes de calcular, procure os pares e os grupos que dão números redondos.
+  table:
+    head:
+      - O problema
+      - O caminho fácil
+      - A resposta
+    rows:
+      - - 19 + 23 + 81 + 77
+        - (19 + 81) + (23 + 77)
+        - "200"
+      - - 4 × 19 × 25
+        - (4 × 25) × 19
+        - "1900"
+      - - 1 + 2 + 3 + … + 10
+        - cinco pares de soma 11, como 1 + 10 e 2 + 9
+        - "55"
+  # The words of the drawings of the easy way, all rows' in one place.
+  art:
+    pairs: cinco pares de soma 11
+  note:
+    title: Por que isso importa
+    text: >-
+      As olimpíadas trazem, de propósito, contas que demoram pelo caminho
+      longo: o desafio é perceber o atalho. A criança que procura primeiro os
+      pares aprende a ver como um problema é montado, e isso importa muito
+      além da aritmética.
+
+method:
+  title: "Como resolver: procurar números redondos"
+  lead: >-
+    Antes de calcular, olhe o problema inteiro. Forme pares com os números que
+    dão um resultado redondo, coloque lado a lado os fatores que dão 10 ou 100
+    e, numa sequência de passos, comece pelo fim e desfaça os passos um a um.
+    Os exemplos abaixo vão do mais simples a um de olimpíada.
+  steps:
+    - Olhar primeiro o problema inteiro
+    - Reagrupar em números redondos ou desfazer a partir do fim
+    - Conferir a resposta de outro jeito
+  # The key under the steps: what the drawings' colours mean.
+  legend:
+    pair: uma cor, um par
+    undo: um passo que desfaz
+
+examples:
+  - title: Pares que dão dez
+    question: >-
+      Quanto é 6 + 7 + 8 + 2 + 3 + 4?
+    steps:
+      - "Procuramos pares que deem 10. Aqui há três: 6 + 4, 7 + 3 e 8 + 2."
+      - Três dezenas dão 30.
+      - "Então 6 + 7 + 8 + 2 + 3 + 4 = 30, sem nenhum vai um."
+    answer: "30."
+    note:
+      title: O caminho longo
+      text: >-
+        6 + 7 = 13, depois 21, 23, 26 e 30. A resposta é a mesma, mas são cinco
+        passos em vez de um, e cada passo é uma chance de errar.
+    art:
+      tens: uma cor, um par que dá dez
+  - title: Um número a descobrir
+    question: >-
+      Maria pensou em um número. Dobrou esse número, somou 7 e dividiu o
+      resultado por 3. Obteve 9. Em que número Maria pensou?
+    steps:
+      - Começamos pelo fim e desfazemos cada passo, o último primeiro.
+      - >-
+        Ela dividiu por 3 e obteve 9, então antes tinha 9 × 3 = 27. Ela somou
+        7, então antes tinha 27 − 7 = 20.
+      - "Ela dobrou o número, então ele era 20 : 2 = 10. Conferindo: 10 × 2 + 7 = 27, e 27 : 3 = 9."
+    answer: "10."
+    note:
+      title: Desfazer na ordem inversa
+      text: >-
+        O último passo feito é o primeiro a ser desfeito, assim como tiramos os
+        sapatos antes das meias. Desfazer os passos na mesma ordem em que foram
+        feitos dá um número errado.
+    art:
+      masha: Maria
+      back: a partir do fim
+      check: conferir
+      "on": pôr
+      "off": tirar
+      socks: meias
+      shoes: sapatos
+  - title: Dois produtos grandes
+    question: >-
+      Quanto é 2026 × 2026 − 2027 × 2025? Calcule sem multiplicar os números
+      grandes.
+    steps:
+      - >-
+        Os dois produtos escondem 2026 × 2025: 2026 × 2026 é 2026 × 2025 mais
+        outro 2026.
+      - E 2027 × 2025 é 2026 × 2025 mais outro 2025.
+      - "Então a diferença é 2026 − 2025 = 1, sem multiplicar nada grande."
+    answer: "1."
+    note:
+      title: Teste com números pequenos
+      text: >-
+        O mesmo vale para quaisquer números: 5 × 5 − 6 × 4 = 25 − 24 = 1.
+        Testar um truque primeiro com números pequenos é o jeito mais seguro de
+        confiar nele.
+    art:
+      cancel: as partes iguais se cancelam, e sobram as tiras
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  stopped_early:
+    shows: >-
+      A solução é interrompida antes do fim: dois dos três pares são somados e
+      o terceiro é esquecido, ou só um passo da sequência é desfeito e o
+      resultado dele é dado como resposta.
+    say: “Você usou todos os números e desfez todos os passos?”
+  wrong_operation:
+    shows: >-
+      Um passo é desfeito com a mesma operação em vez da operação contrária: o
+      7 é somado de novo em vez de subtraído, ou o 9 é dividido por 3 em vez de
+      multiplicado.
+    say: “O que desfaz uma soma? O que desfaz uma divisão?”
+    art:
+      undo: Desfazer “+ 7” a partir de 27
+  number_from_text:
+    shows: >-
+      Um número do enunciado vira a resposta: o 9 que Maria obteve, ou o 7 que
+      ela somou, em vez do número em que ela pensou.
+    say: “Esse é o número que ela obteve ou o número em que ela pensou?”
+    art:
+      question: Em que número Maria pensou?
+      got: o que Maria obteve
+      thought: o número pensado
+
+home:
+  - title: Pares que dão dez
+    text: >-
+      Escreva seis ou oito números pequenos em cartõezinhos e peça à criança
+      que encontre os pares que dão 10 antes de somar tudo.
+  - title: Adivinhe o meu número
+    text: >-
+      Brinque de “pensei em um número” nos dois sentidos: você diz os passos e
+      o resultado, e a criança encontra o número; depois, é a criança quem
+      inventa os passos.
+  - title: Compras espertas
+    text: >-
+      Numa loja, some os preços numa ordem esperta: 99 é 100 menos 1, e 49 e
+      51 dão 100. Primeiro arredonde, depois corrija.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de aritmética com truque

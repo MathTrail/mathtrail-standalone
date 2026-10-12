@@ -1,0 +1,175 @@
+# The page of the topic of percentages, for a parent, in Simplified Chinese. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: 百分数
+description: 什么是关于百分数的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+hero:
+  lead: >-
+    一个价格先降了20%，然后又降了20%。一共降了40%吗？在这类题里，百分之一是把某个量平均分成一百份后的一份，而全部难点就在这个“某个量”上：是原价还是新价，是所有的鸟还是只有母鸡。孩子如果每一步之前都先问“是谁的百分之几？”，就能避开大部分错误。
+  method: 每一步之前先问“是谁的百分之几？”
+  teaches: 找出百分数的基准量，并能发现它什么时候变了
+  # The words of its drawing: the whole it is drawn for.
+  art:
+    line: 100%是50
+
+basis:
+  title: 百分数的规则
+  cards:
+    - title: 百分之一
+      text: >-
+        百分之一，就是把一个量平均分成一百份后的一份。100%是整个量，50%是它的一半。
+      art:
+        half: 50%是一半
+    - title: 是谁的百分之几？
+      text: >-
+        百分数总是某个量的百分之几：是原价的还是新价的，是所有客人的还是只有女孩的。同样是10%，量不同，得出的数也不同。
+      art:
+        tens: 200的10% = 20 · 50的10% = 5
+    - title: 先算百分之十
+      text: >-
+        10%就是这个量除以10。有了它，20%、30%或5%都只差一步：80的30%是3 × 8 = 24。
+      art:
+        eighty: 80是十份，每份是8
+
+idea:
+  title: 基准量会变
+  lead: 每个百分数都以当时的量为基准。价格变了两次时，第二次变化要按新价格来算。
+  table:
+    head:
+      - 这一步
+      - 基准量
+      - 之后的价格
+    rows:
+      - - 降价20%
+        - 200，所以减去40
+        - "160"
+      - - 再降价20%
+        - 160，所以减去32
+        - "128"
+      - - 两次合起来
+        - 200，所以减去72
+        - 降价36%，不是40%
+  note:
+    title: 为什么重要
+    text: >-
+      商店、银行和新闻都用百分数说话，而难点总在于它们是谁的百分之几。会问“是谁的百分之几？”的孩子，无论是参加数学竞赛还是去商店买东西，都已经准备好了。
+
+method:
+  title: 解法：说出谁是百分之百
+  lead: >-
+    每一步之前，先说出哪个量是100%。求出它的1%或10%，再求题目需要的百分数。量变了，就从新的100%重新开始。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 说出什么是100%
+    - 求出它的1%或10%
+    - 求出所问的百分数，并检查它是谁的百分之几
+  # The key under the steps: what a grid of the drawings stands for.
+  legend:
+    hundred: 100个格子的方格是100%
+
+examples:
+  - title: 体育兴趣小组
+    question: >-
+      一所学校有300名学生，其中35%参加了体育兴趣小组。有多少名学生没有参加体育兴趣小组？
+    steps:
+      - 100%是全部300名学生，所以1%是300 ÷ 100 = 3名学生。
+      - 没有参加兴趣小组的学生占100% − 35% = 65%。
+      - 65%就是65 × 3 = 195名学生。
+    answer: 195名学生。
+    note:
+      title: 另一种解法
+      text: >-
+        300的35%是35 × 3 = 105，就是参加的学生数，而300 − 105 = 195。两种方法得到同一个答案；直接求65%能省掉一步。
+    art:
+      go: 100格中有35格是参加的
+      grid: 整个方格是300名学生
+      cell: 一格是3名学生
+      go-short: 参加
+      do-not: 不参加
+  - title: 自行车的价格
+    question: >-
+      一辆自行车卖400金币。春天，它的价格上涨了25%；秋天，新价格又下降了20%。现在这辆自行车卖多少金币？
+    steps:
+      - >-
+        春天时，100%是原价400金币：它的25%是100金币，所以自行车涨到了500金币。
+      - 秋天时，100%是新价格500金币：它的20%是100金币。
+      - 500 − 100 = 400。自行车又卖400金币了。
+    answer: 400金币。
+    note:
+      title: 为什么不是420？
+      text: >-
+        得出420，是把秋天的20%按原价来算了，也就是80金币。可是到秋天时，价格已经是500了，而500的20%是100。
+    art:
+      coins: 金币，春天之前的价格
+      quarters: 100% = 400：四份，每份25%
+      five-hundred: 500金币
+      fifths: 100% = 500：五份，每份20%
+      of-old: 400的20% = 80 →
+      of-new: 500的20% = 100 →
+  - title: 变干的西瓜
+    question: >-
+      一位农民有200千克西瓜，其中99%是水。一周后，西瓜变干了一点，水占98%。现在这些西瓜重多少千克？
+    steps:
+      - >-
+        不会变干的，是水以外的那部分：200千克的1%，也就是2千克。这部分始终是2千克。
+      - 一周后水占98%，所以这2千克是新重量的2%。
+      - 2%是2千克，所以1%是1千克，100%是100千克。
+    answer: 100千克。
+    note:
+      title: 重量减半了？
+      text: >-
+        是的。水只从99%降到了98%，可是水以外的部分翻了一倍，从1%变成了2%。这2千克没有变，所以整个重量只能减半。
+    art:
+      melons: 200千克，99%是水
+      dry: 200千克：一格是1千克；橙色的不是水，共2千克
+      same: 同样的2千克，现在是100格中的2格
+      was: 之前200千克
+      became: 之后100千克
+      water: 水占99%
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  percent_wrong_base:
+    shows: >-
+      百分数算在了错误的量上：秋天的20%按原价来算，而不是按新价格；或者用西瓜原来的重量去算98%。
+    say: “现在哪个量是100%？”
+    art:
+      question: 秋天价格是500，降价20%
+      of-old: 400的20% =
+      of-new: 500的20% =
+  part_whole_swap:
+    shows: >-
+      把部分当成了整体，或者把整体当成了部分：把不是水的2千克当成了西瓜的重量；或者题目问的是学校的一部分学生，却算了全校。
+    say: “这个数是部分，还是整体？”
+    art:
+      question: 西瓜有多重？
+      dry: 2千克
+      only-dry: 只是水以外的部分
+      all: 100千克
+      weight: 整个重量
+  answered_other_question:
+    shows: >-
+      把中途求出的数当成了答案：题目问的是没有参加的学生，答的却是参加的105名；或者答的是价格变化的100金币，而不是价格。
+    say: “题目到底问的是什么？”
+    art:
+      question: 有多少名学生没有参加兴趣小组？
+      go: 参加
+      do-not: 不参加
+
+home:
+  - title: 商店里的百分数
+    text: >-
+      在商店里找一个打折的价格，和孩子一起算一算：150降价20%后是多少？先从10%算起。
+  - title: 先算百分之十
+    text: >-
+      练习求各种数的10%：80的、350的、1200的。有了10%，大多数其他百分数都只差一步。
+  - title: 是谁的百分之几？
+    text: >-
+      在新闻或广告里听到百分数时，和孩子一起问一问：是谁的百分之几？往往没有人说。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“百分数”的题

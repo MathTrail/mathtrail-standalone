@@ -1,0 +1,177 @@
+# The page of the topic of clocks, for a parent, in Simplified Chinese. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: 钟表与时间
+description: 什么是关于钟表与时间的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+# The words the page's drawings write a length of time in.
+art:
+  minutes: "{count}分钟"
+  hours: "{count}小时"
+  both: "{hours}小时{minutes}分钟"
+
+hero:
+  lead: >-
+    散步从4:50开始，持续25分钟：几点结束？在这类题里，孩子要对时间做加减，难点在于一小时是60分钟，而不是100分钟。大多数错误都出在跨过整点、中午12点或午夜的时候。
+  method: 先走到整点，再往后算
+  teaches: 跨过整点和午夜计算时间，并能分清时刻和经过的时间
+  # The words of its drawing: the walk over it, and what its line of time
+  # shows under it.
+  art:
+    line: 从4:50起散步25分钟
+    whole: 先到整点，再往后
+
+basis:
+  title: 钟表的规则
+  cards:
+    - title: 一小时是60分钟
+      text: >-
+        不是100分钟。所以8:50再过20分钟是9:10，不是8:70；110分钟是1小时50分钟，不是1小时10分钟。
+    - title: 经过整点
+      text: >-
+        跨过整点加时间，要先走到整点，再加剩下的部分：从8:50起，先过10分钟到9:00，再过10分钟。
+    - title: 一天是24小时
+      text: >-
+        23:59之后是第二天的0:00。从22:00到6:00，是到午夜的2小时，加上午夜之后的6小时。
+      art:
+        midnight: "0:00是午夜，第二天的开始"
+
+idea:
+  title: 经过整点
+  lead: 从一个时刻到另一个时刻，经过了多长时间？途中在整点停一下。这样，一道难的减法就变成了两步简单的计算。
+  table:
+    head:
+      - 从几点到几点
+      - 经过整点
+      - 经过的时间
+    rows:
+      - - 8:40到9:15
+        - 20分钟 + 15分钟
+        - 35分钟
+      - - 10:50到12:30
+        - 10分钟 + 1小时30分钟
+        - 1小时40分钟
+      - - 22:30到6:00
+        - 1小时30分钟 + 6小时
+        - 7小时30分钟
+  note:
+    title: 为什么重要
+    text: >-
+      列竖式用一个时刻减另一个时刻，比如9:15 − 8:40，孩子很容易借100分钟，而不是60分钟。经过整点往后数，就不会犯这种错。
+
+method:
+  title: 解法：时间线
+  lead: >-
+    画一条线，把各个时刻按先后标在线上，早的在左边。先走到整点，再一小时一小时地往后走，最后加上剩下的分钟。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 把时刻按先后标在线上，早的在前
+    - 先走到整点，再往后算
+    - 把各段加起来，并检查答案该早还是该晚
+  # The key under the steps: what the drawings' boxes and arrows mean.
+  legend:
+    whole: 整点
+    lasts: 经过的时间
+
+examples:
+  - title: 游泳课
+    question: >-
+      小涛的游泳课3:45开始，上40分钟。几点结束？
+    steps:
+      - 从3:45到整点4:00，是15分钟。
+      - 4:00之后还剩40 − 15 = 25分钟。
+      - 4:00再过25分钟是4:25。
+    answer: "4:25结束。"
+    note:
+      title: 为什么不是3:85？
+      text: >-
+        45 + 40 = 85，可是钟表上没有85分钟这样的读数：满60分钟，就进到下一个小时。先走到整点，就不会得出这样的时刻。
+    art:
+      start: 开始上课，共40分钟
+      split: 40分钟 = 到4:00的15 + 之后的25
+      never: 没有这个时刻
+      right: 正确
+  - title: 国际象棋比赛
+    question: >-
+      一场国际象棋比赛有5轮。每轮下50分钟，每两轮之间休息15分钟。第一轮10:00开始。最后一轮几点结束？
+    steps:
+      - 5轮，每轮50分钟：5 × 50 = 250分钟的比赛。
+      - >-
+        休息只在两轮之间，所以有4次，不是5次：4 × 15 = 60分钟。
+      - >-
+        250 + 60 = 310分钟，也就是5小时10分钟。10:00再过5小时10分钟是15:10。
+    answer: "15:10结束。"
+    note:
+      title: 为什么不是13:10？
+      text: >-
+        310分钟不是3小时10分钟：一小时是60分钟，不是100分钟。310 = 5 × 60 + 10。
+    art:
+      round: 一轮，50分钟
+      break: 休息，15分钟
+      rounds: 5 × 50 = 250分钟
+      breaks: 休息比轮数少一次：4 × 15 = 60
+      total: 310分钟 = 5 × 60 + 10
+      hours: 5个60分钟，再加10分钟
+  - title: 两座城市
+    question: >-
+      奶奶坐飞机去另一座城市看小安。按奶奶那座城市的钟，飞机8:00起飞；按小安那座城市的钟，飞机8:30降落。小安那座城市的钟显示的时间，比奶奶那座城市的少4小时。飞行用了多长时间？
+    steps:
+      - >-
+        8:00和8:30是在不同的钟上读出来的，所以先把两个时刻换到同一个钟上：奶奶的钟。
+      - 小安那座城市的钟显示8:30时，奶奶的钟要多4小时：12:30。
+      - 在同一个钟上，从8:00到12:30是4小时30分钟。
+    answer: 4小时30分钟。
+    badge: "4:30"
+    note:
+      title: 半小时？
+      text: >-
+        只有两个时刻在同一个钟上，8:30 − 8:00才是半小时。比较两座城市的时刻，要先把其中一个换到另一座城市的钟上。
+    art:
+      take-off: 起飞，奶奶那里
+      landing: 降落，小安那里
+      grandma-clock: 奶奶的钟
+      ann-clock: 小安的钟
+      at-ann: 小安那里
+      at-grandma: 奶奶那里
+      grandma: 奶奶
+      ann: 小安
+      other: 不同的钟
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_operation:
+    shows: >-
+      孩子做了题目没有要求的运算：把两个时刻当成数量相加，3点加5点得8；或者只需要往后数时间，却用了乘法。钟面上的时刻是线上的一个点，而不是一个数量。
+    say: “这是一个时刻，还是一段时间？”
+    art:
+      question: 从3:00到5:00，经过了多长时间？
+  time_unit_mixup:
+    shows: >-
+      把一小时当成有100分钟来算：3:45再过40分钟成了3:85，或者310分钟成了3小时10分钟。
+    say: “一小时有多少分钟？”
+    art:
+      question: "3:45再过40分钟"
+  reversed_relation:
+    shows: >-
+      早和晚换了位置：题目要往后算，孩子却往前倒着数；或者本该减去的时差，却加了上去，结果飞机还没起飞就降落了。
+    say: “答案应该比开始的时刻早，还是晚？”
+    art:
+      question: 按奶奶的钟，8:00起飞
+      before: 起飞前就降落了？
+
+home:
+  - title: 有指针的钟
+    text: >-
+      在孩子看得见的地方放一个有指针的钟，随口问问：再过一刻钟是几点？二十分钟前是几点？
+  - title: 还要等多久？
+    text: >-
+      看动画片或出门散步之前，和孩子一起估一估还要等多久，再看钟核对。亲身等过，分钟才有了实实在在的分量。
+  - title: 一天的计划
+    text: >-
+      写一份休息日的计划，标上时间：11:30到12:15散步，12:30吃午饭。每件事要多长时间？两件事之间隔了多久？
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“钟表与时间”的题

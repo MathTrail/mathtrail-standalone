@@ -44,6 +44,9 @@ basis:
         que se ve.
       art:
         on: primero {child}
+        # The case the listing lost: its two letters and a question mark, as the
+        # language writes one.
+        lost: "¿{first}{second}?"
     - title: Cada caso, una sola vez
       text: >-
         Antes de contar, decida qué hace que dos casos sean distintos. Que

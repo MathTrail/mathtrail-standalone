@@ -1,0 +1,224 @@
+# The page of the topic of gaps and boundaries, for a parent, in French. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Intervalles et bornes
+description: Ce que sont les problèmes d’intervalles et bornes, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+hero:
+  lead: >-
+    Six arbres en ligne : combien d’intervalles entre eux ? Un tronc en cinq
+    morceaux : combien de coupes ? Dans ces problèmes, l’enfant compte soit
+    les objets, soit les intervalles entre eux, et les deux nombres diffèrent
+    d’une unité. C’est de cette unité que viennent la plupart des mauvaises
+    réponses, et c’est un rapide dessin d’un petit cas qui remet les choses
+    en place.
+  method: Dessiner un petit cas et compter dessus
+  teaches: À distinguer les objets des intervalles entre eux et à vérifier une règle sur un dessin
+  # The words of its drawing: the fence and the rule over it, and the two
+  # counts under it.
+  art:
+    line: Quatre poteaux de clôture
+    rule: on compte les poteaux, puis les intervalles entre eux
+    posts: "**4** poteaux"
+    spans: "**3** intervalles"
+
+basis:
+  title: Les règles des intervalles
+  cards:
+    - title: En ligne, un de moins
+      text: >-
+        Les intervalles se trouvent entre les objets, donc une rangée compte
+        toujours un intervalle de moins que d’objets : six arbres, cinq
+        intervalles ; cinq morceaux de tronc, quatre coupes.
+      art:
+        trees: 6 arbres, 5 intervalles
+    - title: En cercle, autant
+      text: >-
+        Quand la rangée se referme en cercle, comme des buissons autour d’un
+        parterre de fleurs, le dernier a un intervalle jusqu’au premier : il y
+        a autant d’intervalles que d’objets.
+      art:
+        bushes: 8 buissons, 8 intervalles
+    - title: Les deux bouts comptent
+      text: >-
+        De la page 3 à la page 7, il y a 7 − 3 = 4 pas, mais 5 pages, parce
+        que la première page est lue aussi. Compter « de … à … » avec les deux
+        bouts ajoute un.
+      art:
+        steps: 4 pas
+        pages: 4 pas, mais 5 pages
+
+idea:
+  title: Objets ou intervalles ?
+  lead: Chaque question compte l’un des deux. En ligne, en cercle ou « de … à … », on ne compte pas de la même façon, et un petit dessin montre comment.
+  table:
+    head:
+      - Le dessin
+      - Ce qu’on compte
+      - Combien
+    rows:
+      - - 6 arbres en ligne
+        - les intervalles entre eux
+        - 6 − 1 = 5
+      - - un tronc en 5 morceaux
+        - les coupes
+        - 5 − 1 = 4
+      - - 8 buissons autour d’un parterre
+        - les intervalles entre eux
+        - "8"
+      - - les pages 3 à 7
+        - les pages lues
+        - 7 − 3 + 1 = 5
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Une réponse qui a un de plus ou de moins paraît presque juste, si bien
+      que l’enfant s’en aperçoit rarement. Deux ou trois poteaux dessinés sur
+      papier montrent tout de suite s’il faut ajouter un, en enlever un, ou ni
+      l’un ni l’autre.
+
+method:
+  title: "Comment le résoudre : dessiner un petit cas"
+  lead: >-
+    Dessinez les objets sous forme de points ou de poteaux, d’abord pour un
+    petit nombre, deux ou trois. Comptez les intervalles sur le dessin,
+    trouvez la règle, et seulement ensuite appliquez-la aux nombres du
+    problème. Les exemples ci-dessous vont du plus simple à un problème
+    d’olympiade.
+  steps:
+    - Dessiner les objets et les intervalles
+    - Trouver lesquels la question compte
+    - Calculer, et vérifier la règle sur un petit cas
+  # The key under the steps: what the drawings' blue and red mean.
+  legend:
+    counted: "en bleu : ce qu’on compte"
+    cut: une coupe
+
+examples:
+  - title: La ligne de bus
+    question: >-
+      Une ligne de bus compte 6 arrêts. Le bus met 3 minutes pour aller d’un
+      arrêt au suivant. Combien de minutes met-il du premier arrêt au dernier ?
+    steps:
+      - On dessine les 6 arrêts comme des points. Le bus roule le long des intervalles entre eux.
+      - Entre 6 arrêts, il y a 5 intervalles, un de moins que d’arrêts.
+      - "Chaque intervalle prend 3 minutes : 5 × 3 = 15."
+    answer: 15 minutes.
+    note:
+      title: Pourquoi pas 18 ?
+      text: >-
+        6 × 3 = 18 donne à chaque arrêt son propre intervalle, mais après le
+        dernier arrêt, le bus ne va plus nulle part : les minutes se passent
+        entre les arrêts.
+    art:
+      stops: 6 arrêts, 3 minutes entre deux voisins
+      minutes: "{count} min"
+      total: 5 × 3 = 15 minutes
+      end: pas de route après le 6e arrêt
+  - title: L’étage 9 et l’étage 3
+    question: >-
+      Léna habite à l’étage 9 et Manon à l’étage 3 du même immeuble, et toutes
+      les deux montent à pied depuis l’étage 1. Toutes les volées d’escalier
+      sont identiques. Combien de fois plus de marches Léna monte-t-elle que
+      Manon ?
+    steps:
+      - >-
+        Manon monte de l’étage 1 à l’étage 3 : 2 volées d’escalier, de 1 à 2
+        et de 2 à 3.
+      - >-
+        Léna monte de l’étage 1 à l’étage 9, soit 8 volées, une de moins que
+        le numéro de son étage.
+      - "Les volées sont toutes identiques, donc 8 : 2 = 4. Léna monte 4 fois plus de marches."
+    answer: 4 fois plus.
+    note:
+      title: Pourquoi pas 3 fois plus ?
+      text: >-
+        9 : 3 = 3 divise les étages, mais les marches se trouvent sur les
+        volées entre les étages, et personne ne monte jusqu’à l’étage 1.
+    art:
+      masha: M
+      lena: L
+      third: étage 3
+      ninth: étage 9
+      from: toutes deux partent de l’étage 1
+      masha-name: Manon
+      lena-name: Léna
+      two: volées
+      eight: volées
+      times: les 8 volées de Léna font 4 fois les 2 de Manon
+      floors: étages
+      flights: volées
+  - title: Combien de troncs ?
+    question: >-
+      Des bûcherons ont scié des troncs, et chaque tronc a été coupé au moins
+      une fois. Ils ont fait 9 coupes en tout et obtenu 14 morceaux. Combien de
+      troncs ont-ils sciés ?
+    steps:
+      - >-
+        On scie un tronc : 1 coupe donne 2 morceaux, 2 coupes en donnent 3.
+        Chaque tronc finit avec un morceau de plus que de coupes.
+      - On fait le total sur tous les troncs. Les morceaux, ce sont les coupes, plus un par tronc.
+      - 14 − 9 = 5. Il y avait 5 troncs.
+    answer: 5 troncs.
+    note:
+      title: La répartition des coupes compte-t-elle ?
+      text: >-
+        Non. Cinq troncs avec 9 coupes donnent 14 morceaux, qu’un seul tronc ait
+        reçu la plupart des coupes ou qu’elles aient été réparties presque
+        également : chaque coupe transforme un morceau en deux.
+    art:
+      cuts: 9 coupes
+      pieces: 14 morceaux
+      logs: "troncs : ?"
+      one: 1 coupe, 2 morceaux
+      two: 2 coupes, 3 morceaux
+      sum: "morceaux = coupes + troncs : 9 = 6 + 3"
+      all: 9 coupes · 14 morceaux · 5 troncs
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      L’enfant compte les arrêts au lieu des intervalles entre eux, ou les
+      intervalles au lieu des poteaux : 6 arrêts deviennent 6 × 3 = 18
+      minutes. Avec un de plus ou de moins, la réponse paraît presque juste.
+    say: « Dessine trois arrêts. Combien y a-t-il d’intervalles ? »
+  wrong_operation:
+    shows: >-
+      L’enfant fait avec les nombres du problème quelque chose que le dessin
+      ne demande pas : les additionne, 6 + 3, ou double l’un d’eux, au lieu de
+      compter les intervalles et de donner à chacun ses minutes.
+    say: « Combien de temps prend un intervalle, et combien y a-t-il d’intervalles ? »
+  number_from_text:
+    shows: >-
+      Un nombre de l’énoncé devient la réponse : les 6 arrêts quand la question
+      demande des minutes, ou l’étage 9 quand elle demande des volées
+      d’escalier.
+    say: "« Que compte ce nombre : des arrêts ou des intervalles ? »"
+    art:
+      question: "La question : combien de minutes ?"
+      stops: arrêts
+      minutes: minutes
+
+home:
+  - title: Les doigts et les intervalles
+    text: >-
+      Écartez les doigts : cinq doigts, quatre intervalles entre eux. C’est
+      l’image la plus rapide de tout le thème, et on l’a toujours sous la
+      main.
+  - title: L’escalier en rentrant
+    text: >-
+      Dans l’escalier, comptez ensemble les étages et les volées : de l’étage 1
+      à l’étage 4, combien de volées ? Et de l’étage 2 à l’étage 4 ?
+  - title: Poteaux et bancs
+    text: >-
+      En promenade, comptez les poteaux d’une clôture et les intervalles entre
+      eux, ou les bancs autour d’un étang. En ligne, il y a un intervalle de
+      moins ; en cercle, autant.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Intervalles et bornes »

@@ -278,10 +278,10 @@ describe("the texts of a site", () => {
 
 describe("a document in another language", () => {
 	// english is the English privacy policy: headings of two depths, a link, an
-	// image and a piece of code.
+	// image, a piece of code and a strong emphasis.
 	const english = text(
 		"Privacy",
-		"# Privacy\n\nRead [the help](../help/) and keep `drive.file`.\n\n![The file](../file.png)\n\n## Languages\n\nThe English text holds.\n",
+		"# Privacy\n\nRead [the help](../help/) and keep `drive.file`.\n\n![The file](../file.png)\n\n## Languages\n\nThe **English** text holds.\n",
 	);
 	// sourcesWith is a site whose Russian privacy policy has the body given.
 	const sourcesWith = (body: string) =>
@@ -302,10 +302,47 @@ describe("a document in another language", () => {
 			],
 		]);
 	const translated =
-		"# Приватность\n\nПрочтите [помощь](../help/) и оставьте `drive.file`.\n\n![Файл](../file.png)\n\n## Языки\n\nДействует английский текст.\n";
+		"# Приватность\n\nПрочтите [помощь](../help/) и оставьте `drive.file`.\n\n![Файл](../file.png)\n\n## Языки\n\nДействует **английский** текст.\n";
 
 	test("says it in its own words, keeping the English one's headings, links, images and code", () => {
 		expect(() => readTexts(sourcesWith(translated), "en")).not.toThrow();
+	});
+
+	test("stresses what the English stresses, where its own sentences put it, a list's item among them", () => {
+		const stressed = translated.replace(
+			"Действует **английский** текст.",
+			"Действует английский текст.\n\n- Текст **английский**.",
+		);
+
+		expect(() => readTexts(sourcesWith(stressed), "en")).not.toThrow();
+	});
+
+	test.each([
+		[
+			"an emphasis left out",
+			translated.replace("**английский**", "английский"),
+			"[emphasis 0, strong emphasis 0, emphasis signs shown as written 0], the English [emphasis 0, strong emphasis 1, emphasis signs shown as written 0]",
+		],
+		[
+			"an emphasis the page cannot read, closed after a full stop and before a letter",
+			translated.replace(
+				"Действует **английский** текст.",
+				"**Действует английский текст.**Всегда.",
+			),
+			"[emphasis 0, strong emphasis 0, emphasis signs shown as written 4], the English [emphasis 0, strong emphasis 1, emphasis signs shown as written 0]",
+		],
+	])("is refused for %s, naming its file", (_, body, want) => {
+		expect(() => readTexts(sourcesWith(body), "en")).toThrow(
+			`ru/privacy.md: the emphasis under the English heading "Languages" disagrees with the English: ${want}`,
+		);
+	});
+
+	test("names the part of the body whose emphasis disagrees, the part before the first heading among them", () => {
+		expect(() =>
+			readTexts(sourcesWith(`**Внимание.**Текст\n\n${translated}`), "en"),
+		).toThrow(
+			"ru/privacy.md: the emphasis before the first heading disagrees with the English: [emphasis 0, strong emphasis 0, emphasis signs shown as written 4], the English [emphasis 0, strong emphasis 0, emphasis signs shown as written 0]",
+		);
 	});
 
 	test.each([

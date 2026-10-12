@@ -1,0 +1,56 @@
+# The page "About", for a parent, in French: who makes MathTrail — one family,
+# each of us under a role — and where to write. The children go by their place
+# in the family, never by name, and each of us by the key our photograph goes
+# by. The address and the link to the code are the footer's, which the page
+# fills in.
+
+title: À propos
+description: "MathTrail est l’œuvre d’une famille : qui fait quoi, et comment nous joindre."
+
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
+hero:
+  title: MathTrail est l’œuvre d’une famille
+  lead: >-
+    MathTrail est né de l’attention d’un parent. Nous sommes
+    quatre : Papa construit la plateforme, Maman veille à ce que le projet
+    reste douillet et bien rangé, notre fils aîné, qui ne tient pas en place,
+    ne fait qu’une bouchée des nouveaux problèmes, les yeux pétillants, et le
+    cadet se contente de renifler tout doucement à nos côtés en nous rappelant
+    pourquoi nous faisons tout cela.
+  photo: Tous les quatre à table devant un gâteau au chocolat, Papa tenant le cadet dans ses bras.
+
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
+team:
+  title: Qui sommes-nous ?
+  members:
+    mum:
+      role: Directrice de tout
+      name: Maman
+      text: L’autrice de l’idée et la designer principale du projet. Formule les exigences du produit et s’occupe aussi de tout le reste, c’est-à-dire absolument de tout !
+      photo: Maman, souriante, en veste beige.
+    dad:
+      role: Porte-bébé full-stack
+      name: Papa
+      text: Écrit du code d’une main et berce le bébé de l’autre. Ne déploie qu’après la sieste de l’après-midi, sinon la prod se réveille et pleure.
+      photo: Papa avec le cadet dans un porte-bébé sur la poitrine ; le bébé porte un casque antibruit.
+    older-son:
+      role: Casse-problèmes en chef
+      name: Fils aîné
+      text: Résout les nouveaux problèmes avant tout le monde et dit honnêtement où ils ne sont pas clairs.
+      photo: Le fils aîné tient un jouet en briques Lego ; autour de lui, des étoiles et une couronne griffonnées en blanc.
+    younger-son:
+      role: Stagiaire R&D (crash-test)
+      name: Fils cadet
+      text: Pour l’instant, teste la solidité des jouets. Encore deux années avant son premier problème.
+      photo: Le fils cadet à plat ventre sur un tapis moelleux, un ours en peluche à côté de lui.
+
+contact:
+  title: Vous avez trouvé une erreur, ou vous avez une idée ?
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: "Écrivez-nous à {address} ou {issue} : nous lisons tout."
+  issue: ouvrez un ticket sur GitHub
+  write: Écrivez-nous
+  github: GitHub

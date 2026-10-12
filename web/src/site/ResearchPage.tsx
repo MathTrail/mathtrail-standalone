@@ -9,7 +9,7 @@ import { Theses } from "./ResearchTheses";
 import type { PageReader } from "./reader";
 import type { PaperFile, Research } from "./research";
 import { GitHubMark } from "./SourceChip";
-import { useSiteWords } from "./words";
+import { listMarks, useSiteWords } from "./words";
 
 /**
  * researchSections are the ids of the parts of the page "Research" that other
@@ -71,28 +71,36 @@ function Sources({ page, research }: { page: PageReader; research: Research }) {
 			<h2>{page.text("sources.title")}</h2>
 			<p class="s-research-intro">{page.text("sources.lead")}</p>
 			<ul class="s-research-authors">
-				{research.authors.map((author) => (
-					<li key={author.id}>
-						<p class="s-research-author">
-							{page.text(`sources.authors.${author.id}.name`)}{" "}
-							<span class="s-research-died">
-								{page.text("sources.died", {
-									year: <Num value={author.died} form="year" />,
-								})}
-							</span>
-						</p>
-						<p class="s-research-books">
-							{author.books.map((book, at) => (
-								<Fragment key={book}>
-									{at === 0 ? null : ", "}
-									<cite>
-										{page.text(`sources.authors.${author.id}.books.${book}`)}
-									</cite>
-								</Fragment>
-							))}
-						</p>
-					</li>
-				))}
+				{research.authors.map((author) => {
+					const marks = listMarks(
+						page.locale,
+						author.books.map((book) =>
+							page.plain(`sources.authors.${author.id}.books.${book}`),
+						),
+					);
+					return (
+						<li key={author.id}>
+							<p class="s-research-author">
+								{page.text(`sources.authors.${author.id}.name`)}{" "}
+								<span class="s-research-died">
+									{page.text("sources.died", {
+										year: <Num value={author.died} form="year" />,
+									})}
+								</span>
+							</p>
+							<p class="s-research-books">
+								{author.books.map((book, at) => (
+									<Fragment key={book}>
+										{marks[at]}
+										<cite>
+											{page.text(`sources.authors.${author.id}.books.${book}`)}
+										</cite>
+									</Fragment>
+								))}
+							</p>
+						</li>
+					);
+				})}
 			</ul>
 			<p class="s-research-public">
 				<span class="s-research-public-name">

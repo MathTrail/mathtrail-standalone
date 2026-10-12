@@ -1,0 +1,215 @@
+# The page of the topic of divisibility and remainders, for a parent, in
+# French. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Divisibilité et restes
+description: Ce que sont les problèmes de divisibilité et de restes, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+hero:
+  lead: >-
+    29 élèves partent en sortie, et chaque voiture en prend 4. Combien faut-il
+    de voitures ? Dans ces problèmes, l’enfant fait une division avec reste,
+    puis décide ce que signifie ce reste : une voiture de plus, un bonbon qui
+    reste, une place au rang suivant. Les critères de divisibilité répondent à
+    « est-ce divisible ? » sans faire la moindre division.
+  method: Écrire le nombre en groupes complets et ce qui reste
+  teaches: À lire un reste dans les mots du problème et à tester la divisibilité sans diviser
+  # The words of its drawing: what it divides over it, and what the division
+  # comes to under it.
+  art:
+    line: 14 objets en groupes de 3
+    groups: 4 groupes complets, et il en reste 2
+
+basis:
+  title: Les règles de la division
+  cards:
+    - title: Le reste est plus petit
+      text: >-
+        Dans une division par 7, le reste vaut 0, 1, 2 et ainsi de suite
+        jusqu’à 6. S’il fait 7 ou plus, on peut encore former un groupe.
+      art:
+        remainders: "restes de la division par 7 : de 0 à 6"
+    - title: Ce que signifie le reste
+      text: >-
+        29 élèves dans des voitures de 4, c’est 7 voitures pleines, et il reste
+        1 élève, donc il faut 8 voitures. Avec la même division, la réponse
+        peut être 7, 8 ou 1 : c’est la question qui décide.
+      art:
+        cars: 29 = 7 × 4 + 1, donc il faut 8 voitures
+    - title: Des règles pratiques
+      text: >-
+        Un nombre est divisible par 2 si son dernier chiffre est pair, par 5
+        s’il se termine par 0 ou 5, et par 3 ou par 9 si la somme de ses
+        chiffres l’est.
+      # The rules on its drawing, the digits each looks at in bold.
+      art:
+        by-two: par 2
+        even: "le dernier chiffre est pair : 13**6**"
+        by-five: par 5
+        five: "il se termine par 0 ou 5 : 24**5**"
+        by-three: par 3 et 9
+        digits: "la somme de ses chiffres : 3 + 8 + 1 + 6 = **18**"
+
+idea:
+  title: Des groupes et ce qui reste
+  lead: Tout nombre entier peut s’écrire en groupes complets et ce qui reste. C’est la question qui décide lequel des deux elle veut.
+  table:
+    head:
+      - La question
+      - La division · en bleu, ce qui est demandé
+      - La réponse
+    rows:
+      - - Combien faut-il de voitures de 4 places pour 29 élèves ?
+        - 29 = 7 × 4 + 1
+        - 8 voitures
+      - - "29 bonbons partagés entre 4 enfants : combien pour chaque enfant ?"
+        - 29 = 7 × 4 + 1
+        - 7 bonbons par enfant
+      - - Combien reste-t-il de bonbons sur les 29 ?
+        - 29 = 7 × 4 + 1
+        - 1 bonbon
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      La division est la même à chaque ligne ; seul le sens change. L’enfant
+      qui divise sans erreur peut tout de même donner le nombre de groupes
+      complets quand la question demande le reste, ou oublier la voiture du
+      dernier élève.
+
+method:
+  title: "Comment le résoudre : des groupes complets et un reste"
+  lead: >-
+    Écrivez le nombre en groupes complets et ce qui reste. Puis relisez la
+    question et décidez ce qu’elle demande : les groupes, le reste, ou un
+    groupe de plus. Quand elle demande le plus petit nombre ou le chiffre qui
+    a une certaine propriété, essayez-les dans l’ordre. Les exemples
+    ci-dessous vont du plus simple à un problème d’olympiade.
+  steps:
+    - Répartir en groupes complets et un reste
+    - Décider ce que demande la question
+    - Vérifier la réponse avec les mots de l’énoncé
+  # The key under the steps: what the drawings' groups mean.
+  legend:
+    group: un groupe complet
+    rest: ce qui reste
+
+examples:
+  - title: Des bus pour une sortie
+    question: >-
+      150 élèves partent en sortie scolaire, et chaque bus a 40 places.
+      Combien faut-il de bus ?
+    steps:
+      - "On compte les élèves par groupes de 40 : 150 = 3 × 40 + 30. Trois bus sont pleins, et il reste 30 élèves."
+      - Ces 30 élèves ont besoin d’un bus eux aussi, même si ce bus ne sera pas plein.
+      - 3 + 1 = 4 bus.
+    answer: 4 bus.
+    note:
+      title: Pourquoi pas 3 ou 30 ?
+      text: >-
+        3, c’est le nombre de bus pleins, et 30, le nombre d’élèves dans le
+        dernier. La question demande tous les bus nécessaires.
+    art:
+      seats: 40 places
+      pupils: 150 élèves
+      left: restants
+      part: 30 places sur 40
+      full: pleins
+      last: dans le dernier
+      all: tous les bus
+  - title: L’étoile dans 38*6
+    question: >-
+      Quel chiffre faut-il mettre à la place de l’étoile dans 38*6 pour que le
+      nombre se divise par 9 sans reste ?
+    steps:
+      - Un nombre est divisible par 9 exactement quand la somme de ses chiffres l’est.
+      - >-
+        Les chiffres connus font 3 + 8 + 6 = 17, et l’étoile est un chiffre de
+        0 à 9, donc la somme est comprise entre 17 et 26.
+      - "Le seul nombre de 17 à 26 divisible par 9 est 18, donc l’étoile vaut 1 : 3816 = 9 × 424."
+    answer: Le chiffre 1.
+    note:
+      title: Et pour 3 ?
+      text: >-
+        Pour 3, la somme doit être divisible par 3 : c’est le cas de 18, 21 et
+        24, donc l’étoile peut valoir 1, 4 ou 7. Le critère de divisibilité
+        par 9 est plus strict, et ici, il ne laisse qu’un chiffre.
+    art:
+      sum: la somme des chiffres est-elle divisible par 9 ?
+  - title: Cent facteurs égaux à deux
+    question: >-
+      On multiplie cent facteurs égaux à deux : 2 × 2 × 2 × … × 2. Quel est le
+      dernier chiffre du résultat ?
+    steps:
+      - >-
+        On suit le dernier chiffre en multipliant les facteurs un par un : 2,
+        4, 8, 16, 32, 64, 128, 256. Les derniers chiffres sont 2, 4, 8, 6, puis
+        ils se répètent.
+      - >-
+        Le motif compte 4 chiffres, et 100 = 25 × 4 : le centième facteur
+        termine le 25e tour du motif, à sa 4e place.
+      - À la 4e place du motif, il y a 6, donc le résultat se termine par 6.
+    answer: "6."
+    note:
+      title: Des restes déguisés
+      text: >-
+        Seul comptait le reste de la division de 100 par 4 : il indiquait à
+        quelle place du motif tombe le centième facteur. Les restes répondent à
+        beaucoup de questions sur ce qui se répète : derniers chiffres, jours
+        de la semaine, places en cercle.
+    art:
+      first: en bleu, le premier tour du motif
+      rounds: 25 tours de 4 facteurs = 100 facteurs
+      place: "reste 0 : la dernière place d’un tour, la 4e"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  remainder_vs_quotient:
+    shows: >-
+      Les groupes complets et le reste échangent leurs places : l’enfant donne
+      les 30 élèves restants quand la question demande des bus, ou prend 25,
+      le nombre de tours complets du motif, pour la place dans ce motif.
+    say: « La question porte sur les groupes complets, ou sur ce qui reste ? »
+    art:
+      question: Combien faut-il de bus ?
+      left: élèves restants
+      buses: bus
+  off_by_one:
+    shows: >-
+      La réponse a un groupe de trop ou de moins : on oublie le bus des
+      30 derniers élèves, 3 au lieu de 4, ou on compte les places d’un motif à
+      partir de 0 au lieu de 1.
+    say: « Faut-il un groupe de plus pour ce qui reste ? »
+    art:
+      question: 150 élèves, 40 places par bus
+  missed_case:
+    shows: >-
+      Un cas est trouvé et la recherche s’arrête : l’étoile vaut 1, et
+      l’enfant ne vérifie pas si 4 et 7 conviennent aussi quand la question
+      porte sur 3.
+    say: « As-tu essayé tous les chiffres de 0 à 9 ? »
+    art:
+      question: 38*6 est divisible par 3
+      more: et c’est tout ?
+
+home:
+  - title: Partager avec un reste
+    text: >-
+      Partagez des bonbons ou des cartes entre les membres de la famille et
+      dites le résultat en deux parties : combien chacun reçoit, et combien il
+      en reste.
+  - title: Le test des chiffres
+    text: >-
+      Inventez de grands nombres et testez s’ils sont divisibles par 3 et par 9
+      en additionnant leurs chiffres, puis divisez à la calculatrice pour voir
+      la règle fonctionner.
+  - title: Ce qui se répète
+    text: >-
+      Cherchez des motifs qui reviennent en boucle : les jours de la semaine,
+      les couleurs d’un collier, les derniers chiffres de 3, 9, 27, 81.
+      Demandez ce qui vient 50 pas plus loin.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Divisibilité et restes »

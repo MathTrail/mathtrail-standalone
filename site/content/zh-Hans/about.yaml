@@ -1,0 +1,51 @@
+# The page "About", for a parent, in Simplified Chinese: who makes MathTrail —
+# one family, each of us under a role — and where to write. The children go by
+# their place in the family, never by name, and each of us by the key our
+# photograph goes by. The address and the link to the code are the footer's,
+# which the page fills in.
+
+title: 关于我们
+description: "MathTrail 由一家人打造：谁负责什么，以及怎样联系我们。"
+
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
+hero:
+  title: MathTrail 由一家人打造
+  lead: >-
+    MathTrail 源于父母的关爱。我们一家四口：爸爸搭建平台，妈妈让项目既温馨又井井有条，我们家闲不住的大儿子两眼放光，把新题一道道拿下，小儿子则只是在一旁甜甜地打着小呼噜，提醒我们这一切是为了什么。
+  photo: 我们一家四口围坐在桌旁，桌上有一个巧克力蛋糕，爸爸抱着小儿子。
+
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
+team:
+  title: 我们是谁
+  members:
+    mum:
+      role: 首席万事官
+      name: 妈妈
+      text: 创意的提出者，也是项目的首席设计师。负责制定产品需求，其余的一切也都要管，也就是说，真的是一切！
+      photo: 穿着米色外套的妈妈，面带微笑。
+    dad:
+      role: 全栈奶爸
+      name: 爸爸
+      text: 一只手写代码，另一只手哄娃。部署严格安排在午睡之后，否则生产环境会醒来大哭。
+      photo: 爸爸用婴儿背带把小儿子兜在胸前，宝宝戴着隔音耳罩。
+    older-son:
+      role: 首席解题官
+      name: 大儿子
+      text: 总是第一个做新题，并如实指出哪里讲得不清楚。
+      photo: 大儿子拿着一个用乐高积木拼成的玩具，周围画着白色的星星和王冠涂鸦。
+    younger-son:
+      role: 研发实习生（碰撞测试）
+      name: 小儿子
+      text: 目前负责测试玩具够不够结实。离他的第一道题还有一两年。
+      photo: 小儿子趴在柔软的地毯上，旁边有一只泰迪熊。
+
+contact:
+  title: 发现了错误，或者有想法？
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: 请发邮件到 {address}，或者{issue}，我们每一条都会读。
+  issue: 在 GitHub 上提交 issue
+  write: 发邮件给我们
+  github: GitHub

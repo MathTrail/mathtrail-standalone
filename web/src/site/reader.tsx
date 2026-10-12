@@ -1,7 +1,10 @@
-import { Lexer, type Token } from "marked";
+import type { Token } from "marked";
 import type { ComponentChildren, VNode } from "preact";
+import { directionOf } from "../i18n/lookup";
 import { placeholder } from "../i18n/words";
+import { leftToRightSpans, type Span } from "./bidi";
 import { characterReference } from "./content";
+import { inlineTokens } from "./inline";
 import type { PageWords } from "./pagewords";
 
 /**
@@ -76,21 +79,21 @@ export function openReader(
 	};
 	const written = (value: string | number): string =>
 		typeof value === "number" ? numbers.format(value) : value;
+	const rightToLeft = directionOf(locale) === "rtl";
 
 	const page: PageReader = {
 		locale,
 		file,
 		text(key, slots = {}) {
 			const where = `${file}: ${key}`;
-			return Lexer.lexInline(take(key), { gfm: false }).map((token) =>
-				drawn(
-					token,
-					(name) => {
-						const value = slotOf(slots, name, where);
-						return typeof value === "object" ? value : written(value);
-					},
-					where,
-				),
+			return drawnText(
+				inlineTokens(take(key)),
+				(name) => {
+					const value = slotOf(slots, name, where);
+					return typeof value === "object" ? value : written(value);
+				},
+				where,
+				rightToLeft,
 			);
 		},
 		plain(key, slots = {}) {
@@ -160,24 +163,73 @@ function slotOf<Value>(
 	return value;
 }
 
-// drawn is one token of a text: words with their slots filled, or emphasis
-// around more of them. Anything else — a link, an image, markup, code, a
-// break — is refused: links and numbers are slots the page fills, and the
-// rest has no place in a page's words.
-function drawn(
+// Piece is a part of a text as the page draws it, with the words it says as
+// plain text: the text's own words, which a run that reads left to right may
+// cut, or a slot's filling or an emphasis, which such a run takes whole or
+// not at all. A filling the page draws as an element says nothing a run can
+// read, and stands as a mark no run holds; an emphasis keeps the runs of its
+// own words itself.
+type Piece = {
+	readonly drawn: ComponentChildren;
+	readonly plain: string;
+	readonly kind: "words" | "filling" | "emphasis";
+};
+
+// drawnText is a text's tokens drawn: on a page written right to left with
+// each run that reads left to right, a sum or a piece of code, set apart in
+// an element of that direction.
+function drawnText(
+	tokens: readonly Token[],
+	fill: (name: string) => string | VNode,
+	where: string,
+	rightToLeft: boolean,
+): ComponentChildren {
+	return arranged(
+		tokens.flatMap((token) => piecesOf(token, fill, where, rightToLeft)),
+		rightToLeft,
+	);
+}
+
+// arranged is a text drawn from its pieces, as its page's direction wants.
+function arranged(
+	pieces: readonly Piece[],
+	rightToLeft: boolean,
+): ComponentChildren {
+	return rightToLeft
+		? keptLeftToRight(pieces)
+		: pieces.map((piece) => piece.drawn);
+}
+
+// piecesOf is one token of a text in its pieces: words with their slots
+// filled, or emphasis around more of them, which says the words of its own
+// pieces. Anything else — a link, an image, markup, code, a break — is
+// refused: links and numbers are slots the page fills, and the rest has no
+// place in a page's words.
+function piecesOf(
 	token: Token,
 	fill: (name: string) => string | VNode,
 	where: string,
-): ComponentChildren {
+	rightToLeft: boolean,
+): Piece[] {
 	switch (token.type) {
 		case "text":
 			return filled(token.text, fill, where);
 		case "escape":
-			return token.text;
+			return [{ drawn: token.text, plain: token.text, kind: "words" }];
 		case "em":
-			return <em>{inner(token.tokens, fill, where)}</em>;
-		case "strong":
-			return <strong>{inner(token.tokens, fill, where)}</strong>;
+		case "strong": {
+			const inner = (token.tokens ?? []).flatMap((part) =>
+				piecesOf(part, fill, where, rightToLeft),
+			);
+			const Emphasis = token.type;
+			return [
+				{
+					drawn: <Emphasis>{arranged(inner, rightToLeft)}</Emphasis>,
+					plain: inner.map((piece) => piece.plain).join(""),
+					kind: "emphasis",
+				},
+			];
+		}
 		default:
 			throw new Error(
 				`${where} holds ${JSON.stringify(token.raw)}, and a page's text may hold emphasis alone: *…* or **…**`,
@@ -185,33 +237,99 @@ function drawn(
 	}
 }
 
-// inner is what an emphasis holds, drawn.
-function inner(
-	tokens: readonly Token[] | undefined,
-	fill: (name: string) => string | VNode,
-	where: string,
-): ComponentChildren {
-	return (tokens ?? []).map((part) => drawn(part, fill, where));
+// keptLeftToRight is a text written right to left drawn from its pieces, each
+// stretch of them that reads left to right set apart in an element of that
+// direction.
+function keptLeftToRight(pieces: readonly Piece[]): ComponentChildren[] {
+	const bounds: Span[] = [];
+	let at = 0;
+	for (const { plain } of pieces) {
+		bounds.push([at, at + plain.length]);
+		at += plain.length;
+	}
+	const spans = leftToRightSpans(
+		pieces.map(({ plain }) => plain).join(""),
+		bounds.filter((_, index) => pieces[index]?.kind !== "words"),
+	).filter(
+		([first, last]) =>
+			!bounds.some(
+				([start, end], index) =>
+					start === first && end === last && pieces[index]?.kind === "emphasis",
+			),
+	);
+	const cuts = spans.flat();
+	const drawnParts: ComponentChildren[] = [];
+	let kept: ComponentChildren[] = [];
+	let keptIn: Span | undefined;
+	const close = () => {
+		if (keptIn !== undefined) {
+			drawnParts.push(
+				<bdi key={keptIn[0]} dir="ltr">
+					{kept}
+				</bdi>,
+			);
+		}
+		kept = [];
+		keptIn = undefined;
+	};
+	pieces.forEach((piece, index) => {
+		const [start, end] = bounds[index] ?? [0, 0];
+		const marks =
+			piece.kind === "words"
+				? [start, ...cuts.filter((cut) => cut > start && cut < end), end]
+				: [start, end];
+		for (let place = 0; place + 1 < marks.length; place += 1) {
+			const from = marks[place] ?? start;
+			const to = marks[place + 1] ?? end;
+			const part =
+				piece.kind === "words" && typeof piece.drawn === "string"
+					? piece.drawn.slice(from - start, to - start)
+					: piece.drawn;
+			const span = spans.find(([first, last]) => first <= from && to <= last);
+			if (span !== keptIn) {
+				close();
+				keptIn = span;
+			}
+			if (span === undefined) {
+				drawnParts.push(part);
+			} else {
+				kept.push(part);
+			}
+		}
+	});
+	close();
+	return drawnParts;
 }
 
-// filled is words with their slots filled. A character written as a reference
-// — &amp; — is refused: the page would show it as it is written.
+// filled is words with their slots filled, in their pieces. A character
+// written as a reference — &amp; — is refused: the page would show it as it
+// is written.
 function filled(
 	text: string,
 	fill: (name: string) => string | VNode,
 	where: string,
-): ComponentChildren {
+): Piece[] {
 	if (characterReference.test(text)) {
 		throw new Error(
 			`${where} writes a character as a reference, which the page would show as it is written`,
 		);
 	}
-	const parts: ComponentChildren[] = [];
+	const words = (part: string): Piece => ({
+		drawn: part,
+		plain: part,
+		kind: "words",
+	});
+	const pieces: Piece[] = [];
 	let from = 0;
 	for (const match of text.matchAll(placeholder)) {
-		parts.push(text.slice(from, match.index), fill(match[1] ?? ""));
+		const value = fill(match[1] ?? "");
+		pieces.push(words(text.slice(from, match.index)), {
+			drawn: value,
+			plain: typeof value === "string" ? value : "\uFFFC",
+			kind: "filling",
+		});
 		from = match.index + match[0].length;
 	}
-	parts.push(text.slice(from));
-	return parts;
+	pieces.push(words(text.slice(from)));
+	return pieces;
 }

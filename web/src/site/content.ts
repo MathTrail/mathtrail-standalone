@@ -1,6 +1,7 @@
-import { Lexer, Marked } from "marked";
+import type { Token } from "marked";
 import { byCodeUnits } from "../i18n/order";
 import { placeholder } from "../i18n/words";
+import { commonMark, emphasisOf, inlineTokens } from "./inline";
 import {
 	type PageWords,
 	pageWordsDisagreements,
@@ -117,12 +118,6 @@ export function parseDocument(source: string): Document {
 	return { title, description, body: rest.slice(close + fence.length + 2) };
 }
 
-// commonMark reads the texts as CommonMark alone, the Markdown they are
-// written in: GitHub's additions — tables, struck-through text, bare addresses
-// turned into links — would change what a text that happens to look like one
-// of them says.
-const commonMark = new Marked({ gfm: false, async: false });
-
 // runningScheme matches an address that runs something, or carries its own
 // content, rather than leading to a page.
 const runningScheme = /^(javascript|vbscript|file|data):/i;
@@ -184,7 +179,7 @@ const pageName = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/;
  * file it came from, and so do a site with no locale, a locale with no text,
  * a page two files of one locale both write, a page some locale lacks, words
  * that say other things than the English ones, a document whose headings,
- * links or code are not the English one's, and a reference locale with no
+ * links, code or emphasis are not the English one's, and a reference locale with no
  * front page: the address the product is listed under is built from it.
  */
 export function readTexts(sources: Sources, reference: string): Texts {
@@ -302,49 +297,82 @@ function checkWords(texts: Omit<Texts, "front">, reference: string): void {
 
 // checkOutlines holds every language's documents to the reference locale's:
 // the same headings, each as deep, the same links and images, each to the same
-// address, and the same code, in the same order. A translation changes a document's
-// words, and nothing that leads somewhere or is written as it is. Every locale
-// has every document by now, under the same file.
+// address, and the same code, in the same order, and under each heading as
+// much emphasis. A translation changes a document's words, and nothing that
+// leads somewhere or is written as it is; it stresses what the English
+// stresses, in the order its own sentences take, and an emphasis the page
+// cannot read shows its signs. Every locale has every document by now, under
+// the same file.
 function checkOutlines(sources: Sources, reference: string): void {
 	for (const [file, english] of sources.get(reference) ?? []) {
 		if (!file.endsWith(".md")) {
 			continue;
 		}
-		const ours = outlineOf(english);
+		const ours = readOutline(english);
 		for (const [locale, files] of sources) {
-			const theirs = outlineOf(files.get(file) ?? "");
-			const at = [...Array(Math.max(ours.length, theirs.length)).keys()].find(
-				(index) => theirs[index] !== ours[index],
-			);
+			const theirs = readOutline(files.get(file) ?? "");
+			const at = [
+				...new Array(
+					Math.max(ours.outline.length, theirs.outline.length),
+				).keys(),
+			].find((index) => theirs.outline[index] !== ours.outline[index]);
 			if (at !== undefined) {
 				throw new Error(
-					`${locale}/${file}: the headings, links, images and code disagree with the English: ${theirs[at] ?? "nothing"} comes where the English has ${ours[at] ?? "nothing"}`,
+					`${locale}/${file}: the headings, links, images and code disagree with the English: ${theirs.outline[at] ?? "nothing"} comes where the English has ${ours.outline[at] ?? "nothing"}`,
+				);
+			}
+			const part = ours.stress.findIndex(
+				(stress, index) => theirs.stress[index] !== stress,
+			);
+			if (part >= 0) {
+				const where =
+					part === 0
+						? "before the first heading"
+						: `under the English heading ${JSON.stringify(ours.headings[part - 1])}`;
+				throw new Error(
+					`${locale}/${file}: the emphasis ${where} disagrees with the English: [${theirs.stress[part]}], the English [${ours.stress[part]}]`,
 				);
 			}
 		}
 	}
 }
 
-// outlineOf is what a document's body holds that a translation keeps, in
-// order: each heading by its depth, each link and image by its address and each
-// piece of code as it is written.
-function outlineOf(source: string): string[] {
+// Outline is what a document's body holds that a translation keeps: in order,
+// each heading by its depth, each link and image by its address and each piece
+// of code as it is written; and the emphasis of each part of the body, the part
+// before its first heading and the part under each heading of its own, with the
+// text of those headings.
+type Outline = {
+	readonly outline: readonly string[];
+	readonly stress: readonly string[];
+	readonly headings: readonly string[];
+};
+
+// readOutline reads a document's outline, from its body read once.
+function readOutline(source: string): Outline {
+	const tokens = commonMark.lexer(parseDocument(source).body);
 	const outline: string[] = [];
-	commonMark.walkTokens(
-		commonMark.lexer(parseDocument(source).body),
-		(token) => {
-			if (token.type === "heading") {
-				outline.push(`a heading of level ${token.depth}`);
-			} else if (token.type === "link") {
-				outline.push(`a link to ${token.href}`);
-			} else if (token.type === "image") {
-				outline.push(`an image of ${token.href}`);
-			} else if (token.type === "codespan" || token.type === "code") {
-				outline.push(`the code ${JSON.stringify(token.text)}`);
-			}
-		},
-	);
-	return outline;
+	commonMark.walkTokens(tokens, (token) => {
+		if (token.type === "heading") {
+			outline.push(`a heading of level ${token.depth}`);
+		} else if (token.type === "link") {
+			outline.push(`a link to ${token.href}`);
+		} else if (token.type === "image") {
+			outline.push(`an image of ${token.href}`);
+		} else if (token.type === "codespan" || token.type === "code") {
+			outline.push(`the code ${JSON.stringify(token.text)}`);
+		}
+	});
+	const parts: Token[][] = [[]];
+	const headings: string[] = [];
+	for (const token of tokens) {
+		if (token.type === "heading") {
+			parts.push([]);
+			headings.push(token.text);
+		}
+		parts.at(-1)?.push(token);
+	}
+	return { outline, stress: parts.map(emphasisOf), headings };
 }
 
 // pageText reads one file of the site's texts, path being where it is below
@@ -391,7 +419,7 @@ function wordsText(source: string): PageText {
 		}
 		if (
 			characterReference.test(text) ||
-			Lexer.lexInline(text, { gfm: false }).some(({ type }) => type !== "text")
+			inlineTokens(text).some(({ type }) => type !== "text")
 		) {
 			throw new Error(
 				`a page's ${key} is said as it is written, with no markup`,

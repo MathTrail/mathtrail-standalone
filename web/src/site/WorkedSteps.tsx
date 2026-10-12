@@ -57,7 +57,12 @@ export function StepFrame({
 	children: ComponentChildren;
 }) {
 	return (
-		<div class="s-step-picture" data-technique={name} aria-hidden="true">
+		<div
+			class="s-step-picture"
+			data-technique={name}
+			aria-hidden="true"
+			dir="ltr"
+		>
 			<div class="s-step-drawn">{children}</div>
 		</div>
 	);
@@ -117,7 +122,7 @@ export function statesTheNumbersOf(words: string, answer: string): boolean {
 
 // numbersOf are the runs of the digits 0 to 9 in text, in their order.
 function numbersOf(text: string): string[] {
-	return text.match(/[0-9]+/g) ?? [];
+	return text.match(/\d+/g) ?? [];
 }
 
 /**

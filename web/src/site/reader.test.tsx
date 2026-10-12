@@ -211,3 +211,54 @@ describe("a text a page leaves out for its data", () => {
 		expect(unread()).toEqual(["title", "readiness"]);
 	});
 });
+
+describe("a text of a page written right to left", () => {
+	test("keeps a sum left to right, apart from the words around it", () => {
+		const { page } = reader("step: إذن 12 ÷ 3 = 4 فواصل.\n", "ar");
+
+		expect(html(page.text("step"))).toBe(
+			'<p>إذن <bdi dir="ltr">12 ÷ 3 = 4</bdi> فواصل.</p>',
+		);
+	});
+
+	test("does so inside an emphasis too", () => {
+		const { page } = reader('step: "**38*6** يقبل القسمة"\n', "ar");
+
+		expect(html(page.text("step"))).toBe(
+			'<p><strong><bdi dir="ltr">38*6</bdi></strong> يقبل القسمة</p>',
+		);
+	});
+
+	test("keeps a sum whole with the emphasis on its result", () => {
+		const { page } = reader(
+			'step: "مجموع أرقامه: 3 + 8 + 1 + 6 = **18**"\n',
+			"ar",
+		);
+
+		expect(html(page.text("step"))).toBe(
+			'<p>مجموع أرقامه: <bdi dir="ltr">3 + 8 + 1 + 6 = <strong>18</strong></bdi></p>',
+		);
+	});
+
+	test("keeps a sum whole with the number a slot fills in", () => {
+		const { page } = reader("guess: الاحتمال c = {guess}، تخمين\n", "ar");
+
+		expect(html(page.text("guess", { guess: 0.25 }))).toBe(
+			'<p>الاحتمال <bdi dir="ltr">c = 0.25</bdi>، تخمين</p>',
+		);
+	});
+
+	test("keeps a sum whole with the emphasis on a number a slot fills in", () => {
+		const { page } = reader('sum: "إذن 3 + 4 = **{sum}**"\n', "ar");
+
+		expect(html(page.text("sum", { sum: 7 }))).toBe(
+			'<p>إذن <bdi dir="ltr">3 + 4 = <strong>7</strong></bdi></p>',
+		);
+	});
+
+	test("is drawn as it is written on a page written left to right", () => {
+		const { page } = reader("step: So 12 ÷ 3 = 4 gaps.\n");
+
+		expect(html(page.text("step"))).toBe("<p>So 12 ÷ 3 = 4 gaps.</p>");
+	});
+});

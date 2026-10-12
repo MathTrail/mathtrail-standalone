@@ -1,0 +1,228 @@
+# The page of the topic of parity and alternation, for a parent, in German. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Parität und abwechselnde Muster
+description: Worum es bei „Parität und abwechselnde Muster“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+# The words the page's drawings say of a number and of a corner of the cube.
+art:
+  even: gerade
+  odd: ungerade
+  start: Start
+
+hero:
+  lead: >-
+    Können 15 Kinder im Kreis stehen, immer Junge, Mädchen, Junge, Mädchen,
+    einmal ganz herum? In diesen Aufgaben beantworten gerade und ungerade Zahlen
+    die Frage, ohne dass man alles zählen oder jeden Weg ausprobieren muss: an
+    welchem Ufer eine Fähre liegt, ob ein Punktestand möglich ist, wer den
+    letzten Zug macht. Mit der Parität lernen viele Kinder zum ersten Mal etwas
+    kennen, das gleich bleibt, egal wie die Züge laufen.
+  method: Beobachten, was jeder Zug mit gerade und ungerade macht
+  teaches: Auf „Kann das sein?“ antworten, ohne jeden Weg auszuprobieren
+  # The words of its drawing: who takes turns, the key of the colours, and
+  # what the two circles show.
+  art:
+    line: Jungen und Mädchen wechseln sich im Kreis ab
+    boy: ein Junge
+    girl: ein Mädchen
+    six: "6 Kinder: Es klappt"
+    five: "5 Kinder: Es klappt nicht"
+    even: im Kreis klappt das Abwechseln nur bei einer geraden Zahl von Kindern
+
+basis:
+  title: Die Regeln für gerade und ungerade
+  cards:
+    - title: Gerade geht in Paaren auf
+      text: >-
+        Eine gerade Anzahl von Dingen lässt sich in Paare aufteilen, ohne dass
+        etwas übrig bleibt. Bei einer ungeraden Anzahl bleibt immer eines allein
+        übrig.
+    - title: Es kommt nur auf die ungeraden an
+      text: >-
+        Gerade plus gerade ist gerade, ungerade plus ungerade ist gerade, und
+        gerade plus ungerade ist ungerade. Ob eine Summe gerade ist, hängt also
+        nur davon ab, wie viele ungerade Zahlen darin stecken.
+    - title: Sich abwechseln
+      text: >-
+        Wenn sich zwei Dinge abwechseln, steht das eine auf den ungeraden
+        Plätzen und das andere auf den geraden. Rundherum im Kreis klappt das
+        Abwechseln nur, wenn es eine gerade Zahl von Plätzen gibt.
+      art:
+        places: Jungen auf den ungeraden Plätzen, Mädchen auf den geraden
+
+idea:
+  title: Nur die ungeraden Zahlen zählen
+  lead: Um zu sehen, ob eine Summe gerade ist, muss man sie nicht ausrechnen. Zählen Sie, wie viele ungerade Zahlen darin vorkommen.
+  table:
+    head:
+      - Die Summe
+      - Ungerade Zahlen darin
+      - Die Summe ist
+    rows:
+      - - 4 + 6 + 8
+        - keine
+        - gerade
+      - - 3 + 5
+        - "2"
+        - gerade
+      - - 3 + 5 + 7
+        - "3"
+        - ungerade
+      - - 1 + 2 + … + 10
+        - "5"
+        - ungerade
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Viele Olympiade-Aufgaben fragen, ob etwas überhaupt passieren kann. Die
+      Parität kann mit „nein“ antworten, ohne die Wege auszuprobieren: Wenn jeder
+      Zug eine Zahl gerade lässt und das Ziel sie ungerade braucht, führt kein
+      Zug jemals dorthin.
+
+method:
+  title: "Lösungsweg: gerade und ungerade verfolgen"
+  lead: >-
+    Suchen Sie in der Aufgabe eine Zahl, die gerade oder ungerade ist: eine
+    Anzahl, eine Summe, einen Platz in einer Reihe. Schauen Sie, was jeder Zug
+    oder jeder Schritt mit ihr macht, ob sie wechselt oder bleibt, und
+    vergleichen Sie den Anfang mit dem Ziel. Die Beispiele unten reichen von
+    ganz einfach bis Olympiade-Niveau.
+  steps:
+    - Finden, was gerade oder ungerade ist
+    - Schauen, was jeder Schritt damit macht
+    - Den Anfang mit dem Ziel vergleichen
+
+examples:
+  - title: Die Fähre
+    question: >-
+      Eine Fähre bringt Autos über einen Fluss und wieder zurück, immer wieder.
+      Sie startet am linken Ufer. An welchem Ufer ist sie, nachdem sie den Fluss
+      7-mal überquert hat?
+    steps:
+      - Nach 1 Überfahrt ist die Fähre am rechten Ufer, nach 2 wieder am linken.
+      - >-
+        Je zwei Überfahrten bringen sie dorthin zurück, wo sie gestartet ist.
+        Nach einer geraden Zahl von Überfahrten ist sie also am linken Ufer,
+        nach einer ungeraden am rechten.
+      - 7 ist ungerade, also ist die Fähre am rechten Ufer.
+    answer: Am rechten Ufer.
+    badge: →
+    note:
+      title: Warum nicht einfach zählen?
+      text: >-
+        Bei 7 Überfahrten geht das Zählen schnell. Die Regel antwortet bei 100
+        Überfahrten genauso schnell, und genau die Regel brauchen die schwereren
+        Aufgaben.
+    art:
+      start: zuerst am linken Ufer
+      none: 0 Fahrten
+      one: 1 Fahrt
+      two: 2 Fahrten
+      left: das linke Ufer
+      right: das rechte Ufer
+  - title: Vier Dartpfeile
+    question: >-
+      Ben wirft 4 Dartpfeile auf eine Zielscheibe, deren Ringe 1, 3, 5 und 7
+      Punkte zählen, und jeder Pfeil trifft die Scheibe. Ben sagt, dass er 15
+      Punkte erzielt hat. Kann das stimmen?
+    steps:
+      - Jeder Ring zählt eine ungerade Zahl von Punkten.
+      - >-
+        Zwei ungerade Zahlen ergeben zusammen eine gerade. 4 Pfeile sind zwei
+        Paare, und jedes Paar bringt eine gerade Punktzahl, also bringen die 4
+        Pfeile zusammen eine gerade Zahl.
+      - 15 ist ungerade, also kann Ben diese Zahl nicht erzielt haben.
+    answer: Nein.
+    badge: ✕
+    note:
+      title: Und mit 3 Pfeilen?
+      text: >-
+        Drei ungerade Zahlen ergeben zusammen eine ungerade, und 15 ist möglich:
+        5 + 5 + 5 oder 7 + 7 + 1.
+    art:
+      darts: 4 Pfeile, alle auf der Scheibe
+      rings: jeder Ring ist ungerade
+      only-even: und 4 Pfeile bringen nur gerade Punktzahlen
+  - title: Eine Spinne auf einem Würfel
+    question: >-
+      Eine Spinne sitzt an einer Ecke eines Würfels aus Draht. Jede Minute
+      krabbelt sie an einer Kante entlang zur nächsten Ecke. Kann sie nach genau
+      7 Minuten wieder an der Ecke sein, von der sie losgekrabbelt ist?
+    steps:
+      - >-
+        Die Ecken färben: die Startecke weiß, ihre Nachbarecken schwarz, deren
+        Nachbarecken weiß und so weiter. Wie die Zeichnung zeigt, verbindet jede
+        Kante eine schwarze Ecke mit einer weißen.
+      - >-
+        Die Farbe wechselt also jede Minute: Nach 1 Minute ist die Spinne auf
+        Schwarz, nach 2 auf Weiß und nach jeder ungeraden Zahl von Minuten auf
+        Schwarz.
+      - 7 ist ungerade, und die Startecke ist weiß. Die Spinne kann nicht wieder am Start sein.
+    answer: Nein.
+    badge: ✕
+    note:
+      title: Und nach 8 Minuten?
+      text: >-
+        Ja: Krabbelt sie viermal an einer Kante entlang und zurück, ist sie
+        wieder zu Hause. Die Farben sagen, wann es nicht geht; dass eine gerade
+        Zahl von Minuten reicht, muss man noch zeigen.
+    art:
+      edge: eine Kante pro Minute
+      minutes: "Minuten: bei geraden eine weiße Ecke, bei ungeraden eine schwarze"
+      seven: nach 7 Minuten
+      back: hin und zurück × 4
+      eight: 8 Minuten
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_parity:
+    shows: >-
+      Gerade und ungerade werden vertauscht: Das Kind meint, dass die Fähre nach
+      7 Überfahrten wieder dort ist, wo sie losgefahren ist, oder dass vier
+      ungerade Zahlen zusammen eine ungerade ergeben.
+    say: "„Probier es klein aus: Wo ist die Fähre nach 1 Überfahrt, wo nach 2?“"
+    art:
+      question: Wo ist die Fähre nach 7 Überfahrten?
+  ignored_condition:
+    shows: >-
+      Eine Bedingung der Aufgabe geht verloren: Das Kind kommt mit drei Pfeilen
+      auf 15 Punkte und vergisst, dass Ben vier geworfen hat, oder wählt eine
+      Zahl, die zu einer Angabe passt, aber nicht zur anderen.
+    say: „Lies die Aufgabe noch einmal. Passt deine Antwort zu jedem Wort darin?“
+    art:
+      question: "Pfeile: 4"
+      three: 3 Pfeile
+      always: immer gerade
+  off_by_one:
+    shows: >-
+      Ein Platz in einer Reihe wird um eins falsch gezählt: Der Start wird für
+      die erste Überfahrt gehalten, oder eine Reihe, die mit einem Jungen
+      beginnt und endet, bekommt gleich viele Jungen wie Mädchen.
+    say: „Schreib die ersten paar auf. Welches ist Nummer 1?“
+    art:
+      equal: gleich viele
+
+home:
+  - title: Gerade oder ungerade?
+    text: >-
+      Verstecken Sie eine Handvoll Knöpfe in der Faust und lassen Sie Ihr Kind
+      raten: gerade oder ungerade? Dann prüfen Sie gemeinsam nach, indem Sie die
+      Knöpfe zu Paaren legen.
+  - title: Wer macht den 10. Zug?
+    text: >-
+      Fragen Sie bei jedem Spiel, in dem zwei abwechselnd ziehen, vor dem Ende:
+      Wer macht den 10. Zug? Und wer den 15.? Die Antwort liefern gerade und
+      ungerade Zahlen, nicht das Weiterspielen.
+  - title: Hausnummern
+    text: >-
+      Schauen Sie sich auf einer Straße die Hausnummern an: auf der einen Seite
+      gerade, auf der anderen ungerade. Auf welcher Seite wird die Nummer 37
+      sein?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Parität und abwechselnde Muster“

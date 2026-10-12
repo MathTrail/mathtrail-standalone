@@ -1,0 +1,48 @@
+# The page "Coach", for a parent, in Simplified Chinese: a product of its own,
+# still in the making, that leads a child through a problem on a tablet, and
+# its prototype to try in a frame. The prototype speaks English alone in every
+# language of the page and is never translated. The number of techniques on the
+# first screen's second button is the site's data.
+
+title: 教练
+description: 我们正在为7～12岁的孩子打造一个教练：孩子在平板电脑上解奥数题，自己动脑把题想透。请试用它的原型。
+
+hero:
+  badge: 开发中
+  title: 让孩子自己动脑的奥数
+  lead: "我们正在为7～12岁的孩子打造一个教练。孩子在平板电脑上解题，像在本子上一样，在画布上又画又写。孩子选好的伙伴会带路走完四个步骤，并提出启发性的问题。伙伴从不说出答案：答案由孩子自己写。"
+  try: 试用原型
+  # A screen of the prototype beside the words: what it shows, for whoever
+  # cannot see it, and the line under it.
+  screen: "MathTrail 原型：孩子正在选择伙伴"
+  caption: "原型的一个界面：孩子选择和谁一起解题。请在下方试用。"
+
+# What the coach is about, a card for each idea, under a heading a screen
+# reader alone says.
+ideas:
+  title: 教练会是什么样子
+  items:
+    - title: 波利亚的四个步骤
+      text: 理解题目 → 制订计划 → 解题 → 检查。这些步骤始终都看得见。
+    - title: 像本子一样的画布
+      text: 画图是解答的一部分。提示一次只给一条，也没有可供挑选的选项。
+    - title: 孩子自己的伙伴
+      text: 狐狸、机器人、猫头鹰、猫、恐龙，或者孩子自己画的伙伴。
+
+# The prototype in its frame: the frame's name for a screen reader, the line
+# under it, and the link that opens it alone.
+prototype:
+  frame: MathTrail：交互式原型
+  caption: "交互式原型：请试着画出解答"
+  open: 全屏打开 ↗
+
+# What the prototype is, and what it only pretends to do yet.
+notes:
+  title: 这是一个原型
+  text: 所有地方都可以点击，画布上可以用鼠标或手指作画。界面目前是英文的。
+  imitated:
+    title: 目前仅为模拟
+    items:
+      - 识别手写和图画
+      - 伙伴的语音
+      - 从照片导入题目

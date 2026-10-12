@@ -1,0 +1,336 @@
+# The page "Why", for a parent, in French: why olympiad maths is worth a
+# child's time, how long people have learned it, what research has found about
+# it, how it differs from a school lesson, what a parent can do, how MathTrail
+# goes about it, and why it is no ordinary app. The grades, the topics' names
+# and the card's own words are not here: they are the catalog's numbers and the
+# widget's words. The card's options, its drawing, the history's pictures and
+# the works the page cites are the site's data; a finding here says what its
+# work found, no more.
+
+title: Pourquoi les maths d’olympiade
+description: Pourquoi les problèmes d’olympiade méritent le temps de l’enfant, ce que la recherche a constaté à leur sujet et comment un parent peut aider avec MathTrail.
+
+# The label of the note that says plainly what the page does not promise.
+honest: Honnêtement
+
+# The fence: the problem the first screen sets beside a school sum, and the
+# card further down shows answered wrong. A variant of the site's own, never a
+# reference task word for word.
+task:
+  question: Une clôture mesure 12 mètres de long. Il y a un poteau tous les 3 mètres, y compris aux deux extrémités. Combien y a-t-il de poteaux ?
+  # The trap behind the wrong option picked on the card, as the card says it.
+  trap: On a compté les intervalles au lieu des poteaux.
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4 intervalles. Une clôture droite avec des poteaux aux deux extrémités compte un poteau de plus que d’intervalles. 4 + 1 = 5 poteaux.
+
+hero:
+  title: Pourquoi les maths d’olympiade pour votre enfant
+  lead: L’école apprend à résoudre un problème sur le modèle d’un exemple traité en classe. Les problèmes d’olympiade apprennent à trouver un chemin quand il n’y a aucun exemple à suivre. Jusqu’au niveau {last}, un parent peut y préparer son enfant, et MathTrail est fait pour cela.
+  free: Gratuit
+  open: Open source
+  school:
+    label: Un exercice scolaire
+    text: Il faut savoir diviser.
+    sum: 12 ÷ 3 = 4
+  olympiad:
+    label: Un problème d’olympiade
+    answer: "Réponse : {answer}"
+    trap: "Piège : 4, ce sont les intervalles, pas les poteaux"
+    text: Il faut comprendre ce qui se passe.
+  caption: Les mêmes nombres. Une autre façon de penser.
+
+# How long people have learned to find a way with no example to follow: a
+# saying of Euclid's, then four eras, each with three pictures the page shows
+# in turn. The pictures are the site's data, era by era; each has the place a
+# chip over it names, its words for a screen reader and its caption with its
+# author and licence, and the chip that picks it, where that is not its place.
+history:
+  title: Penser sans exemple à suivre s’enseigne depuis plus de deux mille ans
+  lead: Les problèmes non standard n’ont rien de nouveau. Dans bien des pays et pendant bien des siècles, on a appris à trouver une solution que personne n’avait montrée et à expliquer pourquoi elle est juste, et chaque génération a transmis ce savoir-faire à la suivante.
+  quote: « Il n’y a pas de voie royale vers la géométrie. »
+  quoted: Euclide au roi Ptolémée, qui lui demandait si l’on pouvait apprendre la géométrie plus facilement qu’avec les « Éléments ». C’est ce que rapporte Proclus, au Ve siècle.
+  # What a screen reader calls the choice of a picture.
+  choice: Images de l’histoire
+  eras:
+    - label: L’Antiquité · jusqu’au VIe siècle
+      title: Démonstrations et recueils de problèmes
+      text: Les Grecs ont commencé à démontrer pourquoi une règle est vraie. En Chine, « Les Neuf Chapitres sur l’art mathématique » ont réuni 246 problèmes avec leurs solutions. En Inde, les nombres ont commencé à s’écrire avec un zéro, comme nous les écrivons encore aujourd’hui.
+    - label: Le Moyen Âge et après · IXe–XIXe siècles
+      title: Le problème comme défi
+      text: À Bagdad, al-Khwârizmî a écrit le livre dont le titre nous a donné le mot « algèbre ». En Italie, des mathématiciens s’affrontaient en duel à coups de problèmes, et au Japon, on suspendait des problèmes dans les temples, sur des tablettes de bois.
+    - label: Fin du XIXe et XXe siècle
+      title: Des problèmes pour tous les enfants
+      text: "L’école s’est ouverte à tous les enfants, et les plus curieux ont eu des clubs de maths et des olympiades : en Hongrie dès 1894, à Léningrad dès 1934."
+    - label: Aujourd’hui
+      title: Un mentor pour chaque enfant
+      text: "Autrefois, un mentor personnel était réservé à quelques-uns : Aristote a été le maître d’Alexandre le Grand. Désormais, chaque enfant peut en avoir un. Le compagnon du coach MathTrail ne donne jamais la réponse : comme les grands maîtres du passé, il pose les questions qui mènent l’enfant à la solution."
+      link: Voir le coach →
+  pictures:
+    athens:
+      place: Grèce
+      alt: "Fragment d’une fresque : un savant aux cheveux gris, penché sur une ardoise, trace au compas, entouré de quatre élèves."
+      caption: Euclide trace au compas sur une ardoise sous le regard de ses élèves ; selon certains, il s’agit d’Archimède. Fragment de la fresque de Raphaël « L’École d’Athènes », 1509–1511.
+    confucius:
+      place: Chine
+      alt: "Une peinture : un maître est assis en plein air parmi ses disciples, qui écoutent et débattent."
+      caption: Confucius avec ses disciples. Le calcul était l’un des « six arts » qu’une personne instruite devait connaître. Peinture du XIXe siècle, d’un artiste inconnu.
+    aryabhata:
+      place: Inde
+      alt: "Une statue blanche : un savant drapé dans une étoffe tend la main."
+      caption: "Aryabhata, mathématicien et astronome indien du Ve siècle. Personne ne sait à quoi il ressemblait : c’est une statue moderne, à Pune."
+    istanbul:
+      place: Le monde islamique
+      alt: "Une miniature : des savants en turban travaillent avec un globe, des instruments et des livres."
+      caption: Astronomes et mathématiciens au travail dans l’observatoire de Taqi al-Din, à Istanbul. Miniature ottomane de la fin du XVIe siècle.
+    pacioli:
+      place: Italie
+      alt: "Un portrait : un moine mathématicien montre une ardoise portant l’inscription Euclides, avec un élève à côté de lui et un polyèdre de verre suspendu au-dessus de la table."
+      caption: Le mathématicien Luca Pacioli avec un élève. Sur le bord de l’ardoise où figure le dessin, on lit « Euclides ». Portrait de 1495, attribué à Jacopo de’ Barbari.
+    sangaku:
+      place: Japon
+      alt: Une tablette de bois avec des dessins de cercles en couleur et des colonnes de caractères.
+      caption: "Un sangaku, tablette de problèmes de géométrie, au sanctuaire Konnō Hachiman-gū de Tokyo, 1859. Photo : Momotarou2012, CC BY-SA 3.0."
+    rachinsky:
+      place: Russie
+      alt: "Une peinture : des garçons en chemise paysanne, debout devant un tableau où figure un problème, réfléchissent ; l’un d’eux, au premier plan, appuie le menton sur sa main."
+      caption: "Des élèves d’une école de village résolvent de tête un problème écrit au tableau : (10² + 11² + 12² + 13² + 14²) ÷ 365. Nikolaï Bogdanov-Belski, « Calcul mental. Dans l’école populaire de S. A. Ratchinski », 1895."
+    st-louis:
+      place: États-Unis
+      alt: "Une photographie de classe : des enfants écrivent des colonnes de nombres au tableau, l’institutrice aide une fillette, et les autres sont assis à leur pupitre avec des livres."
+      caption: Des élèves de deuxième année font des calculs au tableau. École Bates, Saint-Louis, début du XXe siècle.
+    moscow:
+      place: URSS
+      alt: "Une photographie : un écolier, devant un tableau couvert de figures de géométrie dans l’espace, se retourne et sourit."
+      caption: "Un examen scolaire : un élève au tableau devant un problème de géométrie dans l’espace. Moscou, années 1950. Photo : Yu. D. Korolev, Archives principales de Moscou, CC BY 4.0."
+    coach-canvas:
+      place: MathTrail
+      chip: Une solution dessinée
+      alt: "L’écran d’une tablette : un problème de poteaux le long d’une route, une esquisse en pointillés sur la zone de dessin et, à côté, l’indice du compagnon renard et les étapes : comprendre, planifier, résoudre, vérifier."
+      caption: "Le prototype du coach MathTrail : l’enfant dessine une solution sur la zone de dessin, et le compagnon propose de commencer par de petits nombres."
+    coach-sheet:
+      place: MathTrail
+      chip: Une feuille de problèmes
+      alt: "L’écran d’une tablette : l’appareil photo saisit une feuille de problèmes d’olympiade, et le coach y a trouvé six problèmes."
+      caption: "Le prototype du coach MathTrail : l’enfant photographie une feuille de problèmes, et le coach y trouve six problèmes."
+    coach-map:
+      place: MathTrail
+      chip: Une carte des thèmes
+      alt: "L’écran d’une tablette : une carte des thèmes d’olympiade en trois paliers, des bases aux problèmes difficiles, et à côté, le thème « Énumération des cas » et l’étape de l’enfant dans ce thème."
+      caption: "Le prototype du coach MathTrail : une carte des thèmes, du plus simple au plus difficile, et l’étape de l’enfant dans chacun."
+
+research:
+  title: Ce qu’a montré la recherche
+  lead: On propose des problèmes d’olympiade aux enfants depuis plus d’un siècle, mais les études rigoureuses sur ce qu’ils apportent sont rares. En voici quatre.
+  # Each finding under a tag of where and whom, a short line in large letters
+  # with a line under it, and the words of the small drawing under its text.
+  findings:
+    rebholz2022:
+      tag: Allemagne · niveaux 3–4
+      big: Un cours de problèmes
+      small: et de meilleurs résultats sur deux plans
+      title: La préparation se voit aussi à l’école
+      text: En Allemagne, des élèves de troisième et de quatrième année de primaire ont suivi un cours de problèmes dans l’esprit des olympiades. À l’Olympiade mathématique, ils ont obtenu des résultats nettement meilleurs que les enfants qui y ont participé sans ce cours, et les élèves de quatrième année ont aussi mieux réussi un contrôle de maths à l’école. Leurs enseignants les avaient choisis pour ce cours.
+      mark:
+        - à l’olympiade
+        - à un contrôle scolaire
+    biondi2012:
+      tag: Brésil · 2009
+      big: 19 millions
+      small: d’élèves ont participé en un an
+      title: Les écoles inscrites à l’olympiade ont de meilleurs résultats en maths
+      text: Au Brésil, l’olympiade de mathématiques des écoles publiques est ouverte à tous les élèves, et 19 millions y ont participé en 2009. Les écoles inscrites avaient de meilleurs résultats en maths chez leurs élèves de neuvième année à l’évaluation nationale, et des résultats d’autant meilleurs qu’elles y avaient participé un plus grand nombre d’années.
+      mark: plus d’années de participation, de meilleurs résultats
+    agarwal2020:
+      tag: Les Olympiades internationales
+      big: OIM
+      small: plus le score est élevé, plus on va loin en science
+      title: Les meilleurs aux olympiades vont loin en science
+      text: Plus les adolescents avaient obtenu un score élevé aux Olympiades internationales de mathématiques, plus ils étaient nombreux à faire ensuite un doctorat, à publier des recherches, à être cités et à remporter les plus hautes distinctions en mathématiques.
+      mark:
+        - un doctorat
+        - des articles
+        - des citations
+        - de grands prix
+    nunes2007:
+      tag: Royaume-Uni · 6 ans
+      big: 16 mois
+      small: la logique à six ans a prédit les résultats en maths
+      title: Le raisonnement s’apprend dès six ans
+      text: La qualité du raisonnement logique d’enfants de six ans a prédit leurs résultats en maths 16 mois plus tard. Les enfants à qui l’on a appris à raisonner ainsi ont davantage progressé en maths que les autres.
+      mark:
+        from: 6 ans
+        to: +16 mois
+
+school:
+  title: L’école et les olympiades n’enseignent pas la même chose
+  lead: Ce n’est pas un reproche fait à l’école, qui a une autre mission. Mais le savoir-faire qui permet de trouver une solution quand aucune méthode n’est donnée n’apparaît pas tout seul. Il se travaille.
+  lesson: Un cours ordinaire
+  olympiad: Un problème d’olympiade
+  # Above the rows, an example of each: a school sum with its answer left
+  # blank, and the fence in short, with its posts.
+  example: Un exemple
+  sum: 12 ÷ 3 =
+  done: "La méthode a été montrée en classe : il ne reste qu’à la reproduire."
+  fence: Une clôture de 12 m, un poteau tous les 3 m, y compris aux deux extrémités. Combien de poteaux ?
+  found: "Aucune méthode n’est donnée, il faut la trouver : 4 intervalles, et un poteau de plus que d’intervalles, donc 5."
+  rows:
+    shape:
+      label: Comment le problème est construit
+      lesson: On montre une méthode, puis on la répète sur des exemples semblables
+      olympiad: "Aucune méthode n’est donnée : il faut la trouver"
+    valued:
+      label: Ce qui compte
+      lesson: Aller vite, sans étourderie
+      olympiad: Comprendre ce qui se passe, et expliquer pourquoi
+    mistake:
+      label: Ce que signifie une erreur
+      lesson: Un point en moins
+      olympiad: Le signe de l’endroit où le raisonnement a dévié
+    teaches:
+      label: Ce qu’on y apprend
+      lesson: À se servir d’un outil connu
+      olympiad: À en inventer un quand il n’y en a pas
+
+time:
+  title: Pourquoi l’école n’en a pas le temps
+  # Each card with the words of the small drawing at its foot.
+  cards:
+    syllabus:
+      title: Un programme pour toute la classe
+      text: En classe, il faut amener tous les élèves au niveau attendu. Les heures pour des problèmes hors programme sont difficiles à trouver.
+      lesson: Un cours
+      length: 45 minutes
+      all: le programme pour tous
+      extra: les problèmes hors programme
+    answer:
+      title: Un contrôle voit la réponse, pas la réflexion
+      text: Un contrôle vérifie le résultat. On a rarement le temps de revoir comment l’enfant a raisonné, et à quel endroit précis le raisonnement a dérapé.
+      steps: "la démarche : pas regardée"
+      answer: "Réponse : {answer}"
+    circle:
+      title: Il n’y a pas de club de maths partout
+      text: Les écoles n’ont pas toutes un club d’olympiades, et le plus proche peut être loin ou n’accueillir que des enfants plus âgés.
+      none: aucun
+      circle: un club
+
+parent:
+  title: Un parent peut préparer son enfant
+  note: MathTrail ne remplace pas un enseignant de maths d’olympiade, et un bon club avec un entraîneur apportera davantage. Mais jusqu’au niveau {last}, vous pouvez préparer vous-même votre enfant aux olympiades.
+  unneeded:
+    title: Vous n’avez pas besoin
+    items:
+      - D’un diplôme de maths
+      - De connaître les solutions à l’avance
+      - De trouver et de vérifier des problèmes
+  taken:
+    title: MathTrail prend en charge
+    items:
+      - les problèmes
+      - les réponses
+      - l’explication des erreurs
+      - le choix du niveau
+  needed:
+    title: Ce qu’il faut de votre part
+    items:
+      - title: La curiosité de votre enfant
+        text: Un problème d’olympiade est une énigme, pas un contrôle. L’enfant doit ressentir de la curiosité, pas la peur de se tromper.
+      - title: Expliquer à quoi ça sert
+        text: Pas « pour avoir les meilleures notes », mais pour apprendre à inventer un chemin quand personne n’a montré comment.
+      - title: Votre temps et votre intérêt
+        text: Un peu de temps aux côtés de votre enfant, de préférence souvent, plutôt que beaucoup d’un coup. Votre intérêt pour un problème est contagieux.
+  # Three moments of a lesson, each with what the child says and what the
+  # parent might answer; the letters stand for who speaks.
+  explain:
+    title: Comment expliquer à l’enfant à quoi ça sert
+    lead: Trois moments fréquents, et ce que vous pouvez dire. E désigne votre enfant.
+    child: E
+    you: Vous
+    talks:
+      why:
+        moment: Demande « à quoi ça sert ? »
+        child: À quoi ça me sert, ces problèmes ? Personne ne me les a donnés à faire.
+        you: "C’est comme une devinette : la réponse est cachée, et tu peux la trouver."
+      wrong:
+        moment: Se trompe
+        child: J’ai encore fait une erreur…
+        you: "Ici, tu as le droit de te tromper : une erreur montre où il faut réfléchir encore."
+      right:
+        moment: Trouve la bonne réponse
+        child: C’est bon ! La réponse, c’est cinq.
+        you: Le plus beau, ce n’est pas la réponse, c’est le chemin pour la trouver.
+
+thinking:
+  title: Comment MathTrail apprend à réfléchir
+  lead: Pas par le nombre de problèmes, mais par ce qui se passe autour de chacun.
+  points:
+    - title: Un problème, une idée
+      text: Chaque problème appartient à un thème, comme « {enumeration} », « {parity} » ou « {knights} ». Les thèmes forment une carte, du plus simple au plus difficile.
+    - title: Un problème à sa portée
+      text: Chaque thème a son propre score. C’est d’après lui que MathTrail choisit la suite, le thème et la difficulté ; le niveau scolaire ne fixe que le point de départ.
+    - title: Une erreur est un diagnostic
+      text: Derrière chaque mauvaise réponse se cache un piège qui porte un nom. L’explication part du raisonnement de l’enfant, pas de la bonne réponse.
+    - title: Un indice plutôt que la réponse
+      text: L’enfant peut ouvrir un indice sur la carte, et l’adulte peut demander dans le chat, avec les mots de l’enfant, « pourquoi pas 6 ? ». Le modèle répond à propos de ce problème précis.
+  topics: Voir les thèmes →
+  # The name of the child the card on this page shows, an invented one.
+  child: Comète
+  caption: La carte telle qu’un chat l’affiche après une mauvaise réponse. L’enfant et les nombres ne sont qu’un exemple.
+  # Two messages of the chat beneath the card: the adult's question and the
+  # model's reply, about the step and to nobody, for the adult to read out to
+  # the child. They are the site's words, never the card's.
+  chat:
+    label: Une illustration du chat
+    adult: L’adulte
+    model: Le modèle
+    question: Pourquoi pas 6 ?
+    reply: "Avec six, on compterait un poteau deux fois. Si l’on suit la clôture depuis la gauche, chaque intervalle se termine par un poteau : 4 intervalles donnent donc 4 poteaux, et le premier poteau se trouve avant tous les autres. 4 + 1 = 5."
+
+app:
+  title: Pourquoi ce n’est pas une application comme les autres
+  lead: Dans une étude des applications auxquelles jouent les enfants de trois à cinq ans, environ deux sur trois avaient des procédés conçus pour faire jouer l’enfant plus longtemps ({source}). MathTrail est fait autrement, et cela peut se vérifier.
+  # A make-believe app of the kind that keeps a child at the screen, every
+  # trick of it, and what MathTrail has of them.
+  bait:
+    coins: 12 450
+    gems: "87"
+    timer: 03:59 avant ton bonus
+    cheer: Tu es une star !!!
+    praise: Tu as résolu 1 calcul sur 1. Incroyable !
+    chest: Ouvre le coffre !
+    hat: Chapeau de dragon · 9,99 €
+    premium: Passe premium pour ×2 pièces !
+    caption: Ça vous rappelle quelque chose ? MathTrail n’a rien de tout cela.
+  # Each card with the short things at its foot that show what it says.
+  cards:
+    checked:
+      title: Un programme vérifie chaque problème
+      text: Le modèle écrit un problème et un programme qui le résout. Le serveur exécute ce programme dans un bac à sable étanche et vérifie qu’une et une seule réponse proposée est juste, que la réponse concorde, que le texte convient au niveau scolaire et qu’il ne reprend pas le texte de problèmes précédents. Un problème recalé n’arrive jamais jusqu’à l’enfant.
+      checks:
+        - une seule réponse
+        - tout concorde
+        - à sa portée
+        - pas un doublon
+      fails: recalé → n’arrive jamais à l’enfant
+    free:
+      title: Gratuit, et voici pourquoi
+      text: "MathTrail n’a pas sa propre IA. Le problème est écrit par le modèle de votre chat, dans le cadre de votre plan, et le plan Free de Claude suffit. Le serveur n’a presque rien à payer : il n’y a donc ni abonnement, ni publicité, ni thème verrouillé."
+      price: 0 €
+      none:
+        - abonnements
+        - publicités
+        - thèmes verrouillés
+    data:
+      title: Les données restent chez vous
+      text: Le profil de l’enfant est un fichier de votre Google Drive. Seules la réponse et la solution du problème en cours sont scellées, pour que l’enfant ne puisse pas y jeter un œil. Le serveur ne garde rien entre deux requêtes et ne vend rien.
+      # After the name of the profile's file.
+      where: votre Google Drive
+      server: "sur le serveur : rien"
+    screen:
+      title: Rien pour retenir l’enfant devant l’écran
+      text: Ni pièces, ni coffres, ni minuteurs, ni publicités. Une fois le problème résolu, on peut fermer le chat et en reparler au dîner.
+      none:
+        - pièces
+        - coffres
+        - minuteurs
+        - publicités
+      after: problème résolu → à table

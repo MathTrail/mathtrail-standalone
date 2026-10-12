@@ -1,6 +1,16 @@
 import type { ComponentChildren } from "preact";
 import type { PageReader } from "../reader";
-import { Chip, Key, Line, Row, Say, Stack, Then, Versus } from "../Sketch";
+import {
+	Chip,
+	Key,
+	Line,
+	Question,
+	Row,
+	Say,
+	Stack,
+	Then,
+	Versus,
+} from "../Sketch";
 import type { TopicArt } from "./art";
 
 // Paint is the colour a person or a boat is drawn in.
@@ -37,7 +47,11 @@ function Bead({
 
 // Slot is a place on the line still free.
 function Slot() {
-	return <span class="s-ord-slot">?</span>;
+	return (
+		<span class="s-ord-slot">
+			<Question />
+		</span>
+	);
 }
 
 // Block is two people who always stand side by side, in one outline, ringed

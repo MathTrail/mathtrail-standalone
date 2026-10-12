@@ -119,7 +119,7 @@ function Flow({ page, checks }: { page: PageReader; checks: number }) {
 				</p>
 				<p>
 					<span class="s-research-flow-label">{page.text(`${at}.solver`)}</span>
-					<span class="s-research-flow-code">
+					<span class="s-research-flow-code" dir="ltr">
 						{page.text(`${at}.sum`, {
 							length: <Given value={fence.length} />,
 							gap: <Given value={fence.gap} />,

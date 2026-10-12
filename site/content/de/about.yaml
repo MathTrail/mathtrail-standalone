@@ -1,0 +1,55 @@
+# The page "About", for a parent, in German: who makes MathTrail — one family,
+# each of us under a role — and where to write. The children go by their place
+# in the family, never by name, and each of us by the key our photograph goes
+# by. The address and the link to the code are the footer's, which the page
+# fills in.
+
+title: Team
+description: "MathTrail ist das Werk einer Familie: wer was macht und wie Sie uns erreichen."
+
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
+hero:
+  title: MathTrail ist das Werk einer Familie
+  lead: >-
+    MathTrail ist aus elterlicher Fürsorge entstanden. Wir sind zu viert: Papa
+    baut die Plattform, Mama sorgt im Projekt für Gemütlichkeit und Ordnung,
+    unser quirliger älterer Sohn knackt mit leuchtenden Augen die neuen
+    Aufgaben, und der Jüngere schnauft einfach süß nebenan und erinnert uns
+    daran, wofür wir das alles tun.
+  photo: Wir vier an einem Tisch mit einer Schokoladentorte, Papa hält den jüngeren Sohn auf dem Arm.
+
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
+team:
+  title: Wer wir sind
+  members:
+    mum:
+      role: Chefin für alles
+      name: Mama
+      text: Urheberin der Idee und leitende Designerin des Projekts. Legt die Produktanforderungen fest und kümmert sich auch um alles andere, also wirklich um alles!
+      photo: Mama in einer beigefarbenen Jacke lächelt.
+    dad:
+      role: Full-Stack-Babyhalter
+      name: Papa
+      text: Schreibt mit der einen Hand Code und schaukelt mit der anderen das Baby. Deployt strikt erst nach dem Mittagsschlaf, sonst wacht die Produktion auf und weint.
+      photo: Papa mit dem jüngeren Sohn in einer Trage vor der Brust, das Baby trägt Gehörschutz.
+    older-son:
+      role: Chef-Aufgabenknacker
+      name: Älterer Sohn
+      text: Löst neue Aufgaben als Erster und sagt ehrlich, wo sie unklar sind.
+      photo: Der ältere Sohn hält ein Spielzeug aus Lego-Steinen, um ihn herum sind weiße Sterne und eine Krone gekritzelt.
+    younger-son:
+      role: F&E-Praktikant (Crashtest)
+      name: Jüngerer Sohn
+      text: Testet vorerst die Belastbarkeit von Spielzeug. Bis zu seiner ersten Aufgabe dauert es noch ein paar Jahre.
+      photo: Der jüngere Sohn liegt auf dem Bauch auf einem weichen Teppich, neben ihm ein Teddybär.
+
+contact:
+  title: Einen Fehler gefunden oder eine Idee?
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: Schreiben Sie uns an {address} oder {issue} – wir lesen alles.
+  issue: erstellen Sie ein Issue auf GitHub
+  write: Schreiben Sie uns
+  github: GitHub

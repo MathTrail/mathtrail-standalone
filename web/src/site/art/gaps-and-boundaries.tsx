@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import type { PageReader } from "../reader";
-import { Box, Key, Line, Op, Row, Say, Stack, Versus } from "../Sketch";
+import { Box, Divide, Key, Line, Op, Row, Say, Stack, Versus } from "../Sketch";
 import type { TopicArt } from "./art";
 
 // Thing is what stands in a row: a fence's post, a tree, or a bus stop.
@@ -405,7 +405,9 @@ export const art: TopicArt = {
 				<Stack gap={8} align="start">
 					<Row name={page.text(`${at}.floors`)} gap={4}>
 						<Box size="sm">9</Box>
-						<Op>:</Op>
+						<Op>
+							<Divide />
+						</Op>
 						<Box size="sm">3</Box>
 						<Op>=</Op>
 						<Box size="sm" ring="wrong">
@@ -414,7 +416,9 @@ export const art: TopicArt = {
 					</Row>
 					<Row name={page.text(`${at}.flights`)} gap={4}>
 						<Box size="sm">8</Box>
-						<Op>:</Op>
+						<Op>
+							<Divide />
+						</Op>
 						<Box size="sm">2</Box>
 						<Op>=</Op>
 						<Box size="sm" ring="right">

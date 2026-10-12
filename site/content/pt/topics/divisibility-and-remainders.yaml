@@ -1,0 +1,211 @@
+# The page of the topic of divisibility and remainders, for a parent, in
+# Portuguese. The topic's name, its group, its grades and its traps' names are
+# not here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Divisibilidade e restos
+description: O que são os problemas de divisibilidade e restos, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+hero:
+  lead: >-
+    29 alunos vão a uma excursão, e cada carro leva 4. Quantos carros são
+    necessários? Nestes problemas, a criança faz uma divisão com resto e
+    depois decide o que esse resto significa: um carro a mais, uma bala que
+    sobra, um lugar na fileira seguinte. Os critérios de divisibilidade
+    respondem a “é divisível?” sem fazer divisão nenhuma.
+  method: Escrever o número como grupos completos e o que sobra
+  teaches: A entender o resto nas palavras do próprio problema e a testar a divisibilidade sem dividir
+  # The words of its drawing: what it divides over it, and what the division
+  # comes to under it.
+  art:
+    line: 14 objetos em grupos de 3
+    groups: 4 grupos completos e sobram 2
+
+basis:
+  title: As regras da divisão
+  cards:
+    - title: O resto é menor
+      text: >-
+        Na divisão por 7, o resto é 0, 1, 2 e assim por diante até 6. Se der 7
+        ou mais, cabe mais um grupo.
+      art:
+        remainders: "restos na divisão por 7: de 0 a 6"
+    - title: O que o resto significa
+      text: >-
+        29 alunos em carros de 4 lugares são 7 carros cheios e sobra 1 aluno,
+        então são necessários 8 carros. A mesma divisão pode ter como resposta
+        7, 8 ou 1: quem decide é a pergunta.
+      art:
+        cars: 29 = 7 × 4 + 1, então são necessários 8 carros
+    - title: Regras práticas
+      text: >-
+        Um número é divisível por 2 quando o último algarismo é par; por 5,
+        quando termina em 0 ou 5; e por 3 ou por 9, quando a soma dos seus
+        algarismos também é.
+      # The rules on its drawing, the digits each looks at in bold.
+      art:
+        by-two: por 2
+        even: "o último algarismo é par: 13**6**"
+        by-five: por 5
+        five: "termina em 0 ou 5: 24**5**"
+        by-three: por 3 e 9
+        digits: "a soma dos algarismos: 3 + 8 + 1 + 6 = **18**"
+
+idea:
+  title: Grupos e o que sobra
+  lead: Todo número inteiro pode ser escrito como grupos completos e o que sobra. A pergunta decide qual dos dois ela quer.
+  table:
+    head:
+      - A pergunta
+      - A divisão · em azul, o que se pergunta
+      - A resposta
+    rows:
+      - - Quantos carros de 4 lugares são necessários para 29 alunos?
+        - 29 = 7 × 4 + 1
+        - 8 carros
+      - - "29 balas repartidas entre 4 crianças: quantas cada uma ganha?"
+        - 29 = 7 × 4 + 1
+        - 7 balas para cada uma
+      - - Quantas das 29 balas sobram?
+        - 29 = 7 × 4 + 1
+        - 1 bala
+  note:
+    title: Por que isso importa
+    text: >-
+      A divisão é a mesma em todas as linhas; só o significado muda. Mesmo
+      dividindo certo, a criança pode dar o número de grupos completos quando
+      a pergunta pede o resto, ou esquecer o carro do último aluno.
+
+method:
+  title: "Como resolver: grupos completos e um resto"
+  lead: >-
+    Escreva o número como grupos completos e o que sobra. Depois leia a
+    pergunta de novo e decida o que ela quer: os grupos, o resto ou um grupo a
+    mais. Quando ela pede o menor número ou o algarismo com alguma
+    propriedade, teste um por um, em ordem. Os exemplos abaixo vão do mais
+    simples a um de olimpíada.
+  steps:
+    - Separar em grupos completos e um resto
+    - Decidir o que a pergunta pede
+    - Conferir a resposta com o enunciado
+  # The key under the steps: what the drawings' groups mean.
+  legend:
+    group: um grupo completo
+    rest: o que sobra
+
+examples:
+  - title: Ônibus para uma excursão
+    question: >-
+      150 alunos vão a uma excursão da escola, e cada ônibus tem 40 lugares.
+      Quantos ônibus são necessários?
+    steps:
+      - "Separamos os alunos em grupos de 40: 150 = 3 × 40 + 30. Três ônibus ficam cheios, e sobram 30 alunos."
+      - Esses 30 alunos também precisam de um ônibus, mesmo que ele não fique cheio.
+      - 3 + 1 = 4 ônibus.
+    answer: 4 ônibus.
+    note:
+      title: Por que não 3 nem 30?
+      text: >-
+        3 é o número de ônibus cheios, e 30 é quantos alunos vão no último. A
+        pergunta pede todos os ônibus necessários.
+    art:
+      seats: 40 lugares
+      pupils: 150 alunos
+      left: sobram
+      part: 30 de 40 lugares
+      full: cheios
+      last: no último
+      all: todos os ônibus
+  - title: O asterisco em 38*6
+    question: >-
+      Que algarismo deve ficar no lugar do asterisco em 38*6 para que o número
+      possa ser dividido por 9 sem sobrar nada?
+    steps:
+      - Um número é divisível por 9 exatamente quando a soma dos seus algarismos também é.
+      - >-
+        Os algarismos conhecidos somam 3 + 8 + 6 = 17, e o asterisco é um
+        algarismo de 0 a 9, então a soma fica entre 17 e 26.
+      - "O único número de 17 a 26 divisível por 9 é 18, então o asterisco é 1: 3816 = 9 × 424."
+    answer: O algarismo 1.
+    note:
+      title: E por 3?
+      text: >-
+        Para 3, a soma precisa ser divisível por 3: 18, 21 e 24 são, então o
+        asterisco pode ser 1, 4 ou 7. O critério do 9 é mais rigoroso e, aqui,
+        deixa um só algarismo.
+    art:
+      sum: a soma dos algarismos é divisível por 9?
+  - title: Cem fatores iguais a dois
+    question: >-
+      O produto 2 × 2 × 2 × … × 2 tem cem fatores iguais a dois. Qual é o
+      último algarismo do resultado?
+    steps:
+      - >-
+        Observamos o último algarismo enquanto multiplicamos os fatores um a
+        um: 2, 4, 8, 16, 32, 64, 128, 256. Os últimos algarismos são 2, 4, 8, 6
+        e depois se repetem.
+      - >-
+        O padrão tem 4 algarismos, e 100 = 25 × 4: o centésimo fator fecha a
+        25ª volta do padrão, no 4º lugar dela.
+      - O 4º lugar do padrão é o 6, então o resultado termina em 6.
+    answer: "6."
+    note:
+      title: Restos disfarçados
+      text: >-
+        Só importava o resto da divisão de 100 por 4: ele dizia em que lugar do
+        padrão cai o centésimo fator. Os restos respondem a muitas perguntas
+        sobre coisas que se repetem: últimos algarismos, dias da semana, lugares
+        em círculo.
+    art:
+      first: em azul, a primeira volta do padrão
+      rounds: 25 voltas de 4 fatores = 100 fatores
+      place: "resto 0: o último lugar de uma volta, o 4º"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  remainder_vs_quotient:
+    shows: >-
+      Os grupos completos e o resto trocam de lugar: a criança responde com os
+      30 alunos que sobram quando a pergunta pede o número de ônibus, ou toma
+      25, o número de voltas completas do padrão, pelo lugar dentro dele.
+    say: “A pergunta é sobre os grupos completos ou sobre o que sobra?”
+    art:
+      question: Quantos ônibus são necessários?
+      left: alunos que sobram
+      buses: ônibus
+  off_by_one:
+    shows: >-
+      A resposta sai com um grupo a mais ou a menos: o ônibus dos últimos 30
+      alunos é esquecido, 3 em vez de 4, ou os lugares de um padrão são
+      contados a partir de 0 em vez de 1.
+    say: “O que sobra precisa de mais um grupo?”
+    art:
+      question: 150 alunos, 40 lugares por ônibus
+  missed_case:
+    shows: >-
+      Um caso é encontrado e a busca termina: o asterisco é 1, e a criança não
+      confere se 4 e 7 também servem quando a pergunta é sobre o 3.
+    say: “Você testou todos os algarismos de 0 a 9?”
+    art:
+      question: 38*6 é divisível por 3
+      more: e só isso?
+
+home:
+  - title: Dividir com resto
+    text: >-
+      Reparta balas ou cartas entre as pessoas da família e diga o resultado
+      em duas partes: quantas cada pessoa ganha e quantas sobram.
+  - title: O teste dos algarismos
+    text: >-
+      Invente números grandes e teste se são divisíveis por 3 e por 9 somando
+      os algarismos; depois, divida na calculadora para ver a regra funcionar.
+  - title: Coisas que se repetem
+    text: >-
+      Procure padrões que dão voltas: os dias da semana, as cores de um colar,
+      os últimos algarismos de 3, 9, 27, 81. Pergunte o que vem 50 passos
+      adiante.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de divisibilidade e restos

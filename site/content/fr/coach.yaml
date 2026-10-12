@@ -1,0 +1,48 @@
+# The page "Coach", for a parent, in French: a product of its own, still in
+# the making, that leads a child through a problem on a tablet, and its
+# prototype to try in a frame. The prototype speaks English alone in every
+# language of the page and is never translated. The number of techniques on
+# the first screen's second button is the site's data.
+
+title: Coach
+description: Nous créons un coach pour les enfants de 7 à 12 ans, qui résolvent des problèmes d’olympiade sur une tablette et y réfléchissent par eux-mêmes. Essayez son prototype.
+
+hero:
+  badge: En développement
+  title: Des maths d’olympiade où c’est l’enfant qui réfléchit
+  lead: "Nous créons un coach pour les enfants de 7 à 12 ans. L’enfant résout un problème sur une tablette, en dessinant et en écrivant sur une zone de dessin, comme dans un cahier. Un compagnon choisi par l’enfant guide la résolution en quatre phases et pose des questions qui mettent sur la voie. Le compagnon ne donne jamais la réponse : c’est l’enfant qui l’écrit."
+  try: Essayer le prototype
+  # A screen of the prototype beside the words: what it shows, for whoever
+  # cannot see it, and the line under it.
+  screen: "Le prototype de MathTrail : l’enfant choisit un compagnon"
+  caption: "Un écran du prototype : l’enfant choisit avec qui résoudre le problème. Essayez-le ci-dessous."
+
+# What the coach is about, a card for each idea, under a heading a screen
+# reader alone says.
+ideas:
+  title: À quoi ressemblera le coach
+  items:
+    - title: Les quatre phases de Pólya
+      text: Comprendre → faire un plan → résoudre → vérifier. Les phases sont toujours visibles.
+    - title: Une zone de dessin comme un cahier
+      text: Le dessin fait partie de la solution. Les indices arrivent un par un, sans réponses proposées parmi lesquelles choisir.
+    - title: Un compagnon à soi
+      text: Un renard, un robot, une chouette, un chat, un dinosaure, ou celui que dessine l’enfant.
+
+# The prototype in its frame: the frame's name for a screen reader, the line
+# under it, and the link that opens it alone.
+prototype:
+  frame: "MathTrail : un prototype interactif"
+  caption: "Un prototype interactif : essayez de dessiner une solution"
+  open: Ouvrir en plein écran ↗
+
+# What the prototype is, and what it only pretends to do yet.
+notes:
+  title: C’est un prototype
+  text: Tout est cliquable, et l’on peut tracer sur la zone de dessin avec une souris ou un doigt. Pour l’instant, l’interface est en anglais.
+  imitated:
+    title: Simulé pour l’instant
+    items:
+      - reconnaissance de l’écriture manuscrite et des dessins
+      - la voix du compagnon
+      - problèmes à partir d’une photo

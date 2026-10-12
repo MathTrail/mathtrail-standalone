@@ -1,0 +1,233 @@
+# The page of the topic of the calendar and age, for a parent, in French. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Calendrier et âges
+description: Ce que sont les problèmes de jours de la semaine, de dates et d’âges, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+hero:
+  lead: >-
+    Aujourd’hui, c’est mardi : quel jour serons-nous dans 30 jours ? Maman a
+    30 ans et Anna en a 6 : quel âge aura Anna quand l’âge de Maman sera le
+    double du sien ? Dans ces problèmes, l’enfant travaille avec les semaines,
+    les mois et les années, et la plupart reposent sur deux faits : la semaine
+    recommence tous les 7 jours, et la différence entre deux âges ne change
+    jamais.
+  method: Retirer les semaines entières, garder la différence d’âge
+  teaches: À compter les jours et les années sans les compter un par un
+  # The words of its drawing: a month whose Tuesdays stand in one column.
+  art:
+    line: La semaine recommence tous les 7 jours
+    tuesdays: tous les mardis dans une même colonne, à 7 jours d’écart
+
+basis:
+  title: Les règles du calendrier
+  cards:
+    - title: La semaine recommence
+      text: >-
+        Tous les 7 jours, le même jour de la semaine revient. Donc, pour
+        30 jours plus tard, seuls comptent les 2 jours qui restent après
+        4 semaines entières.
+      art:
+        week: 7 j
+        month: 30 jours = 4 semaines et encore 2 jours
+    - title: Les deux bouts d’une période
+      text: >-
+        Du 3 mai au 10 mai, on avance de 7 jours, mais des vacances du 3 au 10
+        durent 8 jours, car le premier et le dernier jour comptent tous les
+        deux.
+      art:
+        holidays: "du 3 au 10 : 8 jours de vacances"
+    - title: La différence reste la même
+      text: >-
+        Maman a aujourd’hui 24 ans de plus qu’Anna, et elle aura toujours
+        24 ans de plus dans 10 ans : chacune prend un an chaque année.
+      art:
+        now: maintenant
+        then: dans 10 ans
+        anya: Anna
+        mum: Maman
+
+idea:
+  title: Retirer les semaines entières
+  lead: Quel jour de la semaine serons-nous dans tant de jours ? Seul compte ce qui reste après les semaines entières.
+  table:
+    head:
+      - Dans combien de jours
+      - Semaines entières et jours restants
+      - Si aujourd’hui, c’est lundi
+    rows:
+      - - "10"
+        - 1 semaine et 3 jours
+        - jeudi
+      - - "15"
+        - 2 semaines et 1 jour
+        - mardi
+      - - "30"
+        - 4 semaines et 2 jours
+        - mercredi
+      - - "100"
+        - 14 semaines et 2 jours
+        - mercredi
+  # The words of the drawings of whole weeks and the days left over.
+  art:
+    week: 7 j
+    weeks: 14 × 7 j
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Compter cent jours sur ses doigts prend du temps, et on se trompe
+      facilement. En retirant les semaines entières, il ne reste qu’à avancer
+      d’un jour ou deux.
+
+method:
+  title: "Comment le résoudre : trouver ce qui ne change pas"
+  lead: >-
+    Cherchez ce qui reste pareil : la semaine recommence tous les 7 jours, et
+    l’écart entre deux âges ne change jamais. Servez-vous-en pour laisser de
+    côté ce qui ne compte pas, puis comptez seulement ce qui reste. Les
+    exemples ci-dessous vont du plus simple à un problème d’olympiade.
+  steps:
+    - Trouver ce qui se répète ou ne change pas
+    - Retirer les semaines entières, ou raisonner sur la différence d’âge
+    - Compter ce qui reste, et vérifier si les deux bouts comptent
+  # The key under the steps: what the drawings' blocks and colours mean.
+  legend:
+    week: 7 j
+    whole: une semaine entière
+    day: un jour restant
+    difference: la différence d’âge
+
+examples:
+  - title: L’arrosage des fleurs
+    question: >-
+      Clara arrose les fleurs tous les 3 jours. La première fois, elle les
+      arrose un lundi. Quel jour de la semaine les arrose-t-elle pour la
+      4e fois ?
+    steps:
+      - >-
+        Du 1er arrosage au 4e, il y a 3 intervalles de 3 jours, et non 4 :
+        3 × 3 = 9 jours.
+      - 9 jours, c’est une semaine et encore 2 jours.
+      - Une semaine après lundi, c’est de nouveau lundi, et 2 jours plus tard, c’est mercredi.
+    answer: Un mercredi.
+    badge: Mer.
+    note:
+      title: Pourquoi pas samedi ?
+      text: >-
+        Avec 4 × 3 = 12 jours, on compte aussi un intervalle après le
+        4e arrosage. Entre 4 arrosages, il y a 3 intervalles, comme entre
+        4 poteaux.
+    art:
+      monday: Lun.
+      first: le premier arrosage un lundi, puis tous les 3 jours
+      three-days: 3 jours
+      gaps: 3 intervalles × 3 jours = 9 jours
+      week: 7 j
+      numbers: sous chaque jour bleu, le numéro de l’arrosage
+      no-gap: après le 4e arrosage, il n’y a pas d’intervalle
+  - title: Jade et Papa
+    question: >-
+      Papa a 28 ans de plus que Jade. Dans 4 ans, il aura 3 fois l’âge de
+      Jade. Quel âge a Jade maintenant ?
+    steps:
+      - "La différence ne change jamais : dans 4 ans, Papa aura toujours 28 ans de plus."
+      - >-
+        Alors l’âge de Papa vaut trois fois celui de Jade, comme sur le dessin.
+        Les deux parts en plus, ce sont les 28 ans, donc une part vaut
+        28 : 2 = 14.
+      - >-
+        Dans 4 ans, Jade aura 14 ans, donc elle a maintenant 14 − 4 = 10 ans.
+        Vérification : Papa a 38 ans maintenant, et dans 4 ans, 42 = 3 × 14.
+    answer: 10 ans.
+    art:
+      now: maintenant
+      then: dans 4 ans
+      vera: Jade
+      dad: Papa
+      difference: "orange : la différence, 28 ans"
+      parts: "dans 4 ans : 2 parts = 28, une part = 14"
+      check: "vérification : 38 + 4 = 42 = 3 × 14"
+  - title: Trois samedis pairs
+    question: >-
+      Dans un certain mois, trois samedis tombent à des dates paires. Quel
+      jour de la semaine est le 25 de ce mois ?
+    steps:
+      - >-
+        Les samedis reviennent tous les 7 jours, et 7 est impair, donc leurs
+        dates alternent : paire, impaire, paire, impaire…
+      - >-
+        Pour avoir trois samedis pairs, il en faut cinq, le premier à une date
+        paire. Le cinquième arrive 28 jours après le premier et doit encore
+        tenir dans le mois, donc le premier tombe au plus tard le 3. La seule
+        date paire parmi les trois premières est le 2 : les samedis sont les
+        2, 9, 16, 23 et 30.
+      - Le 23 est un samedi, donc le 25, deux jours plus tard, est un lundi.
+    answer: Lundi.
+    badge: Lun.
+    note:
+      title: Pair et impair dans le calendrier
+      text: >-
+        La clé de ce problème, c’est la parité : 7 est impair, donc les dates
+        d’un même jour de la semaine alternent entre paires et impaires d’une
+        semaine à l’autre.
+    art:
+      even: "bleu : pair, orange : impair"
+      first: premier samedi
+      fifth: cinquième samedi
+      saturdays: les samedis en bleu, et le 25 est un lundi
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      Le compte des jours a un jour de trop ou de moins : l’enfant compte
+      aujourd’hui comme le premier des jours à venir, trouve 4 intervalles
+      entre 4 arrosages, ou oublie un bout d’une période, comme pour des
+      vacances du lundi au dimanche.
+    say: "« Quel est le jour 1 : aujourd’hui ou demain ? »"
+    art:
+      gaps: Les intervalles entre 4 arrosages
+  wrong_operation:
+    shows: >-
+      L’enfant fait une opération que la question ne demande pas : additionner
+      les deux âges quand elle demande de combien l’un est plus âgé que
+      l’autre, ou soustraire une date d’une autre quand elles sont dans des
+      mois différents.
+    say: "« Dis-le avec des mots : le nombre augmente, diminue ou reste pareil ? »"
+    art:
+      older: De combien Maman (30) est-elle plus âgée qu’Anna (6) ?
+  ignored_condition:
+    shows: >-
+      Une donnée du calendrier ou de l’énoncé est perdue de vue : que ce
+      mois-ci compte 30 jours et non 31, ou que 365 jours font des semaines
+      entières et un jour de plus.
+    say: « Combien de jours compte ce mois-ci ? »
+    art:
+      year: 365 jours après un lundi
+      weeks: 52 × 7 j
+      monday: Lun.
+      tuesday: Mar.
+
+home:
+  - title: Un calendrier au mur
+    text: >-
+      Accrochez un calendrier en papier à portée de l’enfant et posez-lui des
+      questions : quel jour de la semaine sera le 1er du mois prochain ?
+      Combien y a-t-il de vendredis ce mois-ci ?
+  - title: Les âges dans la famille
+    text: >-
+      Notez l’âge de chacun et les différences entre ces âges. Un an plus
+      tard, regardez de nouveau : les âges ont changé, mais pas les
+      différences.
+  - title: Le compte à rebours
+    text: >-
+      Comptez ensemble les jours jusqu’à un anniversaire ou une fête, d’abord
+      un par un, puis par semaines entières, et constatez que les deux façons
+      donnent le même résultat.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Calendrier et âges »

@@ -1,0 +1,87 @@
+# The page of the topics, in Simplified Chinese: what a child's tasks are
+# about, how the topics build on one another, and every topic of the catalog
+# with a drawing and a line for the parent. A topic's name is the card's own,
+# from the widget's words; its grades and its links are the catalog's, and its
+# group the site's data.
+
+title: MathTrail 的专题
+description: MathTrail 出题涉及的全部专题、专题之间如何层层递进，以及每个专题讲的是什么。
+
+hero:
+  title: 您的孩子要做哪些题
+  lead: MathTrail 的每道题都属于一个专题。这里列出了全部专题、各专题的题是什么样的，以及哪些专题建立在其他专题之上。
+  # The name of the child the card on this page shows, an invented one.
+  child: 彗星
+  caption: 聊天中显示的进度，每个专题都有等级。孩子和数字都只是示例。
+
+map:
+  title: 专题之间的联系
+  lead: 有些专题建立在其他专题之上。抽屉原理和真假话问题都要用到枚举法。孩子在较难的专题上卡住时，不妨退一步，回到它所依赖的专题。
+  layers:
+    - step: 第1步
+      name: 基础
+      lead: 几乎不需要预备知识。
+    - step: 第2步
+      name: 规律
+      lead: 一步步的推理变成了规律。
+    - step: 第3步
+      name: 难题
+      lead: 需要同时想着好几个思路。
+  hint: 指向一个专题，或用 Tab 键移到它上面，就会点亮它的前置专题和后续专题。
+  # Said under the map while a topic is pointed at: its name, every topic
+  # below it, and every topic above it.
+  say: "**{topic}** · 前置：{before} · 后续：{after}"
+  foundation: 无，这是基础专题
+  summit: 无，这是顶层专题
+  legend:
+    first: 前置
+    topic: 专题
+    then: 后续
+
+groups:
+  label: 专题分组
+  logic: 推理：先假设，再推出结论，然后找出矛盾。
+  counting: 把每种情况都数到，一种也不漏。
+  time: 钟表、星期和年份，以及随之变化的东西。
+  numbers: 这些关于数的题，思路比计算速度更重要。
+  parts: 把整体分成几部分：分数、百分数和比。
+  games: 找到一个方案，无论对方怎么走、天平怎么称，都管用。
+
+# Every topic of the catalog, by its slug: a line for the parent. Its card's
+# drawing is the site's data, one of the site's own small drawings and never a
+# reference task's, and it reads no words of this file.
+topics:
+  ordering:
+    phrase: 谁更高、谁年龄更大、谁更快：根据几条线索给所有人排好顺序。
+  knights-and-liars:
+    phrase: 有的人总说真话，另一些人总说假话。根据每个人说的话，推断出谁是谁。
+  enumeration:
+    phrase: 按顺序列出每一种情况，不漏掉一种，也不重复计数。
+  gaps-and-boundaries:
+    phrase: 柱子和间隔，楼层和楼梯：什么时候要加一，什么时候不加。
+  clocks:
+    phrase: 过了多长时间，到时候是几点：指针、钟面、跨过中午。
+  calendar-and-age:
+    phrase: 星期、月份和年龄。年龄差永远不变，星期则周而复始。
+  pigeonhole-principle:
+    phrase: 鸽子比鸽巢多，就一定有一个鸽巢里有两只。
+  parity-and-alternation:
+    phrase: 偶数和奇数，每隔一个：不必全部数完也能知道的事。
+  arithmetic-with-a-trick:
+    phrase: 巧妙地算：先调换顺序、分组，找到简便方法再动手计算。
+  weighing-and-pouring:
+    phrase: 用最少的称量次数找出假币，或者用没有刻度的壶量出需要的水。
+  parts-and-shares:
+    phrase: 一半、三分之一、四分之一：求整体的一部分，或由部分求整体。
+  percentages:
+    phrase: 这是百分之多少，是谁的百分之多少。百分之一就是一百份中的一份。
+  ratios-and-sharing:
+    phrase: 按2比3分配，求出一份是多少。
+  figures-on-a-grid:
+    phrase: 数方格求面积和周长。剪开、拼合，数的时候一格都不漏。
+  divisibility-and-remainders:
+    phrase: 一个数能不能整除，不能整除时余下多少。
+  overlapping-groups:
+    phrase: 有些孩子同时参加两个兴趣小组。如何避免把这些孩子数两次。
+  winning-strategy:
+    phrase: 谁能拿到最后一根火柴？找出无论对方怎么走都能赢的局面。

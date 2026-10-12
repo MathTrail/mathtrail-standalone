@@ -1,0 +1,225 @@
+title: 研究
+description: MathTrail 背后的数字：检查如何把关，让题目在毫无差错之前到不了孩子面前；学生模型对照目标表现如何；参考题从何而来。
+
+hero:
+  badge: 写给技术读者
+  title: 模型出题，
+  title_end: 服务检查。
+  lead: MathTrail 如何让一道题只有在通过{count}{noun}之后才能送到孩子面前，以及这些检查看不到什么。
+  paper: 完整论文 · PDF，{count}{noun}
+  code: 代码和数据
+  flow:
+    task: 题目
+    example: 篱笆长{length}米，每隔{gap}米有一根柱子，两端都有。一共有几根柱子？
+    solver: 求解程序
+    sum: "{length} ÷ {gap} + {one} = {posts} → {letter}"
+    hands_in: 题目和它的求解程序
+    back: 被拒绝，退回
+    twice: 求解程序运行两次
+    asks: 只有一个正确选项 · 用词适合该年级 · 不与之前的题重复
+    passed: 通过了全部检查
+    sealed: 答案密封，直到孩子作答
+  grades: "{first}–{last}年级"
+  licence: 开源代码，MIT
+
+theses:
+  title: 论文表明的四件事
+  writes:
+    title: 聊天模型出题
+    text: 每道题都由一家人已经在用的聊天应用中的模型来写，使用孩子的语言，故事也贴近孩子。MathTrail 自己不调用任何模型。它是一个小型的确定性服务，在两次请求之间不保留孩子的任何信息。
+    model: 聊天模型
+    model_does: 出题
+    service: MathTrail
+    service_does: 检查
+    child: 孩子
+    child_does: 解题
+  twice:
+    title: 求解程序运行两次
+    text: 模型在写题的同时，还会写一个小程序，用来算出答案并给出正确选项的字母。服务运行这个程序，然后把选项字母向后移{count}{noun}，于是{from}变成{to}，再运行一次。真正计算答案的程序会在新位置上找到答案，而把字母写死的程序则找不到。只有第一次运行恰好选出一个选项，才会进行第二次运行。
+    first: 第一次运行
+    second: 第二次运行，字母已移位
+    picks: → {letter}
+    caption: 把“{letter}”写死的程序，在第二次运行时会指向{value}，这道题就会被拒绝。
+  sealed:
+    title: 答案是密封的
+    text: 答案、解答、讲解和求解程序都经过加密，保存在家长 Google 云端硬盘里的孩子档案中。在孩子作答之前，服务交给卡片或聊天模型的任何内容中都没有它们，服务的日志里也没有。
+    sees: 孩子能看到的
+    seen: 题目 · 图 · 选项 · 提示
+    hidden: 作答前保持密封
+    kept: 答案 · 解答 · 讲解
+    cipher: XChaCha20-Poly1305 · 与孩子和题目绑定
+    outside: 密封管不到的是聊天本身。写题的模型知道答案，而聊天自己保存的工具调用记录，会把答案显示给打开它的成年人。
+  reach:
+    title: 稍难一点，但力所能及
+    text: 学生模型预测孩子解出一道题的可能性有多大，服务则请求答对概率最接近{middle}的那道题，这个值是从{low}到{high}的目标区间的中点。新来的孩子先做{trial}的定级练习，用来找到起点。
+    guess: c = {guess}，从{options}个选项中猜中一个
+    corridor: 瞄准的目标区间
+
+model:
+  title: 学生模型对照目标
+  lead: 服务对孩子水平的跟踪有多紧，让题目保持在力所能及范围内的效果如何，判定专题已掌握有多可靠，以及作答后期孩子会看到什么。这些数字来自测试台上模拟的孩子，由构建本网站的同一份代码计算得出。
+  run:
+    commit: 提交（commit）{commit} · {date}
+    size: "{children} × {answers}"
+    seed: 随机种子{seed}
+  paper: 论文报告的是规则在提交（commit）{commit} 时的样子，论文的数字就是在这个提交上算出的。本页跟随服务现在的运行情况，所以两者会有差异。
+  key:
+    service: 当前的服务
+    interval: "{interval}区间"
+    goal: 目标
+    ceiling: 上限，即知道孩子真实水平的理想估计
+  groups:
+    step: 估计如何跟上孩子
+    mastery: 如何判定已掌握
+    screen: 作答后期孩子看到的内容
+    screen_note: 第{first}–{last}次作答 · 目标是不超过第{earlyfirst}–{earlylast}次作答时的值
+    context: 仅供对比，没有目标
+  rows:
+    lag:
+      name: 对在进步的孩子的滞后
+      unit: logit，越小越好 · 理论最优为{best}
+    corridor_learning:
+      name: 落在目标区间{low}–{high}内的题
+      unit: 在进步的孩子 · 题目占比，越大越好
+    jump_unsettled:
+      name: 水平跃升后仍未跟上
+      unit: 孩子占比，越小越好
+    false_mastery_static:
+      name: 误判为已掌握
+      unit: 占所有“已掌握”判定的比例，越小越好
+    false_mastery_wide:
+      name: 误判为已掌握，各专题水平相差大
+      unit: 占所有“已掌握”判定的比例，越小越好
+    late_mastery_static:
+      name: 判定已掌握前的作答次数
+      unit: 作答次数，越少越好
+    late_mastery_wide:
+      name: 判定已掌握前的作答次数，各专题水平相差大
+      unit: 作答次数，越少越好
+    card_move_static:
+      name: 评分变动幅度
+      unit: 大多数作答的变动分数，越小越好
+    rank_changes_static:
+      name: 等级变化频率
+      unit: 每一百次作答的变化次数，越少越好
+    card_move_learning:
+      name: 评分，在进步的孩子
+      unit: 大多数作答的变动分数，越小越好
+    rank_changes_learning:
+      name: 等级，在进步的孩子
+      unit: 每一百次作答的变化次数，越少越好
+    error_static:
+      name: "{after}后的估计误差"
+      unit: 原地不动的孩子 · logit，越小越好
+    corridor_static:
+      name: 落在目标区间{low}–{high}内的题
+      unit: 原地不动的孩子 · 题目占比，越大越好
+  interval: "{low}–{high}"
+  goal_at_most: 目标 ≤ {bound}
+  goal_at_least: 目标 ≥ {bound}
+  ceiling: 上限{value}
+  marks:
+    reached:
+      name: 已达到
+      means: 整个区间都落在目标较好的一侧。
+    on_the_edge:
+      name: 临界
+      means: 区间包含目标。
+    not_reached:
+      name: 未达到
+      means: 整个区间都落在目标较差的一侧。
+    baseline:
+      name: 基线
+      means: 目标取自服务自己的数字，因此它是给下一版规则立的标杆，而不是对这一版规则的检验。
+
+live:
+  title: 真实数据
+  lead: 模型的承诺在真实的孩子身上是否兑现，逐月来看。数字来自作答日志，不含姓名，也不含任何题目的文本。
+  rule: 只有包含至少{children}、至少{answers}的区段才会显示，其中每个计数都取整为{rounded}的倍数。更小的区段直接略去，不与其他区段合并。
+  measures:
+    chances: 承诺 → 兑现
+    kept_up: 兑现 − 承诺，按作答序号
+    share: 规则所选题目的答对比例
+  frame:
+    coming:
+      badge: 即将公布
+      when: 一整个月统计完之后，数字会在下个月月初公布。
+    too_few:
+      badge: 数据尚少
+      when: "{month}，回答规则所选题目的孩子太少，无法显示任何数字。"
+  ready:
+    month: "{month}：{children}回答了规则所选的题，共{answers}。"
+    weighed: 只计入规则所选题目的作答：在{trial}的定级练习之后、没有使用提示的作答，所有聊天合在一起计算。
+    corridor: 用真实作答无法衡量落在目标区间内的题目占比，因为每道题只会被回答一次。
+    columns:
+      promised: 承诺
+      came_true: 兑现
+      answers: 作答次数
+      children: 孩子人数
+    chances:
+      none: 本月没有任何一个承诺概率区段包含足够多的孩子，因此不予显示。
+      shown:
+        caption: 每个承诺概率区段是一个点，包含的作答越多，点就越大。点落在虚线对角线上，说明承诺兑现了；色带是规则选题所用的目标区间。
+        up: ↑ 答对比例
+        across: 承诺的概率 →
+        ideal: 承诺兑现
+        band: 目标区间
+        range: "{from}–{to}"
+        heading: 承诺的概率
+    kept_up:
+      none: 本月没有任何一个作答序号区段包含足够多的孩子，因此不予显示。
+      shown:
+        caption: 答对记为一，答错记为零，减去承诺的概率，再对所有作答取平均。在虚线右侧，说明孩子们做得比承诺的好；误差须向两侧各延伸一个按孩子计算的标准误。
+        range: "{first}–{last}"
+        open: "{first}及以后"
+        heading: 作答序号
+        margin: 兑现减承诺
+        error: 标准误
+    share:
+      expected: 预期 ≈ {middle}，即目标区间的中点
+      caption: 规则请求答对概率最接近{middle}的题，这个值是从{low}到{high}的目标区间的中点。圆点表示答对的比例，虚线表示目标区间的中点。
+
+sources:
+  title: 参考题从何而来
+  lead: 思路不受著作权保护，文字才受保护。所以从书中只取题目的思路和答案，题目的措辞、故事、选项和陷阱都重新编写。
+  authors:
+    perelman:
+      name: 雅科夫·别莱利曼
+      books:
+        firsthundred: For Young Mathematicians. The First Hundred Puzzles
+        secondhundred: The Second Hundred Puzzles
+        living: 《生动的数学》
+        arithmetic: Entertaining Arithmetic
+        quick: Quick Reckoning
+    ignatyev:
+      name: 叶梅利扬·伊格纳季耶夫
+      books:
+        wit: In the Realm of Ingenuity, or Arithmetic for Everyone
+    dudeney:
+      name: 亨利·E. 杜德尼
+      books:
+        amusements: Amusements in Mathematics
+        canterbury: 《坎特伯雷趣题》
+    loyd:
+      name: 萨姆·劳埃德
+      books:
+        cyclopedia: Cyclopedia of Puzzles
+    carroll:
+      name: 刘易斯·卡罗尔
+      books:
+        tangled: A Tangled Tale
+        pillow: Pillow Problems
+  died: 卒于{year}年
+  public: 已进入公有领域
+  public_note: 这些书的著作权保护期已满。它们属于所有人，任何人都可以免费使用。
+  total: 共{count}{noun}
+  each: 每道题都有求解程序，每个错误选项背后都有一个陷阱
+  level: "{count} · {first}–{last}年级"
+  note: 题目风格沿袭苏联的习题集。参考题没有记录出处的字段，所以无法说出某道题的思路出自哪位作者。
+
+paper:
+  title: 完整论文
+  ready: 包含方法、表格、实验方案、局限性和伦理问题，以英文撰写。
+  waiting: 包含方法、表格、实验方案、局限性和伦理问题。PDF 将随下一个版本一起发布。
+  open: 打开 PDF
+  code: GitHub 上的代码

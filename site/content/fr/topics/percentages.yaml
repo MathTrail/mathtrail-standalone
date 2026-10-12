@@ -1,0 +1,214 @@
+# The page of the topic of percentages, for a parent, in French. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Pourcentages
+description: Ce que sont les problèmes de pourcentages, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+hero:
+  lead: >-
+    Un prix baisse de 20%, puis encore de 20%. A-t-il baissé de 40% ? Dans ces
+    problèmes, un pour cent est un centième de quelque chose, et toute la
+    difficulté tient à ce quelque chose : l’ancien prix ou le nouveau, tous
+    les oiseaux ou seulement les poules. L’enfant qui se demande
+    « un pourcentage de quoi ? » avant chaque étape évite la plupart des
+    erreurs.
+  method: Demander « un pourcentage de quoi ? » avant chaque étape
+  teaches: À trouver de quoi on prend un pourcentage et à remarquer quand cela change
+  # The words of its drawing: the whole it is drawn for.
+  art:
+    line: 100%, c’est 50
+
+basis:
+  title: Les règles des pourcentages
+  cards:
+    - title: Un centième
+      text: >-
+        Un pour cent est un centième d’une quantité. 100%, c’est la quantité
+        entière, et 50%, sa moitié.
+      art:
+        half: 50%, la moitié
+    - title: Un pourcentage de quoi ?
+      text: >-
+        Un pourcentage porte toujours sur quelque chose : l’ancien prix ou le
+        nouveau, tous les invités ou seulement les filles. Les mêmes 10% de
+        quantités différentes donnent des nombres différents.
+      art:
+        tens: 10% de 200 = 20 · 10% de 50 = 5
+    - title: D’abord dix pour cent
+      text: >-
+        10%, c’est la quantité divisée par 10. À partir de là, 20%, 30% ou 5%
+        sont à une étape : 30% de 80, c’est 3 × 8 = 24.
+      art:
+        eighty: 80, c’est dix parts de 8
+
+idea:
+  title: La base change
+  lead: Chaque pourcentage porte sur la quantité du moment. Quand un prix change deux fois, le second changement se calcule sur le nouveau prix.
+  table:
+    head:
+      - L’étape
+      - Calculé sur
+      - Le prix après
+    rows:
+      - - 20% de réduction
+        - 200, donc 40 de moins
+        - "160"
+      - - encore 20% de réduction
+        - 160, donc 32 de moins
+        - "128"
+      - - les deux ensemble
+        - 200, donc 72 de moins
+        - 36% de réduction, pas 40%
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Les magasins, les banques et les informations parlent en pourcentages,
+      et la difficulté est toujours de savoir sur quoi ils portent. Se demander
+      « un pourcentage de quoi ? » prépare l’enfant aussi bien à une olympiade
+      qu’au magasin.
+
+method:
+  title: "Comment le résoudre : nommer les cent pour cent"
+  lead: >-
+    Avant chaque étape, dites quelle quantité vaut 100%. Trouvez-en 1% ou 10%,
+    puis le pourcentage dont le problème a besoin. Quand la quantité change,
+    repartez des nouveaux 100%. Les exemples ci-dessous vont du plus simple à
+    un problème d’olympiade.
+  steps:
+    - Dire ce qui vaut 100%
+    - En trouver 1% ou 10%
+    - Prendre le pourcentage demandé, et vérifier de quoi il est pris
+  # The key under the steps: what a grid of the drawings stands for.
+  legend:
+    hundred: une grille de 100 cases, c’est 100%
+
+examples:
+  - title: Clubs de sport
+    question: >-
+      Une école compte 300 élèves, et 35% d’entre eux vont dans un club de
+      sport. Combien d’élèves ne vont dans aucun club de sport ?
+    steps:
+      - "100%, ce sont les 300 élèves, donc 1%, c’est 300 : 100 = 3 élèves."
+      - Ceux qui ne vont dans aucun club représentent 100% − 35% = 65% des élèves.
+      - 65%, c’est 65 × 3 = 195 élèves.
+    answer: 195 élèves.
+    note:
+      title: L’autre chemin
+      text: >-
+        35% de 300, c’est 35 × 3 = 105 élèves qui y vont, et 300 − 105 = 195.
+        Les deux chemins donnent la même réponse ; prendre tout de suite 65%
+        économise une étape.
+    art:
+      go: 35 cases sur 100 vont dans un club
+      grid: toute la grille, c’est 300 élèves
+      cell: une case, c’est 3 élèves
+      go-short: y vont
+      do-not: n’y vont pas
+  - title: Le prix d’un vélo
+    question: >-
+      Un vélo coûte 400 pièces. Au printemps, son prix augmente de 25%, et en
+      automne, le nouveau prix baisse de 20%. Combien coûte le vélo
+      maintenant ?
+    steps:
+      - >-
+        Au printemps, 100%, c’est l’ancien prix, 400 pièces : 25% de ce prix
+        font 100 pièces, donc le vélo coûte 500.
+      - "En automne, 100%, c’est le nouveau prix, 500 pièces : 20% de ce prix font 100 pièces."
+      - 500 − 100 = 400. Le vélo coûte de nouveau 400 pièces.
+    answer: 400 pièces.
+    note:
+      title: Pourquoi pas 420 ?
+      text: >-
+        On obtient 420 en prenant les 20% de l’automne sur l’ancien prix, soit
+        80 pièces. Mais en automne, le prix était déjà de 500, et 20% de 500
+        font 100.
+    art:
+      coins: pièces, le prix avant le printemps
+      quarters: "100% = 400 : quatre parts de 25%"
+      five-hundred: 500 pièces
+      fifths: "100% = 500 : cinq parts de 20%"
+      of-old: 20% de 400 = 80 →
+      of-new: 20% de 500 = 100 →
+  - title: Des pastèques qui sèchent
+    question: >-
+      Un fermier a 200 kg de pastèques qui contiennent 99% d’eau. Une semaine
+      plus tard, elles ont un peu séché et contiennent 98% d’eau. Combien
+      pèsent-elles maintenant ?
+    steps:
+      - >-
+        Ce qui ne sèche pas, c’est la partie qui n’est pas de l’eau : 1% de
+        200 kg, soit 2 kg. Elle pèse toujours 2 kg.
+      - Une semaine plus tard, l’eau représente 98%, donc ces 2 kg font 2% du nouveau poids.
+      - 2%, c’est 2 kg, donc 1%, c’est 1 kg, et 100%, c’est 100 kg.
+    answer: 100 kg.
+    note:
+      title: La moitié du poids ?
+      text: >-
+        Oui. L’eau n’est passée que de 99% à 98%, mais la partie qui n’est pas
+        de l’eau a doublé, de 1% à 2%. Ces 2 kg sont restés les mêmes, donc le
+        poids total a dû diminuer de moitié.
+    art:
+      melons: 200 kg, 99% d’eau
+      dry: "200 kg : une case fait 1 kg ; les cases orange, pas de l’eau, font 2 kg"
+      same: les mêmes 2 kg font maintenant 2 cases sur 100
+      was: 200 kg avant
+      became: 100 kg après
+      water: eau 99%
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  percent_wrong_base:
+    shows: >-
+      Le pourcentage est calculé sur la mauvaise quantité : les 20% de
+      l’automne sur l’ancien prix au lieu du nouveau, ou les 98% sur l’ancien
+      poids des pastèques.
+    say: « Quelle quantité vaut 100% maintenant ? »
+    art:
+      question: En automne, le prix de 500 baisse de 20%
+      of-old: 20% de 400 =
+      of-new: 20% de 500 =
+  part_whole_swap:
+    shows: >-
+      Une partie est prise pour le tout, ou le tout pour une partie : les 2 kg
+      qui ne sont pas de l’eau sont donnés comme poids des pastèques, ou toute
+      l’école est comptée alors que la question porte sur une partie
+      seulement.
+    say: « Ce nombre, c’est une partie ou le tout ? »
+    art:
+      question: Combien pèsent les pastèques ?
+      dry: 2 kg
+      only-dry: seulement ce qui n’est pas de l’eau
+      all: 100 kg
+      weight: tout le poids
+  answered_other_question:
+    shows: >-
+      Un nombre trouvé en chemin devient la réponse : les 105 élèves qui vont
+      dans un club alors que la question porte sur ceux qui n’y vont pas, ou
+      les 100 pièces dont le prix a changé au lieu du prix lui-même.
+    say: « Que demande exactement la question ? »
+    art:
+      question: Combien d’élèves ne vont dans aucun club ?
+      go: y vont
+      do-not: n’y vont pas
+
+home:
+  - title: Les pourcentages au magasin
+    text: >-
+      Au magasin, trouvez un prix avec une réduction et calculez-le ensemble :
+      combien font 150 avec 20% de réduction ? Commencez par 10%.
+  - title: D’abord dix pour cent
+    text: >-
+      Entraînez-vous à trouver 10% de n’importe quoi : de 80, de 350, de 1200.
+      À partir de 10%, la plupart des autres pourcentages sont à une étape.
+  - title: Un pourcentage de quoi ?
+    text: >-
+      Quand vous entendez un pourcentage aux informations ou dans une
+      publicité, demandez-vous ensemble : un pourcentage de quoi ? Souvent,
+      personne ne le dit.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Pourcentages »

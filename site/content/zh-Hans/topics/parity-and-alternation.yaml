@@ -1,0 +1,179 @@
+# The page of the topic of parity and alternation, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 奇偶性与交替
+description: 什么是关于奇偶性与交替的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+# The words the page's drawings say of a number and of a corner of the cube.
+art:
+  even: 偶数
+  odd: 奇数
+  start: 起点
+
+hero:
+  lead: >-
+    15个孩子能不能围成一圈，按男孩、女孩、男孩、女孩的顺序一直排满一整圈？这类题不用全部数一遍，也不用把每种办法都试一遍，靠偶数和奇数就能回答：渡船在哪一岸，某个得分有没有可能，谁走最后一步。很多孩子正是通过奇偶性，第一次遇到不管怎么走都不会变的东西。
+  method: 看每一步对奇偶有什么影响
+  teaches: 不必把每种办法都试一遍，也能回答“这可能吗？”
+  # The words of its drawing: who takes turns, the key of the colours, and
+  # what the two circles show.
+  art:
+    line: 男孩和女孩围成一圈交替站
+    boy: 男孩
+    girl: 女孩
+    six: 6个孩子：可以
+    five: 5个孩子：不行
+    even: 围成一圈时，只有孩子的人数是偶数，才能交替站
+
+basis:
+  title: 奇偶的规则
+  cards:
+    - title: 偶数能两两配对
+      text: >-
+        偶数个东西能两两配成对，一个也不剩。奇数个东西总会剩下一个配不上对。
+    - title: 只有奇数要紧
+      text: >-
+        偶数加偶数是偶数，奇数加奇数是偶数，偶数加奇数是奇数。所以一个和是不是偶数，只取决于里面有几个奇数。
+    - title: 交替
+      text: >-
+        两样东西交替排列时，一样占奇数位，另一样占偶数位。围成一圈时，只有位置数是偶数，才能一整圈都交替下去。
+      art:
+        places: 男孩在奇数位，女孩在偶数位
+
+idea:
+  title: 只数奇数
+  lead: 要判断一个和是不是偶数，不必把它算出来。数一数里面有几个奇数就行。
+  table:
+    head:
+      - 算式
+      - 奇数的个数
+      - 和是
+    rows:
+      - - 4 + 6 + 8
+        - 没有
+        - 偶数
+      - - 3 + 5
+        - "2"
+        - 偶数
+      - - 3 + 5 + 7
+        - "3"
+        - 奇数
+      - - 1 + 2 + … + 10
+        - "5"
+        - 奇数
+  note:
+    title: 为什么重要
+    text: >-
+      很多奥数题问的是某件事究竟有没有可能发生。奇偶性不必把各种办法试一遍，就能回答“不可能”：如果每一步都让某个数保持偶数，而目标要求它是奇数，那么怎么走都到不了目标。
+
+method:
+  title: 解法：盯住奇偶
+  lead: >-
+    在题目里找一个能看出奇偶的数：个数、和，或者在一排中的位置。看每次移动或每一步对它有什么影响，是变了还是没变，再把开始和目标比一比。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 找出要看奇偶的数
+    - 看每一步对它有什么影响
+    - 把开始和目标比一比
+
+examples:
+  - title: 渡船
+    question: >-
+      一艘渡船载着汽车过河，再开回来，一趟又一趟。渡船从左岸出发。过河7次以后，渡船在哪一岸？
+    steps:
+      - 过河1次后，渡船在右岸；过河2次后，又回到左岸。
+      - >-
+        每过两次河，渡船就回到出发的地方。所以过河偶数次后，渡船在左岸；过河奇数次后，在右岸。
+      - 7是奇数，所以渡船在右岸。
+    answer: 在右岸。
+    badge: →
+    note:
+      title: 为什么不直接数？
+      text: >-
+        过河7次，数一数很快。可是规律回答过河100次也一样快，更难的题需要的正是这条规律。
+    art:
+      start: 开始时在左岸
+      none: 过河0次
+      one: 过河1次
+      two: 过河2次
+      left: 左岸
+      right: 右岸
+  - title: 四支飞镖
+    question: >-
+      小明向靶子投了4支飞镖，靶上各环分别是1分、3分、5分和7分，每支飞镖都投中了靶子。小明说自己得了15分。这可能是真的吗？
+    steps:
+      - 每一环的分数都是奇数。
+      - >-
+        两个奇数相加得偶数。4支飞镖是两对，每一对的得分都是偶数，所以4支飞镖加起来的得分是偶数。
+      - 15是奇数，所以小明不可能得到这个分数。
+    answer: 不可能。
+    badge: ✕
+    note:
+      title: 那投3支呢？
+      text: >-
+        三个奇数相加得奇数，15分就有可能了：5 + 5 + 5，或者7 + 7 + 1。
+    art:
+      darts: 4支飞镖，全都投中
+      rings: 每一环都是奇数
+      only-even: 而4支飞镖只能得偶数分
+  - title: 立方体上的蜘蛛
+    question: >-
+      一只蜘蛛停在铁丝做的立方体的一个顶点上。它每分钟沿着一条棱爬到相邻的顶点。正好7分钟后，它能回到出发时的那个顶点吗？
+    steps:
+      - >-
+        给顶点涂色：起点涂白色，它的邻点涂黑色，邻点的邻点涂白色，依此类推。从图上可以看出，每条棱都连着一个黑顶点和一个白顶点。
+      - >-
+        所以颜色每分钟变一次：1分钟后蜘蛛在黑顶点上，2分钟后在白顶点上，经过任何奇数分钟后都在黑顶点上。
+      - 7是奇数，而起点是白色的。蜘蛛回不到起点。
+    answer: 不能。
+    badge: ✕
+    note:
+      title: 那8分钟后呢？
+      text: >-
+        能：沿着一条棱爬过去再爬回来，这样来回四次，就回到了起点。颜色说明了什么时候做不到；而偶数分钟足够，这一点还需要另外证明。
+    art:
+      edge: 每分钟爬一条棱
+      minutes: 分钟数：偶数时在白顶点，奇数时在黑顶点
+      seven: 7分钟后
+      back: 来回 × 4
+      eight: 8分钟
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_parity:
+    shows: >-
+      偶数和奇数弄反了：孩子以为过河7次后渡船回到了出发的地方，或者以为四个奇数相加得奇数。
+    say: “先试试小的数：过河1次后渡船在哪儿？过河2次后呢？”
+    art:
+      question: 过河7次后，渡船在哪儿？
+  ignored_condition:
+    shows: >-
+      题目的一个条件丢了：孩子用三支飞镖凑出了15分，却忘了小明投的是四支；或者选了一个只符合一条线索、不符合另一条的数。
+    say: “再读一遍题目。你的答案和题目里的每一个字都对得上吗？”
+    art:
+      question: 飞镖：4支
+      three: 3支飞镖
+      always: 总是偶数
+  off_by_one:
+    shows: >-
+      一排中的位置数差了一个：把出发的时候当成了第一次过河；或者一排的开头和结尾都是男孩，却算成男孩和女孩一样多。
+    say: “把前几个写出来。哪一个是第1个？”
+    art:
+      equal: 一样多
+
+home:
+  - title: 奇数还是偶数？
+    text: >-
+      在拳头里藏一把纽扣，让孩子猜：是奇数还是偶数？然后一起把纽扣两个两个地配成对，检验一下。
+  - title: 第10步谁来走？
+    text: >-
+      在任何两人轮流走的游戏里，结束之前问一问：第10步由谁来走？第15步呢？答案来自奇偶，而不是接着玩下去。
+  - title: 门牌号
+    text: >-
+      在街上看看门牌号：一边是偶数，另一边是奇数。37号会在哪一边？
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“奇偶性与交替”的题

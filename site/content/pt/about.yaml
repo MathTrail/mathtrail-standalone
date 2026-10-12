@@ -1,0 +1,54 @@
+# The page "About", for a parent, in Portuguese: who makes MathTrail — one
+# family, each of us under a role — and where to write. The children go by
+# their place in the family, never by name, and each of us by the key our
+# photograph goes by. The address and the link to the code are the footer's,
+# which the page fills in.
+
+title: Sobre
+description: "O MathTrail é feito por uma família: quem faz o quê e como falar com a gente."
+
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
+hero:
+  title: O MathTrail é feito por uma família
+  lead: >-
+    O MathTrail nasceu do cuidado de pai e mãe. Somos quatro: papai constrói a
+    plataforma, mamãe deixa o projeto aconchegante e em ordem, nosso inquieto
+    filho mais velho, de olhos brilhando, devora os problemas novos, e o caçula
+    só ressona docemente por perto e nos lembra o motivo de tudo isso.
+  photo: Nós quatro à mesa com um bolo de chocolate, papai com o filho mais novo no colo.
+
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
+team:
+  title: Quem somos
+  members:
+    mum:
+      role: Diretora-geral de tudo
+      name: Mamãe
+      text: Autora da ideia e designer-chefe do projeto. Define os requisitos do produto e também cuida de todo o resto, ou seja, de absolutamente tudo!
+      photo: Mamãe de blazer bege, sorrindo.
+    dad:
+      role: Ninador full-stack
+      name: Papai
+      text: Escreve código com uma mão e embala o bebê com a outra. Faz deploy rigorosamente depois da soneca da tarde, senão a produção acorda e chora.
+      photo: Papai com o filho mais novo num canguru junto ao peito, o bebê com protetores de ouvido.
+    older-son:
+      role: Devorador-mor de problemas
+      name: Filho mais velho
+      text: Resolve os problemas novos antes de todo mundo e diz com sinceridade onde eles não estão claros.
+      photo: O filho mais velho segurando um brinquedo feito de peças de Lego, com rabiscos brancos de estrelas e uma coroa desenhados ao redor dele.
+    younger-son:
+      role: Estagiário de P&D (impacto)
+      name: Filho mais novo
+      text: Por enquanto testa a resistência dos brinquedos. Ainda faltam uns dois anos para o primeiro problema dele.
+      photo: O filho mais novo de bruços em um tapete macio, com um ursinho de pelúcia ao lado.
+
+contact:
+  title: Achou um erro ou tem uma ideia?
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: Escreva para {address} ou {issue} — lemos tudo.
+  issue: abra uma issue no GitHub
+  write: Escreva para nós
+  github: GitHub

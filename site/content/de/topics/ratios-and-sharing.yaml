@@ -1,0 +1,224 @@
+# The page of the topic of ratios and sharing, for a parent, in German. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Verhältnisse und Verteilung
+description: Worum es bei „Verhältnisse und Verteilung“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+# The words the page's drawings name their people and boxes in.
+art:
+  ann: Anna
+  ben: Ben
+  a: A
+  b: B
+
+hero:
+  lead: >-
+    Anna und Ben teilen 35 Bonbons im Verhältnis 3 zu 4 auf. Wie viele
+    bekommen die beiden jeweils? In diesen Aufgaben sagt ein Verhältnis, aus
+    wie vielen gleichen Teilen jeder Anteil besteht, nicht wie viele Dinge es
+    sind. Zählt man zuerst die Teile und rechnet dann aus, wie viel ein Teil
+    wert ist, wird aus jeder Verhältnisaufgabe eine Division.
+  method: Die Teile zählen, dann einen Teil ausrechnen
+  teaches: Ein Verhältnis als gleiche Teile sehen und ein Rezept hoch- oder herunterrechnen
+  # The words of its drawing: what is shared over it, and what the parts come
+  # to under it.
+  art:
+    line: 35 Bonbons im Verhältnis 3 zu 4
+    parts: 7 Teile = 35, ein Teil = 5
+    shares: Anna 3 × 5 = 15, Ben 4 × 5 = 20
+
+basis:
+  title: Die Regeln der Verhältnisse
+  cards:
+    - title: Ein Verhältnis besteht aus Teilen
+      text: >-
+        3 zu 4 heißt: Auf je 3 gleiche Teile der einen Seite kommen 4 der
+        anderen. Zusammen sind das 7 gleiche Teile, nicht 3 oder 4.
+      art:
+        seven: 3 zu 4 sind 7 gleiche Teile
+    - title: Zuerst ein Teil
+      text: >-
+        Teilen Sie das Ganze durch die Zahl der Teile, um einen Teil zu
+        bestimmen, und multiplizieren Sie ihn dann mit der jeweiligen Zahl des
+        Verhältnisses: 35 : 7 = 5, also sind 3 Teile 15 und 4 Teile 20.
+      art:
+        one: "35 : 7 = 5 in einem Teil"
+    - title: Beide Seiten vervielfachen
+      text: >-
+        Ein Verhältnis bleibt gleich, wenn man beide Zahlen mit derselben Zahl
+        multipliziert: 3 zu 4 ist dasselbe wie 6 zu 8 und wie 30 zu 40. So
+        vergrößert man ein Rezept.
+
+idea:
+  title: Die Teile zählen
+  lead: Addieren Sie bei jedem Verhältnis zuerst seine Zahlen. In so viele gleiche Teile wird das Ganze geteilt.
+  table:
+    head:
+      - Was geteilt wird
+      - Teile
+      - Ein Teil und die Anteile
+    rows:
+      - - 35 Bonbons, 3 zu 4
+        - 3 + 4 = 7
+        - "35 : 7 = 5, also 15 und 20"
+      - - 60 Karten, 1 zu 2 zu 3
+        - 1 + 2 + 3 = 6
+        - "60 : 6 = 10, also 10, 20 und 30"
+      - - 45 Perlen, 2 zu 7
+        - 2 + 7 = 9
+        - "45 : 9 = 5, also 10 und 35"
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Der häufigste Fehler ist, durch eine der Zahlen des Verhältnisses zu
+      teilen statt durch ihre Summe: 35 : 3 oder 35 : 4. Zeichnet man für
+      jeden Teil ein Kästchen, lässt sich die Summe nicht übersehen.
+
+method:
+  title: "Lösungsweg: ein Kästchen für jeden Teil"
+  lead: >-
+    Zeichnen Sie für jeden Teil des Verhältnisses ein Kästchen, für jeden
+    Anteil eine eigene Reihe. Zählen Sie alle Kästchen, rechnen Sie aus, was in
+    ein Kästchen kommt, und tragen Sie dann die Anteile ein. Die Beispiele
+    unten reichen von ganz einfach bis Olympiade-Niveau.
+  steps:
+    - Für jeden Teil ein Kästchen zeichnen
+    - Ausrechnen, was in ein Kästchen kommt
+    - Die Anteile eintragen und die Summe prüfen
+  # The key under the steps: what a tile of the drawings means.
+  legend:
+    one: ein Teil und was er enthält
+    spoken: die Teile, von denen die Aufgabe spricht
+
+examples:
+  - title: Pilze
+    question: >-
+      Max und Lena sammeln zusammen 45 Pilze. Für je 4 Pilze, die Max sammelt,
+      sammelt Lena 5. Wie viele Pilze sammelt Lena?
+    steps:
+      - 4 zu 5 heißt 4 Teile für Max und 5 für Lena, insgesamt 9 gleiche Teile.
+      - "Ein Teil sind 45 : 9 = 5 Pilze."
+      - "Lena hat 5 Teile: 5 × 5 = 25 Pilze. Probe: Max hat 20, und 20 + 25 = 45."
+    answer: 25 Pilze.
+    note:
+      title: "Warum nicht 45 : 5?"
+      text: >-
+        45 : 5 = 9 teilt nur durch Lenas Zahl. Die 45 Pilze sind alle 9 Teile,
+        die von Max und Lena zusammen.
+    art:
+      max: M
+      lena: L
+      together: 45 Pilze zusammen
+      max-name: Max
+      lena-name: Lena
+      nine: 9 Kästchen, 45 Pilze
+      each: "45 : 9 = 5 in jedem Kästchen"
+      only-lena: nur Lena
+  - title: Der Chor
+    question: >-
+      In einem Chor kommen auf je 4 Jungen 7 Mädchen, und es sind 9 Mädchen
+      mehr als Jungen. Wie viele Kinder singen im Chor?
+    steps:
+      - >-
+        Die Jungen sind 4 Teile und die Mädchen 7 Teile, also haben die Mädchen
+        3 Teile mehr als die Jungen.
+      - "Diese 3 Teile sind die 9 Mädchen, die es mehr gibt: Ein Teil sind 9 : 3 = 3 Kinder."
+      - >-
+        Der Chor hat 4 + 7 = 11 Teile: 11 × 3 = 33 Kinder. Probe: 12 Jungen
+        und 21 Mädchen, 9 Mädchen mehr.
+    answer: 33 Kinder.
+    note:
+      title: Welche Teile sind die 9?
+      text: >-
+        Die 9 sind nicht die 7 Teile der Mädchen, sondern die 3 Teile, die die
+        Mädchen mehr haben als die Jungen. Teilt man 9 durch 7 oder durch 11,
+        kommt keine ganze Zahl von Kindern heraus.
+    art:
+      boys: Jungen
+      girls: Mädchen
+      nine: 9 Mädchen
+      choir: 11 Kästchen × 3 = 33
+      this-nine: das sind 9
+  - title: Zwei Kisten
+    question: >-
+      In zwei Kisten liegen Murmeln im Verhältnis 3 zu 1. Nachdem 10 Murmeln
+      aus der ersten Kiste in die zweite gelegt wurden, liegen in beiden Kisten
+      gleich viele Murmeln. Wie viele Murmeln sind es insgesamt?
+    steps:
+      - >-
+        Murmeln von einer Kiste in die andere zu legen, ändert ihre Gesamtzahl
+        nicht: Vorher und nachher ist sie dieselbe.
+      - >-
+        Vorher besteht das Ganze aus 4 Teilen, und die erste Kiste enthält 3
+        davon. Nachher enthält sie die Hälfte des Ganzen, 2 derselben 4 Teile.
+        Also hat sie 1 Teil abgegeben.
+      - >-
+        Dieser Teil sind die 10 umgelegten Murmeln: Insgesamt sind es
+        4 × 10 = 40. Probe: vorher 30 und 10, nachher 20 und 20.
+    answer: 40 Murmeln.
+    note:
+      title: Was sich nicht ändert
+      text: >-
+        In Verhältnisaufgaben steckt oft etwas, das gleich bleibt: hier die
+        Gesamtzahl. Erst wenn man beide Verhältnisse in Teilen derselben
+        Gesamtzahl misst, lassen sie sich vergleichen.
+    art:
+      box-a: Kiste A
+      box-b: Kiste B
+      four: insgesamt 4 Teile, vorher und nachher
+      before: vorher
+      after: nachher
+      part: 1 Teil
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ratio_total_confusion:
+    shows: >-
+      Die Zahlen des Verhältnisses werden für Anteile am Ganzen gehalten: 4 zu 5
+      wird als 4 von 5 gelesen, oder die 45 Pilze werden durch 5 geteilt statt
+      durch die 4 + 5 = 9 Teile.
+    say: „Wie viele gleiche Teile sind es insgesamt?“
+    art:
+      question: 45 Pilze, 4 zu 5
+      one: in einem Teil
+  wrong_operation:
+    shows: >-
+      Das Kind addiert, wo das Verhältnis eine Multiplikation verlangt: Für 6
+      Personen mehr bekommt das Rezept 6 Eier mehr, dabei müssen die Eier im
+      gleichen Maß wachsen wie die Zahl der Personen.
+    say: „Wenn es doppelt so viele Personen sind, was passiert dann mit den Eiern?“
+    art:
+      question: 3 Eier für 2 Personen, und für 8?
+  answered_other_question:
+    shows: >-
+      Ein Anteil wird ausgerechnet, aber der falsche angegeben: statt der Pilze
+      von Lena die von Max, oder statt des ganzen Chors ein Teil, 3 Kinder.
+    say: „Nach wessen Anteil fragt die Aufgabe?“
+    art:
+      question: Wie viele Pilze sammelt Lena?
+      max: M
+      lena: L
+
+home:
+  - title: Nach Verhältnis kochen
+    text: >-
+      Bereiten Sie gemeinsam ein Getränk oder einen Teig nach einem Verhältnis
+      zu: eine Tasse Saft auf drei Tassen Wasser. Bereiten Sie dann die
+      doppelte Menge zu und schauen Sie, was sich verdoppelt.
+  - title: Kästchen auf Papier
+    text: >-
+      Wenn zu Hause etwas verteilt wird, ob Bonbons oder Hausarbeit, zeichnen
+      Sie für jeden Teil ein Kästchen und füllen Sie die Kästchen aus. Das
+      Denken übernehmen die Kästchen.
+  - title: Karten und Modelle
+    text: >-
+      Schauen Sie sich den Maßstab einer Landkarte oder eines Modellautos an: 1
+      zu 50 heißt, dass jeder Zentimeter für 50 steht. Messen Sie gemeinsam
+      etwas aus und rechnen Sie es hoch.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Verhältnisse und Verteilung“

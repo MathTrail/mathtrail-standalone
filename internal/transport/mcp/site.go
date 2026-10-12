@@ -12,7 +12,7 @@ import (
 
 // siteLanguages are the languages the site is written in, every page of it in
 // each: those of its dictionaries.
-var siteLanguages = []string{"en", "es", "ru"}
+var siteLanguages = []string{"ar", "de", "en", "es", "fr", "ja", "pt", "ru", "zh-Hans"}
 
 // everyPageLanguage is the language every page of the site is written in, the
 // one a lesson in a language the site does not speak is linked to.

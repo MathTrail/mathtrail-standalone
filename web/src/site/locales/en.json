@@ -32,6 +32,8 @@
 	"topics.soon": "Soon",
 	"thumb.knight": "K",
 	"thumb.liar": "L",
+	"sign.divide": ":",
+	"sign.question": "?",
 	"techniques.count": {
 		"one": "{count} technique",
 		"other": "{count} techniques"

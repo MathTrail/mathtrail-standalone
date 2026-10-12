@@ -1,0 +1,224 @@
+# The page of the topic of figures on a square grid, for a parent, in German.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Figuren auf Karopapier
+description: Worum es bei „Figuren auf Karopapier“ geht, also um Flächeninhalt und Umfang, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+hero:
+  lead: >-
+    Zeichnen Sie eine Figur auf Karopapier: Wie viele Kästchen bedeckt sie, und
+    wie lang ist ihr Rand? In diesen Aufgaben wird der Flächeninhalt in
+    Kästchen gezählt und der Umfang in Kästchenseiten, und beides ist leicht zu
+    verwechseln: Ein Rechteck kann ein Eckkästchen verlieren und seinen Umfang
+    behalten. Zählen, ohne etwas auszulassen und ohne etwas doppelt zu zählen,
+    ist die ganze Kunst.
+  method: Die Außenseiten jedes Kästchens zählen
+  teaches: Flächeninhalt und Umfang unterscheiden und Kästchen und Seiten zählen, ohne etwas auszulassen oder doppelt zu zählen
+  # The words of its drawing: the figure over it, what each of its two copies
+  # counts, and what the numbers in the cells mean.
+  art:
+    line: Eine Figur aus drei Kästchen
+    area: "Flächeninhalt: 3 Kästchen"
+    perimeter: "Umfang: 8 Seiten"
+    out: "die Zahlen rechts: wie viele Seiten eines Kästchens nach außen zeigen, 3 + 2 + 3 = 8"
+
+basis:
+  title: Die Regeln des Kästchengitters
+  cards:
+    - title: Flächeninhalt sind Kästchen
+      text: >-
+        Der Flächeninhalt einer Figur auf Karopapier ist die Anzahl der
+        Kästchen, die sie bedeckt. Zwei halbe Kästchen ergeben ein ganzes.
+      art:
+        cells: 3 Kästchen
+    - title: Umfang sind Seiten
+      text: >-
+        Der Umfang ist die Anzahl der Kästchenseiten am Rand. Eine Seite, die
+        zwei Kästchen der Figur gemeinsam haben, liegt innen und zählt nicht.
+      art:
+        shared: eine gemeinsame Seite innen zählt nicht
+    - title: Verschiedene Dinge
+      text: >-
+        Zwei Figuren mit gleichem Flächeninhalt können verschiedene Umfänge
+        haben: Vier Kästchen in einer Reihe haben den Umfang 10, vier im Quadrat
+        den Umfang 8.
+      art:
+        perimeter: Umfang {count}
+
+idea:
+  title: Die Außenseiten zählen
+  lead: Jedes Kästchen hat 4 Seiten. Eine Seite zählt nur dann zum Umfang, wenn auf ihrer anderen Seite kein Kästchen der Figur liegt.
+  table:
+    head:
+      - Die Figur
+      - Flächeninhalt in Kästchen
+      - Umfang in Seiten
+    rows:
+      - - 1 Kästchen
+        - "1"
+        - "4"
+      - - 2 Kästchen nebeneinander
+        - "2"
+        - 4 + 4 − 2 = 6
+      - - 4 Kästchen in einer Reihe
+        - "4"
+        - "10"
+      - - ein Quadrat aus 2 mal 2
+        - "4"
+        - "8"
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Kinder zählen für den Umfang oft die Kästchen oder jede Seite jedes
+      Kästchens, die gemeinsamen doppelt. Wer nur die Seiten zählt, die nach
+      außen zeigen, vermeidet beides.
+
+method:
+  title: "Lösungsweg: den Rand entlanggehen"
+  lead: >-
+    Zeichnen Sie die Figur auf Karopapier. Für den Flächeninhalt zählen Sie die
+    Kästchen Reihe für Reihe. Für den Umfang gehen Sie den Rand entlang und
+    zählen die Kästchenseiten, an denen Sie vorbeikommen. Wird eine Figur
+    zerschnitten, listen Sie die Teile in einer Reihenfolge auf, in der keines
+    fehlen und keines doppelt gezählt werden kann. Die Beispiele unten reichen
+    von ganz einfach bis Olympiade-Niveau.
+  steps:
+    - Die Figur auf Karopapier zeichnen
+    - Kästchen für den Flächeninhalt zählen, Außenseiten für den Umfang
+    - Mit einer zweiten Zählweise prüfen
+  # The key under the steps: what the drawings' lines and numbers mean.
+  legend:
+    border: der Rand, der Umfang
+    cut: ein Schnitt
+    count: "eine Zahl: wie viele Seiten nach außen zeigen"
+
+examples:
+  - title: Ein Kreuz
+    question: >-
+      Ein Kreuz besteht aus 5 Kästchen: einem in der Mitte und je einem an jeder
+      seiner vier Seiten. Wie groß ist der Umfang des Kreuzes in Kästchenseiten?
+    steps:
+      - Jeder der 4 Arme hat 3 Seiten, die nach außen zeigen, also ergeben die Arme 4 × 3 = 12 Seiten.
+      - Das mittlere Kästchen hat keine Seite außen, denn jede seiner Seiten berührt einen Arm.
+      - Also beträgt der Umfang 12 Kästchenseiten.
+    answer: 12 Kästchenseiten.
+    note:
+      title: Eine andere Zählweise
+      text: >-
+        5 Kästchen haben 5 × 4 = 20 Seiten. Die 4 Seiten zwischen der Mitte und
+        den Armen werden je zweimal gezählt, einmal von jedem Kästchen aus, und
+        sie liegen innen: 20 − 2 × 4 = 12.
+    art:
+      ends: 4 Arme, je 3 Seiten
+      middle: "die Mitte: 0"
+      border: "der Rand: 12 Seiten"
+      inner: "in Rot: die 4 inneren Seiten"
+  - title: Ein Streifen in zwei Teilen
+    question: >-
+      Ein Streifen aus 2 mal 4 Kästchen wird entlang der Gitterlinien in zwei
+      Teile aus je 4 Kästchen zerschnitten, und jedes Teil muss zusammenhängen.
+      Wie viele verschiedene Möglichkeiten gibt es, ihn so zu zerschneiden?
+    steps:
+      - "Ein gerader Schnitt längs durch die Mitte ergibt zwei Reihen aus je 4 Kästchen: 1 Möglichkeit."
+      - "Ein gerader Schnitt quer durch die Mitte ergibt zwei Quadrate aus 2 mal 2: 1 Möglichkeit."
+      - >-
+        Ein Schnitt, der erst quer, dann längs und dann wieder quer verläuft,
+        ergibt zwei L-Formen, und seine Stufe kann in die eine oder die andere
+        Richtung gehen: 2 Möglichkeiten. Insgesamt 4 Möglichkeiten.
+    answer: 4 Möglichkeiten.
+    note:
+      title: Warum nicht 8?
+      text: >-
+        Listet man die Teile einzeln auf, findet man jeden Schnitt zweimal,
+        einmal für jedes seiner Teile. Legt man fest, dass das erste Teil das
+        Kästchen oben links enthält, wird jeder Schnitt einmal gezählt.
+    art:
+      along: längs
+      across: quer
+      step: eine Stufe
+      back: andersherum
+      same: ein und derselbe Schnitt
+      dot: der Punkt ist das Kästchen oben links, immer im blauen Teil
+  - title: Eine Diagonale
+    question: >-
+      Auf Karopapier ist ein Rechteck aus 3 mal 5 Kästchen gezeichnet, und von
+      einer Ecke zur gegenüberliegenden ist eine Linie gezogen. Durch wie viele
+      Kästchen geht die Linie? Ein Kästchen zählt, wenn die Linie durch sein
+      Inneres geht, nicht wenn sie nur eine Ecke berührt.
+    steps:
+      - >-
+        Auf dem Weg von Ecke zu Ecke kommt die Linie jedes Mal in ein neues
+        Kästchen, wenn sie innerhalb des Rechtecks eine Gitterlinie kreuzt.
+      - >-
+        Dabei kreuzt sie 4 Gitterlinien in der einen Richtung und 2 in der
+        anderen, und nie zwei auf einmal: 3 und 5 haben keinen gemeinsamen
+        Teiler außer 1, also trifft die Linie unterwegs keinen Gitterpunkt.
+      - Die Linie beginnt in 1 Kästchen und kommt in 4 + 2 = 6 weitere, insgesamt 7 Kästchen.
+    answer: 7 Kästchen.
+    note:
+      title: Durch einen Gitterpunkt
+      text: >-
+        In einem Rechteck aus 4 mal 6 Kästchen geht die Linie durch einen
+        Gitterpunkt: Dort kreuzt sie zwei Linien auf einmal und kommt in ein
+        Kästchen, nicht in zwei. Insgesamt geht sie durch 4 + 6 − 2 = 8
+        Kästchen: 2 ist die größte Zahl, durch die sowohl 4 als auch 6 teilbar
+        ist.
+    art:
+      points: die Punkte, wo die Linie die Gitterlinien kreuzt
+      down: 4 senkrechte
+      across: 2 waagerechte
+      green: 1 + 4 + 2 = 7 grüne Kästchen
+      node: "der rote Punkt ist ein Gitterpunkt: 8 Kästchen"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      Dasselbe wird doppelt gezählt: Die gemeinsamen Seiten der Kästchen werden
+      zum Umfang addiert, oder jeder Schnitt des Streifens wird einmal für jedes
+      seiner beiden Teile aufgelistet.
+    say: „Wurde eine Seite oder ein Schnitt von beiden Seiten aus gezählt?“
+    art:
+      question: Der Umfang von zwei Kästchen nebeneinander
+  missed_case:
+    shows: >-
+      Ein Fall wird übersehen: ein Schnitt, dessen Stufe in die andere Richtung
+      geht, ein Stück Rand in einer inneren Ecke oder die senkrecht stehenden
+      Dominosteine, nicht nur die waagerecht liegenden.
+    say: „Gibt es eine Möglichkeit, die du noch nicht probiert hast, andersherum?“
+    art:
+      question: Die Schnitte eines Streifens aus 2 mal 4
+  ignored_condition:
+    shows: >-
+      Eine Bedingung geht verloren: Ein Teil, das auseinanderfällt, wird als
+      Teil gezählt, ein Kästchen, das nur mit einer Ecke anstößt, als
+      Nachbarkästchen, oder es heißt, die Linie gehe durch ein Kästchen, das sie
+      nur berührt.
+    say: „Passt dieses Teil oder dieses Kästchen wirklich zu dem, was in der Aufgabe steht?“
+    art:
+      question: Jedes Teil zusammenhängend
+      broken: das blaue Teil ist zerfallen
+      whole: beide Teile zusammenhängend
+
+home:
+  - title: Karopapier
+    text: >-
+      Halten Sie Karopapier bereit und zeichnen Sie gemeinsam Figuren aus 4
+      oder 5 Kästchen. Welche hat den längsten Rand? Welche den kürzesten?
+  - title: Fahren Sie den Rand nach
+    text: >-
+      Zählen Sie einen Umfang, indem Sie den Rand Seite für Seite mit dem Finger
+      nachfahren. Zählen Sie dann die Außenseiten jedes Kästchens und prüfen
+      Sie, ob beide Ergebnisse übereinstimmen.
+  - title: Schneiden und zählen Sie
+    text: >-
+      Zerschneiden Sie einen Papierstreifen auf so viele Arten, wie Sie finden
+      können, in zwei gleich große Teile. Legen Sie die Teile so aus, dass keine
+      Möglichkeit fehlt und keine doppelt vorkommt.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Figuren auf Karopapier“

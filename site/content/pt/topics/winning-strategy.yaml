@@ -1,0 +1,243 @@
+# The page of the topic of games with a winning strategy, for a parent, in
+# Portuguese. The topic's name, its group, its grades and its traps' names are
+# not here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Jogos com estratégia vencedora
+description: O que são os problemas de jogos com estratégia vencedora, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+# The words the page's drawings say of a position.
+art:
+  loses: perde quem tem a vez
+  wins: ganha
+
+hero:
+  lead: >-
+    Há 20 palitos de fósforo na mesa, e os jogadores, alternadamente, tiram 1,
+    2 ou 3 deles. Quem tirar o último palito ganha. O primeiro jogador pode
+    ganhar sempre? Nestes problemas, a criança procura um plano que ganhe faça
+    o que fizer o outro jogador, e o encontra começando pelo fim do jogo e
+    descobrindo quais posições perdem para quem precisa jogar a partir delas.
+  method: Começar pelo fim e achar as posições perdedoras
+  teaches: A encontrar um plano que ganhe faça o que fizer o outro jogador
+  # The words of its drawing: the game it is drawn for.
+  art:
+    line: Cada um tira 1, 2 ou 3 palitos; ganha quem tirar o último
+
+basis:
+  title: As regras dos jogos
+  cards:
+    - title: A partir do fim
+      text: >-
+        Comece pelo fim do jogo, onde está claro quem ganha, e volte: uma
+        posição perde quando toda jogada a partir dela leva a uma que ganha para
+        o outro jogador.
+      art:
+        back: do 0, o fim do jogo, para os números maiores
+    - title: Entregar uma posição perdedora
+      text: >-
+        Uma jogada vencedora deixa para o outro jogador uma posição perdedora.
+        Se não existe uma jogada assim, a posição perde, por mais habilidade que
+        se tenha.
+      art:
+        take: tirar 2
+        losing: uma perdedora para o outro
+    - title: Copiar e espelhar
+      text: >-
+        Em muitos jogos, quem ganha mantém tudo equilibrado: responde a cada
+        jogada de modo que as duas jogadas somem o mesmo, ou faz a mesma jogada
+        no lado espelhado.
+      art:
+        they: o outro tira
+        answer: você tira
+
+idea:
+  title: Posições perdedoras
+  lead: No jogo de tirar 1, 2 ou 3 palitos, em que ganha quem tira o último, as posições que perdem para quem tem a vez se repetem a cada 4.
+  table:
+    head:
+      - Palitos que sobram
+      - A melhor jogada
+      - Por quê
+    rows:
+      - - 1, 2 ou 3
+        - tirar todos
+        - quem tira o último palito ganha
+      - - "4"
+        - nenhuma ganha
+        - depois de qualquer jogada, o outro jogador tira o resto
+      - - 5, 6 ou 7
+        - tirar 1, 2 ou 3 e deixar 4
+        - o outro jogador recebe 4, uma posição perdedora
+      - - "8"
+        - nenhuma ganha
+        - toda jogada deixa 5, 6 ou 7
+  note:
+    title: Por que isso importa
+    text: >-
+      As crianças muitas vezes acham que o primeiro jogador tem que ganhar, ou
+      jogam torcendo para o outro jogador errar. Uma estratégia vencedora
+      funciona contra o melhor jogo possível, e encontrá-la exige pensar a
+      partir do fim, um hábito que vale muito mais do que os jogos.
+
+method:
+  title: "Como resolver: a partir do fim do jogo"
+  lead: >-
+    Escreva as posições da menor para a maior. Marque uma posição como
+    perdedora quando toda jogada a partir dela leva a uma vencedora, e como
+    vencedora quando alguma jogada leva a uma perdedora. A jogada vencedora do
+    início é a que deixa uma posição perdedora. Os exemplos abaixo vão do mais
+    simples a um de olimpíada.
+  steps:
+    - Começar pelas posições do fim
+    - Marcar cada uma como vencedora ou perdedora, da menor para a maior
+    - Achar a jogada que deixa para o outro jogador uma perdedora
+
+examples:
+  - title: Balas na tigela
+    question: >-
+      Há 23 balas em uma tigela. Kauã e Léo jogam alternadamente, e Kauã
+      começa. Na sua vez, cada um tira 1, 2, 3 ou 4 balas. Quem tirar a última
+      bala ganha. Quantas balas Kauã deve tirar na primeira jogada para ter
+      certeza de ganhar?
+    steps:
+      - >-
+        Começando pelo fim: se sobram de 1 a 4 balas, quem tem a vez tira todas
+        e ganha. Se sobram 5, toda jogada deixa de 1 a 4 para o outro jogador,
+        então 5 perde.
+      - >-
+        Do mesmo jeito, 10, 15 e 20 perdem: não importa quanto se tire, o outro
+        jogador pode deixar na tigela o próximo múltiplo de 5.
+      - >-
+        Então Kauã tira 3 e deixa 20. Não importa quanto Léo tire, Kauã tira o
+        que falta para completar 5, deixando 15, 10, 5 e, por fim, nada.
+    answer: 3 balas.
+    note:
+      title: Por que não tirar 4?
+      text: >-
+        Tirar 4 deixa 19, e Léo tira 4 para deixar 15, uma tigela perdedora
+        para Kauã. Contra quem não erra, só ganha a primeira jogada que leva a
+        um múltiplo de 5.
+    art:
+      sweets: 23 balas, de 1 a 4 por jogada
+      kim: Kauã −3
+      answer: Léo tira x, Kauã tira 5 − x
+      leo: Léo −4
+      lost: tigela perdedora para Kauã
+  - title: O passeio do rei
+    question: >-
+      Um rei está no canto inferior esquerdo de um tabuleiro de 5 por 5. Dois
+      jogadores, alternadamente, movem o rei uma casa para cima, uma casa para
+      a direita ou uma casa na diagonal, para cima e para a direita. Quem levar
+      o rei ao canto superior direito ganha. Quem ganha se os dois jogarem da
+      melhor maneira possível?
+    steps:
+      - >-
+        Conte quantas linhas e quantas colunas o rei ainda tem que percorrer.
+        De uma casa que fica a uma jogada do canto, quem tem a vez ganha na
+        hora.
+      - >-
+        Uma casa perde para quem tem a vez quando os dois números são pares:
+        toda jogada torna um deles ímpar, e o outro jogador pode deixar os dois
+        pares de novo.
+      - >-
+        O rei começa a 4 linhas e 4 colunas do canto, dois números pares,
+        então o primeiro jogador perde. O segundo responde sempre com uma
+        jogada para uma casa par e chega ao canto.
+    answer: O segundo jogador.
+    badge: 2º
+    note:
+      title: Começar não basta
+      text: >-
+        Aqui o primeiro jogador perde, faça o que fizer. Em todo jogo novo, vale
+        a pena conferir a partir do fim antes de supor que a primeira jogada
+        ganha.
+    art:
+      moves: "jogadas: para cima, à direita, na diagonal para cima e à direita"
+      green: verde, vitória em uma jogada
+      red: pontos vermelhos, derrota para quem tem a vez
+      start: o rei começa em uma casa perdedora
+  - title: A margarida
+    question: >-
+      Uma margarida tem 12 pétalas em círculo. Dois jogadores, alternadamente,
+      arrancam uma pétala ou duas pétalas que nascem uma ao lado da outra, sem
+      espaço entre elas. Quem arrancar a última pétala ganha. Quem ganha se os
+      dois jogarem da melhor maneira possível?
+    steps:
+      - >-
+        Não importa se o primeiro jogador arranca uma pétala ou duas: o círculo
+        se abre e vira uma fileira de 11 ou de 10 pétalas.
+      - >-
+        O segundo jogador arranca bem do meio dessa fileira: uma pétala de uma
+        fileira de 11 ou duas de uma fileira de 10. Sobram duas fileiras
+        iguais, em lados opostos.
+      - >-
+        A partir daí, o segundo jogador copia cada jogada na outra fileira.
+        Sempre que o primeiro pode jogar, o segundo também pode, então é o
+        segundo que arranca a última pétala.
+    answer: O segundo jogador.
+    badge: 2º
+    note:
+      title: Por que o meio?
+      text: >-
+        Dividir a fileira em duas partes iguais torna a posição simétrica.
+        Copiar não tem como perder: a cópia de uma jogada é sempre permitida,
+        porque a outra fileira é exatamente igual.
+    art:
+      eleven: o primeiro arrancou uma e sobrou uma fileira de 11
+      two-rows: duas fileiras de 5 pétalas
+      mirror: o primeiro arrancou na fileira azul, o segundo copiou na laranja
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Uma regra do jogo é esquecida: uma jogada tira 5 balas quando o máximo
+      permitido é 4, ou o rei anda para a esquerda, o que as regras proíbem. Um
+      plano construído sobre uma jogada proibida não ganha nada.
+    say: “Que jogadas as regras permitem?”
+    art:
+      question: De 1 a 4 balas por jogada
+      five: tirar 5
+      three: tirar 3
+  first_move_assumed:
+    shows: >-
+      Acha-se que começar já basta para ganhar: “Kauã começa, então Kauã
+      ganha.” Em muitos jogos, como o passeio do rei, o primeiro jogador perde,
+      faça o que fizer.
+    say: “E se o outro jogador não errar?”
+    art:
+      question: O passeio do rei
+      first: o primeiro ganha
+      second: o segundo
+  best_case_not_worst:
+    shows: >-
+      O plano só funciona se o outro jogador errar: Kauã tira 4 e torce para
+      que Léo depois tire balas de menos. Uma estratégia vencedora tem que
+      responder à melhor jogada do outro jogador.
+    say: “Qual é a melhor resposta do outro jogador a isso?”
+    art:
+      question: Primeira jogada de Kauã a partir de 23
+      leo: Léo −4
+
+home:
+  - title: Jogue o jogo dos palitos
+    text: >-
+      Jogue com a criança o jogo de tirar 1, 2 ou 3 palitos de um monte de 15
+      e deixe que ela comece. Ganhe algumas vezes e depois pergunte por que os
+      múltiplos de 4 sempre voltam.
+  - title: Copie a jogada
+    text: >-
+      Em qualquer jogo em um tabuleiro simétrico, experimente copiar a jogada
+      do outro jogador no lado oposto. Pergunte quando a cópia funciona e quando
+      ela falha.
+  - title: Inverta os papéis
+    text: >-
+      Quando a criança achar um plano vencedor, inverta os papéis com ela: agora
+      ela joga em segundo lugar. Explicar por que o plano perde a partir daí é a
+      metade mais profunda do tema.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de jogos com estratégia vencedora

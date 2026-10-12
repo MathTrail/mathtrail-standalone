@@ -1,0 +1,87 @@
+# The page of the topics, in Arabic: what a child's tasks are about, how the
+# topics build on one another, and every topic of the catalog with a drawing
+# and a line for the parent. A topic's name is the card's own, from the
+# widget's words; its grades and its links are the catalog's, and its group
+# the site's data.
+
+title: مواضيع MathTrail
+description: كل المواضيع التي يقدّم فيها MathTrail مسائل، وكيف يقوم بعضها على بعض، وعمّ يدور كل منها.
+
+hero:
+  title: أي مسائل تُعرض على طفلكم
+  lead: كل مسألة في MathTrail تنتمي إلى موضوع واحد. وإليكم كل المواضيع، وطبيعة مسائلها، وكيف يقوم بعض المواضيع على بعض.
+  # The name of the child the card on this page shows, an invented one.
+  child: نيزك
+  caption: التقدّم كما تعرضه الدردشة، مع المرحلة في كل موضوع. والطفل والأرقام هنا مجرد مثال.
+
+map:
+  title: كيف ترتبط المواضيع
+  lead: تقوم بعض المواضيع على غيرها. فحصر الحالات لازم في موضوع مبدأ برج الحمام وفي موضوع «الفرسان والكذابون» على حد سواء. وعند تعثّر الطفل في موضوع صعب، يفيد الرجوع خطوة إلى الموضوع الذي يقوم عليه.
+  layers:
+    - step: الخطوة 1
+      name: الأسس
+      lead: من دون معرفة سابقة تقريبًا.
+    - step: الخطوة 2
+      name: القواعد
+      lead: ما كان يُستنتج حالة بحالة يصبح قاعدة.
+    - step: الخطوة 3
+      name: المسائل الصعبة
+      lead: عدة أفكار يجب استحضارها في الذهن معًا.
+  hint: مرّروا المؤشر فوق موضوع، أو انتقلوا إليه بمفتاح Tab، ليُضاء ما يعتمد عليه وما يقود إليه.
+  # Said under the map while a topic is pointed at: its name, every topic
+  # below it, and every topic above it.
+  say: "**{topic}** · أولًا: {before} · يقود إلى: {after}"
+  foundation: لا شيء، فهو أساس
+  summit: لا شيء، فهو قمة
+  legend:
+    first: أولًا
+    topic: الموضوع
+    then: لاحقًا
+
+groups:
+  label: مجموعات المواضيع
+  logic: "الاستدلال: افتراض، ثم استخلاص النتيجة، ثم إيجاد التناقض."
+  counting: عدّ كل الحالات دون إغفال أي منها.
+  time: الساعات وأيام الأسبوع والسنوات، وما يتغير معها.
+  numbers: أعداد تهمّ فيها الفكرة أكثر من سرعة الحساب.
+  parts: "الكل مقسّمًا إلى أجزاء: الحصص والنسب المئوية والنسب."
+  games: إيجاد الخطة التي تنجح مهما فعل اللاعب الآخر أو الميزان.
+
+# Every topic of the catalog, by its slug: a line for the parent. Its card's
+# drawing is the site's data, one of the site's own small drawings and never a
+# reference task's, and it reads no words of this file.
+topics:
+  ordering:
+    phrase: "من الأطول، ومن الأكبر سنًا، ومن الأسرع: ترتيب الجميع انطلاقًا من بضع معلومات."
+  knights-and-liars:
+    phrase: بعضهم يقول الصدق دائمًا، والآخرون يكذبون دائمًا. والمطلوب معرفة حقيقة كل منهم من أقوالهم.
+  enumeration:
+    phrase: كتابة كل الحالات بترتيب، حتى لا تضيع أي حالة ولا تُعدّ حالة مرتين.
+  gaps-and-boundaries:
+    phrase: "أعمدة وفواصل، وطوابق وسلالم: متى نضيف واحدًا، ومتى لا نضيف."
+  clocks:
+    phrase: "كم مضى من الوقت، وكم ستكون الساعة: العقربان، ووجه الساعة، وتجاوز منتصف النهار."
+  calendar-and-age:
+    phrase: أيام الأسبوع والأشهر والأعمار. فرق العمر لا يتغير أبدًا، والأسبوع يعود من جديد.
+  pigeonhole-principle:
+    phrase: إذا كان الحمام أكثر من الأعشاش، فلا بد أن يضم عش ما حمامتين.
+  parity-and-alternation:
+    phrase: "الزوجي والفردي والتناوب: ما يمكن معرفته دون عدّ كل شيء."
+  arithmetic-with-a-trick:
+    phrase: "الحساب بذكاء: إعادة الترتيب، والتجميع، وملاحظة الطريق السهل قبل الحساب."
+  weighing-and-pouring:
+    phrase: إيجاد القطعة النقدية المزيفة بأقل عدد من الوزنات، أو قياس الماء بأباريق بلا علامات قياس.
+  parts-and-shares:
+    phrase: "النصف، والثلث، والربع: جزء من الكل، والكل من جزئه."
+  percentages:
+    phrase: كم يساوي ذلك بالنسبة المئوية، ومن أي كمية. والواحد بالمئة جزء من مئة.
+  ratios-and-sharing:
+    phrase: التقسيم بنسبة 2 إلى 3، وإيجاد قيمة الجزء الواحد.
+  figures-on-a-grid:
+    phrase: المساحة والمحيط بعدّ المربعات. التقطيع والتركيب والعدّ دون إغفال أي مربع.
+  divisibility-and-remainders:
+    phrase: هل ينقسم العدد قسمة تامة، وما الذي يبقى حين لا ينقسم.
+  overlapping-groups:
+    phrase: بعض الأطفال يرتادون ناديين في الوقت نفسه. وطريقة عدّهم دون تكرار.
+  winning-strategy:
+    phrase: من يأخذ عود الثقاب الأخير؟ البحث عن الأوضاع الرابحة مهما فعل اللاعب الآخر.

@@ -1,0 +1,225 @@
+title: Estudo
+description: Os números por trás do MathTrail. Como as verificações impedem que um problema chegue à criança enquanto houver algo errado nele, como o modelo do estudante se sai diante das suas metas e de onde vêm os problemas de referência.
+
+hero:
+  badge: Para o público técnico
+  title: O modelo escreve,
+  title_end: o serviço verifica.
+  lead: Como o MathTrail só deixa um problema chegar à criança depois que ele passa em {count} {noun}, e o que as verificações não veem.
+  paper: O artigo completo · PDF, {count} {noun}
+  code: Código e dados
+  flow:
+    task: problema
+    example: Uma cerca de {length} m tem um poste a cada {gap} m, incluindo as duas pontas. Quantos postes há?
+    solver: resolvedor
+    sum: "{length} ÷ {gap} + {one} = {posts} → {letter}"
+    hands_in: o problema e o seu resolvedor
+    back: recusado, devolvido
+    twice: o resolvedor roda duas vezes
+    asks: uma só alternativa correta · palavras ao alcance do ano escolar · nenhuma repetição de problemas anteriores
+    passed: passou em todas as verificações
+    sealed: a resposta selada até a criança responder
+  grades: "{first}º–{last}º ano"
+  licence: código aberto, MIT
+
+theses:
+  title: Quatro coisas que o artigo mostra
+  writes:
+    title: O modelo do chat escreve
+    text: Cada problema é escrito pelo modelo do chat que a família já usa, no idioma da criança e em torno de uma história próxima dela. O MathTrail não chama nenhum modelo próprio. É um serviço pequeno e determinístico, que não guarda nada da criança entre uma requisição e outra.
+    model: O modelo do chat
+    model_does: escreve
+    service: MathTrail
+    service_does: verifica
+    child: A criança
+    child_does: resolve
+  twice:
+    title: O resolvedor roda duas vezes
+    text: Junto com o problema, o modelo escreve um programa curto que calcula a resposta e indica a letra da alternativa correta. O serviço roda o programa, desloca as letras {count} {noun} adiante, de modo que {from} vira {to}, e roda o programa de novo. Um programa que calcula a resposta a encontra no novo lugar; um que escreveu a letra à mão, não. A segunda execução acontece quando a primeira escolhe uma única alternativa.
+    first: Primeira execução
+    second: Segunda execução, letras deslocadas
+    picks: → {letter}
+    caption: Um programa que escreveu “{letter}” à mão aponta para {value} na segunda execução, e o problema é recusado.
+  sealed:
+    title: A resposta fica selada
+    text: A resposta, a solução, as explicações e o resolvedor são criptografados e guardados no perfil da criança, no Google Drive da família. Até a criança responder, eles não estão em nada do que o serviço entrega ao cartão ou ao modelo do chat, nem em nenhum registro do serviço.
+    sees: O que a criança vê
+    seen: o enunciado · o desenho · as alternativas · a dica
+    hidden: Selado até a resposta
+    kept: a resposta · a solução · as explicações
+    cipher: XChaCha20-Poly1305 · vinculado à criança e ao problema
+    outside: O que o selo não alcança é o próprio chat. O modelo que escreveu o problema sabe a resposta, e o registro das ferramentas que ele chamou, que o próprio chat mantém, mostra essa resposta a uma pessoa adulta que o abrir.
+  reach:
+    title: Um pouco mais difícil, mas ao alcance
+    text: O modelo do estudante prevê a chance de a criança resolver um problema, e o serviço pede aquele cuja chance está mais perto de {middle}, o meio do corredor de {low} a {high}. Ao começar, a criança faz uma série de teste de {trial}, que encontra o ponto de partida.
+    guess: c = {guess}, acertar uma de {options} ao acaso
+    corridor: o corredor-alvo
+
+model:
+  title: O modelo do estudante diante das suas metas
+  lead: Com que precisão o serviço acompanha a criança, quão bem ele mantém os problemas ao alcance, com que segurança declara um tema dominado e o que a criança vê no fim de uma série. Os números são da bancada de testes, com crianças simuladas, e são calculados a partir do código com que este site é construído.
+  run:
+    commit: commit {commit} · {date}
+    size: "{children} × {answers}"
+    seed: semente {seed}
+  paper: O artigo descreve a regra como ela estava no commit em que os seus números foram calculados, {commit}. Esta página acompanha o serviço como ele funciona agora, então os dois diferem.
+  key:
+    service: o serviço agora
+    interval: intervalo de {interval}
+    goal: a meta
+    ceiling: o teto, uma estimativa que conhece o nível real da criança
+  groups:
+    step: Como a estimativa acompanha a criança
+    mastery: Como o domínio é declarado
+    screen: O que a criança vê no fim de uma série
+    screen_note: respostas {first}–{last} · a meta é não superar o valor das respostas {earlyfirst}–{earlylast}
+    context: Para comparação, sem meta
+  rows:
+    lag:
+      name: O atraso em relação a quem aprende
+      unit: logits, menos é melhor · o melhor possível é {best}
+    corridor_learning:
+      name: Problemas no corredor {low}–{high}
+      unit: quem aprende · proporção dos problemas, mais é melhor
+    jump_unsettled:
+      name: Estimativa ainda atrasada após um salto
+      unit: proporção das crianças, menos é melhor
+    false_mastery_static:
+      name: Domínios declarados por engano
+      unit: proporção dos domínios declarados, menos é melhor
+    false_mastery_wide:
+      name: Domínios declarados por engano, temas distantes entre si
+      unit: proporção dos domínios declarados, menos é melhor
+    late_mastery_static:
+      name: Respostas até declarar um domínio
+      unit: respostas, menos é melhor
+    late_mastery_wide:
+      name: Respostas até declarar um domínio, temas distantes entre si
+      unit: respostas, menos é melhor
+    card_move_static:
+      name: Quanto a pontuação se move
+      unit: pontos na maioria das respostas, menos é melhor
+    rank_changes_static:
+      name: Com que frequência a etapa muda
+      unit: mudanças a cada cem respostas, menos é melhor
+    card_move_learning:
+      name: A pontuação, quem aprende
+      unit: pontos na maioria das respostas, menos é melhor
+    rank_changes_learning:
+      name: A etapa, quem aprende
+      unit: mudanças a cada cem respostas, menos é melhor
+    error_static:
+      name: O erro da estimativa após {after}
+      unit: quem não avança · logits, menos é melhor
+    corridor_static:
+      name: Problemas no corredor {low}–{high}
+      unit: quem não avança · proporção dos problemas, mais é melhor
+  interval: "{low}–{high}"
+  goal_at_most: meta ≤ {bound}
+  goal_at_least: meta ≥ {bound}
+  ceiling: teto {value}
+  marks:
+    reached:
+      name: Atingida
+      means: O intervalo inteiro fica do lado melhor da meta.
+    on_the_edge:
+      name: No limite
+      means: O intervalo contém a meta.
+    not_reached:
+      name: Não atingida
+      means: O intervalo inteiro fica do lado pior da meta.
+    baseline:
+      name: Referência
+      means: A meta sai do próprio número do serviço, então é o patamar para a próxima regra, e não um teste desta.
+
+live:
+  title: Dados reais
+  lead: Se as promessas do modelo se cumprem com crianças reais, mês a mês. Os números vêm do registro de respostas, sem nomes e sem o texto de nenhum problema.
+  rule: Uma faixa só é mostrada quando reúne {children} ou mais e {answers} ou mais, e cada contagem nela é arredondada para um múltiplo de {rounded}. Uma faixa menor fica de fora, em vez de ser juntada a outra.
+  measures:
+    chances: Prometido → cumprido
+    kept_up: Cumprido − prometido, conforme o número de respostas
+    share: A proporção de acertos nos problemas da regra
+  frame:
+    coming:
+      badge: Em breve
+      when: Os números chegam quando um mês inteiro é contado, no começo do mês seguinte.
+    too_few:
+      badge: Ainda poucos dados
+      when: Em {month}, tão poucas crianças responderam aos problemas da regra que nenhum número pode ser mostrado.
+  ready:
+    month: "Em {month}: {children} e {answers} aos problemas que a regra escolheu."
+    weighed: Só entram na conta as respostas aos problemas que a regra escolheu, depois da série de teste de {trial} e sem a dica, de todos os chats juntos.
+    corridor: A proporção de problemas no corredor não pode ser medida com respostas reais, porque cada problema é respondido uma só vez.
+    columns:
+      promised: Prometido
+      came_true: Cumprido
+      answers: Respostas
+      children: Crianças
+    chances:
+      none: Neste mês, nenhuma faixa da chance prometida reúne crianças suficientes para ser mostrada.
+      shown:
+        caption: Cada faixa da chance prometida é um ponto, maior quanto mais respostas ela reúne. Sobre a diagonal tracejada, a promessa se cumpriu, e a banda é o corredor em que a regra escolhe os problemas.
+        up: ↑ proporção de acertos
+        across: a chance prometida →
+        ideal: promessa cumprida
+        band: corredor
+        range: "{from}–{to}"
+        heading: Chance prometida
+    kept_up:
+      none: Neste mês, nenhuma faixa das respostas de cada criança reúne crianças suficientes para ser mostrada.
+      shown:
+        caption: Uma resposta certa conta como um e uma errada como zero; desse valor se subtrai a chance prometida, e se calcula a média dessa diferença sobre as respostas. À direita da linha tracejada, as crianças se saíram melhor do que o prometido, e cada haste se estende por um erro padrão para cada lado, calculado por criança.
+        range: "{first}–{last}"
+        open: "{first} em diante"
+        heading: Número da resposta
+        margin: Cumprido menos prometido
+        error: Erro padrão
+    share:
+      expected: esperado ≈ {middle}, o meio do corredor
+      caption: A regra pede o problema cuja chance está mais perto de {middle}, o meio do corredor de {low} a {high}. O ponto é a proporção de respostas certas, e a linha tracejada é o meio do corredor.
+
+sources:
+  title: De onde vieram os problemas de referência
+  lead: Ideias não são protegidas por direitos autorais, mas textos são. Por isso, de um livro só se tiram a ideia de um problema e a sua resposta, e o enunciado, a história, as alternativas e as armadilhas são escritos de novo.
+  authors:
+    perelman:
+      name: Yakov Perelman
+      books:
+        firsthundred: For Young Mathematicians. The First Hundred Puzzles
+        secondhundred: The Second Hundred Puzzles
+        living: “Aprenda matemática brincando”
+        arithmetic: Entertaining Arithmetic
+        quick: Quick Reckoning
+    ignatyev:
+      name: Iemelian Ignátiev
+      books:
+        wit: In the Realm of Ingenuity, or Arithmetic for Everyone
+    dudeney:
+      name: Henry E. Dudeney
+      books:
+        amusements: “Divertimentos matemáticos”
+        canterbury: “Os enigmas de Canterbury”
+    loyd:
+      name: Sam Loyd
+      books:
+        cyclopedia: Cyclopedia of Puzzles
+    carroll:
+      name: Lewis Carroll
+      books:
+        tangled: “Uma história embrulhada”
+        pillow: Pillow Problems
+  died: † {year}
+  public: Em domínio público
+  public_note: Os direitos autorais destes livros já expiraram. Eles pertencem a todos, e qualquer pessoa pode usá-los de graça.
+  total: No total, {count} {noun}
+  each: cada um com um resolvedor e uma armadilha por trás de cada alternativa errada
+  level: "{count} · {first}º–{last}º ano"
+  note: O estilo segue as coletâneas soviéticas. Um problema de referência não tem um campo para a fonte, então não é possível dizer de quem é a ideia de cada problema.
+
+paper:
+  title: O artigo completo
+  ready: Métodos, tabelas, protocolos, limitações e ética, em inglês.
+  waiting: Métodos, tabelas, protocolos, limitações e ética. O PDF chega com a próxima versão.
+  open: Abrir o PDF
+  code: Código no GitHub

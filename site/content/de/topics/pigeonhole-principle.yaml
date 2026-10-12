@@ -1,0 +1,222 @@
+# The page of the topic of the pigeonhole principle, for a parent, in German.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Schubfachprinzip
+description: Worum es beim Schubfachprinzip geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+hero:
+  lead: >-
+    Fünf Tauben fliegen in vier Käfige: In einem Käfig sitzen dann zwangsläufig
+    zwei. In diesen Aufgaben beweist ein Kind, dass etwas auch beim größten Pech
+    passieren muss: zwei Socken derselben Farbe aus einer dunklen Schublade,
+    zwei Geburtstage im selben Monat. Es ist die erste Begegnung mit
+    Überlegungen, die vom ungünstigsten Fall ausgehen statt vom glücklichen.
+  method: Das größte Pech durchspielen, dann eins dazunehmen
+  teaches: Beweisen, dass etwas passieren muss, nicht nur, dass es passieren kann
+  # The words of its drawing: the pigeons and the cages over it, and what the
+  # seating always comes to.
+  art:
+    line: Fünf Tauben, vier Käfige
+    seat: beliebig verteilen
+    two: zwei
+    always: wie sie auch sitzen, in einem Käfig sind zwei
+
+basis:
+  title: Die Regeln des ungünstigsten Falls
+  cards:
+    - title: Mehr Tauben als Käfige
+      text: >-
+        Gibt es mehr Tauben als Käfige, sitzen in irgendeinem Käfig mindestens
+        zwei. Verteilen Sie sie so gleichmäßig, wie Sie wollen: Eine bleibt immer
+        übrig.
+    - title: Mit Sicherheit
+      text: >-
+        „Mit Sicherheit“ heißt: egal, was aus dem Beutel kommt. Stellen Sie sich
+        also vor, dass alles so schlecht läuft wie nur möglich, und sehen Sie,
+        wie weit das Pech gehen kann.
+      art:
+        luck: Glück
+        not-counted: zählt nicht
+        bad-luck: Pech
+    - title: Noch eins entscheidet
+      text: >-
+        Wenn das Pech ausgeschöpft ist, jede Farbe einmal gezogen und jeder Käfig
+        einmal besetzt, bringt das nächste Stück zwangsläufig das Gewünschte.
+      art:
+        eighth: eine für jeden Tag; die achte bildet ein Paar
+
+idea:
+  title: Das größte Pech, dann noch eins
+  lead: Jede Frage will wissen, was sicher ist. Die Antwort ist, wie weit das Pech gehen kann, plus eins.
+  table:
+    head:
+      - Was sicher sein soll
+      - Was das Pech zuerst bringen kann
+      - Also nehmen
+    rows:
+      - - zwei, die am selben Wochentag geboren sind
+        - je eine Person für jeden der 7 Tage
+        - 7 + 1 = 8 Personen
+      - - eine rote Kugel, aus 6 blauen und 4 roten
+        - alle 6 blauen Kugeln
+        - 6 + 1 = 7 Kugeln
+      - - zwei rote Kugeln, aus 6 blauen und 4 roten
+        - alle 6 blauen Kugeln und eine rote
+        - 6 + 1 + 1 = 8 Kugeln
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Kinder rechnen oft mit Glück: „Vielleicht ziehe ich gleich zwei rote.“
+      Eine Aufgabe, in der „mit Sicherheit“ steht, fragt, was beim größten Pech
+      passiert, und die Gewohnheit, daran zu denken, ist mehr wert als jede
+      Formel.
+
+method:
+  title: "Lösungsweg: das größte Pech, dann noch eins"
+  lead: >-
+    Benennen Sie die Käfige, etwa Farben, Monate oder Wochentage, und spielen
+    Sie das größte Pech bis zum Ende durch: Nehmen Sie alles, was noch nicht das
+    bringt, was die Frage verlangt. Das nächste Stück bringt es dann
+    zwangsläufig. Die Beispiele unten reichen von ganz einfach bis
+    Olympiade-Niveau.
+  steps:
+    - Die Käfige und die Tauben finden
+    - Das größte Pech bis zum Ende durchspielen
+    - Eins dazunehmen und prüfen, ob es den Ausschlag gibt
+  # The key under the steps: what the drawings' bracket and ring mean.
+  legend:
+    bad-luck: Pech
+    decides: noch eins, das den Ausschlag gibt
+
+examples:
+  - title: Bonbons im Glas
+    question: >-
+      In einem Glas sind 8 Zitronenbonbons und 2 Orangenbonbons. Wie viele
+      Bonbons muss Mika, ohne hinzusehen, herausnehmen, um mit Sicherheit
+      einen Orangenbonbon zu haben?
+    steps:
+      - Mika will einen Orangenbonbon. Das größte Pech ist ein Zitronenbonbon nach dem anderen.
+      - >-
+        Es gibt nur 8 Zitronenbonbons: Nach diesen 8 sind im Glas nur noch
+        Orangenbonbons übrig.
+      - "Der 9. Bonbon ist zwangsläufig ein Orangenbonbon: 8 + 1 = 9."
+    answer: 9 Bonbons.
+    art:
+      lemon: Zitrone, 8
+      orange: Orange, 2
+      unlucky: Pech
+      all-lemons: alle 8 mit Zitrone
+      lemons: 8 mit Zitrone
+  - title: Zwei schwarze Socken
+    question: >-
+      In einer Schublade liegen 8 schwarze, 6 weiße und 2 gestreifte Socken,
+      alle durcheinander. Wie viele Socken muss Jonas im Dunkeln herausnehmen,
+      um mit Sicherheit zwei schwarze zu haben?
+    steps:
+      - >-
+        Das größte Pech: Zuerst kommen die Socken, die nicht schwarz sind. Es
+        gibt 6 weiße und 2 gestreifte, also 8 Socken, darunter keine einzige
+        schwarze.
+      - >-
+        Das Pech kann noch weitergehen: Die nächste Socke ist schwarz, aber eben
+        nur eine. Das sind 9 Socken und nur eine schwarze darunter.
+      - >-
+        Die 10. Socke ist zwangsläufig auch schwarz, denn es sind nur noch
+        schwarze übrig. Also 10 Socken.
+    answer: 10 Socken.
+    note:
+      title: Warum nicht 9?
+      text: >-
+        Nach allen 6 weißen und 2 gestreiften Socken hat das Pech noch einen Zug:
+        eine einzige schwarze Socke. Zwei schwarze sind erst mit der 10. sicher.
+    art:
+      black: schwarz, 8
+      white: weiß, 6
+      striped: gestreift, 2
+      no-black: 8, keine schwarze
+      not-black: 8 nicht schwarze
+      one: eine
+      only-one: 9 Socken und nur eine schwarze
+  - title: Summen im Gitter
+    question: >-
+      Ein Gitter hat 2 × 2 Kästchen, und in jedem steht 1, 2 oder 3. Addiere die
+      zwei Zahlen jeder Zeile, jeder Spalte und jeder Diagonale. Stimmt es, dass
+      zwei dieser sechs Summen immer gleich sind?
+    steps:
+      - >-
+        Die Käfige zählen: Eine Summe von zwei Zahlen aus 1, 2 und 3 ist eine
+        der Zahlen 2, 3, 4, 5 und 6, insgesamt fünf Werte.
+      - "Die Tauben zählen: 2 Zeilen, 2 Spalten und 2 Diagonalen ergeben 6 Summen."
+      - >-
+        Sechs Summen und nur fünf Werte: Zwei der Summen müssen gleich sein,
+        egal welche Zahlen im Gitter stehen.
+    answer: Ja, immer.
+    badge: "Ja"
+    note:
+      title: Käfige sind nicht immer echte Käfige
+      text: >-
+        Hier sind die Käfige die Werte, die eine Summe annehmen kann, und die
+        Tauben sind die Zeilen, Spalten und Diagonalen des Gitters. Die Kunst bei
+        diesen Aufgaben besteht darin, zu erkennen, was die Rolle der Käfige
+        spielt.
+    art:
+      example: "zum Beispiel: 1, 2 oder 3 in jedem Kästchen"
+      cages: 5 Käfige, die möglichen Summen
+      row: Zeile
+      column: Sp.
+      diagonal: Diag.
+      pigeons: 6 Summen, 6 Tauben
+      two: "6 Tauben in 5 Käfigen: In einem sitzen zwei"
+      cages-name: Käfige
+      pigeons-name: Tauben
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  best_case_not_worst:
+    shows: >-
+      Das Kind rechnet mit Glück: „Wenn die ersten zwei Socken schwarz sind,
+      reichen zwei.“ In der Frage steht „mit Sicherheit“, und genau das schließt
+      Glück aus.
+    say: „Und wenn du so viel Pech hast wie nur möglich?“
+    art:
+      question: Mit Sicherheit zwei schwarze
+  ignored_condition:
+    shows: >-
+      Ein Wort der Frage geht verloren: Aus „zwei schwarze Socken“ wird „zwei
+      Socken derselben Farbe“ oder aus „von jeder Farbe eine“ wird „eine Farbe“.
+    say: „Lies die Frage noch einmal. Was genau musst du mit Sicherheit haben?“
+    art:
+      question: "Gesucht: zwei **schwarze** Socken"
+      black-pair: ein schwarzes Paar
+  off_by_one:
+    shows: >-
+      Das Kind spielt das größte Pech durch und hört dort auf, ohne das eine
+      dazuzunehmen, das den Ausschlag gibt; oder es nimmt eins zu viel dazu.
+    say: „Was bringt das nächste Stück nach dem größten Pech?“
+    art:
+      question: 8 Zitronen- und 2 Orangenbonbons
+
+home:
+  - title: Socken im Dunkeln
+    text: >-
+      Stecken Sie Socken in zwei oder drei Farben in einen Beutel und ziehen Sie
+      sie mit geschlossenen Augen heraus: Wie viele braucht man, bis ein Paar
+      sicher ist? Probieren Sie es mehrmals. Das Glück wechselt, die Antwort
+      nicht.
+  - title: Muss oder kann?
+    text: >-
+      Wenn Ihr Kind sagt: „Das könnte passieren“, fragen Sie: „Und könnte es
+      auch nicht passieren?“ Der Unterschied zwischen „kann“ und „muss“ ist das
+      ganze Thema.
+  - title: Käfige finden
+    text: >-
+      Suchen Sie gemeinsam Käfige in dem, was man im Alltag zählt: sieben
+      Wochentage, zwölf Monate, vier Jahreszeiten. „Wir sind 30: Haben mit
+      Sicherheit zwei von uns im selben Monat Geburtstag?“
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Schubfachprinzip“

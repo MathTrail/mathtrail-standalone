@@ -1,0 +1,254 @@
+# The page of the topic of weighing and pouring, for a parent, in German. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Wiegen und Umfüllen
+description: Worum es bei „Wiegen und Umfüllen“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+# The words the page's drawings write a jug's size, a step and a move in.
+art:
+  litres: "{count} l"
+  step: Schritt
+  pour: umfüllen
+  empty: leeren
+  fill: füllen
+  top: auffüllen
+
+hero:
+  lead: >-
+    Wie misst man mit einer 5-Liter-Kanne und einer 3-Liter-Kanne genau 4 Liter
+    ab? Wie findet man mit einer Balkenwaage ohne Gewichte die eine leichtere
+    Münze unter vielen? In diesen Aufgaben plant ein Kind eine kurze Folge von
+    Schritten, und jede Regel zählt: keine Markierungen an den Kannen, keine
+    Gewichte für die Waage. Das ist eine erste Begegnung mit Algorithmen, also
+    mit Plänen, die funktionieren, was auch immer passiert.
+  method: Jeden Zustand aufschreiben und den kürzesten Weg suchen
+  teaches: Schritte vorausplanen und jeden Ausgang einer Wägung durchdenken
+  # The words of its drawing: what is measured over it, and what each pair of
+  # jugs is.
+  art:
+    line: Mit einer 5- und einer 3-Liter-Kanne 4 Liter abmessen
+    pair: "jedes Paar ist ein Zustand: was in jeder Kanne ist"
+
+basis:
+  title: Die Regeln des Wiegens und Umfüllens
+  cards:
+    - title: Ein Zustand umfasst alle Kannen
+      text: >-
+        Schreiben Sie nach jedem Schritt auf, was in jeder Kanne ist: 5 und 0,
+        dann 2 und 3. Eine Liste der Zustände zeigt, wohin man gelangen kann und
+        wo man schon war.
+    - title: Drei Ausgänge
+      text: >-
+        Eine Balkenwaage kann sich nach links neigen, nach rechts neigen oder im
+        Gleichgewicht bleiben, also hat jede Wägung drei Ausgänge. Teilen Sie
+        die Münzen in drei Gruppen, nicht in zwei.
+      art:
+        left: links
+        level: Gleichgewicht
+        right: rechts
+    - title: Jede Regel zählt
+      text: >-
+        Keine Markierungen an den Kannen, kein Wasser weggießen, Gewichte nur
+        auf einer Waagschale: Jede Regel ändert, welche Schritte erlaubt sind,
+        und damit die Antwort.
+      art:
+        no-marks: keine Markierungen
+        pour-out: weggießen
+        unless: es sei denn, die Aufgabe erlaubt es
+        weight: ein Gewicht
+        one-pan: nur auf einer Waagschale
+
+idea:
+  title: Drei Ausgänge einer Wägung
+  lead: Jede Wägung hat drei Ausgänge, also kann sie die Münzen in drei Gruppen teilen. Davon hängt ab, wie viele Münzen eine bestimmte Zahl von Wägungen bewältigt.
+  table:
+    head:
+      - Wägungen
+      - Ausgänge
+      - Münzen, die sie schaffen
+    rows:
+      - - "1"
+        - "3"
+        - bis zu 3
+      - - "2"
+        - 3 × 3 = 9
+        - bis zu 9
+      - - "3"
+        - 3 × 3 × 3 = 27
+        - bis zu 27
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Ein Kind, das die Hälfte der Münzen gegen die andere Hälfte wiegt,
+      braucht mehr Wägungen als nötig. Zu sehen, dass eine Waage auf drei Arten
+      antwortet und nicht auf zwei, ist die ganze Idee, und sie kehrt später in
+      der Informatik als Suche wieder.
+
+method:
+  title: "Lösungsweg: eine Tabelle der Zustände"
+  lead: >-
+    Legen Sie fürs Umfüllen eine Tabelle an, mit einer Spalte für jede Kanne
+    und einer Zeile für jeden Schritt, und probieren Sie von jeder Zeile aus
+    jeden erlaubten Schritt, bis das Ziel auftaucht; sein erstes Auftauchen
+    ergibt die kleinste Zahl von Schritten. Planen Sie beim Wiegen, was nach
+    jedem der drei Ausgänge zu tun ist. Die Beispiele unten reichen von ganz
+    einfach bis Olympiade-Niveau.
+  steps:
+    - "Den Zustand aufschreiben: was in jeder Kanne oder auf jeder Waagschale ist"
+    - Von dort jeden erlaubten Schritt ausprobieren
+    - Am Ziel anhalten und die Schritte zählen
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    goal: Ziel erreicht
+
+examples:
+  - title: Ein Liter
+    question: >-
+      Eine Köchin hat eine leere 3-Liter-Kanne, eine leere 5-Liter-Kanne und
+      einen Wasserhahn. Die Kannen haben keine Markierungen. In einem Schritt
+      füllt sie eine Kanne am Wasserhahn, gießt eine Kanne aus oder gießt aus
+      einer Kanne in die andere, bis die erste leer oder die zweite voll ist.
+      Wie viele Schritte braucht sie mindestens, damit genau 1 Liter in einer
+      Kanne ist?
+    steps:
+      - Die 3-Liter-Kanne füllen und in die 5-Liter-Kanne gießen, in der jetzt 3 Liter sind.
+      - >-
+        Die 3-Liter-Kanne wieder füllen und daraus gießen, bis die große Kanne
+        voll ist: Es passen nur noch 2 Liter hinein.
+      - "In der kleinen Kanne bleibt 1 Liter übrig, nach 4 Schritten: füllen, umfüllen, füllen, umfüllen."
+    answer: 4 Schritte.
+    note:
+      title: Warum nicht weniger?
+      text: >-
+        In einer Tabelle aller Zustände, die man in höchstens drei Schritten
+        erreicht, kommt 1 Liter nicht vor: In den Kannen sind nur 0, 2, 3 oder
+        5 Liter. Der erste Liter erscheint nach dem vierten Schritt.
+    art:
+      jugs: Kannen für 3 und 5 Liter, ohne Markierungen
+      rows: 4 Schritte, 4 Zeilen nach den leeren Kannen
+      three: "in 3 Schritten:"
+      no-litre: der Liter fehlt
+  - title: Acht Münzen
+    question: >-
+      Es gibt 8 Münzen, die gleich aussehen. Eine davon ist falsch und leichter
+      als die anderen, die alle gleich viel wiegen. Wie viele Wägungen auf einer
+      Balkenwaage ohne Gewichte braucht man mindestens, um die falsche Münze
+      sicher zu finden?
+    steps:
+      - Auf jede Waagschale 3 Münzen legen und 2 beiseitelegen.
+      - >-
+        Steigt eine Waagschale, liegt die falsche Münze unter ihren 3 Münzen: 1
+        gegen 1 wiegen; die leichtere ist die falsche, und bei Gleichgewicht ist
+        es die dritte Münze.
+      - >-
+        Bleibt die Waage im Gleichgewicht, ist die falsche Münze eine der 2
+        beiseitegelegten: Diese beiden gegeneinander wiegen. So oder so reichen
+        2 Wägungen, und 1 reicht nicht: Eine einzige Wägung hat nur 3 Ausgänge
+        für 8 Münzen.
+    answer: 2 Wägungen.
+    note:
+      title: Warum nicht 4 gegen 4?
+      text: >-
+        Wiegt man 4 gegen 4, bleiben nach der ersten Wägung 4 Münzen übrig, und
+        4 Münzen brauchen noch 2 Wägungen, insgesamt 3. Bei Dreiergruppen leistet
+        auch der Ausgang „Gleichgewicht“ einen Teil der Arbeit.
+    art:
+      one-lighter: eine der 8 ist leichter
+      three: 3 gegen 3
+      aside: beiseite
+      lighter: links leichter
+      one: 1 gegen 1
+      found: die leichtere ist es; bei Gleichgewicht die dritte
+      level: Gleichgewicht
+      of-two: die 2 beiseitegelegten
+      never-level: nie im Gleichgewicht
+      four-left: 4 übrig → noch 2 Wägungen
+  - title: Hundert Münzen
+    question: >-
+      Unter 100 Münzen, die gleich aussehen, ist eine falsch und leichter als
+      die anderen, die alle gleich viel wiegen. Wie viele Wägungen auf einer
+      Balkenwaage ohne Gewichte braucht man mindestens, um die falsche Münze
+      sicher zu finden?
+    steps:
+      - >-
+        Jede Wägung hat 3 Ausgänge, also unterscheiden 4 Wägungen höchstens
+        3 × 3 × 3 × 3 = 81 Fälle. Das sind weniger als 100 Münzen, also reichen
+        4 Wägungen nicht.
+      - >-
+        Auf jede Waagschale 33 Münzen legen und 34 beiseitelegen: Was auch
+        passiert, es bleiben höchstens 34 Münzen übrig. Genauso werden aus 34
+        höchstens 12, dann 4, dann 2, dann 1.
+      - Das macht 5 Wägungen, während die Zahl der Münzen von 100 auf 34, 12, 4, 2 und 1 sinkt.
+    answer: 5 Wägungen.
+    note:
+      title: Zwei Hälften eines Beweises
+      text: >-
+        Die Antwort braucht beides: einen Plan, der die falsche Münze in 5
+        Wägungen findet, und die Zählung der Ausgänge, die zeigt, dass 4 niemals
+        reichen können. Antworten auf Olympiade-Fragen mit „mindestens“ haben
+        immer diese zwei Hälften.
+    art:
+      aside: beiseite
+      numbers: die Zahlen über den Pfeilen zählen die Wägungen
+      plan: der Plan
+      always: 5 Wägungen finden sie immer
+      bound: die Abschätzung
+      at-most: 4 unterscheiden höchstens 81 Fälle
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Eine Regel der Aufgabe wird unbemerkt gebrochen: Wasser wird weggegossen,
+      obwohl die Aufgabe das nicht erlaubt, eine Kanne wird bis zu einer
+      Markierung gefüllt, die sie nicht hat, oder ein Gewicht kommt auf die
+      Waagschale mit der Last.
+    say: „Welche Schritte erlaubt die Aufgabe?“
+    art:
+      question: Keine Markierungen an den Kannen
+      to-mark: „bis 1 Liter“ füllen
+      after-pouring: 1 Liter durch Umfüllen
+  stopped_early:
+    shows: >-
+      Der Plan hört auf, bevor Gewissheit erreicht ist: Eine Wägung findet die
+      Gruppe mit der falschen Münze, und dort endet die Suche, oder das Umfüllen
+      stoppt bei 2 Litern, obwohl das Ziel 1 war.
+    say: „Weißt du es jetzt sicher, ganz gleich, was die Waage gezeigt hat?“
+    art:
+      question: Nach der ersten Wägung
+      here: „sie ist hier“, aber welche?
+      one-more: noch eine Wägung
+  off_by_one:
+    shows: >-
+      Die Schritte werden um eins falsch gezählt: Das erste Füllen am
+      Wasserhahn fehlt, oder das letzte Umfüllen wird doppelt gezählt.
+    say: "„Zähl in der Tabelle noch einmal nach: eine Zeile, ein Schritt.“"
+    art:
+      question: Eine Zeile der Tabelle, ein Schritt
+      three: 3 Schritte
+      four: 4 Schritte
+      empty: leer → 4 Zustände
+
+home:
+  - title: Kannen in der Spüle
+    text: >-
+      Nehmen Sie zwei Becher verschiedener Größe und versuchen Sie, eine Menge
+      abzumessen, die keinem der beiden Becher entspricht. Die Spüle ist das
+      beste Labor, und verschüttetes Wasser schadet nicht.
+  - title: Den leichteren Gegenstand finden
+    text: >-
+      Verstecken Sie einen leichteren Gegenstand unter einigen, die gleich
+      aussehen, und finden Sie ihn mit einer Balkenwaage für zu Hause oder mit
+      einem Kleiderbügel und zwei Beuteln. Zählen Sie die Wägungen.
+  - title: Erst planen
+    text: >-
+      Schreiben Sie vor dem Umfüllen oder Wiegen den Plan als Tabelle auf und
+      prüfen Sie ihn Schritt für Schritt. Auf das Vorausplanen kommt es an,
+      nicht auf Glück.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Wiegen und Umfüllen“

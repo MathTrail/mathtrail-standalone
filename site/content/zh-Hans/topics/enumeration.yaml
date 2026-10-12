@@ -1,0 +1,184 @@
+# The page of the topic of enumeration, for a parent, in Simplified Chinese. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: 枚举法
+description: 什么是枚举法的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+# The words every drawing of the page writes its people in: the three
+# children's letters, and Lea's and Tom's initials.
+art:
+  a: A
+  b: B
+  c: C
+  lea: 琳
+  tom: 涛
+
+hero:
+  lead: >-
+    用这几个数字能写出多少个数？能握多少次手，能搭配出多少套衣服，排成一队有多少种排法？这类题要按一定的顺序把每一种情况都列出来，保证一种也不漏，一种也不重复数。按规则列出的清单，是孩子面对大得没法猜的问题时的第一件工具。
+  method: 按规则列举各种情况
+  teaches: 按顺序有条理地思考，并能看出什么时候不必一一写出也能数清情况
+  # The words of its drawing: the question and the rule over it, and the count
+  # under it.
+  art:
+    line: 用1、2、3能组成多少个没有重复数字的两位数？
+    rule: 按规则列举：先定第一位
+    count: 第一位3种选法 × 第二位2种 = 6个数
+
+basis:
+  title: 列举的规则
+  cards:
+    - title: 按顺序
+      text: >-
+        写下各种情况之前，先给它们排好顺序：先按第一个字母排，再按第二个字母排。在排好顺序的清单里，漏掉的情况会留下一个看得见的空缺。
+      art:
+        on: "{child}在前"
+        # The case the listing lost: its two letters and a question mark, as the
+        # language writes one.
+        lost: "{first}{second}？"
+    - title: 每种情况只算一次
+      text: >-
+        数之前，先想清楚怎样才算两种不同的情况。小琳和小涛握手，是一次握手；但小琳排在小涛前面和小涛排在小琳前面，是两种不同的排队方式。
+      art:
+        handshake: 1次握手
+        queues: 2种排法
+    - title: 选法相乘
+      text: >-
+        如果一种情况由一个接一个的选择组成，比如先选杯子、再选碟子，就用乘法来数：3个杯子和2个碟子，能配成3 × 2 = 6套。
+      art:
+        sets: 3 × 2 = 6套
+
+idea:
+  title: 和顺序有关吗？
+  lead: 同样是A、B、C三个孩子，问的问题不同，数出来的个数也不同。
+  table:
+    head:
+      - 问题
+      - 和顺序有关吗？
+      - 各种情况
+    rows:
+      - - 排成一行，有多少种排法？
+        - 有关：AB和BA是两种排法
+        - ABC、ACB、BAC、BCA、CAB、CBA，共6种
+      - - 派两个人去办事，有多少种派法？
+        - 无关：AB和BA是同一对
+        - AB、AC、BC，共3种
+      - - 选一名组长和一名助手，有多少种选法？
+        - 有关：组长在前（画得较大）
+        - AB、AC、BA、BC、CA、CB，共6种
+  note:
+    title: 为什么重要
+    text: >-
+      这类题的错误答案，大多是把一种情况数了两次，或者把两种不同的情况当成了一种。先弄清和顺序有没有关系，就知道该提防哪种错误。
+
+method:
+  title: 解法：按规则列举
+  lead: >-
+    先定好规则：清单里什么排在最前，接下来是什么。然后按这个规则把各种情况写出来；等规则显出规律，也可以直接算出个数。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 想清楚怎样才算两种不同的情况
+    - 按规则列举各种情况
+    - 数出个数；如果是一步接一步地选，就用乘法
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    frame: 蓝框：这一步新添的内容
+
+examples:
+  - title: 两道条纹的旗子
+    question: >-
+      一面旗子有上下两道条纹。每道条纹是红色、黄色或绿色，而且两道条纹的颜色不同。一共能有多少种不同的旗子？
+    steps:
+      - >-
+        按上面那道条纹的颜色给旗子排顺序。上面是红色时，下面是黄色或绿色：两面旗子。
+      - >-
+        上面是黄色时，下面是红色或绿色：又是两面。上面是绿色时，下面是红色或黄色：又是两面。
+      - >-
+        上面有3种颜色可选，每次剩下2种给下面：3 × 2 = 6面旗子。
+    answer: 6面旗子。
+    art:
+      paints: 三种颜料，两道条纹颜色不同
+      red-top: 红色在上
+      red: 红色
+      yellow: 黄色
+      green: 绿色
+      top: 上面 ↓
+      bottom: 下面 →
+      same: ×：同一种颜色不能用两次，9 − 3 = 6
+  - title: 数字相差三
+    question: 两个数字相差3的两位数（比如14或30）一共有多少个？
+    steps:
+      - >-
+        让十位上的数字从1到9依次变化，在旁边写出和它相差3的每一个个位数字：1 → 4；2 → 5；3 → 0和6；4 → 1和7；依此类推。
+      - >-
+        十位是3、4、5或6时，各有两个数，个位比十位小3或大3。十位是1、2、7、8或9时，只有一个：另一个就不是数字了。
+      - >-
+        4 × 2 + 5 × 1 = 13个：14、25、30、36、41、47、52、58、63、69、74、85、96。
+    answer: 13个数。
+    note:
+      title: 最常漏掉的情况
+      text: >-
+        孩子常忘掉的是30：一个数可以以0结尾，但不能以它开头。按规则列举能找到它，凭记忆列举就找不到。
+    art:
+      given: 十位和个位相差3
+      under: 上面是十位，下面是合适的个位
+      two: 蓝色：各有两个数
+      can: 可以
+      not: 不是两位数
+  - title: 两个2不相邻
+    question: >-
+      只用数字1和2写四位数，要求没有两个2挨在一起。这样的四位数有多少个？
+    steps:
+      - >-
+        数太多，没法猜，所以一位一位地往上搭。一位数：1和2，两个。两位数：11、12和21，三个，因为22不行。
+      - >-
+        符合要求的数，末位是1或者2。末位是1的，就是在任意一个少一位的合格数后面添上1。末位是2的，前一位一定是1：就是在任意一个少两位的合格数后面添上12。所以每种位数的个数，都等于前两种位数的个数之和：三位数有3 + 2 = 5个，四位数有5 + 3 = 8个。
+      - >-
+        列出来检验一下：1111、1112、1121、1211、2111、1212、2112、2121，共八个。
+    answer: 8个数。
+    note:
+      title: 不断增长的个数
+      text: >-
+        2、3、5、8这串个数接下去是13、21、34，每个都是前两个之和。奥数题很喜欢这种能由更小的个数搭出来的计数。
+    art:
+      twos: 两个2不能挨着
+      one: 1位数
+      two: 2位数
+      three: 3位数
+      four: 4位数
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  missed_case:
+    shows: >-
+      孩子想到一种就写一种，结果漏掉了一种，常常是带0的，或者有重复数字的。
+    say: “你是按什么顺序写的？我们按规则重新写一遍吧。”
+    art:
+      question: 数字相差3
+  wrong_operation:
+    shows: >-
+      该用乘法时，孩子用了加法，于是3件衬衫和2条围巾算出了5种；或者在选两个人配成一对时直接相乘，忘了谁也不会和自己配对。
+    say: “拿一件衬衫：它能配出几套？一共有几件衬衫？”
+    art:
+      question: 3件衬衫和2条围巾
+  double_count:
+    shows: >-
+      小琳和小涛握手、小涛和小琳握手，被算成了两次握手，其实只是一次。
+    say: “这种情况，和我们已经写过的某一种是不是一样？”
+
+home:
+  - title: 打扮玩具
+    text: >-
+      给孩子两顶帽子和三条围巾，用来打扮一个玩具，问一共有几种打扮法。然后请孩子把清单列出来，一起检查。
+  - title: 问问规则
+    text: >-
+      孩子列举情况时，问一问：“你是按什么顺序写的？”有规则的清单，就是能检查的清单。
+  - title: 密码锁
+    text: >-
+      编一把密码锁，密码是两位数字，每一位都是1、2或3，让孩子算一算，小偷一共得试多少个密码。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“枚举法”的题

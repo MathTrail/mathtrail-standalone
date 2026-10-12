@@ -1,0 +1,186 @@
+# The home page, for a parent: what MathTrail is, why not just ask the chat,
+# how a lesson goes — the card of the widget at every step — and how to
+# connect. The grades, the names of the traps, the card's picture, options and
+# rating, the connector's address and the card's own words are not here: they
+# are the catalog's numbers, the site's data, the widget's words and the
+# site's own.
+
+title: MathTrail：在您的聊天里学奥数
+description: 在您常用的聊天里为孩子提供奥数：经过检查、源源不断的题目，每个错误都有诊断，还会记住孩子的进步情况。
+
+hero:
+  free: 免费
+  open: 开源
+  title: 奥数，就在您常用的聊天里。
+  # The promise, word for word as the README gives it.
+  lead: 源源不断、经过检查的奥数风格数学题，面向{range}年级的孩子，支持任何语言，还能诊断孩子的错误，记住孩子的进步情况。
+  # How the task on the card was picked for the lesson's child: the child's
+  # topics, then the chance of a right answer and the reasons. The topics and
+  # the numbers are the site's data.
+  pick:
+    label: 下一道题是怎样选出来的
+    title: 为 Galt 挑选
+    skills: Galt 的技能
+    why: 为什么选这道题
+    auto: 自动挑选
+    chance: 答对概率{chance}，在目标区间内
+    reasons:
+      - 最弱的专题
+      - 重复最近的错误：差了一个
+      - 5天没练了
+  see: 看看怎么上课
+  note: 孩子做题的时候，您可以给自己泡杯茶。
+
+# The frame a card stands in: the chat a parent already uses, with the
+# parent's message above the card.
+chat:
+  title: 您的聊天
+  ask: 来一道新题
+  progress: 我的孩子学得怎么样？
+
+pillars:
+  title: 为什么不直接在聊天里要题？
+  lead: 聊天模型一秒钟就能写出一道题，出错也一样快：两个选项都对、解答前后对不上、昨天的题换了数字再出一遍。而且如果您的孩子坚持，它还会爽快地认同。MathTrail 把模型擅长的写题工作留给它，其余的一切都用程序来检查。
+  # A chat asked alone for a task. Its options, and which of them are right,
+  # are the site's data.
+  alone:
+    name: 只用聊天
+    ask: 来一道3年级的奥数题
+    task: 一个数既能被2整除，又能被3整除。这个数可能是几？
+    flag: 两个正确答案，没人检查过
+  # The chat alone against the chat with MathTrail, both asked what the chat
+  # alone was asked, point against point.
+  versus:
+    asked: "“{ask}”"
+    alone:
+      - 可能两个选项都对，也可能一个都不对。
+      - 孩子一坚持，它就认同错误答案。
+      - 不记得您的孩子错在哪里。
+      - 得由您自己知道该要什么：专题、水平、接下来学什么。
+      - 每道题都是一次性的，背后没有关于孩子如何学习的模型。
+      - 没有地图显示您的孩子已经会什么。
+    ours:
+      name: 聊天 + MathTrail
+      points:
+        - 恰好一个选项正确：一个能把题解出来的程序会试遍每一种情况。
+        - 点一下就记录答案，争辩也改不成对的。
+        - 记住技能和错误，并挑选下一道题。
+        - 您只要说“来一道新题”：MathTrail 会选好专题和水平。
+        - 以研究为基础的技能模型：基于 IRT 的 Elo，共11个等级。
+        - 每个专题都有评分，还有一张地图，显示哪些专题以哪些专题为基础。
+  tiles:
+    # The languages are named each in itself; this follows them.
+    endless:
+      title: 题目源源不断。
+      text: 每道题都根据您孩子的专题、水平和最近的错误重新编写，用的是您聊天的语言，而不是从固定的题库里调出来的。每三道题里就有一道围绕孩子的兴趣爱好来编。
+      more: + 任何语言
+    checked:
+      title: 程序来检查模型。
+      text: 一道题要通过全部检查，才会送到您的孩子面前：只有一个正确选项；求解程序能算出同样的答案；文字适合该年级的阅读水平；不是重复的题；如果有图，图上的标注与题目中的叫法一致，而且图上没有答案。
+      checks:
+        - 唯一答案
+        - 求解程序
+        - 易读
+        - 不重复
+    diagnosis:
+      title: 错误就是诊断。
+      # The traps are the catalog's, under the names the card gives them.
+      text: 每个错误选项背后都藏着一个有名字的陷阱，比如“{first}”“{second}”“{third}”。讲解从您的孩子是怎么想的出发，而不是从正确答案出发。
+      trap: 陷阱：数的是间隔，不是柱子
+  behind:
+    title: 每道题背后有什么
+    # Under the words, what the parent says, and what MathTrail picks.
+    coach:
+      title: 不必是老师。
+      text: 您不需要懂奥数专题，也不用自己选水平。说一句“来一道新题”，教练就会决定接下来练什么、难度多大。
+      picked: 专题 + 水平：已选好
+    research:
+      title: 以研究为基础的模型。
+      text: 解题概率来自心理测量学中使用的一种技能模型（基于项目反应理论的 Elo），题目难度会保持在孩子答对率为70%～85%的区间。
+      formula: P = 0.2 + 0.8·σ(θ + δ − β)
+    # Under the words, a topic between two it builds on, as the catalog has
+    # them.
+    map:
+      title: 技能和专题的地图。
+      text: MathTrail 知道哪些专题以哪些专题为基础，比如排序推理和枚举法要先于真假话问题学；它还会记录您的孩子在每个专题上的评分。
+
+lesson:
+  eyebrow: 一节课怎么上
+  title: 一次一道题，就在您自己的聊天里。
+  lead: 您坐在旁边，孩子来点。每一步旁边，都是聊天在那一刻显示的卡片。
+  # The steps in the order a lesson takes them, each beside its card.
+  steps:
+    generating:
+      title: 请求一道题
+      text: 输入“来一道新题”。MathTrail 会选好专题和难度，聊天模型写出题目，在孩子看到之前，程序会先检查每一个选项。
+    selected:
+      title: 点按钮作答
+      text: 五个选项，从A到E。点一下就立即记录答案，而且是在任何讲解之前，所以怎么说都没法把它说成对的。
+    hint:
+      title: 卡住了？给提示，不给答案
+      text: 提示会指出从哪里入手，比如画一道短一点的篱笆；在孩子选定一个答案之前，答案一直隐藏着。
+    wrong:
+      title: 答错也是一课
+      text: 每个错误选项背后都藏着一个已知的陷阱。孩子作答后，卡片会变成答案讲解，从孩子的角度说出陷阱，比如“数的是间隔，不是柱子”，然后逐步讲出解答。
+    question:
+      title: 用自己的话问为什么
+      text: 答案记录之后，可以在聊天里问：“为什么多一根柱子？”模型会就这道题作答。
+    progress:
+      title: 看得懂的进度
+      text: 达到的等级和每个专题的等级、反复出现的错误、接下来学什么，还有一份写给您的分析：哪些方面做得好，哪些需要加强。
+  # The name of the child the cards show, an invented one, which the first
+  # screen picks a task for.
+  child: Galt
+  # Two messages of the chat beneath a card answered wrong: the adult's
+  # question and the model's reply, about the step and to nobody, for the adult
+  # to read out to the child. They are the site's words, never the card's.
+  chat:
+    label: 聊天示意
+    adult: 成年人
+    model: 模型
+    question: 为什么多一根柱子？
+    reply: 从左边沿着篱笆看，每个间隔的末端都有一根柱子，所以4个间隔带来4根柱子，而第一根柱子立在所有间隔的前面。4 + 1 = 5。
+
+# The task of the lesson: a variant of a reference task, never one word for
+# word.
+task:
+  question: 篱笆长12米。每隔3米立一根柱子，两端都有柱子。一共有几根柱子？
+  hint: 先拿一道短一点的篱笆试试：长6米，每隔3米立一根柱子。把它画出来，数一数柱子。
+  # The trap behind each wrong option, as the card says it once that option
+  # is picked: the steps pick one, and the card on the first screen any.
+  traps:
+    a: 答的是相邻柱子之间的距离，而不是柱子的根数。
+    b: 数的是间隔，不是柱子。
+    d: 把长度乘以了间隔，而不是除以间隔。
+    e: 直接用了题目里篱笆的长度，没有去数柱子。
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4（个间隔）。两端都有柱子的直篱笆，柱子比间隔多一根。4 + 1 = 5（根柱子）。
+
+connect:
+  eyebrow: 连接
+  title: 只需几步，就能开始第一道题。
+  claude:
+    pill: 现已可用 · 免费计划也可以
+    # The steps of Claude's own help on custom connectors; the address follows
+    # the third.
+    steps:
+      open: 在 Claude 中打开{connectors}。
+      add: 点击 **+ 添加**，然后选择**添加自定义连接器**。
+      paste: 名称填写 MathTrail，然后粘贴地址：
+      sign: 点击**继续**，再点一次**继续**：Claude 检测到的身份验证设置无需更改。然后点击**添加**，再点击**连接**，并用 Google 账号登录。MathTrail 会请求在您的 Google 云端硬盘中保存一个文件，也就是孩子的档案。请在 Google 的页面上允许：没有这个文件，进度就无处保存。
+      chat: 在聊天中点击 **+** → **连接器**，开启 MathTrail，然后说：“我们来做一道 MathTrail 的题吧。”
+    # Claude's own names for the page, as Claude writes them in the page's
+    # language, and in English where Claude does not speak it.
+    connectors: 自定义 → 连接器
+    note: 免费计划允许添加一个自定义连接器。
+  chatgpt:
+    pill: 尚未进入目录
+    text: 免费的 ChatGPT 账号只能从 ChatGPT 的目录中添加应用。MathTrail 一旦在目录中上架，按名称找到它，连接后用 Google 账号登录即可。目前它还没有上架。
+    dev: 在此之前，可以用 ChatGPT 的开发者模式按地址添加应用，适用于网页版的 Plus、Pro、Business、Enterprise 和 Education 套餐：开启开发者模式，用上面的地址添加一个应用，具体做法见 {openai}。MathTrail 在 ChatGPT 中仍在测试。
+    openai: OpenAI 的说明
+  need: 您需要一个 Claude 或 ChatGPT 账号和一个 Google 账号；孩子两者都不需要。
+
+ask:
+  title: 从一道题开始。
+  lead: 把 MathTrail 添加到 Claude，大约只需两分钟。
+  code: 在 GitHub 上查看代码

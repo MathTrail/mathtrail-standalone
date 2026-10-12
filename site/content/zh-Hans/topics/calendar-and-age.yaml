@@ -1,0 +1,187 @@
+# The page of the topic of the calendar and age, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 日历与年龄
+description: 什么是关于日历与年龄的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+hero:
+  lead: >-
+    今天是星期二：30天后是星期几？妈妈30岁，小安6岁：等妈妈的年龄是小安的两倍时，小安几岁？在这类题里，孩子要和星期、月份、年份打交道，而大多数题都靠两个事实：星期每7天循环一次，两个人的年龄差永远不变。
+  method: 去掉整周，抓住年龄差
+  teaches: 不必一天一天地数，也能算出天数和年数
+  # The words of its drawing: a month whose Tuesdays stand in one column.
+  art:
+    line: 星期每7天循环一次
+    tuesdays: 每个周二都在同一列，相隔7天
+
+basis:
+  title: 日历的规则
+  cards:
+    - title: 星期循环
+      text: >-
+        每过7天，同一个星期几就会再次出现。所以算30天以后是星期几，只需要看4个整周之后剩下的2天。
+      art:
+        week: 7天
+        month: 30天 = 4周又2天
+    - title: 首尾两端
+      text: >-
+        从5月3日到5月10日是往后7天，但从3日放到10日的假期却有8天，因为第一天和最后一天都要算上。
+      art:
+        holidays: 从3日到10日：放假8天
+    - title: 年龄差不变
+      text: >-
+        妈妈现在比小安大24岁，10年后还是大24岁：每过一年，两个人都长一岁。
+      art:
+        now: 现在
+        then: 10年后
+        anya: 小安
+        mum: 妈妈
+
+idea:
+  title: 去掉整周
+  lead: 若干天后是星期几？只看去掉整周以后剩下的天数。
+  table:
+    head:
+      - 几天后
+      - 整周和剩下的天数
+      - 如果今天是星期一
+    rows:
+      - - "10"
+        - 1周又3天
+        - 星期四
+      - - "15"
+        - 2周又1天
+        - 星期二
+      - - "30"
+        - 4周又2天
+        - 星期三
+      - - "100"
+        - 14周又2天
+        - 星期三
+  # The words of the drawings of whole weeks and the days left over.
+  art:
+    week: 7天
+    weeks: 14 × 7天
+  note:
+    title: 为什么重要
+    text: >-
+      掰着手指数一百天，又慢又容易数错。去掉整周以后，就只剩往后数一两天的一小步。
+
+method:
+  title: 解法：找出不变的东西
+  lead: >-
+    找出保持不变的东西：星期每7天循环一次，两个人的年龄差永远不变。借助它去掉无关紧要的部分，只数剩下的。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 找出重复出现或保持不变的东西
+    - 去掉整周，或者借助年龄差来算
+    - 数剩下的部分，并检查首尾两天算不算
+  # The key under the steps: what the drawings' blocks and colours mean.
+  legend:
+    week: 7天
+    whole: 一个整周
+    day: 剩下的一天
+    difference: 年龄差
+
+examples:
+  - title: 浇花
+    question: >-
+      小丽每3天浇一次花。第一次浇花是在星期一。第4次浇花是星期几？
+    steps:
+      - >-
+        从第1次浇花到第4次，中间有3个间隔，不是4个，每个间隔3天：3 × 3 = 9天。
+      - 9天是一周又2天。
+      - 星期一过一周还是星期一，再过2天就是星期三。
+    answer: 星期三。
+    badge: 周三
+    note:
+      title: 为什么不是星期六？
+      text: >-
+        用4 × 3 = 12天来算，就等于在第4次浇花之后也多算了一个间隔。4次浇花之间有3个间隔，就像4根柱子之间一样。
+    art:
+      monday: 周一
+      first: 第一次浇花在周一，之后每3天一次
+      three-days: 3天
+      gaps: 3个间隔 × 3天 = 9天
+      week: 7天
+      numbers: 蓝色日期下面标着第几次浇花
+      no-gap: 第4次浇花之后没有间隔
+  - title: 小薇和爸爸
+    question: >-
+      爸爸比小薇大28岁。4年后，爸爸的年龄将是小薇的3倍。小薇现在几岁？
+    steps:
+      - 年龄差永远不变：4年后，爸爸还是比小薇大28岁。
+      - >-
+        那时爸爸的年龄是小薇的三倍，就像图里画的那样。多出来的两份就是28岁，所以一份是28 ÷ 2 = 14。
+      - >-
+        4年后小薇14岁，所以小薇现在14 − 4 = 10岁。检验：爸爸现在38岁，4年后42岁，正好是3 × 14。
+    answer: 10岁。
+    art:
+      now: 现在
+      then: 4年后
+      vera: 小薇
+      dad: 爸爸
+      difference: 橙色：年龄差，28岁
+      parts: 4年后：2份 = 28，一份 = 14
+      check: 检验：38 + 4 = 42 = 3 × 14
+  - title: 三个偶数日的星期六
+    question: >-
+      某个月里，有三个星期六的日期是偶数。这个月的25日是星期几？
+    steps:
+      - >-
+        星期六每7天出现一次，而7是奇数，所以星期六的日期偶数、奇数轮流出现：偶数、奇数、偶数、奇数……
+      - >-
+        要有三个偶数日期，就需要五个星期六，而且第一个落在偶数日期上。第五个星期六比第一个晚28天，还得在这个月之内，所以第一个最晚是3日。前三天里唯一的偶数日期是2日：星期六分别是2日、9日、16日、23日和30日。
+      - 23日是星期六，所以两天后的25日是星期一。
+    answer: 星期一。
+    badge: 周一
+    note:
+      title: 日历里的奇偶
+      text: >-
+        这道题的关键是奇偶性：7是奇数，所以同一个星期几的日期，每过一周就在偶数和奇数之间换一次。
+    art:
+      even: 蓝色：偶数，橙色：奇数
+      first: 第一个周六
+      fifth: 第五个周六
+      saturdays: 蓝色是周六，25日是周一
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      天数算差了一天：孩子把今天也算作往后的第一天，在4次浇花之间数出4个间隔，或者漏掉一段时间的一头，比如从星期一放到星期日的假期。
+    say: “哪一天是第1天：今天还是明天？”
+    art:
+      gaps: 4次浇花之间的间隔
+  wrong_operation:
+    shows: >-
+      孩子做了题目没有要求的运算：题目问一个人比另一个人大几岁，却把两个年龄加起来；或者两个日期不在同一个月，却直接用一个日期减去另一个。
+    say: “用自己的话说说：这个数是变大、变小，还是不变？”
+    art:
+      older: 妈妈（30）比小安（6）大几岁？
+  ignored_condition:
+    shows: >-
+      漏掉了日历或题目里的一个事实：这个月有30天而不是31天，或者365天是若干个整周再加一天。
+    say: “这个月有几天？”
+    art:
+      year: 从周一起过365天
+      weeks: 52 × 7天
+      monday: 周一
+      tuesday: 周二
+
+home:
+  - title: 墙上的日历
+    text: >-
+      在孩子够得着的地方挂一本纸质日历，常拿它来提问：下个月的1日是星期几？这个月有几个星期五？
+  - title: 家人的年龄
+    text: >-
+      把家里每个人的年龄和彼此之间的年龄差都写下来。一年后再看：年龄变了，年龄差却没变。
+  - title: 倒计时
+    text: >-
+      和孩子一起数数离生日或节日还有几天，先一天一天地数，再按整周数，看看两种数法的结果是否一样。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“日历与年龄”的题

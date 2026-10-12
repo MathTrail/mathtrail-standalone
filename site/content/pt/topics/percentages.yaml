@@ -1,0 +1,209 @@
+# The page of the topic of percentages, for a parent, in Portuguese. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Porcentagem
+description: O que são os problemas de porcentagem, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+hero:
+  lead: >-
+    Um preço cai 20% e depois mais 20%. Ele caiu 40%? Nestes problemas, um por
+    cento é a centésima parte de alguma coisa, e toda a dificuldade está em
+    saber de quê: do preço antigo ou do novo, de todas as aves ou só das
+    galinhas. A criança que pergunta “porcentagem de quê?” antes de cada passo
+    evita a maioria dos erros.
+  method: Perguntar “porcentagem de quê?” antes de cada passo
+  teaches: A descobrir sobre o que a porcentagem é calculada e a perceber quando isso muda
+  # The words of its drawing: the whole it is drawn for.
+  art:
+    line: 100% é 50
+
+basis:
+  title: As regras da porcentagem
+  cards:
+    - title: Um centésimo
+      text: >-
+        Um por cento é a centésima parte de uma quantidade. 100% é a quantidade
+        inteira, e 50% é a metade dela.
+      art:
+        half: 50% é a metade
+    - title: Porcentagem de quê?
+      text: >-
+        Uma porcentagem é sempre de alguma coisa: do preço antigo ou do novo,
+        de todos os convidados ou só das meninas. Os mesmos 10% de quantidades
+        diferentes são números diferentes.
+      art:
+        tens: 10% de 200 = 20 · 10% de 50 = 5
+    - title: Primeiro, dez por cento
+      text: >-
+        10% é a quantidade dividida por 10. A partir daí, 20%, 30% ou 5% ficam
+        a um passo: 30% de 80 é 3 × 8 = 24.
+      art:
+        eighty: 80 são dez partes de 8
+
+idea:
+  title: A base muda
+  lead: Cada porcentagem é calculada sobre a quantidade daquele momento. Quando um preço muda duas vezes, a segunda mudança é calculada sobre o preço novo.
+  table:
+    head:
+      - O passo
+      - Calculado sobre
+      - O preço depois
+    rows:
+      - - 20% de desconto
+        - 200, então 40 a menos
+        - "160"
+      - - mais 20% de desconto
+        - 160, então 32 a menos
+        - "128"
+      - - os dois, no total
+        - 200, então 72 a menos
+        - 36% de desconto, não 40%
+  note:
+    title: Por que isso importa
+    text: >-
+      Lojas, bancos e noticiários falam em porcentagens, e a pegadinha está
+      sempre em saber sobre o que elas são calculadas. A criança que pergunta
+      “porcentagem de quê?” dá conta tanto de uma olimpíada quanto de uma loja.
+
+method:
+  title: "Como resolver: dizer o que é cem por cento"
+  lead: >-
+    Antes de cada passo, diga qual quantidade é 100%. Calcule 1% ou 10% dela e
+    depois a porcentagem de que o problema precisa. Quando a quantidade mudar,
+    recomece a partir dos novos 100%. Os exemplos abaixo vão do mais simples a
+    um de olimpíada.
+  steps:
+    - Dizer o que é 100%
+    - Calcular 1% ou 10% disso
+    - Calcular a porcentagem pedida e conferir de que quantidade ela é
+  # The key under the steps: what a grid of the drawings stands for.
+  legend:
+    hundred: uma malha de 100 quadradinhos é 100%
+
+examples:
+  - title: Clubes esportivos
+    question: >-
+      Uma escola tem 300 alunos, e 35% deles vão a um clube esportivo. Quantos
+      alunos não vão a nenhum clube esportivo?
+    steps:
+      - "100% são todos os 300 alunos, então 1% são 300 : 100 = 3 alunos."
+      - Os que não vão a um clube são 100% − 35% = 65% dos alunos.
+      - 65% são 65 × 3 = 195 alunos.
+    answer: 195 alunos.
+    note:
+      title: O outro caminho
+      text: >-
+        35% de 300 são 35 × 3 = 105 alunos que vão, e 300 − 105 = 195. Os dois
+        caminhos dão a mesma resposta; calcular os 65% direto economiza um
+        passo.
+    art:
+      go: 35 quadradinhos de 100 vão a um clube
+      grid: a malha inteira vale 300 alunos
+      cell: um quadradinho vale 3 alunos
+      go-short: vão
+      do-not: não vão
+  - title: O preço de uma bicicleta
+    question: >-
+      Uma bicicleta custa 400 moedas. Na primavera, o preço dela sobe 25% e,
+      no outono, o preço novo cai 20%. Quanto custa a bicicleta agora?
+    steps:
+      - >-
+        Na primavera, 100% é o preço antigo, 400 moedas: 25% dele são 100
+        moedas, então a bicicleta passa a custar 500.
+      - "No outono, 100% é o preço novo, 500 moedas: 20% dele são 100 moedas."
+      - 500 − 100 = 400. A bicicleta volta a custar 400 moedas.
+    answer: 400 moedas.
+    note:
+      title: Por que não 420?
+      text: >-
+        O 420 vem dos 20% do outono calculados sobre o preço antigo: 80 moedas.
+        Mas no outono o preço já era 500, e 20% de 500 são 100.
+    art:
+      coins: moedas, o preço antes da primavera
+      quarters: "100% = 400: quatro partes de 25%"
+      five-hundred: 500 moedas
+      fifths: "100% = 500: cinco partes de 20%"
+      of-old: 20% de 400 = 80 →
+      of-new: 20% de 500 = 100 →
+  - title: Melancias que secam
+    question: >-
+      Um agricultor tem 200 kg de melancias com 99% de água. Uma semana depois,
+      elas secaram um pouco e passaram a ter 98% de água. Quanto elas pesam
+      agora?
+    steps:
+      - >-
+        O que não seca é a parte que não é água: 1% de 200 kg, ou seja, 2 kg.
+        Essa parte continua pesando 2 kg.
+      - Uma semana depois, a água é 98%, então esses 2 kg são 2% do peso novo.
+      - "2% são 2 kg, então 1% é 1 kg e 100% são 100 kg."
+    answer: 100 kg.
+    note:
+      title: Metade do peso?
+      text: >-
+        Sim. A água caiu só de 99% para 98%, mas a parte que não é água dobrou,
+        de 1% para 2%. Esses 2 kg continuaram iguais, então o peso total teve
+        que cair pela metade.
+    art:
+      melons: 200 kg, 99% de água
+      dry: "200 kg: um quadradinho vale 1 kg; os de cor laranja não são água, 2 kg"
+      same: os mesmos 2 kg agora são 2 quadradinhos de 100
+      was: 200 kg antes
+      became: 100 kg depois
+      water: água 99%
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  percent_wrong_base:
+    shows: >-
+      A porcentagem é calculada sobre a quantidade errada: os 20% do outono
+      sobre o preço antigo em vez do novo, ou os 98% sobre o peso antigo das
+      melancias.
+    say: “Qual quantidade é 100% agora?”
+    art:
+      question: No outono custa 500, 20% de desconto
+      of-old: 20% de 400 =
+      of-new: 20% de 500 =
+  part_whole_swap:
+    shows: >-
+      Uma parte é tomada pelo todo, ou o todo por uma parte: os 2 kg que não
+      são água são dados como o peso das melancias, ou a escola inteira é
+      contada quando a pergunta é sobre uma parte dela.
+    say: “Esse número é uma parte ou o todo?”
+    art:
+      question: Quanto pesam as melancias?
+      dry: 2 kg
+      only-dry: só o que não é água
+      all: 100 kg
+      weight: o peso total
+  answered_other_question:
+    shows: >-
+      Um número encontrado no caminho vira a resposta: os 105 alunos que vão a
+      um clube quando a pergunta é sobre os que não vão, ou as 100 moedas em
+      que o preço mudou em vez do próprio preço.
+    say: “O que exatamente a pergunta pede?”
+    art:
+      question: Quantos alunos não vão a um clube?
+      go: vão
+      do-not: não vão
+
+home:
+  - title: Porcentagem na loja
+    text: >-
+      Em uma loja, procure um preço com desconto e calcule junto com a
+      criança: quanto fica 150 com 20% de desconto? Comece pelos 10%.
+  - title: Primeiro, dez por cento
+    text: >-
+      Treine com a criança o cálculo de 10% de qualquer coisa: de 80, de 350,
+      de 1200. A partir de 10%, a maioria das outras porcentagens fica a um
+      passo.
+  - title: Porcentagem de quê?
+    text: >-
+      Quando ouvir uma porcentagem no noticiário ou em um anúncio, pergunte
+      junto com a criança: porcentagem de quê? Muitas vezes, ninguém diz.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de porcentagem

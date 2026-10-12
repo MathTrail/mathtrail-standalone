@@ -1,6 +1,6 @@
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
-import { fallbackLocale } from "../i18n/lookup";
+import { fallbackLocale, listFormat } from "../i18n/lookup";
 import {
 	type Dictionary,
 	dictionariesByTag,
@@ -74,4 +74,46 @@ export function gradesRange(
 ): string {
 	const numbers = new Intl.NumberFormat(locale);
 	return `${numbers.format(first)}–${numbers.format(last)}`;
+}
+
+/**
+ * listMarks are the marks between names, as the language of locale sets a
+ * list of them apart: ", " in English, " y " before the last name in Spanish,
+ * "、" in Japanese and Chinese. The mark at a place stands before the name at
+ * that place, and the first name has none. The names are given as they are
+ * written, since a language may change its mark by the name after it, as
+ * Spanish writes "e" rather than "y" before Historias.
+ */
+export function listMarks(locale: string, names: readonly string[]): string[] {
+	const marks: string[] = [];
+	let mark = "";
+	for (const part of listFormat(locale).formatToParts(names)) {
+		if (part.type === "literal") {
+			mark += part.value;
+		} else {
+			marks.push(mark);
+			mark = "";
+		}
+	}
+	return marks;
+}
+
+// unspacedEnd and unspacedStart find writing that sets no space between its
+// words where it meets other text: the Han of Chinese and Japanese, Japanese
+// kana and their full-width marks, which carry their own room.
+const unspacedEnd = /[\p{sc=Han}\u3000-\u30ff\uff01-\uff60]$/u;
+const unspacedStart = /^[\p{sc=Han}\u3000-\u30ff\uff01-\uff60]/u;
+
+/**
+ * wordSpace is the space between two texts a page sets side by side, such as
+ * a label and what it labels or a count and its noun, read as they are
+ * written, the signs of an emphasis at their edges aside: none where they
+ * meet in Chinese or Japanese writing, «12問», «适用场合：遇到…», and a space
+ * everywhere else, "12 tasks".
+ */
+export function wordSpace(before: string, after: string): string {
+	return unspacedEnd.test(before.replace(/[*_]+$/u, "")) ||
+		unspacedStart.test(after.replace(/^[*_]+/u, ""))
+		? ""
+		: " ";
 }

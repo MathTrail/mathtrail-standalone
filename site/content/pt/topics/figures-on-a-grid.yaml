@@ -1,0 +1,223 @@
+# The page of the topic of figures on a square grid, for a parent, in
+# Portuguese. The topic's name, its group, its grades and its traps' names are
+# not here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Figuras na malha quadriculada
+description: O que são os problemas de área e perímetro no papel quadriculado, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+hero:
+  lead: >-
+    Desenhe uma figura no papel quadriculado: quantos quadradinhos ela ocupa e
+    qual é o comprimento do seu contorno? Nestes problemas, a área se conta em
+    quadradinhos e o perímetro em lados de quadradinho, e é fácil confundir os
+    dois: um retângulo pode perder um quadradinho do canto e manter o mesmo
+    perímetro. Toda a habilidade está em contar sem pular nada e sem contar
+    nada duas vezes.
+  method: Contar os lados externos de cada quadradinho
+  teaches: A distinguir área de perímetro e a contar quadradinhos e lados sem pular nem repetir nenhum
+  # The words of its drawing: the figure over it, what each of its two copies
+  # counts, and what the numbers in the cells mean.
+  art:
+    line: Uma figura de três quadradinhos
+    area: área, 3 quadradinhos
+    perimeter: perímetro, 8 lados
+    out: "os números à direita: quantos lados de cada quadradinho dão para fora, 3 + 2 + 3 = 8"
+
+basis:
+  title: As regras da malha quadriculada
+  cards:
+    - title: A área conta quadradinhos
+      text: >-
+        A área de uma figura no papel quadriculado é o número de quadradinhos
+        que ela ocupa. Duas metades de quadradinho formam um quadradinho
+        inteiro.
+      art:
+        cells: 3 quadradinhos
+    - title: O perímetro conta lados
+      text: >-
+        O perímetro é o número de lados de quadradinho no contorno. Um lado
+        que dois quadradinhos da figura compartilham fica no interior e não
+        conta.
+      art:
+        shared: um lado compartilhado por dentro não conta
+    - title: Coisas diferentes
+      text: >-
+        Duas figuras de mesma área podem ter perímetros diferentes: quatro
+        quadradinhos em fila têm perímetro 10, e quatro em quadrado têm 8.
+      art:
+        perimeter: perímetro {count}
+
+idea:
+  title: Contar os lados externos
+  lead: Cada quadradinho tem 4 lados. Um lado entra no perímetro só quando não há nenhum quadradinho da figura do outro lado dele.
+  table:
+    head:
+      - A figura
+      - Área, em quadradinhos
+      - Perímetro, em lados
+    rows:
+      - - 1 quadradinho
+        - "1"
+        - "4"
+      - - 2 quadradinhos lado a lado
+        - "2"
+        - 4 + 4 − 2 = 6
+      - - 4 quadradinhos em fila
+        - "4"
+        - "10"
+      - - um quadrado de 2 por 2
+        - "4"
+        - "8"
+  note:
+    title: Por que isso importa
+    text: >-
+      Para o perímetro, as crianças muitas vezes contam quadradinhos, ou todos
+      os lados de todos os quadradinhos, contando duas vezes os compartilhados.
+      Contar só os lados que dão para fora resolve os dois erros.
+
+method:
+  title: "Como resolver: percorrer o contorno"
+  lead: >-
+    Desenhe a figura no papel quadriculado. Para a área, conte os quadradinhos
+    fileira por fileira. Para o perímetro, percorra o contorno e conte os lados
+    de quadradinho por onde passar. Quando uma figura é cortada, liste as
+    partes numa ordem em que nenhuma fique de fora e nenhuma seja contada duas
+    vezes. Os exemplos abaixo vão do mais simples a um de olimpíada.
+  steps:
+    - Desenhar a figura no papel quadriculado
+    - Contar quadradinhos para a área e lados externos para o perímetro
+    - Conferir com uma segunda forma de contar
+  # The key under the steps: what the drawings' lines and numbers mean.
+  legend:
+    border: o contorno, o perímetro
+    cut: um corte
+    count: "um número: quantos lados dão para fora"
+
+examples:
+  - title: Uma cruz
+    question: >-
+      Uma cruz é formada por 5 quadradinhos: um no meio e um em cada um dos
+      seus quatro lados. Qual é o perímetro da cruz, em lados de quadradinho?
+    steps:
+      - Cada um dos 4 braços tem 3 lados voltados para fora, então os braços dão 4 × 3 = 12 lados.
+      - O quadradinho do meio não tem nenhum lado para fora, já que cada um dos seus lados encosta num braço.
+      - Então o perímetro é de 12 lados de quadradinho.
+    answer: 12 lados de quadradinho.
+    note:
+      title: Outra forma de contar
+      text: >-
+        5 quadradinhos têm 5 × 4 = 20 lados. Os 4 lados entre o meio e os
+        braços são contados duas vezes cada um, uma vez a partir de cada
+        quadradinho, e ficam no interior: 20 − 2 × 4 = 12.
+    art:
+      ends: 4 pontas, 3 lados cada
+      middle: o meio, 0
+      border: o contorno, 12 lados
+      inner: em vermelho, os 4 lados internos
+  - title: Uma tira em duas partes
+    question: >-
+      Uma tira de 2 por 4 quadradinhos é cortada pelas linhas da malha em duas
+      partes de 4 quadradinhos cada, e cada parte tem que formar uma peça só.
+      De quantas maneiras diferentes ela pode ser cortada?
+    steps:
+      - "Um corte reto pelo meio, ao comprido, dá duas fileiras de 4: 1 maneira."
+      - "Um corte reto pelo meio, na transversal, dá dois quadrados de 2 por 2: 1 maneira."
+      - >-
+        Um corte que vai na transversal, depois ao comprido e de novo na
+        transversal dá duas partes em forma de L, e o seu degrau pode ir para um
+        lado ou para o outro: 2 maneiras. No total, 4 maneiras.
+    answer: 4 maneiras.
+    note:
+      title: Por que não 8?
+      text: >-
+        Listando as partes uma de cada vez, cada corte aparece duas vezes, uma
+        para cada uma das suas partes. Decidindo que a primeira parte é a que
+        tem o quadradinho do canto superior esquerdo, cada corte é contado uma
+        vez só.
+    art:
+      along: ao comprido
+      across: na transversal
+      step: um degrau
+      back: ao contrário
+      same: o mesmo corte
+      dot: o ponto marca o quadradinho do canto superior esquerdo, sempre na parte azul
+  - title: Uma diagonal
+    question: >-
+      No papel quadriculado, desenha-se um retângulo de 3 por 5 quadradinhos e
+      traça-se um segmento de um canto até o canto oposto. Por quantos
+      quadradinhos o segmento passa? Um quadradinho conta quando o segmento
+      atravessa o seu interior, não quando só encosta num canto dele.
+    steps:
+      - >-
+        Indo de canto a canto, o segmento entra num quadradinho novo cada vez
+        que cruza uma linha da malha dentro do retângulo.
+      - >-
+        Ele cruza 4 linhas numa direção e 2 na outra, e nunca duas ao mesmo
+        tempo: 3 e 5 não têm divisor comum além de 1, então o segmento não
+        passa por nenhum vértice da malha no caminho.
+      - Ele começa em 1 quadradinho e entra em mais 4 + 2 = 6, 7 quadradinhos no total.
+    answer: 7 quadradinhos.
+    note:
+      title: Por um vértice
+      text: >-
+        Num retângulo de 4 por 6 quadradinhos, o segmento passa por um vértice
+        da malha, onde cruza duas linhas ao mesmo tempo e entra em um
+        quadradinho, não em dois. Ele passa por 4 + 6 − 2 = 8 quadradinhos: 2 é
+        o maior número que divide tanto 4 quanto 6.
+    art:
+      points: os pontos, onde o segmento cruza as linhas da malha
+      down: 4 verticais
+      across: 2 horizontais
+      green: 1 + 4 + 2 = 7 quadradinhos verdes
+      node: "o ponto vermelho é um vértice: 8 quadradinhos"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      A mesma coisa é contada duas vezes: os lados que os quadradinhos
+      compartilham entram no perímetro, ou cada corte da tira é listado uma vez
+      para cada uma das suas duas partes.
+    say: “Algum lado, ou algum corte, foi contado pelos dois lados?”
+    art:
+      question: O perímetro de dois quadradinhos lado a lado
+  missed_case:
+    shows: >-
+      Um caso fica de fora: um corte cujo degrau vai para o outro lado, um
+      pedaço de contorno num canto interno, ou os dominós em pé, além dos
+      deitados.
+    say: “Tem algum jeito ainda não testado, ao contrário?”
+    art:
+      question: Os cortes de uma tira de 2 por 4
+  ignored_condition:
+    shows: >-
+      Uma condição se perde: uma parte que se desmancha é contada como parte,
+      um quadradinho que só encosta pelo canto é contado como vizinho, ou se
+      diz que o segmento passa por um quadradinho em que só encosta.
+    say: “Esta parte, ou este quadradinho, combina mesmo com o que o enunciado diz?”
+    art:
+      question: Cada parte numa peça só
+      broken: a parte azul se desmanchou
+      whole: as duas partes inteiras
+
+home:
+  - title: Papel quadriculado
+    text: >-
+      Tenha papel quadriculado à mão e desenhe com a criança figuras de 4 ou 5
+      quadradinhos. Qual tem o contorno mais comprido? Qual tem o mais curto?
+  - title: Percorra o contorno
+    text: >-
+      Conte um perímetro passando o dedo pelo contorno, lado por lado. Depois
+      conte os lados externos de cada quadradinho e confira se as duas
+      contagens batem.
+  - title: Corte e conte
+    text: >-
+      Corte uma tira de papel em duas partes do mesmo tamanho, de todas as
+      maneiras que encontrar. Arrume os resultados de modo que nenhum fique de
+      fora nem se repita.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de figuras na malha quadriculada

@@ -1,0 +1,230 @@
+# The page of the topic of enumeration, for a parent, in Portuguese. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Enumeração de casos
+description: O que são os problemas de enumeração de casos, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+# The words every drawing of the page writes its people in: the three
+# children's letters, and Lea's and Tom's initials.
+art:
+  a: A
+  b: B
+  c: C
+  lea: L
+  tom: T
+
+hero:
+  lead: >-
+    Quantos números é possível escrever com estes algarismos? Quantos apertos
+    de mão, combinações de roupa ou maneiras de ficar em fila? Nestes
+    problemas, cada caso é listado numa ordem que garante que nenhum se perca
+    e nenhum seja contado duas vezes. Uma lista que segue uma regra é a
+    primeira ferramenta da criança diante de perguntas grandes demais para
+    adivinhar.
+  method: Listar os casos seguindo uma regra
+  teaches: A trabalhar com ordem e a perceber quando dá para contar os casos sem listá-los
+  # The words of its drawing: the question and the rule over it, and the count
+  # under it.
+  art:
+    line: Quantos números de dois algarismos diferentes se formam com 1, 2 e 3?
+    rule: "listados por uma regra: começando pelo primeiro algarismo"
+    count: 3 opções para o primeiro algarismo × 2 para o segundo = 6 números
+
+basis:
+  title: As regras de uma lista
+  cards:
+    - title: Em ordem
+      text: >-
+        Ordene os casos antes de escrevê-los: pela primeira letra e depois pela
+        segunda. Numa lista em ordem, um caso que falta deixa uma lacuna
+        visível.
+      art:
+        on: "{child} primeiro"
+        # The case the listing lost: its two letters and a question mark, as the
+        # language writes one.
+        lost: "{first}{second}?"
+    - title: Cada caso uma só vez
+      text: >-
+        Antes de contar, decida o que torna dois casos diferentes. O aperto de
+        mão entre Lívia e Tomás é um só, mas Lívia na frente de Tomás e Tomás
+        na frente de Lívia são duas filas diferentes.
+      art:
+        handshake: 1 aperto de mão
+        queues: 2 filas
+    - title: As escolhas se multiplicam
+      text: >-
+        Quando um caso se forma com escolhas feitas uma depois da outra, uma
+        xícara e depois um pires, conte multiplicando: 3 xícaras e 2 pires dão
+        3 × 2 = 6 conjuntos.
+      art:
+        sets: 3 × 2 = 6 conjuntos
+
+idea:
+  title: A ordem importa?
+  lead: As mesmas três crianças, A, B e C, dão contagens diferentes para perguntas diferentes.
+  table:
+    head:
+      - A pergunta
+      - A ordem importa?
+      - Os casos
+    rows:
+      - - De quantas maneiras elas podem ficar em fila?
+        - "Sim: AB e BA são duas filas"
+        - ABC, ACB, BAC, BCA, CAB, CBA — 6
+      - - Quantas duplas podem ser escolhidas para levar um recado?
+        - "Não: AB e BA são a mesma dupla"
+        - AB, AC, BC — 3
+      - - De quantas maneiras dá para escolher quem lidera e quem ajuda?
+        - "Sim: quem lidera vem primeiro (maior)"
+        - AB, AC, BA, BC, CA, CB — 6
+  note:
+    title: Por que isso importa
+    text: >-
+      Aqui, a maioria das respostas erradas conta um caso duas vezes ou toma
+      dois casos diferentes por um só. Decidir antes se a ordem importa mostra
+      com qual erro tomar cuidado.
+
+method:
+  title: "Como resolver: uma lista com regra"
+  lead: >-
+    Primeiro, crie uma regra: o que vem antes na lista e o que vem depois.
+    Depois, escreva os casos seguindo essa regra, ou conte-os assim que a
+    regra mostrar um padrão. Os exemplos abaixo vão do mais simples a um de
+    olimpíada.
+  steps:
+    - Decidir o que torna dois casos diferentes
+    - Listar os casos seguindo uma regra
+    - Contar os casos, ou multiplicar quando as escolhas vêm uma depois da outra
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    frame: "uma moldura azul: o que este passo acrescenta"
+
+examples:
+  - title: Bandeiras de duas listras
+    question: >-
+      Uma bandeira tem duas listras, uma em cima da outra. Cada listra é
+      vermelha, amarela ou verde, e as duas listras têm cores diferentes.
+      Quantas bandeiras diferentes existem?
+    steps:
+      - >-
+        Ordene as bandeiras pela listra de cima. Com a vermelha em cima, a de
+        baixo é amarela ou verde: duas bandeiras.
+      - >-
+        Com a amarela em cima, embaixo vai a vermelha ou a verde: mais duas.
+        Com a verde em cima, a vermelha ou a amarela: mais duas.
+      - >-
+        3 cores para a listra de cima e, a cada vez, sobram 2 para a de baixo:
+        3 × 2 = 6 bandeiras.
+    answer: 6 bandeiras.
+    art:
+      paints: três tintas, listras de cores diferentes
+      red-top: vermelha em cima
+      red: vermelha
+      yellow: amarela
+      green: verde
+      top: em cima ↓
+      bottom: embaixo →
+      same: "×: a mesma cor duas vezes não é permitida, 9 − 3 = 6"
+  - title: Algarismos com diferença de três
+    question: Em quantos números de dois algarismos a diferença entre os algarismos é 3, como em 14 ou 30?
+    steps:
+      - >-
+        Percorra o algarismo das dezenas de 1 a 9 e escreva ao lado dele cada
+        algarismo das unidades que fica a 3 de distância: 1 → 4; 2 → 5; 3 → 0 e
+        6; 4 → 1 e 7; e assim por diante.
+      - >-
+        Com 3, 4, 5 ou 6 nas dezenas, há dois números para cada um, 3 abaixo e
+        3 acima. Com 1, 2, 7, 8 ou 9, só um: o outro não seria um algarismo.
+      - >-
+        4 × 2 + 5 × 1 = 13 números: 14, 25, 30, 36, 41, 47, 52, 58, 63, 69,
+        74, 85, 96.
+    answer: 13 números.
+    note:
+      title: O caso mais esquecido
+      text: >-
+        O 30 é o número que as crianças esquecem: um número pode terminar em 0,
+        mas não pode começar com ele. Uma lista com regra o encontra; uma lista
+        de memória, não.
+    art:
+      given: dezenas e unidades com diferença de 3
+      under: em cima, as dezenas; embaixo, as unidades que servem
+      two: "em azul: dois números para cada"
+      can: permitido
+      not: não tem dois algarismos
+  - title: Sem dois 2 lado a lado
+    question: >-
+      Quantos números de quatro algarismos é possível escrever só com os
+      algarismos 1 e 2, sem que dois 2 fiquem um ao lado do outro?
+    steps:
+      - >-
+        São números demais para adivinhar, então monte-os algarismo por
+        algarismo. Com um algarismo: 1 e 2, dois números. Com dois algarismos:
+        11, 12 e 21, três, já que 22 não é permitido.
+      - >-
+        Um número permitido termina em 1 ou em 2. Se termina em 1, é qualquer
+        número permitido com um algarismo a menos, com um 1 no fim. Se termina
+        em 2, o algarismo anterior tem que ser 1: é qualquer número permitido
+        com dois algarismos a menos, com 12 no fim. Então cada contagem é a
+        soma das duas anteriores: com três algarismos são 3 + 2 = 5, e com
+        quatro, 5 + 3 = 8.
+      - >-
+        Confira listando todos: 1111, 1112, 1121, 1211, 2111, 1212, 2112, 2121,
+        oito.
+    answer: 8 números.
+    note:
+      title: Uma contagem que cresce
+      text: >-
+        As contagens 2, 3, 5, 8 continuam com 13, 21, 34, cada uma a soma das
+        duas anteriores. Os problemas de olimpíada adoram contagens que se
+        constroem a partir de outras menores.
+    art:
+      twos: dois 2 lado a lado não são permitidos
+      one: 1 algarismo
+      two: 2 algarismos
+      three: 3 algarismos
+      four: 4 algarismos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  missed_case:
+    shows: >-
+      A criança escreve os casos conforme vêm à cabeça e perde um, muitas vezes
+      um com 0 ou com um algarismo repetido.
+    say: “Em que ordem você escreveu os casos? Vamos escrever tudo de novo seguindo uma regra.”
+    art:
+      question: Algarismos com diferença de 3
+  wrong_operation:
+    shows: >-
+      A criança soma onde as escolhas se multiplicam, e assim 3 camisas e 2
+      cachecóis dão 5, ou multiplica onde se escolhe uma dupla e ninguém faz
+      dupla consigo mesmo.
+    say: "“Pegue uma camisa: quantas combinações dá para montar com ela? E quantas camisas há?”"
+    art:
+      question: 3 camisas e 2 cachecóis
+  double_count:
+    shows: >-
+      O aperto de mão de Lívia com Tomás e o de Tomás com Lívia são contados
+      como dois, mas são um só.
+    say: “Esse caso é igual a algum que já temos?”
+
+home:
+  - title: Vista um brinquedo
+    text: >-
+      Dê à criança dois chapéus e três cachecóis para um brinquedo e pergunte
+      de quantas maneiras dá para vesti-lo. Depois, peça a lista e confira
+      junto com a criança.
+  - title: Pergunte pela regra
+    text: >-
+      Quando a criança listar casos, pergunte: “Em que ordem você está
+      escrevendo?” Uma lista com regra é uma lista que dá para conferir.
+  - title: Um cadeado com senha
+    text: >-
+      Invente um cadeado com uma senha de dois algarismos, cada um 1, 2 ou 3, e
+      deixe a criança descobrir quantas senhas um ladrão teria que testar.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de enumeração de casos

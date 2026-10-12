@@ -1,0 +1,87 @@
+# The page of the topics, in French: what a child's tasks are about, how the
+# topics build on one another, and every topic of the catalog with a drawing
+# and a line for the parent. A topic's name is the card's own, from the
+# widget's words; its grades and its links are the catalog's, and its group
+# the site's data.
+
+title: Les thèmes de MathTrail
+description: Tous les thèmes dans lesquels MathTrail propose des problèmes, comment ils s’appuient les uns sur les autres et de quoi parle chacun.
+
+hero:
+  title: Les problèmes que résout votre enfant
+  lead: Chaque problème MathTrail appartient à un seul thème. Les voici tous, avec le genre de problèmes qu’on y trouve et la façon dont certains thèmes s’appuient sur d’autres.
+  # The name of the child the card on this page shows, an invented one.
+  child: Comète
+  caption: Les progrès tels qu’un chat les affiche, avec une étape dans chaque thème. L’enfant et les chiffres servent d’exemple.
+
+map:
+  title: Comment les thèmes sont liés
+  lead: Certains thèmes s’appuient sur d’autres. L’énumération des cas est nécessaire aussi bien pour le principe des tiroirs que pour les chevaliers et menteurs. Si l’enfant bloque sur un thème difficile, il est utile de faire un pas en arrière, vers le thème sur lequel celui-ci s’appuie.
+  layers:
+    - step: Palier 1
+      name: Les bases
+      lead: Presque aucune connaissance préalable.
+    - step: Palier 2
+      name: Les règles
+      lead: Le raisonnement fait à la main devient une règle.
+    - step: Palier 3
+      name: Les problèmes difficiles
+      lead: Plusieurs idées à garder en tête à la fois.
+  hint: Survolez un thème, ou atteignez-le avec la touche Tab, pour mettre en évidence ce sur quoi il s’appuie et ce à quoi il mène.
+  # Said under the map while a topic is pointed at: its name, every topic
+  # below it, and every topic above it.
+  say: "**{topic}** · d’abord : {before} · mène à : {after}"
+  foundation: rien, c’est une base
+  summit: rien, c’est un sommet
+  legend:
+    first: D’abord
+    topic: Thème
+    then: Ensuite
+
+groups:
+  label: Groupes de thèmes
+  logic: "Raisonner : supposer, en tirer la conséquence, trouver la contradiction."
+  counting: Compter tous les cas, sans en oublier aucun.
+  time: Horloges, jours de la semaine et années, et ce qui change avec eux.
+  numbers: Des nombres où l’idée compte plus que la vitesse de calcul.
+  parts: "Un tout découpé en parties : fractions, pourcentages et rapports."
+  games: Trouver le plan qui marche, quoi que fasse l’autre joueur ou la balance.
+
+# Every topic of the catalog, by its slug: a line for the parent. Its card's
+# drawing is the site's data, one of the site's own small drawings and never a
+# reference task's, and it reads no words of this file.
+topics:
+  ordering:
+    phrase: "Qui est plus grand, plus âgé, plus rapide : mettre tout le monde en ordre d’après quelques données."
+  knights-and-liars:
+    phrase: Les uns disent toujours la vérité, les autres mentent toujours. Trouver qui est qui d’après ce qu’ils disent.
+  enumeration:
+    phrase: Énumérer tous les cas dans l’ordre, pour n’en perdre aucun et n’en compter aucun deux fois.
+  gaps-and-boundaries:
+    phrase: "Poteaux et intervalles, étages et escaliers : quand il faut ajouter un, et quand il ne le faut pas."
+  clocks:
+    phrase: "Combien de temps s’est écoulé, et quelle heure il sera : les aiguilles, le cadran, le passage de midi."
+  calendar-and-age:
+    phrase: Jours de la semaine, mois et âges. L’écart d’âge ne change jamais, et la semaine recommence.
+  pigeonhole-principle:
+    phrase: S’il y a plus de pigeons que de cages, une des cages en contient forcément deux.
+  parity-and-alternation:
+    phrase: "Pair et impair, un sur deux : ce qu’on peut savoir sans tout compter."
+  arithmetic-with-a-trick:
+    phrase: "Calculer avec astuce : changer l’ordre, regrouper et repérer le chemin facile avant de calculer."
+  weighing-and-pouring:
+    phrase: Trouver la fausse pièce en un minimum de pesées, ou mesurer de l’eau avec des bidons sans graduations.
+  parts-and-shares:
+    phrase: "La moitié, un tiers, un quart : une partie du tout, et le tout à partir de sa partie."
+  percentages:
+    phrase: Combien cela fait en pourcentage, et de quoi. Un pour cent, c’est un centième.
+  ratios-and-sharing:
+    phrase: Partager dans le rapport 2 à 3, et trouver combien vaut une part.
+  figures-on-a-grid:
+    phrase: Aire et périmètre case par case. Découper, assembler et compter sans en oublier aucune.
+  divisibility-and-remainders:
+    phrase: Si un nombre se divise sans reste, et ce qu’il reste quand ce n’est pas le cas.
+  overlapping-groups:
+    phrase: Certains enfants vont dans deux clubs à la fois. Comment ne pas les compter deux fois.
+  winning-strategy:
+    phrase: Qui prendra la dernière allumette ? Chercher les positions gagnantes, quoi que fasse l’autre joueur.

@@ -43,6 +43,9 @@ basis:
         can see.
       art:
         on: "{child} first"
+        # The case the listing lost: its two letters and a question mark, as the
+        # language writes one.
+        lost: "{first}{second}?"
     - title: Each case once
       text: >-
         Before counting, decide what makes two cases different. Lea and Tom
