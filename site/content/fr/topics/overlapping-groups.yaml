@@ -6,15 +6,15 @@
 # commonest, counted in its reference tasks.
 
 title: Groupes qui se chevauchent
-description: Ce que sont les problèmes de groupes qui se chevauchent, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+description: Ce que sont les problèmes de groupes qui se chevauchent (diagramme de Venn), comment on les résout, où les enfants se trompent et comment les aider à la maison.
 
 hero:
   lead: >-
     Certains enfants vont au club d’échecs, d’autres au football, certains aux
     deux, et d’autres à aucun des deux. Dans ces problèmes, les groupes se
-    chevauchent, et toute l’astuce est de compter chacun exactement une fois.
-    Deux cercles dessinés sur papier transforment une question embrouillée en
-    quatre nombres.
+    chevauchent, et toute l’astuce est de compter chacun exactement une fois. Un
+    diagramme de Venn, deux cercles dessinés sur papier, transforme une question
+    embrouillée en quatre nombres.
   method: Dessiner les cercles et commencer par le milieu
   teaches: À compter sans compter deux fois et à dire ce que signifie chaque nombre
   # The words of its drawing: what the two circles are, and what their middle

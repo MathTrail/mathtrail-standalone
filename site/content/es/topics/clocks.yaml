@@ -6,7 +6,7 @@
 # its reference tasks.
 
 title: Relojes
-description: Qué son los problemas de relojes y de tiempo, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+description: Qué son los problemas de relojes, horas y minutos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
 
 # The words the page's drawings write a length of time in.
 art:
@@ -16,10 +16,10 @@ art:
 
 hero:
   lead: >-
-    Un paseo empieza a las 4:50 y dura 25 minutos: ¿a qué hora termina? En
-    estos problemas, el niño o la niña suma y resta tiempo, y la dificultad
-    está en que una hora tiene 60 minutos, no 100. La mayoría de los errores
-    aparecen al pasar la hora en punto, el mediodía o la medianoche.
+    Un paseo empieza a las 4:50 y dura 25 minutos: ¿a qué hora termina? En estos
+    problemas con horas y minutos, el niño o la niña suma y resta tiempo, y la
+    dificultad está en que una hora tiene 60 minutos, no 100. La mayoría de los
+    errores aparecen al pasar la hora en punto, el mediodía o la medianoche.
   method: Llegar a la hora en punto y luego seguir
   teaches: A contar el tiempo pasando por la hora en punto y por la medianoche, y a distinguir la hora que marca el reloj del tiempo que dura algo
   # The words of its drawing: the walk over it, and what its line of time

@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: Caballeros y mentirosos
-description: Qué son los problemas de caballeros y mentirosos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+description: Qué son los problemas de caballeros y mentirosos, o escuderos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
 
 # The words every drawing of the page writes its islanders in: the letters
 # of a knight and of a liar, and the islanders' own.
@@ -20,7 +20,8 @@ art:
 hero:
   lead: >-
     En una isla viven caballeros, que siempre dicen la verdad, y mentirosos,
-    que siempre mienten. Por lo que dicen, hay que averiguar quién es quién.
+    que siempre mienten: los acertijos también llamados de caballeros y
+    escuderos. Por lo que dicen, hay que averiguar quién es quién.
     Para muchos niños y niñas es su primer encuentro con un razonamiento
     lógico de verdad: hacer una suposición, seguirla hasta donde lleve y darse
     cuenta de una contradicción.

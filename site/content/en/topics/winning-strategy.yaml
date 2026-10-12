@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: Games with a winning strategy
-description: What problems about games and winning strategies are, how they are solved, where children go wrong, and how to help at home.
+description: What problems about games and winning strategies (Nim among them) are, how they are solved, where kids go wrong, and how to help at home.
 
 # The words the page's drawings say of a position.
 art:
@@ -16,10 +16,11 @@ art:
 hero:
   lead: >-
     There are 20 matches on the table, and the players take turns to take 1, 2
-    or 3 of them. Whoever takes the last match wins. Can the first player
-    always win? In these tasks a child looks for a plan that wins whatever the
-    other player does, and finds it by working back from the end of the game:
-    which positions lose for the player who has to move from them.
+    or 3 of them. Whoever takes the last match wins, as in the game of Nim. Can
+    the first player always win? In these tasks a child looks for a plan that
+    wins whatever the other player does, and finds it by working back from the
+    end of the game: which positions lose for the player who has to move from
+    them.
   method: Work back from the end and find the losing positions
   teaches: To find a plan that wins whatever the other player does
   # The words of its drawing: the game it is drawn for.

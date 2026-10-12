@@ -6,14 +6,14 @@
 # commonest, counted in its reference tasks.
 
 title: Intervalos y extremos
-description: Qué son los problemas de intervalos y extremos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+description: Qué son los problemas de intervalos y extremos, o de cortes y estacas, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
 
 hero:
   lead: >-
     Seis árboles en fila: ¿cuántos intervalos hay entre ellos? Un tronco en
-    cinco trozos: ¿cuántos cortes? En estos problemas el niño o la niña
-    cuenta o bien las cosas, o bien los intervalos entre ellas, y los dos
-    números se diferencian en uno. De ese uno sale la mayoría de las
+    cinco trozos: ¿cuántos cortes? En estos problemas de cortes y estacas, el
+    niño o la niña cuenta o bien las cosas, o bien los intervalos entre ellas, y
+    los dos números se diferencian en uno. De ese uno sale la mayoría de las
     respuestas incorrectas, y lo que lo arregla es un dibujo rápido de un caso
     pequeño.
   method: Dibujar un caso pequeño y contar sobre él

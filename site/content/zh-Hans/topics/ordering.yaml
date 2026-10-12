@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: 排序推理
-description: 什么是排序推理题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+description: 什么是排序推理题（比高矮、排先后的逻辑推理题），怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
 
 # The words every drawing of the page writes its four children in: the
 # initial of each, and the name.
@@ -22,7 +22,7 @@ art:
 
 hero:
   lead: >-
-    谁更高，谁年龄更大，谁先到？这类题要把几个比较拼成一个顺序：按身高、按年龄、按在队伍里或比赛中的位置。很多孩子正是在这里第一次接触推理链：每条线索都是链上的一环，一条也不能漏掉。
+    谁更高，谁年龄更大，谁先到？这类逻辑推理题要把几个比较拼成一个顺序：按身高、按年龄、按在队伍里或比赛中的位置。很多孩子正是在这里第一次接触推理链：每条线索都是链上的一环，一条也不能漏掉。
   method: 画一条线，把所有人都排到线上
   teaches: 把几条线索拼成一个顺序，并能正反两面理解比较
   # The words of its drawing: the clues and the rule over it, and the line's

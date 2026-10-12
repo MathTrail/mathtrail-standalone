@@ -6,14 +6,14 @@
 # its reference tasks.
 
 title: Overlapping groups
-description: What problems about overlapping groups are, how they are solved, where children go wrong, and how to help at home.
+description: What problems about overlapping groups and Venn diagrams are, how they are solved, where kids go wrong, and how to help at home.
 
 hero:
   lead: >-
-    Some children go to the chess club, some to football, some to both, and
-    some to neither. In these tasks the groups overlap, and the trick is to
-    count everyone exactly once. Two circles drawn on paper turn a confusing
-    question into four numbers.
+    Some children go to the chess club, some to football, some to both, and some
+    to neither. In these tasks the groups overlap, and the trick is to count
+    everyone exactly once. A Venn diagram, two circles drawn on paper, turns a
+    confusing question into four numbers.
   method: Draw the circles and start from the middle
   teaches: To count without counting twice, and to say what each number means
   # The words of its drawing: what the two circles are, and what their middle

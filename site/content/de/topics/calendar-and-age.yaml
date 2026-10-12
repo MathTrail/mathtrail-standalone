@@ -6,15 +6,16 @@
 # commonest, counted in its reference tasks.
 
 title: Kalender und Alter
-description: Worum es bei „Kalender und Alter“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+description: Worum es bei „Kalender und Alter“ geht, etwa um Altersrätsel, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
 
 hero:
   lead: >-
-    Heute ist Dienstag: Welcher Wochentag ist in 30 Tagen? Mama ist 30 und
-    Anna 6: Wie alt wird Anna sein, wenn Mama doppelt so alt ist wie sie? In
-    diesen Aufgaben rechnet ein Kind mit Wochen, Monaten und Jahren, und die
-    meisten davon beruhen auf zwei Tatsachen: Die Woche wiederholt sich alle 7
-    Tage, und der Altersunterschied zwischen zwei Menschen ändert sich nie.
+    Heute ist Dienstag: Welcher Wochentag ist in 30 Tagen? Mama ist 30 und Anna
+    6: Wie alt wird Anna sein, wenn Mama doppelt so alt ist wie sie? In diesen
+    Kalenderaufgaben und Altersrätseln rechnet ein Kind mit Wochen, Monaten und
+    Jahren, und die meisten davon beruhen auf zwei Tatsachen: Die Woche
+    wiederholt sich alle 7 Tage, und der Altersunterschied zwischen zwei
+    Menschen ändert sich nie.
   method: Ganze Wochen weglassen, den Altersunterschied festhalten
   teaches: Tage und Jahre zählen, ohne sie einzeln abzuzählen
   # The words of its drawing: a month whose Tuesdays stand in one column.

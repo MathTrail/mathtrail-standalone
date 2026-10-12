@@ -1,8 +1,9 @@
 // The site's checker. It reads a built site and reports what a browser, a
 // crawler or a reviewer would otherwise each find broken separately: a link
 // that leads nowhere, a page that quietly fetches from somebody else's domain,
-// a head that a search result cannot be built from or that states a thing
-// twice, two pages of a language a search result cannot tell apart,
+// a head that a search result cannot be built from, that states a thing twice
+// or whose title or description runs longer than a result shows, two pages of
+// a language a search result cannot tell apart,
 // structured data a search engine would misread or that leads off the site,
 // a locale that lost a page, a page, or a document a page frames, that grew
 // past its budget, an address the site handed out and lost, a page it serves
@@ -396,10 +397,11 @@ function external(page: Page): Finding[] {
 }
 
 // head reports a head that a search result, a shared link or a screen reader
-// cannot be built from, or that states its title, its description or its
-// address twice, leaving a search engine to choose. The picture a shared link
-// shows is the site's own, a file it serves: a link to it that leads nowhere
-// shows a preview with none.
+// cannot be built from, that states its title, its description or its address
+// twice, leaving a search engine to choose, or whose title or description runs
+// longer than a search result shows whole. The picture a shared link shows is
+// the site's own, a file it serves: a link to it that leads nowhere shows a
+// preview with none.
 function head(
 	page: Page,
 	pages: Map<string, Page>,
@@ -425,6 +427,18 @@ function head(
 	}
 	if (page.description === "") {
 		report("the page has no description");
+	}
+	const lengths: [string, string, number][] = [
+		["title", page.title, titleUnits],
+		["description", page.description, descriptionUnits],
+	];
+	for (const [what, text, shown] of lengths) {
+		const units = unitsOf(text);
+		if (units > shown) {
+			report(
+				`the ${what} runs to ${units} units, and a search result shows ${shown} whole`,
+			);
+		}
 	}
 	const stated: [string, number][] = [
 		["title", page.stated.title],
@@ -461,6 +475,50 @@ function head(
 		}
 	}
 	return findings;
+}
+
+// titleUnits and descriptionUnits are how long a title and a description can
+// run and still show whole in a search result on a computer's screen: about
+// as many Latin letters, half as many Chinese characters.
+const titleUnits = 60;
+const descriptionUnits = 160;
+
+// wide matches what a search result sets twice as wide as a Latin letter: a
+// Chinese character, kana, hangul, an emoji, and the marks, symbols and
+// letters made as wide as they are.
+const wide =
+	/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Emoji_Presentation}\u2e80-\u2fdf\u3000-\u303f\u30fb\u30fc\u3200-\u33ff\ufe10-\ufe19\ufe30-\ufe4f\uff01-\uff60\uffe0-\uffe6]/u;
+
+// narrow matches what the wide scripts also hold set as narrow as a Latin
+// letter: the half-width katakana and hangul.
+const narrow = /[\uff61-\uffdc]/u;
+
+// invisible matches what takes no room of its own: a mark that sits on the
+// character before it, such as an accent written apart or a tone mark, and a
+// character that only formats, such as a mark of direction or a soft hyphen.
+const invisible = /[\p{M}\p{Cf}]/u;
+
+// spaces matches a run of the white space HTML collapses to one space, as a
+// search result shows it.
+const spaces = /[\t\n\f\r ]+/g;
+
+// graphemes splits text into what a reader sees as one character each: a
+// letter with its accents, a syllable of hangul, an emoji with its modifiers.
+const graphemes = new Intl.Segmenter("und", { granularity: "grapheme" });
+
+// unitsOf is how long text runs in a search result, its white space collapsed
+// and each character a reader sees counted once: as two when it is wide, as
+// none when it takes no room, and as one otherwise.
+function unitsOf(text: string): number {
+	let units = 0;
+	for (const { segment } of graphemes.segment(text.replace(spaces, " "))) {
+		const base = String.fromCodePoint(segment.codePointAt(0) ?? 0);
+		if (invisible.test(base)) {
+			continue;
+		}
+		units += wide.test(base) && !narrow.test(base) ? 2 : 1;
+	}
+	return units;
 }
 
 // canonicalProblem is what is wrong with the address page names as its own, or

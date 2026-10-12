@@ -41,7 +41,7 @@ A language lands whole, in one change: the build refuses a dictionary with no te
 ## What holds a translation
 
 - **The build** (`npm run build:site`): the keys, their order, the slots, the emphasis and the plural forms; an example's answer and the numbers its solver proves; a document's outline and its emphasis, the English one's.
-- **The site's checker** (`just ci-site`): every page there in every language, its links, its weight, no digit but 0–9, and no two pages of a language under one title or one description.
+- **The site's checker** (`just ci-site`): every page there in every language, its links, its weight, no digit but 0–9, no two pages of a language under one title or one description, and no title or description longer than a search result shows.
 - **A reader**, for everything else: the meaning, the numbers of the questions and the steps, the tone. A number that a text writes and the English text does not, or the other way round, is worth a look.
 
 ## Search words
@@ -53,5 +53,7 @@ A page's title, its description and the first lines of a topic's page are what a
 - **Only what the site gives.** No "printable", "worksheet", "pdf" or "download": the site has none of them. "With answers" and "with solutions" fit a page that shows a worked solution, a topic's page or "Techniques", and never the home page, whose card keeps the answer until the child answers.
 - **No label and no promise.** No word that sorts children, such as "gifted", and no benefit the page's sources do not show, such as "develops critical thinking".
 - **Not what leads elsewhere.** Each list names the phrases that search reads as something else, a shop's orders or a crossword's clue, and a text avoids them.
-- **Whole in a result.** A title fits in 60 units and a description in 160, a character as wide as a Chinese one counting two: a search result cuts what is longer.
+- **Whole in a result.** A title fits in 60 units and a description in 160, a character as wide as a Chinese one counting two and a mark that sits on another none: a search result cuts what is longer, and the site's checker refuses it.
+- **Three titles for the search.** The titles of "Topics", "Why" and "Techniques" show in a browser's tab, a search result and a shared link alone, never in the menu or the footer, so they say their page in the words parents type rather than as the menu does; the head adds the site's name to them.
+- **A topic's other name.** Where parents search a topic by another name than the card's, the topic's description gives that name once, beside the card's, and so does its first line where the name fits it.
 - **No number typed.** A grade is a number about the product, so a description, which takes no slot, names the school stage in words or leaves the grades out.

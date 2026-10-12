@@ -22,7 +22,7 @@ Gathered on 2026-10-12 from Google's suggestions for the US, the UK, India and A
 **The head's title.**
 
 - A topic's page: **"{topic}: olympiad problems, grades {range}"**. "Problems" is the noun of almost every query about a topic, "pigeonhole principle problems", "clock problems", and it leaves "math" and "maths" aside; "grades {range}" is `topics.grades`. The longest, "Games with a winning strategy: olympiad problems, grades 5–6", is 60 units, so the site's name does not fit after it. The other way, "{topic} — olympiad maths, grades {range}", 58 at most, keeps the site's own phrase and loses "problems".
-- Any other page: **"{page} — MathTrail"**, the dash of the home page's title; the longest, "Problem-solving techniques — MathTrail", is 38.
+- Any other page: **"{page} — MathTrail"**, the dash of the home page's title; the longest, "Why olympiad maths for kids: what research says — MathTrail", is 59.
 
 **Topics.** ⚑ marks a card's name nobody types.
 
@@ -46,9 +46,9 @@ Gathered on 2026-10-12 from Google's suggestions for the US, the UK, India and A
 | overlapping groups | Overlapping groups ⚑ | "Venn diagram word problems"; "overlapping sets" is the GMAT |
 | games with a winning strategy | Games with a winning strategy ⚑ | "Nim"; "winning strategy" is video games |
 
-The first lines already carry the searched word for the pigeonhole principle, parity, weighing, parts, percentages, ratios, the grid and divisibility. They do not for ordering ("logic puzzle"), knights ("knaves"), enumeration ("counting"), gaps ("fence post"), clocks ("elapsed time"), calendar ("age problems"), arithmetic ("think of a number", where the lead says "I thought of a number"), overlapping groups ("Venn diagram") and games ("Nim").
+The first line of ordering, knights and liars, enumeration, gaps, clocks, calendar, arithmetic, overlapping groups and games gives its searched name too.
 
-**Descriptions** can carry "olympiad maths problems", "for kids", "logic puzzles" or "logical reasoning", "challenging problems", "free", which is a fact, and on "Techniques" "problem-solving strategies". "Worked solutions" fits a topic's page and "Techniques" only. Today the home page's description says "tasks" and "children", and runs to 166 characters; "Topics" carries none of these words.
+**Descriptions** say "kids", which parents type, while the pages' own words keep "children". They can carry "olympiad maths problems", "for kids", "logic puzzles" or "logical reasoning", "challenging problems", "free", which is a fact, and on "Techniques" "problem-solving strategies". "Worked solutions" fits a topic's page and "Techniques" only.
 
 **Not to use.**
 

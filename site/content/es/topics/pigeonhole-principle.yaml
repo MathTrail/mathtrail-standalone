@@ -6,16 +6,16 @@
 # commonest, counted in its reference tasks.
 
 title: Principio del palomar
-description: Qué son los problemas del principio del palomar, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+description: Qué son los problemas del principio del palomar, o de Dirichlet, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
 
 hero:
   lead: >-
-    Cinco palomas llegan volando a cuatro nidos: en algún nido tendrá que haber
-    dos. En estos problemas, el niño o la niña demuestra que algo tiene que
-    ocurrir por mala que sea la suerte: dos calcetines del mismo color sacados
-    de un cajón a oscuras, dos cumpleaños en el mismo mes. Es el primer
-    encuentro con el razonamiento sobre el peor caso, y no sobre el caso
-    afortunado.
+    Cinco palomas llegan volando a cuatro nidos: por el principio del palomar,
+    en algún nido tendrá que haber dos. En estos problemas, el niño o la niña
+    demuestra que algo tiene que ocurrir por mala que sea la suerte: dos
+    calcetines del mismo color sacados de un cajón a oscuras, dos cumpleaños en
+    el mismo mes. Es el primer encuentro con el razonamiento sobre el peor caso,
+    y no sobre el caso afortunado.
   method: Llevar la peor suerte hasta el final y sumar uno
   teaches: A demostrar que algo tiene que ocurrir, y no solo que puede ocurrir
   # The words of its drawing: the pigeons and the cages over it, and what the

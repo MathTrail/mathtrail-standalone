@@ -1,5 +1,5 @@
 title: How the service works
-description: "How MathTrail works inside: the parts of the service and how they link, a lesson call by call, where its state lives, the profile's file in the parent's Drive and what is sealed in it."
+description: "How MathTrail works inside: its parts and how they link, a lesson call by call, where its state lives, and the profile's file in a parent's Drive."
 hero:
   badge: For technical readers
   title: How the service works

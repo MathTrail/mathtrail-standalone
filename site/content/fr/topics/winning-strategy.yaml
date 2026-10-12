@@ -6,7 +6,7 @@
 # the topic's commonest, counted in its reference tasks.
 
 title: Jeux à stratégie gagnante
-description: Ce que sont les problèmes de jeux à stratégie gagnante, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+description: Ce que sont les problèmes de jeux à stratégie gagnante, dont le jeu de Nim, comment on les résout, où les enfants se trompent et comment les aider à la maison.
 
 # The words the page's drawings say of a position.
 art:
@@ -16,11 +16,11 @@ art:
 hero:
   lead: >-
     Il y a 20 allumettes sur la table, et les joueurs en prennent 1, 2 ou 3 à
-    tour de rôle. Qui prend la dernière allumette gagne. Le premier joueur
-    peut-il toujours gagner ? Dans ces problèmes, l’enfant cherche un plan qui
-    gagne quoi que fasse l’autre joueur, et le trouve en partant de la fin de
-    la partie, pour savoir quelles positions sont perdantes pour le joueur dont
-    c’est le tour.
+    tour de rôle. Qui prend la dernière allumette gagne, comme au jeu de Nim. Le
+    premier joueur peut-il toujours gagner ? Dans ces problèmes, l’enfant
+    cherche un plan qui gagne quoi que fasse l’autre joueur, et le trouve en
+    partant de la fin de la partie, pour savoir quelles positions sont perdantes
+    pour le joueur dont c’est le tour.
   method: Partir de la fin et trouver les positions perdantes
   teaches: À trouver un plan qui gagne quoi que fasse l’autre joueur
   # The words of its drawing: the game it is drawn for.

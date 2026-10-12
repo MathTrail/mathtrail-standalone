@@ -1,5 +1,5 @@
 title: Comment fonctionne le service
-description: "Comment MathTrail fonctionne de l’intérieur : les parties du service et leurs liens, une leçon appel par appel, où vit son état, le fichier du profil dans le Drive du parent et ce qui y est scellé."
+description: "MathTrail vu de l’intérieur : ses parties et leurs liens, une leçon appel par appel, où vit son état, et le fichier du profil dans le Drive du parent."
 hero:
   badge: Pour un public technique
   title: Comment fonctionne le service

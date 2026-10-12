@@ -6,7 +6,7 @@
 # in its reference tasks.
 
 title: Enumeración de casos
-description: Qué son los problemas de enumeración de casos, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+description: Qué son los problemas de enumeración de casos, conteo y combinatoria, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
 
 # The words every drawing of the page writes its people in: the three
 # children's letters, and Lea's and Tom's initials.
@@ -19,11 +19,11 @@ art:
 
 hero:
   lead: >-
-    ¿Cuántos números se pueden escribir con estas cifras? ¿Cuántos apretones
-    de manos, conjuntos de ropa o maneras de ponerse en fila? En estos
-    problemas se escribe cada caso en un orden que garantiza que no se pierda
-    ninguno ni se cuente ninguno dos veces. Una lista que sigue una regla es
-    la primera herramienta que tienen los niños y las niñas ante preguntas
+    ¿Cuántos números se pueden escribir con estas cifras? ¿Cuántos apretones de
+    manos, conjuntos de ropa o maneras de ponerse en fila? En estos problemas de
+    conteo se escribe cada caso en un orden que garantiza que no se pierda
+    ninguno ni se cuente ninguno dos veces. Una lista que sigue una regla es la
+    primera herramienta que tienen los niños y las niñas ante preguntas
     demasiado grandes para adivinar la respuesta.
   method: Enumerar los casos siguiendo una regla
   teaches: A trabajar con orden y a ver cuándo se pueden contar los casos sin escribirlos todos

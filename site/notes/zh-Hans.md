@@ -505,7 +505,7 @@ Gathered on 2026-10-12 from Google's suggestions for Singapore and Malaysia and 
 | overlapping groups | «容斥原理» | the same; «重叠问题» |
 | games with a winning strategy | «必胜策略» | the same; «抢30», «取火柴游戏» |
 
-**Descriptions** can carry «奥数题», «数学思维», «逻辑推理», «解题方法», «解题思路» and «免费», a fact, and on "Why" what parents ask, «奥数有什么用». Today no description is over its 160 units, and that of "Topics" names no topic.
+**Descriptions** can carry «奥数题», «数学思维», «逻辑推理», «解题方法», «解题思路» and «免费», a fact, and on "Why" what parents ask, «奥数有什么用».
 
 **Not to use.**
 

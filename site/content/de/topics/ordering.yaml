@@ -6,7 +6,7 @@
 # its reference tasks.
 
 title: Reihenfolgen
-description: Worum es bei „Reihenfolgen“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+description: Worum es bei „Reihenfolgen“ geht, also um Logikrätsel mit Vergleichen, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
 
 # The words every drawing of the page writes its four children in: the
 # initial of each, and the name.
@@ -22,7 +22,7 @@ art:
 
 hero:
   lead: >-
-    Wer ist größer, wer ist älter, wer kam zuerst? In diesen Aufgaben müssen
+    Wer ist größer, wer ist älter, wer kam zuerst? In diesen Logikrätseln müssen
     einige Vergleiche zu einer einzigen Reihenfolge zusammengesetzt werden:
     nach Größe, nach Alter, nach dem Platz in einer Schlange oder bei einem
     Wettlauf. Für viele Kinder ist das die erste Kette von Schlussfolgerungen,

@@ -6,7 +6,7 @@
 # are the topic's commonest, counted in its reference tasks.
 
 title: 必胜策略
-description: 什么是关于必胜策略的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+description: 什么是关于必胜策略的题（如取火柴游戏），怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
 
 # The words the page's drawings say of a position.
 art:
@@ -15,7 +15,7 @@ art:
 
 hero:
   lead: >-
-    桌上有20根火柴，两人轮流拿，每次拿1根、2根或3根。谁拿到最后一根火柴，谁就赢。先手能不能总是赢？这类题里，孩子要找一个无论对方怎么走都能赢的计划，办法是从游戏的结尾往回推：找出哪些局面对轮到走的人来说是必败的。
+    桌上有20根火柴，两人玩取火柴游戏，轮流拿，每次拿1根、2根或3根。谁拿到最后一根火柴，谁就赢。先手能不能总是赢？这类题里，孩子要找一个无论对方怎么走都能赢的计划，办法是从游戏的结尾往回推：找出哪些局面对轮到走的人来说是必败的。
   method: 从结尾往回推，找出必败局面
   teaches: 找到一个无论对方怎么走都能赢的计划
   # The words of its drawing: the game it is drawn for.

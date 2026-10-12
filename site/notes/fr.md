@@ -498,7 +498,7 @@ Gathered on 2026-10-12 from Google's suggestions for France, Belgium, Switzerlan
 **The head's title.**
 
 - A topic's page: **«{topic} : énigmes de maths, niveaux {range}»**, with a no-break space before the colon. «Énigmes … maths» is the strongest query, and «niveaux {range}» is `topics.grades`. The longest, «Groupes qui se chevauchent : énigmes de maths, niveaux 5–6», is 58 units; «énigmes mathématiques» would push three topics past 60. The other way, «{topic} : défis maths, niveaux {range}», 53 at most, takes the parents' «défis».
-- Any other page: **«{page} — MathTrail»**, with a no-break space before the dash, as the glossary writes a dash alone; the longest, «Techniques de résolution de problèmes — MathTrail», is 49.
+- Any other page: **«{page} — MathTrail»**, with a no-break space before the dash, as the glossary writes a dash alone; the longest, «Techniques de résolution de problèmes de maths — MathTrail», is 58.
 
 **Topics.** ⚑ marks a card's name nobody types.
 
@@ -522,7 +522,7 @@ Gathered on 2026-10-12 from Google's suggestions for France, Belgium, Switzerlan
 | overlapping groups | «Groupes qui se chevauchent» ⚑ | «diagramme de Venn» |
 | games with a winning strategy | «Jeux à stratégie gagnante» ⚑ | «jeu de Nim», «jeu des allumettes» |
 
-**Descriptions** can carry «énigmes mathématiques», «problèmes de logique», «primaire», which reads alike in all four countries, on "Techniques" «résolution de problèmes», and «raisonnement» as a noun. «Avec correction» fits a topic's page and "Techniques" only. Today the descriptions of the home page, 193 characters, and "Techniques", 195, run past 160.
+**Descriptions** can carry «énigmes mathématiques», «problèmes de logique», «primaire», which reads alike in all four countries, on "Techniques" «résolution de problèmes», and «raisonnement» as a noun. «Avec correction» fits a topic's page and "Techniques" only.
 
 **Not to use.**
 

@@ -502,7 +502,7 @@ Gathered on 2026-10-12 from Google's suggestions for Egypt, Saudi Arabia, Morocc
 **The head's title.**
 
 - A topic's page: **«{topic}: مسائل أولمبياد رياضيات للصفوف {range}»**. Without the article, «مسائل أولمبياد رياضيات» reads as olympiad problems in general, where «أولمبياد الرياضيات» reads as the named school contest; «رياضيات» says what a topic's name such as «الساعات» does not; and «للصفوف {range}» is `topics.grades` with «لـ», as the home page's lead writes it. The longest, «ألعاب باستراتيجية رابحة: مسائل أولمبياد رياضيات للصفوف 5–6», is 58 units. The other way, «{topic}: مسائل بأسلوب الأولمبياد للصفوف {range}», 59 at most, is the card's own wording without «رياضيات».
-- Any other page: **«{page} — MathTrail»**, the card's dash; the longest, «لماذا رياضيات الأولمبياد — MathTrail», is 36.
+- Any other page: **«{page} — MathTrail»**, the card's dash; the longest, «استراتيجيات حل المسائل في رياضيات الأولمبياد — MathTrail», is 56.
 
 **Topics.** ⚑ marks a card's name nobody types.
 
@@ -526,7 +526,7 @@ Gathered on 2026-10-12 from Google's suggestions for Egypt, Saudi Arabia, Morocc
 | overlapping groups | «المجموعات المتداخلة» ⚑ | «مخطط فن» |
 | games with a winning strategy | «ألعاب باستراتيجية رابحة» ⚑ | nothing that is maths: «ألعاب رياضيات» are games for screens |
 
-**Descriptions** can carry «مسائل رياضيات», «ألغاز رياضيات للأطفال», the stage in words, «المرحلة الابتدائية», on "Techniques" «استراتيجيات حل المسائل», and on "Why" «التفكير المنطقي», which the page's own sources back. «مع الحل» fits a topic's page and "Techniques" only; the home page's honest word is «شرح الخطأ». Today every description is within 160, and that of "Topics" carries only «مسائل».
+**Descriptions** can carry «مسائل رياضيات», «ألغاز رياضيات للأطفال», the stage in words, «المرحلة الابتدائية», on "Techniques" «استراتيجيات حل المسائل», and on "Why" «التفكير المنطقي», which the page's own sources back. «مع الحل» fits a topic's page and "Techniques" only; the home page's honest word is «شرح الخطأ».
 
 **Not to use.**
 

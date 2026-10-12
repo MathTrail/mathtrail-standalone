@@ -6,7 +6,7 @@
 # the topic's commonest, counted in its reference tasks.
 
 title: Juegos con estrategia ganadora
-description: Qué son los problemas de juegos con estrategia ganadora, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+description: Qué son los problemas de juegos con estrategia ganadora, como el Nim, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
 
 # The words the page's drawings say of a position.
 art:
@@ -15,12 +15,12 @@ art:
 
 hero:
   lead: >-
-    Hay 20 cerillas en la mesa, y los jugadores toman por turnos 1, 2 o 3.
-    Gana quien toma la última cerilla. ¿Puede el primer jugador ganar siempre?
-    En estos problemas, quien resuelve busca un plan que gane haga lo que haga
-    el otro jugador, y lo encuentra yendo hacia atrás desde el final de la
-    partida y averiguando qué posiciones son perdedoras para quien tiene el
-    turno en ellas.
+    Hay 20 cerillas en la mesa, y los jugadores toman por turnos 1, 2 o 3. Gana
+    quien toma la última cerilla, como en el juego del Nim. ¿Puede el primer
+    jugador ganar siempre? En estos problemas, quien resuelve busca un plan que
+    gane haga lo que haga el otro jugador, y lo encuentra yendo hacia atrás
+    desde el final de la partida y averiguando qué posiciones son perdedoras
+    para quien tiene el turno en ellas.
   method: Ir hacia atrás desde el final y hallar las posiciones perdedoras
   teaches: A encontrar un plan que gane haga lo que haga el otro jugador
   # The words of its drawing: the game it is drawn for.

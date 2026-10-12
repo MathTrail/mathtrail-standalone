@@ -6,7 +6,7 @@
 # the topic's commonest, counted in its reference tasks.
 
 title: 称重与倒水
-description: 什么是关于称重与倒水的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+description: 什么是关于称重与倒水的题（找次品和倒水问题），怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
 
 # The words the page's drawings write a jug's size, a step and a move in.
 art:
@@ -19,7 +19,7 @@ art:
 
 hero:
   lead: >-
-    只有一个5升的壶和一个3升的壶，怎样量出正好4升水？只有天平、没有砝码，怎样从许多枚硬币中找出唯一一枚较轻的？这类题里，孩子要事先规划一小串步骤，而且每条规则都要紧：壶上没有刻度，天平没有砝码。这是孩子第一次接触算法，也就是无论发生什么都行得通的计划。
+    只有一个5升的壶和一个3升的壶，怎样量出正好4升水？只有天平、没有砝码，怎样从许多枚硬币中找出唯一一枚较轻的？在倒水问题和找次品这类题里，孩子要事先规划一小串步骤，而且每条规则都要紧：壶上没有刻度，天平没有砝码。这是孩子第一次接触算法，也就是无论发生什么都行得通的计划。
   method: 记下每一个状态，寻找最短的路
   teaches: 提前规划步骤，并能想清楚称一次的每一种结果
   # The words of its drawing: what is measured over it, and what each pair of

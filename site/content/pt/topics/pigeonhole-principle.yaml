@@ -6,15 +6,16 @@
 # the topic's commonest, counted in its reference tasks.
 
 title: Princípio da casa dos pombos
-description: O que são os problemas do princípio da casa dos pombos, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+description: O que são os problemas do princípio da casa dos pombos, ou princípio das gavetas, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
 
 hero:
   lead: >-
-    Cinco pombos voam para quatro casas: alguma casa com certeza vai ficar com
-    dois deles. Nestes problemas, a criança prova que algo tem que acontecer,
-    por maior que seja o azar: duas meias da mesma cor tiradas de uma gaveta no
-    escuro, dois aniversários no mesmo mês. É o primeiro contato com um
-    raciocínio sobre o pior caso, e não sobre o caso em que se tem sorte.
+    Cinco pombos voam para quatro casas: pelo princípio da casa dos pombos, ou
+    princípio das gavetas, alguma casa com certeza vai ficar com dois deles.
+    Nestes problemas, a criança prova que algo tem que acontecer, por maior que
+    seja o azar: duas meias da mesma cor tiradas de uma gaveta no escuro, dois
+    aniversários no mesmo mês. É o primeiro contato com um raciocínio sobre o
+    pior caso, e não sobre o caso em que se tem sorte.
   method: Levar o maior azar até o fim e depois somar um
   teaches: A provar que algo tem que acontecer, e não só que pode acontecer
   # The words of its drawing: the pigeons and the cages over it, and what the

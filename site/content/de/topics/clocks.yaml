@@ -6,7 +6,7 @@
 # its reference tasks.
 
 title: Uhren
-description: Worum es bei „Uhren“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+description: Worum es bei „Uhren“ geht, also um Uhrzeiten und Zeitspannen, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
 
 # The words the page's drawings write a length of time in.
 art:
@@ -17,9 +17,9 @@ art:
 hero:
   lead: >-
     Ein Spaziergang beginnt um 4:50 und dauert 25 Minuten: Wann endet er? In
-    diesen Aufgaben rechnet ein Kind Zeit dazu und zieht Zeit ab, und der
-    Haken ist, dass eine Stunde 60 Minuten hat, nicht 100. Die meisten Fehler
-    passieren dort, wo es über die volle Stunde, über Mittag oder über
+    diesen Aufgaben zu Zeitspannen rechnet ein Kind Zeit dazu und zieht Zeit ab,
+    und der Haken ist, dass eine Stunde 60 Minuten hat, nicht 100. Die meisten
+    Fehler passieren dort, wo es über die volle Stunde, über Mittag oder über
     Mitternacht hinausgeht.
   method: Erst bis zur vollen Stunde gehen, dann weiter
   teaches: Zeit über die volle Stunde und über Mitternacht hinweg rechnen und eine Uhrzeit von einer Zeitdauer unterscheiden

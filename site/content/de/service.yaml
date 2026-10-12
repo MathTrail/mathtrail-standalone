@@ -1,5 +1,5 @@
 title: So funktioniert der Dienst
-description: "Wie MathTrail im Inneren arbeitet: die Teile des Dienstes und ihre Verbindungen, eine Lektion Aufruf für Aufruf, wo der Zustand liegt, die Profildatei im Google Drive der Familie und was darin versiegelt ist."
+description: "MathTrail von innen: seine Teile und ihre Verbindungen, eine Lektion Aufruf für Aufruf, wo der Zustand liegt, und die Profildatei im Google Drive der Familie."
 hero:
   badge: Für Fachleute
   title: So funktioniert der Dienst

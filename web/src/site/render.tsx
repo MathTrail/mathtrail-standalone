@@ -208,7 +208,7 @@ function topicOfPage(data: SiteData, name: string): Topic | undefined {
 }
 
 // titleOf is the title the page name gives in its head, built from its own
-// title, which the menu and the footer show alone and keep short. A topic's
+// title, which the footer shows alone for the pages it leads to. A topic's
 // page names the topic, the kind of problem and its grades in its language's
 // pattern; a page whose own title names the site keeps it as it is; any other
 // page adds the site's name. A topic's page is titled by the topic's name as

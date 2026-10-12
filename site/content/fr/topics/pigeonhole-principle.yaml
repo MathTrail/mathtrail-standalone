@@ -10,12 +10,12 @@ description: Ce que sont les problèmes du principe des tiroirs, comment on les 
 
 hero:
   lead: >-
-    Cinq pigeons entrent dans quatre cages : l’une des cages en contient
-    forcément deux. Dans ces problèmes, l’enfant prouve que quelque chose doit
-    arriver, aussi malchanceux que soit le tirage : deux chaussettes de la
-    même couleur sorties d’un tiroir dans le noir, deux anniversaires dans le
-    même mois. C’est la première rencontre avec un raisonnement sur le pire
-    des cas plutôt que sur le cas chanceux.
+    Cinq pigeons entrent dans quatre cages : d’après le principe des tiroirs,
+    l’une des cages en contient forcément deux. Dans ces problèmes, l’enfant
+    prouve que quelque chose doit arriver, aussi malchanceux que soit le
+    tirage : deux chaussettes de la même couleur sorties d’un tiroir dans le
+    noir, deux anniversaires dans le même mois. C’est la première rencontre avec
+    un raisonnement sur le pire des cas plutôt que sur le cas chanceux.
   method: Aller jusqu’au bout du pire des cas, puis ajouter un
   teaches: À prouver que quelque chose doit arriver, et pas seulement que cela peut arriver
   # The words of its drawing: the pigeons and the cages over it, and what the

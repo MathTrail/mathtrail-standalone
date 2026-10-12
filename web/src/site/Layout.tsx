@@ -18,8 +18,8 @@ export type Head = {
 	readonly dir: "ltr" | "rtl";
 	/**
 	 * title is the page's title as a browser's tab, a search result and a shared
-	 * link show it, which may say more than the title the menu and the footer
-	 * show.
+	 * link show it, which may say more than the page's own title, the one the
+	 * footer shows.
 	 */
 	readonly title: string;
 	readonly description: string;

@@ -6,7 +6,7 @@
 # commonest, counted in its reference tasks.
 
 title: Ritter und Lügner
-description: Worum es bei „Ritter und Lügner“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+description: Worum es bei „Ritter und Lügner“ oder „Ritter und Knappen“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
 
 # The words every drawing of the page writes its islanders in: the letters
 # of a knight and of a liar, and the islanders' own.
@@ -20,7 +20,8 @@ art:
 hero:
   lead: >-
     Auf einer Insel leben Ritter, die immer die Wahrheit sagen, und Lügner, die
-    immer lügen. Aus dem, was sie sagen, muss man herausfinden, wer wer ist. Für
+    immer lügen. Solche Rätsel heißen auch „Ritter und Knappen“. Aus dem, was
+    sie sagen, muss man herausfinden, wer wer ist. Für
     viele Kinder ist das die erste Begegnung mit echtem logischem Denken: eine
     Annahme treffen, verfolgen, wohin sie führt, und einen Widerspruch
     bemerken.

@@ -198,6 +198,38 @@ describe("check", () => {
 		expect(await check(dir, options())).toEqual([]);
 	});
 
+	test("passes a title and a description as long as a search result shows whole, a wide character counting two and a mark none", async () => {
+		const dir = await site((files) => {
+			files["index.html"] = pageAt("/", addresses)
+				.replace(titleAt("/"), "T".repeat(60))
+				.replace(descriptionAt("/"), "D".repeat(160));
+			files["ru/index.html"] = pageAt("/ru/", addresses)
+				.replace(titleAt("/ru/"), "字".repeat(30))
+				.replace(descriptionAt("/ru/"), "e\u0301".repeat(160));
+		});
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
+	test("counts what a reader sees as one character once: a tone mark and a mark of direction as none, a half-width kana or hangul as one, an emoji with its modifier and a syllable of hangul as two, and a run of white space as one space", async () => {
+		const dir = await site((files) => {
+			files["index.html"] = pageAt("/", addresses)
+				.replace(titleAt("/"), "字\u302a".repeat(30))
+				.replace(descriptionAt("/"), "ｶ".repeat(160));
+			files["en/index.html"] = redirectAt("/")
+				.replace(titleAt("/"), "👍🏽".repeat(30))
+				.replace(descriptionAt("/"), "ᄀ\u1161".repeat(80));
+			files["ru/index.html"] = pageAt("/ru/", addresses)
+				.replace(
+					titleAt("/ru/"),
+					`${"T".repeat(30)}\n${" ".repeat(40)}${"ﾡ".repeat(29)}`,
+				)
+				.replace(descriptionAt("/ru/"), `${"D".repeat(160)}\u200f\u200f`);
+		});
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
 	const broken: {
 		name: string;
 		change?: (files: Record<string, string>) => void;
@@ -777,6 +809,52 @@ describe("check", () => {
 			},
 			rule: "structured",
 			contains: `leads to "${base}/en/gone/#part", a page the site does not have`,
+		},
+		{
+			name: "a title longer than a search result shows",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					titleAt("/ru/"),
+					"T".repeat(61),
+				);
+			},
+			rule: "head",
+			contains:
+				"the title runs to 61 units, and a search result shows 60 whole",
+		},
+		{
+			name: "a title of wide characters longer than a search result shows",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					titleAt("/ru/"),
+					"字".repeat(31),
+				);
+			},
+			rule: "head",
+			contains: "the title runs to 62 units",
+		},
+		{
+			name: "a description longer than a search result shows",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					descriptionAt("/ru/"),
+					"D".repeat(161),
+				);
+			},
+			rule: "head",
+			contains:
+				"the description runs to 161 units, and a search result shows 160 whole",
+		},
+		{
+			name: "a title of wide symbols longer than a search result shows",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					titleAt("/ru/"),
+					"㊗".repeat(31),
+				);
+			},
+			rule: "head",
+			contains: "the title runs to 62 units",
 		},
 	];
 

@@ -6,16 +6,16 @@
 # commonest, counted in its reference tasks.
 
 title: Calculs astucieux
-description: Ce que sont les problèmes de calculs astucieux et de « j’ai pensé à un nombre », comment on les résout, où les enfants se trompent et comment les aider à la maison.
+description: Ce que sont les problèmes de calculs astucieux et du nombre pensé, comment on les résout, où les enfants se trompent et comment les aider à la maison.
 
 hero:
   lead: >-
     Combien font 19 + 23 + 81 + 77 ? Si on les additionne dans l’ordre, ce sont
-    trois additions avec retenue ; si on les groupe par paires, 19 + 81 et
-    23 + 77, cela donne 100 + 100. Dans ces problèmes, le calcul devient facile
-    dès qu’on a trouvé le bon ordre, et les énigmes « j’ai pensé à un nombre »
-    se résolvent en défaisant les étapes depuis la fin. Tout l’art est de
-    regarder avant de calculer.
+    trois additions avec retenue ; si on les groupe par paires, 19 + 81 et 23 +
+    77, cela donne 100 + 100. Dans ces problèmes, le calcul mental devient
+    facile dès qu’on a trouvé le bon ordre, et les énigmes « j’ai pensé à un
+    nombre » se résolvent en défaisant les étapes depuis la fin. Tout l’art est
+    de regarder avant de calculer.
   method: Chercher l’ordre facile avant de calculer
   teaches: À regrouper une somme ou un produit et à défaire une chaîne d’étapes depuis la fin
   # The words of its drawing: the sum's numbers paired colour by colour into

@@ -12,9 +12,9 @@ hero:
   lead: >-
     Hoje é terça-feira: que dia será daqui a 30 dias? A mãe tem 30 anos e Ana
     tem 6: quantos anos Ana vai ter quando a mãe tiver o dobro da idade dela?
-    Nestes problemas, a criança trabalha com semanas, meses e anos, e a
-    maioria deles se apoia em dois fatos: a semana se repete a cada 7 dias, e
-    a diferença entre duas idades nunca muda.
+    Nestes problemas de calendário e de idade, a criança trabalha com semanas,
+    meses e anos, e a maioria deles se apoia em dois fatos: a semana se repete a
+    cada 7 dias, e a diferença entre duas idades nunca muda.
   method: Descartar as semanas inteiras, manter a diferença de idade
   teaches: A contar dias e anos sem contá-los um por um
   # The words of its drawing: a month whose Tuesdays stand in one column.

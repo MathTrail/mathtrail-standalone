@@ -6,16 +6,16 @@
 # commonest, counted in its reference tasks.
 
 title: Aritmética con truco
-description: Qué son los problemas de cálculo ingenioso y de «he pensado un número», cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
+description: Qué son los problemas de cálculo mental y de «he pensado un número», cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa.
 
 hero:
   lead: >-
     ¿Cuánto es 19 + 23 + 81 + 77? Si se suma en orden, son tres sumas con
     llevadas; si se agrupa en parejas, 19 + 81 y 23 + 77, queda 100 + 100. En
-    estos problemas las cuentas son fáciles una vez que se encuentra el orden
-    adecuado, y los acertijos de «he pensado un número» se resuelven
-    deshaciendo los pasos desde el final. La habilidad está en mirar antes de
-    calcular.
+    estos problemas de cálculo mental, las cuentas son fáciles una vez que se
+    encuentra el orden adecuado, y los acertijos de «he pensado un número» se
+    resuelven deshaciendo los pasos desde el final. La habilidad está en mirar
+    antes de calcular.
   method: Buscar el orden fácil antes de calcular
   teaches: A reagrupar una suma o un producto y a deshacer una cadena de pasos desde el final
   # The words of its drawing: the sum's numbers paired colour by colour into

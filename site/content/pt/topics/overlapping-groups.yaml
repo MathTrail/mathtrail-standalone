@@ -6,14 +6,14 @@
 # commonest, counted in its reference tasks.
 
 title: Grupos que se sobrepõem
-description: O que são os problemas de grupos que se sobrepõem, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+description: O que são os problemas de grupos que se sobrepõem e de diagramas de Venn, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
 
 hero:
   lead: >-
     Umas crianças vão ao clube de xadrez, outras ao futebol, algumas aos dois e
     outras a nenhum. Nestes problemas, os grupos se sobrepõem, e o segredo é
-    contar todo mundo exatamente uma vez. Dois círculos desenhados no papel
-    transformam uma pergunta confusa em quatro números.
+    contar todo mundo exatamente uma vez. Um diagrama de Venn, dois círculos
+    desenhados no papel, transforma uma pergunta confusa em quatro números.
   method: Desenhar os círculos e começar pelo meio
   teaches: A contar sem contar duas vezes e a dizer o que cada número significa
   # The words of its drawing: what the two circles are, and what their middle

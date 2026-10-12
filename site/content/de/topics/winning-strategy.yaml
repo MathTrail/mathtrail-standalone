@@ -6,7 +6,7 @@
 # the topic's commonest, counted in its reference tasks.
 
 title: Spiele mit Gewinnstrategie
-description: Worum es bei „Spiele mit Gewinnstrategie“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+description: Worum es bei „Spiele mit Gewinnstrategie“ geht, etwa um das Nim-Spiel, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
 
 # The words the page's drawings say of a position.
 art:
@@ -16,7 +16,8 @@ art:
 hero:
   lead: >-
     Auf dem Tisch liegen 20 Streichhölzer, und zwei Personen nehmen abwechselnd
-    1, 2 oder 3 davon. Wer das letzte Streichholz nimmt, gewinnt. Kann, wer
+    1, 2 oder 3 davon. Wer das letzte Streichholz nimmt, gewinnt, wie beim
+    Nim-Spiel. Kann, wer
     anfängt, immer gewinnen? In diesen Aufgaben sucht ein Kind einen Plan, der
     gewinnt, ganz gleich, was das Gegenüber tut, und findet ihn, indem es vom
     Spielende aus rückwärts arbeitet: Es ermittelt, in welchen Stellungen

@@ -6,7 +6,7 @@
 # reference tasks.
 
 title: Ordering
-description: What ordering problems are, how they are solved, where children go wrong, and how to help at home.
+description: What ordering problems (logic puzzles about who is taller or first) are, how they are solved, where kids go wrong, and how to help at home.
 
 # The words every drawing of the page writes its four children in: the
 # initial of each, and the name.
@@ -22,10 +22,10 @@ art:
 
 hero:
   lead: >-
-    Who is taller, who is older, who came first? In these tasks a few
-    comparisons have to be joined into one order: by height, by age, by a
-    place in a queue or in a race. For many children this is the first chain
-    of reasoning, in which every clue is a link and none may be left out.
+    Who is taller, who is older, who came first? In these logic puzzles a few
+    comparisons have to be joined into one order: by height, by age, by a place
+    in a queue or in a race. For many children this is the first chain of
+    reasoning, in which every clue is a link and none may be left out.
   method: Draw a line and put everyone on it
   teaches: To join clues into one picture, and to read a comparison both ways
   # The words of its drawing: the clues and the rule over it, and the line's

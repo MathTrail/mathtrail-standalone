@@ -5,8 +5,8 @@
 # pictures of a technique's steps are laid out by the page, and only their
 # words are here.
 
-title: Técnicas de resolución de problemas
-description: Las técnicas que resuelven muchos problemas de olimpiada matemática a la vez, cada una con un problema, un dibujo y una solución paso a paso, y una pista sobre cuál probar.
+title: Estrategias para resolver problemas de olimpiada
+description: "Estrategias para resolver problemas de olimpiada matemática: el método de Pólya y técnicas que valen para muchos, cada una con un dibujo y un problema resuelto."
 
 hero:
   title: Técnicas para resolver problemas de olimpiada matemática

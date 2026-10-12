@@ -6,7 +6,7 @@
 # reference tasks.
 
 title: Enumeration
-description: What enumeration problems are, how they are solved, where children go wrong, and how to help at home.
+description: What enumeration and counting problems are, how they are solved, where kids go wrong, and how to help at home.
 
 # The words every drawing of the page writes its people in: the three
 # children's letters, and Lea's and Tom's initials.
@@ -20,9 +20,9 @@ art:
 hero:
   lead: >-
     How many numbers can be written with these digits? How many handshakes,
-    outfits or ways to stand in a line? In these tasks every case is listed in
-    an order that makes sure none is lost and none is counted twice. A list
-    kept by a rule is the first tool a child has for questions too big to
+    outfits or ways to stand in a line? In these counting problems every case is
+    listed in an order that makes sure none is lost and none is counted twice. A
+    list kept by a rule is the first tool a child has for questions too big to
     guess.
   method: List the cases by a rule
   teaches: To work in order, and to see when cases can be counted without listing them

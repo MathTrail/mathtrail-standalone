@@ -6,15 +6,15 @@
 # its reference tasks.
 
 title: Gaps and boundaries
-description: What problems about gaps and boundaries are, how they are solved, where children go wrong, and how to help at home.
+description: What problems about gaps and boundaries (the fence post problem) are, how they are solved, where kids go wrong, and how to help at home.
 
 hero:
   lead: >-
     Six trees in a row: how many gaps between them? A log in five pieces: how
-    many cuts? In these tasks a child counts either the things or the gaps
-    between them, and the two numbers differ by one. That one is where most
-    wrong answers come from, and a quick drawing of a small case is what puts
-    it right.
+    many cuts? In these tasks, known as the fence post problem, a child counts
+    either the things or the gaps between them, and the two numbers differ by
+    one. That one is where most wrong answers come from, and a quick drawing of
+    a small case is what puts it right.
   method: Draw a small case and count on it
   teaches: To tell the things from the gaps between them, and to check a rule on a picture
   # The words of its drawing: the fence and the rule over it, and the two
