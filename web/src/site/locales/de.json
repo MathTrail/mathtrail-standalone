@@ -14,6 +14,8 @@
 	"nav.technical": "Technische Seiten",
 	"nav.about": "Team",
 	"share.picture": "Die Startseite von MathTrail: ihr Versprechen neben der Karte einer Aufgabe, wie ein Chat sie zeigt.",
+	"title.page": "{page} – MathTrail",
+	"title.topic": "{topic}: Knobelaufgaben, Klassen {range}",
 	"cite.one": "{first}, {year}",
 	"cite.two": "{first} und {second}, {year}",
 	"cite.many": "{first} u. a., {year}",

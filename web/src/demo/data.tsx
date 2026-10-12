@@ -1,4 +1,5 @@
 import type { Dictionary } from "../i18n/words";
+import { scriptJSON } from "../site/scriptjson";
 import { type Letter, letters } from "../widget/choices";
 import type { AnswerResult, HandedTask } from "../widget/payload";
 
@@ -17,17 +18,14 @@ export type DemoData = {
 
 /**
  * DemoDataScript is the element the home page carries the demo's data in: a
- * script of JSON, which a browser never runs, each "<" in it written as its
- * escape, so that no word of the data can end the element or open a comment.
+ * script of JSON, which a browser never runs.
  */
 export function DemoDataScript({ data }: { data: DemoData }) {
 	return (
 		<script
 			type="application/json"
 			data-demo=""
-			dangerouslySetInnerHTML={{
-				__html: JSON.stringify(data).replaceAll("<", String.raw`\u003c`),
-			}}
+			dangerouslySetInnerHTML={{ __html: scriptJSON(data) }}
 		/>
 	);
 }

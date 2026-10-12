@@ -2,10 +2,14 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
+import { markPictureSide } from "../src/site/brand.ts";
 import {
+	iconSide,
 	icons,
 	keptIconOf,
+	keptSiteIcon,
 	onDarkGround,
+	pageOf,
 	rim,
 	rimColour,
 	tile,
@@ -101,5 +105,35 @@ describe("the directories' icons", () => {
 		);
 
 		expect(new Set(Object.keys(icons).map(keptIconOf))).toEqual(named);
+	});
+});
+
+describe("the site's icon as a picture", () => {
+	test("is kept where the site serves it from", () => {
+		expect(keptSiteIcon).toBe(
+			join(repository, "site", "assets", "favicon.png"),
+		);
+	});
+
+	// A search engine shows a square picture larger than 48 pixels beside a
+	// result; every page states the side the picture has.
+	test("is a square PNG larger than 48 pixels, of the side every page states", async () => {
+		const picture = await readFile(keptSiteIcon);
+
+		expect(picture.subarray(1, 4).toString("ascii")).toBe("PNG");
+		expect([picture.readUInt32BE(16), picture.readUInt32BE(20)]).toEqual([
+			markPictureSide,
+			markPictureSide,
+		]);
+		expect(markPictureSide).toBeGreaterThan(48);
+	});
+
+	test("is drawn from a page that lays the mark out at its side, as the directories' icons are at theirs", () => {
+		expect(pageOf("<svg></svg>", markPictureSide)).toContain(
+			`width: ${markPictureSide}px; height: ${markPictureSide}px;`,
+		);
+		expect(pageOf("<svg></svg>")).toContain(
+			`width: ${iconSide}px; height: ${iconSide}px;`,
+		);
 	});
 });

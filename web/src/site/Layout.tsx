@@ -1,6 +1,13 @@
 import type { ComponentChildren } from "preact";
 import type { Alternate } from "./addresses";
-import { markPath, sharingPictureSize, siteName } from "./brand";
+import {
+	markPath,
+	markPicturePath,
+	markPictureSide,
+	sharingPictureSize,
+	siteName,
+} from "./brand";
+import { type StructuredData, StructuredDataScript } from "./structured";
 
 /**
  * Head is what a page tells a browser, a search engine and a chat about
@@ -9,6 +16,11 @@ import { markPath, sharingPictureSize, siteName } from "./brand";
 export type Head = {
 	readonly lang: string;
 	readonly dir: "ltr" | "rtl";
+	/**
+	 * title is the page's title as a browser's tab, a search result and a shared
+	 * link show it, which may say more than the title the menu and the footer
+	 * show.
+	 */
 	readonly title: string;
 	readonly description: string;
 	readonly canonical: string;
@@ -17,6 +29,12 @@ export type Head = {
 	readonly image: string;
 	/** imageAlt says what the picture shows, for whoever cannot see it. */
 	readonly imageAlt: string;
+	/**
+	 * structuredData is what the page tells a search engine about itself in
+	 * schema.org's words: the site's name on the front page of the bare domain,
+	 * and a topic's path on the topic's page.
+	 */
+	readonly structuredData: readonly StructuredData[];
 };
 
 /**
@@ -69,7 +87,10 @@ export function Layout({
 /**
  * PageHead is what a page's head says about the page: its title and
  * description, its address and its translations, the picture a shared link to
- * it shows, and its icon.
+ * it shows, its icons and its structured data. The icon is named twice: as a
+ * picture of a stated size, for a search engine that takes no SVG, and after it
+ * as the mark itself, which a browser that draws SVG takes instead. The
+ * structured data are scripts of JSON, which a browser never runs.
  */
 export function PageHead({ head }: { head: Head }) {
 	return (
@@ -96,7 +117,16 @@ export function PageHead({ head }: { head: Head }) {
 				content={String(sharingPictureSize.height)}
 			/>
 			<meta name="twitter:card" content="summary_large_image" />
+			<link
+				rel="icon"
+				href={markPicturePath}
+				type="image/png"
+				sizes={`${markPictureSide}x${markPictureSide}`}
+			/>
 			<link rel="icon" href={markPath} type="image/svg+xml" />
+			{head.structuredData.map((data) => (
+				<StructuredDataScript key={data["@type"]} data={data} />
+			))}
 		</>
 	);
 }

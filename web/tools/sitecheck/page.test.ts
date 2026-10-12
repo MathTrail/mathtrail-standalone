@@ -112,6 +112,8 @@ describe("parsePage", () => {
 			description: "The page.",
 			canonical: "https://example.test/en/",
 			refresh: undefined,
+			stated: { title: 1, description: 1, canonical: 1 },
+			structured: [],
 		});
 		expect([...page.alternates]).toEqual([["ru", "https://example.test/ru/"]]);
 		expect(page.references.map((ref) => ref.value)).toEqual([
@@ -149,6 +151,31 @@ describe("parsePage", () => {
 		expect(parsePage("index.html", refreshing(content), "en").refresh).toBe(
 			want,
 		);
+	});
+
+	test("counts each time the page's own head states its title, its description and its address, and keeps its own blocks of structured data", () => {
+		const page = parsePage(
+			"en/index.html",
+			[
+				`<!DOCTYPE html><html lang="en" dir="ltr"><head>`,
+				`<title>Page</title><title>Again</title>`,
+				`<meta name="description" content="One.">`,
+				`<meta name="description" content="Two.">`,
+				`<link rel="canonical" href="https://example.test/en/">`,
+				`<link rel="canonical" href="https://example.test/en/">`,
+				`<script type="application/ld+json">{"a":1}</script>`,
+				`<script type=" Application/LD+JSON ">{"b":2}</script>`,
+				`<script type="application/json">{"c":3}</script>`,
+				`</head><body><svg><title>A map</title></svg><template>`,
+				`<script type="application/ld+json">{"d":4}</script><title>Later</title>`,
+				`</template></body></html>`,
+			].join(""),
+			"en",
+		);
+
+		expect(page.stated).toEqual({ title: 2, description: 2, canonical: 2 });
+		expect(page.title).toBe("Page");
+		expect(page.structured).toEqual(['{"a":1}', '{"b":2}']);
 	});
 
 	test("acts on the first refresh a browser acts on, as a browser does", () => {

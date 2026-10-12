@@ -171,6 +171,13 @@ const words = (rows = 2) =>
 const document = (title: string) =>
 	`---\ntitle: ${title}\ndescription: D\n---\n\n# ${title}\n`;
 
+// knightsNames are the card's names of knights and liars, which its page's
+// title is, by locale.
+const knightsNames: Record<string, string> = {
+	en: "Knights and liars",
+	ru: "Рыцари и лжецы",
+};
+
 // sourcesWith are the site's texts with the page's words given.
 const sourcesWith = (techniques: string) =>
 	new Map(
@@ -181,7 +188,10 @@ const sourcesWith = (techniques: string) =>
 				["privacy.md", document("Privacy")],
 				["terms.md", document("Terms")],
 				["techniques.yaml", techniques],
-				["topics/knights-and-liars.yaml", "title: Knights\ndescription: K\n"],
+				[
+					"topics/knights-and-liars.yaml",
+					`title: ${knightsNames[locale]}\ndescription: K\n`,
+				],
 			]),
 		]),
 	);

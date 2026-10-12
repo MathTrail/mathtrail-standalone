@@ -14,6 +14,8 @@
 	"nav.technical": "技术页面",
 	"nav.about": "关于我们",
 	"share.picture": "MathTrail 首页：网站的承诺，旁边是一张题目卡片，和聊天里显示的一样。",
+	"title.page": "{page}｜MathTrail",
+	"title.topic": "{topic}（{range}年级奥数题）",
 	"cite.one": "{first}，{year}",
 	"cite.two": "{first} 和 {second}，{year}",
 	"cite.many": "{first} 等，{year}",

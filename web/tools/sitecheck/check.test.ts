@@ -4,7 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import { check, type Finding, lineOf, type Options } from "./check.ts";
-import { base, pageAt, redirectAt, siteAt, writeSite } from "./testing/site.ts";
+import {
+	base,
+	descriptionAt,
+	pageAt,
+	redirectAt,
+	siteAt,
+	titleAt,
+	writeSite,
+} from "./testing/site.ts";
 
 const addresses = ["/", "/en/", "/ru/"];
 
@@ -78,6 +86,40 @@ afterEach(async () => {
 	);
 });
 
+// withData is page with a block of structured data in its head, written as
+// json.
+function withData(page: string, json: string): string {
+	return page.replace(
+		"</head>",
+		`<script type="application/ld+json">${json}</script></head>`,
+	);
+}
+
+// siteName is the site's name in schema.org's words, said for url.
+function siteName(url = `${base}/`): string {
+	return JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "WebSite",
+		name: "MathTrail",
+		url,
+	});
+}
+
+// pathOf is a path in schema.org's words, its steps given by their position,
+// words and address, each "<" written as its escape, as the site writes it.
+function pathOf(steps: [number, string, string][]): string {
+	return JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		itemListElement: steps.map(([position, name, item]) => ({
+			"@type": "ListItem",
+			position,
+			name,
+			item,
+		})),
+	}).replaceAll("<", String.raw`\u003c`);
+}
+
 describe("check", () => {
 	test("passes a site with nothing wrong", async () => {
 		expect(await check(await site(), options())).toEqual([]);
@@ -108,6 +150,48 @@ describe("check", () => {
 			files["index.html"] = pageAt("/", addresses).replace(
 				"</body>",
 				"<p>½ of 10² is 50.</p></body>",
+			);
+		});
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
+	test("passes two languages that share a title and a description", async () => {
+		const dir = await site((files) => {
+			files["ru/index.html"] = pageAt("/ru/", addresses)
+				.replace(titleAt("/ru/"), titleAt("/"))
+				.replace(descriptionAt("/ru/"), descriptionAt("/"));
+		});
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
+	test("passes the structured data the site writes: its name on the bare domain, and a path through an anchor written with an escape", async () => {
+		const dir = await site((files) => {
+			files["index.html"] = withData(pageAt("/", addresses), siteName());
+			files["ru/index.html"] = withData(
+				pageAt("/ru/", addresses),
+				pathOf([
+					[1, "Home <", `${base}/`],
+					[2, "Lesson", `${base}/ru/#lesson`],
+					[3, "Russian", `${base}/ru/`],
+				]),
+			);
+		});
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
+	test("reads no structured data from a template, from plain JSON or from a script elsewhere, and no title from a drawing or a template", async () => {
+		const dir = await site((files) => {
+			files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+				"</body>",
+				[
+					'<template><script type="application/ld+json">{</script><title>Copy</title></template>',
+					'<script type="application/json">{</script>',
+					"<svg><title>A map</title></svg>",
+					"</body>",
+				].join(""),
 			);
 		});
 
@@ -190,7 +274,7 @@ describe("check", () => {
 			name: "a page with no description",
 			change: (files) => {
 				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
-					`<meta name="description" content="Description">`,
+					`<meta name="description" content="${descriptionAt("/ru/")}">`,
 					"",
 				);
 			},
@@ -201,7 +285,7 @@ describe("check", () => {
 			name: "a page whose only title is a drawing's",
 			change: (files) => {
 				files["ru/index.html"] = pageAt("/ru/", addresses)
-					.replace("<title>Title</title>", "")
+					.replace(`<title>${titleAt("/ru/")}</title>`, "")
 					.replace("</body>", "<svg><title>A map</title></svg></body>");
 			},
 			rule: "head",
@@ -477,6 +561,222 @@ describe("check", () => {
 			}),
 			rule: "published",
 			contains: `no element with the id "connect"`,
+		},
+		{
+			name: "a head that states its title twice",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					"</head>",
+					"<title>Another</title></head>",
+				);
+			},
+			rule: "head",
+			contains: "states a title 2 times",
+		},
+		{
+			name: "a head that states its description twice",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					"</head>",
+					`<meta name="description" content="Another"></head>`,
+				);
+			},
+			rule: "head",
+			contains: "states a description 2 times",
+		},
+		{
+			name: "a head that states its address twice",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					"</head>",
+					`<link rel="canonical" href="${base}/ru/"></head>`,
+				);
+			},
+			rule: "head",
+			contains: "states a canonical address 2 times",
+		},
+		{
+			name: "two pages of a language under one title",
+			change: (files) => {
+				files["en/why/index.html"] = pageAt("/en/why/", [
+					...addresses,
+					"/en/why/",
+				]).replace(titleAt("/en/why/"), titleAt("/"));
+			},
+			adjust: (given) => ({
+				...given,
+				published: [...given.published, "/en/why/"],
+			}),
+			rule: "duplicate",
+			contains:
+				"index.html: duplicate: its title is also the title of en/why/index.html",
+		},
+		{
+			name: "two pages of a language under one description",
+			change: (files) => {
+				files["en/why/index.html"] = pageAt("/en/why/", [
+					...addresses,
+					"/en/why/",
+				]).replace(descriptionAt("/en/why/"), descriptionAt("/"));
+			},
+			adjust: (given) => ({
+				...given,
+				published: [...given.published, "/en/why/"],
+			}),
+			rule: "duplicate",
+			contains:
+				"en/why/index.html: duplicate: its description is also the description of index.html",
+		},
+		{
+			name: "a former address that waits before sending its reader on, under the front page's title",
+			change: (files) => {
+				files["en/index.html"] = redirectAt("/").replace(
+					'content="0;',
+					'content="5;',
+				);
+			},
+			rule: "duplicate",
+			contains: "its title is also the title of en/index.html",
+		},
+		{
+			name: "structured data that is no JSON",
+			change: (files) => {
+				files["index.html"] = withData(pageAt("/", addresses), "{");
+			},
+			rule: "structured",
+			contains: "is no JSON",
+		},
+		{
+			name: "structured data that is no object",
+			change: (files) => {
+				files["index.html"] = withData(pageAt("/", addresses), "[]");
+			},
+			rule: "structured",
+			contains: "is no object",
+		},
+		{
+			name: "structured data in other words",
+			change: (files) => {
+				files["index.html"] = withData(
+					pageAt("/", addresses),
+					siteName().replace("https://schema.org", "http://schema.org"),
+				);
+			},
+			rule: "structured",
+			contains: 'speaks "http://schema.org"',
+		},
+		{
+			name: "structured data of a type the site does not write",
+			change: (files) => {
+				files["index.html"] = withData(
+					pageAt("/", addresses),
+					siteName().replace('"WebSite"', '"Organization"'),
+				);
+			},
+			rule: "structured",
+			contains: 'of the type "Organization"',
+		},
+		{
+			name: "the site's name said away from the bare domain",
+			change: (files) => {
+				files["ru/index.html"] = withData(
+					pageAt("/ru/", addresses),
+					siteName(),
+				);
+			},
+			rule: "structured",
+			contains: "said away from the front page of the bare domain",
+		},
+		{
+			name: "the site's name said for another address",
+			change: (files) => {
+				files["index.html"] = withData(
+					pageAt("/", addresses),
+					siteName(`${base}/en/`),
+				);
+			},
+			rule: "structured",
+			contains: `said for "${base}/en/"`,
+		},
+		{
+			name: "the site's name said with no name",
+			change: (files) => {
+				files["index.html"] = withData(
+					pageAt("/", addresses),
+					siteName().replace('"MathTrail"', '" "'),
+				);
+			},
+			rule: "structured",
+			contains: "said with no name",
+		},
+		{
+			name: "a path with no steps",
+			change: (files) => {
+				files["ru/index.html"] = withData(
+					pageAt("/ru/", addresses),
+					pathOf([]),
+				);
+			},
+			rule: "structured",
+			contains: "a path with no steps",
+		},
+		{
+			name: "a path whose step is no ListItem",
+			change: (files) => {
+				files["ru/index.html"] = withData(
+					pageAt("/ru/", addresses),
+					pathOf([[1, "Home", `${base}/`]]).replace('"ListItem"', '"Thing"'),
+				);
+			},
+			rule: "structured",
+			contains: "step 1 of the path is no ListItem",
+		},
+		{
+			name: "a path out of order",
+			change: (files) => {
+				files["ru/index.html"] = withData(
+					pageAt("/ru/", addresses),
+					pathOf([
+						[1, "Home", `${base}/`],
+						[3, "Russian", `${base}/ru/`],
+					]),
+				);
+			},
+			rule: "structured",
+			contains: "step 2 of the path stands at position 3",
+		},
+		{
+			name: "a path with a step of no words",
+			change: (files) => {
+				files["ru/index.html"] = withData(
+					pageAt("/ru/", addresses),
+					pathOf([[1, " ", `${base}/`]]),
+				);
+			},
+			rule: "structured",
+			contains: "step 1 of the path has no words",
+		},
+		{
+			name: "a path that leads off the site",
+			change: (files) => {
+				files["ru/index.html"] = withData(
+					pageAt("/ru/", addresses),
+					pathOf([[1, "Elsewhere", "https://other.example/"]]),
+				);
+			},
+			rule: "structured",
+			contains: 'leads to "https://other.example/", which is not on',
+		},
+		{
+			name: "a path to a page the site does not have",
+			change: (files) => {
+				files["ru/index.html"] = withData(
+					pageAt("/ru/", addresses),
+					pathOf([[1, "Gone", `${base}/en/gone/#part`]]),
+				);
+			},
+			rule: "structured",
+			contains: `leads to "${base}/en/gone/#part", a page the site does not have`,
 		},
 	];
 
@@ -767,8 +1067,11 @@ describe("check", () => {
 	test("reports in the order of file, rule and message", async () => {
 		const dir = await site((files) => {
 			files["ru/index.html"] = pageAt("/ru/", addresses)
-				.replace(`<meta name="description" content="Description">`, "")
-				.replace("<title>Title</title>", "");
+				.replace(
+					`<meta name="description" content="${descriptionAt("/ru/")}">`,
+					"",
+				)
+				.replace(`<title>${titleAt("/ru/")}</title>`, "");
 			files["index.html"] = pageAt("/", addresses).replace(
 				"</body>",
 				`<a href="/en/gone/">Gone</a></body>`,

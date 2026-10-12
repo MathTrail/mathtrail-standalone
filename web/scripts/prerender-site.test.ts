@@ -29,7 +29,7 @@ import {
 	photos,
 } from "../src/site/brand.ts";
 import { frontPage } from "../src/site/content.ts";
-import { siteDictionaries } from "../src/site/words.ts";
+import { gradesRange, siteDictionaries } from "../src/site/words.ts";
 import { dictionaries as widgetDictionaries } from "../src/widget/dictionaries.ts";
 import {
 	historyDirectory as checkedHistoryDirectory,
@@ -267,6 +267,29 @@ function imagesIn(html: string): Image[] {
 	return images;
 }
 
+// structuredBlock matches a block of structured data, whose JSON writes every
+// "<" as its escape, so that nothing in it can end the element.
+const structuredBlock =
+	/<script type="application\/ld\+json">([^<]*)<\/script>/g;
+
+// structuredIn are the blocks of structured data a page carries, read.
+function structuredIn(html: string): Record<string, unknown>[] {
+	return [...html.matchAll(structuredBlock)].map(([, json]) =>
+		JSON.parse(json ?? ""),
+	);
+}
+
+// unescaped is text as a browser reads it from HTML that writes the marks of
+// markup by their names.
+function unescaped(text: string): string {
+	return text
+		.replaceAll("&lt;", "<")
+		.replaceAll("&gt;", ">")
+		.replaceAll("&quot;", '"')
+		.replaceAll("&#39;", "'")
+		.replaceAll("&amp;", "&");
+}
+
 // textIn is all the text below node.
 function textIn(node: DefaultTreeAdapterTypes.Node): string {
 	if (node.nodeName === "#text" && "value" in node) {
@@ -348,7 +371,7 @@ describe("the site built from this repository", { timeout: 60_000 }, () => {
 		await rm(out, { recursive: true, force: true });
 	});
 
-	test("is its pages, its stylesheets, its scripts, its font, its mark, its sharing pictures, the family's photographs, the pictures of the history, the coach's prototype with a screen of it and the host's files, and nothing older", async () => {
+	test("is its pages, its stylesheets, its scripts, its font, its mark and its picture, its sharing pictures, the family's photographs, the pictures of the history, the coach's prototype with a screen of it and the host's files, and nothing older", async () => {
 		const history = data.why.history
 			.flat()
 			.map(({ name }) => historyPicturePath(name).slice(1));
@@ -363,6 +386,7 @@ describe("the site built from this repository", { timeout: 60_000 }, () => {
 					"assets/coach-prototype.html",
 					"assets/coach-screen.png",
 					"assets/demo.js",
+					"assets/favicon.png",
 					"assets/favicon.svg",
 					"assets/noto-license.txt",
 					"assets/onest-cyrillic-wght-normal.woff2",
@@ -388,13 +412,15 @@ describe("the site built from this repository", { timeout: 60_000 }, () => {
 		);
 	});
 
-	test("ships the design's tokens and the mark as the very files they are", async () => {
+	test("ships the design's tokens, the mark and its picture as the very files they are", async () => {
 		expect(await readFile(join(out, "assets", "tokens.css"))).toEqual(
 			await readFile(join(repository, "internal", "widget", "tokens.css")),
 		);
-		expect(await readFile(join(out, "assets", "favicon.svg"))).toEqual(
-			await readFile(join(repository, "site", "assets", "favicon.svg")),
-		);
+		for (const name of ["favicon.svg", "favicon.png"]) {
+			expect(await readFile(join(out, "assets", name)), name).toEqual(
+				await readFile(join(repository, "site", "assets", name)),
+			);
+		}
 	});
 
 	test("ships the font's subsets as its package has them, and its licence beside them", async () => {
@@ -563,13 +589,103 @@ describe("the site built from this repository", { timeout: 60_000 }, () => {
 				"/assets/style.css",
 				...(carded.includes(page) || pictured ? ["/assets/card.css"] : []),
 			]);
-			expect(html.includes("<script")).toBe(scripted.has(page));
+			// A block of structured data is JSON a browser never runs.
+			const running = html.replaceAll(structuredBlock, "");
+			expect(running.includes("<script")).toBe(scripted.has(page));
 			expect(
 				[...html.matchAll(/<script type="module" src="([^"]+)"/g)].map(
 					([, src]) => src,
 				),
 			).toEqual(scripted.has(page) ? [scripted.get(page)] : []);
 			expect(html.includes('class="mt mt-widget')).toBe(carded.includes(page));
+		}
+	});
+
+	test("tells a search engine the site's name on the bare domain alone, and every topic's path on the topic's page", async () => {
+		const pages = await localePages(out);
+		for (const page of pages) {
+			const html = await readFile(join(out, page), "utf8");
+			const said = structuredIn(html);
+			const topic = /\/topics\/[^/]+\/index\.html$/.test(page);
+
+			if (page === "index.html") {
+				expect(said).toEqual([
+					{
+						"@context": "https://schema.org",
+						"@type": "WebSite",
+						name: "MathTrail",
+						url: "https://mathtrail.app/",
+					},
+				]);
+			} else if (topic) {
+				const shown = [
+					...(
+						html.match(/<nav class="s-path"[^>]*><ol>(.*?)<\/ol>/s)?.[1] ?? ""
+					).matchAll(/<li[^>]*>(.*?)<\/li>/gs),
+				].map(([, step]) => unescaped((step ?? "").replace(/<[^>]+>/g, "")));
+				const steps = (said[0]?.itemListElement ?? []) as {
+					position: number;
+					name: string;
+					item: string;
+				}[];
+				const canonical = html.match(
+					/<link rel="canonical" href="([^"]+)"/,
+				)?.[1];
+
+				expect(
+					said.map((data) => data["@type"]),
+					page,
+				).toEqual(["BreadcrumbList"]);
+				expect(
+					steps.map(({ position }) => position),
+					page,
+				).toEqual([1, 2, 3]);
+				expect(
+					steps.map(({ name }) => name),
+					page,
+				).toEqual(shown);
+				expect(steps.at(-1)?.item, page).toBe(canonical);
+			} else {
+				expect(said, page).toEqual([]);
+			}
+		}
+	});
+
+	test("titles a topic's page by the topic's name as the card says it and the topic's grades, and every other page with the site's name, and a shared link the same", async () => {
+		for (const locale of languages) {
+			for (const topic of catalog.filter((each) => each.site_page)) {
+				const html = await readFile(
+					join(out, pageFile(locale, `topics/${topic.slug}`)),
+					"utf8",
+				);
+				const title = unescaped(html.match(/<title>(.*?)<\/title>/)?.[1] ?? "");
+				const spans = topic.grade_levels.flatMap((span) =>
+					span.split("-").map(Number),
+				);
+				const range = gradesRange(locale, [
+					Math.min(...spans),
+					Math.max(...spans),
+				]);
+
+				expect(title, `${locale} ${topic.slug}`).toContain(
+					cardWordsIn(locale)[`topic.${topic.id}`],
+				);
+				expect(title, `${locale} ${topic.slug}`).toContain(range);
+			}
+		}
+		for (const page of await localePages(out)) {
+			const html = await readFile(join(out, page), "utf8");
+			const title = unescaped(html.match(/<title>(.*?)<\/title>/)?.[1] ?? "");
+
+			expect(
+				unescaped(
+					html.match(/<meta property="og:title" content="([^"]*)"/)?.[1] ?? "",
+				),
+				page,
+			).toBe(title);
+			if (!/\/topics\/[^/]+\/index\.html$/.test(page)) {
+				expect(title, page).toContain("MathTrail");
+			}
 		}
 	});
 

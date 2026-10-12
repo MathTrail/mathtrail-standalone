@@ -13,11 +13,25 @@ export const base = "https://example.test";
  */
 export const formerFront = "/en/";
 
+/** titleAt is the title of the page at address, which no other page has. */
+export function titleAt(address: string): string {
+	return `Title of ${address}`;
+}
+
+/**
+ * descriptionAt is the description of the page at address, which no other
+ * page has.
+ */
+export function descriptionAt(address: string): string {
+	return `Description of ${address}`;
+}
+
 /**
  * pageAt is a page at address, among a site whose pages are at addresses, that
- * breaks no rule: it names its language, its direction, its title, its
- * description, its own address, every translation the site has of it and the
- * English one for a reader with none, and holds an element with each of ids.
+ * breaks no rule: it names its language, its direction, its title and its
+ * description, both its own, its own address, every translation the site has
+ * of it and the English one for a reader with none, and holds an element with
+ * each of ids.
  */
 export function pageAt(
 	address: string,
@@ -31,7 +45,8 @@ export function pageAt(
 	alternates.push(`x-default ${name === "" ? "/" : `/en/${name}/`}`);
 	return [
 		`<!DOCTYPE html><html lang="${localeOf(address)}" dir="ltr"><head>`,
-		`<title>Title</title><meta name="description" content="Description">`,
+		`<title>${titleAt(address)}</title>`,
+		`<meta name="description" content="${descriptionAt(address)}">`,
 		`<link rel="canonical" href="${base}${address}">`,
 		...alternates.map((alternate) => {
 			const [hreflang, href] = alternate.split(" ");
@@ -46,15 +61,16 @@ export function pageAt(
 
 /**
  * redirectAt is a page that breaks no rule and sends its reader on at once to
- * the page at to: it names its language, its direction, its title and its
- * description, and the page it sends them to as its own address, and loads
- * nothing.
+ * the page at to: it names its language and its direction, the title and the
+ * description of the page it sends them to, and that page's address as its
+ * own, and loads nothing.
  */
 export function redirectAt(to: string): string {
 	return [
 		`<!DOCTYPE html><html lang="en" dir="ltr"><head>`,
 		`<meta http-equiv="refresh" content="0; url=${to}">`,
-		`<title>Title</title><meta name="description" content="Description">`,
+		`<title>${titleAt(to)}</title>`,
+		`<meta name="description" content="${descriptionAt(to)}">`,
 		`<link rel="canonical" href="${base}${to}">`,
 		`</head><body><a href="${to}">Title</a></body></html>`,
 	].join("");

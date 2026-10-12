@@ -1,18 +1,24 @@
-// The icons a listing in the chats' directories shows: the site's logo,
-// square, as a picture of a side the directories all take, with its corners
-// left clear — once as it is, for a light page, and once with a rim around its
-// tile, for a dark one. Each is drawn by Chromium from the logo the site and
-// the card draw, so that a listing shows the very same mark.
+// The pictures of the logo: the icons a listing in the chats' directories
+// shows, square, of a side the directories all take, with its corners left
+// clear — once as it is, for a light page, and once with a rim around its
+// tile, for a dark one — and the site's icon as a picture, for a search
+// engine that takes no SVG. Each is drawn by Chromium from the logo the site
+// and the card draw, so that every one shows the very same mark.
 //
 //	node scripts/icons.ts
 //
 // It runs where the browsers are, inside the image of the pinned Playwright
-// release, and writes over the icons in plugin/assets/, to be looked at
-// before they are kept.
+// release, and writes over the icons in plugin/assets/ and the site's in
+// site/assets/, to be looked at before they are kept.
 
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
+import {
+	markPath,
+	markPicturePath,
+	markPictureSide,
+} from "../src/site/brand.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
 
@@ -69,20 +75,26 @@ export function keptIconOf(name: string): string {
 }
 
 /**
- * pageOf is a page that shows the mark alone, filling a square of the icon's
- * side, on no ground at all, so that the corners the tile rounds off stay
- * clear in the picture.
+ * keptSiteIcon is where the site's icon as a picture is kept, in the site's
+ * own assets under the name it is served by.
  */
-export function pageOf(mark: string): string {
+export const keptSiteIcon = join(repository, "site", markPicturePath.slice(1));
+
+/**
+ * pageOf is a page that shows the mark alone, filling a square of side pixels,
+ * on no ground at all, so that the corners the tile rounds off stay clear in
+ * the picture.
+ */
+export function pageOf(mark: string, side: number = iconSide): string {
 	return `<!doctype html><html><head><style>
 html, body { margin: 0; background: transparent; }
-svg { display: block; width: ${iconSide}px; height: ${iconSide}px; }
+svg { display: block; width: ${side}px; height: ${side}px; }
 </style></head><body>${mark}</body></html>`;
 }
 
 async function main(): Promise<void> {
 	const mark = await readFile(
-		join(repository, "site", "assets", "favicon.svg"),
+		join(repository, "site", markPath.slice(1)),
 		"utf8",
 	);
 	const browser = await chromium.launch();
@@ -95,6 +107,13 @@ async function main(): Promise<void> {
 			await page.screenshot({ path: keptIconOf(name), omitBackground: true });
 			console.log(`icons: plugin/assets/${name}`);
 		}
+		await page.setViewportSize({
+			width: markPictureSide,
+			height: markPictureSide,
+		});
+		await page.setContent(pageOf(mark, markPictureSide));
+		await page.screenshot({ path: keptSiteIcon, omitBackground: true });
+		console.log(`icons: site${markPicturePath}`);
 	} finally {
 		await browser.close();
 	}

@@ -1,11 +1,12 @@
-import { address } from "./addresses";
 import type { Topic } from "./topics";
 import { gradesText, useSiteWords } from "./words";
 
 /**
- * TopicFoot is the foot of a topic's card wherever the site shows one: the
- * topic's grades, and a link to its page once the page is published, or word
- * that the page is coming.
+ * TopicFoot is the foot of a topic's card on the page of the topics: the
+ * topic's grades, and the sign that the card leads to the topic's page once
+ * the page is published, or word that the page is coming. The sign is no link
+ * of its own, and a reader of links skips it: the card's link is the topic's
+ * name, whose box covers the card.
  */
 export function TopicFoot({ topic }: { topic: Topic }) {
 	const words = useSiteWords();
@@ -13,9 +14,9 @@ export function TopicFoot({ topic }: { topic: Topic }) {
 		<p class="s-topic-foot">
 			<span>{gradesText(words, topic.grades)}</span>
 			{topic.sitePage ? (
-				<a href={address(words.locale, `topics/${topic.slug}`)}>
+				<span class="s-topic-more" aria-hidden="true">
 					{words.text("topics.more")}
-				</a>
+				</span>
 			) : (
 				<span class="s-soon">{words.text("topics.soon")}</span>
 			)}

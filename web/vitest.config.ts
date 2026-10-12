@@ -21,8 +21,9 @@ export default defineConfig({
 			// pictures of the README and the driving of the preview they share
 			// run in real browsers against the preview, and nowhere else, as the
 			// measure of the width the site's menu folds at runs against the
-			// built site, the directories' icons are drawn from the logo and the
-			// pictures of Claude's directory are taken from the preview.
+			// built site, the directories' icons and the site's picture of its
+			// logo are drawn from the logo and the pictures of Claude's directory
+			// are taken from the preview.
 			include: ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tools/**/*.ts"],
 			exclude: [
 				"**/*.test.{ts,tsx}",

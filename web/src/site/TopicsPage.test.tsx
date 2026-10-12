@@ -124,7 +124,7 @@ const sources = new Map(
 			["privacy.md", document("Privacy")],
 			["terms.md", document("Terms")],
 			["topics.yaml", words],
-			["topics/beta.yaml", "title: Beta\ndescription: B\n"],
+			["topics/beta.yaml", "title: logic.beta\ndescription: B\n"],
 		]),
 	]),
 );
@@ -191,12 +191,21 @@ describe("the page of the topics", () => {
 		]);
 	});
 
-	test("links a topic to its page when, and only when, the page is published", () => {
-		const linked = [...topics.querySelectorAll(".s-topic")].map((card) =>
-			card.querySelector(".s-topic-foot a")?.getAttribute("href"),
-		);
+	test("links a topic to its page by its name, the card's one link, when, and only when, the page is published", () => {
+		const cards = [...topics.querySelectorAll(".s-topic")];
 
-		expect(linked).toEqual([undefined, "/en/topics/beta/", undefined]);
+		expect(
+			cards.map((card) => card.querySelector("h3 a")?.getAttribute("href")),
+		).toEqual([undefined, "/en/topics/beta/", undefined]);
+		expect(cards.map((card) => card.querySelectorAll("a").length)).toEqual([
+			0, 1, 0,
+		]);
+		expect(
+			[...topics.querySelectorAll(".s-topic-more")].map((more) => [
+				more.textContent,
+				more.getAttribute("aria-hidden"),
+			]),
+		).toEqual([["More →", "true"]]);
 		expect(
 			[...topics.querySelectorAll(".s-soon")].map((soon) => soon.textContent),
 		).toEqual(["Soon", "Soon"]);

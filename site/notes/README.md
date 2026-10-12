@@ -21,12 +21,13 @@ The site is written in English, the source, and in Russian, written beside it; e
 - **"Coach"** frames the coach's prototype, which speaks English alone and is never translated; the page around it is translated.
 - **Not translated:** MathTrail, Claude, ChatGPT, Google, GitHub, Starlark, MCP, OAuth, Elo, the names of plans (Free, Plus, Pro, Max, Business, Enterprise, Education), addresses and code. Google Drive is named as Google's own help names it in the language, «Google Диск» in Russian.
 - **Short where the room is short.** The menu's entries, `nav.*` in the site's dictionary, share one row with the mark and the tools, so each is as short as the language allows.
+- **The head's title.** `title.page` and `title.topic` in the site's dictionary are the patterns a page's head titles it by, the words a search result and a shared link show. In `title.page` the slot `{page}` is the page's own title, and the site's name follows it with the mark sites of the language set between the two: a dash, a bar, or a full-width bar where the language writes full-width marks. In `title.topic` the slot `{topic}` is a topic's name as the card says it, `{range}` its grades as `topics.grades` writes them, and the kind of problem stands with them in the words the language's notes give under "Search words". A title fits in 60 units, so the kind of problem is said short, and MathTrail is written as it is.
 
 ## Adding a language
 
 In the order the Spanish pilot proved:
 
-1. The site's dictionary, `web/src/site/locales/<locale>.json`: the keys of `en.json` in its order, indented with tabs, each plural text in the categories CLDR gives the language. `group.*` is what the card's dictionary calls the groups, `thumb.*` the letters the topic's page draws for a knight and a liar, `sign.divide` the sign the drawings divide by: the colon the English pages write, or ÷ where the language reads a colon as a ratio, as Japanese and Chinese do, and `sign.question` the question mark a drawing writes where it asks, «؟» in Arabic.
+1. The site's dictionary, `web/src/site/locales/<locale>.json`: the keys of `en.json` in its order, indented with tabs, each plural text in the categories CLDR gives the language; `title.page` and `title.topic` from the language's search words, which come first, under "Search words" in its notes. `group.*` is what the card's dictionary calls the groups, `thumb.*` the letters the topic's page draws for a knight and a liar, `sign.divide` the sign the drawings divide by: the colon the English pages write, or ÷ where the language reads a colon as a ratio, as Japanese and Chinese do, and `sign.question` the question mark a drawing writes where it asks, «؟» in Arabic.
 2. The fold of the menu, `just site-fold`, while the pages are still copies of the English ones: when the menu needs more room than in every language before, shorter entries come first, and only then does the width at which the menu folds move, in `web/src/site/style.css`.
 3. The language's glossary, `<locale>.md` here, and then the pages and the documents, every text of the English, with the Russian beside it.
 4. The picture a shared link shows, `just site-og --language <locale>`, looked at before it is kept.
@@ -40,7 +41,7 @@ A language lands whole, in one change: the build refuses a dictionary with no te
 ## What holds a translation
 
 - **The build** (`npm run build:site`): the keys, their order, the slots, the emphasis and the plural forms; an example's answer and the numbers its solver proves; a document's outline and its emphasis, the English one's.
-- **The site's checker** (`just ci-site`): every page there in every language, its links, its weight, and no digit but 0–9.
+- **The site's checker** (`just ci-site`): every page there in every language, its links, its weight, no digit but 0–9, and no two pages of a language under one title or one description.
 - **A reader**, for everything else: the meaning, the numbers of the questions and the steps, the tone. A number that a text writes and the English text does not, or the other way round, is worth a look.
 
 ## Search words

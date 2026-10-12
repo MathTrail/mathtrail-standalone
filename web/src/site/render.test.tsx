@@ -146,7 +146,9 @@ const components = new Map<string, Drawn>([
 ]);
 
 // The site's words in the test's two languages and in no other, whichever
-// languages the site is written in, with the three the test's menus need.
+// languages the site is written in, with the three the test's menus need and
+// patterns of a page's title of the test's own, so that a title shows how it
+// was built rather than how the site words it today.
 const dictionaries: ReadonlyMap<string, Dictionary> = new Map([
 	[
 		"en",
@@ -155,6 +157,8 @@ const dictionaries: ReadonlyMap<string, Dictionary> = new Map([
 			"nav.guide": "Guide",
 			"nav.connect": "Connect",
 			"nav.sample": "Sample",
+			"title.page": "{page} · Test",
+			"title.topic": "{topic}, grades {range}",
 		},
 	],
 	[
@@ -164,6 +168,8 @@ const dictionaries: ReadonlyMap<string, Dictionary> = new Map([
 			"nav.guide": "Гид",
 			"nav.connect": "Подключить",
 			"nav.sample": "Пример",
+			"title.page": "{page} · Тест",
+			"title.topic": "{topic}, {range} класс",
 		},
 	],
 ]);
@@ -292,17 +298,44 @@ describe("every page", () => {
 				"/assets/tokens.css",
 				"/assets/style.css",
 			]);
-			expect(attributes(doc, 'link[rel="icon"]', "href")).toEqual([
-				"/assets/favicon.svg",
+			expect(
+				[...doc.querySelectorAll('link[rel="icon"]')].map((icon) => [
+					icon.getAttribute("href"),
+					icon.getAttribute("type"),
+					icon.getAttribute("sizes"),
+				]),
+			).toEqual([
+				["/assets/favicon.png", "image/png", "192x192"],
+				["/assets/favicon.svg", "image/svg+xml", null],
 			]);
 		},
 	);
 
-	test.each(pages)("%s runs no script", (path) => {
-		const file = files.find((candidate) => candidate.path === path);
+	test.each(pages)(
+		"%s runs no script, and carries none but its structured data",
+		(path) => {
+			const scripts = [...page(files, path).querySelectorAll("script")];
 
-		expect(file?.data).not.toContain("<script");
-	});
+			expect(
+				scripts.filter(
+					(script) =>
+						script.getAttribute("type") !== "application/ld+json" ||
+						script.hasAttribute("src"),
+				),
+			).toEqual([]);
+		},
+	);
+
+	test.each(pages)(
+		"%s tells a shared link the title its head gives",
+		(path) => {
+			const doc = page(files, path);
+
+			expect(attributes(doc, 'meta[property="og:title"]', "content")).toEqual([
+				doc.title,
+			]);
+		},
+	);
 
 	test.each(pages)("%s loads nothing from another origin by itself", (path) => {
 		const doc = page(files, path);
@@ -321,7 +354,7 @@ describe("a locale's document", () => {
 	test("says what it is, in its language, at its own address", () => {
 		expect(privacy.documentElement.lang).toBe("ru");
 		expect(privacy.documentElement.dir).toBe("ltr");
-		expect(privacy.title).toBe("Политика приватности");
+		expect(privacy.title).toBe("Политика приватности · Тест");
 		expect(attributes(privacy, 'meta[name="description"]', "content")).toEqual([
 			"Что хранится.",
 		]);
@@ -433,7 +466,7 @@ describe("a page a component draws", () => {
 
 	test("says what it is from its words, at its own address", () => {
 		expect(guide.documentElement.lang).toBe("ru");
-		expect(guide.title).toBe("Гид");
+		expect(guide.title).toBe("Гид · Тест");
 		expect(attributes(guide, 'meta[name="description"]', "content")).toEqual([
 			"Как помочь дома.",
 		]);
@@ -507,7 +540,7 @@ describe("a topic's page", () => {
 				...files,
 				[
 					"topics/sample.yaml",
-					"title: Sample\ndescription: A topic.\ndrawing: x\n",
+					"title: logic.sample\ndescription: A topic.\ndrawing: x\n",
 				],
 			]),
 		]),
@@ -527,6 +560,70 @@ describe("a topic's page", () => {
 		).toContain("ru/topics/sample/index.html");
 	});
 
+	test("is titled by the topic's name, the kind of problem and the topic's grades, in its language's pattern", () => {
+		const built = renderSite({
+			...drawn,
+			sources: withTopicPage,
+			data: dataOf(true),
+		});
+
+		expect(page(built, "ru/topics/sample/index.html").title).toBe(
+			"logic.sample, 3–4 класс",
+		);
+		expect(page(built, "en/topics/sample/index.html").title).toBe(
+			"logic.sample, grades 3–4",
+		);
+	});
+
+	test("tells a search engine its path, through the topic's group, each word as the site writes it", () => {
+		const group = "Логика </script><!-- и всё";
+		const built = renderSite({
+			...drawn,
+			sources: withTopicPage,
+			data: dataOf(true),
+			dictionaries: new Map([
+				...dictionaries,
+				["ru", { ...dictionaries.get("ru"), "group.logic": group }],
+			]),
+		});
+		const html =
+			built.find(({ path }) => path === "ru/topics/sample/index.html")?.data ??
+			"";
+		const blocks = [
+			...page(built, "ru/topics/sample/index.html").querySelectorAll(
+				'script[type="application/ld+json"]',
+			),
+		].map((block) => JSON.parse(block.textContent ?? ""));
+
+		expect(html).not.toContain(group);
+		expect(blocks).toEqual([
+			{
+				"@context": "https://schema.org",
+				"@type": "BreadcrumbList",
+				itemListElement: [
+					{
+						"@type": "ListItem",
+						position: 1,
+						name: dictionaries.get("ru")?.["nav.topics"],
+						item: "https://example.test/ru/topics/",
+					},
+					{
+						"@type": "ListItem",
+						position: 2,
+						name: group,
+						item: "https://example.test/ru/topics/#logic",
+					},
+					{
+						"@type": "ListItem",
+						position: 3,
+						name: "logic.sample",
+						item: "https://example.test/ru/topics/sample/",
+					},
+				],
+			},
+		]);
+	});
+
 	test.each([
 		[
 			"the catalog says it is published and the site does not have it",
@@ -537,6 +634,25 @@ describe("a topic's page", () => {
 			"the site has it and the catalog does not say it is published",
 			{ sources: withTopicPage, data: dataOf(false) },
 			"the site has the page topics/sample, and no topic of the catalog has its page published there",
+		],
+		[
+			"its title is not the card's name of the topic",
+			{
+				sources: new Map(
+					[...withTopicPage].map(([locale, texts]) => [
+						locale,
+						new Map([
+							...texts,
+							[
+								"topics/sample.yaml",
+								"title: Sample\ndescription: A topic.\ndrawing: x\n",
+							],
+						]),
+					]),
+				),
+				data: dataOf(true),
+			},
+			'en/topics/sample: its title "Sample" is not the card\'s name of the topic, "logic.sample"',
 		],
 	])("is refused when %s", (_, change, want) => {
 		expect(() => renderSite({ ...drawn, ...change })).toThrow(want);
@@ -688,6 +804,27 @@ describe("the bare domain", () => {
 		]);
 	});
 
+	test("tells a search engine the site's name, which no other page says", () => {
+		const said = (path: string) =>
+			[
+				...page(files, path).querySelectorAll(
+					'script[type="application/ld+json"]',
+				),
+			].map((block) => JSON.parse(block.textContent ?? ""));
+
+		expect(said("index.html")).toEqual([
+			{
+				"@context": "https://schema.org",
+				"@type": "WebSite",
+				name: "MathTrail",
+				url: "https://example.test/",
+			},
+		]);
+		expect(pages.filter((path) => path !== "index.html").flatMap(said)).toEqual(
+			[],
+		);
+	});
+
 	test("is the English translation every front page names, and the page for a reader with none", () => {
 		for (const path of ["index.html", "ru/index.html"]) {
 			expect(
@@ -740,6 +877,7 @@ describe("the address the English front page moved from", () => {
 	test("loads nothing that would keep the refresh waiting", () => {
 		expect(attributes(moved, "link[href]", "rel")).toEqual([
 			"canonical",
+			"icon",
 			"icon",
 		]);
 		expect(moved.querySelectorAll("script, style, [src]")).toHaveLength(0);

@@ -1,6 +1,7 @@
 import { cardWords } from "../widget/dictionaries";
 import type { Section } from "../widget/folds";
 import { listed, topicName } from "../widget/names";
+import { address } from "./addresses";
 import { progressOf, type SiteData } from "./data";
 import type { Drawing } from "./drawings";
 import type { PageProps } from "./pages";
@@ -116,7 +117,10 @@ function cardDrawingOf(data: SiteData, topic: Topic): Drawing {
 }
 
 // TopicCard is a topic as the page of the topics shows it, under the anchor of
-// its slug, which the map leads to.
+// its slug, which the map leads to. Once the topic's page is published, the
+// topic's name is the card's one link to it, and the link's box covers the
+// card, so the whole card leads there: a reader of links hears the topic's
+// name, and a search engine reads it as the words of the link.
 function TopicCard({
 	page,
 	topic,
@@ -138,7 +142,18 @@ function TopicCard({
 		<article id={topic.slug} class="s-topic s-topic-card">
 			<TopicDrawing drawing={drawing} numbers={numbers} />
 			<div class="s-topic-body">
-				<h3>{name}</h3>
+				<h3>
+					{topic.sitePage ? (
+						<a
+							class="s-topic-link"
+							href={address(page.locale, `topics/${topic.slug}`)}
+						>
+							{name}
+						</a>
+					) : (
+						name
+					)}
+				</h3>
 				<p class="s-topic-phrase">{page.text(`${key}.phrase`)}</p>
 				{topic.bases.length > 0 && (
 					<p class="s-topic-links">
