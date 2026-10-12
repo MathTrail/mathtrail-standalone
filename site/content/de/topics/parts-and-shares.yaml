@@ -1,0 +1,216 @@
+# The page of the topic of parts and shares, for a parent, in German. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Teile und Anteile
+description: Worum es bei „Teile und Anteile“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+hero:
+  lead: >-
+    Ben isst ein Drittel einer Pizza und Anna die Hälfte von dem, was übrig
+    bleibt. Wer hat mehr gegessen? In diesen Aufgaben ist ein Bruch immer ein
+    Bruchteil von etwas, und die Schwierigkeit liegt vor allem darin, zu wissen,
+    wovon: vom Ganzen oder von dem, was übrig war. Ein Papierstreifen, in gleiche
+    Teile geschnitten, zeigt das besser als jede Regel.
+  method: Das Ganze als Streifen zeichnen und in gleiche Teile einteilen
+  teaches: „Ein Teil wovon?“ fragen und das Ganze aus seinem Teil bestimmen
+  # The words of its drawing: the share over it, and what it comes to.
+  art:
+    line: 3/4 von 12
+    sum: 3/4 von 12 = 9
+    one: "12 : 4 = 3 in einem Teil, und 3 Teile sind 9"
+
+basis:
+  title: Die Regeln der Teile
+  cards:
+    - title: Ein Teil wovon?
+      text: >-
+        Ein Bruch ist immer ein Bruchteil von etwas. „Ein Viertel des Rests“ und
+        „ein Viertel des Ganzen“ sind verschiedene Zahlen, also finden Sie zuerst
+        heraus, wovon der Bruch genommen wird.
+      art:
+        whole: ein Viertel des Ganzen
+        rest: ein Viertel des Rests
+    - title: Der Weg über einen Teil
+      text: >-
+        Um 3/4 von 20 zu finden, teilt man durch 4 und nimmt 3 Teile: 15. Um das
+        Ganze zu finden, wenn 3/4 davon 15 sind, teilt man durch 3, erhält so
+        einen Teil und nimmt 4 Teile: 20.
+    - title: Die Teile ergeben das Ganze
+      text: >-
+        Was weggegeben wird und was übrig bleibt, ergeben zusammen ein Ganzes.
+        Werden 1/3 und 1/4 weggegeben, bleiben 1 − 1/3 − 1/4 = 5/12 übrig.
+
+idea:
+  title: Was ein Teil wert ist
+  lead: "Egal, wie die Frage lautet: Finden Sie zuerst heraus, was ein Teil wert ist, und nehmen Sie dann so viele Teile, wie die Frage verlangt."
+  table:
+    head:
+      - Gegeben
+      - Der Streifen und ein Teil
+      - Gesucht
+    rows:
+      - - 3/4 von 20
+        - "20 : 4 = 5"
+        - 3 Teile, 15
+      - - 3/4 einer Zahl sind 15
+        - "15 : 3 = 5"
+        - die Zahl, 4 Teile, 20
+      - - 2/5 einer Zahl sind 14
+        - "14 : 2 = 7"
+        - die Zahl, 5 Teile, 35
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Die meisten Fehler mit Brüchen stecken nicht in den Rechnungen, sondern im
+      Ganzen: Der Anteil wird von der falschen Menge genommen. Wer vor jedem
+      Schritt das Ganze laut benennt, fängt solche Fehler ab.
+
+method:
+  title: "Lösungsweg: einen Streifen zeichnen"
+  lead: >-
+    Zeichnen Sie das Ganze als langen Streifen und teilen Sie ihn in so viele
+    gleiche Teile ein, wie der Nenner des Bruchs angibt. Wird ein Anteil vom Rest
+    genommen, zeichnen Sie den Rest als neuen Streifen. Finden Sie dann heraus,
+    was ein Teil wert ist. Die Beispiele unten reichen von ganz einfach bis
+    Olympiade-Niveau.
+  steps:
+    - Das Ganze als Streifen zeichnen
+    - In gleiche Teile einteilen, bei Bedarf auch den Rest noch einmal
+    - Einen Teil bestimmen, dann die Teile, nach denen gefragt ist
+  # The key under the steps: what the strips' colours mean.
+  legend:
+    given: schon weggegeben
+    sought: das Gesuchte
+
+examples:
+  - title: Brötchen in der Bäckerei
+    question: >-
+      Ein Bäcker backt 60 Brötchen. Bis mittags verkauft er die Hälfte davon und
+      bis zum Abend zwei Drittel des Rests. Wie viele Brötchen sind übrig?
+    steps:
+      - Die Hälfte von 60 Brötchen sind 30, also sind mittags noch 30 Brötchen übrig.
+      - >-
+        Zwei Drittel des Rests sind zwei Drittel von 30, nicht von 60: Am Abend
+        werden 30 : 3 × 2 = 20 Brötchen verkauft.
+      - Übrig bleiben 30 − 20 = 10 Brötchen.
+    answer: 10 Brötchen.
+    note:
+      title: Zwei Drittel wovon?
+      text: >-
+        Zwei Drittel aller 60 Brötchen wären 40, und 30 + 40 = 70 Brötchen sind
+        mehr, als der Bäcker gebacken hat. „Zwei Drittel des Rests“ ist ein
+        Anteil von dem, was in diesem Moment noch übrig ist.
+    art:
+      rest: der Rest ist ein neues Ganzes
+      evening: 20 abends verkauft
+      all: bis mittags 30 · abends 20 · übrig 10
+      over: 30 + 40 = 70 passt nicht in 60
+  - title: Ein Buch in Siebteln
+    question: >-
+      Am Montag liest Tom 2/7 eines Buches und am Dienstag 3/7 davon. Dann sind
+      noch 40 Seiten übrig. Wie viele Seiten hat das Buch?
+    steps:
+      - In zwei Tagen liest Tom 2/7 + 3/7 = 5/7 des Buches, also sind 2/7 davon übrig.
+      - "Diese 2/7 sind die 40 Seiten: Ein Siebtel ist 40 : 2 = 20 Seiten."
+      - "Das ganze Buch sind sieben Siebtel: 7 × 20 = 140 Seiten."
+    answer: 140 Seiten.
+    note:
+      title: Welcher Teil sind die 40?
+      text: >-
+        Die 40 Seiten sind der Rest, 2/7 des Buches, nicht die 5/7, die Tom
+        gelesen hat. Hielte man sie für die 5/7, hätte das Buch 56 Seiten, und
+        es wären nur 16 Seiten davon übrig.
+    art:
+      sevenths: das Buch, 7 gleiche Teile
+      monday: Montag
+      tuesday: Dienstag
+      read: 40 ist nicht das Gelesene
+  - title: Eier auf dem Markt
+    question: >-
+      Oma verkauft Eier auf dem Markt. Die erste Person nimmt die Hälfte aller
+      Eier und noch ein halbes Ei dazu. Die zweite nimmt die Hälfte der übrigen
+      Eier und noch ein halbes Ei dazu, und die dritte ebenso. Danach sind alle
+      Eier verkauft, und niemand hat ein Ei zerbrochen. Wie viele Eier hatte
+      Oma?
+    steps:
+      - >-
+        Vom Ende her rechnen. Die dritte Person nahm die Hälfte der Eier und noch
+        ein halbes Ei, und nichts blieb übrig: Also war die Hälfte der Eier ein
+        halbes Ei, und Oma hatte 1 Ei.
+      - >-
+        Vor der zweiten Person ist es genauso: Nachdem die Hälfte der Eier und
+        noch ein halbes Ei weg waren, blieb 1 Ei übrig; also war die Hälfte
+        eineinhalb Eier, und es waren 3 Eier.
+      - >-
+        Vor der ersten Person war die Hälfte der Eier dreieinhalb, also waren
+        es 7. Probe: 7 → 3 → 1 → 0.
+    answer: 7 Eier.
+    note:
+      title: Rückwärtsarbeiten
+      text: >-
+        Wenn jeder Anteil ein Teil dessen ist, was noch übrig ist, fängt man am
+        einfachsten am Ende an: Dort ist die Menge bekannt. Jeder Schritt zurück
+        macht einen Anteil rückgängig: das halbe Ei dazuzählen, dann verdoppeln.
+    art:
+      basket: wie viele Eier im Korb?
+      third: "die dritte Person: Es gab 1"
+      third-took: nahm 0,5 + ½ = 1, übrig 0
+      second: "die zweite Person: Es gab 3"
+      second-took: nahm 1,5 + ½ = 2, übrig 1
+      first: "die erste Person: Es gab 7"
+      first-took: nahm 3,5 + ½ = 4, übrig 3
+      back: "ein Schritt zurück: + ½, dann × 2"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  part_whole_swap:
+    shows: >-
+      Der Anteil wird von der falschen Menge genommen: zwei Drittel aller 60
+      Brötchen statt der 30 übrigen, oder die 40 übrigen Seiten werden für den
+      Teil gehalten, den Tom gelesen hat.
+    say: „Zwei Drittel wovon? Zeig es auf dem Streifen.“
+    art:
+      question: Zwei Drittel des Rests
+      of-all: 2/3 von 60 =
+      of-rest: 2/3 von 30 =
+  answered_other_question:
+    shows: >-
+      Ein Zwischenergebnis wird zur Antwort: die 20 abends verkauften Brötchen
+      statt der übrigen, oder die 100 Seiten, die Tom gelesen hat, statt des
+      ganzen Buches.
+    say: „Was genau ist gefragt?“
+    art:
+      question: Wie viele Brötchen sind übrig?
+      evening: abends verkauft
+      left: übrig
+  stopped_early:
+    shows: >-
+      Die Lösung bricht einen Schritt zu früh ab: Ein Siebtel des Buches wird
+      gefunden, 20 Seiten, aber nie auf das ganze Buch hochgerechnet; oder die
+      mittags verkauften Brötchen werden abgezogen und die vom Abend vergessen.
+    say: „Ist das die Antwort oder ein Schritt auf dem Weg dorthin?“
+    art:
+      question: Wie viele Seiten hat das Buch?
+
+home:
+  - title: Gemeinsam zerschneiden
+    text: >-
+      Schneiden Sie einen Apfel, eine Pizza oder ein Blatt Papier in gleiche
+      Teile und benennen Sie sie: Hälften, Drittel, Viertel. Nehmen Sie dann
+      einige weg und fragen Sie, welcher Teil übrig bleibt.
+  - title: Ein Teil wovon?
+    text: >-
+      Wenn in einem Rezept oder einem Spiel ein Bruch vorkommt, fragen Sie:
+      „Ein Drittel wovon?“ Die Antwort darauf ist oft die ganze Aufgabe.
+  - title: Der Streifen
+    text: >-
+      Zeichnen Sie gemeinsam den Streifen, wann immer zu Hause etwas geteilt
+      wird: ein langes Rechteck, in gleiche Kästchen eingeteilt. Der Streifen
+      hilft bei jeder Aufgabe dieses Themas.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Teile und Anteile“

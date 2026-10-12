@@ -1,5 +1,5 @@
 import type { Words } from "../i18n/words";
-import { type SiteKey, useSiteWords } from "./words";
+import { type SiteKey, useSiteWords, wordSpace } from "./words";
 
 // The page "Research" types no number of its own. A number it reports comes
 // from its data and is written as data, its value as the file holds it, so
@@ -148,7 +148,7 @@ export function countSlots(
 /**
  * Counted writes a count of the page's data with its noun, which the site's
  * words give in the form the count asks for: the count picks the form, and is
- * written apart, as data.
+ * written apart, as data, with the space its language sets before the noun.
  */
 export function Counted({
 	value,
@@ -157,10 +157,12 @@ export function Counted({
 	readonly value: number;
 	readonly noun: SiteKey;
 }) {
-	const words = useSiteWords();
+	const named = useSiteWords().text(noun, { count: value });
 	return (
 		<>
-			<Num value={value} /> {words.text(noun, { count: value })}
+			<Num value={value} />
+			{wordSpace(`${value}`, named)}
+			{named}
 		</>
 	);
 }

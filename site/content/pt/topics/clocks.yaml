@@ -1,0 +1,214 @@
+# The page of the topic of clocks, for a parent, in Portuguese. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Relógios
+description: O que são os problemas de relógios e de tempo, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+# The words the page's drawings write a length of time in.
+art:
+  minutes: "{count} min"
+  hours: "{count} h"
+  both: "{hours} h {minutes} min"
+
+hero:
+  lead: >-
+    Um passeio começa às 4:50 e dura 25 minutos: a que horas termina? Nestes
+    problemas, a criança soma e subtrai tempo, e a pegadinha é que uma hora
+    tem 60 minutos, não 100. A maioria dos erros acontece ao passar pela hora
+    cheia, pelo meio-dia ou pela meia-noite.
+  method: Chegar à hora cheia e depois seguir
+  teaches: A contar o tempo passando pela hora cheia e pela meia-noite e a distinguir a hora que o relógio marca do tempo que passa
+  # The words of its drawing: the walk over it, and what its line of time
+  # shows under it.
+  art:
+    line: Um passeio de 25 minutos a partir das 4:50
+    whole: primeiro até a hora cheia, depois adiante
+
+basis:
+  title: As regras do relógio
+  cards:
+    - title: Uma hora tem 60 minutos
+      text: >-
+        Não são 100. Então 8:50 mais 20 minutos dá 9:10, não 8:70, e 110
+        minutos são 1 hora e 50 minutos, não 1 hora e 10.
+    - title: Passando pela hora cheia
+      text: >-
+        Para somar tempo passando de uma hora para a seguinte, chegue primeiro
+        à hora cheia e some o resto depois: a partir das 8:50, 10 minutos até
+        as 9:00, e depois mais 10.
+    - title: Um dia tem 24 horas
+      text: >-
+        Depois das 23:59 vem a 0:00 do dia seguinte. Das 22:00 às 6:00 são 2
+        horas até a meia-noite e 6 horas depois dela.
+      art:
+        midnight: "0:00 é a meia-noite, o começo do dia seguinte"
+
+idea:
+  title: Passando pela hora cheia
+  lead: Quanto tempo passa de um horário a outro? No caminho, pare na hora cheia. Assim, uma subtração difícil vira dois passos fáceis.
+  table:
+    head:
+      - Início e fim
+      - Passando pela hora cheia
+      - Quanto tempo
+    rows:
+      - - das 8:40 às 9:15
+        - 20 min + 15 min
+        - 35 min
+      - - das 10:50 às 12:30
+        - 10 min + 1 h 30 min
+        - 1 h 40 min
+      - - das 22:30 às 6:00
+        - 1 h 30 min + 6 h
+        - 7 h 30 min
+  note:
+    title: Por que isso importa
+    text: >-
+      Subtrair um horário do outro na conta armada, 9:15 − 8:40, convida a
+      criança a pedir emprestado 100 minutos em vez de 60. Contar para a frente
+      passando pela hora cheia nunca leva a esse erro.
+
+method:
+  title: "Como resolver: uma linha do tempo"
+  lead: >-
+    Desenhe uma linha e coloque nela os horários em ordem, o mais cedo à
+    esquerda. Chegue à hora cheia, depois avance de hora em hora e então some
+    os minutos que sobram. Os exemplos abaixo vão do mais simples a um de
+    olimpíada.
+  steps:
+    - Colocar os horários numa linha, o mais cedo primeiro
+    - Chegar à hora cheia e depois seguir
+    - Somar os passos e conferir se a resposta fica mais cedo ou mais tarde, como deve ser
+  # The key under the steps: what the drawings' boxes and arrows mean.
+  legend:
+    whole: uma hora cheia
+    lasts: quanto tempo
+
+examples:
+  - title: A aula de natação
+    question: >-
+      A aula de natação de Tomás começa às 3:45 e dura 40 minutos. A que horas
+      ela termina?
+    steps:
+      - "Das 3:45 até a hora cheia, as 4:00, são 15 minutos."
+      - "Depois das 4:00 sobram 40 − 15 = 25 minutos."
+      - "4:00 mais 25 minutos dá 4:25."
+    answer: Às 4:25.
+    note:
+      title: Por que não 3:85?
+      text: >-
+        45 + 40 = 85, mas o relógio não tem 85 minutos: ao chegar a 60, a hora
+        muda. Chegando primeiro à hora cheia, um horário assim nunca aparece.
+    art:
+      start: começa a aula, que dura 40 minutos
+      split: 40 minutos = 15 até as 4:00 + 25 depois
+      never: não existe
+      right: certo
+  - title: O torneio de xadrez
+    question: >-
+      Um torneio de xadrez tem 5 rodadas. Cada rodada dura 50 minutos, e entre
+      duas rodadas seguidas há um intervalo de 15 minutos. A primeira rodada
+      começa às 10:00. A que horas termina a última rodada?
+    steps:
+      - "5 rodadas de 50 minutos: 5 × 50 = 250 minutos de jogo."
+      - >-
+        Os intervalos só ficam entre as rodadas, então são 4, e não 5:
+        4 × 15 = 60 minutos.
+      - >-
+        250 + 60 = 310 minutos, ou seja, 5 horas e 10 minutos. 10:00 mais 5
+        horas e 10 minutos dá 15:10.
+    answer: Às 15:10.
+    note:
+      title: Por que não 13:10?
+      text: >-
+        310 minutos não são 3 horas e 10 minutos: uma hora tem 60 minutos, não
+        100. 310 = 5 × 60 + 10.
+    art:
+      round: uma rodada, 50 min
+      break: um intervalo, 15 min
+      rounds: 5 × 50 = 250 minutos
+      breaks: "um intervalo a menos que as rodadas: 4 × 15 = 60"
+      total: 310 min = 5 × 60 + 10
+      hours: 5 horas de 60 minutos, e mais 10
+  - title: Duas cidades
+    question: >-
+      A avó vai de avião visitar Ana, que mora em outra cidade. O avião decola
+      às 8:00 pelos relógios da cidade da avó e pousa às 8:30 pelos relógios da
+      cidade de Ana. Os relógios da cidade de Ana marcam 4 horas a menos que os
+      da cidade da avó. Quanto tempo dura o voo?
+    steps:
+      - >-
+        Os horários 8:00 e 8:30 são de relógios diferentes, então primeiro
+        passamos os dois para um mesmo relógio: o da avó.
+      - "Quando os relógios da cidade de Ana marcam 8:30, os da avó marcam 4 horas a mais: 12:30."
+      - "Das 8:00 às 12:30 no mesmo relógio são 4 horas e 30 minutos."
+    answer: 4 horas e 30 minutos.
+    badge: "4:30"
+    note:
+      title: Meia hora?
+      text: >-
+        8:30 − 8:00 dá meia hora só quando os dois horários são do mesmo
+        relógio. Horários de duas cidades são comparados depois que um deles
+        passa para o relógio da outra.
+    art:
+      take-off: decolagem, hora da avó
+      landing: pouso, hora de Ana
+      grandma-clock: relógio da avó
+      ann-clock: relógio de Ana
+      at-ann: hora de Ana
+      at-grandma: hora da avó
+      grandma: avó
+      ann: Ana
+      other: relógios diferentes
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_operation:
+    shows: >-
+      A criança faz uma operação que a pergunta não pede: soma dois horários
+      como se fossem quantidades, e as 3 horas mais as 5 horas dão 8, ou
+      multiplica onde só é preciso contar para a frente. A hora do relógio é
+      um ponto numa linha, não uma quantidade.
+    say: “Isso é a hora que o relógio marca ou quanto tempo passou?”
+    art:
+      question: "Das 3:00 às 5:00: quanto tempo?"
+  time_unit_mixup:
+    shows: >-
+      Os minutos são contados como se uma hora tivesse 100: 3:45 mais 40
+      minutos vira 3:85, ou 310 minutos viram 3 horas e 10 minutos.
+    say: “Quantos minutos tem uma hora?”
+    art:
+      question: "3:45 mais 40 minutos"
+  reversed_relation:
+    shows: >-
+      Antes e depois trocam de lugar: a criança conta para trás quando a
+      pergunta vai para a frente, ou soma uma diferença de horário que devia
+      ser subtraída, e o avião pousa antes de decolar.
+    say: “A resposta tem que ser antes ou depois do começo?”
+    art:
+      question: Decolagem às 8:00 no relógio da avó
+      before: pouso antes da decolagem?
+
+home:
+  - title: Um relógio de ponteiros
+    text: >-
+      Deixe um relógio de ponteiros onde a criança possa ver e pergunte de
+      passagem: que horas serão daqui a um quarto de hora? E que horas eram
+      vinte minutos atrás?
+  - title: Quanto falta?
+    text: >-
+      Antes de um desenho animado ou de um passeio, estime com a criança
+      quanto tempo ainda falta e depois confira no relógio. Uma espera de
+      verdade faz os minutos contarem.
+  - title: Um plano para o dia
+    text: >-
+      Escreva o plano de um dia livre com horários: um passeio das 11:30 às
+      12:15, almoço às 12:30. Quanto tempo dura cada parte e quanto tempo há
+      entre elas?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de relógios

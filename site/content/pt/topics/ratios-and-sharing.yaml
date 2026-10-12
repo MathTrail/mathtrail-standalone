@@ -1,0 +1,222 @@
+# The page of the topic of ratios and sharing, for a parent, in Portuguese. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Razões e divisão proporcional
+description: O que são os problemas de razões e divisão proporcional, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+# The words the page's drawings name their people and boxes in.
+art:
+  ann: Ana
+  ben: Bruno
+  a: A
+  b: B
+
+hero:
+  lead: >-
+    Ana e Bruno dividem 35 balas na razão de 3 para 4. Quantas balas cada um
+    recebe? Nestes problemas, uma razão diz quantas partes iguais cada um
+    recebe, e não quantas coisas. Contar primeiro as partes e descobrir quanto
+    vale uma parte transforma qualquer problema de razão em uma divisão.
+  method: Contar as partes e depois descobrir quanto vale uma
+  teaches: A ver uma razão como partes iguais e a aumentar ou diminuir uma receita
+  # The words of its drawing: what is shared over it, and what the parts come
+  # to under it.
+  art:
+    line: 35 balas na razão de 3 para 4
+    parts: 7 partes = 35, uma parte = 5
+    shares: Ana 3 × 5 = 15, Bruno 4 × 5 = 20
+
+basis:
+  title: As regras das razões
+  cards:
+    - title: Uma razão é feita de partes
+      text: >-
+        3 para 4 quer dizer: para cada 3 partes iguais de um, 4 do outro. Ao
+        todo, são 7 partes iguais, e não 3 nem 4.
+      art:
+        seven: 3 para 4 são 7 partes iguais
+    - title: Primeiro, uma parte
+      text: >-
+        Divida o total pelo número de partes para achar uma parte e depois
+        multiplique pelo número de cada um: 35 : 7 = 5, então 3 partes são 15 e
+        4 partes são 20.
+      art:
+        one: "35 : 7 = 5 em uma parte"
+    - title: Multiplicar os dois lados
+      text: >-
+        Uma razão não muda quando os seus dois números são multiplicados pelo
+        mesmo número: 3 para 4 é o mesmo que 6 para 8 e que 30 para 40. É assim
+        que uma receita cresce.
+
+idea:
+  title: Contar as partes
+  lead: Qualquer que seja a razão, some primeiro os números dela. Esse é o número de partes iguais em que o todo é dividido.
+  table:
+    head:
+      - O que se divide
+      - Partes
+      - Uma parte e a divisão
+    rows:
+      - - 35 balas, 3 para 4
+        - 3 + 4 = 7
+        - "35 : 7 = 5, então 15 e 20"
+      - - 60 cartas, 1 para 2 para 3
+        - 1 + 2 + 3 = 6
+        - "60 : 6 = 10, então 10, 20 e 30"
+      - - 45 miçangas, 2 para 7
+        - 2 + 7 = 9
+        - "45 : 9 = 5, então 10 e 35"
+  note:
+    title: Por que isso importa
+    text: >-
+      O erro mais comum é dividir por um dos números da razão em vez da soma
+      deles: 35 : 3 ou 35 : 4. Com uma caixinha desenhada para cada parte, é
+      impossível esquecer a soma.
+
+method:
+  title: "Como resolver: uma caixinha para cada parte"
+  lead: >-
+    Desenhe uma caixinha para cada parte da razão, com uma fileira de
+    caixinhas para cada um que participa da divisão. Conte todas as caixinhas,
+    descubra quanto cabe em uma e depois preencha a parte de cada um. Os
+    exemplos abaixo vão do mais simples a um de olimpíada.
+  steps:
+    - Desenhar uma caixinha para cada parte
+    - Descobrir quanto cabe em uma caixinha
+    - Preencher a parte de cada um e conferir o total
+  # The key under the steps: what a tile of the drawings means.
+  legend:
+    one: uma parte e quanto cabe nela
+    spoken: as partes de que o problema fala
+
+examples:
+  - title: Cogumelos
+    question: >-
+      Miguel e Laura colhem 45 cogumelos ao todo. Para cada 4 cogumelos que
+      Miguel colhe, Laura colhe 5. Quantos cogumelos Laura colhe?
+    steps:
+      - 4 para 5 quer dizer 4 partes para Miguel e 5 para Laura, 9 partes iguais ao todo.
+      - "Uma parte é 45 : 9 = 5 cogumelos."
+      - "Laura tem 5 partes: 5 × 5 = 25 cogumelos. Conferindo: Miguel tem 20, e 20 + 25 = 45."
+    answer: 25 cogumelos.
+    note:
+      title: "Por que não 45 : 5?"
+      text: >-
+        45 : 5 = 9 divide só pelo número de Laura. Os 45 cogumelos são todas as
+        9 partes, somando as de Miguel e as de Laura.
+    art:
+      max: M
+      lena: L
+      together: 45 cogumelos ao todo
+      max-name: Miguel
+      lena-name: Laura
+      nine: 9 caixinhas, 45 cogumelos
+      each: "45 : 9 = 5 em cada caixinha"
+      only-lena: só Laura
+  - title: O coral
+    question: >-
+      Em um coral há 4 meninos para cada 7 meninas, e há 9 meninas a mais do
+      que meninos. Quantas crianças cantam no coral?
+    steps:
+      - >-
+        Os meninos são 4 partes e as meninas, 7 partes, então as meninas têm 3
+        partes a mais do que os meninos.
+      - "Essas 3 partes são as 9 meninas a mais: uma parte é 9 : 3 = 3 crianças."
+      - >-
+        O coral tem 4 + 7 = 11 partes: 11 × 3 = 33 crianças. Conferindo: 12
+        meninos e 21 meninas, 9 meninas a mais.
+    answer: 33 crianças.
+    note:
+      title: Quais partes são as 9?
+      text: >-
+        As 9 não são as 7 partes das meninas, e sim as 3 partes que as meninas
+        têm a mais do que os meninos. Dividir 9 por 7 ou por 11 não dá um número
+        inteiro de crianças.
+    art:
+      boys: meninos
+      girls: meninas
+      nine: 9 meninas
+      choir: 11 caixinhas × 3 = 33
+      this-nine: estas valem 9
+  - title: Duas caixas
+    question: >-
+      Duas caixas têm bolinhas de gude na razão de 3 para 1. Depois de passar 10
+      bolinhas da primeira caixa para a segunda, as duas caixas ficam com o
+      mesmo número de bolinhas. Quantas bolinhas há ao todo?
+    steps:
+      - >-
+        Passar bolinhas de uma caixa para a outra não muda o total: ele é o
+        mesmo antes e depois.
+      - >-
+        Antes, o total são 4 partes, e a primeira caixa tem 3 delas. Depois, ela
+        tem metade do total, 2 dessas mesmas 4 partes. Então ela deu 1 parte.
+      - >-
+        Essa parte são as 10 bolinhas que mudaram de caixa: o total é
+        4 × 10 = 40. Conferindo: 30 e 10 antes, 20 e 20 depois.
+    answer: 40 bolinhas.
+    note:
+      title: O que não muda
+      text: >-
+        Os problemas de razão muitas vezes escondem algo que não muda: aqui, o
+        total. Medir as duas razões em partes desse mesmo total é o que permite
+        compará-las.
+    art:
+      box-a: caixa A
+      box-b: caixa B
+      four: 4 partes ao todo, antes e depois
+      before: antes
+      after: depois
+      part: 1 parte
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ratio_total_confusion:
+    shows: >-
+      Os números da razão são tomados como partes do total: 4 para 5 é lido
+      como 4 de cada 5, ou os 45 cogumelos são divididos por 5 em vez de pelas
+      4 + 5 = 9 partes.
+    say: “Quantas partes iguais há ao todo?”
+    art:
+      question: 45 cogumelos, 4 para 5
+      one: em uma parte
+  wrong_operation:
+    shows: >-
+      A criança soma onde a razão pede multiplicação: uma receita para 6
+      pessoas a mais ganha 6 ovos a mais, quando os ovos precisam crescer na
+      mesma proporção que as pessoas.
+    say: “Se houver o dobro de pessoas, o que acontece com os ovos?”
+    art:
+      question: 3 ovos para 2 pessoas, e para 8?
+  answered_other_question:
+    shows: >-
+      Uma das partes é encontrada, mas a resposta dá a parte errada: os
+      cogumelos de Miguel em vez dos de Laura, ou uma parte, 3 crianças, em vez
+      do coral inteiro.
+    say: “A pergunta pede a parte de quem?”
+    art:
+      question: Quantos cogumelos Laura colhe?
+      max: M
+      lena: L
+
+home:
+  - title: Cozinhar seguindo uma razão
+    text: >-
+      Prepare com a criança uma bebida ou uma massa seguindo uma razão: uma
+      xícara de suco para três de água. Depois faça o dobro e veja o que dobra.
+  - title: Caixinhas no papel
+    text: >-
+      Em qualquer divisão em casa, de balas ou de tarefas domésticas, desenhe
+      uma caixinha para cada parte e preencha todas. As caixinhas pensam por
+      você.
+  - title: Mapas e miniaturas
+    text: >-
+      Olhe a escala de um mapa ou de um carrinho em miniatura: 1 para 50 quer
+      dizer que cada centímetro representa 50. Meça alguma coisa com a criança
+      e calcule o tamanho real.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de razões e divisão proporcional

@@ -1,0 +1,215 @@
+# The page of the topic of knights and liars, for a parent, in German. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Ritter und Lügner
+description: Worum es bei „Ritter und Lügner“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+# The words every drawing of the page writes its islanders in: the letters
+# of a knight and of a liar, and the islanders' own.
+art:
+  knight: R
+  liar: L
+  a: A
+  b: B
+  c: C
+
+hero:
+  lead: >-
+    Auf einer Insel leben Ritter, die immer die Wahrheit sagen, und Lügner, die
+    immer lügen. Aus dem, was sie sagen, muss man herausfinden, wer wer ist. Für
+    viele Kinder ist das die erste Begegnung mit echtem logischem Denken: eine
+    Annahme treffen, verfolgen, wohin sie führt, und einen Widerspruch
+    bemerken.
+  method: „Angenommen, dieser hier ist ein Ritter…“
+  teaches: Schritt für Schritt schließen und sich selbst prüfen
+  # The words of its drawing: the key of the letters over it, and in it the
+  # first example's two suppositions and how each ends.
+  art:
+    knight: ein Ritter sagt immer die Wahrheit
+    liar: ein Lügner lügt immer
+    says: „Ich bin ein Lügner und B ist ein Ritter“
+    rule: annehmen und prüfen
+    if-knight: "Angenommen, A ist ein Ritter: Dann ist A ein Lügner"
+    contradiction: ein Widerspruch
+    if-liar: "Angenommen, A ist ein Lügner: Dann ist auch B ein Lügner"
+    fits: es passt
+
+basis:
+  title: Die Regeln der Insel
+  cards:
+    - mark: R
+      title: Ritter
+      text: Sagt immer die Wahrheit. Jede Aussage eines Ritters ist wahr, ohne Ausnahme.
+    - mark: L
+      title: Lügner
+      text: Lügt immer. Jede Aussage eines Lügners ist falsch, und ein Lügner sagt nie die Wahrheit, nicht einmal aus Versehen.
+    - mark: "?"
+      title: Sonst niemand
+      text: Jeder Inselbewohner ist entweder ein Ritter oder ein Lügner. Am Aussehen kann man sie nicht unterscheiden, nur an ihren Worten.
+
+idea:
+  title: Wer was sagen kann
+  lead: Beginnen Sie mit zwei Sätzen, die sofort zeigen, wie diese Aufgaben funktionieren.
+  table:
+    head:
+      - Satz
+      - Ritter
+      - Lügner
+      - Was das bedeutet
+    rows:
+      - - „Ich bin ein Ritter“
+        - "✓ Kann es sagen: Es ist wahr"
+        - "✓ Kann es sagen: Es ist gelogen, wie es sich für einen Lügner gehört"
+        - "Das verrät nichts: Jeder kann es sagen."
+      - - „Ich bin ein Lügner“
+        - "✕ Kann es nicht sagen: Es wäre gelogen"
+        - "✕ Kann es nicht sagen: Es wäre die Wahrheit"
+        - "Ein unmöglicher Satz: Niemand kann ihn sagen."
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Sagt ein Inselbewohner „Ich bin ein Ritter“, können Sie den Satz
+      streichen: Er ändert nichts. Und stellt sich mitten in einer Lösung
+      heraus, dass jemand im Grunde „Ich bin ein Lügner“ gesagt hat, ist die
+      Annahme falsch, von der Sie ausgegangen sind.
+
+method:
+  title: "Lösungsweg: „Angenommen…“"
+  lead: >-
+    Fast jede solche Aufgabe wird auf dieselbe Weise gelöst: einen
+    Inselbewohner auswählen, annehmen, was er ist, und schauen, was daraus
+    folgt. Die Beispiele unten reichen von ganz einfach bis Olympiade-Niveau.
+  steps:
+    - Annehmen
+    - Ableiten, was daraus folgt
+    - Einen Widerspruch finden oder die Antwort prüfen
+
+examples:
+  - title: Zwei auf dem Weg
+    question: >-
+      Zwei Inselbewohner, A und B, treffen sich auf einem Weg. A sagt: „Ich bin
+      ein Lügner und B ist ein Ritter.“ Wer ist wer?
+    steps:
+      - >-
+        **Angenommen, A ist ein Ritter.** Dann sind die Worte wahr, und A ist
+        ein Lügner. Aber wir haben angenommen, dass A ein Ritter ist:
+        **ein Widerspruch**, also ist dieser Fall unmöglich.
+      - >-
+        **Angenommen, A ist ein Lügner.** Dann sind die Worte falsch. Ihre erste
+        Hälfte, „Ich bin ein Lügner“, ist wahr, also ist die zweite Hälfte
+        falsch: B ist kein Ritter, sondern ein Lügner. **Alles passt.**
+    answer: A und B sind beide Lügner.
+    note:
+      title: Wie kann ein Lügner „Ich bin ein Lügner“ sagen?
+      text: >-
+        Für sich allein ist „Ich bin ein Lügner“ unmöglich. Mit „und“ an einen
+        anderen Satz gehängt, kann ein Lügner ihn sagen: Der ganze Satz ist
+        falsch, sobald einer seiner Teile falsch ist.
+    art:
+      says: „Ich bin ein Lügner und B ist ein Ritter“
+      contradiction: ein Widerspruch
+      fits: alles passt
+      alone: „Ich bin ein Lügner“
+      nobody: kann niemand sagen
+      liar-can: kann ein Lügner sagen
+  - title: Eine Kette von Anschuldigungen
+    question: >-
+      Drei Inselbewohner, A, B und C, sagen Folgendes. A: „B ist ein Lügner.“
+      B: „C ist ein Ritter.“ C: „A und B sind beide Lügner.“ Wer ist ein Ritter
+      und wer ein Lügner?
+    steps:
+      - >-
+        **Bei wem anfangen?** Bei dem, der am meisten sagt, denn aus seinen
+        Worten folgt mehr. Das ist C.
+      - >-
+        **Angenommen, C ist ein Ritter.** Dann sind A und B beide Lügner. Aber
+        B hat „C ist ein Ritter“ gesagt, und das wäre wahr, doch ein Lügner sagt
+        nie etwas Wahres. **Ein Widerspruch.**
+      - >-
+        **Also ist C ein Lügner.** Dann ist der Satz von B, „C ist ein Ritter“,
+        falsch, und auch B ist ein Lügner.
+      - A hat „B ist ein Lügner“ gesagt, und das ist wahr. Also ist A ein Ritter.
+    answer: A ist ein Ritter; B und C sind Lügner.
+    note:
+      title: "Probe: jeder Satz noch einmal"
+      text: >-
+        A: „B ist ein Lügner“ ist wahr, und ein Ritter sagt es. B: „C ist ein
+        Ritter“ ist falsch, und ein Lügner sagt es. C: „A und B sind beide
+        Lügner“ ist falsch, denn A ist ein Ritter, und ein Lügner sagt es. Alles
+        passt.
+    art:
+      a-says: „B ist ein Lügner“
+      b-says: „C ist ein Ritter“
+      c-says: „A und B sind beide Lügner“
+      most: sagt am meisten
+      contradiction: ein Widerspruch
+      true-knight: wahr, und ein Ritter sagt es
+      false-liar: falsch, und ein Lügner sagt es
+  - title: Der runde Tisch
+    question: >-
+      Zehn Inselbewohner sitzen an einem runden Tisch. Jeder von ihnen sagt:
+      „Mein rechter Nachbar ist ein Lügner.“ Wie viele Ritter sitzen am Tisch?
+    steps:
+      - >-
+        Ist ein Inselbewohner ein Ritter, sind die Worte wahr: Der rechte
+        Nachbar ist ein Lügner.
+      - >-
+        Ist ein Inselbewohner ein Lügner, sind die Worte falsch: Der rechte
+        Nachbar ist ein Ritter.
+      - >-
+        Also wechseln sich Ritter und Lügner am Tisch ab: R, L, R, L… Genau die
+        Hälfte der zehn sind Ritter: **5 Ritter**.
+    answer: 5 Ritter.
+    note:
+      title: Und wenn 9 Inselbewohner am Tisch sitzen?
+      text: >-
+        Bei einer ungeraden Zahl von Plätzen geht das Abwechseln im Kreis nie
+        auf: Der Letzte und der Erste wären von derselben Art. Einen solchen
+        Tisch kann es nicht geben. Hier treffen Ritter und Lügner auf die
+        Parität.
+    art:
+      right-liar: der rechte Nachbar ist ein Lügner
+      right-knight: der rechte Nachbar ist ein Ritter
+      half: 5 und 5
+      kinds: Ritter und Lügner
+      turns: jeder schaut auf den Nachbarn im Uhrzeigersinn
+      clash: der Letzte und der Erste sind von derselben Art
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Das Kind verteilt R und L, geht aber nicht noch einmal jeden Satz durch,
+      und einer davon passt nicht.
+    say: „Lies jeden Satz noch einmal. Ist er wahr oder falsch, und wer hat ihn gesagt?“
+  trusted_statement:
+    shows: >-
+      Das Kind glaubt, was ein Inselbewohner sagt, ohne zu fragen, wer es gesagt
+      hat: A hat B einen Lügner genannt, also muss B einer sein.
+    say: „Und wenn es ein Lügner gesagt hat? Was ist dann wahr?“
+  stopped_early:
+    shows: >-
+      Das Kind findet heraus, was der erste Inselbewohner ist, und hört dort
+      auf, ohne über die anderen zu entscheiden.
+    say: „Gut, A ist ein Lügner. Was sagt dir das über B?“
+
+home:
+  - title: Spielen Sie Insel
+    text: >-
+      Sie lügen immer, und Ihr Kind stellt Ihnen Fragen. Bald merkt es, dass Sie
+      auf „Lügst du?“ immer mit „Nein“ antworten.
+  - title: Fragen Sie, statt vorzusagen
+    text: >-
+      Statt einer Antwort eine Frage: „Und wenn er ein Ritter ist, was dann?“
+      Das ist der Kniff dieses Themas.
+  - title: Schreiben Sie R und L mit Bleistift
+    text: >-
+      Über jedem Namen eine Annahme. Ein Widerspruch? Ausradieren und die andere
+      ausprobieren.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Ritter und Lügner“

@@ -1,0 +1,162 @@
+# The page of the topic of arithmetic with a trick, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 巧算
+description: 什么是巧算题和“我想好了一个数”这类题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+hero:
+  lead: >-
+    19 + 23 + 81 + 77等于多少？按顺序加，要做三次进位加法；配成19 + 81和23 + 77两对，就是100 + 100。在这类题里，只要找对了顺序，计算就很容易；而“我想好了一个数”这类谜题，要从结尾开始，把步骤一步步还原。要练的本领就是：先看，再算。
+  method: 先找简便的顺序，再计算
+  teaches: 重新组合加数或因数，并能从结尾一步步还原一串运算
+  # The words of its drawing: the sum's numbers paired colour by colour into
+  # two easy hundreds.
+  art:
+    pairs: 同色的数两两相加
+    look: 先看，再算
+
+basis:
+  title: 巧算的规则
+  cards:
+    - title: 任意顺序
+      text: >-
+        几个数相加或相乘，可以按任意顺序算，也可以任意分组：25 × 9 × 4就是25 × 4 × 9，也就是100 × 9。
+    - title: 凑整
+      text: >-
+        找能凑成10、100或1000的一对数：36 + 64、25 × 4、125 × 8。凑出整十、整百、整千的数，往下算就容易了。
+    - title: 从结尾还原
+      text: >-
+        遇到“我想好了一个数”，就从结果往回走，把每一步还原：原来加上的就减去，原来翻倍的就减半。
+      art:
+        undoes: 反过来是
+        back: 从结果往回推
+
+idea:
+  title: 先看再算
+  lead: 同一道算式，可以算得很长，也可以算得很短。计算之前，先找出能凑成整十、整百的两个数或几个数。
+  table:
+    head:
+      - 题目
+      - 简便算法
+      - 答案
+    rows:
+      - - 19 + 23 + 81 + 77
+        - (19 + 81) + (23 + 77)
+        - "200"
+      - - 4 × 19 × 25
+        - (4 × 25) × 19
+        - "1900"
+      - - 1 + 2 + 3 + … + 10
+        - 五对和为11的数，如1 + 10和2 + 9
+        - "55"
+  # The words of the drawings of the easy way, all rows' in one place.
+  art:
+    pairs: 五对，每对和为11
+  note:
+    title: 为什么重要
+    text: >-
+      奥赛会故意出一些按部就班算起来很慢的算式：要考的正是能不能发现捷径。习惯先找配对的孩子，会学着看清一道题是怎样搭起来的，这种本领的用处远不止于算术。
+
+method:
+  title: 解法：找能凑整的数
+  lead: >-
+    计算之前，先把整道题看一遍。把能凑整的数配成对，把乘起来得10或100的因数放在一起；遇到一连串的步骤，就从结尾开始，一步一步地还原。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 先看整道题
+    - 重新组合凑整，或从结尾还原
+    - 换一种方法检验答案
+  # The key under the steps: what the drawings' colours mean.
+  legend:
+    pair: 同一种颜色是一对
+    undo: 还原的一步
+
+examples:
+  - title: 凑成十的数对
+    question: >-
+      6 + 7 + 8 + 2 + 3 + 4等于多少？
+    steps:
+      - 找和为10的数对。这里有三对：6 + 4、7 + 3和8 + 2。
+      - 三个十是30。
+      - 所以6 + 7 + 8 + 2 + 3 + 4 = 30，完全不用进位。
+    answer: "30。"
+    note:
+      title: 一个一个地加
+      text: >-
+        6 + 7 = 13，接着是21、23、26和30。答案一样，却要走五步而不是一步，每一步都可能出错。
+    art:
+      tens: 同一种颜色的两个数凑成十
+  - title: 找出想好的数
+    question: >-
+      小梅想好了一个数，先把这个数翻倍，再加上7，然后把结果除以3，得到9。小梅想好的数是几？
+    steps:
+      - 从结尾开始，把每一步还原，先还原最后一步。
+      - >-
+        最后一步是除以3，得到9，所以除之前是9 × 3 = 27。再往前一步是加上7，所以加之前是27 − 7 = 20。
+      - 第一步是翻倍，所以想好的数是20 ÷ 2 = 10。检验：10 × 2 + 7 = 27，27 ÷ 3 = 9。
+    answer: "10。"
+    note:
+      title: 按相反的顺序还原
+      text: >-
+        最后做的一步要最先还原，就像脱的时候要先脱鞋，再脱袜子。如果按做的顺序去还原，得到的数就错了。
+    art:
+      masha: 小梅
+      back: 倒推
+      check: 检验
+      "on": 穿上
+      "off": 脱下
+      socks: 袜子
+      shoes: 鞋
+  - title: 两个大乘积
+    question: >-
+      2026 × 2026 − 2027 × 2025等于多少？不要把大数乘出来，求出结果。
+    steps:
+      - >-
+        两个乘积里都藏着2026 × 2025：2026 × 2026就是2026 × 2025再加一个2026。
+      - 而2027 × 2025就是2026 × 2025再加一个2025。
+      - 所以差是2026 − 2025 = 1，一个大数也不用乘。
+    answer: "1。"
+    note:
+      title: 先用小数字试试
+      text: >-
+        换成别的数也一样成立：5 × 5 − 6 × 4 = 25 − 24 = 1。先用小数字试一试，是相信一个技巧最可靠的办法。
+    art:
+      cancel: 相同的部分互相抵消，只剩下长条
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  stopped_early:
+    shows: >-
+      解题停在了半路：三对数只加了两对，忘了第三对；或者一串步骤只还原了一步，就把这一步的结果当成了答案。
+    say: “每个数都用上了吗？每一步都还原了吗？”
+  wrong_operation:
+    shows: >-
+      还原一步时用了同一种运算，而不是相反的运算：把7又加了一遍，而本该减去；或者把9除以3，而本该相乘。
+    say: “加法要用什么来还原？除法呢？”
+    art:
+      undo: 从27开始还原“+ 7”
+  number_from_text:
+    shows: >-
+      把题目里的一个数当成了答案：小梅得到的9，或者加上的7，而不是想好的那个数。
+    say: “这是小梅最后得到的数，还是一开始想好的数？”
+    art:
+      question: 小梅想好的数是几？
+      got: 小梅得到的数
+      thought: 想好的数
+
+home:
+  - title: 凑十
+    text: >-
+      在卡片上写六个或八个不大的数，让孩子先找出和为10的数对，再把所有的数加起来。
+  - title: 猜猜我想的数
+    text: >-
+      “我想好了一个数”的两种玩法都试试：先由您说出步骤和结果，让孩子找出这个数；再换孩子来编步骤。
+  - title: 购物巧算
+    text: >-
+      在商店里，按巧妙的顺序把价格加起来：99就是100减1，49和51合起来是100。先凑整，再修正。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“巧算”的题

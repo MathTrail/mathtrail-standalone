@@ -1,5 +1,16 @@
 import type { ComponentChildren } from "preact";
-import { Box, Chip, Key, Line, Op, Row, Say, Stack, Versus } from "../Sketch";
+import {
+	Box,
+	Chip,
+	Key,
+	Line,
+	Op,
+	Question,
+	Row,
+	Say,
+	Stack,
+	Versus,
+} from "../Sketch";
 import type { TopicArt } from "./art";
 import { Kind, lit } from "./pictures";
 
@@ -300,9 +311,11 @@ export const art: TopicArt = {
 					<Line gap={1} align="start">
 						<Waterings gap="3" short />
 						<Gap short wrong>
-							3?
+							3<Question />
 						</Gap>
-						<Drop wrong>?</Drop>
+						<Drop wrong>
+							<Question />
+						</Drop>
 					</Line>
 					<Say>{page.text(`${at}.no-gap`)}</Say>
 				</>

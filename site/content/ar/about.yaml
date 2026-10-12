@@ -1,0 +1,54 @@
+# The page "About", for a parent, in Arabic: who makes MathTrail — one family,
+# each of us under a role — and where to write. The children go by their place
+# in the family, never by name, and each of us by the key our photograph goes
+# by. The address and the link to the code are the footer's, which the page
+# fills in.
+
+title: من نحن
+description: "MathTrail من صنع عائلة واحدة: من يفعل ماذا، وكيف تتواصلون معنا."
+
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
+hero:
+  title: MathTrail من صنع عائلة واحدة
+  lead: >-
+    نشأ MathTrail من رعاية الوالدين. نحن أربعة: الأب يبني المنصة، والأم تحافظ
+    على دفء المشروع ونظامه، وابننا الأكبر الذي لا يهدأ، بعينين تلمعان، يلتهم
+    المسائل الجديدة، أما الأصغر فيكتفي بأنفاسه العذبة إلى جانبنا، ويذكّرنا
+    بالغاية من كل هذا.
+  photo: نحن الأربعة حول طاولة عليها كعكة شوكولاتة، والأب يحمل الابن الأصغر.
+
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
+team:
+  title: من نحن
+  members:
+    mum:
+      role: المديرة العامة لكل شيء
+      name: الأم
+      text: صاحبة الفكرة والمصممة الرئيسية للمشروع. تحدد متطلبات المنتج، وتتولى أيضًا كل ما عدا ذلك، أي كل شيء على الإطلاق!
+      photo: الأم في سترة بيج، مبتسمة.
+    dad:
+      role: حامل رضيع فل ستاك
+      name: الأب
+      text: يكتب الشيفرة بيد ويهدهد الرضيع بالأخرى. ولا ينشر إلا بعد قيلولة الظهيرة، وإلا استيقظت بيئة الإنتاج وبكت.
+      photo: الأب يحمل الابن الأصغر في حمّالة على صدره، والرضيع يرتدي واقيًا للأذنين.
+    older-son:
+      role: رئيس قسم فكّ المسائل
+      name: الابن الأكبر
+      text: يحل المسائل الجديدة قبل الجميع، ويقول بصراحة أين يصعب فهمها.
+      photo: الابن الأكبر يحمل لعبة من مكعبات Lego، وحوله خربشات بيضاء مرسومة لنجوم وتاج.
+    younger-son:
+      role: متدرب البحث والتطوير (اختبار التصادم)
+      name: الابن الأصغر
+      text: يختبر حاليًا متانة الألعاب. وأمامه نحو عامين قبل أول مسألة له.
+      photo: الابن الأصغر على بطنه فوق سجادة ناعمة، وبجانبه دب محشو.
+
+contact:
+  title: وجدتم خطأ أو لديكم فكرة؟
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: اكتبوا إلينا على {address} أو {issue}، فنحن نقرأ كل شيء.
+  issue: فتح بلاغ (issue) على GitHub
+  write: اكتبوا إلينا
+  github: GitHub

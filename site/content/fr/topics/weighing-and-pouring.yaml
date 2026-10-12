@@ -1,0 +1,255 @@
+# The page of the topic of weighing and pouring, for a parent, in French. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Pesées et transvasements
+description: Ce que sont les problèmes de pesées sur une balance et de transvasements entre bidons, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+# The words the page's drawings write a jug's size, a step and a move in.
+art:
+  litres: "{count} L"
+  step: étape
+  pour: verser
+  empty: vider
+  fill: remplir
+  top: compléter
+
+hero:
+  lead: >-
+    Avec un bidon de 5 litres et un bidon de 3 litres, comment mesurer
+    exactement 4 litres ? Avec une balance et sans poids, comment trouver la
+    seule pièce plus légère parmi beaucoup d’autres ? Dans ces problèmes,
+    l’enfant prévoit une courte suite d’étapes, et chaque règle compte : pas de
+    graduations sur les bidons, pas de poids pour la balance. C’est une
+    première rencontre avec les algorithmes, c’est-à-dire des plans qui
+    marchent quoi qu’il arrive.
+  method: Noter chaque état et chercher le chemin le plus court
+  teaches: À prévoir les étapes à l’avance et à envisager chaque résultat d’une pesée
+  # The words of its drawing: what is measured over it, and what each pair of
+  # jugs is.
+  art:
+    line: Mesurer 4 litres avec des bidons de 5 et de 3 litres
+    pair: "chaque paire est un état : ce que contient chaque bidon"
+
+basis:
+  title: Les règles des pesées et des transvasements
+  cards:
+    - title: Un état, ce sont tous les bidons
+      text: >-
+        Notez ce que contient chaque bidon après chaque étape : 5 et 0, puis 2
+        et 3. Une liste d’états montre où l’on peut arriver et par où l’on est
+        déjà passé.
+    - title: Trois résultats
+      text: >-
+        Une balance peut pencher à gauche, pencher à droite ou rester en
+        équilibre : chaque pesée a donc trois résultats. Répartissez les pièces
+        en trois groupes, et non en deux.
+      art:
+        left: à gauche
+        level: équilibre
+        right: à droite
+    - title: Chaque règle compte
+      text: >-
+        Pas de graduations sur les bidons, pas d’eau jetée, des poids sur un
+        seul plateau : chaque règle change les étapes permises, et donc la
+        réponse.
+      art:
+        no-marks: sans graduations
+        pour-out: jeter l’eau
+        unless: sauf si le problème le permet
+        weight: un poids
+        one-pan: sur un seul plateau
+
+idea:
+  title: Les trois résultats d’une pesée
+  lead: Chaque pesée a trois résultats possibles, et peut donc séparer les pièces en trois groupes. C’est ce qui détermine combien de pièces un nombre donné de pesées permet de départager.
+  table:
+    head:
+      - Pesées
+      - Résultats
+      - Combien de pièces
+    rows:
+      - - "1"
+        - "3"
+        - jusqu’à 3
+      - - "2"
+        - 3 × 3 = 9
+        - jusqu’à 9
+      - - "3"
+        - 3 × 3 × 3 = 27
+        - jusqu’à 27
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      L’enfant qui pèse la moitié des pièces contre l’autre moitié a besoin de
+      plus de pesées que nécessaire. Voir qu’une balance répond de trois façons,
+      et non de deux, c’est toute l’idée, et on la retrouve plus tard en
+      informatique, dans les algorithmes de recherche.
+
+method:
+  title: "Comment le résoudre : un tableau des états"
+  lead: >-
+    Pour les transvasements, faites un tableau avec une colonne par bidon et
+    une ligne par étape, et, depuis chaque ligne, essayez toutes les étapes
+    permises jusqu’à ce que l’objectif apparaisse ; sa première apparition
+    donne le plus petit nombre d’étapes. Pour les pesées, prévoyez ce qu’il
+    faut faire après chacun des trois résultats. Les exemples ci-dessous vont
+    du plus simple à un problème d’olympiade.
+  steps:
+    - Noter l’état, ce que contient chaque bidon ou chaque plateau
+    - Essayer depuis cet état toutes les étapes permises
+    - S’arrêter à l’objectif et compter les étapes
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    goal: l’objectif atteint
+
+examples:
+  - title: Un litre
+    question: >-
+      Une cuisinière a un bidon vide de 3 litres, un bidon vide de 5 litres et
+      un robinet. Les bidons n’ont pas de graduations. En une étape, elle
+      remplit un bidon au robinet, vide un bidon, ou verse d’un bidon dans
+      l’autre jusqu’à ce que le premier soit vide ou que le second soit plein.
+      Combien d’étapes faut-il au minimum pour avoir exactement 1 litre dans un
+      bidon ?
+    steps:
+      - On remplit le bidon de 3 litres et on le verse dans le bidon de 5 litres, qui contient alors 3 litres.
+      - >-
+        On remplit de nouveau le bidon de 3 litres et on verse jusqu’à ce que le
+        grand bidon soit plein : il n’y entre plus que 2 litres.
+      - "Il reste 1 litre dans le petit bidon, au bout de 4 étapes : remplir, verser, remplir, verser."
+    answer: 4 étapes.
+    note:
+      title: Pourquoi pas moins ?
+      text: >-
+        Dans le tableau de tous les états atteints en trois étapes au plus,
+        1 litre n’apparaît nulle part : les bidons n’ont que 0, 2, 3 ou 5
+        litres. Le premier litre apparaît après la quatrième étape.
+    art:
+      jugs: bidons de 3 et 5 litres, sans graduations
+      rows: 4 étapes, 4 lignes après les bidons vides
+      three: "en 3 étapes :"
+      no-litre: pas de litre
+  - title: Huit pièces
+    question: >-
+      Il y a 8 pièces d’apparence identique. L’une d’elles est fausse et plus
+      légère que les autres, qui pèsent toutes la même chose. Combien de pesées
+      faut-il au minimum, sur une balance sans poids, pour trouver à coup sûr
+      la fausse pièce ?
+    steps:
+      - On pose 3 pièces sur chaque plateau et on en garde 2 de côté.
+      - >-
+        Si un plateau monte, la fausse pièce se trouve parmi ses 3 pièces : on
+        pèse 1 contre 1, et la plus légère est la fausse, ou c’est la troisième
+        si les plateaux restent en équilibre.
+      - >-
+        Si les plateaux sont en équilibre, la fausse pièce est l’une des 2 mises
+        de côté : on les pèse l’une contre l’autre. Dans tous les cas, 2 pesées
+        suffisent, et 1 ne suffit pas : elle n’a que 3 résultats pour 8 pièces.
+    answer: 2 pesées.
+    note:
+      title: Pourquoi pas 4 contre 4 ?
+      text: >-
+        Peser 4 pièces contre 4 en laisse 4 après la première pesée, et 4 pièces
+        demandent encore 2 pesées, soit 3 en tout. Avec des groupes de trois, le
+        résultat « équilibre » fait lui aussi une partie du travail.
+    art:
+      one-lighter: l’une des 8 est plus légère
+      three: 3 contre 3
+      aside: mises de côté
+      lighter: plus léger à gauche
+      one: 1 contre 1
+      found: c’est la plus légère ; à l’équilibre, la troisième
+      level: équilibre
+      of-two: les 2 mises de côté
+      never-level: jamais en équilibre
+      four-left: il en reste 4 → encore 2 pesées
+  - title: Cent pièces
+    question: >-
+      Parmi 100 pièces d’apparence identique, l’une est fausse et plus légère
+      que les autres, qui pèsent toutes la même chose. Combien de pesées
+      faut-il au minimum, sur une balance sans poids, pour trouver à coup sûr
+      la fausse pièce ?
+    steps:
+      - >-
+        Chaque pesée a 3 résultats, donc 4 pesées distinguent au plus
+        3 × 3 × 3 × 3 = 81 cas. C’est moins que les 100 pièces : 4 pesées ne
+        suffisent donc pas.
+      - >-
+        On pose 33 pièces sur chaque plateau et on en garde 34 de côté : quoi
+        qu’il arrive, il reste au plus 34 pièces. De la même façon, 34 pièces se
+        réduisent à 12 au plus, puis à 4, puis à 2, puis à 1.
+      - Cela fait 5 pesées, pendant lesquelles le nombre de pièces passe de 100 à 34, 12, 4, 2 et 1.
+    answer: 5 pesées.
+    note:
+      title: Les deux moitiés d’une preuve
+      text: >-
+        La réponse demande les deux : un plan qui trouve la fausse pièce en 5
+        pesées, et le décompte des résultats qui montre que 4 ne suffiront
+        jamais. Les réponses d’olympiade aux questions « au minimum » ont
+        toujours ces deux moitiés.
+    art:
+      aside: mises de côté
+      numbers: les nombres sur les flèches comptent les pesées
+      plan: le plan
+      always: 5 pesées la trouvent toujours
+      bound: la borne
+      at-most: 4 distinguent au plus 81 cas
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Une règle du problème est enfreinte sans qu’on s’en rende compte : on
+      jette de l’eau alors que le problème ne le permet pas, on remplit un bidon
+      jusqu’à une graduation qu’il n’a pas, ou on pose un poids sur le plateau
+      de ce qu’on pèse.
+    say: « Qu’est-ce que le problème permet de faire ? »
+    art:
+      question: Pas de graduations sur les bidons
+      to-mark: remplir « jusqu’à 1 litre »
+      after-pouring: 1 litre, en transvasant
+  stopped_early:
+    shows: >-
+      Le plan s’arrête avant d’apporter une certitude : une pesée trouve le
+      groupe qui contient la fausse pièce, et la recherche en reste là, ou les
+      transvasements s’arrêtent à 2 litres alors qu’il fallait 1 litre.
+    say: « Quel que soit le résultat de la balance, le sais-tu maintenant à coup sûr ? »
+    art:
+      question: Après la première pesée
+      here: « elle est ici », mais laquelle ?
+      one-more: encore une pesée
+  off_by_one:
+    shows: >-
+      Les étapes sont comptées avec une de plus ou de moins : le premier
+      remplissage au robinet est oublié, ou le dernier transvasement est compté
+      deux fois.
+    say: "« Recompte sur le tableau : une ligne, une étape. »"
+    art:
+      question: Une ligne du tableau, une étape
+      three: 3 étapes
+      four: 4 étapes
+      empty: vides → 4 états
+
+home:
+  - title: Des bidons dans l’évier
+    text: >-
+      Prenez deux tasses de tailles différentes et essayez de mesurer une
+      quantité qui ne correspond à aucune des deux. L’évier est le meilleur des
+      laboratoires, et l’eau renversée ne fait aucun mal.
+  - title: Trouvez le plus léger
+    text: >-
+      Cachez un objet plus léger parmi quelques objets qui se ressemblent, et
+      retrouvez-le avec une balance de la maison, ou avec un cintre et deux
+      sacs. Comptez les pesées.
+  - title: D’abord le plan
+    text: >-
+      Avant de transvaser ou de peser, écrivez le plan sous forme de tableau et
+      vérifiez-le étape par étape. La compétence, c’est de prévoir d’abord, pas
+      d’avoir de la chance.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Pesées et transvasements »

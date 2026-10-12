@@ -1,0 +1,186 @@
+# The home page, for a parent: what MathTrail is, why not just ask the chat,
+# how a lesson goes — the card of the widget at every step — and how to
+# connect. The grades, the names of the traps, the card's picture, options and
+# rating, the connector's address and the card's own words are not here: they
+# are the catalog's numbers, the site's data, the widget's words and the
+# site's own.
+
+title: MathTrail — رياضيات الأولمبياد في دردشتكم
+description: "رياضيات الأولمبياد للأطفال في الدردشة التي تستخدمونها بالفعل: مسائل تم التحقق منها ولا تنفد، وتشخيص لكل خطأ، وذاكرة لمسار تقدّم الطفل."
+
+hero:
+  free: مجاني
+  open: مفتوح المصدر
+  title: رياضيات الأولمبياد، في الدردشة التي تستخدمونها بالفعل.
+  # The promise, word for word as the README gives it.
+  lead: سيل لا ينقطع من مسائل رياضيات بأسلوب الأولمبياد تم التحقق منها، للصفوف {range} وبأي لغة، مع تشخيص لخطأ الطفل وذاكرة لمسار التقدّم.
+  # How the task on the card was picked for the lesson's child: the child's
+  # topics, then the chance of a right answer and the reasons. The topics and
+  # the numbers are the site's data.
+  pick:
+    label: كيف اختيرت المسألة التالية
+    title: اختيرت لغالت
+    skills: مهارات غالت
+    why: لماذا هذه المسألة
+    auto: اختيار تلقائي
+    chance: احتمال النجاح {chance}، ضمن النطاق
+    reasons:
+      - أضعف موضوع
+      - "عودة إلى خطأ حديث: الخطأ بواحد"
+      - بلا تدريب منذ 5 أيام
+  see: مشاهدة درس
+  note: اسكبوا لأنفسكم كوبًا من الشاي في أثناء حلّ طفلكم للمسألة.
+
+# The frame a card stands in: the chat a parent already uses, with the
+# parent's message above the card.
+chat:
+  title: دردشتكم
+  ask: مسألة جديدة، من فضلك
+  progress: كيف يسير تقدّم طفلي؟
+
+pillars:
+  title: لماذا لا نسأل الدردشة مباشرة؟
+  lead: "يكتب نموذج الدردشة المسألة في ثانية، ويخطئ بالسرعة نفسها: خياران صحيحان معًا، أو حل لا يستقيم، أو مسألة الأمس بأعداد جديدة. وعند إصرار طفلكم يوافق بكل سرور. يترك MathTrail للنموذج ما يجيده، أي الكتابة، ويتحقق من كل ما عداها ببرنامج."
+  # A chat asked alone for a task. Its options, and which of them are right,
+  # are the site's data.
+  alone:
+    name: الدردشة وحدها
+    ask: مسألة أولمبياد للصف 3
+    task: عدد يقبل القسمة على 2 وعلى 3. ماذا يمكن أن يكون هذا العدد؟
+    flag: إجابتان صحيحتان، ولم يتحقق أحد
+  # The chat alone against the chat with MathTrail, both asked what the chat
+  # alone was asked, point against point.
+  versus:
+    asked: "«{ask}»"
+    alone:
+      - قد يصحّ خياران معًا، وقد لا يصحّ أي خيار.
+      - يوافق على إجابة خاطئة عند إصرار الطفل.
+      - ينسى موضع خطأ طفلكم.
+      - "عليكم معرفة ما تطلبونه: المواضيع والمستويات وما يأتي بعدها."
+      - كل مسألة قائمة بذاتها، بلا نموذج لكيفية تعلّم الأطفال.
+      - لا خريطة لمعارف طفلكم الحالية.
+    ours:
+      name: الدردشة + MathTrail
+      points:
+        - "خيار صحيح واحد بالضبط: برنامج يحل المسألة يجرّب كل الحالات."
+        - تُسجَّل الإجابة بنقرة، ولا يجعلها الجدال صحيحة.
+        - يتذكر المهارات والأخطاء ويختار المسألة التالية.
+        - "يكفي أن تقولوا «مسألة جديدة»: يختار MathTrail الموضوع والمستوى."
+        - "نموذج مهارات مبني على الأبحاث: Elo فوق IRT، و11 مرحلة."
+        - تصنيف لكل موضوع، وخريطة تبيّن المواضيع التي يعتمد عليها كل موضوع.
+  tiles:
+    # The languages are named each in itself; this follows them.
+    endless:
+      title: المسائل لا تنفد.
+      text: تُكتب كل مسألة من جديد على مقاس طفلكم، بحسب الموضوع والمستوى وآخر خطأ، وبلغة دردشتكم، ولا تُسحب من بنك مسائل ثابت. ومسألة من كل ثلاث مبنية على اهتمامات طفلكم.
+      more: + أي لغة
+    checked:
+      title: برنامج يتحقق من النموذج.
+      text: "لا تصل المسألة إلى طفلكم إلا بعد اجتياز كل الفحوص: خيار صحيح واحد، وإجابة يعيد برنامج الحل التوصل إليها، ونص سهل القراءة يناسب الصف، ولا تكرار، ورسم، إن وُجد، تطابق تسمياته نص المسألة ولا تظهر عليه الإجابة."
+      checks:
+        - إجابة واحدة
+        - برنامج الحل
+        - سهلة القراءة
+        - غير مكررة
+    diagnosis:
+      title: الخطأ تشخيص.
+      # The traps are the catalog's, under the names the card gives them.
+      text: "يكمن وراء كل خيار خاطئ فخ له اسم: «{first}» و«{second}» و«{third}». ويبدأ الشرح من طريقة تفكير طفلكم، لا من الإجابة الصحيحة."
+      trap: "الفخ: عُدّت الفواصل لا الأعمدة"
+  behind:
+    title: ما يقف وراء كل مسألة
+    # Under the words, what the parent says, and what MathTrail picks.
+    coach:
+      title: لا حاجة إلى أن تكونوا معلمين.
+      text: لا يلزمكم معرفة مواضيع الأولمبياد ولا اختيار المستوى. قولوا «مسألة جديدة»، فيقرّر المدرب ما يجب التدرّب عليه بعد ذلك ومستوى الصعوبة المناسب.
+      picked: "الموضوع + المستوى: تم الاختيار"
+    research:
+      title: نموذج مبني على الأبحاث.
+      text: يأتي احتمال الحل من نموذج مهارات يُستخدم في القياس النفسي، هو Elo فوق نظرية الاستجابة للفقرة (IRT)، وتبقى المسائل حيث تبلغ نسبة نجاح الطفل 70–85%.
+      formula: P = 0.2 + 0.8·σ(θ + δ − β)
+    # Under the words, a topic between two it builds on, as the catalog has
+    # them.
+    map:
+      title: خريطة للمهارات والمواضيع.
+      text: يعرف MathTrail المواضيع التي يعتمد عليها كل موضوع، فالترتيب وحصر الحالات يسبقان «الفرسان والكذابون»، ويحفظ تصنيف طفلكم في كل موضوع.
+
+lesson:
+  eyebrow: كيف يجري الدرس
+  title: مسألة واحدة في كل مرة، في دردشتكم الخاصة.
+  lead: تجلسون بالقرب، والنقر على البطاقة لطفلكم. وإلى جانب كل خطوة تظهر البطاقة كما ترسمها الدردشة في تلك اللحظة.
+  # The steps in the order a lesson takes them, each beside its card.
+  steps:
+    generating:
+      title: طلب مسألة
+      text: اكتبوا «مسألة جديدة، من فضلك». يختار MathTrail الموضوع ومستوى الصعوبة، وتكتب الدردشة المسألة، ويتحقق برنامج من كل إجابة قبل وصول المسألة إلى طفلكم.
+    selected:
+      title: الإجابة بزر
+      text: خمسة خيارات، من A إلى E. تُسجَّل الإجابة بنقرة على الفور، قبل أي شرح، فلا يمكن لأي كلام أن يجعلها صحيحة.
+    hint:
+      title: طريق مسدود؟ تلميح، لا الإجابة
+      text: يدلّ التلميح على مدخل إلى الحل، كرسم سياج أقصر، وتبقى الإجابة مخفية حتى يستقر اختيار طفلكم على إحداها.
+    wrong:
+      title: الإجابة الخاطئة تصبح درسًا
+      text: "يكمن وراء كل خيار خاطئ فخ معروف. وبعد إجابة طفلكم تتحول البطاقة إلى مراجعة الإجابة، فتسمّي الفخ من زاوية طفلكم: «عُدّت الفواصل بدل الأعمدة»، ثم تعرض الحل خطوة خطوة."
+    question:
+      title: السؤال عن السبب بكلماتكم الخاصة
+      text: "بعد تسجيل الإجابة اسألوا في الدردشة: «لماذا عمود إضافي؟»، فيجيب النموذج عن هذه المسألة بالذات."
+    progress:
+      title: تقدّم يمكنكم قراءته
+      text: المرحلة التي تم بلوغها والمرحلة في كل موضوع، والأخطاء التي تتكرر، وما يأتي بعد ذلك، ومعها مراجعة لكم لما يسير على ما يرام وما يحتاج إلى تطوير.
+  # The name of the child the cards show, an invented one, which the first
+  # screen picks a task for.
+  child: غالت
+  # Two messages of the chat beneath a card answered wrong: the adult's
+  # question and the model's reply, about the step and to nobody, for the adult
+  # to read out to the child. They are the site's words, never the card's.
+  chat:
+    label: رسم توضيحي للدردشة
+    adult: الشخص البالغ
+    model: النموذج
+    question: لماذا عمود إضافي؟
+    reply: على طول السياج بدءًا من اليسار، ينتهي كل فاصل بعمود، إذن 4 فواصل تعطي 4 أعمدة، والعمود الأول يقف قبلها جميعًا. 4 + 1 = 5.
+
+# The task of the lesson: a variant of a reference task, never one word for
+# word.
+task:
+  question: سياج طوله 12 مترًا. تقف الأعمدة كل 3 أمتار، بما في ذلك عند الطرفين. كم عمودًا هناك؟
+  hint: لنجرب أولًا سياجًا أقصر طوله 6 أمتار، فيه عمود كل 3 أمتار. لنرسمه ونعدّ الأعمدة.
+  # The trap behind each wrong option, as the card says it once that option
+  # is picked: the steps pick one, and the card on the first screen any.
+  traps:
+    a: ذُكر الفاصل بين الأعمدة بدل عدد الأعمدة.
+    b: عُدّت الفواصل بدل الأعمدة.
+    d: ضُرب الطول في الفاصل بين الأعمدة بدل قسمته عليه.
+    e: أُخذ طول السياج من نص المسألة بدل عدّ الأعمدة.
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4 فواصل. في السياج المستقيم الذي تقف أعمدته عند طرفيه، يزيد عدد الأعمدة على عدد الفواصل بواحد. 4 + 1 = 5 أعمدة.
+
+connect:
+  eyebrow: الربط
+  title: خطوات قليلة إلى المسألة الأولى.
+  claude:
+    pill: يعمل الآن · في الخطة المجانية أيضًا
+    # The steps of Claude's own help on custom connectors; the address follows
+    # the third.
+    steps:
+      open: في Claude، افتحوا {connectors}.
+      add: اضغطوا **+ Add** واختاروا **Add custom connector**.
+      paste: "سمّوه MathTrail والصقوا العنوان:"
+      sign: "اضغطوا **Continue**، ثم **Continue** مرة أخرى: إعدادات تسجيل الدخول التي يكتشفها Claude لا تحتاج إلى تغيير. بعد ذلك اضغطوا **Add**، ثم **Connect**، وسجّلوا الدخول باستخدام حساب Google. يطلب MathTrail الإذن بحفظ ملف واحد على Google Drive الخاص بكم، هو الملف الشخصي لطفلكم. اسمحوا بذلك على شاشة Google: من دون هذا الملف لا مكان لحفظ التقدّم."
+      chat: "في الدردشة، اضغطوا **+** ← **Connectors**، وفعّلوا MathTrail، ثم قولوا: «هيا نحل مسألة من MathTrail»."
+    # Claude's own names for the page, as Claude writes them in the page's
+    # language, and in English where Claude does not speak it.
+    connectors: Customize → Connectors
+    note: تسمح الخطة المجانية بموصّل مخصص واحد.
+  chatgpt:
+    pill: ليس في الدليل بعد
+    text: لا يمكن لحسابات ChatGPT المجانية إضافة التطبيقات إلا من دليل ChatGPT. وحالما يُدرج MathTrail فيه، ابحثوا عنه بالاسم، واربطوه، وسجّلوا الدخول باستخدام حساب Google. لكنه لم يُدرج فيه بعد.
+    dev: "وحتى ذلك الحين، يتيح وضع المطوّر في ChatGPT إضافة تطبيق عبر عنوانه، في خطط Plus وPro وBusiness وEnterprise وEducation، في نسخة الويب: فعّلوه وأضيفوا تطبيقًا بالعنوان أعلاه، كما {openai}. ولا يزال MathTrail قيد الاختبار في ChatGPT."
+    openai: تشرح OpenAI
+  need: تحتاجون إلى حساب على Claude أو ChatGPT وإلى حساب Google؛ وطفلكم في غنى عن كليهما.
+
+ask:
+  title: ابدؤوا بمسألة واحدة.
+  lead: أضيفوا MathTrail إلى Claude، فالأمر يستغرق دقيقتين تقريبًا.
+  code: عرض الشيفرة على GitHub

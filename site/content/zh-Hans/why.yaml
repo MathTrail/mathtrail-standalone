@@ -1,0 +1,336 @@
+# The page "Why", for a parent, in Simplified Chinese: why olympiad maths is
+# worth a child's time, how long people have learned it, what research has
+# found about it, how it differs from a school lesson, what a parent can do,
+# how MathTrail goes about it, and why it is no ordinary app. The grades, the
+# topics' names and the card's own words are not here: they are the catalog's
+# numbers and the widget's words. The card's options, its drawing, the
+# history's pictures and the works the page cites are the site's data; a
+# finding here says what its work found, no more.
+
+title: 为什么学奥数
+description: 为什么奥数题值得孩子花时间，研究对它们有哪些发现，以及家长可以怎样借助 MathTrail 帮助孩子。
+
+# The label of the note that says plainly what the page does not promise.
+honest: 坦白说
+
+# The fence: the problem the first screen sets beside a school sum, and the
+# card further down shows answered wrong. A variant of the site's own, never a
+# reference task word for word.
+task:
+  question: 篱笆长12米。每隔3米立一根柱子，两端都有柱子。一共有几根柱子？
+  # The trap behind the wrong option picked on the card, as the card says it.
+  trap: 数的是间隔，不是柱子。
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4（个间隔）。两端都有柱子的直篱笆，柱子比间隔多一根。4 + 1 = 5（根柱子）。
+
+hero:
+  title: 为什么让您的孩子学奥数
+  lead: 学校教孩子照着课上讲过的例题解题。奥数题教孩子在没有例子可循时自己找到办法。直到{last}年级，家长都可以亲自帮孩子准备奥数题，MathTrail 正是为此而做的。
+  free: 免费
+  open: 开源
+  school:
+    label: 课本计算题
+    text: 需要会做除法。
+    sum: 12 ÷ 3 = 4
+  olympiad:
+    label: 奥数题
+    answer: 答案：{answer}
+    trap: 陷阱：4是间隔数，不是柱子数
+    text: 需要弄懂是怎么回事。
+  caption: 同样的数，不同的思考方式。
+
+# How long people have learned to find a way with no example to follow: a
+# saying of Euclid's, then four eras, each with three pictures the page shows
+# in turn. The pictures are the site's data, era by era; each has the place a
+# chip over it names, its words for a screen reader and its caption with its
+# author and licence, and the chip that picks it, where that is not its place.
+history:
+  title: 没有例子可循时怎样思考，人们已经教了两千多年
+  lead: 非常规的题目并不新鲜。在许多国家、许多个世纪里，人们学着找到没人教过的解法，并说明它为什么正确；每一代人都把这种本领传给了下一代。
+  quote: “几何学中没有王者之路。”
+  quoted: 这是欧几里得对托勒密国王说的话，国王问他，学几何有没有比读《几何原本》更容易的办法。5世纪的普罗克洛是这样记述的。
+  # What a screen reader calls the choice of a picture.
+  choice: 历史图片
+  eras:
+    - label: 古代 · 至6世纪
+      title: 证明与题集
+      text: 希腊人开始证明一条规则为什么成立。在中国，《九章算术》收录了246道题及其解法。在印度，人们开始用带零的方式写数，我们今天仍然这样写。
+    - label: 中世纪及以后 · 9～19世纪
+      title: 题目即挑战
+      text: 在巴格达，花拉子米写了一本书，书名给了世界“algebra”（代数）这个词。在意大利，数学家们用题目进行决斗；在日本，人们把题目写在木板上，挂在寺庙里。
+    - label: 19世纪末至20世纪
+      title: 给每个孩子的题
+      text: 所有孩子都开始上学，最好奇的孩子还有了数学兴趣小组和奥林匹克竞赛：匈牙利从1894年开始，列宁格勒从1934年开始。
+    - label: 今天
+      title: 每个孩子的导师
+      text: 从前，私人导师只属于少数人：亚里士多德教过亚历山大大帝。如今，每个孩子都可以有一位导师。MathTrail 教练里的伙伴从不直接给出答案：像过去伟大的老师一样，它会提出问题，引导孩子找到解法。
+      link: 看看教练 →
+  pictures:
+    athens:
+      place: 希腊
+      alt: 壁画局部：一位白发学者俯身在石板上，用圆规作图，四个学生围在他身边。
+      caption: 欧几里得在石板上用圆规作图，学生们在一旁看着；也有人说画中人是阿基米德。拉斐尔壁画《雅典学院》局部，1509～1511年。
+    confucius:
+      place: 中国
+      alt: 一幅画：一位老师坐在户外的学生们中间，学生们在听讲，也在争论。
+      caption: 孔子和他的弟子。计算是受过教育的人必须掌握的“六艺”之一。19世纪的画作，作者不详。
+    aryabhata:
+      place: 印度
+      alt: 一座白色雕像：一位披着长袍的学者伸出手。
+      caption: 阿耶波多，5世纪的印度数学家和天文学家。没有人知道他的模样：这是浦那的一座现代雕像。
+    istanbul:
+      place: 伊斯兰世界
+      alt: 一幅细密画：戴头巾的学者们在用地球仪、仪器和书籍工作。
+      caption: 在伊斯坦布尔塔基丁的天文台里工作的天文学家和数学家。16世纪末的奥斯曼细密画。
+    pacioli:
+      place: 意大利
+      alt: 一幅肖像：一位修士兼数学家指着一块写有 Euclides 字样的石板，身旁有一名学生，桌子上方挂着一个玻璃多面体。
+      caption: 数学家卢卡·帕乔利和一名学生。画有图形的石板边缘写着“Euclides”。1495年的肖像画，一般认为出自雅各布·德巴尔巴里之手。
+    sangaku:
+      place: 日本
+      alt: 一块木板，上面有彩色的圆形图案和一列列文字。
+      caption: 算额，即写着几何题的木板，位于东京金王八幡宫，1859年。摄影：Momotarou2012，CC BY-SA 3.0。
+    rachinsky:
+      place: 俄国
+      alt: 一幅画：穿着农家衬衫的男孩们站在写着题目的黑板前思考，站在前面的一个男孩用手托着下巴。
+      caption: 乡村学校的学生们在心算黑板上的题：(10² + 11² + 12² + 13² + 14²) ÷ 365。尼古拉·波格丹诺夫-别尔斯基，《心算，在 S. A. 拉钦斯基的乡村学校》，1895年。
+    st-louis:
+      place: 美国
+      alt: 一张课堂照片：孩子们在黑板上写一列列数字，老师在帮一个女孩，其他孩子坐在课桌前，拿着书。
+      caption: 2年级学生在黑板前做算术题。圣路易斯贝茨学校，20世纪初。
+    moscow:
+      place: 苏联
+      alt: 一张照片：一名男生站在画着立体几何图形的黑板前，回头微笑。
+      caption: 学校考试：一名学生站在黑板前，面对一道立体几何题。莫斯科，20世纪50年代。摄影：Yu. D. Korolev，莫斯科总档案馆，CC BY 4.0。
+    coach-canvas:
+      place: MathTrail
+      chip: 在画布上解题
+      alt: 平板电脑屏幕：一道关于路边柱子的题，画布上有一幅虚线草图，旁边是狐狸伙伴的提示和步骤：理解、计划、解题、检查。
+      caption: MathTrail 教练的原型：孩子在画布上画出解法，伙伴建议先从小一点的数开始。
+    coach-sheet:
+      place: MathTrail
+      chip: 纸上的题
+      alt: 平板电脑屏幕：摄像头拍下一张奥数题纸，教练在上面找到了六道题。
+      caption: MathTrail 教练的原型：孩子拍下一张题目纸，教练从中找出六道题。
+    coach-map:
+      place: MathTrail
+      chip: 专题地图
+      alt: 平板电脑屏幕：一张分三步的奥数专题地图，从基础到难题，旁边是“枚举法”专题和孩子在这个专题上的等级。
+      caption: MathTrail 教练的原型：一张从易到难的专题地图，以及孩子在每个专题上的等级。
+
+research:
+  title: 研究发现了什么
+  lead: 给孩子出奥数题已经有一百多年了，但认真研究其效果的工作并不多。下面是其中的四项。
+  # Each finding under a tag of where and whom, a short line in large letters
+  # with a line under it, and the words of the small drawing under its text.
+  findings:
+    rebholz2022:
+      tag: 德国 · 3～4年级
+      big: 一门解题课程
+      small: 两个方面的成绩都更好
+      title: 备赛的效果在学校里也看得到
+      text: 在德国，一批3年级和4年级的学生上了一门奥数风格的解题课程。在数学奥林匹克竞赛中，这些孩子的成绩明显好于没上这门课就参赛的孩子，其中4年级的学生在学校的数学测验中也考得更好。这些学生是由老师挑选来上这门课的。
+      mark:
+        - 在奥赛中
+        - 在学校测验中
+    biondi2012:
+      tag: 巴西 · 2009年
+      big: 1900万
+      small: 名学生在一年内参赛
+      title: 参加奥赛的学校数学成绩更高
+      text: 巴西面向公立学校的数学奥林匹克向每一名学生开放，2009年有1900万名学生参加。参加这项竞赛的学校，其9年级学生在全国统考中的数学成绩更好，而且参加的年数越多，成绩越好。
+      mark: 参加年数越多，分数越高
+    agarwal2020:
+      tag: 国际数学奥林匹克
+      big: IMO
+      small: 分数越高，在科学上走得越远
+      title: 奥赛高手在科学道路上走得远
+      text: 青少年在国际数学奥林匹克上的得分越高，日后就越常拿到博士学位、发表研究成果、被他人引用，并赢得数学界的最高奖项。
+      mark:
+        - 博士学位
+        - 论文
+        - 引用
+        - 最高奖项
+    nunes2007:
+      tag: 英国 · 6岁
+      big: 16个月
+      small: 六岁时的逻辑预示了日后的数学成绩
+      title: 推理从六岁就能学
+      text: 六岁孩子的逻辑推理能力，预示了这些孩子16个月后的数学成绩。学过这种推理的孩子，数学进步比没学过的孩子更大。
+      mark:
+        from: 6岁
+        to: +16个月
+
+school:
+  title: 学校和奥赛教的东西不一样
+  lead: 这并不是责怪学校，学校的任务不同。但在没有给出方法时找到解法的本领，不会自己出现。它需要训练。
+  lesson: 普通的课
+  olympiad: 奥数题
+  # Above the rows, an example of each: a school sum with its answer left
+  # blank, and the fence in short, with its posts.
+  example: 例子
+  sum: 12 ÷ 3 =
+  done: 方法课上已经讲过：剩下的只是照着做一遍。
+  fence: 篱笆长12米，每隔3米一根柱子，两端都有。共有几根柱子？
+  found: 没有给出方法，得自己找：4个间隔，柱子比间隔多一根，所以是5根。
+  rows:
+    shape:
+      label: 题目怎样构成
+      lesson: 先讲方法，再在相似的例子上重复
+      olympiad: 没有给出方法，需要自己找
+    valued:
+      label: 看重什么
+      lesson: 算得快，不出错
+      olympiad: 弄懂是怎么回事，并说明理由
+    mistake:
+      label: 错误意味着什么
+      lesson: 扣分
+      olympiad: 说明推理在哪里走偏了
+    teaches:
+      label: 教会什么
+      lesson: 使用已知的工具
+      olympiad: 没有工具时自己发明一个
+
+time:
+  title: 为什么学校没有时间做这些
+  # Each card with the words of the small drawing at its foot.
+  cards:
+    syllabus:
+      title: 面向全班的教学大纲
+      text: 老师得让每个学生都达到标准。大纲以外的题，很难找到课时。
+      lesson: 一节课
+      length: 45分钟
+      all: 全班的大纲
+      extra: 大纲外的题
+    answer:
+      title: 考试看答案，不看思路
+      text: 考试检查的是结果。很少有时间去细看孩子是怎样推理的，又是在哪一步出的错。
+      steps: 解题过程：没人看
+      answer: 答案：{answer}
+    circle:
+      title: 不是哪里都有数学兴趣小组
+      text: 不是每所学校都开设奥数兴趣小组，而最近的那个可能很远，或者只收年龄大一些的孩子。
+      none: 没有
+      circle: 兴趣小组
+
+parent:
+  title: 家长自己就能帮孩子准备
+  note: MathTrail 不能取代奥数老师，有教练带的好兴趣小组能给孩子更多。但直到{last}年级，您都可以自己帮孩子准备奥赛。
+  unneeded:
+    title: 您不需要
+    items:
+      - 数学学位
+      - 事先知道解法
+      - 自己找题、检查题
+  taken:
+    title: MathTrail 负责
+    items:
+      - 题目
+      - 答案
+      - 讲解错误
+      - 选择水平
+  needed:
+    title: 需要您做的
+    items:
+      - title: 孩子的好奇心
+        text: 奥数题是谜题，不是考试。孩子应该感到好奇，而不是害怕出错。
+      - title: 讲清楚为了什么
+        text: 不是“为了拿高分”，而是为了学会在没人教过的时候自己想出办法。
+      - title: 您的时间和兴趣
+        text: 在孩子身边陪一会儿，经常陪比一次陪很久更好。您对一道题的兴趣是会传染的。
+  # Three moments of a lesson, each with what the child says and what the
+  # parent might answer; the letters stand for who speaks.
+  explain:
+    title: 怎样向孩子解释这是为了什么
+    lead: 三个常见的时刻，以及您可以怎么说。“孩”代表您的孩子。
+    child: 孩
+    you: 您
+    talks:
+      why:
+        moment: 问“有什么用？”
+        child: 我为什么要做这些题？又没人布置。
+        you: 这就像猜谜语：答案藏起来了，你能把它找出来。
+      wrong:
+        moment: 答错了
+        child: 我又做错了……
+        you: 在这里可以做错：错误会告诉你哪里需要再想一想。
+      right:
+        moment: 答对了
+        child: 做完了！答案是五。
+        you: 最棒的不是答案，而是你是怎样得出它的。
+
+thinking:
+  title: MathTrail 怎样教孩子思考
+  lead: 不靠题目的数量，而靠围绕每道题发生的事。
+  points:
+    - title: 一道题，一个思路
+      text: 每道题都属于一个专题，比如“{enumeration}”“{parity}”或“{knights}”。这些专题组成一张地图，从简单到困难。
+    - title: 够得着的题
+      text: 每个专题都有自己的评分。MathTrail 根据它来选择接下来的专题和难度；年级只决定起点。
+    - title: 错误就是诊断
+      text: 每个错误选项背后都有一个有名字的陷阱。讲解从孩子是怎么想的出发，而不是从正确答案出发。
+    - title: 用提示代替答案
+      text: 孩子可以在卡片上打开提示，成年人也可以在聊天里用孩子自己的话问：“为什么不是6？”模型会就这道题作答。
+  topics: 查看全部专题 →
+  # The name of the child the card on this page shows, an invented one.
+  child: 彗星
+  caption: 聊天在答错后显示的卡片。孩子和数字只是举例。
+  # Two messages of the chat beneath the card: the adult's question and the
+  # model's reply, about the step and to nobody, for the adult to read out to
+  # the child. They are the site's words, never the card's.
+  chat:
+    label: 聊天示意
+    adult: 成年人
+    model: 模型
+    question: 为什么不是6？
+    reply: 六根的话，就把一根柱子数了两次。从左边沿着篱笆看，每个间隔的末端都有一根柱子，所以4个间隔带来4根柱子，而第一根柱子立在所有间隔的前面。4 + 1 = 5。
+
+app:
+  title: 为什么这不是一个普通的应用
+  lead: 一项研究调查了三到五岁孩子玩的应用，发现约有三分之二用了让孩子玩得更久的设计（{source}）。MathTrail 的做法不同，这一点可以查证。
+  # A make-believe app of the kind that keeps a child at the screen, every
+  # trick of it, and what MathTrail has of them.
+  bait:
+    coins: 12,450
+    gems: "87"
+    timer: 03:59后领奖励
+    cheer: 你是冠军！！！
+    praise: 1道算术题，你做对了1道。太厉害了！
+    chest: 打开宝箱！
+    hat: 龙帽 · ¥68
+    premium: 开通会员，金币×2！
+    caption: 眼熟吗？这些 MathTrail 一样也没有。
+  # Each card with the short things at its foot that show what it says.
+  cards:
+    checked:
+      title: 每道题都由程序检查
+      text: 模型写出一道题，再写一个解这道题的程序。服务器在封闭的沙箱里运行这个程序，检查是否恰好只有一个选项正确、答案是否一致、文字是否适合该年级，以及是否与之前题目的文字重复。没通过检查的题，永远到不了孩子面前。
+      checks:
+        - 唯一答案
+        - 对得上
+        - 够得着
+        - 不重复
+      fails: 未通过 → 孩子看不到
+    free:
+      title: 免费，原因很明白
+      text: MathTrail 没有自己的 AI。题目由您聊天里的模型来写，用的是您现有的额度，Claude 的免费计划也够用。服务器几乎没什么要花钱的地方，所以没有订阅、没有广告，也没有锁定的专题。
+      price: ¥0
+      none:
+        - 订阅
+        - 广告
+        - 锁定专题
+    data:
+      title: 数据留在您手里
+      text: 孩子的档案是您 Google 云端硬盘里的一个文件。只有正在解的那道题的答案和解答是密封的，这样孩子就没法偷看。服务器在两次请求之间不保留任何东西，也不出售任何东西。
+      # After the name of the profile's file.
+      where: 您的 Google 云端硬盘
+      server: 服务器上：无
+    screen:
+      title: 没有让孩子黏在屏幕前的东西
+      text: 没有金币，没有宝箱，没有倒计时，也没有广告。题目解出来后，就可以关掉聊天，晚饭时再聊聊这道题。
+      none:
+        - 金币
+        - 宝箱
+        - 倒计时
+        - 广告
+      after: 题解完了 → 吃晚饭

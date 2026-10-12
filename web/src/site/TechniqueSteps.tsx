@@ -244,7 +244,7 @@ const drawTable: Draw = (page, at, step) => (
 			return [
 				<span key={child} class="s-step-pets-child">
 					<span class="s-step-pets-face" data-child={child}>
-						{name.charAt(0)}
+						{page.plain(`${at}.faces.${child}`)}
 					</span>
 					{name}
 				</span>,

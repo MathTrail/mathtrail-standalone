@@ -180,11 +180,11 @@ function extension(path: string): string {
 }
 
 // foreignDigit matches a decimal digit of any script but 0 to 9.
-const foreignDigit = /(?![0-9])\p{Nd}/gu;
+const foreignDigit = /(?!\d)\p{Nd}/gu;
 
 // numericReference matches a character written by its number, &#1633; or
 // &#x661;, which a browser shows as the character itself.
-const numericReference = /&#(?:x([0-9a-f]+)|([0-9]+));?/gi;
+const numericReference = /&#(?:x([\da-f]+)|(\d+));?/gi;
 
 // digitsOf are the decimal digits of other scripts than 0 to 9 that html
 // shows, each once: written as they are, or by their number.

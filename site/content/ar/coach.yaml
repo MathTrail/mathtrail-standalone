@@ -1,0 +1,48 @@
+# The page "Coach", for a parent, in Arabic: a product of its own, still in
+# the making, that leads a child through a problem on a tablet, and its
+# prototype to try in a frame. The prototype speaks English alone in every
+# language of the page and is never translated. The number of techniques on
+# the first screen's second button is the site's data.
+
+title: المدرب
+description: نصنع مدربًا للأطفال من 7 إلى 12 عامًا، يحلّون معه مسائل الأولمبياد على جهاز لوحي ويفكرون فيها بأنفسهم. جرّبوا نموذجه الأولي.
+
+hero:
+  badge: قيد التطوير
+  title: رياضيات أولمبياد يقودها تفكير الطفل
+  lead: "نصنع مدربًا للأطفال من 7 إلى 12 عامًا. تُحلّ المسألة على جهاز لوحي، بالرسم والكتابة على لوحة الرسم كما في الدفتر. ورفيق من اختيار الطفل يقود الطريق عبر أربع خطوات، ويطرح أسئلة موجّهة. ولا يكشف الرفيق الإجابة أبدًا: فكتابتها للطفل."
+  try: جرّبوا النموذج الأولي
+  # A screen of the prototype beside the words: what it shows, for whoever
+  # cannot see it, and the line under it.
+  screen: "النموذج الأولي من MathTrail: اختيار رفيق"
+  caption: "شاشة من النموذج الأولي: اختيار من يرافق الطفل في الحل. جرّبوه أدناه."
+
+# What the coach is about, a card for each idea, under a heading a screen
+# reader alone says.
+ideas:
+  title: كيف سيكون المدرب
+  items:
+    - title: خطوات بوليا الأربع
+      text: الفهم ← وضع خطة ← الحل ← التحقق. والخطوات ظاهرة دائمًا.
+    - title: لوحة رسم كالدفتر
+      text: الرسم جزء من الحل. والتلميحات تأتي واحدًا تلو الآخر، دون خيارات يُختار منها.
+    - title: رفيق خاص بالطفل
+      text: ثعلب، أو روبوت، أو بومة، أو قطة، أو ديناصور، أو رفيق من رسم الطفل.
+
+# The prototype in its frame: the frame's name for a screen reader, the line
+# under it, and the link that opens it alone.
+prototype:
+  frame: "MathTrail: نموذج أولي تفاعلي"
+  caption: "نموذج أولي تفاعلي: جرّبوا رسم حل"
+  open: فتح بملء الشاشة ↖
+
+# What the prototype is, and what it only pretends to do yet.
+notes:
+  title: هذا نموذج أولي
+  text: يمكن النقر على كل شيء، ويمكن الرسم على اللوحة بالفأرة أو بالإصبع. والواجهة حاليًا بالإنجليزية.
+  imitated:
+    title: مجرد محاكاة حاليًا
+    items:
+      - التعرّف على خط اليد والرسوم
+      - صوت الرفيق
+      - مسائل من صورة

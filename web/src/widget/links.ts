@@ -1,3 +1,4 @@
+import { baseNameOf } from "../i18n/lookup";
 import type { Site } from "./payload";
 
 /**
@@ -75,10 +76,12 @@ export function groupAddress(
 	return `${origin}/${writtenIn(site, language)}/topics/#${group}`;
 }
 
-// writtenIn is language when the site is written in it, and the language every
-// page is written in otherwise.
+// writtenIn is language when the site is written in it, its extensions — the
+// digits it asks for, say — left out, and the language every page is written
+// in otherwise.
 function writtenIn(site: Site, language: string): string {
-	return site.languages.includes(language) ? language : everyPageLanguage;
+	const base = baseNameOf(language);
+	return site.languages.includes(base) ? base : everyPageLanguage;
 }
 
 // httpsOrigin is address when it is the origin of an https site and nothing

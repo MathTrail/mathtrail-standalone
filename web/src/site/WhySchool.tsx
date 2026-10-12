@@ -40,7 +40,7 @@ export function School({ page }: { page: PageReader }) {
 					</p>
 					<div class="s-why-side-example">
 						<p class="s-why-side-label">{page.text("school.example")}</p>
-						<p class="s-why-sum">
+						<p class="s-why-sum" dir="ltr">
 							{page.text("school.sum")}
 							<span class="s-why-blank" aria-hidden="true" />
 						</p>

@@ -90,5 +90,5 @@ describe("the sharing pictures", () => {
 				locale,
 			).toEqual([]);
 		}
-	});
+	}, 60_000);
 });

@@ -1,0 +1,248 @@
+# The page of the topic of weighing and pouring, for a parent, in Portuguese.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Balanças e jarras
+description: O que são os problemas de balanças e jarras, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+# The words the page's drawings write a jug's size, a step and a move in.
+art:
+  litres: "{count} L"
+  step: passo
+  pour: despejar
+  empty: esvaziar
+  fill: encher
+  top: completar
+
+hero:
+  lead: >-
+    Com uma jarra de 5 litros e outra de 3 litros, como medir exatamente 4
+    litros? Com uma balança de pratos e sem pesos, como achar a única moeda
+    mais leve entre muitas? Nestes problemas, a criança planeja uma sequência
+    curta de passos, e cada regra conta: jarras sem marcas, balança sem pesos.
+    É um primeiro contato com algoritmos, planos que funcionam aconteça o que
+    acontecer.
+  method: Anotar cada estado e procurar o caminho mais curto
+  teaches: A planejar os passos com antecedência e a pensar em cada resultado de uma pesagem
+  # The words of its drawing: what is measured over it, and what each pair of
+  # jugs is.
+  art:
+    line: Medir 4 litros com jarras de 5 e 3 litros
+    pair: "cada par é um estado: quanto há em cada jarra"
+
+basis:
+  title: As regras das balanças e jarras
+  cards:
+    - title: Um estado mostra todas as jarras
+      text: >-
+        Anote quanto há em cada jarra depois de cada passo: 5 e 0, depois 2 e 3.
+        Uma lista de estados mostra aonde dá para chegar e por onde você já
+        passou.
+    - title: Três resultados
+      text: >-
+        Uma balança pode pender para a esquerda, para a direita ou ficar em
+        equilíbrio, então cada pesagem tem três resultados. Divida as moedas em
+        três grupos, não em dois.
+      art:
+        left: esquerda
+        level: equilíbrio
+        right: direita
+    - title: Cada regra conta
+      text: >-
+        Jarras sem marcas, nada de jogar água fora, pesos em um prato só: cada
+        regra muda quais passos são permitidos e, com isso, a resposta.
+      art:
+        no-marks: sem marcas
+        pour-out: jogar fora
+        unless: a não ser que o problema permita
+        weight: um peso
+        one-pan: só em um prato
+
+idea:
+  title: Três resultados de uma pesagem
+  lead: Cada pesagem tem três resultados, então ela pode dividir as moedas em três grupos. É isso que decide de quantas moedas um certo número de pesagens dá conta.
+  table:
+    head:
+      - Pesagens
+      - Resultados
+      - Moedas de que dão conta
+    rows:
+      - - "1"
+        - "3"
+        - até 3
+      - - "2"
+        - 3 × 3 = 9
+        - até 9
+      - - "3"
+        - 3 × 3 × 3 = 27
+        - até 27
+  note:
+    title: Por que isso importa
+    text: >-
+      A criança que pesa metade das moedas contra a outra metade precisa de
+      mais pesagens do que o necessário. Perceber que uma balança responde de
+      três jeitos, e não de dois, é a ideia toda, e ela volta mais tarde na
+      ciência da computação, como busca.
+
+method:
+  title: "Como resolver: uma tabela de estados"
+  lead: >-
+    Com as jarras, monte uma tabela com uma coluna para cada uma e uma linha
+    para cada passo e, a partir de cada linha, tente todos os passos permitidos
+    até o objetivo aparecer; a primeira vez que ele aparece dá o menor número
+    de passos. Com a balança, planeje o que fazer depois de cada um dos três
+    resultados. Os exemplos abaixo vão do mais simples a um de olimpíada.
+  steps:
+    - Anotar o estado, o que há em cada jarra ou prato
+    - Tentar a partir dele todos os passos permitidos
+    - Parar no objetivo e contar os passos
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    goal: objetivo alcançado
+
+examples:
+  - title: Um litro
+    question: >-
+      Uma cozinheira tem uma jarra vazia de 3 litros, uma jarra vazia de 5
+      litros e uma torneira. As jarras não têm marcas. Em um passo, ela enche
+      uma jarra na torneira, esvazia uma jarra ou despeja água de uma jarra na
+      outra até a primeira ficar vazia ou a segunda ficar cheia. Qual é o menor
+      número de passos para ter exatamente 1 litro em uma jarra?
+    steps:
+      - Encha a jarra de 3 litros e despeje tudo na jarra de 5 litros, que agora tem 3 litros.
+      - >-
+        Encha de novo a jarra de 3 litros e despeje água dela na jarra grande
+        até esta ficar cheia: só cabem mais 2 litros.
+      - "Sobra 1 litro na jarra pequena, depois de 4 passos: encher, despejar, encher, despejar."
+    answer: 4 passos.
+    note:
+      title: Por que não menos?
+      text: >-
+        Em uma tabela de todos os estados alcançados em até três passos não
+        aparece 1 litro: as jarras só têm 0, 2, 3 ou 5 litros. O primeiro litro
+        aparece depois do quarto passo.
+    art:
+      jugs: jarras de 3 e 5 litros, sem marcas
+      rows: 4 passos, 4 linhas depois das jarras vazias
+      three: "em 3 passos:"
+      no-litre: o litro não aparece
+  - title: Oito moedas
+    question: >-
+      Há 8 moedas que parecem iguais. Uma delas é falsa e mais leve que as
+      outras, que pesam todas o mesmo. Qual é o menor número de pesagens em uma
+      balança sem pesos para achar a falsa com certeza?
+    steps:
+      - Coloque 3 moedas em cada prato e deixe 2 de lado.
+      - >-
+        Se um prato sobe, a falsa está entre as 3 moedas desse prato: pese 1 contra 1,
+        e a mais leve é a falsa, ou é a terceira moeda, se as duas ficarem em
+        equilíbrio.
+      - >-
+        Se os pratos ficam em equilíbrio, a falsa é uma das 2 deixadas de lado:
+        pese uma contra a outra. De qualquer jeito, 2 pesagens bastam, e 1 não
+        basta: ela tem só 3 resultados para 8 moedas.
+    answer: 2 pesagens.
+    note:
+      title: Por que não 4 e 4?
+      text: >-
+        Pesar 4 contra 4 deixa 4 moedas depois da primeira pesagem, e 4 moedas
+        precisam de mais 2 pesagens, 3 ao todo. Com grupos de três, o resultado
+        “equilíbrio” também faz parte do trabalho.
+    art:
+      one-lighter: uma das 8 é mais leve
+      three: 3 contra 3
+      aside: de lado
+      lighter: a esquerda é mais leve
+      one: 1 contra 1
+      found: a mais leve é a falsa; em equilíbrio, a terceira
+      level: equilíbrio
+      of-two: das 2 deixadas de lado
+      never-level: nunca em equilíbrio
+      four-left: sobram 4 → mais 2 pesagens
+  - title: Cem moedas
+    question: >-
+      Entre 100 moedas que parecem iguais, uma é falsa e mais leve que as
+      outras, que pesam todas o mesmo. Qual é o menor número de pesagens em uma
+      balança sem pesos para achar a falsa com certeza?
+    steps:
+      - >-
+        Cada pesagem tem 3 resultados, então 4 pesagens distinguem no máximo
+        3 × 3 × 3 × 3 = 81 casos. Isso é menos que 100 moedas, então 4 pesagens
+        não bastam.
+      - >-
+        Coloque 33 moedas em cada prato e deixe 34 de lado: aconteça o que
+        acontecer, sobram no máximo 34 moedas. Do mesmo jeito, 34 caem para no
+        máximo 12, depois 4, depois 2, depois 1.
+      - São 5 pesagens, e as moedas passam de 100 para 34, 12, 4, 2 e 1.
+    answer: 5 pesagens.
+    note:
+      title: Duas metades de uma demonstração
+      text: >-
+        A resposta precisa das duas: um plano que acha a falsa em 5 pesagens e
+        a contagem de resultados que mostra que 4 nunca podem bastar. As
+        respostas de olimpíada sobre “o menor número” sempre têm essas duas
+        metades.
+    art:
+      aside: de lado
+      numbers: os números sobre as setas contam as pesagens
+      plan: o plano
+      always: 5 pesagens sempre acham a falsa
+      bound: o limite
+      at-most: 4 distinguem no máximo 81 casos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Uma regra do problema é quebrada sem que se perceba: jogam água fora sem
+      o problema permitir, enchem uma jarra até uma marca que ela não tem ou
+      põem um peso no prato do que está sendo pesado.
+    say: “Que passos o problema permite?”
+    art:
+      question: Jarras sem marcas
+      to-mark: encher “até 1 litro”
+      after-pouring: 1 litro, despejando
+  stopped_early:
+    shows: >-
+      O plano termina antes de haver certeza: uma pesagem acha o grupo com a
+      falsa e a busca acaba ali, ou se deixa de despejar em 2 litros quando o
+      objetivo era 1.
+    say: “Não importa o que a balança mostrou, agora você sabe com certeza?”
+    art:
+      question: Depois da primeira pesagem
+      here: “está aqui”, mas qual?
+      one-more: mais uma pesagem
+  off_by_one:
+    shows: >-
+      Os passos são contados com um a mais ou a menos: o primeiro enchimento na
+      torneira fica de fora, ou a última vez que se despeja água é contada duas
+      vezes.
+    say: "“Conte de novo na tabela: uma linha, um passo.”"
+    art:
+      question: Uma linha da tabela, um passo
+      three: 3 passos
+      four: 4 passos
+      empty: vazias → 4 estados
+
+home:
+  - title: Jarras na pia
+    text: >-
+      Pegue dois copos de tamanhos diferentes e tente medir uma quantidade
+      diferente da que cabe em cada um. A pia é o melhor laboratório, e água
+      derramada não faz mal.
+  - title: Ache o mais leve
+    text: >-
+      Esconda um objeto mais leve entre alguns que parecem iguais e encontre-o
+      com uma balança de casa ou com um cabide e duas sacolas. Conte as
+      pesagens.
+  - title: Primeiro, o plano
+    text: >-
+      Antes de despejar ou de pesar, escreva o plano em forma de tabela e
+      confira passo a passo. A habilidade está em planejar primeiro, não na
+      sorte.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de balanças e jarras

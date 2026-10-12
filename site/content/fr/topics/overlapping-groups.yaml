@@ -1,0 +1,227 @@
+# The page of the topic of overlapping groups, for a parent, in French. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Groupes qui se chevauchent
+description: Ce que sont les problèmes de groupes qui se chevauchent, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+hero:
+  lead: >-
+    Certains enfants vont au club d’échecs, d’autres au football, certains aux
+    deux, et d’autres à aucun des deux. Dans ces problèmes, les groupes se
+    chevauchent, et toute l’astuce est de compter chacun exactement une fois.
+    Deux cercles dessinés sur papier transforment une question embrouillée en
+    quatre nombres.
+  method: Dessiner les cercles et commencer par le milieu
+  teaches: À compter sans compter deux fois et à dire ce que signifie chaque nombre
+  # The words of its drawing: what the two circles are, and what their middle
+  # means.
+  art:
+    line: Les clubs de la classe
+    chess: échecs
+    football: football
+    middle: au milieu, ceux qui vont aux deux
+
+basis:
+  title: Les règles des deux cercles
+  cards:
+    - title: Additionnés, comptés deux fois
+      text: >-
+        Quand on additionne les deux groupes, les enfants qui sont dans les deux
+        sont comptés deux fois, une fois dans chacun. Retirez-les une fois, et
+        tout le monde est compté une seule fois.
+      art:
+        choir: chorale 14
+        art: dessin 11
+        twice: "14 + 11 = 25, mais 4 d’entre eux sont comptés deux fois : 25 − 4 = 21"
+    - title: Certains ne sont dans aucun
+      text: >-
+        Être dans un groupe n’est pas obligatoire. Toute la classe, ce sont ceux
+        qui sont dans au moins un groupe et ceux qui ne sont dans aucun.
+      art:
+        class: toute la classe
+        none: 9 dans aucun groupe
+    - title: Quand le milieu n’est pas donné
+      text: >-
+        Si personne ne dit combien d’enfants sont dans les deux groupes, ce
+        nombre ne peut qu’être encadré : plus les groupes ont en commun, moins
+        il y a d’enfants dans au moins l’un d’eux.
+      art:
+        little: peu en commun
+        much: beaucoup en commun
+
+idea:
+  title: Les quatre parties du dessin
+  lead: >-
+    30 élèves : 14 chantent dans la chorale, 11 vont au club de dessin et 4
+    font les deux. Remplissez le dessin du milieu vers l’extérieur.
+  table:
+    head:
+      - La partie
+      - Combien
+      - Comment on le trouve
+    rows:
+      - - Dans les deux
+        - "4"
+        - donné
+      - - Chorale seulement
+        - 14 − 4 = 10
+        - la chorale sans ceux qui sont dans les deux
+      - - Dessin seulement
+        - 11 − 4 = 7
+        - le club de dessin sans ceux qui sont dans les deux
+      - - Dans aucun
+        - 30 − 10 − 7 − 4 = 9
+        - tous les autres
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      La plupart des mauvaises réponses viennent de l’addition des deux groupes,
+      quand on oublie que le milieu a été compté deux fois, ou de la réponse
+      « chorale seulement » quand la question portait sur toute la chorale.
+      Remplir le dessin du milieu vers l’extérieur évite ces deux erreurs.
+
+method:
+  title: "Comment le résoudre : du milieu vers l’extérieur"
+  lead: >-
+    Dessinez deux cercles qui se chevauchent. Écrivez d’abord le milieu, ceux
+    qui sont dans les deux, puis chaque cercle sans le milieu, et enfin ceux
+    qui sont à l’extérieur. Quand le milieu n’est pas donné, essayez les
+    valeurs qu’il pourrait prendre et voyez lesquelles conviennent. Les
+    exemples ci-dessous vont du plus simple à un problème d’olympiade.
+  steps:
+    - Dessiner les cercles
+    - Remplir le milieu, puis le reste
+    - Vérifier qu’en additionnant les parties, on retrouve tout le monde
+  # The key under the steps: what a ring on a number means.
+  legend:
+    filled: "un anneau bleu : ce que remplit cette étape"
+
+examples:
+  - title: Sœurs et frères
+    question: >-
+      Dans un groupe de 24 enfants, 15 ont une sœur, 11 ont un frère et 6 ont à
+      la fois une sœur et un frère. Combien d’enfants n’ont ni sœur ni frère ?
+    steps:
+      - >-
+        On dessine deux cercles qui se chevauchent, « sœur » et « frère ». Au
+        milieu : les 6 enfants qui ont les deux.
+      - "Une sœur seulement : 15 − 6 = 9. Un frère seulement : 11 − 6 = 5."
+      - "Dans les cercles : 9 + 6 + 5 = 20 enfants. En dehors : 24 − 20 = 4."
+    answer: 4 enfants.
+    art:
+      sister: sœur
+      brother: frère
+      all: "en tout : 24"
+      only: 15 − 6 = 9 · 11 − 6 = 5
+      out: 24 − 20 = 4 en dehors
+  - title: Pommes et poires
+    question: >-
+      Dans un groupe de 25 enfants, 18 aiment les pommes et 16 aiment les
+      poires. Quel est le plus petit nombre d’enfants qui pourraient aimer les
+      deux ?
+    steps:
+      - >-
+        Pour que le milieu soit le plus petit possible, on sépare le plus
+        possible ceux qui aiment les pommes de ceux qui aiment les poires.
+      - >-
+        Séparés, ils auraient besoin de 18 + 16 = 34 places, et il n’y a que 25
+        enfants : 34 − 25 = 9 d’entre eux sont forcément dans les deux cercles.
+      - >-
+        9, c’est possible : 9 aiment seulement les pommes, 7 seulement les
+        poires et 9 les deux, soit 25 en tout, sans oublier personne.
+    answer: 9 enfants.
+    note:
+      title: Et au maximum ?
+      text: >-
+        Au maximum, les 16 qui aiment les poires pourraient tous aimer aussi
+        les pommes. Le milieu se situe entre 9 et 16, et la question demandait
+        le bas de cette fourchette.
+    art:
+      apples: pommes
+      kids: enfants
+      pears: poires
+      ends: les pommes depuis la gauche, les poires depuis la droite
+      violet: "en violet, ceux qui aiment les deux : 9"
+      all: "en tout : 25"
+      inside: les 16 amateurs de poires, tous dans les pommes
+  - title: Trois matières
+    question: >-
+      Chacun des 20 élèves aime au moins une de ces trois matières : les maths,
+      la lecture et le dessin. 12 aiment les maths, 10 la lecture et 9 le
+      dessin. Personne n’aime les trois. Combien d’élèves aiment exactement
+      deux matières ?
+    steps:
+      - >-
+        On additionne les trois nombres : 12 + 10 + 9 = 31. Un élève qui aime
+        une matière compte une fois dans cette somme, et un élève qui en aime
+        deux compte deux fois.
+      - >-
+        Il y a 20 élèves, donc la somme compte 31 − 20 = 11 de trop, un pour
+        chaque élève compté deux fois.
+      - >-
+        Donc 11 élèves aiment exactement deux matières. Vérification : 9 en
+        aiment une et 11 en aiment deux, et 9 + 2 × 11 = 31.
+    answer: 11 élèves.
+    note:
+      title: Compter deux fois exprès
+      text: >-
+        Ici, l’astuce n’est pas dans les cercles mais dans la somme : chaque
+        élève y ajoute un par matière aimée. Les problèmes d’olympiade sur les
+        groupes reposent souvent sur une même chose comptée de deux façons.
+    art:
+      maths: maths 12
+      reading: lecture 10
+      drawing: dessin 9
+      once: une fois
+      twice: deux fois
+      each: un par élève, 20 ; en trop, 31 − 20 = 11
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      L’enfant additionne les deux groupes, 15 et 11, et prend la somme pour le
+      nombre d’enfants : ceux qui sont dans les deux groupes sont comptés deux
+      fois.
+    say: « Est-ce que quelqu’un est compté dans les deux cercles ? »
+    art:
+      question: 15 ont une sœur, 11 un frère, 6 les deux
+  answered_other_question:
+    shows: >-
+      L’enfant trouve une partie du dessin et la donne comme réponse, alors que
+      la question portait sur une autre : « dans les deux » au lieu de « dans
+      aucun », ou « chorale seulement » au lieu de toute la chorale.
+    say: « Montre la partie du dessin dont parle la question. »
+    art:
+      question: "La question : combien n’ont ni sœur ni frère ?"
+  missed_case:
+    shows: >-
+      Une partie du dessin est oubliée : on retire un groupe de tout le monde et
+      on oublie l’autre, ou on ne rajoute pas ceux qui sont dans les trois
+      groupes.
+    say: « Est-ce que chaque partie du dessin est remplie ? »
+    art:
+      question: "24 enfants : 15 ont une sœur, 11 un frère, 6 les deux"
+
+home:
+  - title: Deux cerceaux par terre
+    text: >-
+      Posez par terre deux cerceaux, ou deux boucles de ficelle, de façon
+      qu’ils se chevauchent, et triez des jouets dedans : « rouges » et
+      « doux ». Un ours rouge et doux va au milieu.
+  - title: Six qui ?
+    text: >-
+      Quand l’enfant répond « six », demandez : « Six qui ? » Six dans les deux
+      clubs et six dans aucun, ce sont deux réponses différentes.
+  - title: Un sondage en famille
+    text: >-
+      Posez deux questions à la famille, par exemple qui aime le thé et qui
+      aime le chocolat chaud, et dessinez les cercles ensemble. C’est en
+      général au milieu que l’on se trompe en comptant.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Groupes qui se chevauchent »

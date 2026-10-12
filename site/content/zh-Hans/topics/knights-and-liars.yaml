@@ -1,0 +1,177 @@
+# The page of the topic of knights and liars, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 真假话问题
+description: 什么是真假话问题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+# The words every drawing of the page writes its islanders in: the letters
+# of a knight and of a liar, and the islanders' own.
+art:
+  knight: 真
+  liar: 假
+  a: A
+  b: B
+  c: C
+
+hero:
+  lead: >-
+    岛上住着骑士和骗子：骑士总说真话，骗子总说假话。要根据岛民说的话，推断出谁是骑士、谁是骗子。对很多孩子来说，这是第一次接触真正的逻辑推理：先做一个假设，顺着它往下推，再发现其中的矛盾。
+  method: “假设这个人是骑士……”
+  teaches: 一步一步地推理，并检查自己的结论
+  # The words of its drawing: the key of the letters over it, and in it the
+  # first example's two suppositions and how each ends.
+  art:
+    knight: 骑士总说真话
+    liar: 骗子总说假话
+    says: “我是骗子，而且B是骑士”
+    rule: 假设，再检验
+    if-knight: 假设A是骑士：那么A就是骗子
+    contradiction: 矛盾
+    if-liar: 假设A是骗子：那么B也是骗子
+    fits: 吻合
+
+basis:
+  title: 岛上的规则
+  cards:
+    - mark: 真
+      title: 骑士
+      text: 总说真话。骑士说的每一句话都是真的，没有例外。
+    - mark: 假
+      title: 骗子
+      text: 总说假话。骗子说的每一句话都是假的，骗子从不说真话，哪怕是碰巧也不会。
+    - mark: "?"
+      title: 没有第三种人
+      text: 每个岛民不是骑士就是骗子。从外表分不出谁是谁，只能从说的话来分辨。
+
+idea:
+  title: 谁能说什么
+  lead: 先来看两句话。它们一下子就能说明这类题是怎么回事。
+  table:
+    head:
+      - 说的话
+      - 骑士
+      - 骗子
+      - 说明什么
+    rows:
+      - - “我是骑士”
+        - ✓ 能说：这是真话
+        - ✓ 能说：这是假话，骗子的话本来就该是假的
+        - 什么也说明不了：谁都可能这样说。
+      - - “我是骗子”
+        - ✕ 不能：那就成了假话
+        - ✕ 不能：那就成了真话
+        - 不可能出现的一句话：谁都不能这样说。
+  note:
+    title: 为什么重要
+    text: >-
+      岛民说“我是骑士”时，这句话可以直接划掉：它什么也改变不了。而如果解到一半，发现有人实际上等于说了“我是骗子”，那么一开始的假设就是错的。
+
+method:
+  title: 解法：“假设……”
+  lead: >-
+    这类题几乎都用同一种方法来解：选一个岛民，假设这个岛民是哪一种人，再看能推出什么。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 假设
+    - 看看由此能推出什么
+    - 找出矛盾，或者检验答案
+
+examples:
+  - title: 路上的两个人
+    question: >-
+      两个岛民A和B在路上相遇。A说：“我是骗子，而且B是骑士。”谁是骑士，谁是骗子？
+    steps:
+      - >-
+        **假设A是骑士**。那么这句话是真的，A就是骗子。可我们假设的是A是骑士：**矛盾**，所以这种情况不可能。
+      - >-
+        **假设A是骗子**。那么这句话是假的。它的前半句“我是骗子”是真的，所以后半句是假的：B不是骑士，而是骗子。**全都吻合**。
+    answer: A和B都是骗子。
+    note:
+      title: 骗子怎么能说“我是骗子”？
+      text: >-
+        单独一句“我是骗子”是不可能出现的。可是用“而且”和另一句话连在一起，骗子就能说了：只要其中一部分是假的，整句话就是假的。
+    art:
+      says: “我是骗子，而且B是骑士”
+      contradiction: 矛盾
+      fits: 全都吻合
+      alone: “我是骗子”
+      nobody: 谁也不能说
+      liar-can: 骗子能说
+  - title: 一连串指控
+    question: >-
+      三个岛民A、B、C各说了一句话。A说：“B是骗子。”B说：“C是骑士。”C说：“A和B都是骗子。”谁是骑士，谁是骗子？
+    steps:
+      - >-
+        **从哪里开始**？从说得最多的人开始，因为从这个人的话里能推出更多东西。这个人就是C。
+      - >-
+        **假设C是骑士**。那么A和B都是骗子。可是B说过“C是骑士”，这句话就成了真话，而骗子从不说真话。**矛盾**。
+      - >-
+        **所以C是骗子**。那么B说的“C是骑士”是假话，B也是骗子。
+      - A说“B是骗子”，这是真话。所以A是骑士。
+    answer: A是骑士；B和C是骗子。
+    note:
+      title: 检验：每句话再过一遍
+      text: >-
+        A：“B是骗子”是真话，说话的是骑士。B：“C是骑士”是假话，说话的是骗子。C：“A和B都是骗子”是假话，因为A是骑士，说话的是骗子。全都吻合。
+    art:
+      a-says: “B是骗子”
+      b-says: “C是骑士”
+      c-says: “A和B都是骗子”
+      most: 说得最多
+      contradiction: 矛盾
+      true-knight: 真话，出自骑士
+      false-liar: 假话，出自骗子
+  - title: 圆桌
+    question: >-
+      十个岛民围坐在一张圆桌旁。每个人都说：“我右边的邻座是骗子。”桌旁有几个骑士？
+    steps:
+      - >-
+        如果一个岛民是骑士，这句话就是真的：右边的邻座是骗子。
+      - >-
+        如果一个岛民是骗子，这句话就是假的：右边的邻座是骑士。
+      - >-
+        所以骑士和骗子围着桌子交替而坐：真、假、真、假……十个人里恰好一半是骑士：**5个骑士**。
+    answer: 5个骑士。
+    note:
+      title: 如果桌旁坐的是9个岛民呢？
+      text: >-
+        座位数是奇数时，交替着围成一圈，首尾总也接不上：最后一个和第一个会是同一种人。这样的桌子不可能存在。在这里，骑士和骗子遇上了奇偶性。
+    art:
+      right-liar: 右边的邻座是骗子
+      right-knight: 右边的邻座是骑士
+      half: 5和5
+      kinds: 骑士和骗子
+      turns: 每个人看的是顺时针方向的邻座
+      clash: 最后一个和第一个是同一种人
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      孩子标上了“真”和“假”，却没有把每句话再核对一遍，结果其中一句对不上。
+    say: “把每句话再读一遍。这句话是真是假？是谁说的？”
+  trusted_statement:
+    shows: >-
+      孩子相信了岛民的话，却没问是谁说的：A说B是骗子，B就一定是骗子。
+    say: “要是骗子说的呢？那什么才是真的？”
+  stopped_early:
+    shows: >-
+      孩子推出了第一个岛民是什么人，就停在那里，其余的岛民都没有判断。
+    say: “很好，A是骗子。从这一点，你能看出B是什么吗？”
+
+home:
+  - title: 扮演岛民
+    text: >-
+      您来当骗子，孩子向您提问。孩子很快就会发现：问“你是骗子吗？”，您总是回答“不是”。
+  - title: 用提问代替讲解
+    text: >-
+      不给答案，而是提一个问题：“如果这个人是骑士，那会怎样？”这正是本专题的关键一招。
+  - title: 用铅笔写“真”和“假”
+    text: >-
+      在每个名字上方写一个假设。出现矛盾了？擦掉，换另一个试试。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“真假话问题”的题

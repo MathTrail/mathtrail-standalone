@@ -297,8 +297,8 @@ function Sets() {
 }
 
 // Verdict is whether the order matters, on a pill green for yes and grey for
-// no, then why: both read from the cell's own words, "Yes: why", which a
-// screen reader reads whole.
+// no, then why: both read from the cell's own words, "Yes: why", parted at
+// its colon, which neither part shows.
 function Verdict({
 	page,
 	row,
@@ -308,15 +308,27 @@ function Verdict({
 	row: number;
 	yes: boolean;
 }) {
-	const [word = "", ...why] = page
-		.plain(`idea.table.rows.${row}.2`)
-		.split(": ");
+	const [word, why] = verdictOf(page.plain(`idea.table.rows.${row}.2`));
 	return (
 		<Stack gap={4} align="start">
 			<Chip tone={yes ? "green" : "grey"}>{word}</Chip>
-			<span class="s-enum-why">{why.join(": ")}</span>
+			<span class="s-enum-why">{why}</span>
 		</Stack>
 	);
+}
+
+/**
+ * verdictOf parts a cell of the order table into its verdict and its reason,
+ * at the cell's first colon that ends a phrase, the spaces around it left
+ * out: one a space follows, as in "Yes: AB and BA are two lines" and in
+ * French's "Oui : …" with the no-break space before its colon, or the
+ * full-width one Chinese and Japanese write with no space at all, "是：…". The
+ * colon of a time or a ratio, "2:1", has no space after it and parts nothing.
+ * A cell with no such colon is a verdict with no reason.
+ */
+export function verdictOf(cell: string): [string, string] {
+	const parted = /^(.*?)\s*(?::\s+|：\s*)(.*)$/su.exec(cell);
+	return parted === null ? [cell, ""] : [parted[1] ?? "", parted[2] ?? ""];
 }
 
 // Count is how many cases there are: an equals sign and the number.
@@ -428,8 +440,10 @@ export const art: TopicArt = {
 							.map((second) =>
 								first === "b" && second === "c" ? (
 									<span key={second} class="s-enum-lost">
-										{page.plain("art.b")}
-										{page.plain("art.c")}?
+										{page.plain(`${at}.lost`, {
+											first: page.plain("art.b"),
+											second: page.plain("art.c"),
+										})}
 									</span>
 								) : (
 									<Children key={second} page={page} who={[first, second]} />

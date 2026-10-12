@@ -1,0 +1,211 @@
+# The page of the topic of percentages, for a parent, in German. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Prozentrechnung
+description: Worum es bei der Prozentrechnung geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+hero:
+  lead: >-
+    Ein Preis sinkt um 20% und dann noch einmal um 20%. Ist er um 40%
+    gesunken? In diesen Aufgaben ist ein Prozent ein Hundertstel von etwas, und
+    die ganze Schwierigkeit ist dieses Etwas: der alte Preis oder der neue, alle
+    Vögel oder nur die Hühner. Ein Kind, das vor jedem Schritt „Prozent wovon?“
+    fragt, vermeidet die meisten Fehler.
+  method: "Vor jedem Schritt fragen: „Prozent wovon?“"
+  teaches: Den Grundwert eines Prozentsatzes finden und merken, wann er sich ändert
+  # The words of its drawing: the whole it is drawn for.
+  art:
+    line: 100% sind 50
+
+basis:
+  title: Die Regeln der Prozente
+  cards:
+    - title: Ein Hundertstel
+      text: >-
+        Ein Prozent ist ein Hundertstel einer Menge. 100% sind die ganze Menge,
+        und 50% sind die Hälfte davon.
+      art:
+        half: 50% sind die Hälfte
+    - title: Prozent wovon?
+      text: >-
+        Ein Prozentsatz bezieht sich immer auf etwas: auf den alten Preis oder
+        den neuen, auf alle Gäste oder nur auf die Mädchen. Dieselben 10% von
+        verschiedenen Mengen sind verschiedene Zahlen.
+      art:
+        tens: 10% von 200 = 20 · 10% von 50 = 5
+    - title: Zuerst zehn Prozent
+      text: >-
+        10% sind die Menge geteilt durch 10. Von dort aus sind 20%, 30% oder 5%
+        einen Schritt entfernt: 30% von 80 sind 3 × 8 = 24.
+      art:
+        eighty: 80 sind zehn Teile zu 8
+
+idea:
+  title: Der Grundwert ändert sich
+  lead: Jeder Prozentsatz bezieht sich auf den Stand im jeweiligen Moment. Ändert sich ein Preis zweimal, bezieht sich die zweite Änderung auf den neuen Preis.
+  table:
+    head:
+      - Der Schritt
+      - Grundwert
+      - Der Preis danach
+    rows:
+      - - 20% Rabatt
+        - 200, also 40 weniger
+        - "160"
+      - - noch einmal 20% Rabatt
+        - 160, also 32 weniger
+        - "128"
+      - - beide zusammen
+        - 200, also 72 weniger
+        - 36% Rabatt, nicht 40%
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Geschäfte, Banken und Nachrichten sprechen in Prozenten, und der Haken ist
+      immer, worauf sie sich beziehen. Ein Kind, das „Prozent wovon?“ fragt, ist
+      für eine Olympiade ebenso gerüstet wie für den Einkauf.
+
+method:
+  title: "Lösungsweg: die hundert Prozent benennen"
+  lead: >-
+    Sagen Sie vor jedem Schritt, was 100% ist. Berechnen Sie davon 1% oder 10%,
+    dann so viele Prozent, wie die Aufgabe braucht. Ändert sich der Grundwert,
+    beginnen Sie wieder bei den neuen 100%. Die Beispiele unten reichen von ganz
+    einfach bis Olympiade-Niveau.
+  steps:
+    - Benennen, was 100% ist
+    - Davon 1% oder 10% berechnen
+    - Den nötigen Prozentsatz nehmen und prüfen, wovon er genommen wird
+  # The key under the steps: what a grid of the drawings stands for.
+  legend:
+    hundred: ein Gitter aus 100 Kästchen ist 100%
+
+examples:
+  - title: Sportvereine
+    question: >-
+      An einer Schule lernen 300 Kinder, und 35% von ihnen gehen in einen
+      Sportverein. Wie viele Kinder gehen in keinen Sportverein?
+    steps:
+      - "100% sind alle 300 Kinder, 1% ist also 300 : 100 = 3 Kinder."
+      - In keinen Verein gehen 100% − 35% = 65% der Kinder.
+      - 65% sind 65 × 3 = 195 Kinder.
+    answer: 195 Kinder.
+    note:
+      title: Der andere Weg
+      text: >-
+        35% von 300 sind 35 × 3 = 105 Kinder, die in einen Verein gehen, und
+        300 − 105 = 195. Beide Wege führen zur selben Antwort; wer gleich die
+        65% nimmt, spart einen Schritt.
+    art:
+      go: 35 von 100 Kästchen sind im Verein
+      grid: das ganze Gitter sind 300 Kinder
+      cell: ein Kästchen sind 3 Kinder
+      go-short: mit Verein
+      do-not: ohne Verein
+  - title: Der Preis eines Fahrrads
+    question: >-
+      Ein Fahrrad kostet 400 Münzen. Im Frühling steigt sein Preis um 25%, und
+      im Herbst sinkt der neue Preis um 20%. Was kostet das Fahrrad jetzt?
+    steps:
+      - >-
+        Im Frühling sind 100% der alte Preis, 400 Münzen: 25% davon sind 100
+        Münzen, also kostet das Fahrrad 500.
+      - "Im Herbst sind 100% der neue Preis, 500 Münzen: 20% davon sind 100 Münzen."
+      - 500 − 100 = 400. Das Fahrrad kostet wieder 400 Münzen.
+    answer: 400 Münzen.
+    note:
+      title: Warum nicht 420?
+      text: >-
+        420 kommt heraus, wenn man die 20% im Herbst vom alten Preis nimmt, also
+        80 Münzen. Aber im Herbst war der Preis schon 500, und 20% von 500 sind
+        100.
+    art:
+      coins: Münzen, der Preis vor dem Frühling
+      quarters: "100% = 400: vier Teile zu 25%"
+      five-hundred: 500 Münzen
+      fifths: "100% = 500: fünf Teile zu 20%"
+      of-old: 20% von 400 = 80 →
+      of-new: 20% von 500 = 100 →
+  - title: Wassermelonen trocknen
+    question: >-
+      Ein Bauer hat 200 kg Wassermelonen, die zu 99% aus Wasser bestehen. Eine
+      Woche später sind sie etwas getrocknet und bestehen zu 98% aus Wasser. Wie
+      viel wiegen sie jetzt?
+    steps:
+      - >-
+        Was nicht austrocknet, ist der Teil, der kein Wasser ist: 1% von 200 kg,
+        also 2 kg. Dieser Teil bleibt bei 2 kg.
+      - Eine Woche später sind 98% Wasser, also sind diese 2 kg 2% des neuen Gewichts.
+      - "2% sind 2 kg, 1% ist also 1 kg, und 100% sind 100 kg."
+    answer: 100 kg.
+    note:
+      title: Das halbe Gewicht?
+      text: >-
+        Ja. Der Wasseranteil sank nur von 99% auf 98%, aber der Teil, der kein
+        Wasser ist, hat sich verdoppelt, von 1% auf 2%. Diese 2 kg sind gleich
+        geblieben, also musste sich das ganze Gewicht halbieren.
+    art:
+      melons: 200 kg, 99% Wasser
+      dry: "200 kg: Ein Kästchen ist 1 kg; die orangefarbenen sind kein Wasser, 2 kg"
+      same: dieselben 2 kg sind jetzt 2 von 100 Kästchen
+      was: vorher 200 kg
+      became: nachher 100 kg
+      water: Wasser 99%
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  percent_wrong_base:
+    shows: >-
+      Der Prozentsatz wird vom falschen Grundwert genommen: die 20% im Herbst
+      vom alten Preis statt vom neuen, oder die 98% vom alten Gewicht der
+      Wassermelonen.
+    say: „Was ist jetzt gerade 100%?“
+    art:
+      question: Im Herbst ist der Preis 500, 20% Rabatt
+      of-old: 20% von 400 =
+      of-new: 20% von 500 =
+  part_whole_swap:
+    shows: >-
+      Ein Teil wird für das Ganze gehalten oder das Ganze für einen Teil: Die
+      2 kg, die kein Wasser sind, werden als Gewicht der Wassermelonen
+      angegeben, oder es wird die ganze Schule gezählt, obwohl nach einem Teil
+      davon gefragt ist.
+    say: „Ist diese Zahl ein Teil oder das Ganze?“
+    art:
+      question: Wie viel wiegen die Melonen?
+      dry: 2 kg
+      only-dry: nur, was kein Wasser ist
+      all: 100 kg
+      weight: das ganze Gewicht
+  answered_other_question:
+    shows: >-
+      Ein Zwischenergebnis wird zur Antwort: die 105 Kinder, die in einen Verein
+      gehen, obwohl nach denen gefragt ist, die es nicht tun, oder die 100
+      Münzen, um die sich der Preis geändert hat, statt des Preises.
+    say: „Was genau ist gefragt?“
+    art:
+      question: Wie viele Kinder gehen in keinen Verein?
+      go: mit Verein
+      do-not: ohne Verein
+
+home:
+  - title: Prozente im Geschäft
+    text: >-
+      Suchen Sie im Geschäft einen reduzierten Preis und rechnen Sie ihn
+      gemeinsam aus: Wie viel sind 150 minus 20%? Beginnen Sie mit 10%.
+  - title: Zuerst zehn Prozent
+    text: >-
+      Üben Sie, von allem Möglichen 10% zu berechnen: von 80, von 350,
+      von 1200. Von 10% aus sind die meisten anderen Prozentsätze einen
+      Schritt entfernt.
+  - title: Prozent wovon?
+    text: >-
+      Wenn Sie in den Nachrichten oder in der Werbung eine Prozentangabe hören,
+      fragen Sie gemeinsam: Prozent wovon? Oft sagt es niemand.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Prozentrechnung“

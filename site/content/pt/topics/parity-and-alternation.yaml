@@ -1,0 +1,225 @@
+# The page of the topic of parity and alternation, for a parent, in Portuguese.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Paridade e alternância
+description: O que são os problemas de paridade e alternância, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+# The words the page's drawings say of a number and of a corner of the cube.
+art:
+  even: par
+  odd: ímpar
+  start: início
+
+hero:
+  lead: >-
+    Será que 15 crianças podem formar uma roda alternando menino, menina,
+    menino, menina, por toda a volta? Nestes problemas, o par e o ímpar
+    respondem à pergunta sem contar tudo nem testar todos os jeitos: em que
+    margem está uma balsa, se uma pontuação é possível, quem faz a última
+    jogada. Para muitas crianças, a paridade é o primeiro encontro com algo
+    que não muda, sejam quais forem as jogadas.
+  method: Observar o que cada movimento faz com a paridade
+  teaches: A responder à pergunta “pode ser?” sem testar todos os jeitos
+  # The words of its drawing: who takes turns, the key of the colours, and
+  # what the two circles show.
+  art:
+    line: Meninos e meninas se alternam numa roda
+    boy: um menino
+    girl: uma menina
+    six: "6 crianças: dá certo"
+    five: "5 crianças: não dá"
+    even: numa roda, alternar só dá certo com um número par de crianças
+
+basis:
+  title: As regras do par e do ímpar
+  cards:
+    - title: O par se divide em duplas
+      text: >-
+        Um número par de coisas se divide em duplas sem sobrar nenhuma. Um
+        número ímpar sempre deixa uma sem dupla.
+    - title: Só os ímpares importam
+      text: >-
+        Par mais par dá par, ímpar mais ímpar dá par, e par mais ímpar dá
+        ímpar. Por isso, se uma soma é par ou não depende só de quantos números
+        ímpares ela tem.
+    - title: Alternância
+      text: >-
+        Quando duas coisas se alternam, uma fica nos lugares ímpares e a outra
+        nos pares. Uma roda só consegue alternar por toda a volta quando tem um
+        número par de lugares.
+      art:
+        places: meninos nos lugares ímpares, meninas nos pares
+
+idea:
+  title: Contar só os ímpares
+  lead: Para saber se uma soma é par, não é preciso fazer a conta. Conte quantos números ímpares ela tem.
+  table:
+    head:
+      - A soma
+      - Ímpares nela
+      - A soma é
+    rows:
+      - - 4 + 6 + 8
+        - nenhum
+        - par
+      - - 3 + 5
+        - "2"
+        - par
+      - - 3 + 5 + 7
+        - "3"
+        - ímpar
+      - - 1 + 2 + … + 10
+        - "5"
+        - ímpar
+  note:
+    title: Por que isso importa
+    text: >-
+      Muitas perguntas de olimpíada querem saber se algo pode mesmo acontecer.
+      A paridade pode responder “não” sem testar os caminhos: se cada movimento
+      mantém um número par e o objetivo exige que ele seja ímpar, nenhum
+      movimento vai chegar lá.
+
+method:
+  title: "Como resolver: acompanhar a paridade"
+  lead: >-
+    Encontre no problema um número que seja par ou ímpar: uma quantidade, uma
+    soma, um lugar numa fila. Veja o que cada movimento ou cada passo faz com
+    ele, se muda ou se mantém, e compare o início com o objetivo. Os exemplos
+    abaixo vão do mais simples a um de olimpíada.
+  steps:
+    - Encontrar o que é par ou ímpar
+    - Ver o que cada passo faz com isso
+    - Comparar o início com o objetivo
+
+examples:
+  - title: A balsa
+    question: >-
+      Uma balsa leva carros de uma margem do rio à outra, indo e voltando, sem
+      parar. Ela parte da margem esquerda. Em que margem ela está depois de
+      atravessar o rio 7 vezes?
+    steps:
+      - Depois de 1 travessia, a balsa está na margem direita, e depois de 2, de volta à esquerda.
+      - >-
+        A cada duas travessias, ela volta ao ponto de partida. Então, depois de
+        um número par de travessias, ela está na margem esquerda, e depois de
+        um número ímpar, na direita.
+      - 7 é ímpar, então a balsa está na margem direita.
+    answer: Na margem direita.
+    badge: →
+    note:
+      title: Por que não simplesmente contar?
+      text: >-
+        Para 7 travessias, contar é rápido. A regra responde com a mesma
+        rapidez para 100 travessias, e é dela que os problemas mais difíceis
+        precisam.
+    art:
+      start: no início, na margem esquerda
+      none: 0 travessias
+      one: 1 travessia
+      two: 2 travessias
+      left: a margem esquerda
+      right: a margem direita
+  - title: Quatro dardos
+    question: >-
+      Bruno joga 4 dardos num alvo cujos anéis valem 1, 3, 5 e 7 pontos, e
+      todos os dardos acertam o alvo. Bruno diz que fez 15 pontos. Isso pode
+      ser verdade?
+    steps:
+      - Cada anel vale um número ímpar de pontos.
+      - >-
+        Dois números ímpares somam um número par. 4 dardos são duas duplas, e
+        cada dupla faz um número par de pontos, então os 4 dardos juntos fazem
+        um número par.
+      - 15 é ímpar, então Bruno não pode ter feito essa pontuação.
+    answer: Não.
+    badge: ✕
+    note:
+      title: E com 3 dardos?
+      text: >-
+        Três números ímpares somam um número ímpar, e 15 é possível: 5 + 5 + 5,
+        ou 7 + 7 + 1.
+    art:
+      darts: 4 dardos, todos no alvo
+      rings: todo anel é ímpar
+      only-even: e 4 dardos só fazem totais pares
+  - title: Uma aranha num cubo
+    question: >-
+      Uma aranha está num vértice de um cubo de arame. A cada minuto, ela anda
+      por uma aresta até o vértice vizinho. Ela pode estar de volta ao vértice
+      de onde saiu depois de exatamente 7 minutos?
+    steps:
+      - >-
+        Pinte os vértices: o de partida de branco, os vizinhos dele de preto,
+        os vizinhos desses de branco, e assim por diante. Como mostra o
+        desenho, cada aresta liga um vértice preto a um branco.
+      - >-
+        Então a cor muda a cada minuto: depois de 1 minuto, a aranha está num
+        vértice preto; depois de 2, num branco; e depois de qualquer número
+        ímpar de minutos, num preto.
+      - 7 é ímpar, e o vértice de partida é branco. A aranha não pode estar de volta.
+    answer: Não.
+    badge: ✕
+    note:
+      title: E depois de 8 minutos?
+      text: >-
+        Sim: ir e voltar pela mesma aresta quatro vezes a leva de volta ao ponto
+        de partida. As cores dizem quando não é possível; ainda falta mostrar
+        que um número par de minutos basta.
+    art:
+      edge: uma aresta por minuto
+      minutes: "minutos: vértice branco nos pares, preto nos ímpares"
+      seven: depois de 7 minutos
+      back: ida e volta × 4
+      eight: 8 minutos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_parity:
+    shows: >-
+      Par e ímpar trocam de lugar: a criança conclui que depois de 7 travessias
+      a balsa voltou ao ponto de partida, ou que quatro números ímpares somam
+      um número ímpar.
+    say: "“Teste com casos pequenos: onde está a balsa depois de 1 travessia? E depois de 2?”"
+    art:
+      question: Onde está a balsa depois de 7 travessias?
+  ignored_condition:
+    shows: >-
+      Uma condição do problema se perde: a criança chega a 15 pontos com três
+      dardos e esquece que Bruno jogou quatro, ou escolhe um número que serve
+      para uma pista e não para a outra.
+    say: “Leia o problema de novo. A sua resposta combina com cada palavra dele?”
+    art:
+      question: "Dardos: 4"
+      three: 3 dardos
+      always: sempre par
+  off_by_one:
+    shows: >-
+      Um lugar numa fila é contado com um a mais ou a menos: o ponto de partida
+      é tomado como a primeira travessia, ou uma fila que começa e termina com
+      um menino recebe tantos meninos quanto meninas.
+    say: “Escreva os primeiros. Qual deles é o número 1?”
+    art:
+      equal: quantidades iguais
+
+home:
+  - title: Par ou ímpar?
+    text: >-
+      Esconda um punhado de botões na mão fechada e deixe a criança adivinhar:
+      par ou ímpar? Depois, confira junto com ela, arrumando os botões em
+      duplas.
+  - title: Quem faz a décima jogada?
+    text: >-
+      Em qualquer jogo em que duas pessoas se revezem, pergunte antes do fim:
+      quem vai fazer a décima jogada? E a 15ª? A resposta vem do par e do
+      ímpar, não de continuar jogando.
+  - title: Os números das casas
+    text: >-
+      Numa rua, observe os números das casas: pares de um lado, ímpares do
+      outro. De que lado vai ficar o número 37?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de paridade e alternância

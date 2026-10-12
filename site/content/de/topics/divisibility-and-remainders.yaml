@@ -1,0 +1,217 @@
+# The page of the topic of divisibility and remainders, for a parent, in
+# German. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Teilbarkeit und Reste
+description: Worum es bei „Teilbarkeit und Reste“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+hero:
+  lead: >-
+    29 Kinder fahren auf einen Ausflug, und in jedes Auto passen 4 von ihnen.
+    Wie viele Autos braucht man? In diesen Aufgaben teilt ein Kind mit Rest
+    und entscheidet dann, was der Rest bedeutet: ein Auto mehr, ein übrig
+    gebliebener Bonbon, ein Platz in der nächsten Reihe. Teilbarkeitsregeln
+    beantworten die Frage „Ist das teilbar?“, ganz ohne zu teilen.
+  method: Die Zahl als volle Gruppen und Rest schreiben
+  teaches: Einen Rest in den Worten der Aufgabe deuten und Teilbarkeit prüfen, ohne zu teilen
+  # The words of its drawing: what it divides over it, and what the division
+  # comes to under it.
+  art:
+    line: 14 Dinge in Gruppen zu je 3
+    groups: 4 volle Gruppen und 2 übrig
+
+basis:
+  title: Die Regeln des Teilens
+  cards:
+    - title: Der Rest ist kleiner
+      text: >-
+        Beim Teilen durch 7 ist der Rest 0, 1, 2 und so weiter bis 6. Kommt 7
+        oder mehr heraus, passt noch eine Gruppe hinein.
+      art:
+        remainders: "Reste beim Teilen durch 7: 0 bis 6"
+    - title: Was der Rest bedeutet
+      text: >-
+        29 Kinder in Autos zu je 4 sind 7 volle Autos und 1 Kind übrig, also
+        braucht man 8 Autos. Bei derselben Division kann die gesuchte Antwort
+        7, 8 oder 1 sein: Das entscheidet die Frage.
+      art:
+        cars: 29 = 7 × 4 + 1, also braucht man 8 Autos
+    - title: Faustregeln
+      text: >-
+        Eine Zahl ist durch 2 teilbar, wenn ihre letzte Ziffer gerade ist,
+        durch 5, wenn sie auf 0 oder 5 endet, und durch 3 oder durch 9, wenn
+        ihre Quersumme es ist.
+      # The rules on its drawing, the digits each looks at in bold.
+      art:
+        by-two: durch 2
+        even: "die letzte Ziffer ist gerade: 13**6**"
+        by-five: durch 5
+        five: "sie endet auf 0 oder 5: 24**5**"
+        by-three: durch 3 und 9
+        digits: "die Quersumme: 3 + 8 + 1 + 6 = **18**"
+
+idea:
+  title: Gruppen und Rest
+  lead: Jede ganze Zahl lässt sich als volle Gruppen und Rest schreiben. Die Frage entscheidet, welches von beiden gesucht ist.
+  table:
+    head:
+      - Die Frage
+      - Die Division · in Blau, was gefragt ist
+      - Die Antwort
+    rows:
+      - - Wie viele Autos mit 4 Plätzen brauchen 29 Kinder?
+        - 29 = 7 × 4 + 1
+        - 8 Autos
+      - - "29 Bonbons werden an 4 Kinder verteilt: Wie viele bekommt jedes?"
+        - 29 = 7 × 4 + 1
+        - je 7 Bonbons
+      - - Wie viele der 29 Bonbons bleiben übrig?
+        - 29 = 7 × 4 + 1
+        - 1 Bonbon
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Die Division ist in jeder Zeile dieselbe, nur die Bedeutung ändert sich.
+      Ein Kind, das richtig teilt, kann trotzdem die Zahl der vollen Gruppen
+      nennen, wenn nach dem Rest gefragt ist, oder das Auto für das letzte
+      Kind vergessen.
+
+method:
+  title: "Lösungsweg: volle Gruppen und ein Rest"
+  lead: >-
+    Schreiben Sie die Zahl als volle Gruppen und Rest. Lesen Sie dann die
+    Frage noch einmal und entscheiden Sie, was gesucht ist: die Gruppen, der
+    Rest oder eine Gruppe mehr. Wird nach der kleinsten Zahl oder nach der
+    Ziffer mit einer bestimmten Eigenschaft gefragt, probieren Sie die
+    Möglichkeiten der Reihe nach durch. Die Beispiele unten reichen von ganz
+    einfach bis Olympiade-Niveau.
+  steps:
+    - In volle Gruppen und einen Rest aufteilen
+    - Entscheiden, wonach gefragt ist
+    - Die Antwort am Aufgabentext prüfen
+  # The key under the steps: what the drawings' groups mean.
+  legend:
+    group: eine volle Gruppe
+    rest: was übrig bleibt
+
+examples:
+  - title: Busse für einen Ausflug
+    question: >-
+      150 Kinder fahren auf einen Schulausflug, und jeder Bus hat 40 Plätze.
+      Wie viele Busse braucht man?
+    steps:
+      - "Die Kinder zu je 40 abzählen: 150 = 3 × 40 + 30. Drei Busse sind voll, und 30 Kinder bleiben übrig."
+      - Auch die 30 Kinder brauchen einen Bus, selbst wenn er nicht voll wird.
+      - 3 + 1 = 4 Busse.
+    answer: 4 Busse.
+    note:
+      title: Warum nicht 3 oder 30?
+      text: >-
+        3 ist die Zahl der vollen Busse, und 30 ist die Zahl der Kinder im
+        letzten Bus. Gefragt ist nach allen Bussen, die gebraucht werden.
+    art:
+      seats: 40 Plätze
+      pupils: 150 Kinder
+      left: übrig
+      part: 30 von 40 Plätzen
+      full: voll
+      last: im letzten
+      all: alle Busse
+  - title: Das Sternchen in 38*6
+    question: >-
+      Welche Ziffer muss anstelle des Sternchens in 38*6 stehen, damit sich die
+      Zahl ohne Rest durch 9 teilen lässt?
+    steps:
+      - Eine Zahl ist genau dann durch 9 teilbar, wenn ihre Quersumme es ist.
+      - >-
+        Die bekannten Ziffern ergeben zusammen 3 + 8 + 6 = 17, und das
+        Sternchen ist eine Ziffer von 0 bis 9, also ist die Quersumme eine Zahl
+        von 17 bis 26.
+      - "Die einzige Zahl von 17 bis 26, die durch 9 teilbar ist, ist 18, also ist das Sternchen 1: 3816 = 9 × 424."
+    answer: Die Ziffer 1.
+    note:
+      title: Und bei 3?
+      text: >-
+        Bei 3 muss die Quersumme durch 3 teilbar sein: 18, 21 und 24 sind es
+        alle, also kann das Sternchen 1, 4 oder 7 sein. Die Regel für 9 ist
+        strenger und lässt hier eine einzige Ziffer übrig.
+    art:
+      sum: Quersumme durch 9 teilbar?
+  - title: Hundert Zweien
+    question: >-
+      Hundert Zweien werden miteinander multipliziert: 2 × 2 × 2 × … × 2. Auf
+      welche Ziffer endet das Ergebnis?
+    steps:
+      - >-
+        Die letzte Ziffer beobachten, während die Zweien eine nach der anderen
+        multipliziert werden: 2, 4, 8, 16, 32, 64, 128, 256. Die letzten
+        Ziffern sind 2, 4, 8, 6 und wiederholen sich dann.
+      - >-
+        Das Muster ist 4 Ziffern lang, und 100 = 25 × 4: Die hundertste Zwei
+        schließt den 25. Durchlauf des Musters ab und steht an dessen 4.
+        Stelle.
+      - An der 4. Stelle des Musters steht 6, also endet das Ergebnis auf 6.
+    answer: "6."
+    note:
+      title: Versteckte Reste
+      text: >-
+        Es kam nur auf den Rest von 100 geteilt durch 4 an: Er sagte, wo im
+        Muster die hundertste Zwei landet. Reste beantworten viele Fragen über
+        Dinge, die sich wiederholen: letzte Ziffern, Wochentage, Plätze im
+        Kreis.
+    art:
+      first: in Blau der erste Durchlauf des Musters
+      rounds: 25 Durchläufe zu 4 Zweien = 100 Zweien
+      place: "Rest 0: die letzte, 4. Stelle eines Durchlaufs"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  remainder_vs_quotient:
+    shows: >-
+      Volle Gruppen und Rest werden vertauscht: Das Kind nennt die 30 übrigen
+      Kinder, wenn nach Bussen gefragt ist, oder hält 25, die Zahl der vollen
+      Durchläufe des Musters, für die Stelle darin.
+    say: „Fragt die Aufgabe nach den vollen Gruppen oder nach dem, was übrig bleibt?“
+    art:
+      question: Wie viele Busse braucht man?
+      left: Kinder übrig
+      buses: Busse
+  off_by_one:
+    shows: >-
+      Die Antwort liegt um eine Gruppe daneben: Der Bus für die letzten 30
+      Kinder wird vergessen, 3 statt 4, oder die Stellen in einem Muster
+      werden ab 0 statt ab 1 gezählt.
+    say: „Braucht der Rest noch eine Gruppe?“
+    art:
+      question: 150 Kinder, 40 Plätze pro Bus
+  missed_case:
+    shows: >-
+      Ein Fall wird gefunden, und die Suche hört auf: Das Sternchen ist 1, und
+      das Kind prüft nicht, ob auch 4 und 7 passen, wenn es um die 3 geht.
+    say: „Hast du jede Ziffer von 0 bis 9 ausprobiert?“
+    art:
+      question: 38*6 ist durch 3 teilbar
+      more: und sonst keine?
+
+home:
+  - title: Teilen mit Rest
+    text: >-
+      Verteilen Sie Bonbons oder Karten in der Familie und nennen Sie das
+      Ergebnis in zwei Teilen: wie viele jedes Familienmitglied bekommt und wie
+      viele übrig bleiben.
+  - title: Der Quersummentest
+    text: >-
+      Denken Sie sich große Zahlen aus und prüfen Sie über die Quersumme, ob
+      sie durch 3 und durch 9 teilbar sind; teilen Sie dann mit dem
+      Taschenrechner, um zu sehen, dass die Regel stimmt.
+  - title: Was sich wiederholt
+    text: >-
+      Suchen Sie nach Mustern, die sich im Kreis wiederholen: die Wochentage,
+      die Farben einer Perlenkette, die letzten Ziffern von 3, 9, 27, 81.
+      Fragen Sie, was 50 Schritte weiter kommt.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Teilbarkeit und Reste“

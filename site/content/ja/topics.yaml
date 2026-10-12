@@ -1,0 +1,87 @@
+# The page of the topics, in Japanese: what a child's tasks are about, how the
+# topics build on one another, and every topic of the catalog with a drawing
+# and a line for the parent. A topic's name is the card's own, from the
+# widget's words; its grades and its links are the catalog's, and its group
+# the site's data.
+
+title: MathTrail のテーマ
+description: MathTrail が問題を出すすべてのテーマと、テーマどうしのつながり、それぞれのテーマの内容を紹介します。
+
+hero:
+  title: お子さまが解く問題
+  lead: MathTrail の問題は、どれも1つのテーマに属しています。ここでは、すべてのテーマと、それぞれの問題の内容、どのテーマがどのテーマを土台にしているかを紹介します。
+  # The name of the child the card on this page shows, an invented one.
+  child: コメット
+  caption: チャットに表示される記録で、テーマごとにランクがついています。子どもと数値は例です。
+
+map:
+  title: テーマのつながり
+  lead: テーマの中には、ほかのテーマを土台にしているものがあります。場合の数は、ハトの巣原理にも正直者とうそつきにも必要です。子どもがつまずいたら、難しいテーマの土台になっているテーマに一歩戻ってみるとよいでしょう。
+  layers:
+    - step: ステップ1
+      name: 基礎
+      lead: 予備知識はほとんど不要。
+    - step: ステップ2
+      name: きまり
+      lead: 一つずつ考えていたことが、きまりになる。
+    - step: ステップ3
+      name: 難問
+      lead: いくつもの考えを一度に頭に置く。
+  hint: テーマにポインターを合わせるか、Tab キーで選ぶと、そのテーマの土台になるテーマと、その先に進めるテーマが光ります。
+  # Said under the map while a topic is pointed at: its name, every topic
+  # below it, and every topic above it.
+  say: "**{topic}** · 先に：{before} · 次に：{after}"
+  foundation: なし、ここが土台です
+  summit: なし、ここが頂上です
+  legend:
+    first: 先に
+    topic: テーマ
+    then: 次に
+
+groups:
+  label: テーマのグループ
+  logic: 推理：仮定し、そこから言えることを導き、矛盾を見つける。
+  counting: すべての場合を、もれなく数える。
+  time: 時計、曜日、年と、それにつれて変わるもの。
+  numbers: 計算の速さより、アイデアが大切な数の問題。
+  parts: いくつかに分けた全体：分数、百分率、比。
+  games: 相手がどう打っても、てんびんがどう傾いても通用する作戦を見つける。
+
+# Every topic of the catalog, by its slug: a line for the parent. Its card's
+# drawing is the site's data, one of the site's own small drawings and never a
+# reference task's, and it reads no words of this file.
+topics:
+  ordering:
+    phrase: だれが背が高いか、年上か、速いか。いくつかの手がかりから、全員を順番に並べる。
+  knights-and-liars:
+    phrase: いつも本当のことを言う人と、いつもうそをつく人がいる。発言から、だれがどちらかを見分ける。
+  enumeration:
+    phrase: すべての場合を順序よく書き出し、もれなく、重なりなく数える。
+  gaps-and-boundaries:
+    phrase: 柱と間、階と階段：1を足すときと、足さないとき。
+  clocks:
+    phrase: どれだけ時間が経ったか、何時になるか：時計の針、文字盤、正午をまたぐとき。
+  calendar-and-age:
+    phrase: 曜日、月、年齢。年の差はずっと変わらず、曜日はくり返しめぐってくる。
+  pigeonhole-principle:
+    phrase: ハトが巣箱より多ければ、どこかの巣箱には必ず2羽入る。
+  parity-and-alternation:
+    phrase: 偶数と奇数、1つおき：全部を数えなくてもわかること。
+  arithmetic-with-a-trick:
+    phrase: くふうして計算する：並べ替え、まとめ、計算する前に楽な方法を見つける。
+  weighing-and-pouring:
+    phrase: はかる回数をいちばん少なくして、にせのコインを見つける。または、目盛りのない入れ物で水をはかり取る。
+  parts-and-shares:
+    phrase: 半分、3分の1、4分の1：全体の一部と、部分から求める全体。
+  percentages:
+    phrase: それは何パーセントで、何のパーセントか。1%は100分の1。
+  ratios-and-sharing:
+    phrase: 2:3の比で分け、1つ分がいくつになるかを求める。
+  figures-on-a-grid:
+    phrase: マス目で数える面積とまわりの長さ。切って、組み合わせ、もれなく数える。
+  divisibility-and-remainders:
+    phrase: ある数がわり切れるか、わり切れないときは何があまるか。
+  overlapping-groups:
+    phrase: 2つのクラブに同時に通う子どももいる。二重に数えないためにはどうするか。
+  winning-strategy:
+    phrase: 最後のマッチ棒を取るのはだれ？相手がどう打っても勝てる局面を探す。

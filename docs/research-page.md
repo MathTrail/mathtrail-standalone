@@ -29,7 +29,7 @@ The reference is the author's draft, `research/draft-ui/MathTrail - Исслед
 - **No script, nothing from elsewhere.** The page reads in full without a script and runs none (R160). It loads nothing from another origin, so the draft's unpkg React and its fonts' `preconnect` go.
 - **Fonts.** Onest only (R157): the draft's Source Serif 4 alone weighed 0.9 MB.
 - **Weight.** Since R250 the page's own rules weigh some 24 KB in the shared stylesheet, against some 5 KB before. With everything it loads, the page weighs 178,727 bytes in English and 183,457 in Russian while the live numbers are still to come, under the 450 KiB a page may weigh (R240). Every page loads the shared stylesheet, so each grows by the same 19 KB: the Russian home page, the heaviest page of the site, came to 346,233 bytes on 2026-10-07. In release v0.3.13 it had come to 307,632 bytes, past the 300 KiB of the time, and the author raised the budget by half (R240). The PDF is a link, not a resource the page fetches, so it does not count.
-- **Languages.** English and Russian now, the rest with T66b. Drawings are pinned left to right (`dir="ltr"`), as the topics' map is; tables and words follow the page's direction.
+- **Languages.** The site's nine, since T66b.13. Drawings are pinned left to right (`dir="ltr"`), as the topics' map is; tables and words follow the page's direction.
 
 ## 3. The page, section by section
 
@@ -235,7 +235,7 @@ Each live drawing is hidden from screen readers, and its table, which a screen r
 The versions and the behaviour are as their documentation states on 2026-10-05: the npm registry; Vega's "Usage" and "Locale API" pages; Plot's `docs/features/plots.md` and `docs/features/formats.md`. A library reconsidered later is checked again on the version it would be pinned at:
 - its rendering without a browser, and the licence of whatever DOM it needs;
 - whether its output is the same byte for byte;
-- its hook for formatting numbers, and how many of the widget's 22 languages it covers;
+- its hook for formatting numbers, and how many of the widget's 64 languages it covers;
 - right-to-left text, and what it writes for screen readers;
 - its weight per chart;
 - `just licenses`.

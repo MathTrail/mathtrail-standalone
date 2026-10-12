@@ -1,0 +1,336 @@
+# The page "Why", for a parent, in Japanese: why olympiad maths is worth a
+# child's time, how long people have learned it, what research has found about
+# it, how it differs from a school lesson, what a parent can do, how MathTrail
+# goes about it, and why it is no ordinary app. The grades, the topics' names
+# and the card's own words are not here: they are the catalog's numbers and the
+# widget's words. The card's options, its drawing, the history's pictures and
+# the works the page cites are the site's data; a finding here says what its
+# work found, no more.
+
+title: 算数オリンピックを学ぶ意味
+description: 算数オリンピックの問題に子どもが時間をかける価値がある理由、研究でわかっていること、そして保護者が MathTrail でどう手助けできるかを紹介します。
+
+# The label of the note that says plainly what the page does not promise.
+honest: 正直に言うと
+
+# The fence: the problem the first screen sets beside a school sum, and the
+# card further down shows answered wrong. A variant of the site's own, never a
+# reference task word for word.
+task:
+  question: 長さ12メートルのさくがあります。3メートルごとに柱が立っていて、両はしにも柱があります。柱は何本ありますか。
+  # The trap behind the wrong option picked on the card, as the card says it.
+  trap: 柱ではなく、間の数を数えた。
+  # The solution, a sentence for each step the card numbers.
+  solution: 間の数は12 ÷ 3 = 4です。両はしに柱があるまっすぐなさくでは、柱は間より1本多くなります。柱は4 + 1 = 5本です。
+
+hero:
+  title: なぜ、お子さまに算数オリンピックなのか
+  lead: 学校では、授業で解いた例題をお手本に問題を解くことを学びます。算数オリンピックの問題では、お手本がないときに解き方を見つけることを学びます。{last}年生までなら、こうした問題に向けた子どもの準備は保護者ができます。MathTrail は、そのために作られました。
+  free: 無料
+  open: オープンソース
+  school:
+    label: 学校の計算問題
+    text: 必要なのは、わり算のしかたを知っていること。
+    sum: 12 ÷ 3 = 4
+  olympiad:
+    label: 算数オリンピックの問題
+    answer: 答え：{answer}
+    trap: ひっかけ：4は柱ではなく間の数
+    text: 必要なのは、何が起きているかを理解すること。
+  caption: 数は同じ。考え方が違う。
+
+# How long people have learned to find a way with no example to follow: a
+# saying of Euclid's, then four eras, each with three pictures the page shows
+# in turn. The pictures are the site's data, era by era; each has the place a
+# chip over it names, its words for a screen reader and its caption with its
+# author and licence, and the chip that picks it, where that is not its place.
+history:
+  title: お手本なしで考えることは、2,000年以上前から教えられてきた
+  lead: 型にはまらない問題は、今に始まったものではありません。多くの国で、何世紀にもわたって、人々は誰にも教わっていない解き方を見つけ、それがなぜ正しいのかを説明することを学んできました。そして各世代が、その力を次の世代へと受け渡してきました。
+  quote: 「幾何学に王道なし」
+  quoted: 『原論』よりもやさしく幾何学を学ぶ方法はないかとたずねたプトレマイオス王に、ユークリッドが返した言葉です。そう伝えているのは、5世紀のプロクロスです。
+  # What a screen reader calls the choice of a picture.
+  choice: 歴史の画像
+  eras:
+    - label: 古代 · 6世紀まで
+      title: 証明と問題集
+      text: ギリシャ人は、法則がなぜ正しいのかを証明しはじめました。中国では『九章算術』に、246問が解き方とともに集められました。インドでは、ゼロを使って数を書くようになりました。今も私たちが使っている書き方です。
+    - label: 中世以降 · 9〜19世紀
+      title: 挑戦としての問題
+      text: バグダードではフワーリズミーが本を書き、「algebra（代数学）」という言葉は、その本の題名から生まれました。イタリアでは数学者たちが問題で決闘をし、日本では問題を書いた木の板が寺社に掲げられました。
+    - label: 19世紀末〜20世紀
+      title: すべての子どもに問題を
+      text: すべての子どもが学校に通うようになり、特に好奇心の強い子どもたちのために、数学サークルや数学オリンピックが生まれました。ハンガリーでは1894年から、レニングラードでは1934年からです。
+    - label: 現在
+      title: すべての子どもにメンターを
+      text: かつて、個人のメンターを持てるのはごく一部の人だけでした。アリストテレスは、アレクサンドロス大王を教えました。今では、どの子どももメンターを持つことができます。MathTrail のコーチの相棒は、決して答えを渡しません。昔の偉大な先生たちのように、子どもを解き方へと導く問いかけをします。
+      link: コーチを見る →
+  pictures:
+    athens:
+      place: ギリシャ
+      alt: フレスコ画の一部。白髪の学者が石板にかがみこんでコンパスで図をかき、そのまわりに4人の弟子がいます。
+      caption: ユークリッドが石板にコンパスで図をかき、弟子たちが見つめています。アルキメデスだという説もあります。ラファエロのフレスコ画『アテナイの学堂』の一部、1509〜1511年。
+    confucius:
+      place: 中国
+      alt: 絵画。屋外で先生が弟子たちに囲まれて座り、弟子たちは話を聞いたり議論したりしています。
+      caption: 弟子たちと孔子。計算は、教養のある人が身につけるべき「六芸」のひとつでした。作者不明の19世紀の絵画。
+    aryabhata:
+      place: インド
+      alt: 白い像。布をまとった学者が手を差し出しています。
+      caption: アーリヤバタ、5世紀のインドの数学者・天文学者。どんな姿だったかは誰にもわかりません。これはプネーにある現代の像です。
+    istanbul:
+      place: イスラム世界
+      alt: 細密画。ターバンを巻いた学者たちが、地球儀や器具、本を使って研究しています。
+      caption: イスタンブールにあったタキー・アッディーンの天文台で働く天文学者と数学者たち。16世紀末のオスマン帝国の細密画。
+    pacioli:
+      place: イタリア
+      alt: 肖像画。修道士で数学者の人物が Euclides と書かれた石板を指し示し、そばには弟子がいて、机の上にはガラスの多面体がつり下がっています。
+      caption: 数学者ルカ・パチョーリと弟子。図がかかれた石板のふちには「Euclides」と書かれています。1495年の肖像画で、ヤコポ・デ・バルバリの作とされています。
+    sangaku:
+      place: 日本
+      alt: 色つきの円の図と、縦に並んだ文字が書かれた木の板。
+      caption: 東京の金王八幡宮にある算額（幾何の問題を書いた額）、1859年。写真：Momotarou2012、CC BY-SA 3.0。
+    rachinsky:
+      place: ロシア
+      alt: 絵画。農民のシャツを着た男の子たちが、問題が書かれた黒板の前に立って考えています。手前の子は、ほおづえをついています。
+      caption: 村の学校の生徒たちが、黒板の問題を暗算で解いています：(10² + 11² + 12² + 13² + 14²) ÷ 365。ニコライ・ボグダノフ＝ベルスキー『暗算。S・A・ラチンスキーの国民学校にて』、1895年。
+    st-louis:
+      place: アメリカ
+      alt: 教室の写真。子どもたちが黒板に縦に並べた数を書き、先生が女の子を手伝い、ほかの子どもたちは本を持って席についています。
+      caption: 黒板で計算問題を解く2年生たち。セントルイスのベイツ校、20世紀初め。
+    moscow:
+      place: ソ連
+      alt: 写真。立体図形の図がかかれた黒板の前で、男子生徒がふり返ってほほえんでいます。
+      caption: 学校の試験：立体図形の問題を前に、黒板に向かう生徒。モスクワ、1950年代。写真：Yu. D. Korolev、モスクワ中央公文書館、CC BY 4.0。
+    coach-canvas:
+      place: MathTrail
+      chip: キャンバスで解く
+      alt: タブレットの画面。道にそって立つ柱の問題、キャンバスに点線でかいたスケッチ、その横にキツネの相棒のヒントと、「理解する、計画を立てる、解く、確かめる」のステップ。
+      caption: MathTrail のコーチのプロトタイプ：子どもがキャンバスに解き方をかき、相棒が小さい数から始めることを提案します。
+    coach-sheet:
+      place: MathTrail
+      chip: プリントから問題を
+      alt: タブレットの画面。カメラが算数オリンピックの問題のプリントを写し、コーチがその中から6問を見つけたところ。
+      caption: MathTrail のコーチのプロトタイプ：子どもが問題のプリントを撮影すると、コーチがその中から6問を見つけます。
+    coach-map:
+      place: MathTrail
+      chip: テーマのマップ
+      alt: タブレットの画面。基礎から難問までの3つのステップに分かれた算数オリンピックのテーマのマップと、その横にテーマ「場合の数」と、そのテーマでの子どものランク。
+      caption: MathTrail のコーチのプロトタイプ：やさしいものから難しいものへと並ぶテーマのマップと、テーマごとの子どものランク。
+
+research:
+  title: 研究でわかっていること
+  lead: 数学オリンピックの問題は100年以上前から子どもたちに出されてきましたが、それが子どもに何をもたらすのかを丁寧に調べた研究は、多くありません。ここでは、そのうちの4つを紹介します。
+  # Each finding under a tag of where and whom, a short line in large letters
+  # with a line under it, and the words of the small drawing under its text.
+  findings:
+    rebholz2022:
+      tag: ドイツ · 3・4年生
+      big: 問題の講座
+      small: そして2つの場面でよりよい結果
+      title: 準備の成果は学校でも表れる
+      text: ドイツで、3・4年生が算数オリンピック風の問題の講座を受けました。数学オリンピックでは、講座なしで参加した子どもたちよりはっきりよい成績をあげ、4年生は学校の算数のテストでも上回りました。講座を受ける子どもは、先生たちが選んでいました。
+      mark:
+        - オリンピックで
+        - 学校のテストで
+    biondi2012:
+      tag: ブラジル · 2009年
+      big: 1900万人
+      small: 1年間に参加した生徒の数
+      title: オリンピック参加校は数学の成績が高い
+      text: ブラジルの公立学校の数学オリンピックはすべての生徒が参加でき、2009年には1900万人が参加しました。参加した学校では、全国テストでの9年生の数学の成績がよく、参加した年数が長いほど、さらによくなっていました。
+      mark: 参加年数が長いほど、高い成績
+    agarwal2020:
+      tag: 国際数学オリンピック
+      big: IMO
+      small: 得点が高いほど、科学の道でも先へ
+      title: オリンピックの上位者は、科学でも活躍する
+      text: 国際数学オリンピックで得点が高かった10代ほど、のちに博士号をとり、研究を発表し、その研究が引用され、数学の最高の賞を受けることが多くなっていました。
+      mark:
+        - 博士号
+        - 論文
+        - 引用
+        - 最高の賞
+    nunes2007:
+      tag: イギリス · 6歳
+      big: 16か月
+      small: 6歳児の論理の力が、算数の成績を予測した
+      title: 筋道を立てて考える力は、6歳から学べる
+      text: 6歳児がどれだけ論理的に考えられるかで、16か月後の算数の成績が予測できました。こうした考え方を教わった子どもたちは、教わらなかった子どもたちよりも算数が伸びました。
+      mark:
+        from: 6歳
+        to: +16か月
+
+school:
+  title: 学校と算数オリンピックでは、教えることが違う
+  lead: これは学校への批判ではありません。学校には別の役割があるのです。けれども、やり方が示されていないときに解き方を見つける力は、ひとりでには身につきません。きたえて身につけるものです。
+  lesson: ふつうの授業
+  olympiad: 算数オリンピックの問題
+  # Above the rows, an example of each: a school sum with its answer left
+  # blank, and the fence in short, with its posts.
+  example: 例
+  sum: 12 ÷ 3 =
+  done: やり方は授業で示された。あとはくり返すだけ。
+  fence: 長さ12mのさくに、両はしもふくめて3mごとに柱を立てます。柱は何本ですか。
+  found: やり方は示されていないので、自分で見つける：間は4つで、柱は間より1本多いから5本。
+  rows:
+    shape:
+      label: 問題のつくり
+      lesson: やり方を示され、似た問題でくり返す
+      olympiad: やり方は示されず、自分で見つける
+    valued:
+      label: 重視されること
+      lesson: 速く、ミスなく計算すること
+      olympiad: 何が起きているかを理解し、理由を説明すること
+    mistake:
+      label: 間違いの意味
+      lesson: 減点
+      olympiad: 考えがどこで道をそれたかを示すサイン
+    teaches:
+      label: 身につくこと
+      lesson: 知っている道具を使うこと
+      olympiad: 道具がなければ、自分で生み出すこと
+
+time:
+  title: 学校にその時間がない理由
+  # Each card with the words of the small drawing at its foot.
+  cards:
+    syllabus:
+      title: クラス全員のためのカリキュラム
+      text: 先生は、クラスの全員を決められた水準まで引き上げなければなりません。カリキュラムをこえる問題にあてる時間は、なかなか見つかりません。
+      lesson: 授業
+      length: 45分
+      all: 全員共通の内容
+      extra: その先の問題
+    answer:
+      title: テストが見るのは、考えではなく答え
+      text: テストは結果をチェックします。子どもがどう考え、どこで間違えたのかをたどる時間は、めったにありません。
+      steps: 途中の式：見てもらえない
+      answer: 答え：{answer}
+    circle:
+      title: 算数クラブはどこにでもあるわけではない
+      text: 算数オリンピックのクラブがある学校ばかりではなく、いちばん近いクラブも、遠かったり、上の学年しか受け入れていなかったりします。
+      none: なし
+      circle: クラブ
+
+parent:
+  title: 子どもの準備は、保護者にもできる
+  note: MathTrail は、算数オリンピックの先生の代わりにはなりません。コーチのいる充実したクラブなら、もっと多くが得られます。それでも{last}年生までなら、算数オリンピック風の問題に向けた子どもの準備は、保護者自身でもできます。
+  unneeded:
+    title: 必要ないもの
+    items:
+      - 数学の学位
+      - 前もって解き方を知っておくこと
+      - 問題を探して確かめること
+  taken:
+    title: MathTrail が引き受けること
+    items:
+      - 問題
+      - 答え
+      - 間違いの解説
+      - レベル選び
+  needed:
+    title: 必要なもの
+    items:
+      - title: お子さまの好奇心
+        text: 算数オリンピックの問題は、テストではなくパズルです。子どもが感じるべきなのは、間違いへのおそれではなく好奇心です。
+      - title: 何のためかを説明すること
+        text: 「いい点をとるため」ではなく、誰も教えてくれないときに、自分でやり方を考え出せるようになるためです。
+      - title: 時間と関心
+        text: お子さまのそばで過ごす、少しの時間。一度にたくさんより、こまめに何度もがよいでしょう。保護者が問題に興味を持てば、その気持ちは子どもにうつります。
+  # Three moments of a lesson, each with what the child says and what the
+  # parent might answer; the letters stand for who speaks.
+  explain:
+    title: 何のためにやるのかを、子どもにどう伝えるか
+    lead: よくある3つの場面と、声かけの例です。「子」はお子さまのことです。
+    child: 子
+    you: 親
+    talks:
+      why:
+        moment: 「何のため？」と聞く
+        child: この問題、なんでやるの？宿題でもないのに。
+        you: なぞなぞみたいなものだね。答えはかくれていて、見つけることができるよ。
+      wrong:
+        moment: 間違える
+        child: またまちがえちゃった…
+        you: ここでは、まちがえてもいいんだよ。まちがいは、どこをもう一度考えればいいかを教えてくれるから。
+      right:
+        moment: 正解する
+        child: できた！答えは5だよ。
+        you: いちばんいいのは答えじゃなくて、どうやってそこにたどり着いたかだよ。
+
+thinking:
+  title: MathTrail はどう考える力を育てるか
+  lead: 問題の数ではなく、一つひとつの問題のまわりで起きることによって。
+  points:
+    - title: 1問に1つのアイデア
+      text: どの問題も、「{enumeration}」「{parity}」「{knights}」のようなテーマのどれかに属しています。テーマは、やさしいものから難しいものへと並ぶマップになっています。
+    - title: 手の届く問題
+      text: テーマごとに、それぞれのレーティングがあります。MathTrail はそれをもとに、次のテーマと難易度を選びます。学年が決めるのは、スタート地点だけです。
+    - title: 間違いが診断になる
+      text: 間違った選択肢の裏には、それぞれ名前のついたひっかけがあります。解説は正解からではなく、子どもがどう考えたかから始まります。
+    - title: 答えの代わりにヒント
+      text: 子どもはカードでヒントを開けます。大人は子どもの言葉のまま、「どうして6じゃないの？」とチャットで聞けます。AI は、まさにこの問題について答えます。
+  topics: テーマを見る →
+  # The name of the child the card on this page shows, an invented one.
+  child: コメット
+  caption: 間違った答えのあとに、チャットが表示するカード。子どもと数は例です。
+  # Two messages of the chat beneath the card: the adult's question and the
+  # model's reply, about the step and to nobody, for the adult to read out to
+  # the child. They are the site's words, never the card's.
+  chat:
+    label: チャットのイメージ
+    adult: 大人
+    model: AI
+    question: どうして6じゃないの？
+    reply: 6だと、同じ柱を2回数えることになります。さくにそって左から見ていくと、どの間も柱で終わります。だから、間が4つなら柱も4本です。そして最初の柱は、それらすべての前に立っています。4 + 1 = 5。
+
+app:
+  title: ふつうのアプリとは違う理由
+  lead: 3〜5歳の子どもが遊ぶアプリを調べた研究では、およそ3分の2のアプリに、子どもをより長く遊ばせ続けるしかけがありました（{source}）。MathTrail は違うつくりになっていて、それは確かめることができます。
+  # A make-believe app of the kind that keeps a child at the screen, every
+  # trick of it, and what MathTrail has of them.
+  bait:
+    coins: 12,450
+    gems: "87"
+    timer: ボーナスまであと03:59
+    cheer: チャンピオンだね！！！
+    praise: 1問中1問正解。すごい！
+    chest: 宝箱をあけよう！
+    hat: ドラゴンのぼうし · 980円
+    premium: プレミアムに入ってコイン×2！
+    caption: 見覚えはありませんか？MathTrail には、このどれもありません。
+  # Each card with the short things at its foot that show what it says.
+  cards:
+    checked:
+      title: すべての問題をプログラムがチェック
+      text: AI は、問題と、それを解くプログラムを書きます。サーバーはそのプログラムを外部から隔離されたサンドボックスで実行し、正解の選択肢がちょうど1つか、答えが一致するか、文章が学年に合っているか、前の問題の文章をくり返していないかをチェックします。チェックに通らなかった問題が、子どもに届くことはありません。
+      checks:
+        - 答えは1つ
+        - つじつまが合う
+        - 学年に合う
+        - くり返しでない
+      fails: 不合格 → 子どもには届かない
+    free:
+      title: 無料。理由もはっきり
+      text: MathTrail は独自の AI を持っていません。問題を書くのはお使いのチャットの AI で、ご利用のプランの範囲内で動きます。Claude の Free プランでも大丈夫です。サーバーにはほとんど費用がかからないので、サブスクも広告も、ロックされたテーマもありません。
+      price: 0円
+      none:
+        - サブスク
+        - 広告
+        - ロックされたテーマ
+    data:
+      title: データは手もとに残る
+      text: 子どものプロフィールは、お使いの Google ドライブにあるファイルです。封印されるのは、いま解いている問題の答えと解き方だけで、子どもがのぞき見できないようにするためです。サーバーはリクエストとリクエストの間に何も保存せず、何も売りません。
+      # After the name of the profile's file.
+      where: お使いの Google ドライブ
+      server: サーバー上：なし
+    screen:
+      title: 子どもを画面に引きとめるものは何もない
+      text: コインも宝箱もタイマーも広告もありません。問題が解けたら、チャットを閉じて、夕食のときにその問題について話せます。
+      none:
+        - コイン
+        - 宝箱
+        - タイマー
+        - 広告
+      after: 問題が解けた → 夕食

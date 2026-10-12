@@ -1,0 +1,233 @@
+# The page of the topic of enumeration, for a parent, in German. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Systematisches Probieren
+description: Worum es bei „Systematisches Probieren“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+# The words every drawing of the page writes its people in: the three
+# children's letters, and Lea's and Tom's initials.
+art:
+  a: A
+  b: B
+  c: C
+  lea: L
+  tom: T
+
+hero:
+  lead: >-
+    Wie viele Zahlen lassen sich mit diesen Ziffern schreiben? Wie viele
+    Handschläge, Kleiderkombinationen oder Möglichkeiten, sich in einer Reihe
+    aufzustellen? In diesen Aufgaben wird jeder Fall in einer Reihenfolge
+    aufgelistet, die sicherstellt, dass keiner verloren geht und keiner doppelt
+    gezählt wird. Eine Liste nach einer Regel ist das erste Werkzeug, das ein
+    Kind für Fragen hat, die zu groß zum Raten sind.
+  method: Die Fälle nach einer Regel auflisten
+  teaches: Geordnet vorgehen und erkennen, wann sich Fälle zählen lassen, ohne sie aufzulisten
+  # The words of its drawing: the question and the rule over it, and the count
+  # under it.
+  art:
+    line: Wie viele zweistellige Zahlen mit verschiedenen Ziffern aus 1, 2 und 3 gibt es?
+    rule: "nach einer Regel aufgelistet: zuerst die erste Ziffer"
+    count: 3 Möglichkeiten für die erste Ziffer × 2 für die zweite = 6 Zahlen
+
+basis:
+  title: Die Regeln einer Liste
+  cards:
+    - title: Der Reihe nach
+      text: >-
+        Ordnen Sie die Fälle, bevor Sie sie aufschreiben: nach dem ersten
+        Buchstaben, dann nach dem zweiten. In einer geordneten Liste hinterlässt
+        ein fehlender Fall eine sichtbare Lücke.
+      art:
+        on: "{child} zuerst"
+        # The case the listing lost: its two letters and a question mark, as the
+        # language writes one.
+        lost: "{first}{second}?"
+    - title: Jeder Fall einmal
+      text: >-
+        Legen Sie vor dem Zählen fest, wodurch sich zwei Fälle unterscheiden.
+        Wenn Lea und Tom sich die Hand geben, ist das ein Handschlag, aber Lea
+        vor Tom und Tom vor Lea sind zwei verschiedene Reihen.
+      art:
+        handshake: 1 Handschlag
+        queues: 2 Reihen
+    - title: Möglichkeiten werden multipliziert
+      text: >-
+        Setzt sich ein Fall aus Entscheidungen nacheinander zusammen, erst eine
+        Tasse und dann eine Untertasse, zählen Sie durch Multiplizieren:
+        3 Tassen und 2 Untertassen ergeben 3 × 2 = 6 Kombinationen.
+      art:
+        sets: 3 × 2 = 6 Kombinationen
+
+idea:
+  title: Kommt es auf die Reihenfolge an?
+  lead: Bei denselben drei Kindern, A, B und C, führen verschiedene Fragen zu verschiedenen Anzahlen.
+  table:
+    head:
+      - Die Frage
+      - Kommt es auf die Reihenfolge an?
+      - Die Fälle
+    rows:
+      - - Auf wie viele Arten können sie sich in einer Reihe aufstellen?
+        - "Ja: AB und BA sind zwei Reihen"
+        - ABC, ACB, BAC, BCA, CAB, CBA – 6
+      - - Wie viele Paare kann man auf einen Botengang schicken?
+        - "Nein: AB und BA sind dasselbe Paar"
+        - AB, AC, BC – 3
+      - - Auf wie viele Arten kann man wählen, wer anführt und wer hilft?
+        - "Ja: Wer anführt, kommt zuerst (größer)"
+        - AB, AC, BA, BC, CA, CB – 6
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Die meisten falschen Antworten zählen hier einen Fall doppelt oder halten
+      zwei verschiedene Fälle für einen. Klärt man zuerst, ob es auf die
+      Reihenfolge ankommt, weiß man, auf welchen Fehler man achten muss.
+
+method:
+  title: "Lösungsweg: eine Liste nach einer Regel"
+  lead: >-
+    Legen Sie vorab eine Regel fest: was in der Liste zuerst kommt und was
+    danach. Schreiben Sie dann die Fälle nach dieser Regel auf, oder zählen Sie
+    sie, sobald die Regel ein Muster zeigt. Die Beispiele unten reichen von ganz
+    einfach bis Olympiade-Niveau.
+  steps:
+    - Festlegen, wodurch sich zwei Fälle unterscheiden
+    - Die Fälle nach einer Regel auflisten
+    - Die Fälle zählen oder multiplizieren, wenn nacheinander ausgewählt wird
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    frame: "ein blauer Rahmen: neu in diesem Schritt"
+
+examples:
+  - title: Flaggen aus zwei Streifen
+    question: >-
+      Eine Flagge hat zwei Streifen, einen über dem anderen. Jeder Streifen ist
+      rot, gelb oder grün, und die beiden Streifen haben verschiedene Farben.
+      Wie viele verschiedene Flaggen gibt es?
+    steps:
+      - >-
+        Die Flaggen nach dem oberen Streifen ordnen. Ist er rot, ist der untere
+        gelb oder grün: zwei Flaggen.
+      - >-
+        Ist der obere gelb, ist der untere rot oder grün: zwei weitere. Ist der
+        obere grün, dann rot oder gelb: noch zwei.
+      - >-
+        3 Farben für oben und jedes Mal 2 übrige für unten: 3 × 2 = 6 Flaggen.
+    answer: 6 Flaggen.
+    art:
+      paints: drei Farben, die Streifen verschiedenfarbig
+      red-top: oben rot
+      red: rot
+      yellow: gelb
+      green: grün
+      top: oben ↓
+      bottom: unten →
+      same: "×: zweimal dieselbe Farbe ist nicht erlaubt, 9 − 3 = 6"
+  - title: Ziffern im Abstand drei
+    question: Wie viele zweistellige Zahlen haben Ziffern, die sich um 3 unterscheiden, wie 14 oder 30?
+    steps:
+      - >-
+        Die Zehnerziffer von 1 bis 9 durchgehen und daneben jede Einerziffer
+        schreiben, die 3 von ihr entfernt ist: 1 → 4; 2 → 5; 3 → 0 und 6;
+        4 → 1 und 7; und so weiter.
+      - >-
+        Bei 3, 4, 5 oder 6 als Zehner gibt es jeweils zwei Zahlen, 3 darunter
+        und 3 darüber. Bei 1, 2, 7, 8 oder 9 nur eine: Die andere wäre keine
+        Ziffer.
+      - >-
+        4 × 2 + 5 × 1 = 13 Zahlen: 14, 25, 30, 36, 41, 47, 52, 58, 63, 69, 74,
+        85, 96.
+    answer: 13 Zahlen.
+    note:
+      title: Der Fall, der am häufigsten verlorengeht
+      text: >-
+        Die 30 ist die Zahl, die Kinder vergessen: Eine Zahl darf auf 0 enden,
+        aber nicht damit beginnen. Eine Liste nach einer Regel findet sie, eine
+        Liste aus dem Gedächtnis nicht.
+    art:
+      given: Zehner und Einer liegen 3 auseinander
+      under: oben die Zehner, darunter die passenden Einer
+      two: "in Blau: je zwei Zahlen"
+      can: erlaubt
+      not: nicht zweistellig
+  - title: Keine zwei Ziffern 2 nebeneinander
+    question: >-
+      Wie viele vierstellige Zahlen lassen sich nur mit den Ziffern 1 und 2
+      schreiben, sodass keine zwei Ziffern 2 nebeneinanderstehen?
+    steps:
+      - >-
+        Zum Raten sind es zu viele, also die Zahlen Ziffer für Ziffer aufbauen.
+        Eine Ziffer: 1 und 2, zwei Zahlen. Zwei Ziffern: 11, 12 und 21, drei,
+        denn 22 ist nicht erlaubt.
+      - >-
+        Eine erlaubte Zahl endet auf 1 oder auf 2. Endet sie auf 1, ist sie eine
+        beliebige erlaubte Zahl mit einer Ziffer weniger, an die eine 1
+        angehängt ist. Endet sie auf 2, muss die Ziffer davor eine 1 sein: Dann
+        ist sie eine beliebige erlaubte Zahl mit zwei Ziffern weniger, an die 12
+        angehängt ist. Also ist jede Anzahl die Summe der beiden vorigen: Drei
+        Ziffern ergeben 3 + 2 = 5, vier Ziffern 5 + 3 = 8.
+      - >-
+        Durch Auflisten prüfen: 1111, 1112, 1121, 1211, 2111, 1212, 2112, 2121,
+        acht.
+    answer: 8 Zahlen.
+    note:
+      title: Eine Anzahl, die wächst
+      text: >-
+        Die Anzahlen 2, 3, 5, 8 gehen weiter mit 13, 21, 34, jede die Summe der
+        beiden vorigen. Olympiade-Aufgaben lieben Anzahlen, die sich aus
+        kleineren aufbauen lassen.
+    art:
+      twos: keine zwei Ziffern 2 nebeneinander
+      one: 1 Ziffer
+      two: 2 Ziffern
+      three: 3 Ziffern
+      four: 4 Ziffern
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  missed_case:
+    shows: >-
+      Das Kind schreibt die Fälle so auf, wie sie ihm einfallen, und verliert
+      einen, oft einen mit einer 0 oder einen, in dem eine Ziffer zweimal
+      vorkommt.
+    say: „In welcher Reihenfolge hast du sie aufgeschrieben? Schreiben wir sie noch einmal nach einer Regel auf.“
+    art:
+      question: Ziffern im Abstand 3
+  wrong_operation:
+    shows: >-
+      Das Kind addiert, wo sich die Möglichkeiten multiplizieren, sodass
+      3 Hemden und 2 Schals 5 ergeben, oder es multipliziert, wo ein Paar
+      gewählt wird und niemand mit sich selbst ein Paar bildet.
+    say: "„Nimm ein Hemd: Wie viele Kombinationen gibt es damit? Und wie viele Hemden gibt es?“"
+    art:
+      question: 3 Hemden und 2 Schals
+  double_count:
+    shows: >-
+      Lea gibt Tom die Hand, und Tom gibt Lea die Hand: Das wird als zwei
+      Handschläge gezählt, obwohl es einer ist.
+    say: „Ist das derselbe Fall wie einer, den wir schon haben?“
+
+home:
+  - title: Ziehen Sie ein Kuscheltier an
+    text: >-
+      Geben Sie Ihrem Kind zwei Mützen und drei Schals für ein Kuscheltier und
+      fragen Sie, auf wie viele Arten sich das Kuscheltier anziehen lässt.
+      Bitten Sie dann um die Liste und prüfen Sie sie gemeinsam.
+  - title: Fragen Sie nach der Regel
+    text: >-
+      Wenn Ihr Kind Fälle auflistet, fragen Sie: „In welcher Reihenfolge
+      schreibst du sie auf?“ Eine Liste mit Regel ist eine Liste, die sich
+      prüfen lässt.
+  - title: Ein Schloss mit Code
+    text: >-
+      Denken Sie sich ein Schloss aus, dessen Code aus zwei Ziffern besteht,
+      jede davon 1, 2 oder 3, und lassen Sie Ihr Kind herausfinden, wie viele
+      Codes jemand durchprobieren müsste, der das Schloss knacken will.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Systematisches Probieren“

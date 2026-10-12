@@ -1,0 +1,87 @@
+# The page of the topics, in German: what a child's tasks are about, how the
+# topics build on one another, and every topic of the catalog with a drawing
+# and a line for the parent. A topic's name is the card's own, from the
+# widget's words; its grades and its links are the catalog's, and its group
+# the site's data.
+
+title: Themen in MathTrail
+description: Alle Themen, zu denen MathTrail Aufgaben stellt, wie sie aufeinander aufbauen und worum es in jedem geht.
+
+hero:
+  title: Welche Aufgaben Ihr Kind löst
+  lead: Jede MathTrail-Aufgabe gehört zu einem Thema. Hier sind alle Themen, wie ihre Aufgaben aussehen und wie manche Themen auf anderen aufbauen.
+  # The name of the child the card on this page shows, an invented one.
+  child: Komet
+  caption: Der Fortschritt, wie ein Chat ihn zeigt, mit einem Rang in jedem Thema. Das Kind und die Zahlen sind ein Beispiel.
+
+map:
+  title: Wie die Themen zusammenhängen
+  lead: Manche Themen bauen auf anderen auf. „Systematisches Probieren“ braucht man sowohl für das Schubfachprinzip als auch für „Ritter und Lügner“. Hängt ein Kind fest, hilft ein Schritt zurück zu dem Thema, auf dem ein schweres aufbaut.
+  layers:
+    - step: Stufe 1
+      name: Grundlagen
+      lead: Fast ohne Vorwissen.
+    - step: Stufe 2
+      name: Regeln
+      lead: Was man von Hand überlegt hat, wird zur Regel.
+    - step: Stufe 3
+      name: Schwere Aufgaben
+      lead: Mehrere Ideen gleichzeitig im Kopf behalten.
+  hint: Zeigen Sie auf ein Thema oder wählen Sie es mit der Tab-Taste an, dann leuchtet auf, worauf es aufbaut und wozu es weiterführt.
+  # Said under the map while a topic is pointed at: its name, every topic
+  # below it, and every topic above it.
+  say: "**{topic}** · vorher: {before} · führt weiter zu: {after}"
+  foundation: nichts, es ist eine Grundlage
+  summit: nichts, es ist ein Gipfel
+  legend:
+    first: Vorher
+    topic: Thema
+    then: Danach
+
+groups:
+  label: Themengruppen
+  logic: "Schlussfolgern: annehmen, die Folgerung ziehen, den Widerspruch finden."
+  counting: Jeden Fall zählen und keinen auslassen.
+  time: Uhren, Wochentage, Jahre und was sich mit ihnen ändert.
+  numbers: Zahlen, bei denen die Idee mehr zählt als schnelles Rechnen.
+  parts: "Ein Ganzes, in Teile zerlegt: Anteile, Prozente und Verhältnisse."
+  games: Den Plan finden, der aufgeht, egal was das Gegenüber oder die Waage tut.
+
+# Every topic of the catalog, by its slug: a line for the parent. Its card's
+# drawing is the site's data, one of the site's own small drawings and never a
+# reference task's, and it reads no words of this file.
+topics:
+  ordering:
+    phrase: "Wer ist größer, älter, schneller: aus wenigen Hinweisen alle in die richtige Reihenfolge bringen."
+  knights-and-liars:
+    phrase: Die einen sagen immer die Wahrheit, die anderen lügen immer. Aus dem, was sie sagen, herausfinden, wer wer ist.
+  enumeration:
+    phrase: Alle Fälle der Reihe nach auflisten, damit keiner verloren geht und keiner doppelt gezählt wird.
+  gaps-and-boundaries:
+    phrase: "Am Zaun Pfosten und Zwischenräume, im Haus Etagen und Treppen: wann man eins dazuzählt und wann nicht."
+  clocks:
+    phrase: "Wie viel Zeit vergangen ist und wie spät es sein wird: die Zeiger, das Zifferblatt, das Rechnen über Mittag hinweg."
+  calendar-and-age:
+    phrase: Wochentage, Monate und Alter. Ein Altersunterschied ändert sich nie, und die Woche beginnt immer wieder von vorn.
+  pigeonhole-principle:
+    phrase: Gibt es mehr Tauben als Käfige, sitzen in irgendeinem Käfig zwangsläufig zwei.
+  parity-and-alternation:
+    phrase: "Gerade und ungerade, jedes zweite: was man wissen kann, ohne alles durchzuzählen."
+  arithmetic-with-a-trick:
+    phrase: "Geschickt rechnen: umstellen, zusammenfassen und den leichten Weg sehen, bevor man losrechnet."
+  weighing-and-pouring:
+    phrase: Die falsche Münze mit möglichst wenigen Wägungen finden oder Wasser mit Kannen ohne Markierungen abmessen.
+  parts-and-shares:
+    phrase: "Die Hälfte, ein Drittel, ein Viertel: ein Teil des Ganzen und das Ganze aus seinem Teil."
+  percentages:
+    phrase: Wie viel das in Prozent ist und wovon. Ein Prozent ist ein Hundertstel.
+  ratios-and-sharing:
+    phrase: Im Verhältnis 2 zu 3 aufteilen und herausfinden, wie viel ein Teil ist.
+  figures-on-a-grid:
+    phrase: Flächeninhalt und Umfang nach Kästchen. Zerschneiden, zusammensetzen und zählen, ohne eines auszulassen.
+  divisibility-and-remainders:
+    phrase: Ob sich eine Zahl ohne Rest teilen lässt und was übrig bleibt, wenn nicht.
+  overlapping-groups:
+    phrase: Manche Kinder gehen in zwei AGs zugleich. Wie man sie nicht doppelt zählt.
+  winning-strategy:
+    phrase: Wer nimmt das letzte Streichholz? Die Stellungen suchen, aus denen man gewinnt, egal was das Gegenüber tut.

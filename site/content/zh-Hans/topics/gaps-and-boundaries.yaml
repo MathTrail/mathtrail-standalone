@@ -1,0 +1,181 @@
+# The page of the topic of gaps and boundaries, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 植树问题
+description: 什么是植树问题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+hero:
+  lead: >-
+    六棵树种成一行，树之间有几个间隔？一根木头锯成五段，锯了几次？这类题里，孩子要么数东西本身，要么数东西之间的间隔，而这两个数相差一。大多数错误答案都出在这一个之差上，随手画一个小例子的草图，就能把它纠正过来。
+  method: 画一个小例子，在图上数
+  teaches: 分清东西本身和它们之间的间隔，并能在图上检验规律
+  # The words of its drawing: the fence and the rule over it, and the two
+  # counts under it.
+  art:
+    line: 篱笆的四根柱子
+    rule: 先数柱子，再数柱子之间的间隔
+    posts: "**4**根柱子"
+    spans: "**3**个间隔"
+
+basis:
+  title: 间隔的规则
+  cards:
+    - title: 排成一行，少一个
+      text: >-
+        间隔在东西之间，所以排成一行时，间隔总比东西少一个：六棵树，五个间隔；一根木头锯成五段，锯了四次。
+      art:
+        trees: 6棵树，5个间隔
+    - title: 围成一圈，一样多
+      text: >-
+        如果这一行首尾相接，围成一圈，就像花坛周围的灌木那样，那么最后一个和第一个之间也有一个间隔：间隔和东西一样多。
+      art:
+        bushes: 8丛灌木，8个间隔
+    - title: 两端都要算
+      text: >-
+        从第3页到第7页，是7 − 3 = 4步，却有5页，因为第一页也要读。“从……到……”连两端一起数，就要加一。
+      art:
+        steps: 4步
+        pages: 4步，却有5页
+
+idea:
+  title: 数东西，还是数间隔？
+  lead: 每道题只数其中的一样。一行、一圈和“从……到……”的一段，数法各不相同，画个小图就能看出怎么数。
+  table:
+    head:
+      - 图
+      - 数的是什么
+      - 有多少
+    rows:
+      - - 一行6棵树
+        - 树之间的间隔
+        - 6 − 1 = 5
+      - - 木头锯成5段
+        - 锯的次数
+        - 5 − 1 = 4
+      - - 花坛周围8丛灌木
+        - 灌木之间的间隔
+        - "8"
+      - - 第3页到第7页
+        - 读过的页数
+        - 7 − 3 + 1 = 5
+  note:
+    title: 为什么重要
+    text: >-
+      差一个的答案看起来几乎是对的，所以孩子很少发现。在纸上画两三根柱子，马上就能看出该加一、减一，还是都不用。
+
+method:
+  title: 解法：画一个小例子
+  lead: >-
+    用点或柱子把东西画出来，先画小的数目，两个或三个。在图上数出间隔，看出规律，然后才把它用到题目里的数上。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 画出东西和间隔
+    - 弄清题目数的是哪一样
+    - 算出结果，并在小例子上检验规律
+  # The key under the steps: what the drawings' blue and red mean.
+  legend:
+    counted: 蓝色：要数的
+    cut: 锯口
+
+examples:
+  - title: 公交线路
+    question: >-
+      一条公交线路有6个站。公交车从一站开到下一站要3分钟。从第一站开到最后一站要多少分钟？
+    steps:
+      - 用点画出6个站。公交车是沿着站与站之间的间隔开的。
+      - 6个站之间有5个间隔，比站数少一个。
+      - 每个间隔要3分钟：5 × 3 = 15。
+    answer: 15分钟。
+    note:
+      title: 为什么不是18？
+      text: >-
+        6 × 3 = 18是给每个站都配了一个自己的间隔，可是过了最后一站，公交车就哪儿也不去了：时间都花在站与站之间。
+    art:
+      stops: 6个站，相邻两站之间3分钟
+      minutes: "{count}分钟"
+      total: 5 × 3 = 15分钟
+      end: 第6站之后没有路了
+  - title: 9楼和3楼
+    question: >-
+      小兰住在9楼，小梅住在同一栋楼的3楼，两人都从1楼走上去。每段楼梯都一样。小兰爬的台阶数是小梅的几倍？
+    steps:
+      - >-
+        小梅从1楼爬到3楼：2段楼梯，从1楼到2楼，再从2楼到3楼。
+      - >-
+        小兰从1楼爬到9楼，要爬8段楼梯，比所住的楼层数少一。
+      - 每段楼梯都一样，所以8 ÷ 2 = 4。小兰爬的台阶数是小梅的4倍。
+    answer: 4倍。
+    note:
+      title: 为什么不是3倍？
+      text: >-
+        9 ÷ 3 = 3除的是楼层数，可台阶在楼层之间的楼梯上，而且谁也不用爬到1楼。
+    art:
+      masha: 梅
+      lena: 兰
+      third: 3楼
+      ninth: 9楼
+      from: 两人都从1楼走上去
+      masha-name: 小梅
+      lena-name: 小兰
+      two: 段楼梯
+      eight: 段楼梯
+      times: 小兰的8段是小梅2段的4倍
+      floors: 楼层
+      flights: 楼梯
+  - title: 有几根木头？
+    question: >-
+      伐木工人锯了一些木头，每根木头至少锯了一次。一共锯了9次，得到14段。伐木工人锯了几根木头？
+    steps:
+      - >-
+        先锯一根木头：锯1次得到2段，锯2次得到3段。每根木头最后得到的段数，都比锯的次数多一。
+      - 把所有木头合起来算：段数就是锯的次数，再加上每根木头各多出的一段。
+      - 14 − 9 = 5。木头有5根。
+    answer: 5根木头。
+    note:
+      title: 锯的次数怎样分，有关系吗？
+      text: >-
+        没有关系。五根木头锯9次，不论大部分是锯在一根木头上，还是分得差不多平均，都得到14段：每锯一次，就把一段变成两段。
+    art:
+      cuts: 锯9次
+      pieces: 14段
+      logs: 木头：？
+      one: 锯1次，2段
+      two: 锯2次，3段
+      sum: 段数 = 次数 + 根数：9 = 6 + 3
+      all: 锯9次 · 14段 · 5根木头
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      孩子数了站，而不是站之间的间隔；或者数了间隔，而不是柱子：6个站就成了6 × 3 = 18分钟。答案只差一个，所以看起来几乎是对的。
+    say: “画三个站。中间有几个间隔？”
+  wrong_operation:
+    shows: >-
+      孩子拿题目里的数做了图上没要求的运算：把它们相加，6 + 3，或者把其中一个翻倍，而不是数出间隔，再给每个间隔算上它的分钟数。
+    say: “一个间隔要多长时间？一共有几个间隔？”
+  number_from_text:
+    shows: >-
+      题目里的一个数直接成了答案：题目问的是分钟，答的却是6个站；题目问的是几段楼梯，答的却是9楼。
+    say: “这个数是在数什么：站，还是间隔？”
+    art:
+      question: 问题：多少分钟？
+      stops: 站
+      minutes: 分钟
+
+home:
+  - title: 手指和指缝
+    text: >-
+      张开手指：五根手指，中间有四个指缝。这是整个专题最快的一张图，而且它总在手边。
+  - title: 回家路上的楼梯
+    text: >-
+      上楼时，和孩子一起数楼层和楼梯段：从1楼到4楼，有几段楼梯？从2楼到4楼呢？
+  - title: 柱子和长椅
+    text: >-
+      散步时，数一数篱笆的柱子和柱子之间的间隔，或者池塘周围的长椅。排成一行，间隔少一个；围成一圈，一样多。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“植树问题”的题

@@ -79,12 +79,34 @@ export function Act({
 
 /** Unknown is the number a chain starts from and the task asks for. */
 export function Unknown() {
-	return <span class="s-sk-unknown">?</span>;
+	return (
+		<span class="s-sk-unknown">
+			<Question />
+		</span>
+	);
+}
+
+/**
+ * Question is the question mark a drawing writes where it asks, as the page's
+ * language writes one: ? and, in Arabic, ؟, which an Arabic reader would
+ * otherwise see backwards.
+ */
+export function Question() {
+	return <>{useSiteWords().text("sign.question")}</>;
 }
 
 /** Op is a sign between two boxes, such as plus or equals. */
 export function Op({ children }: { children: ComponentChildren }) {
 	return <span class="s-sk-op">{children}</span>;
+}
+
+/**
+ * Divide is the sign of division as the page's language writes it: the colon
+ * of the English pages, or ÷ where a colon reads as a ratio, as it does in
+ * Japanese and Chinese.
+ */
+export function Divide() {
+	return <>{useSiteWords().text("sign.divide")}</>;
 }
 
 /**

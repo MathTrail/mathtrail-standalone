@@ -88,7 +88,9 @@ function Hero({
 				<div class="s-contrast-card">
 					<p class="s-contrast-label">{page.text("hero.school.label")}</p>
 					<p class="s-contrast-text">{page.text("hero.school.text")}</p>
-					<p class="s-contrast-sum">{page.plain("hero.school.sum")}</p>
+					<p class="s-contrast-sum" dir="ltr">
+						{page.plain("hero.school.sum")}
+					</p>
 				</div>
 				<div class="s-contrast-card s-contrast-raised">
 					<p class="s-contrast-label">{page.text("hero.olympiad.label")}</p>

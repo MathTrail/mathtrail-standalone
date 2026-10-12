@@ -1,0 +1,96 @@
+{
+	"language.name": "日本語",
+	"nav.language": "言語",
+	"nav.pages": "サイトのページ",
+	"nav.menu": "メニュー",
+	"nav.topics": "テーマ",
+	"nav.coach": "コーチ",
+	"nav.beta": "Beta",
+	"nav.add": "Claude に追加",
+	"nav.why": "学ぶ意味",
+	"nav.techniques": "解法",
+	"nav.research": "研究",
+	"nav.service": "仕組み",
+	"nav.technical": "技術者向けのページ",
+	"nav.about": "私たち",
+	"share.picture": "MathTrail のトップページ：MathTrail の約束と、その横に、チャットに表示されるとおりの問題のカード。",
+	"cite.one": "{first}, {year}",
+	"cite.two": "{first} & {second}, {year}",
+	"cite.many": "{first} et al., {year}",
+	"footer.links": "リンク",
+	"footer.source": "GitHub",
+	"group.logic": "論理",
+	"group.counting": "数え上げ",
+	"group.time": "時間",
+	"group.numbers": "ひっかけのある数",
+	"group.parts": "全体と部分",
+	"group.games": "作戦とゲーム",
+	"topics.builds_on": "先に学ぶ：{topics}",
+	"topics.opens": "次に進む：{topics}",
+	"topics.grades": "{range}年生",
+	"topics.more": "詳しく →",
+	"topics.soon": "準備中",
+	"thumb.knight": "正",
+	"thumb.liar": "う",
+	"sign.divide": "÷",
+	"sign.question": "?",
+	"techniques.count": {
+		"other": "{count}の解法"
+	},
+	"research.tasks": {
+		"other": "問のお手本問題"
+	},
+	"research.checks": {
+		"other": "項目のチェック"
+	},
+	"research.passed": {
+		"other": "項目のチェック"
+	},
+	"research.topics": {
+		"other": "テーマ"
+	},
+	"research.traps": {
+		"other": "種類のひっかけ"
+	},
+	"research.pages": {
+		"other": "ページ"
+	},
+	"research.places": {
+		"other": "つ"
+	},
+	"research.trial": {
+		"other": "問"
+	},
+	"research.answers": {
+		"other": "件の解答"
+	},
+	"research.given": {
+		"other": "件の解答"
+	},
+	"research.children": {
+		"other": "人"
+	},
+	"research.times": {
+		"other": "回"
+	},
+	"topic.path": "現在地",
+	"topic.method": "解き方のカギ",
+	"topic.teaches": "身につく力",
+	"topic.contents": "目次",
+	"topic.solving": "解き方",
+	"topic.example": "例題{number} · {grades}",
+	"topic.answer": "答え",
+	"topic.traps": "つまずきやすいところ",
+	"topic.traps_lead": "MathTrail は、間違った答えを一つひとつ、どのひっかけにかかったのかから解説します。このテーマでよくあるひっかけを、お子さまへの声かけの例と一緒に紹介します。",
+	"topic.trap": "ひっかけ",
+	"topic.say": "声かけ",
+	"topic.child": "子ども",
+	"topic.right": "正解",
+	"topic.home": "家庭でできること",
+	"topic.before": "先に学ぶテーマ",
+	"topic.after": "次に進めるテーマ",
+	"topic.ask": "このテーマの問題を頼んでください",
+	"topic.all": "テーマ一覧",
+	"copy.action": "コピー",
+	"copy.done": "コピーしました"
+}

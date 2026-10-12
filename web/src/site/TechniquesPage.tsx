@@ -7,7 +7,7 @@ import type { PageReader } from "./reader";
 import { StepDrawing, TaskLegend } from "./TechniqueSteps";
 import { allTechniques, type Technique, type Techniques } from "./techniques";
 import { Answer, provedAnswer, WorkedSteps } from "./WorkedSteps";
-import { gradesText, useSiteWords } from "./words";
+import { gradesText, useSiteWords, wordSpace } from "./words";
 
 /**
  * TechniquesPage is the page of the techniques of problem solving. It opens
@@ -189,7 +189,9 @@ function TechniqueCard({
 			<div class="s-technique-about">
 				<p class="s-technique-what">{page.text(`${at}.what`)}</p>
 				<p class="s-technique-when">
-					<strong>{page.text("labels.when")}</strong> {page.text(`${at}.when`)}
+					<strong>{page.text("labels.when")}</strong>
+					{wordSpace(page.plain("labels.when"), page.plain(`${at}.when`))}
+					{page.text(`${at}.when`)}
 				</p>
 			</div>
 			<div class="s-technique-task">

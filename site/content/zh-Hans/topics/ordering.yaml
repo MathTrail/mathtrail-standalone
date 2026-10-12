@@ -1,0 +1,218 @@
+# The page of the topic of ordering, for a parent, in Simplified Chinese. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: 排序推理
+description: 什么是排序推理题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+# The words every drawing of the page writes its four children in: the
+# initial of each, and the name.
+art:
+  ann: 安
+  ann-name: 小安
+  ben: 明
+  ben-name: 小明
+  kate: 丽
+  kate-name: 小丽
+  dan-name: 小刚
+  taller: 高于
+
+hero:
+  lead: >-
+    谁更高，谁年龄更大，谁先到？这类题要把几个比较拼成一个顺序：按身高、按年龄、按在队伍里或比赛中的位置。很多孩子正是在这里第一次接触推理链：每条线索都是链上的一环，一条也不能漏掉。
+  method: 画一条线，把所有人都排到线上
+  teaches: 把几条线索拼成一个顺序，并能正反两面理解比较
+  # The words of its drawing: the clues and the rule over it, and the line's
+  # two ends in it.
+  art:
+    line: 线索
+    clue-1: “小安比小明高”
+    clue-2: “小丽比小明矮”
+    clue-3: “小刚比小丽矮”
+    rule: 排到一条线上
+    top: 最高
+    bottom: 最矮
+
+basis:
+  title: 排成一条线的规则
+  cards:
+    - title: 每条线索都是一个箭头
+      text: >-
+        “小安比小明高”就是在线上把小安排在小明前面。不管线索比较的是身高、年龄还是比赛中的名次，它说的都是谁排在前面。
+      art:
+        clue: “小安比小明高”
+    - title: 正着读，反着读
+      text: >-
+        “小明比小安矮”和“小安比小明高”说的是同一件事。排到线上之前，先调整每条线索的说法，让它们都朝同一个方向。
+      art:
+        clue: “小安比小明高”
+        turned: “小明比小安矮”
+    - title: 链条会延续
+      text: >-
+        如果小安比小明高，小明又比小丽高，那么小安也比小丽高，虽然没有哪条线索这样说过。
+      art:
+        implied: 小安比小丽高
+
+idea:
+  title: 把所有线索转成同一个方向
+  lead: 按线索一条一条地把线排出来，每条线索都先改成“比……高”的说法。每一步都给线上添一个新的人。
+  table:
+    head:
+      - 线索
+      - 改成“比……高”
+      - 目前的顺序
+    rows:
+      - - “小安比小明高”
+        - 小安比小明**高**
+        - 小安 > 小明
+      - - “小丽比小明矮”
+        - 小明比小丽**高**
+        - 小安 > 小明 > 小丽
+      - - “小刚比小丽矮”
+        - 小丽比小刚**高**
+        - 小安 > 小明 > 小丽 > 小刚
+  # The words of the drawings of the table: the note on a clue turned round.
+  art:
+    turned: 倒过来
+  note:
+    title: 为什么重要
+    text: >-
+      这里的错误大多出在把线索读反了：把“矮”当成“高”，把“之后”当成“之前”。线索在排到线上之前先倒过来说好，就不会再读错了。
+
+method:
+  title: 解法：画一条线
+  lead: >-
+    画一条线，从最高的到最矮的，或者从第一名到最后一名，然后把线索一条一条地排上去，先排确定的。暂时排不上的人，等下一条线索。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 把所有线索转成同一个方向
+    - 把线索排到线上，先排确定的
+    - 读出答案，再用它逐条检验线索
+  # The key under the steps: what the drawings' rings and outlines mean.
+  legend:
+    added: 蓝圈：这一步新添的
+    free: 还空着的位置
+    block: 整体：两人总是挨着
+
+examples:
+  - title: 三条船
+    question: >-
+      三条船比赛：一条红船、一条蓝船和一条绿船。红船在蓝船之后到达终点。绿船在蓝船之前到达终点。哪条船赢了？
+    steps:
+      - >-
+        把第一条线索倒过来说：红船在蓝船之后到达，也就是蓝船在红船之前到达。
+      - >-
+        在线上，第一名在最左边：先是蓝船，然后是红船。绿船在蓝船之前到达，所以排在这两条船的前面：绿船、蓝船、红船。
+      - >-
+        线上的第一名是绿船。检验：红船在蓝船之后，对；绿船在蓝船之前，对。
+    answer: 绿船赢了。
+    badge: "1"
+    art:
+      red: 红色
+      blue: 蓝色
+      green: 绿色
+      before: 先于
+      waits: 等待
+  - title: 食堂排队
+    question: >-
+      五个孩子在食堂排队：小兰、小军、小娜、小宇和小强。小娜排第三。小宇紧挨在小娜后面。小军排在小兰前面的某个位置，而且小兰不是最后一个。谁排在最后？
+    steps:
+      - >-
+        先写下确定的：小娜排第三，紧挨在小娜后面的小宇排第四。第1、2、5个位置留给小军、小兰和小强。
+      - >-
+        小兰不是最后一个，所以小兰排第一或第二。小军排在小兰前面的某个位置，所以小兰不可能排第一：小兰排第二，小军排第一。
+      - >-
+        剩下的唯一位置是第五个，那是小强的。逐条检验线索：全都成立。
+    answer: 小强排在最后。
+    badge: 强
+    note:
+      title: 每条线索都有用
+      text: >-
+        如果没有“小兰不是最后一个”，小兰也可能排在最后：正是这条带“不”字的短线索，决定了整个队伍的顺序。
+    art:
+      lena: 兰
+      lena-name: 小兰
+      max: 军
+      max-name: 小军
+      nina: 娜
+      nina-name: 小娜
+      oleg: 宇
+      oleg-name: 小宇
+      pavel: 强
+      pavel-name: 小强
+      wait: 等待
+      waits: 等待
+      other: 没有那条线索，这样排也说得通
+  - title: 六人赛跑
+    question: >-
+      六名选手赛跑，名次没有并列：小雪、小波、小龙、小丹、小杰和小菲。小波紧跟在小雪后面到达。小龙在小丹之后、小雪之前到达。小菲紧挨在小杰前面到达，而且小杰不是最后一名。小丹不是第一名。谁赢了？
+    steps:
+      - >-
+        找出整体：“小波紧跟在小雪后面”让小雪和小波连成一个整体，“小菲紧挨在小杰前面”让小菲和小杰连成一个整体。顺序是小丹，然后小龙，然后是小雪和小波这个整体。
+      - >-
+        小丹不是第一名，所以有人比小丹先到。小龙、小雪和小波都在小丹之后到达：能排在小丹前面的只有小菲和小杰，而这两人是连在一起的。
+      - >-
+        所以小菲和小杰排在最前面：小菲、小杰、小丹、小龙、小雪、小波。和线索说的一样，小杰不是最后一名。每条线索都成立。
+    answer: 小菲赢了。
+    badge: 菲
+    note:
+      title: 整体一起移动
+      text: >-
+        线索说“紧跟在后面”时，这两名选手不管排到哪里，都挨在一起。把这两人看成一个整体，要排的就从六名选手变成了四个单位。
+    art:
+      ada: 雪
+      ada-name: 小雪
+      bob: 波
+      bob-name: 小波
+      cid: 龙
+      cid-name: 小龙
+      dot: 丹
+      dot-name: 小丹
+      eli: 杰
+      eli-name: 小杰
+      fay: 菲
+      fay-name: 小菲
+      blocks: 整体
+      order: 顺序
+      only: 能排到“?”的只有
+      six: 6名选手
+      four: 4个单位
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      孩子用了一条线索，却漏掉了另一条，常常是带“不”字的短线索，于是线上给错误答案留下了位置。
+    say: “还有哪条线索没用上？”
+    art:
+      question: 漏看了线索“小兰不是最后一个”
+  reversed_relation:
+    shows: >-
+      “小丽比小明矮”被排到线上时，却好像小丽更高似的：线索读反了，答案也就反了。
+    say: “那么谁更高呢？反过来说一说。”
+    art:
+      clue: “小丽比小明矮”
+  stopped_early:
+    shows: >-
+      孩子发现一个人比另一个人矮，就拿这个作答，可是链条还没完：小明比小安矮，但小丽还要更矮。
+    say: “线上再往后，还有人吗？”
+    art:
+      clue-1: “小明比小安矮”
+      clue-2: “小丽比小明矮”
+      who: 谁最矮？
+
+home:
+  - title: 全家排排队
+    text: >-
+      在家里让大家按身高排一排，再按年龄排一排，并把每条线索大声说出来：“爸爸比妈妈高，所以爸爸排第一。”
+  - title: 先画线，再作答
+    text: >-
+      请孩子先在纸上画出这条线，再说答案。画出来以后，是漏了线索，还是哪条线索方向反了，一眼就能看出来。
+  - title: 反过来说
+    text: >-
+      玩一个快速的小游戏：您说“猫比狗小”，孩子就反过来说：“狗比猫大”。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“排序推理”的题

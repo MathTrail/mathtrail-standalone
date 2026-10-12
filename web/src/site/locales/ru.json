@@ -32,6 +32,8 @@
 	"topics.soon": "Скоро",
 	"thumb.knight": "Р",
 	"thumb.liar": "Л",
+	"sign.divide": ":",
+	"sign.question": "?",
 	"techniques.count": {
 		"one": "{count} приём",
 		"few": "{count} приёма",

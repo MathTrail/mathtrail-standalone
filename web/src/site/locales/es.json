@@ -32,6 +32,8 @@
 	"topics.soon": "Próximamente",
 	"thumb.knight": "V",
 	"thumb.liar": "M",
+	"sign.divide": ":",
+	"sign.question": "?",
 	"techniques.count": {
 		"one": "{count} técnica",
 		"many": "{count} de técnicas",

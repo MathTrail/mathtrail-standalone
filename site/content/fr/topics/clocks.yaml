@@ -1,0 +1,218 @@
+# The page of the topic of clocks, for a parent, in French. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
+
+title: Horloges
+description: Ce que sont les problèmes d’horloges et de temps, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+# The words the page's drawings write a length of time in.
+art:
+  minutes: "{count} min"
+  hours: "{count} h"
+  both: "{hours} h {minutes} min"
+
+hero:
+  lead: >-
+    Une promenade commence à 4:50 et dure 25 minutes : à quelle heure se
+    termine-t-elle ? Dans ces problèmes, l’enfant ajoute et retire du temps,
+    et la difficulté, c’est qu’une heure compte 60 minutes, et non 100. C’est
+    en passant l’heure pile, midi ou minuit que se produisent la plupart des
+    erreurs.
+  method: Aller jusqu’à l’heure pile, puis continuer
+  teaches: À compter le temps en passant l’heure pile et minuit, et à distinguer l’heure qu’indique une horloge d’une durée
+  # The words of its drawing: the walk over it, and what its line of time
+  # shows under it.
+  art:
+    line: Une promenade qui part à 4:50 et dure 25 minutes
+    whole: d’abord jusqu’à l’heure pile, puis on continue
+
+basis:
+  title: Les règles de l’horloge
+  cards:
+    - title: Une heure, c’est 60 minutes
+      text: >-
+        Et non 100. Donc 8:50 plus 20 minutes, c’est 9:10, pas 8:70, et
+        110 minutes, c’est 1 heure 50 minutes, pas 1 heure 10.
+    - title: En passant par l’heure pile
+      text: >-
+        Pour ajouter du temps à cheval sur deux heures, allez d’abord jusqu’à
+        l’heure pile, puis ajoutez le reste : à partir de 8:50, 10 minutes
+        jusqu’à 9:00, puis encore 10.
+    - title: Une journée, c’est 24 heures
+      text: >-
+        Après 23:59 vient 0:00 le jour suivant. De 22:00 à 6:00, il y a
+        2 heures jusqu’à minuit et 6 heures après.
+      art:
+        midnight: "0:00, c’est minuit, le début du jour suivant"
+
+idea:
+  title: En passant par l’heure pile
+  lead: Combien de temps d’une heure à une autre ? Arrêtez-vous en chemin à l’heure pile. Une soustraction difficile devient ainsi deux étapes faciles.
+  table:
+    head:
+      - De quand à quand
+      - En passant par l’heure pile
+      - Combien de temps
+    rows:
+      - - de 8:40 à 9:15
+        - 20 min + 15 min
+        - 35 min
+      - - de 10:50 à 12:30
+        - 10 min + 1 h 30 min
+        - 1 h 40 min
+      - - de 22:30 à 6:00
+        - 1 h 30 min + 6 h
+        - 7 h 30 min
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Soustraire une heure d’une autre en colonnes, 9:15 − 8:40, incite
+      l’enfant à emprunter 100 minutes au lieu de 60. Compter en avançant, en
+      passant par l’heure pile, n’y incite jamais.
+
+method:
+  title: "Comment le résoudre : une ligne du temps"
+  lead: >-
+    Tracez une ligne et placez-y les heures dans l’ordre, la plus tôt à
+    gauche. Allez jusqu’à l’heure pile, puis avancez par heures entières, puis
+    ajoutez les minutes qui restent. Les exemples ci-dessous vont du plus
+    simple à un problème d’olympiade.
+  steps:
+    - Placer les heures sur une ligne, la plus tôt d’abord
+    - Aller jusqu’à l’heure pile, puis continuer
+    - Additionner les durées, et vérifier que la réponse est plus tôt ou plus tard, comme il se doit
+  # The key under the steps: what the drawings' boxes and arrows mean.
+  legend:
+    whole: une heure pile
+    lasts: la durée
+
+examples:
+  - title: Le cours de natation
+    question: >-
+      Le cours de natation de Tom commence à 3:45 et dure 40 minutes. À quelle
+      heure se termine-t-il ?
+    steps:
+      - "De 3:45 jusqu’à l’heure pile, 4:00, il y a 15 minutes."
+      - "Après 4:00, il reste 40 − 15 = 25 minutes."
+      - "4:00 plus 25 minutes, c’est 4:25."
+    answer: À 4:25.
+    note:
+      title: Pourquoi pas 3:85 ?
+      text: >-
+        45 + 40 = 85, mais une horloge ne va pas jusqu’à 85 minutes : à 60, on
+        passe à l’heure suivante. En allant d’abord jusqu’à l’heure pile, on
+        n’obtient jamais une telle heure.
+    art:
+      start: début du cours, qui dure 40 minutes
+      split: 40 minutes = 15 jusqu’à 4:00 + 25 après
+      never: n’existe pas
+      right: juste
+  - title: Le tournoi d’échecs
+    question: >-
+      Un tournoi d’échecs compte 5 rondes. Chaque ronde dure 50 minutes, et il
+      y a une pause de 15 minutes entre deux rondes. La première ronde commence
+      à 10:00. À quelle heure se termine la dernière ronde ?
+    steps:
+      - "5 rondes de 50 minutes : 5 × 50 = 250 minutes de jeu."
+      - >-
+        Les pauses n’ont lieu qu’entre les rondes, donc il y en a 4, pas 5 :
+        4 × 15 = 60 minutes.
+      - >-
+        250 + 60 = 310 minutes, soit 5 heures 10 minutes. 10:00 plus 5 heures
+        10 minutes, c’est 15:10.
+    answer: À 15:10.
+    note:
+      title: Pourquoi pas 13:10 ?
+      text: >-
+        310 minutes, ce n’est pas 3 heures 10 minutes : une heure compte
+        60 minutes, et non 100. 310 = 5 × 60 + 10.
+    art:
+      round: une ronde, 50 min
+      break: une pause, 15 min
+      rounds: 5 × 50 = 250 minutes
+      breaks: "une pause de moins que de rondes : 4 × 15 = 60"
+      total: 310 min = 5 × 60 + 10
+      hours: 5 heures de 60 minutes, et encore 10
+  - title: Deux villes
+    question: >-
+      Mamie prend l’avion pour aller voir Anna, qui habite dans une autre
+      ville. L’avion décolle à 8:00 selon les horloges de la ville de Mamie et
+      atterrit à 8:30 selon celles de la ville d’Anna. Les horloges de la ville
+      d’Anna indiquent 4 heures de moins que celles de la ville de Mamie.
+      Combien de temps dure le vol ?
+    steps:
+      - >-
+        8:00 et 8:30 se lisent sur des horloges différentes, donc on ramène
+        d’abord les deux heures sur une même horloge : celle de Mamie.
+      - "Quand les horloges de la ville d’Anna indiquent 8:30, celles de Mamie indiquent 4 heures de plus : 12:30."
+      - "De 8:00 à 12:30 sur une même horloge, il y a 4 heures 30 minutes."
+    answer: 4 heures 30 minutes.
+    badge: "4:30"
+    note:
+      title: Une demi-heure ?
+      text: >-
+        8:30 − 8:00 ne fait une demi-heure que si les deux heures sont lues sur
+        la même horloge. On compare les heures de deux villes après avoir
+        ramené l’une d’elles sur l’horloge de l’autre.
+    art:
+      take-off: décollage, chez Mamie
+      landing: atterrissage, chez Anna
+      grandma-clock: l’horloge de Mamie
+      ann-clock: l’horloge d’Anna
+      at-ann: chez Anna
+      at-grandma: chez Mamie
+      grandma: Mamie
+      ann: Anna
+      other: horloges différentes
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_operation:
+    shows: >-
+      L’enfant fait une opération que la question ne demande pas : additionner
+      deux heures de l’horloge comme si c’étaient des quantités, de sorte que
+      3 heures et 5 heures font 8, ou multiplier là où il suffit de compter en
+      avançant.
+      Une heure sur l’horloge est un point sur une ligne, pas une quantité.
+    say: « C’est une heure sur l’horloge, ou une durée ? »
+    art:
+      question: "De 3:00 à 5:00 : combien de temps ?"
+  time_unit_mixup:
+    shows: >-
+      Les minutes sont comptées comme si une heure en avait 100 : 3:45 plus
+      40 minutes devient 3:85, ou 310 minutes deviennent 3 heures 10 minutes.
+    say: « Combien y a-t-il de minutes dans une heure ? »
+    art:
+      question: "3:45 plus 40 minutes"
+  reversed_relation:
+    shows: >-
+      Plus tôt et plus tard échangent leurs places : l’enfant compte à rebours
+      quand la question va vers l’avant, ou ajoute un décalage horaire qu’il
+      fallait retirer, et l’avion atterrit avant d’avoir décollé.
+    say: « La réponse doit-elle être plus tôt ou plus tard que le départ ? »
+    art:
+      question: Décollage à 8:00 sur l’horloge de Mamie
+      before: atterrissage avant le décollage ?
+
+home:
+  - title: Une horloge à aiguilles
+    text: >-
+      Placez une horloge à aiguilles là où l’enfant peut la voir, et demandez
+      en passant : quelle heure sera-t-il dans un quart d’heure ? Et quelle
+      heure était-il il y a vingt minutes ?
+  - title: Combien de temps reste-t-il ?
+    text: >-
+      Avant un dessin animé ou une promenade, estimez ensemble combien de temps
+      il reste à attendre, puis vérifiez sur l’horloge. Une vraie attente rend
+      les minutes concrètes.
+  - title: Le programme de la journée
+    text: >-
+      Écrivez le programme d’une journée libre, avec les heures : une
+      promenade de 11:30 à 12:15, le repas de midi à 12:30. Combien de temps
+      dure chaque partie, et combien de temps y a-t-il entre elles ?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Horloges »

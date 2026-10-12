@@ -163,6 +163,17 @@ describe("the card on the first screen, come alive", () => {
 		expect(card()?.querySelectorAll(".mt-steps li").length).toBeGreaterThan(0);
 	});
 
+	test("writes its numbers in the digits 0 to 9, as every page does, in a language a browser may write others for", () => {
+		const data = { ...dataOf(), locale: "ar-EG" };
+		act(() => {
+			bringHeroAlive(document, data);
+		});
+		const text = card()?.textContent ?? "";
+
+		expect(text).toMatch(/[0-9]/u);
+		expect(text).not.toMatch(/[\u0660-\u0669\u06f0-\u06f9]/u);
+	});
+
 	test("opens the hint", () => {
 		const data = alive();
 

@@ -9,6 +9,7 @@ import {
 	type YAMLSeq,
 } from "yaml";
 import { disagreements } from "../i18n/dictionaries";
+import { emphasisOf, inlineTokens } from "./inline";
 
 /**
  * PageWords are the words of one page in one language, as its YAML file
@@ -144,8 +145,12 @@ function firstLine(message: string): string {
  * tag, say other things than the English ones, as the site's dictionaries are
  * held to them — a key one of them lacks, other slots, an empty text, a mark a
  * reader cannot see — and, once the keys agree, a key out of the English
- * order: the two files are read side by side, line by line. The English words
- * are held to themselves, for an empty text or a hidden mark of their own.
+ * order: the two files are read side by side, line by line. Once the order
+ * agrees too, a text with other emphasis than the English one's: a translation
+ * keeps what the English stresses, and an emphasis the page cannot read, as
+ * one closed by a sign it does not read past — **矛盾。**次に — shows its
+ * asterisks. The English words are held to themselves, for an empty text or a
+ * hidden mark of their own.
  */
 export function pageWordsDisagreements(
 	english: PageWords,
@@ -163,7 +168,12 @@ export function pageWordsDisagreements(
 	const theirs = [...words.keys()];
 	const ours = [...english.keys()];
 	const at = ours.findIndex((key, index) => theirs[index] !== key);
-	return at < 0
-		? []
-		: [`${theirs[at]} comes where the English has ${ours[at]}`];
+	if (at >= 0) {
+		return [`${theirs[at]} comes where the English has ${ours[at]}`];
+	}
+	return ours.flatMap((key) => {
+		const want = emphasisOf(inlineTokens(english.get(key) ?? ""));
+		const got = emphasisOf(inlineTokens(words.get(key) ?? ""));
+		return got === want ? [] : [`${key} has [${got}], the English [${want}]`];
+	});
 }

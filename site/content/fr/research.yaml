@@ -1,0 +1,225 @@
+title: Étude
+description: Les chiffres derrière MathTrail. Comment ses vérifications empêchent un problème d’arriver jusqu’à l’enfant tant qu’il contient une erreur, comment son modèle de l’élève se situe face à ses objectifs, et d’où viennent ses problèmes de référence.
+
+hero:
+  badge: Pour un public technique
+  title: Le modèle écrit,
+  title_end: le service vérifie.
+  lead: Comment MathTrail ne laisse un problème parvenir à l’enfant qu’une fois qu’il a passé {count} {noun}, et ce que ces vérifications ne voient pas.
+  paper: L’article complet · PDF, {count} {noun}
+  code: Code et données
+  flow:
+    task: problème
+    example: Une clôture de {length} m a un poteau tous les {gap} m, les deux bouts compris. Combien y a-t-il de poteaux ?
+    solver: solveur
+    sum: "{length} ÷ {gap} + {one} = {posts} → {letter}"
+    hands_in: le problème et son solveur
+    back: refusé, renvoyé
+    twice: le solveur est lancé deux fois
+    asks: une seule bonne réponse · des mots à la portée du niveau · aucune reprise des problèmes précédents
+    passed: a passé toutes les vérifications
+    sealed: la réponse scellée jusqu’à ce que l’enfant réponde
+  grades: Niveaux {first}–{last}
+  licence: code open source, MIT
+
+theses:
+  title: Quatre choses que montre l’article
+  writes:
+    title: Le modèle du chat écrit
+    text: Chaque problème est écrit par le modèle du chat que la famille utilise déjà, dans la langue de l’enfant et autour d’une histoire qui lui est proche. MathTrail ne fait appel à aucun modèle qui lui soit propre. C’est un petit service déterministe qui ne garde rien de l’enfant d’une requête à l’autre.
+    model: Le modèle du chat
+    model_does: écrit
+    service: MathTrail
+    service_does: vérifie
+    child: L’enfant
+    child_does: résout
+  twice:
+    title: Le solveur est lancé deux fois
+    text: Avec le problème, le modèle écrit un court programme qui calcule la réponse et donne la lettre de la bonne réponse. Le service l’exécute, décale les lettres de {count} {noun}, si bien que {from} devient {to}, et l’exécute à nouveau. Un programme qui calcule la réponse la retrouve à sa nouvelle place ; un programme qui a écrit la lettre à la main, non. La deuxième exécution a lieu quand la première a désigné une seule réponse.
+    first: Première exécution
+    second: Deuxième exécution, lettres décalées
+    picks: → {letter}
+    caption: Un programme qui a écrit « {letter} » à la main désigne {value} à la deuxième exécution, et le problème est refusé.
+  sealed:
+    title: La réponse est scellée
+    text: La réponse, la solution, les explications et le solveur sont chiffrés et conservés dans le profil de l’enfant, dans le Google Drive du parent. Tant que l’enfant n’a pas répondu, ils n’apparaissent ni dans ce que le service transmet à la carte ou au modèle du chat, ni dans aucun de ses journaux.
+    sees: Ce que voit l’enfant
+    seen: l’énoncé · le dessin · les réponses proposées · l’indice
+    hidden: Scellé jusqu’à la réponse
+    kept: la réponse · la solution · les explications
+    cipher: XChaCha20-Poly1305 · lié à l’enfant et au problème
+    outside: Ce que le sceau n’atteint pas, c’est le chat lui-même. Le modèle qui a écrit le problème en connaît la réponse, et l’historique des outils qu’il a appelés, que le chat conserve, la montre à l’adulte qui l’ouvre.
+  reach:
+    title: Un peu plus difficile, mais à sa portée
+    text: Le modèle de l’élève prédit la probabilité que l’enfant résolve un problème, et le service demande celui dont la probabilité de réussite est la plus proche de {middle}, le milieu du couloir qui va de {low} à {high}. À son arrivée, l’enfant fait d’abord une série d’essai de {trial}, qui sert à trouver par où commencer.
+    guess: c = {guess}, une chance sur {options} de deviner
+    corridor: le couloir visé
+
+model:
+  title: Le modèle de l’élève face à ses objectifs
+  lead: Avec quelle précision le service suit l’enfant, à quel point il garde les problèmes à sa portée, avec quelle assurance il déclare un thème maîtrisé, et ce que l’enfant voit en fin de série. Les chiffres sont ceux du banc d’essai, sur des enfants simulés, calculés avec le code dont ce site est issu.
+  run:
+    commit: commit {commit} · {date}
+    size: "{children} × {answers}"
+    seed: graine {seed}
+  paper: L’article décrit la règle telle qu’elle était au commit sur lequel ses chiffres ont été calculés, {commit}. Cette page suit le service tel qu’il fonctionne aujourd’hui, si bien que les deux diffèrent.
+  key:
+    service: le service aujourd’hui
+    interval: intervalle à {interval}
+    goal: l’objectif
+    ceiling: le plafond, une estimation qui sait où en est l’enfant
+  groups:
+    step: Comment l’estimation suit l’enfant
+    mastery: Comment la maîtrise est déclarée
+    screen: Ce que l’enfant voit en fin de série
+    screen_note: "réponses {first}–{last} · objectif : pas plus que sur les réponses {earlyfirst}–{earlylast}"
+    context: À titre de comparaison, sans objectif
+  rows:
+    lag:
+      name: Le retard sur l’enfant qui progresse
+      unit: logits, moins c’est mieux · le meilleur possible est {best}
+    corridor_learning:
+      name: Problèmes dans le couloir {low}–{high}
+      unit: l’enfant qui progresse · part des problèmes, plus c’est mieux
+    jump_unsettled:
+      name: Retard non rattrapé après un bond
+      unit: part des enfants, moins c’est mieux
+    false_mastery_static:
+      name: Maîtrises déclarées à tort
+      unit: part des maîtrises déclarées, moins c’est mieux
+    false_mastery_wide:
+      name: Maîtrises déclarées à tort, thèmes éloignés
+      unit: part des maîtrises déclarées, moins c’est mieux
+    late_mastery_static:
+      name: Réponses avant la déclaration de maîtrise
+      unit: réponses, moins c’est mieux
+    late_mastery_wide:
+      name: Réponses avant la déclaration de maîtrise, thèmes éloignés
+      unit: réponses, moins c’est mieux
+    card_move_static:
+      name: De combien bouge le score
+      unit: points sur la plupart des réponses, moins c’est mieux
+    rank_changes_static:
+      name: À quelle fréquence l’étape change
+      unit: changements toutes les cent réponses, moins c’est mieux
+    card_move_learning:
+      name: Le score, l’enfant qui progresse
+      unit: points sur la plupart des réponses, moins c’est mieux
+    rank_changes_learning:
+      name: L’étape, l’enfant qui progresse
+      unit: changements toutes les cent réponses, moins c’est mieux
+    error_static:
+      name: L’erreur de l’estimation après {after}
+      unit: l’enfant qui stagne · logits, moins c’est mieux
+    corridor_static:
+      name: Problèmes dans le couloir {low}–{high}
+      unit: l’enfant qui stagne · part des problèmes, plus c’est mieux
+  interval: "{low}–{high}"
+  goal_at_most: objectif ≤ {bound}
+  goal_at_least: objectif ≥ {bound}
+  ceiling: plafond {value}
+  marks:
+    reached:
+      name: Atteint
+      means: Tout l’intervalle se trouve du bon côté de l’objectif.
+    on_the_edge:
+      name: À la limite
+      means: L’intervalle contient l’objectif.
+    not_reached:
+      name: Non atteint
+      means: Tout l’intervalle se trouve du mauvais côté de l’objectif.
+    baseline:
+      name: Référence
+      means: L’objectif est tiré du chiffre du service lui-même, c’est donc la barre à franchir pour la prochaine règle plutôt qu’un test de celle-ci.
+
+live:
+  title: Données réelles
+  lead: On voit ici, mois après mois, si les promesses du modèle se réalisent chez de vrais enfants. Les chiffres viennent du journal des réponses, sans aucun nom ni aucun texte de problème.
+  rule: Une tranche n’est affichée que si elle compte au moins {children} et au moins {answers}, et chaque effectif y est arrondi à un multiple de {rounded}. Une tranche plus petite est omise plutôt que fusionnée avec une autre.
+  measures:
+    chances: Promis → réalisé
+    kept_up: Réalisé − promis, selon le nombre de réponses
+    share: La part de bonnes réponses aux problèmes de la règle
+  frame:
+    coming:
+      badge: À venir
+      when: Les chiffres arrivent une fois qu’un mois entier est compté, au début du mois suivant.
+    too_few:
+      badge: Trop peu pour l’instant
+      when: En {month}, trop peu d’enfants ont répondu aux problèmes de la règle pour qu’un seul chiffre puisse être affiché.
+  ready:
+    month: "En {month} : {children} et {answers} aux problèmes choisis par la règle."
+    weighed: Seules les réponses aux problèmes choisis par la règle sont prises en compte, après la série d’essai de {trial} et sans l’indice, tous chats confondus.
+    corridor: La part des problèmes dans le couloir ne peut pas se mesurer sur des réponses réelles, puisque chaque problème ne reçoit qu’une réponse.
+    columns:
+      promised: Promis
+      came_true: Réalisé
+      answers: Réponses
+      children: Enfants
+    chances:
+      none: Ce mois-ci, aucune tranche de probabilité promise ne compte assez d’enfants pour être affichée.
+      shown:
+        caption: Chaque tranche de probabilité promise est un point, d’autant plus gros qu’elle compte de réponses. Sur la diagonale en pointillés, la promesse s’est réalisée, et la bande est le couloir dans lequel la règle choisit les problèmes.
+        up: ↑ part de bonnes réponses
+        across: probabilité promise →
+        ideal: promesse tenue
+        band: couloir
+        range: "{from}–{to}"
+        heading: Probabilité promise
+    kept_up:
+      none: Ce mois-ci, aucune tranche des réponses de l’enfant ne compte assez d’enfants pour être affichée.
+      shown:
+        caption: Une bonne réponse compte pour un et une mauvaise pour zéro ; on en retranche la probabilité promise, et on fait la moyenne de la différence sur les réponses. À droite de la ligne en pointillés, les enfants ont fait mieux que promis, et une moustache s’étend d’une erreur type de chaque côté, calculée par enfant.
+        range: "{first}–{last}"
+        open: "{first} et au-delà"
+        heading: Numéro de réponse
+        margin: Réalisé moins promis
+        error: Erreur type
+    share:
+      expected: attendu ≈ {middle}, le milieu du couloir
+      caption: La règle demande le problème dont la probabilité de réussite est la plus proche de {middle}, le milieu du couloir qui va de {low} à {high}. Le point est la part de bonnes réponses, et la ligne en pointillés, le milieu du couloir.
+
+sources:
+  title: D’où viennent les problèmes de référence
+  lead: Le droit d’auteur ne protège pas les idées, mais il protège les textes. C’est pourquoi, d’un livre, on ne prend que l’idée d’un problème et sa réponse ; l’énoncé, l’histoire, les réponses proposées et les pièges sont réécrits.
+  authors:
+    perelman:
+      name: Yakov Perelman
+      books:
+        firsthundred: For Young Mathematicians. The First Hundred Puzzles
+        secondhundred: The Second Hundred Puzzles
+        living: « Oh, les maths ! »
+        arithmetic: Entertaining Arithmetic
+        quick: Quick Reckoning
+    ignatyev:
+      name: Emelian Ignatiev
+      books:
+        wit: In the Realm of Ingenuity, or Arithmetic for Everyone
+    dudeney:
+      name: Henry E. Dudeney
+      books:
+        amusements: Amusements in Mathematics
+        canterbury: « Les Énigmes de Canterbury »
+    loyd:
+      name: Sam Loyd
+      books:
+        cyclopedia: Cyclopedia of Puzzles
+    carroll:
+      name: Lewis Carroll
+      books:
+        tangled: « Un Conte embrouillé »
+        pillow: « Énigmes mathématiques de Lewis Carroll »
+  died: † {year}
+  public: Dans le domaine public
+  public_note: Les droits d’auteur sur ces livres ont expiré. Ils appartiennent à tous, et chacun peut les utiliser gratuitement.
+  total: Au total, {count} {noun}
+  each: chacun avec un solveur et un piège derrière chaque mauvaise réponse
+  level: "{count} · niveaux {first}–{last}"
+  note: Le style suit celui des recueils soviétiques. Un problème de référence n’a pas de champ pour sa source, si bien que l’auteur de l’idée d’un problème ne peut pas être nommé.
+
+paper:
+  title: L’article complet
+  ready: Ses méthodes, ses tableaux, ses protocoles, ses limites et son éthique, en anglais.
+  waiting: Ses méthodes, ses tableaux, ses protocoles, ses limites et son éthique. Le PDF arrivera avec la prochaine version.
+  open: Ouvrir le PDF
+  code: Code sur GitHub

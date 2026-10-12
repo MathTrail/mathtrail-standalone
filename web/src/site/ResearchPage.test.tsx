@@ -759,6 +759,36 @@ describe("the page Research", () => {
 		expect(texts(page, ".s-research-died")).toContain("† 1942");
 	});
 
+	test.each([
+		["English", "en", [", ", ", ", ", ", ", "]],
+		["Spanish", "es", [", ", ", ", ", ", " y "]],
+		["Japanese", "ja", ["、", "、", "、", "、"]],
+		["Chinese", "zh-Hans", ["、", "、", "、", "、"]],
+	])("lists an author's books as %s sets a list apart", (_, locale, marks) => {
+		const books = (pages.get(locale) as Document).querySelector(
+			".s-research-books",
+		);
+		expect(
+			[...(books?.childNodes ?? [])]
+				.filter((node) => node.nodeName !== "CITE")
+				.map((node) => node.textContent),
+		).toEqual(marks);
+	});
+
+	test.each([
+		["English", "en", " reference tasks"],
+		["Japanese", "ja", "問のお手本問題"],
+		["Chinese", "zh-Hans", "道参考题"],
+	])(
+		"sets a count apart from its noun as %s writes them",
+		(_, locale, noun) => {
+			const count = (pages.get(locale) as Document).querySelector(
+				".s-research-facts data",
+			);
+			expect(count?.nextSibling?.textContent).toBe(noun);
+		},
+	);
+
 	test("draws the reference tasks by level as a bar of their counts", () => {
 		const parts = [...page.querySelectorAll(".s-research-levels li")];
 		expect(

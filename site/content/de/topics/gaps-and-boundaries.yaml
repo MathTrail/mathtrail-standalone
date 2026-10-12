@@ -1,0 +1,223 @@
+# The page of the topic of gaps and boundaries, for a parent, in German. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Pfosten und Zwischenräume
+description: Worum es bei „Pfosten und Zwischenräume“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+hero:
+  lead: >-
+    Sechs Bäume in einer Reihe: Wie viele Zwischenräume liegen dazwischen? Ein
+    Baumstamm in fünf Stücken: Wie viele Schnitte? In diesen Aufgaben zählt ein
+    Kind entweder die Dinge oder die Zwischenräume dazwischen, und die beiden
+    Zahlen unterscheiden sich um eins. Aus genau dieser Eins kommen die meisten
+    falschen Antworten, und eine schnelle Zeichnung eines kleinen Falls bringt das
+    in Ordnung.
+  method: Einen kleinen Fall zeichnen und daran zählen
+  teaches: Die Dinge von den Zwischenräumen dazwischen unterscheiden und eine Regel an einer Zeichnung prüfen
+  # The words of its drawing: the fence and the rule over it, and the two
+  # counts under it.
+  art:
+    line: Vier Zaunpfosten
+    rule: erst die Pfosten zählen, dann die Zwischenräume
+    posts: "**4** Pfosten"
+    spans: "**3** Zwischenräume"
+
+basis:
+  title: Die Regeln der Zwischenräume
+  cards:
+    - title: "In einer Reihe: einer weniger"
+      text: >-
+        Zwischenräume liegen zwischen den Dingen, deshalb hat eine Reihe immer
+        einen Zwischenraum weniger als Dinge: sechs Bäume, fünf Zwischenräume;
+        fünf Stücke eines Stamms, vier Schnitte.
+      art:
+        trees: 6 Bäume, 5 Zwischenräume
+    - title: "Im Kreis: gleich viele"
+      text: >-
+        Schließt sich die Reihe zu einem Kreis, wie Büsche um ein Blumenbeet,
+        hat der letzte einen Zwischenraum zum ersten: Es gibt so viele
+        Zwischenräume wie Dinge.
+      art:
+        bushes: 8 Büsche, 8 Zwischenräume
+    - title: Beide Enden zählen
+      text: >-
+        Von Seite 3 bis Seite 7 sind es 7 − 3 = 4 Schritte, aber 5 Seiten, denn
+        auch die erste Seite wird gelesen. Zählt man „von … bis …“ mit beiden
+        Enden, kommt eins dazu.
+      art:
+        steps: 4 Schritte
+        pages: 4 Schritte, aber 5 Seiten
+
+idea:
+  title: Dinge oder Zwischenräume?
+  lead: Jede Frage zählt eines von beiden. In einer Reihe, im Kreis und bei „von … bis …“ zählt man verschieden, und eine kleine Zeichnung zeigt, wie.
+  table:
+    head:
+      - Das Bild
+      - Was gezählt wird
+      - Wie viele
+    rows:
+      - - 6 Bäume in einer Reihe
+        - die Zwischenräume dazwischen
+        - 6 − 1 = 5
+      - - ein Stamm in 5 Stücken
+        - die Schnitte
+        - 5 − 1 = 4
+      - - 8 Büsche um ein Beet
+        - die Zwischenräume dazwischen
+        - "8"
+      - - Seiten 3 bis 7
+        - die gelesenen Seiten
+        - 7 − 3 + 1 = 5
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Eine Antwort, die um eins daneben liegt, sieht fast richtig aus, deshalb
+      fällt der Fehler einem Kind selten auf. Zwei oder drei Pfosten auf Papier zeigen
+      sofort, ob eins dazukommt, eins wegfällt oder keines von beiden.
+
+method:
+  title: "Lösungsweg: einen kleinen Fall zeichnen"
+  lead: >-
+    Zeichnen Sie die Dinge als Punkte oder Pfosten, zuerst für eine kleine
+    Anzahl, zwei oder drei. Zählen Sie die Zwischenräume auf der Zeichnung,
+    erkennen Sie die Regel und wenden Sie sie erst dann auf die Zahlen der
+    Aufgabe an. Die Beispiele unten reichen von ganz einfach bis
+    Olympiade-Niveau.
+  steps:
+    - Die Dinge und die Zwischenräume zeichnen
+    - Herausfinden, welches von beiden die Frage zählt
+    - Ausrechnen und die Regel an einem kleinen Fall prüfen
+  # The key under the steps: what the drawings' blue and red mean.
+  legend:
+    counted: "in Blau: was gezählt wird"
+    cut: ein Schnitt
+
+examples:
+  - title: Die Buslinie
+    question: >-
+      Eine Buslinie hat 6 Haltestellen. Der Bus braucht 3 Minuten von einer
+      Haltestelle zur nächsten. Wie viele Minuten braucht er von der ersten
+      Haltestelle bis zur letzten?
+    steps:
+      - Die 6 Haltestellen als Punkte zeichnen. Der Bus fährt durch die Zwischenräume dazwischen.
+      - Zwischen 6 Haltestellen liegen 5 Zwischenräume, einer weniger als Haltestellen.
+      - "Jeder Zwischenraum dauert 3 Minuten: 5 × 3 = 15."
+    answer: 15 Minuten.
+    note:
+      title: Warum nicht 18?
+      text: >-
+        6 × 3 = 18 gibt jeder Haltestelle einen eigenen Zwischenraum, aber nach
+        der letzten Haltestelle fährt der Bus nirgendwohin: Die Minuten vergehen
+        zwischen den Haltestellen.
+    art:
+      stops: 6 Haltestellen, je 3 Minuten dazwischen
+      minutes: "{count} min"
+      total: 5 × 3 = 15 Minuten
+      end: keine Strecke nach der 6. Haltestelle
+  - title: Etage 9 und Etage 3
+    question: >-
+      Lena wohnt auf Etage 9 und Mia auf Etage 3 desselben Hauses, und beide
+      gehen ab Etage 1 zu Fuß hinauf. Alle Treppen zwischen zwei Etagen sind
+      gleich lang. Wie viel Mal so viele Stufen wie Mia steigt Lena hinauf?
+    steps:
+      - >-
+        Mia steigt von Etage 1 bis Etage 3: 2 Treppen, von 1 nach 2 und von 2
+        nach 3.
+      - >-
+        Lena steigt von Etage 1 bis Etage 9, das sind 8 Treppen, eine weniger
+        als die Nummer ihrer Etage.
+      - "Die Treppen sind alle gleich lang, also 8 : 2 = 4. Lena steigt 4-mal so viele Stufen hinauf."
+    answer: 4-mal so viele.
+    note:
+      title: Warum nicht 3-mal?
+      text: >-
+        9 : 3 = 3 teilt die Etagen, aber die Stufen liegen auf den Treppen
+        zwischen den Etagen, und zu Etage 1 steigt niemand hinauf.
+    art:
+      masha: M
+      lena: L
+      third: Etage 3
+      ninth: Etage 9
+      from: beide gehen ab Etage 1 hinauf
+      masha-name: Mia
+      lena-name: Lena
+      two: Treppen
+      eight: Treppen
+      times: Lenas 8 Treppen sind 4-mal so viele wie Mias 2
+      floors: Etagen
+      flights: Treppen
+  - title: Wie viele Stämme?
+    question: >-
+      Holzfäller zersägten einige Baumstämme, und jeder Stamm wurde mindestens
+      einmal durchgesägt. Insgesamt machten sie 9 Schnitte und erhielten
+      14 Stücke. Wie viele Stämme haben sie zersägt?
+    steps:
+      - >-
+        Einen Stamm zersägen: 1 Schnitt ergibt 2 Stücke, 2 Schnitte ergeben 3.
+        Jeder Stamm hat am Ende ein Stück mehr als Schnitte.
+      - Das über alle Stämme zusammenzählen. Stücke gibt es so viele wie Schnitte und noch eins mehr für jeden Stamm.
+      - 14 − 9 = 5. Es waren 5 Stämme.
+    answer: 5 Stämme.
+    note:
+      title: Spielt es eine Rolle, wie die Schnitte verteilt waren?
+      text: >-
+        Nein. Fünf Stämme mit 9 Schnitten ergeben 14 Stücke, ob nun ein Stamm
+        die meisten Schnitte bekam oder ob sie fast gleichmäßig verteilt waren:
+        Jeder Schnitt macht aus einem Stück zwei.
+    art:
+      cuts: 9 Schnitte
+      pieces: 14 Stücke
+      logs: "Stämme: ?"
+      one: 1 Schnitt, 2 Stücke
+      two: 2 Schnitte, 3 Stücke
+      sum: "Stücke = Schnitte + Stämme: 9 = 6 + 3"
+      all: 9 Schnitte · 14 Stücke · 5 Stämme
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      Das Kind zählt die Haltestellen statt der Zwischenräume dazwischen oder
+      die Zwischenräume statt der Pfosten: Aus 6 Haltestellen werden
+      6 × 3 = 18 Minuten. Die Antwort liegt um eins daneben und sieht deshalb
+      fast richtig aus.
+    say: „Zeichne drei Haltestellen. Wie viele Zwischenräume gibt es?“
+  wrong_operation:
+    shows: >-
+      Das Kind macht mit den Zahlen der Aufgabe etwas, was die Zeichnung nicht
+      verlangt: Es addiert sie, 6 + 3, oder verdoppelt eine davon, statt die
+      Zwischenräume zu zählen und jedem seine Minuten zu geben.
+    say: „Wie lange dauert ein Zwischenraum, und wie viele Zwischenräume gibt es?“
+  number_from_text:
+    shows: >-
+      Eine Zahl aus der Aufgabe wird zur Antwort: die 6 Haltestellen, wenn nach
+      Minuten gefragt ist, oder Etage 9, wenn nach Treppen gefragt ist.
+    say: "„Was zählt diese Zahl: Haltestellen oder Zwischenräume?“"
+    art:
+      question: "Die Frage: Wie viele Minuten?"
+      stops: Haltestellen
+      minutes: Minuten
+
+home:
+  - title: Finger und Zwischenräume
+    text: >-
+      Spreizen Sie die Finger: fünf Finger, vier Zwischenräume dazwischen. Das
+      ist das schnellste Bild des ganzen Themas, und man hat es immer zur Hand.
+  - title: Treppen auf dem Heimweg
+    text: >-
+      Zählen Sie im Treppenhaus gemeinsam die Etagen und die Treppen: Von
+      Etage 1 bis Etage 4, wie viele Treppen sind das? Und von Etage 2 bis
+      Etage 4?
+  - title: Pfosten und Bänke
+    text: >-
+      Zählen Sie bei einem Spaziergang die Pfosten eines Zauns und die
+      Zwischenräume dazwischen oder die Bänke um einen Teich. In einer Reihe
+      gibt es einen Zwischenraum weniger, im Kreis gleich viele.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Pfosten und Zwischenräume“

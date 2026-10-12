@@ -1,0 +1,181 @@
+# The page of the topic of overlapping groups, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 容斥原理
+description: 什么是容斥原理的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+hero:
+  lead: >-
+    有的孩子参加象棋小组，有的去踢足球，有的两样都参加，还有的哪样都不参加。这类题里的组彼此相交，窍门在于每个人都恰好只数一次。在纸上画两个圆，一道让人糊涂的题就变成了四个数。
+  method: 画出圆圈，从中间开始填
+  teaches: 不重复地计数，并能说出每个数代表什么
+  # The words of its drawing: what the two circles are, and what their middle
+  # means.
+  art:
+    line: 班里的兴趣小组
+    chess: 象棋
+    football: 足球
+    middle: 中间是两样都参加的人
+
+basis:
+  title: 两个圆的规则
+  cards:
+    - title: 一相加，就数了两次
+      text: >-
+        把两个组的人数相加，两个组里都有的孩子就被数了两次，每个组各一次。把这些孩子减去一次，每个人就都只数了一次。
+      art:
+        choir: 合唱14人
+        art: 美术11人
+        twice: "14 + 11 = 25，但其中4人被数了两次：25 − 4 = 21"
+    - title: 有人哪个组都不在
+      text: >-
+        不是每个人都必须在某个组里。全班同学，就是至少在一个组里的人，加上哪个组都不在的人。
+      art:
+        class: 全班
+        none: 9人两个组都不在
+    - title: 不知道中间有多少时
+      text: >-
+        如果题目没有说两个组里都有的有多少人，这个数就只能确定一个范围：两个组共有的人越多，至少在其中一个组里的孩子就越少。
+      art:
+        little: 共有的少
+        much: 共有的多
+
+idea:
+  title: 图的四个部分
+  lead: >-
+    30名学生：14人在合唱队唱歌，11人参加美术小组，4人两样都参加。从中间往外把图填满。
+  table:
+    head:
+      - 部分
+      - 人数
+      - 怎样求出
+    rows:
+      - - 两组都在
+        - "4"
+        - 已知
+      - - 只在合唱队
+        - 14 − 4 = 10
+        - 合唱队去掉两组都在的
+      - - 只在美术小组
+        - 11 − 4 = 7
+        - 美术小组去掉两组都在的
+      - - 两组都不在
+        - 30 − 10 − 7 − 4 = 9
+        - 其余所有人
+  note:
+    title: 为什么重要
+    text: >-
+      错误答案大多出在两处：把两个组的人数相加，忘了中间被数了两次；或者题目问的是整个合唱队，却答了“只在合唱队”的人数。从中间往外填图，这两种错误都能避免。
+
+method:
+  title: 解法：从中间往外填
+  lead: >-
+    画两个相交的圆。先填中间，也就是两个组里都有的人；再填每个圆去掉中间后的部分；最后填圆外的人。如果没有给出中间的人数，就试试它可能取哪些值，看哪些符合条件。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 画出圆圈
+    - 先填中间，再填其余部分
+    - 检验各部分加起来正好是所有人
+  # The key under the steps: what a ring on a number means.
+  legend:
+    filled: 蓝圈：这一步填的数
+
+examples:
+  - title: 兄弟姐妹
+    question: >-
+      在24个孩子里，15人有姐妹，11人有兄弟，6人既有姐妹又有兄弟。既没有姐妹也没有兄弟的孩子有多少个？
+    steps:
+      - >-
+        画两个相交的圆：“姐妹”和“兄弟”。中间是两样都有的6个孩子。
+      - 只有姐妹：15 − 6 = 9。只有兄弟：11 − 6 = 5。
+      - 两个圆里：9 + 6 + 5 = 20个孩子。圆外：24 − 20 = 4。
+    answer: 4个孩子。
+    art:
+      sister: 姐妹
+      brother: 兄弟
+      all: 共24人
+      only: 15 − 6 = 9 · 11 − 6 = 5
+      out: 圆外：24 − 20 = 4
+  - title: 苹果和梨
+    question: >-
+      在25个孩子里，18人喜欢苹果，16人喜欢梨。两样都喜欢的孩子最少可能有几个？
+    steps:
+      - >-
+        要让中间尽可能小，就让喜欢苹果的和喜欢梨的尽量分开。
+      - >-
+        完全分开的话，需要18 + 16 = 34个位置，可是只有25个孩子：其中34 − 25 = 9人一定同时在两个圆里。
+      - >-
+        9人是可能的：9人只喜欢苹果，7人只喜欢梨，9人两样都喜欢，一共25人，谁也没落下。
+    answer: 9个孩子。
+    note:
+      title: 那最多呢？
+      text: >-
+        最多的情况是，喜欢梨的16人也全都喜欢苹果。中间的人数在9和16之间，题目问的是较小的那一端。
+    art:
+      apples: 苹果
+      kids: 孩子
+      pears: 梨
+      ends: 苹果从左端排起，梨从右端排起
+      violet: 紫色是两样都喜欢的：9人
+      all: 共25人
+      inside: 喜欢梨的16人全在苹果里
+  - title: 三门课
+    question: >-
+      20名学生中，每人至少喜欢数学、阅读和美术这三门课中的一门。喜欢数学的有12人，喜欢阅读的有10人，喜欢美术的有9人。没有人三门都喜欢。恰好喜欢两门课的学生有多少人？
+    steps:
+      - >-
+        把三个数相加：12 + 10 + 9 = 31。喜欢一门课的学生，在这个和里被数了一次；喜欢两门课的，被数了两次。
+      - >-
+        一共有20名学生，所以和里多出了31 − 20 = 11次，被数了两次的学生每人多出一次。
+      - >-
+        所以恰好喜欢两门课的学生有11人。检验：9人喜欢一门，11人喜欢两门，9 + 2 × 11 = 31。
+    answer: 11名学生。
+    note:
+      title: 故意数两次
+      text: >-
+        这道题的窍门不在圆圈，而在求和：学生每喜欢一门课，就给这个和加一。关于分组的奥数题，常常就靠把同一样东西用两种方法来数。
+    art:
+      maths: 数学12人
+      reading: 阅读10人
+      drawing: 美术9人
+      once: 一次
+      twice: 两次
+      each: 每人各数一次是20，多出31 − 20 = 11
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      孩子把两个组的人数15和11相加，把和当成了孩子的人数：两个组里都有的孩子被数了两次。
+    say: “有没有人在两个圆里都被数了？”
+    art:
+      question: 有姐妹15人，有兄弟11人，都有6人
+  answered_other_question:
+    shows: >-
+      孩子求出了图中的一部分，就拿它当答案，可题目问的是另一部分：该答“两组都不在”，却答了“两组都在”；该答整个合唱队，却答了“只在合唱队”。
+    say: “在图上指出题目问的是哪一部分。”
+    art:
+      question: 题目：两样都没有的有多少人？
+  missed_case:
+    shows: >-
+      图中漏掉了一部分：从所有人里减去了一个组，却忘了另一个组；或者没有把三个组里都有的人加回来。
+    say: “图里的每一部分都填好了吗？”
+    art:
+      question: 24个孩子：有姐妹15人，有兄弟11人，都有6人
+
+home:
+  - title: 地上的两个圈
+    text: >-
+      在地上放两个呼啦圈，或者用绳子围两个圈，让它们相交，然后把玩具分进圈里：“红色的”和“软的”。又红又软的小熊放在中间。
+  - title: 哪六个？
+    text: >-
+      孩子回答“六个”时，问一问：“哪六个？”两个小组都参加的六个人，和哪个小组都不参加的六个人，是不同的答案。
+  - title: 家庭小调查
+    text: >-
+      问家里人两个问题，比如谁喜欢喝茶、谁喜欢喝可可，然后和孩子一起画出圆圈。数的时候，最容易出错的通常就是中间。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“容斥原理”的题

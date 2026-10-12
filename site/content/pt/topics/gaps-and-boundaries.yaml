@@ -1,0 +1,219 @@
+# The page of the topic of gaps and boundaries, for a parent, in Portuguese. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Intervalos e extremos
+description: O que são os problemas de intervalos e extremos, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+hero:
+  lead: >-
+    Seis árvores em fila: quantos intervalos há entre elas? Um tronco em cinco
+    pedaços: quantos cortes? Nestes problemas, a criança conta ora as coisas,
+    ora os intervalos entre elas, e os dois números diferem em uma unidade. É
+    dessa unidade que vem a maioria das respostas erradas, e o que corrige o
+    erro é um desenho rápido de um caso pequeno.
+  method: Desenhar um caso pequeno e contar nele
+  teaches: A distinguir as coisas dos intervalos entre elas e a conferir uma regra num desenho
+  # The words of its drawing: the fence and the rule over it, and the two
+  # counts under it.
+  art:
+    line: Quatro postes de uma cerca
+    rule: conte os postes, depois os espaços entre eles
+    posts: "**4** postes"
+    spans: "**3** espaços"
+
+basis:
+  title: As regras dos intervalos
+  cards:
+    - title: Em fila, um a menos
+      text: >-
+        Os intervalos ficam entre as coisas, então uma fila sempre tem um
+        intervalo a menos do que o número de coisas: seis árvores, cinco
+        intervalos; cinco pedaços de tronco, quatro cortes.
+      art:
+        trees: 6 árvores, 5 intervalos
+    - title: Em círculo, o mesmo número
+      text: >-
+        Quando a fila se fecha num círculo, como os arbustos em volta de um
+        canteiro, o último tem um intervalo até o primeiro: há tantos
+        intervalos quanto coisas.
+      art:
+        bushes: 8 arbustos, 8 intervalos
+    - title: Os dois extremos contam
+      text: >-
+        Da página 3 à página 7 são 7 − 3 = 4 passos, mas 5 páginas, porque a
+        primeira página também é lida. Contar “de … até …” incluindo os dois
+        extremos soma um.
+      art:
+        steps: 4 passos
+        pages: 4 passos, mas 5 páginas
+
+idea:
+  title: Coisas ou intervalos?
+  lead: Cada pergunta conta um dos dois. Fila, círculo e “de … até …” se contam de jeitos diferentes, e um desenho pequeno mostra como.
+  table:
+    head:
+      - O desenho
+      - O que se conta
+      - Quantos
+    rows:
+      - - 6 árvores em fila
+        - os intervalos entre elas
+        - 6 − 1 = 5
+      - - um tronco em 5 pedaços
+        - os cortes
+        - 5 − 1 = 4
+      - - 8 arbustos em volta de um canteiro
+        - os intervalos entre eles
+        - "8"
+      - - as páginas de 3 a 7
+        - as páginas lidas
+        - 7 − 3 + 1 = 5
+  note:
+    title: Por que isso importa
+    text: >-
+      Uma resposta com um a mais ou a menos parece quase certa, então a criança
+      raramente percebe o erro. Dois ou três postes desenhados no papel mostram
+      na hora se é preciso somar um, tirar um ou nenhum dos dois.
+
+method:
+  title: "Como resolver: desenhar um caso pequeno"
+  lead: >-
+    Desenhe as coisas como bolinhas ou postes, primeiro para um número
+    pequeno, dois ou três. Conte os intervalos no desenho, encontre a regra e
+    só então use-a com os números do problema. Os exemplos abaixo vão do mais
+    simples a um de olimpíada.
+  steps:
+    - Desenhar as coisas e os intervalos
+    - Descobrir qual dos dois a pergunta conta
+    - Calcular e conferir a regra num caso pequeno
+  # The key under the steps: what the drawings' blue and red mean.
+  legend:
+    counted: "em azul: o que se conta"
+    cut: um corte
+
+examples:
+  - title: A linha de ônibus
+    question: >-
+      Uma linha de ônibus tem 6 pontos. O ônibus leva 3 minutos para ir de um
+      ponto até o seguinte. Quantos minutos ele leva do primeiro ponto até o
+      último?
+    steps:
+      - Desenhe os 6 pontos de ônibus como bolinhas. O ônibus anda pelos intervalos entre eles.
+      - Entre 6 pontos há 5 intervalos, um a menos que os pontos.
+      - "Cada intervalo leva 3 minutos: 5 × 3 = 15."
+    answer: 15 minutos.
+    note:
+      title: Por que não 18?
+      text: >-
+        6 × 3 = 18 dá a cada ponto um intervalo próprio, mas depois do último
+        ponto o ônibus não vai a lugar nenhum: os minutos são gastos entre os
+        pontos.
+    art:
+      stops: 6 pontos, 3 minutos entre pontos vizinhos
+      minutes: "{count} min"
+      total: 5 × 3 = 15 minutos
+      end: depois do 6º ponto não há caminho
+  - title: 9º andar e 3º andar
+    question: >-
+      Laura mora no 9º andar e Maria no 3º andar do mesmo prédio, e as duas
+      sobem a pé a partir do 1º andar. Todos os lances de escada são iguais.
+      Laura sobe quantas vezes o número de degraus que Maria sobe?
+    steps:
+      - >-
+        Maria sobe do 1º ao 3º andar: 2 lances de escada, do 1º ao 2º e do 2º
+        ao 3º.
+      - >-
+        Laura sobe do 1º ao 9º andar, o que dá 8 lances, um a menos que o
+        número do andar dela.
+      - "Os lances são todos iguais, então 8 : 2 = 4. Laura sobe 4 vezes o número de degraus de Maria."
+    answer: 4 vezes.
+    note:
+      title: Por que não 3 vezes?
+      text: >-
+        9 : 3 = 3 divide os andares, mas os degraus ficam nos lances entre os
+        andares, e ninguém sobe até o 1º andar.
+    art:
+      masha: M
+      lena: L
+      third: 3º andar
+      ninth: 9º andar
+      from: as duas sobem a pé do 1º andar
+      masha-name: Maria
+      lena-name: Laura
+      two: lances
+      eight: lances
+      times: os 8 lances de Laura são 4 vezes os 2 de Maria
+      floors: andares
+      flights: lances
+  - title: Quantos troncos?
+    question: >-
+      Lenhadores serraram alguns troncos, e cada tronco foi cortado pelo menos
+      uma vez. Eles fizeram 9 cortes ao todo e obtiveram 14 pedaços. Quantos
+      troncos eles serraram?
+    steps:
+      - >-
+        Serre um tronco: 1 corte dá 2 pedaços, 2 cortes dão 3. Cada tronco
+        acaba com um pedaço a mais do que o número de cortes.
+      - Some isso para todos os troncos. Os pedaços são os cortes, mais um para cada tronco.
+      - 14 − 9 = 5. Eram 5 troncos.
+    answer: 5 troncos.
+    note:
+      title: Faz diferença como os cortes foram distribuídos?
+      text: >-
+        Não. Cinco troncos com 9 cortes dão 14 pedaços, quer um tronco tenha
+        levado a maioria dos cortes, quer eles tenham sido distribuídos quase
+        por igual: cada corte transforma um pedaço em dois.
+    art:
+      cuts: 9 cortes
+      pieces: 14 pedaços
+      logs: "troncos: ?"
+      one: 1 corte, 2 pedaços
+      two: 2 cortes, 3 pedaços
+      sum: "pedaços = cortes + troncos: 9 = 6 + 3"
+      all: 9 cortes · 14 pedaços · 5 troncos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      A criança conta os pontos de ônibus em vez dos intervalos entre eles, ou
+      os intervalos em vez dos postes: 6 pontos viram 6 × 3 = 18 minutos. A
+      resposta tem um a mais ou a menos, então parece quase certa.
+    say: “Desenhe três pontos de ônibus. Quantos intervalos há?”
+  wrong_operation:
+    shows: >-
+      A criança faz com os números do problema algo que o desenho não pede:
+      soma os dois, 6 + 3, ou dobra um deles, em vez de contar os intervalos e
+      dar a cada um os seus minutos.
+    say: “Quanto tempo leva um intervalo, e quantos intervalos há?”
+  number_from_text:
+    shows: >-
+      Um número do enunciado vira a resposta: os 6 pontos de ônibus quando a
+      pergunta pede minutos, ou o 9º andar quando ela pede lances de escada.
+    say: "“O que este número conta: pontos de ônibus ou intervalos?”"
+    art:
+      question: "A pergunta: quantos minutos?"
+      stops: pontos
+      minutes: minutos
+
+home:
+  - title: Dedos e intervalos
+    text: >-
+      Abra os dedos: cinco dedos, quatro intervalos entre eles. Não há jeito
+      mais rápido de mostrar o tema inteiro, e os dedos estão sempre à mão.
+  - title: A escada no caminho de casa
+    text: >-
+      Na escada, conte os andares e os lances junto com a criança: do primeiro
+      ao quarto andar, quantos lances? E do segundo ao quarto?
+  - title: Postes e bancos
+    text: >-
+      Num passeio, conte os postes de uma cerca e os espaços entre eles, ou os
+      bancos em volta de um lago. Em fila há um intervalo a menos; em círculo,
+      o mesmo número.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de intervalos e extremos

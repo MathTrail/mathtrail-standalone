@@ -1,0 +1,216 @@
+# The page of the topic of parts and shares, for a parent, in Portuguese. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Partes de um todo
+description: O que são os problemas de partes de um todo, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+hero:
+  lead: >-
+    Bruno come um terço de uma pizza, e Ana come metade do que sobra. Quem
+    comeu mais? Nestes problemas, uma fração é sempre uma fração de alguma
+    coisa, e a maior parte da dificuldade está em saber de quê: do todo ou do
+    que sobrou. Uma tira de papel cortada em partes iguais mostra isso melhor
+    do que qualquer regra.
+  method: Desenhar o todo como uma tira e cortá-la em partes iguais
+  teaches: A perguntar “uma parte de quê?” e a encontrar o todo a partir da sua parte
+  # The words of its drawing: the share over it, and what it comes to.
+  art:
+    line: 3/4 de 12
+    sum: 3/4 de 12 = 9
+    one: "12 : 4 = 3 em uma parte, e 3 partes são 9"
+
+basis:
+  title: As regras das partes
+  cards:
+    - title: Uma parte de quê?
+      text: >-
+        Uma fração é sempre uma fração de alguma coisa. “Um quarto do resto” e
+        “um quarto do todo” são números diferentes, então descubra primeiro de
+        qual quantidade a fração é tomada.
+      art:
+        whole: um quarto do todo
+        rest: um quarto do resto
+    - title: Por meio de uma parte
+      text: >-
+        Para encontrar 3/4 de 20, divida por 4 e tome 3 partes: 15. Para
+        encontrar o todo quando 3/4 dele são 15, divida por 3 para obter uma
+        parte e tome 4 partes: 20.
+    - title: As partes formam o todo
+      text: >-
+        O que se dá e o que sobra, somados, formam um todo. Se forem dados 1/3
+        e 1/4, o que sobra é 1 − 1/3 − 1/4 = 5/12.
+
+idea:
+  title: Quanto vale uma parte
+  lead: Seja qual for a pergunta, descubra primeiro quanto vale uma parte e depois tome quantas partes ela pedir.
+  table:
+    head:
+      - Dados
+      - A tira e uma parte
+      - Pede-se
+    rows:
+      - - 3/4 de 20
+        - "20 : 4 = 5"
+        - 3 partes, 15
+      - - 3/4 de um número são 15
+        - "15 : 3 = 5"
+        - o número, 4 partes, 20
+      - - 2/5 de um número são 14
+        - "14 : 2 = 7"
+        - o número, 5 partes, 35
+  note:
+    title: Por que isso importa
+    text: >-
+      A maioria dos erros com frações não está nas contas, mas no todo: a parte
+      é tomada da quantidade errada. Dizer em voz alta qual é o todo antes de
+      cada passo pega esses erros.
+
+method:
+  title: "Como resolver: desenhar uma tira"
+  lead: >-
+    Desenhe o todo como uma tira comprida e corte-a em tantas partes iguais
+    quantas indicar o número de baixo da fração. Quando uma parte é tomada do
+    que sobrou, desenhe o que sobrou como uma tira nova. Depois, descubra
+    quanto vale uma parte. Os exemplos abaixo vão do mais simples a um de
+    olimpíada.
+  steps:
+    - Desenhar o todo como uma tira
+    - Cortá-la em partes iguais e, se preciso, cortar também o resto
+    - Encontrar uma parte e depois as partes que a pergunta pede
+  # The key under the steps: what the strips' colours mean.
+  legend:
+    given: o que já foi dado
+    sought: o que se procura
+
+examples:
+  - title: Pãezinhos na padaria
+    question: >-
+      Um padeiro assa 60 pãezinhos. Até o meio-dia, ele vende metade deles e,
+      até a noite, dois terços do resto. Quantos pãezinhos sobram?
+    steps:
+      - A metade de 60 pãezinhos é 30, então sobram 30 pãezinhos depois do meio-dia.
+      - >-
+        Dois terços do resto são dois terços de 30, e não de 60: à noite são
+        vendidos 30 : 3 × 2 = 20 pãezinhos.
+      - Sobram 30 − 20 = 10 pãezinhos.
+    answer: 10 pãezinhos.
+    note:
+      title: Dois terços de quê?
+      text: >-
+        Dois terços de todos os 60 pãezinhos seriam 40, e 30 + 40 = 70
+        pãezinhos é mais do que o padeiro assou. “Dois terços do resto” é uma
+        parte do que sobra naquele momento.
+    art:
+      rest: o resto é um novo todo
+      evening: 20 vendidos à noite
+      all: até o meio-dia 30 · à noite 20 · sobram 10
+      over: 30 + 40 = 70 não cabe em 60
+  - title: Um livro em sétimos
+    question: >-
+      Na segunda-feira, Tomás lê 2/7 de um livro e, na terça-feira, 3/7. Depois
+      disso, restam 40 páginas. Quantas páginas tem o livro?
+    steps:
+      - Em dois dias, Tomás lê 2/7 + 3/7 = 5/7 do livro, então restam 2/7.
+      - "Esses 2/7 são as 40 páginas: um sétimo é 40 : 2 = 20 páginas."
+      - "O livro inteiro são sete sétimos: 7 × 20 = 140 páginas."
+    answer: 140 páginas.
+    note:
+      title: Qual parte é 40?
+      text: >-
+        As 40 páginas são o que resta, 2/7 do livro, e não os 5/7 que Tomás
+        leu. Tomadas pelos 5/7, elas dariam um livro de 56 páginas, do qual só
+        restariam 16 páginas.
+    art:
+      sevenths: o livro, 7 partes iguais
+      monday: Seg.
+      tuesday: Ter.
+      read: 40 não é o que foi lido
+  - title: Ovos na feira
+    question: >-
+      A vovó vende ovos na feira. O primeiro comprador leva metade dos ovos
+      dela e mais meio ovo. O segundo leva metade dos ovos que sobraram e mais
+      meio ovo, e o terceiro faz o mesmo. Com isso, todos os ovos foram
+      vendidos, e ninguém quebrou nenhum ovo. Quantos ovos a vovó tinha?
+    steps:
+      - >-
+        Comece pelo fim. O terceiro comprador levou metade dos ovos e mais meio
+        ovo, e não sobrou nada: então metade dos ovos era meio ovo, e a vovó
+        tinha 1 ovo.
+      - >-
+        Antes do segundo comprador, é igual: ele levou metade dos ovos e mais
+        meio ovo, e sobrou 1 ovo; então a metade era um ovo e meio, e havia 3
+        ovos.
+      - >-
+        Antes do primeiro comprador, metade dos ovos era três e meio, então
+        havia 7. Conferindo: 7 → 3 → 1 → 0.
+    answer: 7 ovos.
+    note:
+      title: Começar pelo fim
+      text: >-
+        Quando cada parte é tirada do que sobrou, o mais fácil é começar pelo
+        fim: ali a quantidade é conhecida. Cada passo para trás desfaz uma
+        parte: some o meio ovo e depois dobre.
+    art:
+      basket: quantos ovos há na cesta?
+      third: "o terceiro comprador: havia 1"
+      third-took: levou 0,5 + ½ = 1, sobrou 0
+      second: "o segundo comprador: havia 3"
+      second-took: levou 1,5 + ½ = 2, sobrou 1
+      first: "o primeiro comprador: havia 7"
+      first-took: levou 3,5 + ½ = 4, sobraram 3
+      back: "um passo para trás: + ½, depois × 2"
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  part_whole_swap:
+    shows: >-
+      A parte é tomada da quantidade errada: dois terços de todos os 60
+      pãezinhos em vez dos 30 que sobraram, ou as 40 páginas que restam são
+      tomadas pela parte que Tomás leu.
+    say: “Dois terços de quê? Mostre na tira.”
+    art:
+      question: Dois terços do resto
+      of-all: 2/3 de 60 =
+      of-rest: 2/3 de 30 =
+  answered_other_question:
+    shows: >-
+      Um número encontrado no caminho vira a resposta: os 20 pãezinhos
+      vendidos à noite em vez dos que sobraram, ou as 100 páginas que Tomás leu
+      em vez do livro inteiro.
+    say: “O que exatamente a pergunta pede?”
+    art:
+      question: Quantos pãezinhos sobram?
+      evening: vendidos à noite
+      left: sobram
+  stopped_early:
+    shows: >-
+      A solução fica a um passo do fim: um sétimo do livro, 20 páginas, é
+      encontrado e nunca vira o livro inteiro; ou os pãezinhos vendidos até o
+      meio-dia são descontados, e os da noite, esquecidos.
+    say: “Isso é a resposta ou um passo até ela?”
+    art:
+      question: Quantas páginas tem o livro?
+
+home:
+  - title: Cortar em família
+    text: >-
+      Corte uma maçã, uma pizza ou uma folha de papel em partes iguais e dê
+      nome às partes: metades, terços, quartos. Depois tire algumas e pergunte
+      que parte sobrou.
+  - title: Uma parte de quê?
+    text: >-
+      Quando uma fração aparecer em uma receita ou em um jogo, pergunte: “Um
+      terço de quê?” Muitas vezes, a resposta a essa pergunta é o problema
+      inteiro.
+  - title: A tira
+    text: >-
+      Desenhe a tira com a criança sempre que for preciso dividir alguma coisa
+      em casa: um retângulo comprido dividido em casas iguais. Ela serve para
+      todos os problemas deste tema.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de partes de um todo

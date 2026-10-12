@@ -43,6 +43,9 @@ basis:
         заметную дыру.
       art:
         on: на {child}
+        # The case the listing lost: its two letters and a question mark, as the
+        # language writes one.
+        lost: "{first}{second}?"
     - title: Каждый вариант — один раз
       text: >-
         Прежде чем считать, решите, чем два варианта отличаются. Рукопожатие

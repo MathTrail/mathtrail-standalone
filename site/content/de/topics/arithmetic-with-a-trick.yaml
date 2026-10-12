@@ -1,0 +1,201 @@
+# The page of the topic of arithmetic with a trick, for a parent, in German.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Knifflige Rechenaufgaben
+description: Worum es bei „Knifflige Rechenaufgaben“ geht, vom geschickten Rechnen bis zu „Ich denke mir eine Zahl“, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+hero:
+  lead: >-
+    Wie viel ist 19 + 23 + 81 + 77? Der Reihe nach gerechnet sind das drei
+    Additionen mit Übertrag; in Paaren gerechnet, 19 + 81 und 23 + 77, sind es
+    100 + 100. In diesen Aufgaben ist das Rechnen leicht, sobald die richtige
+    Reihenfolge gefunden ist, und Rätsel wie „Ich denke mir eine Zahl“ löst
+    man, indem man die Schritte vom Ende her rückgängig macht. Die Kunst
+    besteht darin, erst hinzuschauen und dann zu rechnen.
+  method: Vor dem Rechnen die einfache Reihenfolge suchen
+  teaches: Eine Summe oder ein Produkt umgruppieren und eine Kette von Schritten vom Ende her rückgängig machen
+  # The words of its drawing: the sum's numbers paired colour by colour into
+  # two easy hundreds.
+  art:
+    pairs: die Paare einer Farbe addieren
+    look: erst schauen, dann rechnen
+
+basis:
+  title: Die Regeln des geschickten Rechnens
+  cards:
+    - title: Beliebige Reihenfolge
+      text: >-
+        Zahlen lassen sich in beliebiger Reihenfolge addieren oder
+        multiplizieren und beliebig zusammenfassen: 25 × 9 × 4 ist
+        25 × 4 × 9, also 100 × 9.
+    - title: Runde Zahlen
+      text: >-
+        Suchen Sie Paare, die 10, 100 oder 1000 ergeben: 36 + 64, 25 × 4,
+        125 × 8. Mit einer runden Zahl lässt es sich leicht weiterrechnen.
+    - title: Vom Ende her rückgängig machen
+      text: >-
+        Bei „Ich denke mir eine Zahl“ gehen Sie vom Ergebnis zurück und machen
+        jeden Schritt rückgängig: Was addiert wurde, wird abgezogen, und was
+        verdoppelt wurde, wird halbiert.
+      art:
+        undoes: wird rückgängig gemacht durch
+        back: vom Ergebnis zurückgehen
+
+idea:
+  title: Erst schauen, dann rechnen
+  lead: Dieselbe Summe lässt sich auf langem oder auf kurzem Weg ausrechnen. Suchen Sie vor dem Rechnen die Paare und Gruppen, die runde Zahlen ergeben.
+  table:
+    head:
+      - Die Aufgabe
+      - Der einfache Weg
+      - Die Antwort
+    rows:
+      - - 19 + 23 + 81 + 77
+        - (19 + 81) + (23 + 77)
+        - "200"
+      - - 4 × 19 × 25
+        - (4 × 25) × 19
+        - "1900"
+      - - 1 + 2 + 3 + … + 10
+        - fünf Paare zu je 11, etwa 1 + 10 und 2 + 9
+        - "55"
+  # The words of the drawings of the easy way, all rows' in one place.
+  art:
+    pairs: fünf Paare zu je 11
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Bei Olympiaden kommen absichtlich Summen vor, die auf dem langen Weg viel
+      Zeit kosten: Die Aufgabe besteht darin, die Abkürzung zu bemerken. Ein
+      Kind, das zuerst nach Paaren sucht, lernt zu sehen, wie eine Aufgabe
+      aufgebaut ist, und das zählt weit über das Rechnen hinaus.
+
+method:
+  title: "Lösungsweg: runde Zahlen suchen"
+  lead: >-
+    Sehen Sie sich vor dem Rechnen die ganze Aufgabe an. Bilden Sie Paare aus
+    Zahlen, die zusammen eine runde Zahl ergeben, und stellen Sie Faktoren,
+    die 10 oder 100 ergeben, nebeneinander. Bei einer Kette von Schritten
+    beginnen Sie am Ende und machen einen Schritt nach dem anderen rückgängig.
+    Die Beispiele unten reichen von ganz einfach bis Olympiade-Niveau.
+  steps:
+    - Zuerst die ganze Aufgabe ansehen
+    - Zu runden Zahlen umgruppieren oder vom Ende her rückgängig machen
+    - Die Antwort auf einem anderen Weg prüfen
+  # The key under the steps: what the drawings' colours mean.
+  legend:
+    pair: eine Farbe, ein Paar
+    undo: ein Schritt, der rückgängig macht
+
+examples:
+  - title: Paare, die zehn ergeben
+    question: >-
+      Wie viel ist 6 + 7 + 8 + 2 + 3 + 4?
+    steps:
+      - "Paare suchen, die 10 ergeben. Hier gibt es drei davon: 6 + 4, 7 + 3 und 8 + 2."
+      - Drei Zehner ergeben 30.
+      - Also gilt 6 + 7 + 8 + 2 + 3 + 4 = 30, ganz ohne Übertrag.
+    answer: "30."
+    note:
+      title: Der lange Weg
+      text: >-
+        6 + 7 = 13, dann 21, 23, 26 und 30. Die Antwort ist dieselbe, aber es
+        sind fünf Schritte statt einem, und bei jedem Schritt kann man sich
+        verrechnen.
+    art:
+      tens: eine Farbe, ein Paar, das zehn ergibt
+  - title: Eine gesuchte Zahl
+    question: >-
+      Mia denkt sich eine Zahl. Sie verdoppelt sie, addiert 7 und teilt das
+      Ergebnis durch 3. Heraus kommt 9. Welche Zahl hat sich Mia gedacht?
+    steps:
+      - Vom Ende her jeden Schritt rückgängig machen, den letzten zuerst.
+      - >-
+        Sie hat durch 3 geteilt und 9 erhalten, also hatte sie davor
+        9 × 3 = 27. Sie hat 7 addiert, also hatte sie davor 27 − 7 = 20.
+      - "Sie hat ihre Zahl verdoppelt, also war die Zahl 20 : 2 = 10. Probe: 10 × 2 + 7 = 27 und 27 : 3 = 9."
+    answer: "10."
+    note:
+      title: In umgekehrter Reihenfolge rückgängig machen
+      text: >-
+        Was zuletzt gemacht wurde, wird zuerst rückgängig gemacht, so wie man
+        die Schuhe vor den Socken auszieht. Macht man die Schritte in der
+        Reihenfolge rückgängig, in der sie gemacht wurden, kommt eine falsche
+        Zahl heraus.
+    art:
+      masha: Mia
+      back: vom Ende
+      check: Probe
+      "on": an
+      "off": aus
+      socks: Socken
+      shoes: Schuhe
+  - title: Zwei große Produkte
+    question: >-
+      Wie viel ist 2026 × 2026 − 2027 × 2025? Finde es heraus, ohne die großen
+      Zahlen zu multiplizieren.
+    steps:
+      - >-
+        In beiden Produkten steckt 2026 × 2025: 2026 × 2026 ist 2026 × 2025
+        und noch einmal 2026.
+      - Und 2027 × 2025 ist 2026 × 2025 und noch einmal 2025.
+      - Die Differenz ist also 2026 − 2025 = 1, und nichts Großes wurde multipliziert.
+    answer: "1."
+    note:
+      title: Mit kleinen Zahlen ausprobieren
+      text: >-
+        Dasselbe klappt mit beliebigen Zahlen: 5 × 5 − 6 × 4 = 25 − 24 = 1.
+        Einen Trick zuerst an kleinen Zahlen auszuprobieren, ist der sicherste
+        Weg, ihm zu vertrauen.
+    art:
+      cancel: die gleichen Teile heben sich auf, die Streifen bleiben
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  stopped_early:
+    shows: >-
+      Die Rechnung endet vor dem Ziel: Zwei der drei Paare werden addiert und
+      das dritte vergessen, oder ein Schritt der Kette wird rückgängig gemacht
+      und sein Ergebnis als Antwort genommen.
+    say: „Hast du jede Zahl benutzt und jeden Schritt rückgängig gemacht?“
+  wrong_operation:
+    shows: >-
+      Ein Schritt wird mit derselben Rechenart rückgängig gemacht statt mit der
+      umgekehrten: 7 wird noch einmal addiert statt abgezogen, oder 9 wird
+      durch 3 geteilt statt multipliziert.
+    say: „Was macht das Addieren rückgängig? Und was das Teilen?“
+    art:
+      undo: Von 27 aus „+ 7“ rückgängig machen
+  number_from_text:
+    shows: >-
+      Eine Zahl aus der Aufgabe wird zur Antwort: die 9, die bei Mia herauskam,
+      oder die 7, die sie addiert hat, statt der Zahl, die sie sich gedacht
+      hat.
+    say: „Hat Mia diese Zahl herausbekommen oder sich gedacht?“
+    art:
+      question: Welche Zahl hat sich Mia gedacht?
+      got: Mias Ergebnis
+      thought: die gedachte Zahl
+
+home:
+  - title: Paare zur Zehn
+    text: >-
+      Schreiben Sie sechs oder acht kleine Zahlen auf Kärtchen und bitten Sie
+      Ihr Kind, die Paare zu finden, die 10 ergeben, bevor es alle
+      zusammenzählt.
+  - title: Errate meine Zahl
+    text: >-
+      Spielen Sie „Ich denke mir eine Zahl“ in beide Richtungen: Sie nennen die
+      Schritte und das Ergebnis, und Ihr Kind findet die Zahl; dann denkt sich
+      Ihr Kind die Schritte aus.
+  - title: Geschickt rechnen beim Einkaufen
+    text: >-
+      Addieren Sie im Laden Preise in einer geschickten Reihenfolge: 99 ist 100
+      minus 1, und 49 und 51 ergeben 100. Erst runden, dann korrigieren.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Knifflige Rechenaufgaben“

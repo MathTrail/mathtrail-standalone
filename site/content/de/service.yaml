@@ -1,0 +1,476 @@
+title: So funktioniert der Dienst
+description: "Wie MathTrail im Inneren arbeitet: die Teile des Dienstes und ihre Verbindungen, eine Lektion Aufruf für Aufruf, wo der Zustand liegt, die Profildatei im Google Drive der Familie und was darin versiegelt ist."
+hero:
+  badge: Für Fachleute
+  title: So funktioniert der Dienst
+  lead: "MathTrail steht zwischen dem Chat, den eine Familie bereits nutzt, und dem Google Drive der Familie. Das Modell des Chats schreibt jede Aufgabe, und der Dienst entscheidet, ob sie das Kind erreicht. Der Dienst ist ein einziges Programm: Er ruft kein eigenes Modell auf und behält zwischen den Anfragen nichts."
+  chips:
+    - Ein Go-Binary auf Cloud Run
+    - Zustandslos
+    - Keine Datenbank
+    - Keine eigenen LLM-Aufrufe
+    - MCP 2026-07-28 · MCP Apps
+  figure: MathTrail in drei Ebenen
+  client:
+    title: Chat-Client
+    tag: 1 · Client
+    others: andere MCP-Apps-Hosts
+    note: Das Modell des Chats schreibt die Aufgabe, und die Karte zeigt sie dem Kind.
+  mcp: "{via} · Tool-Aufrufe über HTTPS"
+  cloud:
+    title: MathTrail auf Google Cloud
+    tag: 2 · Laufzeitumgebung
+    sub: Cloud Run · ein Go-Binary · zustandslos
+    core: "Der Kern: reine Berechnung"
+    around: "Um den Kern herum: OAuth, der MCP-Server, die Karte, die Versiegelung, die Limits."
+  drive: "{via} · mit dem eigenen Token der Familie"
+  storage:
+    title: Google Drive
+    tag: 3 · Speicher
+    note: "Eine Datei pro Kind, im eigenen Google Drive der Familie: das Einzige, was lange aufbewahrt wird."
+map:
+  title: Die Übersicht
+  lead: "Wer mit wem spricht. Weder das Kind noch die erwachsene Person erreicht MathTrail direkt: Beide sprechen mit dem Chat-Host. Alles im mittleren Block ist Teil eines einzigen Prozesses, kein eigener Dienst. Wählen Sie einen beliebigen Teil, um zu sehen, was er tut und womit er verbunden ist."
+  legend: Teile des Dienstes
+  whole: Nichts ausgewählt
+  hint: "Wählen Sie einen Teil der Übersicht: Alles, womit er verbunden ist, bleibt hell, und der Rest verblasst."
+  linked: Verbunden mit
+  reset: Zurücksetzen ✕
+  columns:
+    family:
+      title: Der Chat der Familie
+      sub: Claude im Browser, auf dem Computer und auf dem Smartphone · ChatGPT
+    service:
+      title: MathTrail
+      sub: Ein Go-Binary · Cloud Run · eine eigene Domain
+      tag: zwischen den Teilen einfache Funktionsaufrufe
+    outside:
+      title: Google und GitHub
+      sub: Die einzigen Dienste außerhalb des Binarys
+  groups:
+    people:
+      title: Menschen
+      short: Der Chat der Familie
+    host:
+      title: Chat-Host
+      short: Chat-Host
+    entry:
+      title: Der Eingang
+      short: MathTrail · Eingang
+    tools:
+      title: "Tools: Profil lesen, rechnen, zurückschreiben"
+      short: MathTrail · Tools
+    core:
+      title: Reine Berechnung, ohne Netzwerk
+      short: MathTrail · reine Berechnung
+    around:
+      title: Rund um den Kern
+      short: MathTrail · rund um den Kern
+    account:
+      title: Das Google-Konto der Familie
+      short: Das Google-Konto der Familie
+    cloud:
+      title: Google Cloud
+      short: Google Cloud
+    github:
+      title: GitHub
+      short: GitHub
+  parts:
+    adult:
+      name: Erwachsene Person
+      sub: Elternteil oder Lehrkraft · wer sich anmeldet
+      about: "Ein Elternteil oder eine Lehrkraft. Besitzt sowohl das Chat-Konto als auch das Google-Konto: verbindet MathTrail, meldet sich einmal an, legt das Profil an, leitet die Lektion im Chat und verfolgt den Fortschritt. Die einzige Person, die sich anmeldet, und die einzige, die schreibt."
+    kid:
+      name: Kind
+      sub: Klassen 1–6 · keine eigene Anmeldung
+      about: Klassen 1–6. Löst Aufgaben auf der Karte, im Chat der erwachsenen Person. Hat keine eigene Anmeldung.
+    model:
+      name: Das Modell des Hosts
+      sub: Schreibt die Aufgabe, das Lösungsprogramm, die Erklärungen
+      about: Claude oder ChatGPT. Schreibt die Aufgabe, ein Lösungsprogramm in Starlark, eine Erklärung zu jeder falschen Antwortmöglichkeit und eine Selbstprüfung; führt die Lektion in Worten, wo keine Karten angezeigt werden. MathTrail selbst ruft kein Modell auf.
+    appsrt:
+      name: MCP-Apps-Laufzeitumgebung
+      sub: Der Rahmen in einer Sandbox, in dem die Karte läuft
+      about: Zeigt die Karte in einem Rahmen in einer Sandbox an, übergibt ihr die Sprache, die Plattform und die Größe und leitet die eigenen Aufrufe der Karte mit dem Token des Hosts weiter – die Karte selbst sieht das Token nie.
+    cimd:
+      name: Client-Metadatendokument
+      sub: Die client_id des Hosts ist eine HTTPS-Adresse
+      about: Der Host weist sich mit einer HTTPS-Adresse aus. MathTrail ruft das Dokument unter dieser Adresse ab, gegen SSRF geschützt, statt ein Register der Clients zu führen.
+    router:
+      name: HTTP-Router
+      sub: /mcp · /oauth/* · /health
+      about: "Der einzige Eingang: /health, /mcp, die OAuth-Endpunkte und .well-known. Zeitlimits, eine Obergrenze für die Größe des Bodys, eine Origin-Prüfung; der Aussteller ist die eigene Domain, und jeder andere Host erhält die Antwort 404."
+    authsrv:
+      name: Autorisierungsserver
+      sub: OAuth 2.1 + PKCE, Zustimmung
+      about: "MathTrail ist selbst ein OAuth-2.1-Server mit PKCE: Metadaten, ein eigener Zustimmungsbildschirm, Anmeldung mit Google, Tokens, Erneuerung und Widerruf. Alles, was ein Server mit Zustand speichern würde, ist in Tokens und Cookies versiegelt."
+    mcpsrv:
+      name: MCP-Server
+      sub: Streamable HTTP, zustandslos
+      about: "Das Protokoll: Streamable HTTP 2026-07-28, zustandslos, auf Basis des offiziellen Go-SDK. Der Server listet die Tools auf und ruft sie auf, liefert die Karte als ui://-Ressource aus und übergibt dem Modell seine Anweisungen samt ihrer Version."
+    limits:
+      name: Limits
+      sub: Pro Adresse, pro Konto, pro Tag
+      about: Ein Tempo pro Adresse vor der Anmeldung und pro Konto danach sowie eine Gesamtobergrenze, alles im Arbeitsspeicher – dann die täglichen Obergrenzen, die das Profil zählt. Ist ein Limit überschritten, kommt ein schlichter Satz, den das Modell weitergibt.
+    tools:
+      name: Tools
+      about: "Zwölf Tools nach einem Muster: Profil lesen, rechnen, zurückschreiben. Die meisten ruft das Modell auf; die Karte ruft ihre eigenen auf – für die Aufgabe, die Antwort, den Fortschritt und das Formular des Profils. Nichts Geheimes gelangt je in ein Ergebnis."
+    rule:
+      name: Die Regel
+      sub: Thema, Ziel, Schwierigkeitskorridor
+      about: "Wählt den Auftrag deterministisch: nach einem Fehler dasselbe Thema, um es zu festigen; sonst das Thema, das am längsten nicht vorkam; die Schwierigkeit aus dem Korridor, in dem die Lösungswahrscheinlichkeit bei 70–85 % liegt."
+    rating:
+      name: Wertungen
+      sub: θ, δ, β · Elo auf IRT-Basis
+      about: P = 0,2 + 0,8·σ(θ + δ − β). Elo bewegt sich nur danach, ob eine Antwort richtig ist, mit einer Schrittweite, die schrumpft; eine Skala wie beim Schach und elf Ränge; ein Thema gilt nach einer vorsichtigen Schätzung als gemeistert.
+    checks:
+      name: Prüfungen
+      sub: Was eine eingereichte Aufgabe bestehen muss
+      about: "Was eine eingereichte Aufgabe bestehen muss: ihre Struktur und fünf verschiedene Antwortmöglichkeiten, die Buchstaben der Lektionssprache, unterschiedliche Erklärungen, das Lösungsprogramm, die Selbstprüfung, die Lesbarkeit, Beinahe-Duplikate und das Bild: sein Format, seine Beschriftungen im Abgleich mit dem Aufgabentext und dass keine Antwort darauf steht. Alle nicht bestandenen Prüfungen werden auf einmal gemeldet."
+    solver:
+      name: Löser
+      sub: Starlark-Sandbox, Schrittlimit
+      about: Führt das Starlark-Programm des Modells aus, das die Antwortmöglichkeiten durchprobiert; genau eine muss sich als richtig erweisen. Limits für Schritte und Zeit, kein Netzwerk und keine Dateien.
+    content:
+      name: Inhalte
+      sub: Kataloge, Referenzaufgaben, Anweisungen
+      about: "Alles, was in das Binary eingebaut und kein Code ist: die Kataloge der Themen, Fallen und Fähigkeiten, die Referenzaufgaben, die Schemas, die Vorlagen für Lösungsprogramme, ein Beispiel für jede Art von Bild und die Anweisungen an das Modell samt ihrer Version."
+    widget:
+      name: Widget
+      sub: Die Karte · eine HTML-Datei
+      about: "Die Karte: Preact, gebaut zu einer einzigen HTML-Datei, die nichts von anderswo lädt, mit den Wörterbüchern der Sprachen darin. Das Layout funktioniert ab 320 px, und die Schaltflächen lassen sich gut mit dem Finger treffen."
+    store:
+      name: Speicher
+      sub: Das Profil und die aktuelle Aufgabe
+      about: Findet das Profil anhand einer versteckten Markierung, vergleicht vor dem Schreiben, bringt zwei Tabs in Einklang, stellt die Datei auf Wunsch der erwachsenen Person aus Versionen wieder her, die Google Drive für immer behält – und kommt mit einem kleinen Budget an Drive-Aufrufen aus.
+    seal:
+      name: Versiegelung
+      sub: Tokens und die versiegelte Antwort
+      about: "Ein Mechanismus, zwei Zwecke: Er versiegelt die Anmeldung und die Tokens von Google in die Tokens, die der Host hält, und die Antwort einer Aufgabe – der aktuellen und der vorab geschriebenen – ins Profil. Die Schlüssel kommen aus Secret Manager und werden anhand der Schlüssel-ID rotiert."
+    logs:
+      name: Protokollierung
+      sub: Zusammenfassungen, keine personenbezogenen Daten
+      about: "Eine strukturierte Zusammenfassung pro Aufruf: das Tool, das Ergebnis, die Dauer, die Version der Anweisungen; Versuche und die Gründe einer Ablehnung als Ereignisse der Aufgabe. Keine personenbezogenen Daten, kein Aufgabentext, keine Antworten."
+    boot:
+      name: Container und Konfiguration
+      sub: Umgebung, Version, Herunterfahren
+      about: Verbindet die Teile miteinander und schließt sie in umgekehrter Reihenfolge, arbeitet mit Zeitlimits und geordnetem Herunterfahren, liest die gesamte Konfiguration aus der Umgebung – und weigert sich, mit Entwicklungsschaltern auf Cloud Run zu starten.
+    goauth:
+      name: Google OAuth
+      sub: Nur drive.file
+      about: Die Anmeldung der erwachsenen Person, nur mit der Berechtigung drive.file, dazu Erneuerung und Widerruf. Der Widerruf eines beliebigen Tokens beendet jeden Zugriff.
+    gdrive:
+      name: Drive API v3
+      sub: Der einzige Langzeitspeicher
+      about: "Der einzige Langzeitspeicher: ein JSON-Profil in einem sichtbaren Ordner namens MathTrail im Google Drive der Familie, gelesen und geschrieben mit dem eigenen Token der Familie."
+    sm:
+      name: Secret Manager
+      sub: Siegelschlüssel, das Client-Secret
+      about: "Die Siegelschlüssel und das Client-Secret von Google: festgelegte Versionen, einmal beim Start einer Instanz gelesen."
+    ar:
+      name: Artifact Registry
+      sub: Das Image, per Digest
+      about: Das Image jeder Revision, per Digest; alte Images werden gelöscht.
+    clog:
+      name: Cloud Logging
+      sub: Wohin stdout geht
+      about: Wohin das stdout des Dienstes geht. Die Zeilen, nach denen Kinder gezählt werden, bleiben 62 Tage in einem eigenen Bucket.
+    bq:
+      name: BigQuery → Data Studio
+      sub: Zahlen, jahrelang aufbewahrt
+      about: Nutzungszahlen werden jahrelang aufbewahrt und jede Nacht neu gezählt; keine Tabelle enthält den Namen, unter dem ein Kind gezählt wird. Ein privater Bericht und ein öffentlicher, der keine Gruppe mit weniger als zehn Kindern zeigt.
+    ga:
+      name: Actions
+      sub: Build, Prüfungen, Deployment
+      about: Der Build, die Prüfungen, das Veröffentlichen des Images und das Deployment über Workload Identity-Föderation – ohne Dienstkontoschlüssel.
+    pages:
+      name: Pages
+      sub: Diese Website, Datenschutz und Nutzungsbedingungen
+      about: "Diese Website: die Seiten der Themen sowie die Datenschutzerklärung und die Nutzungsbedingungen, auf die der Zustimmungsbildschirm verlinkt."
+  links:
+    adult-model: der Chat und die Aufgabe in Worten, wo keine Karte angezeigt wird
+    kid-appsrt: die Aufgabe und ihre Schaltflächen
+    adult-authsrv: Anmeldung mit Google und Zustimmung, im Browser
+    model-router: Tool-Aufrufe über HTTPS
+    appsrt-router: "die eigenen Aufrufe der Karte: die Aufgabe, die Antwort, der Fortschritt, das Formular des Profils"
+    mcpsrv-appsrt: die Karte als ui://-Ressource
+    authsrv-cimd: ruft das Dokument des Clients ab
+    router-authsrv: /oauth/*
+    router-mcpsrv: /mcp
+    router-limits: geprüft vor der Anmeldung und danach
+    mcpsrv-tools: tools/call
+    widget-mcpsrv: das eingebaute HTML
+    content-mcpsrv: die Anweisungen des Servers
+    tools-rule: wählt den Auftrag
+    tools-rating: aktualisiert die Wertungen
+    tools-checks: prüft eine eingereichte Aufgabe
+    tools-store: liest und schreibt das Profil
+    tools-content: das Paket zum Schreiben einer Aufgabe
+    tools-limits: tägliche Obergrenzen
+    tools-seal: versiegelt die Antwort und öffnet sie
+    rule-content: die Kataloge
+    checks-solver: führt das Programm aus
+    checks-content: Schemas und Limits
+    authsrv-seal: Tokens und Cookies
+    boot-router: baut ihn und startet ihn
+    tools-logs: Ereignisse
+    authsrv-logs: Ereignisse
+    store-logs: Ereignisse
+    limits-logs: Ereignisse
+    store-gdrive: die Datei, mit dem Token der Familie
+    authsrv-goauth: Code, Token, Erneuerung, Widerruf
+    sm-boot: Secrets beim Start in die Umgebung
+    sm-seal: die Siegelschlüssel
+    ar-boot: eine Revision, per Digest
+    logs-clog: stdout
+    clog-bq: jede Nacht neu gezählt
+    ga-ar: das Image
+    ga-pages: veröffentlicht die Website
+    authsrv-pages: Links zur Datenschutzerklärung und zu den Nutzungsbedingungen
+    appsrt-pages: die Seite eines Themas
+flow:
+  title: Eine Lektion, Aufruf für Aufruf
+  lead: "Das Modell und die Karte rufen dieselben Tools auf und stützen sich auf eine einzige Quelle der Wahrheit: die Profildatei im Google Drive der Familie. Damit eine Lektion weitergeht, müssen sie einander nichts mitteilen."
+  legend: Szenario
+  scenarios:
+    task: Aufgabe
+    answer: Antwort
+    signin: Anmeldung
+  kinds:
+    call: ein Aufruf
+    reply: seine Antwort
+    host: im Host
+  actors:
+    adult: Erwachsene Person
+    kid: Kind
+    card: Karte
+    model: Modell des Hosts
+    service: MathTrail
+    drive: Drive
+    browser: Browser der Familie
+    host: Host
+    google: Google
+  task:
+    rows:
+      - „Eine neue Aufgabe, bitte“
+      - next_task
+      - "Der Host zeigt die Karte an, sobald der Aufruf beginnt: „Die nächste Aufgabe wird vorbereitet…“"
+      - Limits · die Regel wählt das Thema, das Niveau und die Schwierigkeit
+      - die offene Anfrage schreiben
+      - die Anfrage ist offen – Paket abholen
+      - get_package
+      - Auftrag · 3 Referenzaufgaben · Fallen · Vorlagen · Beispielbilder
+      - Das Modell schreibt die Aufgabe, ein Lösungsprogramm in Starlark und eine Selbstprüfung
+      - submit_task – bis zu 3 Versuche
+      - Prüfungen · das Lösungsprogramm muss genau eine richtige Antwortmöglichkeit finden
+      - die Aufgabe wird zur aktuellen, ihre Antwort versiegelt
+      - read_task – die Karte fragt alle 4 s nach
+      - Text · Bild · fünf Antwortmöglichkeiten · Tipp – ohne die Antwort
+    caption: "Jeder Aufruf liest außerdem das Profil aus Google Drive – diese Lesezugriffe sind nicht eingezeichnet. Die wartende Karte sieht das Paket nie: Seine Referenzaufgaben enthalten ihre Antworten. Während das Kind löst, schreibt das Modell mit prepare_task schon die nächste Aufgabe, und wenn eine weitere gewünscht wird, legt next_task sie sofort auf eine neue Karte – ohne diese Wartezeit."
+  answer:
+    rows:
+      - klickt auf C
+      - submit_answer – kostet den Chat keine Runde
+      - nur die erste Antwort · erst jetzt wird das Siegel geöffnet · θ und δ ändern sich nur danach, ob sie richtig ist
+      - Wertungen und Verlauf schreiben
+      - richtig oder nicht · die Falle hinter C · das Bild der Lösung · die Schritte · die Wertung vorher → nachher
+      - Die Karte wird an der Stelle der Aufgabe zur Besprechung der Antwort
+      - ui/update-model-context – eine Zeile, gelesen mit der nächsten Nachricht der erwachsenen Person
+      - „Warum ein Pfosten mehr?“
+      - antwortet zu genau dieser Aufgabe und ergänzt die Karte
+    caption: Der Klick speichert die Antwort, bevor irgendetwas erklärt wird, und die Karte wird sofort zur Besprechung der Antwort. Den Chat kostet das keine Runde, und das Modell zeichnet nichts. Es liest die Zeile der Karte mit der nächsten Nachricht der erwachsenen Person und beantwortet eine Frage zur Aufgabe, ohne die Karte nachzuerzählen. Geht die Zeile des Hosts an das Modell verloren, holt das Modell das beim nächsten Aufruf nach.
+  signin:
+    rows:
+      - POST /mcp, ohne Token
+      - 401 · wo die Metadaten liegen
+      - öffnet /oauth/authorize · PKCE S256
+      - authorize
+      - "Ein eigener Zustimmungsbildschirm: welcher Client und wohin er die erwachsene Person zurückschickt"
+      - Anmeldung mit Google · nur drive.file
+      - zurück, mit dem Code von Google
+      - /oauth/callback
+      - Code eintauschen
+      - /about – wessen Drive ist das?
+      - Nutzer-ID = HMAC des Drive-Kontos · Tokens von Google in unseren Code versiegelt
+      - 302 · code = mt1.c.…
+      - gibt den Code zurück
+      - /oauth/token · Code + Verifier
+      - Zugriff 15 min · Aktualisierung 30 Tage
+    caption: "Die erwachsene Person meldet sich einmal an. Der Dienst behält nichts von diesem Austausch: Die Anfrage reist versiegelt im Parameter state, die Tokens von Google in einem versiegelten Code."
+  machine:
+    title: Die aktuelle Aufgabe als Zustandsautomat
+    lead: Jede Regel, die „nur einmal“ verlangt, ist ein Feld des Profils und wird im selben Durchgang aus Lesen, Rechnen und Schreiben geprüft. Nichts anderes merkt sich irgendetwas.
+    forward:
+      - Auftrag bereit
+      - versiegelt, gestellt
+      - einmal gespeichert
+    turns:
+      - abgelehnt, Versuche übrig – höchstens drei pro Anfrage
+      - drei Ablehnungen oder 15 Minuten seit dem Öffnen der Anfrage; die Aufgaben des Tages werden nicht verbraucht, und drei Ablehnungen zählen als gescheiterte Anfrage des Tages
+      - „Neue Aufgabe“ vor einer Antwort – als übersprungen gespeichert, die Wertung bleibt unberührt
+      - jede spätere Antwort – aus einem zweiten Tab oder vom Modell – bekommt das erste Ergebnis zurück und schreibt nichts
+      - die nächste Aufgabe, auf einer neuen Karte; die beantwortete ist nicht mehr aktuell
+      - die nächste Aufgabe wurde vorab geschrieben – next_task legt sie sofort auf eine neue Karte und überspringt requested
+      - das Siegel lässt sich nicht mehr öffnen – der Schlüssel wurde zweimal rotiert; nichts wird gespeichert
+state:
+  title: Wo der Zustand liegt
+  lead: "Alles, was ein Server mit Zustand in einer Datenbank hielte, bewahrt jemand anderes auf: in einem versiegelten Token, das der Chat hält, in einem Cookie im Browser der Familie oder im eigenen Google Drive der Familie. Starten Sie den Dienst neu oder starten Sie eine zweite Kopie: Nichts geht verloren."
+  self:
+    label: MathTrail selbst
+    value: Nichts
+    note: Keine Konten, keine Sitzungen, keine Registrierungen, keine Tokens von Google. Jede Anfrage bringt alles mit, was sie braucht.
+  stores:
+    tokens:
+      title: Der Token-Speicher des Chats
+      sub: Versiegelte Tokens, für den Host undurchsichtig
+      rows:
+        access:
+          name: Zugriffstoken
+          life: 15 min
+        refresh:
+          name: Token zum Aktualisieren
+          life: 30 Tage, ≤ 90
+      note: Darin versiegelt sind die Tokens von Google, eine undurchsichtige Nutzer-ID für die Limits und das Land, aus dem sich die erwachsene Person angemeldet hat.
+    browser:
+      title: Der Browser der Familie
+      sub: Zwei Cookies, keine Sitzung
+      rows:
+        approvals:
+          name: Genehmigte Clients
+          life: 180 Tage
+        csrf:
+          name: Schutz der Anmeldung (CSRF)
+          life: 10 min
+      note: Gehen sie verloren, kostet das einen Zustimmungsbildschirm mehr oder eine neue Anmeldung.
+    drive:
+      title: Das Google Drive der Familie
+      sub: Das Einzige, was lange aufbewahrt wird
+      rows:
+        profile:
+          life: bis zur Löschung
+      note: Das Profil, die Wertungen und die aktuelle Aufgabe mit versiegelter Antwort. Die erwachsene Person kann die Datei öffnen, und Google Drive bewahrt ihren Versionsverlauf auf.
+    secrets:
+      title: Secret Manager
+      sub: Einmal gelesen, beim Start einer Instanz
+      rows:
+        keys:
+          name: Siegelschlüssel
+          sub: nach einer Rotation gilt der vorige Schlüssel weiter
+          life: 90 Tage
+        client:
+          name: Client-Secret von Google
+          life: festgelegt
+    memory:
+      title: Der Arbeitsspeicher der Instanz
+      sub: "Nur Caches: bei einem Neustart verloren, und nichts geht kaputt"
+      rows:
+        rates:
+          name: Zähler der Anfragerate
+          life: Minuten
+        location:
+          name: Wo die Profildatei liegt
+          life: 10 min
+        clients:
+          name: Dokumente der Clients
+          life: 5 min bis 24 h
+  absent:
+    title: In v1 bewusst weggelassen
+    items:
+      - Eine Datenbank
+      - Warteschlangen
+      - Ein Sitzungsspeicher
+      - Ein gemeinsamer Cache
+      - Ein Vorrat fertiger Aufgaben
+      - Ein Client für eine LLM-API
+      - REST und OpenAPI
+profile:
+  title: Die Profildatei
+  lead: "Ein Kind, eine JSON-Datei: kein Cache irgendeiner Wahrheit auf einem Server, sondern die Wahrheit selbst. Jeder Block hat eine Obergrenze, die bei jedem Schreiben eingehalten wird, sodass die Datei nie unbegrenzt wächst: Eine übliche hält das Ziel ein, und eine nahe an ihren Obergrenzen überschreitet es. Vergangene Aufgaben werden als Fingerabdrücke aufbewahrt, nicht als Text."
+  size: Größe der Datei
+  legend: Welche Größe angezeigt wird
+  typical: Üblich
+  cap: Nahe den Obergrenzen
+  total: "≈ {kb} KB"
+  kb: "{kb} KB"
+  goal: "Ziel {kb} KB"
+  segment: "{name} · {typical} / {cap} KB"
+  heads:
+    block: Block
+    holds: Was er enthält
+    writers: Wer ihn schreibt
+    size: Größe
+  blocks:
+    fingerprints:
+      name: Fingerabdrücke
+      holds: Bis zu 200 Skizzen der gestellten Aufgaben für die Prüfung auf Beinahe-Duplikate – ohne Text, ohne Thema, ohne Datum
+    history:
+      name: Verlauf der Wertung
+      holds: Wo θ und das δ des Themas vor jeder der letzten Antworten standen, und θ und jedes Thema zu Beginn jedes der letzten 7 Tage mit Antworten
+    ratings:
+      name: Wertungen und Themen
+      holds: "θ und wo das Kind angefangen hat; für jedes Thema: δ, die Antworten, die Fallen, in die es getappt ist, ob das Thema gemeistert ist und auf welcher Stufe"
+    recent:
+      name: Letzte Antworten
+      holds: Die letzten 20 Antworten und übersprungenen Aufgaben – und nie weniger als die 5 Antworten, die die Regel liest
+    sealed:
+      name: Aktuelle Aufgabe, versiegelt
+      holds: Die Antwort, die Falle hinter jeder falschen Antwortmöglichkeit, die Lösung und das Lösungsprogramm – eine einzige undurchsichtige Zeichenkette
+    open:
+      name: Aktuelle Aufgabe, offen
+      holds: "Was die Karte zeigt: der Text, das Bild, fünf Antwortmöglichkeiten, der Tipp – und nach der Antwort die Antwort selbst"
+    request:
+      name: Offene Anfrage
+      holds: "Während die Aufgabe geschrieben wird: ihre ID, der Auftrag, die verbrauchten Versuche und wer das Thema gewählt hat"
+    service:
+      name: Dienst und Kind
+      holds: Die Version des Schemas, eine zufällige UUID, die Revision; das Pseudonym, die Klasse, die Interessen, die Notizen; die Zähler des Tages
+  every-write: jeder Schreibvorgang
+  note: "Eine vorab geschriebene Aufgabe liegt neben der aktuellen und wiegt ungefähr gleich viel. Was die Datei nicht enthält: die Texte vergangener Aufgaben, die Antwort im Klartext, bevor das Kind geantwortet hat, irgendetwas, das die erwachsene Person benennt, und einen Rang – Ränge werden beim Anzeigen berechnet. Google Drive kennt kein bedingtes Schreiben, deshalb wird die Datei vor dem Speichern noch einmal gelesen, und das Schreiben wird abgelehnt, wenn sie sich geändert hat: Zwei Tabs überschreiben einander nie stillschweigend."
+seal:
+  title: Versiegelt – und wie lange
+  lead: "Ein Mechanismus für zwei Zwecke: Er versiegelt die Anmeldung in die Tokens, die der Chat hält, und die Antwort einer Aufgabe – der aktuellen und der vorab geschriebenen – ins Profil. Jedes Siegel trägt seinen Zweck, sodass ein Zugriffstoken nicht als Aktualisierungstoken durchgehen kann und eine versiegelte Antwort als nichts anderes."
+  token:
+    title: Ein Token, zerlegt
+    version: Version des Formats
+    purpose: Zweck
+    purposes:
+      c: Code
+      a: Zugriff
+      r: Aktualisierung
+      d: Client
+      s: state
+      k: Zustimmung
+      t: Antwort einer Aufgabe
+    key: Schlüssel-ID
+    key-note: stammt aus dem Schlüssel selbst, daher fällt eine Rotation nicht auf
+    cipher: Geheimtext
+    cipher-note: XChaCha20-Poly1305, eine zufällige 192-Bit-Nonce
+    note: "Kein JWT: Niemand außer dem Dienst liest es, und aus einer undurchsichtigen Zeichenkette kann kein Claim in ein Protokoll gelangen."
+  life:
+    title: Gültigkeitsdauern, auf logarithmischer Skala
+    ticks:
+      - 1 min
+      - 1 h
+      - 1 Tag
+      - 1 Woche
+      - 6 Monate
+    items:
+      code:
+        name: Autorisierungscode
+        life: 60 s
+      signin:
+        name: Laufende Anmeldung
+        life: 10 min
+      access:
+        name: Zugriffstoken
+        life: 15 min
+      refresh:
+        name: Aktualisierungstoken
+        life: 30 Tage, gleitend, höchstens 90
+      key:
+        name: Siegelschlüssel
+        life: alle 90 Tage rotiert
+      approvals:
+        name: Genehmigte Clients
+        life: 180 Tage
+    note: Ein Server ohne Zustand kann einen Code nicht als benutzt markieren, deshalb bleibt das Zeitfenster des Codes klein. Nach einer Rotation gilt der vorige Schlüssel weiter, sodass beim Wechsel des Schlüssels weder ein Token noch eine versiegelte Antwort verloren geht.

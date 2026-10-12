@@ -2,12 +2,14 @@ import type { ComponentChildren } from "preact";
 import {
 	Act,
 	Box,
+	Divide,
 	Dots,
 	Down,
 	Group,
 	Key,
 	Line,
 	Op,
+	Question,
 	Row,
 	Say,
 	Stack,
@@ -71,7 +73,9 @@ function Chain({
 			<Then />
 			<Box>{between[1]}</Box>
 			<Then />
-			<Act>: 3</Act>
+			<Act>
+				<Divide /> 3
+			</Act>
 			<Then />
 			{end ?? <Box>9</Box>}
 		</Line>
@@ -94,7 +98,9 @@ function Undone({
 		<Line gap={4}>
 			{start}
 			<Then back tone="warm" />
-			<Act tone="warm">: 2</Act>
+			<Act tone="warm">
+				<Divide /> 2
+			</Act>
 			<Then back tone="warm" />
 			<Box tone={tone}>{between[0]}</Box>
 			<Then back tone="warm" />
@@ -218,7 +224,9 @@ export const art: TopicArt = {
 				<Line gap={6}>
 					<Act>× 2</Act>
 					<Say>{page.text(`${at}.undoes`)}</Say>
-					<Act tone="warm">: 2</Act>
+					<Act tone="warm">
+						<Divide /> 2
+					</Act>
 				</Line>
 				<Say>{page.text(`${at}.back`)}</Say>
 			</Stack>
@@ -386,7 +394,13 @@ export const art: TopicArt = {
 							<Chain start={<Unknown />} />
 						</Row>
 						<Row name={page.text(`${at}.back`)} size="small" gap={4}>
-							<Undone start={<Box>?</Box>} />
+							<Undone
+								start={
+									<Box>
+										<Question />
+									</Box>
+								}
+							/>
 						</Row>
 					</Stack>
 				),

@@ -1,0 +1,233 @@
+# The page of the topic of enumeration, for a parent, in French. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Énumération des cas
+description: Ce que sont les problèmes d’énumération des cas, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+# The words every drawing of the page writes its people in: the three
+# children's letters, and Lea's and Tom's initials.
+art:
+  a: A
+  b: B
+  c: C
+  lea: L
+  tom: T
+
+hero:
+  lead: >-
+    Combien de nombres peut-on écrire avec ces chiffres ? Combien de poignées
+    de main, de tenues ou de façons de se mettre en file ? Dans ces problèmes,
+    on écrit chaque cas dans un ordre qui garantit qu’aucun ne se perd et
+    qu’aucun n’est compté deux fois. Une liste qui suit une règle est le
+    premier outil de l’enfant quand la question est trop grande pour qu’on en
+    devine la réponse.
+  method: Énumérer les cas selon une règle
+  teaches: À travailler avec méthode et à voir quand on peut compter les cas sans les énumérer
+  # The words of its drawing: the question and the rule over it, and the count
+  # under it.
+  art:
+    line: Combien de nombres à deux chiffres différents peut-on former avec 1, 2 et 3 ?
+    rule: "énumérés selon une règle : d’abord le premier chiffre"
+    count: 3 choix pour le premier chiffre × 2 pour le second = 6 nombres
+
+basis:
+  title: Les règles d’une liste
+  cards:
+    - title: Dans l’ordre
+      text: >-
+        Triez les cas avant de les écrire : d’abord par la première lettre,
+        puis par la deuxième. Dans une liste bien ordonnée, un cas manquant
+        laisse un trou qui se voit.
+      art:
+        on: "{child} d’abord"
+        # The case the listing lost: its two letters and a question mark, as the
+        # language writes one.
+        lost: "{first}{second} ?"
+    - title: Chaque cas une seule fois
+      text: >-
+        Avant de compter, décidez ce qui rend deux cas différents. Quand Léa et
+        Tom se serrent la main, cela fait une seule poignée de main, mais Léa
+        devant Tom et Tom devant Léa, ce sont deux files différentes.
+      art:
+        handshake: 1 poignée de main
+        queues: 2 files
+    - title: Les choix se multiplient
+      text: >-
+        Quand un cas se compose de choix faits l’un après l’autre, une tasse
+        puis une soucoupe, comptez en multipliant : 3 tasses et 2 soucoupes
+        donnent 3 × 2 = 6 combinaisons.
+      art:
+        sets: 3 × 2 = 6 combinaisons
+
+idea:
+  title: L’ordre compte-t-il ?
+  lead: Avec les trois mêmes enfants, A, B et C, des questions différentes donnent des résultats différents.
+  table:
+    head:
+      - La question
+      - L’ordre compte-t-il ?
+      - Les cas
+    rows:
+      - - De combien de façons peut-on les mettre en file ?
+        - "Oui : AB et BA sont deux files"
+        - "ABC, ACB, BAC, BCA, CAB, CBA : 6"
+      - - Combien de paires peut-on envoyer faire une course ?
+        - "Non : AB et BA forment une seule paire"
+        - "AB, AC, BC : 3"
+      - - De combien de façons peut-on choisir qui dirige et qui aide ?
+        - "Oui : qui dirige vient en premier (en plus grand)"
+        - "AB, AC, BA, BC, CA, CB : 6"
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Ici, la plupart des mauvaises réponses comptent un cas deux fois, ou
+      prennent deux cas différents pour un seul. Décider d’abord si l’ordre
+      compte indique quelle erreur surveiller.
+
+method:
+  title: "Comment le résoudre : une liste selon une règle"
+  lead: >-
+    Fixez d’abord une règle : ce qui vient en premier dans la liste, et ce qui
+    suit. Puis écrivez les cas en la suivant, ou comptez-les dès que la règle
+    fait apparaître une régularité. Les exemples ci-dessous vont du plus
+    simple à un problème d’olympiade.
+  steps:
+    - Décider ce qui rend deux cas différents
+    - Énumérer les cas selon une règle
+    - Les compter, ou multiplier quand les choix se font l’un après l’autre
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    frame: "un cadre bleu : ce qu’ajoute cette étape"
+
+examples:
+  - title: Drapeaux à deux bandes
+    question: >-
+      Un drapeau a deux bandes, l’une au-dessus de l’autre. Chaque bande est
+      rouge, jaune ou verte, et les deux bandes sont de couleurs différentes.
+      Combien y a-t-il de drapeaux différents ?
+    steps:
+      - >-
+        On range les drapeaux selon la bande du haut. Avec le rouge en haut,
+        la bande du bas est jaune ou verte : deux drapeaux.
+      - >-
+        Avec le jaune en haut, rouge ou vert en bas : deux de plus. Avec le
+        vert en haut, rouge ou jaune : deux de plus.
+      - >-
+        3 couleurs pour le haut, et chaque fois 2 qui restent pour le bas :
+        3 × 2 = 6 drapeaux.
+    answer: 6 drapeaux.
+    art:
+      paints: trois peintures, des bandes de couleurs différentes
+      red-top: rouge en haut
+      red: rouge
+      yellow: jaune
+      green: vert
+      top: haut ↓
+      bottom: bas →
+      same: "× : pas deux fois la même couleur, 9 − 3 = 6"
+  - title: Chiffres à trois d’écart
+    question: Combien de nombres à deux chiffres ont des chiffres qui diffèrent de 3, comme 14 ou 30 ?
+    steps:
+      - >-
+        On parcourt le chiffre des dizaines de 1 à 9, et on écrit à côté
+        chaque chiffre des unités qui en diffère de 3 : 1 → 4 ; 2 → 5 ;
+        3 → 0 et 6 ; 4 → 1 et 7 ; et ainsi de suite.
+      - >-
+        Avec 3, 4, 5 ou 6 aux dizaines, il y a deux nombres chaque fois,
+        3 de moins et 3 de plus. Avec 1, 2, 7, 8 ou 9, un seul : l’autre ne
+        serait pas un chiffre.
+      - >-
+        4 × 2 + 5 × 1 = 13 nombres : 14, 25, 30, 36, 41, 47, 52, 58, 63, 69,
+        74, 85, 96.
+    answer: 13 nombres.
+    note:
+      title: Le cas le plus souvent oublié
+      text: >-
+        Le 30 est le nombre que les enfants oublient : un nombre peut se
+        terminer par 0, mais il ne peut pas commencer par ce chiffre. Une
+        liste selon une règle le trouve ; une liste de mémoire, non.
+    art:
+      given: les dizaines et les unités diffèrent de 3
+      under: en haut les dizaines, en dessous les unités qui conviennent
+      two: "en bleu : deux nombres chaque fois"
+      can: permis
+      not: pas à deux chiffres
+  - title: Jamais deux 2 côte à côte
+    question: >-
+      Combien de nombres à quatre chiffres peut-on écrire avec les seuls
+      chiffres 1 et 2, sans que deux 2 soient côte à côte ?
+    steps:
+      - >-
+        Il y en a trop pour deviner, alors on les construit chiffre par
+        chiffre. Avec un chiffre : 1 et 2, deux nombres. Avec deux chiffres :
+        11, 12 et 21, trois, puisque 22 est interdit.
+      - >-
+        Un nombre qui convient se termine par 1 ou par 2. S’il se termine par
+        1, c’est n’importe quel nombre qui convient ayant un chiffre de moins,
+        suivi d’un 1.
+        S’il se termine par 2, le chiffre d’avant doit être 1 : c’est
+        n’importe quel nombre qui convient ayant deux chiffres de moins, suivi
+        de 12. Chaque total est donc la somme des deux précédents : avec trois chiffres,
+        3 + 2 = 5, et avec quatre, 5 + 3 = 8.
+      - >-
+        On vérifie en les écrivant tous : 1111, 1112, 1121, 1211, 2111, 1212,
+        2112, 2121, soit huit.
+    answer: 8 nombres.
+    note:
+      title: Un total qui grandit
+      text: >-
+        Les totaux 2, 3, 5, 8 continuent avec 13, 21, 34, chacun étant la
+        somme des deux précédents. Les problèmes d’olympiade adorent les
+        totaux qu’on peut construire à partir de totaux plus petits.
+    art:
+      twos: deux 2 côte à côte, c’est interdit
+      one: 1 chiffre
+      two: 2 chiffres
+      three: 3 chiffres
+      four: 4 chiffres
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  missed_case:
+    shows: >-
+      L’enfant écrit les cas comme ils lui viennent et en perd un, souvent un
+      cas avec un 0 ou avec un chiffre répété.
+    say: « Dans quel ordre les as-tu écrits ? Réécrivons-les en suivant une règle. »
+    art:
+      question: Chiffres à 3 d’écart
+  wrong_operation:
+    shows: >-
+      L’enfant additionne là où les choix se multiplient, si bien que
+      3 chemises et 2 écharpes donnent 5, ou multiplie là où l’on choisit une
+      paire, alors que personne ne peut former une paire avec soi-même.
+    say: "« Prends une chemise : combien de tenues peut-on faire avec ? Et combien y a-t-il de chemises ? »"
+    art:
+      question: 3 chemises et 2 écharpes
+  double_count:
+    shows: >-
+      Léa qui serre la main de Tom, et Tom qui serre la main de Léa : on
+      compte deux poignées de main, alors qu’il n’y en a qu’une.
+    say: « Est-ce le même cas qu’un de ceux qu’on a déjà ? »
+
+home:
+  - title: Habillez une peluche
+    text: >-
+      Donnez à l’enfant deux chapeaux et trois écharpes pour une peluche, et
+      demandez de combien de façons on peut l’habiller. Puis demandez la
+      liste, et vérifiez-la ensemble.
+  - title: Demandez la règle
+    text: >-
+      Quand l’enfant énumère des cas, demandez : « Dans quel ordre les
+      écris-tu ? » Une liste qui suit une règle est une liste qu’on peut
+      vérifier.
+  - title: Un cadenas à code
+    text: >-
+      Inventez un cadenas dont le code a deux chiffres pris parmi 1, 2 et 3,
+      et laissez l’enfant trouver combien de codes un voleur devrait essayer.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Énumération des cas »

@@ -45,6 +45,18 @@ export function intlLocales(locale: string): string[] {
 }
 
 /**
+ * listFormat is how the language of locale sets a list of names apart: by
+ * commas, and by its "and" before the last name where it writes one in a
+ * short list.
+ */
+export function listFormat(locale: string): Intl.ListFormat {
+	return new Intl.ListFormat(intlLocales(locale), {
+		type: "conjunction",
+		style: "narrow",
+	});
+}
+
+/**
  * fallbacksOf are the dictionaries a word missing from locale's is looked for
  * in, locale's own first: its shorter tags written in its script, then
  * English — never a bare language written in another script, as `zh` is for
@@ -146,6 +158,14 @@ function shorterTags(tag: string): string[] {
 }
 
 // localeOf is the locale a tag names, or undefined when it is no language tag.
+/**
+ * baseNameOf is tag with its extensions — the digits it asks for, say — left
+ * out, or tag as it is where it names no language the platform reads.
+ */
+export function baseNameOf(tag: string): string {
+	return localeOf(tag)?.baseName ?? tag;
+}
+
 function localeOf(tag: string): Intl.Locale | undefined {
 	try {
 		return new Intl.Locale(tag);

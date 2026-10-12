@@ -1,0 +1,184 @@
+# The page of the topic of ratios and sharing, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 比与按比例分配
+description: 什么是关于比与按比例分配的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+# The words the page's drawings name their people and boxes in.
+art:
+  ann: 小安
+  ben: 小明
+  a: A
+  b: B
+
+hero:
+  lead: >-
+    小安和小明按3比4分35颗糖，每人分到几颗？在这类题里，比说的是每人各占几等份，而不是各分到几样东西。先数出一共有几份，再求出一份是多少，任何一道关于比的题就都变成了一道除法题。
+  method: 先数出总份数，再求一份
+  teaches: 把比看成若干等份，并能按比例增减食谱的用量
+  # The words of its drawing: what is shared over it, and what the parts come
+  # to under it.
+  art:
+    line: 35颗糖，按3比4分
+    parts: 7份 = 35，一份 = 5
+    shares: 小安：3 × 5 = 15，小明：4 × 5 = 20
+
+basis:
+  title: 比的规则
+  cards:
+    - title: 比就是份数
+      text: >-
+        3比4的意思是：一方每占3等份，另一方就占4等份。合起来一共是7等份，不是3份，也不是4份。
+      art:
+        seven: 3比4就是7等份
+    - title: 先求一份
+      text: >-
+        用总数除以份数，求出一份是多少，再分别乘每一方的份数：35 ÷ 7 = 5，所以3份是15，4份是20。
+      art:
+        one: 一份：35 ÷ 7 = 5
+    - title: 两边同乘一个数
+      text: >-
+        比的两个数同时乘同一个数，比不变：3比4就是6比8，也是30比40。食谱就是这样按比例放大的。
+
+idea:
+  title: 数出份数
+  lead: 不管比是多少，先把它的几个数加起来，得到的就是整体被分成的等份数。
+  table:
+    head:
+      - 分什么
+      - 份数
+      - 一份和各得多少
+    rows:
+      - - 35颗糖，3比4
+        - 3 + 4 = 7
+        - 35 ÷ 7 = 5，所以是15和20
+      - - 60张卡片，1比2比3
+        - 1 + 2 + 3 = 6
+        - 60 ÷ 6 = 10，所以是10、20和30
+      - - 45颗珠子，2比7
+        - 2 + 7 = 9
+        - 45 ÷ 9 = 5，所以是10和35
+  note:
+    title: 为什么重要
+    text: >-
+      最常见的错误，是用比中的某一个数去除，而不是用这几个数的和去除：35 ÷ 3或35 ÷ 4。每一份画一个格子，这个和就不可能被漏掉。
+
+method:
+  title: 解法：每一份画一个格子
+  lead: >-
+    比的每一份画一个格子，参与分配的每个人各占一行格子。数出全部格子，求出一个格子里是多少，再填出每人分到的数量。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 每一份画一个格子
+    - 求出一个格子里是多少
+    - 填出每人分到的数量，并检验总数
+  # The key under the steps: what a tile of the drawings means.
+  legend:
+    one: 一份，以及一份是多少
+    spoken: 题目说到的那几份
+
+examples:
+  - title: 蘑菇
+    question: >-
+      小军和小兰一共采了45个蘑菇。小军每采4个，小兰就采5个。小兰采了多少个蘑菇？
+    steps:
+      - 4比5的意思是：小军占4份，小兰占5份，一共9等份。
+      - 一份是45 ÷ 9 = 5个蘑菇。
+      - 小兰占5份：5 × 5 = 25个蘑菇。检验：小军采了20个，20 + 25 = 45。
+    answer: 25个蘑菇。
+    note:
+      title: 为什么不是45 ÷ 5？
+      text: >-
+        45 ÷ 5 = 9只除以了小兰的份数。而这45个蘑菇是小军和小兰合起来的全部9份。
+    art:
+      max: 军
+      lena: 兰
+      together: 一共45个蘑菇
+      max-name: 小军
+      lena-name: 小兰
+      nine: 9个格子，45个蘑菇
+      each: 每个格子：45 ÷ 9 = 5
+      only-lena: 只算了小兰
+  - title: 合唱团
+    question: >-
+      合唱团里每有4个男孩，就有7个女孩，而且女孩比男孩多9个。合唱团里一共有多少个孩子？
+    steps:
+      - >-
+        男孩占4份，女孩占7份，所以女孩比男孩多3份。
+      - 这3份就是多出来的9个女孩：一份是9 ÷ 3 = 3个孩子。
+      - >-
+        整个合唱团是4 + 7 = 11份：11 × 3 = 33个孩子。检验：12个男孩和21个女孩，女孩多9个。
+    answer: 33个孩子。
+    note:
+      title: 9是哪几份？
+      text: >-
+        9不是女孩的7份，而是女孩比男孩多出的3份。用9除以7或者除以11，都得不到整数个孩子。
+    art:
+      boys: 男孩
+      girls: 女孩
+      nine: 9个女孩
+      choir: 11个格子 × 3 = 33
+      this-nine: 这是9
+  - title: 两个盒子
+    question: >-
+      两个盒子里弹珠数量的比是3比1。从第一个盒子里拿10颗弹珠放进第二个盒子后，两个盒子里的弹珠就一样多了。两个盒子里一共有多少颗弹珠？
+    steps:
+      - >-
+        把弹珠从一个盒子移到另一个盒子，不会改变总数：移动前后总数都一样。
+      - >-
+        移动前，总数是4份，第一个盒子占其中3份。移动后，它装的是总数的一半，也就是同样这4份中的2份。所以它给出了1份。
+      - >-
+        这一份就是移过去的10颗弹珠：总数是4 × 10 = 40。检验：移动前是30和10，移动后是20和20。
+    answer: 40颗弹珠。
+    note:
+      title: 什么没有变
+      text: >-
+        关于比的题常常藏着一个不变的量：这里是总数。用同一个总数的份来衡量前后两个比，才能把它们放在一起比较。
+    art:
+      box-a: A盒
+      box-b: B盒
+      four: 一共4份，移动前后都一样
+      before: 移动前
+      after: 移动后
+      part: 1份
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ratio_total_confusion:
+    shows: >-
+      把比中的数当成了总数里的份额：把4比5读成了5份中的4份，或者把45个蘑菇除以5，而不是除以4 + 5 = 9份。
+    say: “一共分成了几等份？”
+    art:
+      question: 45个蘑菇，4比5
+      one: 每份
+  wrong_operation:
+    shows: >-
+      该用乘法时，孩子却用了加法：人数多了6个，食谱里的鸡蛋也就多放6个，可鸡蛋应该和人数按同样的比例增加。
+    say: “如果人数变成两倍，鸡蛋会怎么样？”
+    art:
+      question: 3个鸡蛋够2个人吃，8个人呢？
+  answered_other_question:
+    shows: >-
+      求出了一个份额，答的却不是题目要的那一个：答了小军的蘑菇，而不是小兰的；或者答了一份，也就是3个孩子，而不是整个合唱团。
+    say: “题目问的是谁分到的？”
+    art:
+      question: 小兰采了多少个蘑菇？
+      max: 军
+      lena: 兰
+
+home:
+  - title: 按比例下厨
+    text: >-
+      和孩子一起按比例调一杯饮料，或者和一团面：一杯果汁配三杯水。然后做两倍的量，看看哪些量翻了一倍。
+  - title: 纸上的格子
+    text: >-
+      在家分东西时，不管是分糖还是分家务，都可以每一份画一个格子，再把格子填上。格子会替您思考。
+  - title: 地图和模型
+    text: >-
+      看看地图或汽车模型的比例尺：1比50表示每厘米代表实际的50厘米。和孩子一起量一样东西，再按比例换算成实际大小。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“比与按比例分配”的题

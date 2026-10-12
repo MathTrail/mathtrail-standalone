@@ -350,6 +350,37 @@ describe("the page of the techniques", () => {
 		expect(inside.filter((id) => !ids.includes(id))).toEqual([]);
 	});
 
+	test.each([
+		[
+			"one that ends in a colon",
+			'"When it helps:"',
+			"When it helps: when draw helps.",
+		],
+		[
+			"none after a full-width colon",
+			"使える場面：",
+			"使える場面：when draw helps.",
+		],
+	])(
+		"sets when a technique helps apart from its label by %s",
+		(_, label, text) => {
+			const written = sourcesWith(
+				words().replace('  when: "When it helps:"', `  when: ${label}`),
+			);
+			const drawn = new browser.DOMParser().parseFromString(
+				renderSite({
+					...site,
+					sources: written,
+					dictionaries: dictionariesOf(written),
+				}).find(({ path }) => path === "en/techniques/index.html")?.data ?? "",
+				"text/html",
+			);
+			expect(drawn.querySelector("#draw .s-technique-when")?.textContent).toBe(
+				text,
+			);
+		},
+	);
+
 	test("is refused when the words give the hint another number of rows than the data", () => {
 		expect(() =>
 			renderSite({ ...site, sources: sourcesWith(words(1)) }),

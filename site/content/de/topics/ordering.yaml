@@ -1,0 +1,269 @@
+# The page of the topic of ordering, for a parent, in German. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
+
+title: Reihenfolgen
+description: Worum es bei „Reihenfolgen“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+# The words every drawing of the page writes its four children in: the
+# initial of each, and the name.
+art:
+  ann: A
+  ann-name: Anna
+  ben: B
+  ben-name: Ben
+  kate: K
+  kate-name: Klara
+  dan-name: David
+  taller: größer
+
+hero:
+  lead: >-
+    Wer ist größer, wer ist älter, wer kam zuerst? In diesen Aufgaben müssen
+    einige Vergleiche zu einer einzigen Reihenfolge zusammengesetzt werden:
+    nach Größe, nach Alter, nach dem Platz in einer Schlange oder bei einem
+    Wettlauf. Für viele Kinder ist das die erste Kette von Schlussfolgerungen,
+    in der jeder Hinweis ein Glied ist und keiner fehlen darf.
+  method: Eine Linie zeichnen und alle darauf einordnen
+  teaches: Hinweise zu einem Bild verbinden und einen Vergleich in beide Richtungen lesen
+  # The words of its drawing: the clues and the rule over it, and the line's
+  # two ends in it.
+  art:
+    line: Hinweise
+    clue-1: „Anna ist größer als Ben“
+    clue-2: „Klara ist kleiner als Ben“
+    clue-3: „David ist kleiner als Klara“
+    rule: auf eine Linie stellen
+    top: am größten
+    bottom: am kleinsten
+
+basis:
+  title: Die Regeln der Linie
+  cards:
+    - title: Jeder Hinweis ist ein Pfeil
+      text: >-
+        „Anna ist größer als Ben“ stellt Anna auf der Linie vor Ben. Ein Hinweis
+        sagt immer, wer zuerst kommt, ganz gleich, ob er Größe, Alter oder den
+        Platz bei einem Wettlauf vergleicht.
+      art:
+        clue: „Anna ist größer als Ben“
+    - title: In beide Richtungen lesen
+      text: >-
+        „Ben ist kleiner als Anna“ sagt dasselbe wie „Anna ist größer als Ben“.
+        Drehen Sie jeden Hinweis so um, dass alle in dieselbe Richtung zeigen,
+        bevor sie auf die Linie kommen.
+      art:
+        clue: „Anna ist größer als Ben“
+        turned: „Ben ist kleiner als Anna“
+    - title: Die Kette geht weiter
+      text: >-
+        Wenn Anna größer ist als Ben und Ben größer als Klara, dann ist Anna
+        auch größer als Klara, obwohl kein Hinweis das sagt.
+      art:
+        implied: Anna ist größer als Klara
+
+idea:
+  title: Alle Hinweise in dieselbe Richtung drehen
+  lead: Bauen Sie die Linie Hinweis für Hinweis auf und formulieren Sie jeden vorher mit „größer als“ um. Mit jedem Schritt kommt eine neue Person auf die Linie.
+  table:
+    head:
+      - Der Hinweis
+      - Mit „größer als“ gesagt
+      - Die Linie bisher
+    rows:
+      - - „Anna ist größer als Ben“
+        - Anna ist **größer** als Ben
+        - Anna > Ben
+      - - „Klara ist kleiner als Ben“
+        - Ben ist **größer** als Klara
+        - Anna > Ben > Klara
+      - - „David ist kleiner als Klara“
+        - Klara ist **größer** als David
+        - Anna > Ben > Klara > David
+  # The words of the drawings of the table: the note on a clue turned round.
+  art:
+    turned: umgedreht
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Die meisten Fehler entstehen hier, weil ein Hinweis vom falschen Ende her
+      gelesen wird: „kleiner“ wird für „größer“ gehalten, „nach“ für „vor“. Ein
+      Hinweis, der umgedreht wird, bevor er auf die Linie kommt, kann nicht mehr
+      falsch gelesen werden.
+
+method:
+  title: "Lösungsweg: die Linie zeichnen"
+  lead: >-
+    Zeichnen Sie eine Linie vom Größten zum Kleinsten oder vom Ersten zum
+    Letzten und tragen Sie die Hinweise einzeln darauf ein, die sicheren
+    zuerst. Wer sich noch nicht einordnen lässt, wartet auf den nächsten
+    Hinweis. Die Beispiele unten reichen von ganz einfach bis Olympiade-Niveau.
+  steps:
+    - Alle Hinweise in dieselbe Richtung drehen
+    - Die Hinweise auf die Linie bringen, die sicheren zuerst
+    - Die Antwort ablesen und jeden Hinweis daran prüfen
+  # The key under the steps: what the drawings' rings and outlines mean.
+  legend:
+    added: "ein blauer Ring: was dieser Schritt hinzufügt"
+    free: ein noch freier Platz
+    block: "ein Block: zwei, immer nebeneinander"
+
+examples:
+  - title: Drei Boote
+    question: >-
+      Drei Boote fuhren um die Wette: ein rotes, ein blaues und ein grünes. Das
+      rote Boot kam nach dem blauen ins Ziel. Das grüne Boot kam vor dem blauen
+      ins Ziel. Welches Boot hat gewonnen?
+    steps:
+      - >-
+        Den ersten Hinweis umdrehen: Das rote Boot kam nach dem blauen ins Ziel,
+        also kam das blaue vor dem roten ins Ziel.
+      - >-
+        Auf der Linie steht das erste links: das blaue, dann das rote. Das grüne
+        Boot kam vor dem blauen ins Ziel, also kommt es vor beide: grün, blau,
+        rot.
+      - >-
+        Das erste auf der Linie ist das grüne Boot. Probe: das rote nach dem
+        blauen, ja; das grüne vor dem blauen, ja.
+    answer: Das grüne Boot hat gewonnen.
+    badge: "1"
+    art:
+      red: rot
+      blue: blau
+      green: grün
+      before: vor
+      waits: wartet
+  - title: Die Schlange in der Mensa
+    question: >-
+      Fünf Kinder stehen in der Mensa in einer Schlange: Lena, Max, Nina, Ole
+      und Paul. Nina steht an dritter Stelle. Ole steht direkt hinter Nina. Max
+      steht irgendwo vor Lena, und Lena ist nicht die Letzte. Wer steht an
+      letzter Stelle?
+    steps:
+      - >-
+        Eintragen, was sicher ist: Nina steht an dritter Stelle und Ole, direkt
+        hinter ihr, an vierter. Die Plätze 1, 2 und 5 bleiben für Max, Lena und
+        Paul.
+      - >-
+        Lena ist nicht die Letzte, also steht sie an erster oder zweiter Stelle.
+        Max steht irgendwo vor ihr, also kann sie nicht an erster Stelle stehen:
+        Lena steht an zweiter Stelle und Max an erster.
+      - >-
+        Der einzige freie Platz, der fünfte, gehört Paul. Jeden Hinweis prüfen:
+        Alle stimmen.
+    answer: Paul steht an letzter Stelle.
+    badge: P
+    note:
+      title: Jeder Hinweis zählt
+      text: >-
+        Ohne „Lena ist nicht die Letzte“ könnte Lena auch an letzter Stelle
+        stehen: Gerade der kurze Hinweis mit „nicht“ legt die Schlange fest.
+    art:
+      lena: L
+      lena-name: Lena
+      max: M
+      max-name: Max
+      nina: N
+      nina-name: Nina
+      oleg: O
+      oleg-name: Ole
+      pavel: P
+      pavel-name: Paul
+      wait: warten
+      waits: wartet
+      other: Ohne diesen Hinweis würde auch diese Schlange passen
+  - title: Wettlauf zu sechst
+    question: >-
+      Sechs Kinder liefen um die Wette: Alma, Bruno, Carl, Dora, Emil und
+      Frida. Keine zwei kamen gleichzeitig ins Ziel. Bruno kam direkt nach Alma
+      ins Ziel. Carl kam nach Dora, aber vor Alma. Frida kam direkt vor Emil,
+      und Emil war nicht der Letzte. Dora kam nicht als Erste ins Ziel. Wer hat
+      gewonnen?
+    steps:
+      - >-
+        Die Blöcke finden: „Bruno direkt nach Alma“ ergibt Alma-Bruno, und
+        „Frida direkt vor Emil“ ergibt Frida-Emil. Dora, dann Carl, dann der
+        Block Alma-Bruno kommen in dieser Reihenfolge.
+      - >-
+        Dora kam nicht als Erste ins Ziel, also war jemand vor ihr da. Carl,
+        Alma und Bruno kamen alle nach Dora: Nur Frida und Emil können vor ihr
+        sein, und die beiden kommen zusammen.
+      - >-
+        Also steht Frida-Emil ganz vorn: Frida, Emil, Dora, Carl, Alma, Bruno.
+        Emil ist nicht der Letzte, wie der Hinweis sagt. Jeder Hinweis stimmt.
+    answer: Frida hat gewonnen.
+    badge: F
+    note:
+      title: Blöcke bewegen sich gemeinsam
+      text: >-
+        Wenn ein Hinweis „direkt nach“ sagt, stehen die beiden nebeneinander,
+        wohin sie auch kommen. Behandeln Sie sie als einen Block, dann werden aus
+        sechs Kindern vier Teile zum Einordnen.
+    art:
+      ada: A
+      ada-name: Alma
+      bob: B
+      bob-name: Bruno
+      cid: C
+      cid-name: Carl
+      dot: D
+      dot-name: Dora
+      eli: E
+      eli-name: Emil
+      fay: F
+      fay-name: Frida
+      blocks: Blöcke
+      order: Folge
+      only: auf das „?“ passen nur
+      six: 6 Kinder
+      four: 4 Blöcke
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Das Kind nutzt einen Hinweis und übergeht einen anderen, oft einen kurzen
+      mit „nicht“, und auf der Linie bleibt Platz für eine falsche Antwort.
+    say: „Welchen Hinweis hast du noch nicht benutzt?“
+    art:
+      question: Der Hinweis „Lena ist nicht die Letzte“ wird übersehen
+  reversed_relation:
+    shows: >-
+      „Klara ist kleiner als Ben“ kommt so auf die Linie, als wäre Klara größer:
+      Der Hinweis wird vom falschen Ende her gelesen, und die Antwort kommt
+      verkehrt herum heraus.
+    say: „Wer ist dann größer? Sag es andersherum.“
+    art:
+      clue: „Klara ist kleiner als Ben“
+  stopped_early:
+    shows: >-
+      Das Kind findet heraus, dass eine Person kleiner ist als eine andere, und
+      antwortet damit, obwohl die Kette weitergeht: Ben ist kleiner als Anna,
+      aber Klara ist noch kleiner.
+    say: „Steht auf der Linie noch jemand dahinter?“
+    art:
+      clue-1: „Ben ist kleiner als Anna“
+      clue-2: „Klara ist kleiner als Ben“
+      who: Wer ist am kleinsten?
+
+home:
+  - title: Die Familie in einer Reihe
+    text: >-
+      Stellen Sie zu Hause alle der Größe nach auf, dann dem Alter nach, und
+      sagen Sie jeden Hinweis laut: „Papa ist größer als Mama, also steht Papa
+      vorn.“
+  - title: Erst die Linie, dann die Antwort
+    text: >-
+      Bitten Sie vor der Antwort um die Linie auf Papier. Eine Zeichnung zeigt
+      sofort, ob ein Hinweis fehlt oder falsch herum gedreht ist.
+  - title: Sag es andersherum
+    text: >-
+      Spielen Sie ein schnelles Spiel: Sie sagen „Die Katze ist kleiner als der
+      Hund“, und Ihr Kind sagt es andersherum: „Der Hund ist größer als die
+      Katze.“
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Reihenfolgen“

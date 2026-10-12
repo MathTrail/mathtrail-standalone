@@ -1,0 +1,225 @@
+title: Studie
+description: Die Zahlen hinter MathTrail. Wie die Prüfungen eine Aufgabe von einem Kind fernhalten, bis nichts mehr an ihr falsch ist, wie das Lernermodell im Vergleich mit seinen Zielen abschneidet und woher die Referenzaufgaben stammen.
+
+hero:
+  badge: Für Fachleute
+  title: Das Modell schreibt,
+  title_end: der Dienst prüft.
+  lead: Wie MathTrail eine Aufgabe erst dann zu einem Kind lässt, wenn sie {count} {noun} bestanden hat, und was die Prüfungen nicht sehen.
+  paper: Die ganze Studie · PDF, {count} {noun}
+  code: Code und Daten
+  flow:
+    task: Aufgabe
+    example: Ein Zaun ist {length} m lang und hat alle {gap} m einen Pfosten, beide Enden mitgezählt. Wie viele Pfosten sind es?
+    solver: Löser
+    sum: "{length} ÷ {gap} + {one} = {posts} → {letter}"
+    hands_in: die Aufgabe und ihr Löser
+    back: abgelehnt, zurückgeschickt
+    twice: der Löser läuft zweimal
+    asks: genau eine richtige Antwort · für die Klassenstufe lesbarer Text · keine Wiederholung früherer Aufgaben
+    passed: alle Prüfungen bestanden
+    sealed: die Antwort versiegelt, bis das Kind antwortet
+  grades: Klassen {first}–{last}
+  licence: offener Code, MIT
+
+theses:
+  title: Vier Dinge, die die Studie zeigt
+  writes:
+    title: Das Modell des Chats schreibt
+    text: Jede Aufgabe schreibt das Modell des Chats, den die Familie ohnehin nutzt, in der Sprache des Kindes und rund um eine Geschichte, die dem Kind nahe ist. MathTrail ruft kein eigenes Modell auf. Der Dienst ist klein und deterministisch und behält zwischen zwei Anfragen nichts von einem Kind.
+    model: Das Modell des Chats
+    model_does: schreibt
+    service: MathTrail
+    service_does: prüft
+    child: Das Kind
+    child_does: löst
+  twice:
+    title: Das Lösungsprogramm läuft zweimal
+    text: Zusammen mit der Aufgabe schreibt das Modell ein kurzes Programm, das die Antwort ausrechnet und den Buchstaben der richtigen Antwort nennt. Der Dienst führt es aus, verschiebt die Buchstaben um {count} {noun}, sodass aus {from} ein {to} wird, und führt es noch einmal aus. Ein Programm, das die Antwort ausrechnet, findet sie an ihrem neuen Platz; eines, das den Buchstaben von Hand eingetragen hat, findet sie nicht. Der zweite Lauf folgt, sobald der erste genau eine Antwort wählt.
+    first: Erster Lauf
+    second: Zweiter Lauf, Buchstaben verschoben
+    picks: → {letter}
+    caption: Ein Programm, das „{letter}“ von Hand eingetragen hat, zeigt im zweiten Lauf auf {value}, und die Aufgabe wird abgelehnt.
+  sealed:
+    title: Die Antwort ist versiegelt
+    text: Antwort, Lösung, Erklärungen und Lösungsprogramm werden verschlüsselt und im Profil des Kindes im Google Drive der Familie gespeichert. Bis das Kind antwortet, stecken sie in nichts, was der Dienst der Karte oder dem Modell des Chats übergibt, und in keinem seiner Protokolle.
+    sees: Was das Kind sieht
+    seen: der Aufgabentext · das Bild · die Antwortmöglichkeiten · der Tipp
+    hidden: Versiegelt bis zur Antwort
+    kept: die Antwort · die Lösung · die Erklärungen
+    cipher: XChaCha20-Poly1305 · an Kind und Aufgabe gebunden
+    outside: Was das Siegel nicht erreicht, ist der Chat selbst. Das Modell, das die Aufgabe geschrieben hat, kennt ihre Antwort, und das chateigene Protokoll der Tool-Aufrufe zeigt sie jeder erwachsenen Person, die es öffnet.
+  reach:
+    title: Etwas schwerer, aber in Reichweite
+    text: Das Lernermodell sagt voraus, wie wahrscheinlich ein Kind eine Aufgabe löst, und der Dienst fordert die Aufgabe an, deren Lösungswahrscheinlichkeit am nächsten bei {middle} liegt, der Mitte des Korridors von {low} bis {high}. Ein neues Kind durchläuft zuerst eine Proberunde mit {trial}, die zeigt, wo es einsteigt.
+    guess: c = {guess}, eine von {options} richtig geraten
+    corridor: der angestrebte Korridor
+
+model:
+  title: Das Lernermodell, gemessen an seinen Zielen
+  lead: Wie genau der Dienst einem Kind folgt, wie gut er die Aufgaben in Reichweite hält, wie sicher er ein Thema als gemeistert erklärt und was das Kind spät in einem Durchlauf zu sehen bekommt. Die Zahlen stammen vom Prüfstand mit simulierten Kindern und sind aus dem Code berechnet, aus dem diese Website gebaut ist.
+  run:
+    commit: Commit {commit} · {date}
+    size: "{children} × {answers}"
+    seed: Seed {seed}
+  paper: Die Studie beschreibt die Regel so, wie sie beim Commit {commit} stand, mit dem ihre Zahlen berechnet wurden. Diese Seite folgt dem Dienst, wie er jetzt läuft, deshalb unterscheiden sich die beiden.
+  key:
+    service: der Dienst jetzt
+    interval: "{interval}-Intervall"
+    goal: das Ziel
+    ceiling: die Obergrenze, eine Schätzung, die weiß, wo das Kind steht
+  groups:
+    step: Wie die Schätzung einem Kind folgt
+    mastery: Wie ein Thema als gemeistert erklärt wird
+    screen: Was das Kind spät in einem Durchlauf sieht
+    screen_note: "Antworten {first}–{last} · Ziel: höchstens so viel wie bei den Antworten {earlyfirst}–{earlylast}"
+    context: Zum Vergleich, ohne Ziel
+  rows:
+    lag:
+      name: Der Rückstand hinter einem Kind, das dazulernt
+      unit: "Logits, weniger ist besser · bestmöglich: {best}"
+    corridor_learning:
+      name: Aufgaben im Korridor {low}–{high}
+      unit: ein Kind, das dazulernt · Anteil der Aufgaben, mehr ist besser
+    jump_unsettled:
+      name: Nach einem Sprung nicht aufgeholt
+      unit: Anteil der Kinder, weniger ist besser
+    false_mastery_static:
+      name: Fälschlich als gemeistert erklärt
+      unit: Anteil an den als gemeistert erklärten Themen, weniger ist besser
+    false_mastery_wide:
+      name: Fälschlich als gemeistert erklärt, Themen weit auseinander
+      unit: Anteil an den als gemeistert erklärten Themen, weniger ist besser
+    late_mastery_static:
+      name: Antworten, bis ein Thema als gemeistert gilt
+      unit: Antworten, weniger ist besser
+    late_mastery_wide:
+      name: Antworten, bis ein Thema als gemeistert gilt, Themen weit auseinander
+      unit: Antworten, weniger ist besser
+    card_move_static:
+      name: Wie weit sich die Wertung bewegt
+      unit: Punkte bei den meisten Antworten, weniger ist besser
+    rank_changes_static:
+      name: Wie oft sich der Rang ändert
+      unit: Wechsel pro hundert Antworten, weniger ist besser
+    card_move_learning:
+      name: Die Wertung bei einem Kind, das dazulernt
+      unit: Punkte bei den meisten Antworten, weniger ist besser
+    rank_changes_learning:
+      name: Der Rang bei einem Kind, das dazulernt
+      unit: Wechsel pro hundert Antworten, weniger ist besser
+    error_static:
+      name: Der Fehler der Schätzung nach {after}
+      unit: ein Kind, das stehen bleibt · Logits, weniger ist besser
+    corridor_static:
+      name: Aufgaben im Korridor {low}–{high}
+      unit: ein Kind, das stehen bleibt · Anteil der Aufgaben, mehr ist besser
+  interval: "{low}–{high}"
+  goal_at_most: Ziel ≤ {bound}
+  goal_at_least: Ziel ≥ {bound}
+  ceiling: Obergrenze {value}
+  marks:
+    reached:
+      name: Erreicht
+      means: Das ganze Intervall liegt auf der besseren Seite des Ziels.
+    on_the_edge:
+      name: Grenzwertig
+      means: Das Intervall enthält das Ziel.
+    not_reached:
+      name: Nicht erreicht
+      means: Das ganze Intervall liegt auf der schlechteren Seite des Ziels.
+    baseline:
+      name: Vergleichswert
+      means: Das Ziel ist aus der eigenen Zahl des Dienstes abgeleitet; es ist also die Messlatte für die nächste Regel und kein Test der jetzigen.
+
+live:
+  title: Echtdaten
+  lead: Ob sich die Versprechen des Modells bei echten Kindern erfüllen, Monat für Monat. Die Zahlen stammen aus dem Protokoll der Antworten, ohne Namen und ohne Aufgabentexte.
+  rule: Ein Bereich wird nur gezeigt, wenn er mindestens {children} und mindestens {answers} umfasst, und jede Zahl darin wird auf ein Vielfaches von {rounded} gerundet. Ein kleinerer Bereich wird weggelassen, statt mit einem anderen zusammengelegt zu werden.
+  measures:
+    chances: Versprochen → eingetreten
+    kept_up: Eingetreten − versprochen, nach Zahl der Antworten
+    share: Anteil richtiger Antworten bei den Aufgaben der Regel
+  frame:
+    coming:
+      badge: Demnächst
+      when: Die Zahlen kommen, sobald ein ganzer Monat gezählt ist, Anfang des folgenden Monats.
+    too_few:
+      badge: Noch zu wenige
+      when: Im {month} haben zu wenige Kinder Aufgaben der Regel beantwortet, als dass sich eine Zahl zeigen ließe.
+  ready:
+    month: "{month}: {children} und {answers} auf die Aufgaben, die die Regel gewählt hat."
+    weighed: Berücksichtigt werden nur die Antworten auf die Aufgaben, die die Regel gewählt hat, nach der Proberunde mit {trial} und ohne Tipp, aus allen Chats zusammen.
+    corridor: Den Anteil der Aufgaben im Korridor kann man an echten Antworten nicht messen, da jede Aufgabe nur einmal beantwortet wird.
+    columns:
+      promised: Versprochen
+      came_true: Eingetreten
+      answers: Antworten
+      children: Kinder
+    chances:
+      none: In diesem Monat umfasst kein Bereich der versprochenen Wahrscheinlichkeit genug Kinder, um ihn zu zeigen.
+      shown:
+        caption: Jeder Bereich der versprochenen Wahrscheinlichkeit ist ein Punkt, umso größer, je mehr Antworten er umfasst. Auf der gestrichelten Diagonale hat sich das Versprechen erfüllt, und das Band ist der Korridor, in dem die Regel Aufgaben wählt.
+        up: ↑ Anteil richtig
+        across: versprochene Wahrscheinlichkeit →
+        ideal: Versprechen gehalten
+        band: Korridor
+        range: "{from}–{to}"
+        heading: Versprochene Wahrscheinlichkeit
+    kept_up:
+      none: In diesem Monat umfasst kein Bereich der Antworten eines Kindes genug Kinder, um ihn zu zeigen.
+      shown:
+        caption: Eine richtige Antwort zählt als eins, eine falsche als null; davon wird die versprochene Wahrscheinlichkeit abgezogen, und die Differenz wird über die Antworten gemittelt. Rechts der gestrichelten Linie waren die Kinder besser als versprochen, und ein Fehlerbalken reicht einen Standardfehler in jede Richtung, nach Kindern gerechnet.
+        range: "{first}–{last}"
+        open: ab {first}
+        heading: Antwortnummer
+        margin: Eingetreten minus versprochen
+        error: Standardfehler
+    share:
+      expected: erwartet ≈ {middle}, die Mitte des Korridors
+      caption: Die Regel fordert die Aufgabe an, deren Lösungswahrscheinlichkeit am nächsten bei {middle} liegt, der Mitte des Korridors von {low} bis {high}. Der Punkt ist der Anteil richtiger Antworten, die gestrichelte Linie die Mitte des Korridors.
+
+sources:
+  title: Woher die Referenzaufgaben stammen
+  lead: Ideen sind nicht urheberrechtlich geschützt, Texte schon. Deshalb werden aus einem Buch nur die Idee einer Aufgabe und ihre Antwort übernommen; Wortlaut, Geschichte, Antwortmöglichkeiten und Fallen werden neu geschrieben.
+  authors:
+    perelman:
+      name: Jakow Perelman
+      books:
+        firsthundred: For Young Mathematicians. The First Hundred Puzzles
+        secondhundred: The Second Hundred Puzzles
+        living: „Heitere Mathematik“
+        arithmetic: „Unterhaltsame Arithmetik“
+        quick: Quick Reckoning
+    ignatyev:
+      name: Jemeljan Ignatjew
+      books:
+        wit: In the Realm of Ingenuity, or Arithmetic for Everyone
+    dudeney:
+      name: Henry E. Dudeney
+      books:
+        amusements: Amusements in Mathematics
+        canterbury: „Die Canterbury-Rätsel“
+    loyd:
+      name: Sam Loyd
+      books:
+        cyclopedia: Cyclopedia of Puzzles
+    carroll:
+      name: Lewis Carroll
+      books:
+        tangled: „Geschichten mit Knoten“
+        pillow: Pillow Problems
+  died: † {year}
+  public: Gemeinfrei
+  public_note: Das Urheberrecht an diesen Büchern ist abgelaufen. Die Bücher gehören der Allgemeinheit, und alle dürfen sie kostenlos nutzen.
+  total: Insgesamt {count} {noun}
+  each: jede mit einem Lösungsprogramm und einer Falle hinter jeder falschen Antwort
+  level: "{count} · Klassen {first}–{last}"
+  note: Der Stil folgt den sowjetischen Aufgabensammlungen. Eine Referenzaufgabe hat kein Feld für ihre Quelle, deshalb lässt sich nicht sagen, von wem die Idee einer Aufgabe stammt.
+
+paper:
+  title: Die ganze Studie
+  ready: Methoden, Tabellen, Protokolle, Grenzen und Ethik der Studie, auf Englisch.
+  waiting: Methoden, Tabellen, Protokolle, Grenzen und Ethik der Studie. Das PDF kommt mit dem nächsten Release.
+  open: PDF öffnen
+  code: Code auf GitHub

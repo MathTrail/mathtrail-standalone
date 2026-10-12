@@ -1,0 +1,336 @@
+# The page "Why", for a parent, in German: why olympiad maths is worth a
+# child's time, how long people have learned it, what research has found about
+# it, how it differs from a school lesson, what a parent can do, how MathTrail
+# goes about it, and why it is no ordinary app. The grades, the topics' names
+# and the card's own words are not here: they are the catalog's numbers and the
+# widget's words. The card's options, its drawing, the history's pictures and
+# the works the page cites are the site's data; a finding here says what its
+# work found, no more.
+
+title: Warum Olympiade-Mathematik
+description: Warum Olympiade-Aufgaben die Zeit eines Kindes wert sind, was die Forschung über sie herausgefunden hat und wie Eltern mit MathTrail helfen können.
+
+# The label of the note that says plainly what the page does not promise.
+honest: Ehrlich gesagt
+
+# The fence: the problem the first screen sets beside a school sum, and the
+# card further down shows answered wrong. A variant of the site's own, never a
+# reference task word for word.
+task:
+  question: Ein Zaun ist 12 Meter lang. Alle 3 Meter steht ein Pfosten, auch an beiden Enden. Wie viele Pfosten gibt es?
+  # The trap behind the wrong option picked on the card, as the card says it.
+  trap: Die Zwischenräume statt der Pfosten gezählt.
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4 Zwischenräume. Ein gerader Zaun mit Pfosten an beiden Enden hat einen Pfosten mehr als Zwischenräume. 4 + 1 = 5 Pfosten.
+
+hero:
+  title: Warum Olympiade-Mathematik für Ihr Kind
+  lead: Die Schule lehrt, eine Aufgabe nach einem im Unterricht vorgerechneten Beispiel zu lösen. Olympiade-Aufgaben lehren, einen Weg zu finden, wenn es kein Beispiel zum Nachmachen gibt. Bis Klasse {last} können Eltern ihr Kind darauf vorbereiten, und dafür ist MathTrail gemacht.
+  free: Kostenlos
+  open: Open Source
+  school:
+    label: Eine Aufgabe aus der Schule
+    text: Man muss teilen können.
+    sum: 12 ÷ 3 = 4
+  olympiad:
+    label: Eine Olympiade-Aufgabe
+    answer: "Antwort: {answer}"
+    trap: "Falle: 4 sind die Zwischenräume, nicht die Pfosten"
+    text: Man muss verstehen, was vor sich geht.
+  caption: Dieselben Zahlen. Eine andere Art zu denken.
+
+# How long people have learned to find a way with no example to follow: a
+# saying of Euclid's, then four eras, each with three pictures the page shows
+# in turn. The pictures are the site's data, era by era; each has the place a
+# chip over it names, its words for a screen reader and its caption with its
+# author and licence, and the chip that picks it, where that is not its place.
+history:
+  title: Denken ohne Vorlage wird seit über zweitausend Jahren gelehrt
+  lead: Aufgaben, die sich nicht nach Schema lösen lassen, sind nichts Neues. In vielen Ländern und über viele Jahrhunderte lernten Menschen, eine Lösung zu finden, die ihnen niemand gezeigt hatte, und zu erklären, warum sie stimmt. Jede Generation gab diese Fähigkeit an die nächste weiter.
+  quote: „Es gibt keinen Königsweg zur Geometrie.“
+  quoted: Euklid zu König Ptolemaios, der fragte, ob man Geometrie nicht leichter lernen könne als mit den „Elementen“. So erzählt es Proklos im 5. Jahrhundert.
+  # What a screen reader calls the choice of a picture.
+  choice: Bilder aus der Geschichte
+  eras:
+    - label: Die Antike · bis ins 6. Jahrhundert
+      title: Beweise und Aufgabensammlungen
+      text: Die Griechen begannen zu beweisen, warum eine Regel gilt. In China trugen die „Neun Kapitel der Rechenkunst“ 246 Aufgaben mit ihren Lösungen zusammen. In Indien begann man, Zahlen mit einer Null zu schreiben, so wie wir sie heute noch schreiben.
+    - label: Das Mittelalter und danach · 9.–19. Jahrhundert
+      title: Die Aufgabe als Herausforderung
+      text: In Bagdad schrieb al-Chwarizmi das Buch, dessen Titel uns das Wort „Algebra“ gab. In Italien lieferten sich Mathematiker Duelle mit Aufgaben, und in Japan hingen Aufgaben auf Holztafeln in Tempeln.
+    - label: Spätes 19. und 20. Jahrhundert
+      title: Aufgaben für jedes Kind
+      text: "Alle Kinder gingen zur Schule, und für die Neugierigsten gab es Mathezirkel und Olympiaden: in Ungarn ab 1894, in Leningrad ab 1934."
+    - label: Heute
+      title: Ein Mentor für jedes Kind
+      text: "Einen persönlichen Mentor hatten früher nur wenige: Aristoteles unterrichtete Alexander den Großen. Heute kann jedes Kind einen haben. Die Begleitfigur im MathTrail-Trainer verrät nie die Antwort: Wie die großen Lehrer der Vergangenheit stellt sie die Fragen, die ein Kind zur Lösung führen."
+      link: Zum Trainer →
+  pictures:
+    athens:
+      place: Griechenland
+      alt: "Ausschnitt aus einem Fresko: Ein grauhaariger Gelehrter beugt sich über eine Tafel und zeichnet mit einem Zirkel, um ihn herum vier Schüler."
+      caption: Euklid zeichnet mit dem Zirkel auf einer Tafel, während seine Schüler zusehen; manche halten ihn für Archimedes. Ausschnitt aus Raffaels Fresko „Die Schule von Athen“, 1509–1511.
+    confucius:
+      place: China
+      alt: "Ein Gemälde: Ein Lehrer sitzt im Freien inmitten seiner Schüler, und sie hören zu und diskutieren."
+      caption: Konfuzius mit seinen Schülern. Das Rechnen gehörte zu den „sechs Künsten“, die ein gebildeter Mensch beherrschen musste. Ein Gemälde eines unbekannten Künstlers aus dem 19. Jahrhundert.
+    aryabhata:
+      place: Indien
+      alt: "Eine weiße Statue: Ein Gelehrter in einem Umhang streckt die Hand aus."
+      caption: "Aryabhata, ein indischer Mathematiker und Astronom des 5. Jahrhunderts. Niemand weiß, wie er aussah: Dies ist eine moderne Statue in Pune."
+    istanbul:
+      place: Die islamische Welt
+      alt: "Eine Miniatur: Gelehrte mit Turbanen bei der Arbeit mit einem Globus, Instrumenten und Büchern."
+      caption: Astronomen und Mathematiker bei der Arbeit in der Sternwarte von Taqi ad-Din in Istanbul. Eine osmanische Miniatur vom Ende des 16. Jahrhunderts.
+    pacioli:
+      place: Italien
+      alt: "Ein Porträt: Ein Mönch und Mathematiker zeigt auf eine Tafel mit der Aufschrift Euclides; neben ihm steht ein Schüler, und über dem Tisch hängt ein Polyeder aus Glas."
+      caption: Der Mathematiker Luca Pacioli mit einem Schüler. Am Rand der Tafel mit der Zeichnung steht „Euclides“. Ein Porträt von 1495, das Jacopo de' Barbari zugeschrieben wird.
+    sangaku:
+      place: Japan
+      alt: Eine Holztafel mit farbigen Zeichnungen von Kreisen und Spalten von Schriftzeichen.
+      caption: "Ein Sangaku, eine Tafel mit Geometrieaufgaben, im Konnō-Hachimangū-Schrein in Tokio, 1859. Foto: Momotarou2012, CC BY-SA 3.0."
+    rachinsky:
+      place: Russland
+      alt: "Ein Gemälde: Jungen in Bauernhemden stehen an einer Tafel mit einer Aufgabe und denken nach, und einer vorn stützt das Kinn auf die Hand."
+      caption: "Schüler einer Dorfschule rechnen eine Aufgabe von der Tafel im Kopf aus: (10² + 11² + 12² + 13² + 14²) ÷ 365. Nikolai Bogdanow-Belski, „Kopfrechnen. In der Volksschule von S. A. Ratschinski“, 1895."
+    st-louis:
+      place: USA
+      alt: "Ein Foto einer Klasse: Kinder schreiben Zahlenkolonnen an die Tafel, die Lehrerin hilft einem Mädchen, und die anderen sitzen mit Büchern an ihren Pulten."
+      caption: Kinder einer zweiten Klasse lösen Rechenaufgaben an der Tafel. Bates School, St. Louis, Anfang des 20. Jahrhunderts.
+    moscow:
+      place: UdSSR
+      alt: "Ein Foto: Ein Schüler an einer Tafel mit Zeichnungen zur Raumgeometrie dreht sich um und lächelt."
+      caption: "Eine Schulprüfung: ein Schüler an der Tafel mit einer Aufgabe zur Raumgeometrie. Moskau, in den 1950er-Jahren. Foto: Yu. D. Korolev, Hauptarchiv Moskau, CC BY 4.0."
+    coach-canvas:
+      place: MathTrail
+      chip: Lösung auf der Zeichenfläche
+      alt: "Der Bildschirm eines Tablets: eine Aufgabe über Pfosten entlang einer Straße, eine gepunktete Skizze auf der Zeichenfläche und daneben der Tipp der Begleitfigur, eines Fuchses, und die Schritte: Verstehen, Planen, Lösen, Prüfen."
+      caption: "Der Prototyp des MathTrail-Trainers: Das Kind zeichnet eine Lösung auf die Zeichenfläche, und die Begleitfigur schlägt vor, mit kleinen Zahlen zu beginnen."
+    coach-sheet:
+      place: MathTrail
+      chip: Aufgaben vom Blatt
+      alt: "Der Bildschirm eines Tablets: Die Kamera nimmt ein Blatt mit Olympiade-Aufgaben auf, und der Trainer hat darauf sechs Aufgaben gefunden."
+      caption: "Der Prototyp des MathTrail-Trainers: Das Kind fotografiert ein Aufgabenblatt, und der Trainer findet darauf sechs Aufgaben."
+    coach-map:
+      place: MathTrail
+      chip: Eine Themenkarte
+      alt: "Der Bildschirm eines Tablets: eine Karte der Olympiade-Themen in drei Stufen, von den Grundlagen bis zu schweren Aufgaben, und daneben das Thema „Systematisches Probieren“ und der Rang des Kindes darin."
+      caption: "Der Prototyp des MathTrail-Trainers: eine Karte der Themen vom Einfachen zum Schweren und der Rang des Kindes in jedem Thema."
+
+research:
+  title: Was die Forschung herausgefunden hat
+  lead: Olympiade-Aufgaben werden Kindern seit mehr als einem Jahrhundert gestellt, doch sorgfältige Studien darüber, was sie bewirken, gibt es nur wenige. Hier sind vier davon.
+  # Each finding under a tag of where and whom, a short line in large letters
+  # with a line under it, and the words of the small drawing under its text.
+  findings:
+    rebholz2022:
+      tag: Deutschland · Klassen 3–4
+      big: Ein Aufgabenkurs
+      small: und bessere Ergebnisse in zweierlei Hinsicht
+      title: Die Vorbereitung zeigt sich auch in der Schule
+      text: In Deutschland besuchten Kinder der dritten und vierten Klasse einen Kurs mit Aufgaben im Stil der Mathe-Olympiade. Bei der Mathematik-Olympiade schnitten sie deutlich besser ab als Kinder, die ohne den Kurs angetreten waren, und die Kinder der vierten Klasse waren auch in einem Mathetest der Schule besser. Für den Kurs hatten ihre Lehrkräfte sie ausgewählt.
+      mark:
+        - bei der Olympiade
+        - in einem Schultest
+    biondi2012:
+      tag: Brasilien · 2009
+      big: 19 Millionen
+      small: Schülerinnen und Schüler nahmen in einem Jahr teil
+      title: Schulen mit Olympiade schneiden in Mathe besser ab
+      text: Die Mathematik-Olympiade der öffentlichen Schulen Brasiliens steht allen Schülerinnen und Schülern offen, und 2009 nahmen 19 Millionen teil. Schulen, die daran teilnahmen, erzielten im landesweiten Test bessere Mathe-Ergebnisse in der neunten Klasse, und zwar umso bessere, je mehr Jahre sie schon teilgenommen hatten.
+      mark: mehr Teilnahmejahre, höhere Punktzahlen
+    agarwal2020:
+      tag: Die Internationale Olympiade
+      big: IMO
+      small: je höher die Punktzahl, desto weiter in der Wissenschaft
+      title: Wer bei der Olympiade glänzt, kommt in der Wissenschaft weit
+      text: Je mehr Punkte Jugendliche bei der Internationalen Mathematik-Olympiade erzielten, desto häufiger promovierten sie später, veröffentlichten Forschungsarbeiten, wurden zitiert und gewannen die höchsten Preise der Mathematik.
+      mark:
+        - Promotion
+        - Fachartikel
+        - Zitierungen
+        - Spitzenpreise
+    nunes2007:
+      tag: Vereinigtes Königreich · 6 Jahre
+      big: 16 Monate
+      small: die Logik von Sechsjährigen sagte ihre Matheleistung voraus
+      title: Logisches Denken lernt man ab sechs Jahren
+      text: Wie gut Sechsjährige logisch schlussfolgerten, sagte ihre Mathematikleistungen 16 Monate später voraus. Kinder, denen man beibrachte, so zu denken, machten in Mathe größere Fortschritte als Kinder, denen man es nicht beibrachte.
+      mark:
+        from: 6 Jahre
+        to: +16 Monate
+
+school:
+  title: Schule und Olympiaden lehren Unterschiedliches
+  lead: Das ist kein Vorwurf an die Schule, die einen anderen Auftrag hat. Aber das Geschick, eine Lösung zu finden, wenn kein Verfahren vorgegeben ist, entsteht nicht von selbst. Es wird trainiert.
+  lesson: Eine gewöhnliche Schulstunde
+  olympiad: Eine Olympiade-Aufgabe
+  # Above the rows, an example of each: a school sum with its answer left
+  # blank, and the fence in short, with its posts.
+  example: Ein Beispiel
+  sum: 12 ÷ 3 =
+  done: "Das Verfahren wurde im Unterricht gezeigt: Es muss nur noch wiederholt werden."
+  fence: Ein Zaun, 12 m lang, alle 3 m ein Pfosten, auch an beiden Enden. Wie viele Pfosten?
+  found: "Kein Verfahren ist vorgegeben, es muss gefunden werden: 4 Zwischenräume und ein Pfosten mehr als Zwischenräume, also 5."
+  rows:
+    shape:
+      label: Wie die Aufgabe aufgebaut ist
+      lesson: Ein Verfahren wird gezeigt und dann an ähnlichen Beispielen wiederholt
+      olympiad: Kein Verfahren ist vorgegeben, es muss gefunden werden
+    valued:
+      label: Was zählt
+      lesson: Schnell und ohne Flüchtigkeitsfehler rechnen
+      olympiad: Verstehen, was vor sich geht, und erklären, warum
+    mistake:
+      label: Was ein Fehler bedeutet
+      lesson: Punktabzug
+      olympiad: Ein Zeichen dafür, wo das Denken falsch abgebogen ist
+    teaches:
+      label: Was man dabei lernt
+      lesson: Ein bekanntes Werkzeug anwenden
+      olympiad: Eins erfinden, wenn es keins gibt
+
+time:
+  title: Warum die Schule dafür keine Zeit hat
+  # Each card with the words of the small drawing at its foot.
+  cards:
+    syllabus:
+      title: Ein Lehrplan für die ganze Klasse
+      text: Eine Lehrkraft muss jedes Kind auf das geforderte Niveau bringen. Stunden für Aufgaben über den Lehrplan hinaus sind schwer zu finden.
+      lesson: Eine Schulstunde
+      length: 45 Minuten
+      all: der Lehrplan für alle
+      extra: Aufgaben darüber hinaus
+    answer:
+      title: Ein Test sieht die Antwort, nicht den Gedankengang
+      text: Ein Test prüft das Ergebnis. Selten bleibt Zeit durchzugehen, wie ein Kind überlegt hat und wo genau die Überlegung falsch lief.
+      steps: "der Rechenweg: nicht angeschaut"
+      answer: "Antwort: {answer}"
+    circle:
+      title: Einen Mathezirkel gibt es nicht überall
+      text: Nicht jede Schule hat einen Olympiade-Zirkel, und der nächste ist vielleicht weit weg oder nimmt nur ältere Kinder auf.
+      none: keiner
+      circle: ein Zirkel
+
+parent:
+  title: Eltern können ihr Kind vorbereiten
+  note: MathTrail ersetzt keine Lehrkraft für Olympiade-Mathematik, und ein starker Zirkel mit Trainer bringt mehr. Aber bis Klasse {last} können Sie Ihr Kind selbst auf Olympiaden vorbereiten.
+  unneeded:
+    title: Was Sie nicht brauchen
+    items:
+      - Ein Mathestudium
+      - Die Lösungen vorher kennen
+      - Aufgaben suchen und prüfen
+  taken:
+    title: MathTrail übernimmt
+    items:
+      - die Aufgaben
+      - die Antworten
+      - das Erklären von Fehlern
+      - die Wahl des Niveaus
+  needed:
+    title: Was Sie brauchen
+    items:
+      - title: Die Neugier Ihres Kindes
+        text: Eine Olympiade-Aufgabe ist ein Rätsel, keine Prüfung. Ein Kind soll neugierig sein und keine Angst haben, falsch zu liegen.
+      - title: Erklären, wozu das gut ist
+        text: Nicht „für Bestnoten“, sondern um zu lernen, einen Weg zu erfinden, wenn niemand gezeigt hat, wie es geht.
+      - title: Ihre Zeit und Ihr Interesse
+        text: Ein wenig Zeit an der Seite Ihres Kindes, lieber oft als viel auf einmal. Ihr Interesse an einer Aufgabe steckt an.
+  # Three moments of a lesson, each with what the child says and what the
+  # parent might answer; the letters stand for who speaks.
+  explain:
+    title: Wie Sie Ihrem Kind erklären, wozu das gut ist
+    lead: Drei häufige Momente und was Sie sagen könnten. K steht für Ihr Kind.
+    child: K
+    you: Sie
+    talks:
+      why:
+        moment: Fragt „Wozu?“
+        child: Wozu brauche ich diese Aufgaben? Die hat doch niemand aufgegeben.
+        you: "Das ist wie ein Rätsel: Die Antwort ist versteckt, und du kannst sie finden."
+      wrong:
+        moment: Liegt falsch
+        child: Ich habe es schon wieder falsch gemacht…
+        you: "Hier darfst du dich irren: Ein Fehler zeigt, wo du noch einmal nachdenken solltest."
+      right:
+        moment: Liegt richtig
+        child: Fertig! Die Antwort ist fünf.
+        you: Das Beste ist nicht die Antwort, sondern wie du darauf gekommen bist.
+
+thinking:
+  title: Wie MathTrail das Denken schult
+  lead: Nicht durch die Zahl der Aufgaben, sondern durch das, was rund um jede einzelne geschieht.
+  points:
+    - title: Eine Aufgabe, eine Idee
+      text: Jede Aufgabe gehört zu einem Thema, etwa „{enumeration}“, „{parity}“ oder „{knights}“. Die Themen bilden eine Karte, vom Einfachen zum Schweren.
+    - title: Eine Aufgabe in Reichweite
+      text: Jedes Thema hat eine eigene Wertung. Nach ihr wählt MathTrail, was als Nächstes kommt, Thema und Schwierigkeit; die Klasse legt nur den Start fest.
+    - title: Ein Fehler ist eine Diagnose
+      text: Hinter jeder falschen Antwort steht eine Falle mit Namen. Die Erklärung beginnt beim Gedankengang des Kindes, nicht bei der richtigen Antwort.
+    - title: Ein Tipp statt der Antwort
+      text: "Das Kind kann auf der Karte einen Tipp öffnen, und die erwachsene Person kann im Chat mit den Worten des Kindes fragen: „Warum nicht 6?“ Das Modell antwortet zu genau dieser Aufgabe."
+  topics: Zu den Themen →
+  # The name of the child the card on this page shows, an invented one.
+  child: Komet
+  caption: Die Karte, wie ein Chat sie nach einer falschen Antwort zeigt. Kind und Zahlen sind ein Beispiel.
+  # Two messages of the chat beneath the card: the adult's question and the
+  # model's reply, about the step and to nobody, for the adult to read out to
+  # the child. They are the site's words, never the card's.
+  chat:
+    label: Ein Chat zur Veranschaulichung
+    adult: Erwachsene Person
+    model: Modell
+    question: Warum nicht 6?
+    reply: Bei sechs wäre ein Pfosten doppelt gezählt. Geht man von links am Zaun entlang, endet jeder Zwischenraum mit einem Pfosten, also ergeben 4 Zwischenräume 4 Pfosten, und der erste Pfosten steht noch vor ihnen allen. 4 + 1 = 5.
+
+app:
+  title: Warum das keine gewöhnliche App ist
+  lead: In einer Studie zu den Apps, mit denen Drei- bis Fünfjährige spielen, hatten etwa zwei von drei Gestaltungsmerkmale, die ein Kind länger im Spiel halten ({source}). MathTrail ist anders gebaut, und das lässt sich überprüfen.
+  # A make-believe app of the kind that keeps a child at the screen, every
+  # trick of it, and what MathTrail has of them.
+  bait:
+    coins: "12.450"
+    gems: "87"
+    timer: 03:59 bis zum Bonus
+    cheer: Du bist ein Star!!!
+    praise: Du hast 1 Rechenaufgabe von 1 gelöst. Fantastisch!
+    chest: Öffne die Truhe!
+    hat: Drachenhut · 9,99 €
+    premium: Hol dir Premium für ×2 Münzen!
+    caption: Kommt Ihnen das bekannt vor? MathTrail hat nichts davon.
+  # Each card with the short things at its foot that show what it says.
+  cards:
+    checked:
+      title: Ein Programm prüft jede Aufgabe
+      text: Das Modell schreibt eine Aufgabe und ein Programm, das sie löst. Der Server führt das Programm in einer abgeschotteten Sandbox aus und prüft, dass genau eine Antwortmöglichkeit richtig ist, dass die Antwort übereinstimmt, dass der Text zur Klasse passt und dass er den Text früherer Aufgaben nicht wiederholt. Eine Aufgabe, die durchfällt, erreicht das Kind nie.
+      checks:
+        - genau eine Antwort
+        - geht auf
+        - in Reichweite
+        - keine Wiederholung
+      fails: nicht bestanden → erreicht das Kind nie
+    free:
+      title: Kostenlos – und klar, warum
+      text: MathTrail hat keine eigene KI. Die Aufgabe schreibt das Modell Ihres Chats im Rahmen Ihres Plans, und der Free-Plan von Claude reicht dafür aus. Der Server hat fast nichts zu bezahlen, deshalb gibt es keine Abos, keine Werbung und keine gesperrten Themen.
+      price: 0 €
+      none:
+        - Abos
+        - Werbung
+        - gesperrte Themen
+    data:
+      title: Die Daten bleiben bei Ihnen
+      text: Das Profil des Kindes ist eine Datei in Ihrem Google Drive. Versiegelt sind nur die Antwort und die Lösung der Aufgabe, die gerade gelöst wird, damit das Kind nicht spicken kann. Der Server speichert zwischen den Anfragen nichts und verkauft nichts.
+      # After the name of the profile's file.
+      where: Ihr Google Drive
+      server: "auf dem Server: nichts"
+    screen:
+      title: Nichts, was ein Kind am Bildschirm festhält
+      text: Keine Münzen, keine Truhen, keine Timer, keine Werbung. Ist die Aufgabe gelöst, kann der Chat geschlossen und beim Abendessen über die Aufgabe gesprochen werden.
+      none:
+        - Münzen
+        - Truhen
+        - Timer
+        - Werbung
+      after: Aufgabe gelöst → Abendessen

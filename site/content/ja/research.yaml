@@ -1,0 +1,225 @@
+title: 研究
+description: MathTrail を支える数値。誤りが一つでも残る問題をチェックが子どもに届けない仕組み、学習者モデルを目標と比べた結果、お手本問題の出どころを紹介します。
+
+hero:
+  badge: 技術者向け
+  title: モデルが書き、
+  title_end: サービスがチェックする。
+  lead: MathTrail は、{count}{noun}をすべて通った問題だけを子どもに届けます。その仕組みと、チェックでは見えないことを説明します。
+  paper: 論文全文 · PDF、{count}{noun}
+  code: コードとデータ
+  flow:
+    task: 問題
+    example: 長さ{length}mのさくに、両はしもふくめて{gap}mごとに柱が立っています。柱は何本ありますか。
+    solver: ソルバー
+    sum: "{length} ÷ {gap} + {one} = {posts} → {letter}"
+    hands_in: 問題とそのソルバー
+    back: 却下して差し戻す
+    twice: ソルバーを二度実行
+    asks: 正解の選択肢はただ一つ · その学年で読める言葉 · 以前の問題と重複しない
+    passed: すべてのチェックに合格
+    sealed: 答えは子どもが答えるまで封印
+  grades: "{first}〜{last}年生"
+  licence: オープンソース、MIT
+
+theses:
+  title: 論文が示す四つのこと
+  writes:
+    title: チャットのモデルが書く
+    text: 問題はすべて、ご家庭がすでに使っているチャットのモデルが、子どもの言語で、子どもに身近なお話に仕立てて書きます。MathTrail は独自のモデルを呼び出しません。リクエストをまたいで子どもについて何も保持しない、小さな決定的サービスです。
+    model: チャットのモデル
+    model_does: 書く
+    service: MathTrail
+    service_does: チェックする
+    child: 子ども
+    child_does: 解く
+  twice:
+    title: ソルバーを二度実行する
+    text: モデルは問題と一緒に、答えを計算して正しい選択肢の記号を示す短いプログラムを書きます。サービスはそれを実行し、{from}が{to}になるように記号を{count}{noun}ずらして、もう一度実行します。答えを計算で求めるプログラムなら新しい位置で答えを見つけますが、記号を手で書き込んだプログラムは見つけられません。再実行は、最初の実行で選ばれた選択肢がちょうど一つだったときに行います。
+    first: 最初の実行
+    second: 記号をずらして再実行
+    picks: → {letter}
+    caption: 「{letter}」と手で書き込んだプログラムは、再実行では{value}を指すので、問題は却下されます。
+  sealed:
+    title: 答えは封印される
+    text: 答え、解き方、解説、ソルバーは暗号化され、保護者の Google ドライブにある子どものプロフィールに保存されます。子どもが答えるまで、それらはサービスがカードやチャットのモデルに渡すものには一切含まれず、サービスのどのログにも残りません。
+    sees: 子どもに見えるもの
+    seen: 問題文 · 図 · 選択肢 · ヒント
+    hidden: 答えるまで封印
+    kept: 答え · 解き方 · 解説
+    cipher: XChaCha20-Poly1305 · 子どもと問題にひもづけ
+    outside: 封印が及ばないのは、チャットそのものです。問題を書いたモデルはその答えを知っています。また、モデルが呼び出したツールをチャット自身が記録していて、大人がその記録を開けば答えが見えます。
+  reach:
+    title: 少し難しいけれど、手が届く
+    text: 学習者モデルは、子どもがその問題を解ける確率を予測します。サービスは、その確率が{middle}（{low}から{high}までの目標帯の中央）にいちばん近い問題を求めます。初めての子どもは、まず{trial}の実力チェックを受け、そこで出発点が決まります。
+    guess: c = {guess}、{options}択のあてずっぽう
+    corridor: ねらう目標帯
+
+model:
+  title: 学習者モデルを目標と比べる
+  lead: サービスが子どもにどれだけ正確についていくか、問題をどれだけ手の届く範囲に保てるか、テーマのマスターをどれだけ確実に判定するか、そして解き進めた終盤に子どもに何が表示されるか。数値は、仮想の子どもで測ったベンチの結果で、このサイトのビルドに使ったのと同じコードから計算しています。
+  run:
+    commit: コミット {commit} · {date}
+    size: "{children} × {answers}"
+    seed: シード：{seed}
+  paper: 論文は、その数値を計算したコミット {commit} の時点のルールを報告しています。このページは今動いているサービスに合わせているので、両者の数値は異なります。
+  key:
+    service: 現在のサービス
+    interval: "{interval}区間"
+    goal: 目標
+    ceiling: 天井（子どもの本当の力を知っている推定）
+  groups:
+    step: 推定が子どもにどうついていくか
+    mastery: マスターをどう判定するか
+    screen: 解き進めた終盤に子どもに表示されるもの
+    screen_note: "{first}〜{last}回目の解答 · 目標は{earlyfirst}〜{earlylast}回目の解答での値以下"
+    context: 比較用（目標なし）
+  rows:
+    lag:
+      name: 学んで伸びる子に対する遅れ
+      unit: ロジット、小さいほどよい · 可能な最善値は{best}
+    corridor_learning:
+      name: 目標帯{low}〜{high}に入る問題
+      unit: 学んで伸びる子 · 問題の割合、大きいほどよい
+    jump_unsettled:
+      name: 急な伸びに追いつけていない
+      unit: 子どもの割合、小さいほどよい
+    false_mastery_static:
+      name: 誤ったマスター判定
+      unit: マスター判定に占める割合、小さいほどよい
+    false_mastery_wide:
+      name: 誤ったマスター判定（テーマ同士が離れている場合）
+      unit: マスター判定に占める割合、小さいほどよい
+    late_mastery_static:
+      name: マスター判定までの解答数
+      unit: 解答数、少ないほどよい
+    late_mastery_wide:
+      name: マスター判定までの解答数（テーマ同士が離れている場合）
+      unit: 解答数、少ないほどよい
+    card_move_static:
+      name: レーティングの動く幅
+      unit: 大半の解答で動くポイント数、小さいほどよい
+    rank_changes_static:
+      name: ランクが変わる頻度
+      unit: 解答百件あたりの変化の回数、少ないほどよい
+    card_move_learning:
+      name: レーティング（学んで伸びる子）
+      unit: 大半の解答で動くポイント数、小さいほどよい
+    rank_changes_learning:
+      name: ランク（学んで伸びる子）
+      unit: 解答百件あたりの変化の回数、少ないほどよい
+    error_static:
+      name: "{after}のあとの推定の誤差"
+      unit: 力が変わらない子 · ロジット、小さいほどよい
+    corridor_static:
+      name: 目標帯{low}〜{high}に入る問題
+      unit: 力が変わらない子 · 問題の割合、大きいほどよい
+  interval: "{low}〜{high}"
+  goal_at_most: 目標 ≤ {bound}
+  goal_at_least: 目標 ≥ {bound}
+  ceiling: 天井：{value}
+  marks:
+    reached:
+      name: 達成
+      means: 区間全体が、目標よりよい側にあります。
+    on_the_edge:
+      name: 境界
+      means: 区間の中に目標があります。
+    not_reached:
+      name: 未達
+      means: 区間全体が、目標より悪い側にあります。
+    baseline:
+      name: ベースライン
+      means: 目標はサービス自身の数値から決めたものなので、このルールを試すものではなく、次のルールが越えるべき基準です。
+
+live:
+  title: 実データ
+  lead: モデルの約束が、実際の子どもたちで実現しているかどうかを、月ごとに示します。数値は解答のログから求めたもので、名前も問題文も含みません。
+  rule: 範囲は、少なくとも{children}と{answers}が集まったときだけ表示し、その中の数はすべて{rounded}の倍数に丸めます。それより小さい範囲は、ほかの範囲とまとめずに省きます。
+  measures:
+    chances: 約束 → 実現
+    kept_up: 実現 − 約束（解答の回数別）
+    share: ルールが選んだ問題での正解率
+  frame:
+    coming:
+      badge: 準備中
+      when: 数値は、ひと月分をまるごと数え終えたあと、翌月の初めに出ます。
+    too_few:
+      badge: まだ数が足りない
+      when: "{month}は、ルールが選んだ問題に答えた子どもが少なすぎて、数値を一つも表示できませんでした。"
+  ready:
+    month: "{month}：{children}による、ルールが選んだ問題への{answers}。"
+    weighed: 計算に入れるのは、ルールが選んだ問題への解答のうち、{trial}の実力チェックよりあとで、ヒントを使わずに答えたものだけです。すべてのチャットの分を合わせています。
+    corridor: 目標帯に入る問題の割合は、実際の解答では測れません。どの問題も一度しか答えないからです。
+    columns:
+      promised: 約束
+      came_true: 実現
+      answers: 解答数
+      children: 人数
+    chances:
+      none: この月は、約束した確率のどの範囲にも、表示できるだけの子どもがいません。
+      shown:
+        caption: 約束した確率の範囲ごとに点で示し、解答が多い範囲ほど点を大きくしています。破線の対角線上なら、約束どおりです。帯は、ルールが問題を選ぶ目標帯です。
+        up: ↑ 正解した割合
+        across: 約束した確率 →
+        ideal: 約束どおり
+        band: 目標帯
+        range: "{from}〜{to}"
+        heading: 約束した確率
+    kept_up:
+      none: この月は、解答の回数のどの範囲にも、表示できるだけの子どもがいません。
+      shown:
+        caption: 正解を一点、間違いを零点として、そこから約束した確率を引き、その差を解答全体で平均します。破線より右では、子どもたちが約束より良い結果を出しています。ひげは左右それぞれに標準誤差一つ分で、子ども単位で計算しています。
+        range: "{first}〜{last}"
+        open: "{first}以降"
+        heading: 何回目の解答
+        margin: 実現から約束を引いた差
+        error: 標準誤差
+    share:
+      expected: 期待値 ≈ {middle}（目標帯の中央）
+      caption: ルールは、正解する確率が{middle}（{low}から{high}までの目標帯の中央）にいちばん近い問題を求めます。点は正解した割合、破線は目標帯の中央です。
+
+sources:
+  title: お手本問題の出どころ
+  lead: アイデアは著作権で守られませんが、文章は守られます。そのため、本から取り入れるのは問題のアイデアと答えだけで、問題文、お話、選択肢、ひっかけは新しく書いています。
+  authors:
+    perelman:
+      name: ヤコフ・ペレリマン
+      books:
+        firsthundred: For Young Mathematicians. The First Hundred Puzzles
+        secondhundred: The Second Hundred Puzzles
+        living: 『おもしろい数学』
+        arithmetic: 『おもしろい計算術』
+        quick: Quick Reckoning
+    ignatyev:
+      name: エメリヤン・イグナーチェフ
+      books:
+        wit: 『数学おもちゃ箱』
+    dudeney:
+      name: ヘンリー・E・デュードニー
+      books:
+        amusements: 『パズルの王様』
+        canterbury: 『カンタベリー・パズル』
+    loyd:
+      name: サム・ロイド
+      books:
+        cyclopedia: Cyclopedia of Puzzles
+    carroll:
+      name: ルイス・キャロル
+      books:
+        tangled: 『もつれっ話』
+        pillow: 『枕頭問題集』
+  died: "{year}年没"
+  public: パブリックドメイン
+  public_note: これらの本は著作権の保護期間が終わっています。みんなのものであり、だれでも無料で使えます。
+  total: 全部で{count}{noun}
+  each: どれもソルバーつきで、間違った選択肢にはそれぞれひっかけがある
+  level: "{count}問 · {first}〜{last}年生"
+  note: 文体はソ連の問題集にならっています。お手本問題には出典を記す欄がないため、個々の問題のアイデアの作者を示すことはできません。
+
+paper:
+  title: 論文全文
+  ready: 手法、表、プロトコル、限界、倫理をまとめた論文です。英語で書かれています。
+  waiting: 手法、表、プロトコル、限界、倫理をまとめた論文です。PDF は次のリリースで公開します。
+  open: PDF を開く
+  code: GitHub のコード

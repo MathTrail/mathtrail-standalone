@@ -1,0 +1,213 @@
+# The page of the topic of knights and liars, for a parent, in Portuguese. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Cavaleiros e mentirosos
+description: O que são os problemas de cavaleiros e mentirosos, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+# The words every drawing of the page writes its islanders in: the letters
+# of a knight and of a liar, and the islanders' own.
+art:
+  knight: V
+  liar: M
+  a: A
+  b: B
+  c: C
+
+hero:
+  lead: >-
+    Numa ilha vivem cavaleiros, que sempre dizem a verdade, e mentirosos, que
+    sempre mentem. Pelo que eles dizem, é preciso descobrir quem é quem. Para
+    muitas crianças, este é o primeiro contato com um raciocínio lógico de
+    verdade: fazer uma suposição, seguir aonde ela leva e perceber uma
+    contradição.
+  method: "“Suponha que este seja cavaleiro…”"
+  teaches: A raciocinar passo a passo e a conferir as próprias conclusões
+  # The words of its drawing: the key of the letters over it, and in it the
+  # first example's two suppositions and how each ends.
+  art:
+    knight: o cavaleiro sempre diz a verdade
+    liar: o mentiroso sempre mente
+    says: “Sou mentiroso e B é cavaleiro”
+    rule: suponha e confira
+    if-knight: Se A é cavaleiro, então A é mentiroso
+    contradiction: uma contradição
+    if-liar: Se A é mentiroso, então B também é
+    fits: confere
+
+basis:
+  title: As regras da ilha
+  cards:
+    - mark: V
+      title: Cavaleiro
+      text: Sempre diz a verdade. Toda afirmação de um cavaleiro é verdadeira, sem exceção.
+    - mark: M
+      title: Mentiroso
+      text: Sempre mente. Toda afirmação de um mentiroso é falsa, e um mentiroso nunca diz a verdade, nem por acaso.
+    - mark: "?"
+      title: Ninguém mais
+      text: Todo habitante da ilha é cavaleiro ou mentiroso. Não dá para distingui-los pela aparência, só pelo que dizem.
+
+idea:
+  title: Quem pode dizer o quê
+  lead: Comece por duas frases. Elas mostram na hora como esses problemas funcionam.
+  table:
+    head:
+      - Frase
+      - Cavaleiro
+      - Mentiroso
+      - O que significa
+    rows:
+      - - “Sou cavaleiro”
+        - "✓ Pode dizer: é verdade"
+        - "✓ Pode dizer: é mentira, como devem ser as palavras de um mentiroso"
+        - "Não revela nada: qualquer um pode dizer isso."
+      - - “Sou mentiroso”
+        - "✕ Não pode: seria mentira"
+        - "✕ Não pode: seria verdade"
+        - "Uma frase impossível: ninguém pode dizer isso."
+  note:
+    title: Por que isso importa
+    text: >-
+      Quando um habitante da ilha diz “Sou cavaleiro”, você pode riscar a
+      frase: ela não muda nada. E quando, no meio de uma solução, se descobre
+      que alguém disse, na prática, “Sou mentiroso”, a suposição de que você
+      partiu está errada.
+
+method:
+  title: "Como resolver: “suponha que…”"
+  lead: >-
+    Quase todo problema desse tipo se resolve do mesmo jeito: escolha um
+    habitante da ilha, suponha o que ele é e veja o que decorre disso. Os
+    exemplos abaixo vão do mais simples a um de olimpíada.
+  steps:
+    - Supor
+    - Descobrir o que decorre disso
+    - Achar uma contradição ou conferir a resposta
+
+examples:
+  - title: Dois na estrada
+    question: >-
+      Dois habitantes da ilha, A e B, se encontram numa estrada. A diz: “Sou
+      mentiroso e B é cavaleiro.” Quem é quem?
+    steps:
+      - >-
+        **Suponha que A seja cavaleiro.** Então as palavras são verdadeiras, e
+        A é mentiroso. Mas supusemos que A é cavaleiro: **uma contradição**,
+        então esse caso é impossível.
+      - >-
+        **Suponha que A seja mentiroso.** Então as palavras são falsas. A
+        primeira metade, “Sou mentiroso”, é verdadeira, então a segunda metade
+        é falsa: B não é cavaleiro, e sim mentiroso. **Tudo confere.**
+    answer: A e B são ambos mentirosos.
+    note:
+      title: Como um mentiroso pode dizer “Sou mentiroso”?
+      text: >-
+        Sozinha, a frase “Sou mentiroso” é impossível. Ligada a outra frase por
+        “e”, um mentiroso pode dizê-la: a frase inteira é falsa assim que uma
+        das suas partes é falsa.
+    art:
+      says: “Sou mentiroso e B é cavaleiro”
+      contradiction: uma contradição
+      fits: tudo confere
+      alone: “Sou mentiroso”
+      nobody: ninguém pode dizer
+      liar-can: um mentiroso pode dizer
+  - title: Uma cadeia de acusações
+    question: >-
+      Três habitantes da ilha, A, B e C, dizem o seguinte. A: “B é
+      mentiroso.” B: “C é cavaleiro.” C: “A e B são ambos mentirosos.” Quem é
+      cavaleiro e quem é mentiroso?
+    steps:
+      - >-
+        **Por onde começar?** Por quem diz mais, porque o que ele diz leva a
+        mais conclusões. É C.
+      - >-
+        **Suponha que C seja cavaleiro.** Então A e B são ambos mentirosos. Mas
+        B disse “C é cavaleiro”, o que seria verdade, e um mentiroso nunca diz
+        nada verdadeiro. **Uma contradição.**
+      - >-
+        **Logo, C é mentiroso.** Então o “C é cavaleiro” de B é falso, e B
+        também é mentiroso.
+      - A disse “B é mentiroso”, e isso é verdade. Logo, A é cavaleiro.
+    answer: A é cavaleiro; B e C são mentirosos.
+    note:
+      title: "Conferindo: cada frase mais uma vez"
+      text: >-
+        A: “B é mentiroso” é verdadeiro, e quem diz é um cavaleiro. B: “C é
+        cavaleiro” é falso, e quem diz é um mentiroso. C: “A e B são ambos
+        mentirosos” é falso, já que A é cavaleiro, e quem diz é um mentiroso.
+        Tudo confere.
+    art:
+      a-says: “B é mentiroso”
+      b-says: “C é cavaleiro”
+      c-says: “A e B são ambos mentirosos”
+      most: diz mais que os outros
+      contradiction: uma contradição
+      true-knight: verdadeiro, e quem diz é cavaleiro
+      false-liar: falso, e quem diz é mentiroso
+  - title: A mesa redonda
+    question: >-
+      Dez habitantes da ilha estão sentados a uma mesa redonda. Cada um deles
+      diz: “Meu vizinho da direita é mentiroso.” Quantos cavaleiros há à mesa?
+    steps:
+      - >-
+        Se um habitante é cavaleiro, as palavras são verdadeiras: o vizinho da
+        direita é mentiroso.
+      - >-
+        Se um habitante é mentiroso, as palavras são falsas: o vizinho da
+        direita é cavaleiro.
+      - >-
+        Então cavaleiros e mentirosos se alternam em volta da mesa: V, M, V, M…
+        Exatamente metade dos dez são cavaleiros: **5 cavaleiros**.
+    answer: 5 cavaleiros.
+    note:
+      title: E se 9 habitantes se sentarem à mesa?
+      text: >-
+        Alternar em volta de um número ímpar de lugares nunca fecha o círculo:
+        o último e o primeiro seriam do mesmo tipo. Uma mesa assim não pode
+        existir. Aqui, cavaleiros e mentirosos encontram a paridade.
+    art:
+      right-liar: o vizinho da direita é mentiroso
+      right-knight: o vizinho da direita é cavaleiro
+      half: 5 e 5
+      kinds: cavaleiros e mentirosos
+      turns: cada um olha para o vizinho no sentido horário
+      clash: o último e o primeiro são do mesmo tipo
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      A criança marca V e M e não passa por todas as frases mais uma vez, e
+      uma delas não confere.
+    say: “Leia cada frase de novo. Ela é verdadeira ou falsa, e quem disse?”
+  trusted_statement:
+    shows: >-
+      A criança acredita no que um habitante da ilha diz sem perguntar quem
+      disse: A chamou B de mentiroso, então B deve ser mentiroso.
+    say: “E se quem disse foi um mentiroso? O que é verdade, então?”
+  stopped_early:
+    shows: >-
+      A criança descobre quem é o primeiro habitante e para por aí, sem
+      decidir quem são os outros.
+    say: “Muito bem, A é mentiroso. E o que isso diz sobre B?”
+
+home:
+  - title: Brinque de ilha
+    text: >-
+      Você sempre mente, e a criança faz perguntas para você. Logo a criança
+      percebe que, para “Você mente?”, você sempre responde “Não”.
+  - title: Pergunte em vez de responder
+    text: >-
+      Em vez de uma resposta, uma pergunta: “E se ele for cavaleiro, o que
+      acontece?” Essa é a ideia-chave do tema.
+  - title: Escreva V e M a lápis
+    text: >-
+      Sobre cada nome, uma suposição. Deu contradição? Apague e tente a outra.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de cavaleiros e mentirosos

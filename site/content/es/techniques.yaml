@@ -99,6 +99,11 @@ techniques:
         anya: Adrián
         borya: Bea
         vera: Vera
+      # The letter drawn on each child's face, one no other child's shares.
+      faces:
+        anya: A
+        borya: B
+        vera: V
       pets:
         cat: gato
         dog: perro

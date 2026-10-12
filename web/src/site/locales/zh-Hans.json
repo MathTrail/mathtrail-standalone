@@ -1,0 +1,96 @@
+{
+	"language.name": "简体中文",
+	"nav.language": "语言",
+	"nav.pages": "网站页面",
+	"nav.menu": "菜单",
+	"nav.topics": "专题",
+	"nav.coach": "教练",
+	"nav.beta": "Beta",
+	"nav.add": "添加到 Claude",
+	"nav.why": "为什么",
+	"nav.techniques": "技巧",
+	"nav.research": "研究",
+	"nav.service": "服务",
+	"nav.technical": "技术页面",
+	"nav.about": "关于我们",
+	"share.picture": "MathTrail 首页：网站的承诺，旁边是一张题目卡片，和聊天里显示的一样。",
+	"cite.one": "{first}，{year}",
+	"cite.two": "{first} 和 {second}，{year}",
+	"cite.many": "{first} 等，{year}",
+	"footer.links": "链接",
+	"footer.source": "GitHub",
+	"group.logic": "逻辑",
+	"group.counting": "计数与枚举",
+	"group.time": "时间",
+	"group.numbers": "藏着窍门的数",
+	"group.parts": "整体的部分",
+	"group.games": "策略与游戏",
+	"topics.builds_on": "前置：{topics}",
+	"topics.opens": "后续：{topics}",
+	"topics.grades": "{range}年级",
+	"topics.more": "了解更多 →",
+	"topics.soon": "即将推出",
+	"thumb.knight": "真",
+	"thumb.liar": "假",
+	"sign.divide": "÷",
+	"sign.question": "?",
+	"techniques.count": {
+		"other": "{count}种解题技巧"
+	},
+	"research.tasks": {
+		"other": "道参考题"
+	},
+	"research.checks": {
+		"other": "项检查"
+	},
+	"research.passed": {
+		"other": "项检查"
+	},
+	"research.topics": {
+		"other": "个专题"
+	},
+	"research.traps": {
+		"other": "种陷阱"
+	},
+	"research.pages": {
+		"other": "页"
+	},
+	"research.places": {
+		"other": "位"
+	},
+	"research.trial": {
+		"other": "道题"
+	},
+	"research.answers": {
+		"other": "次作答"
+	},
+	"research.given": {
+		"other": "次作答"
+	},
+	"research.children": {
+		"other": "名孩子"
+	},
+	"research.times": {
+		"other": "次"
+	},
+	"topic.path": "您的位置",
+	"topic.method": "关键一招",
+	"topic.teaches": "学会什么",
+	"topic.contents": "本页内容",
+	"topic.solving": "怎样解题",
+	"topic.example": "例{number} · {grades}",
+	"topic.answer": "答案",
+	"topic.traps": "易错点",
+	"topic.traps_lead": "MathTrail 会按答错时掉进的陷阱来讲解每一个错误答案。下面是本专题最常见的几种陷阱，并附上您可以对孩子说的话。",
+	"topic.trap": "陷阱",
+	"topic.say": "可以这样说",
+	"topic.child": "孩子",
+	"topic.right": "正确",
+	"topic.home": "在家怎样帮忙",
+	"topic.before": "前置专题",
+	"topic.after": "后续专题",
+	"topic.ask": "请求一道本专题的题",
+	"topic.all": "全部专题",
+	"copy.action": "复制",
+	"copy.done": "已复制"
+}

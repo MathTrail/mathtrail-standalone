@@ -1,0 +1,195 @@
+# The page of the topic of weighing and pouring, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 称重与倒水
+description: 什么是关于称重与倒水的题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+# The words the page's drawings write a jug's size, a step and a move in.
+art:
+  litres: "{count}升"
+  step: 步骤
+  pour: 倒入
+  empty: 倒空
+  fill: 装满
+  top: 加满
+
+hero:
+  lead: >-
+    只有一个5升的壶和一个3升的壶，怎样量出正好4升水？只有天平、没有砝码，怎样从许多枚硬币中找出唯一一枚较轻的？这类题里，孩子要事先规划一小串步骤，而且每条规则都要紧：壶上没有刻度，天平没有砝码。这是孩子第一次接触算法，也就是无论发生什么都行得通的计划。
+  method: 记下每一个状态，寻找最短的路
+  teaches: 提前规划步骤，并能想清楚称一次的每一种结果
+  # The words of its drawing: what is measured over it, and what each pair of
+  # jugs is.
+  art:
+    line: 用5升和3升的壶量出4升
+    pair: 每一对壶是一个状态：各装着多少水
+
+basis:
+  title: 称重与倒水的规则
+  cards:
+    - title: 状态包括每一个壶
+      text: >-
+        每走一步，都写下每个壶里有多少水：5和0，然后是2和3。有了状态清单，就能看出还能走到哪里，哪里已经走过。
+    - title: 三种结果
+      text: >-
+        天平可能左边沉、右边沉，或者两边平衡，所以每称一次都有三种结果。要把硬币分成三组，而不是两组。
+      art:
+        left: 左边沉
+        level: 平衡
+        right: 右边沉
+    - title: 每条规则都要紧
+      text: >-
+        壶上没有刻度，不能把水倒掉，砝码只能放在一个托盘里：每条规则都会改变哪些步骤是允许的，也就会改变答案。
+      art:
+        no-marks: 没有刻度
+        pour-out: 倒掉
+        unless: 除非题目允许
+        weight: 砝码
+        one-pan: 只能放在一个托盘里
+
+idea:
+  title: 称一次的三种结果
+  lead: 每称一次有三种结果，所以一次就能把硬币分成三组。这决定了称一定的次数，最多能应付多少枚硬币。
+  table:
+    head:
+      - 称的次数
+      - 结果数
+      - 能应付的硬币数
+    rows:
+      - - "1"
+        - "3"
+        - 最多3枚
+      - - "2"
+        - 3 × 3 = 9
+        - 最多9枚
+      - - "3"
+        - 3 × 3 × 3 = 27
+        - 最多27枚
+  note:
+    title: 为什么重要
+    text: >-
+      如果孩子把硬币分成两半，一半对一半地称，就会比必要的多称几次。看出天平有三种回答，而不是两种，这就是全部的关键；这个想法以后还会在计算机科学里以“搜索”的形式再次出现。
+
+method:
+  title: 解法：状态表
+  lead: >-
+    倒水的题，就列一张表：每个壶占一列，每一步占一行；从每一行出发，试遍所有允许的步骤，直到目标出现。目标第一次出现时，用的步数就是最少的。称重的题，要事先想好三种结果出现后各该怎么做。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 记下状态：每个壶或托盘里有什么
+    - 从这个状态出发，试遍所有允许的步骤
+    - 到达目标就停下，并数出步数
+  # The key under the steps: what a frame on the drawings means.
+  legend:
+    goal: 达到目标
+
+examples:
+  - title: 一升水
+    question: >-
+      一位厨师有一个3升的空壶、一个5升的空壶和一个水龙头。壶上没有刻度。每一步，她可以用水龙头把一个壶装满，可以把一个壶里的水倒光，也可以从一个壶往另一个壶里倒水，直到前一个壶倒空或者后一个壶装满。最少要几步，才能让某个壶里正好有1升水？
+    steps:
+      - 把3升的壶装满，倒进5升的壶，这时大壶里有3升水。
+      - >-
+        再把3升的壶装满，从它往大壶里倒，直到大壶装满：大壶只能再装下2升。
+      - 小壶里剩下1升水，一共用了4步：装满、倒入、装满、倒入。
+    answer: 4步。
+    note:
+      title: 为什么不能更少？
+      text: >-
+        把三步以内能到达的状态全部列成表，表里没有1升：壶里只可能是0、2、3或5升。一升水第一次出现，是在第四步之后。
+    art:
+      jugs: 3升和5升的壶，没有刻度
+      rows: 4步：空壶之后的4行
+      three: 3步以内：
+      no-litre: 没出现一升
+  - title: 八枚硬币
+    question: >-
+      有8枚看起来一模一样的硬币，其中一枚是假币，比其他的轻，其他的硬币都一样重。用一架没有砝码的天平，最少要称几次，才能保证找出假币？
+    steps:
+      - 天平两边各放3枚硬币，另外2枚放在旁边。
+      - >-
+        如果有一边翘起来，假币就在那一边的3枚里：再1枚对1枚地称，轻的那枚就是假币；如果两边平衡，假币就是第三枚。
+      - >-
+        如果两边平衡，假币就在旁边的2枚里：让这两枚互相称一下。无论哪种情况，称2次都够了，而1次不够：它只有3种结果，硬币却有8枚。
+    answer: 称2次。
+    note:
+      title: 为什么不是4对4？
+      text: >-
+        4枚对4枚地称，第一次称完还剩4枚硬币，而4枚硬币还要再称2次，一共要称3次。分成三组，就连“平衡”这个结果也能派上用场。
+    art:
+      one-lighter: 8枚中有一枚较轻
+      three: 3对3
+      aside: 放在旁边
+      lighter: 左边轻
+      one: 1对1
+      found: 轻的就是它；平衡就是第三枚
+      level: 平衡
+      of-two: 旁边的2枚
+      never-level: 不会平衡
+      four-left: 剩下4枚 → 还要称2次
+  - title: 一百枚硬币
+    question: >-
+      有100枚看起来一模一样的硬币，其中一枚是假币，比其他的轻，其他的硬币都一样重。用一架没有砝码的天平，最少要称几次，才能保证找出假币？
+    steps:
+      - >-
+        每称一次有3种结果，所以称4次最多只能区分3 × 3 × 3 × 3 = 81种情况。这比100枚硬币少，所以称4次不够。
+      - >-
+        天平两边各放33枚，另外34枚放在旁边：无论结果如何，最多剩下34枚。同样，34枚最多缩小到12枚，然后是4枚、2枚、1枚。
+      - 这样一共称5次，硬币从100枚依次变成34、12、4、2和1枚。
+    answer: 称5次。
+    note:
+      title: 证明的两半
+      text: >-
+        答案两半都要有：一个称5次就能找出假币的方案，以及对结果数的计算，它说明称4次永远不够。奥数题中关于“最少”的答案，总是由这两半组成。
+    art:
+      aside: 放在旁边
+      numbers: 箭头上的数字是第几次称
+      plan: 方案
+      always: 称5次一定能找到
+      bound: 下界
+      at-most: 称4次最多区分81种情况
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      不知不觉违反了题目的一条规则：题目不允许把水倒掉，却倒掉了；把壶装到它上面并没有的刻度；或者把砝码放进了放物体的托盘。
+    say: “题目允许做哪些步骤？”
+    art:
+      question: 壶上没有刻度
+      to-mark: 装到“1升”
+      after-pouring: 靠倒水得到1升
+  stopped_early:
+    shows: >-
+      计划在能确定之前就停下了：称一次找到了有假币的那一组，就不再往下找了；或者目标是1升，倒到2升就停了。
+    say: “不管天平显示的是哪种结果，你现在能确定了吗？”
+    art:
+      question: 第一次称完之后
+      here: “就在这里”，可是哪一枚？
+      one-more: 再称一次
+  off_by_one:
+    shows: >-
+      步数数差了一步：漏数了第一次从水龙头装水，或者把最后一次倒水数了两次。
+    say: “对着表再数一遍：一行就是一步。”
+    art:
+      question: 表里的一行就是一步
+      three: 3步
+      four: 4步
+      empty: 空壶 → 4个状态
+
+home:
+  - title: 在水槽边倒水
+    text: >-
+      拿两个大小不同的杯子，试着量出一个两个杯子都不能直接装出的水量。水槽就是最好的实验室，水洒了也没关系。
+  - title: 找出轻的那个
+    text: >-
+      把一个较轻的东西藏在几个看起来一样的东西里，用家里的天平，或者一个挂着两个袋子的衣架，把它找出来。数一数称了几次。
+  - title: 先做计划
+    text: >-
+      倒水或称重之前，先把计划写成一张表，再一步一步地检查。真正的本领是先做计划，而不是靠运气。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“称重与倒水”的题

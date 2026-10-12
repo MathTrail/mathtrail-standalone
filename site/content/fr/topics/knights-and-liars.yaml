@@ -1,0 +1,218 @@
+# The page of the topic of knights and liars, for a parent, in French. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: Chevaliers et menteurs
+description: Ce que sont les problèmes de chevaliers et menteurs, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+# The words every drawing of the page writes its islanders in: the letters
+# of a knight and of a liar, and the islanders' own.
+art:
+  knight: V
+  liar: M
+  a: A
+  b: B
+  c: C
+
+hero:
+  lead: >-
+    Sur une île vivent des chevaliers, qui disent toujours la vérité, et des
+    menteurs, qui mentent toujours. D’après ce qu’ils disent, il faut trouver
+    qui est qui. Pour beaucoup d’enfants, c’est leur première rencontre avec
+    un vrai raisonnement logique : faire une hypothèse, voir où elle mène et
+    repérer une contradiction.
+  method: « Supposons que celui-ci soit un chevalier… »
+  teaches: À raisonner pas à pas et à vérifier son raisonnement
+  # The words of its drawing: the key of the letters over it, and in it the
+  # first example's two suppositions and how each ends.
+  art:
+    knight: un chevalier dit toujours la vérité
+    liar: un menteur ment toujours
+    says: « Je suis un menteur et B est un chevalier »
+    rule: supposons, puis vérifions
+    if-knight: Si A est un chevalier, alors A est un menteur
+    contradiction: une contradiction
+    if-liar: Si A est un menteur, alors B l’est aussi
+    fits: ça concorde
+
+basis:
+  title: Les règles de l’île
+  cards:
+    - mark: V
+      title: Chevalier
+      text: Dit toujours la vérité. Chaque affirmation d’un chevalier est vraie, sans exception.
+    - mark: M
+      title: Menteur
+      text: Ment toujours. Chaque affirmation d’un menteur est fausse, et un menteur ne dit jamais la vérité, pas même par hasard.
+    - mark: "?"
+      title: Personne d’autre
+      text: Chaque habitant de l’île est soit un chevalier, soit un menteur. On ne peut pas les distinguer à leur apparence, seulement à leurs paroles.
+
+idea:
+  title: Qui peut dire quoi
+  lead: Commencez par deux phrases. Elles montrent tout de suite comment fonctionnent ces problèmes.
+  table:
+    head:
+      - Phrase
+      - Chevalier
+      - Menteur
+      - Ce que cela signifie
+    rows:
+      - - « Je suis un chevalier »
+        - "✓ Peut la dire : c’est vrai"
+        - "✓ Peut la dire : c’est un mensonge, comme doivent l’être les paroles d’un menteur"
+        - "Elle n’apprend rien : n’importe qui peut la dire."
+      - - « Je suis un menteur »
+        - "✕ Ne peut pas : ce serait un mensonge"
+        - "✕ Ne peut pas : ce serait la vérité"
+        - "Une phrase impossible : personne ne peut la dire."
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Quand un habitant dit « Je suis un chevalier », on peut barrer cette
+      phrase : elle ne change rien. Et quand, au milieu d’une solution, il
+      s’avère que quelqu’un a en fait dit « Je suis un menteur », l’hypothèse
+      de départ est fausse.
+
+method:
+  title: "Comment le résoudre : « supposons que… »"
+  lead: >-
+    Presque tous ces problèmes se résolvent de la même façon : on choisit un
+    habitant, on suppose ce qu’il est, et on regarde ce qui en découle. Les
+    exemples ci-dessous vont du plus simple à un problème d’olympiade.
+  steps:
+    - Supposer
+    - En tirer les conséquences
+    - Trouver une contradiction, ou vérifier la réponse
+
+examples:
+  - title: Deux sur la route
+    question: >-
+      Deux habitants de l’île, A et B, se rencontrent sur une route. A dit :
+      « Je suis un menteur et B est un chevalier. » Qui est qui ?
+    steps:
+      - >-
+        **Supposons que A soit un chevalier.** Alors ses paroles sont vraies,
+        et A est un menteur. Or on a supposé que A est un chevalier : c’est
+        **une contradiction**, donc ce cas est impossible.
+      - >-
+        **Supposons que A soit un menteur.** Alors ses paroles sont fausses.
+        Leur première moitié, « Je suis un menteur », est vraie, donc la
+        seconde est fausse : B n’est pas un chevalier, mais un menteur.
+        **Tout concorde.**
+    answer: A et B sont tous les deux menteurs.
+    note:
+      title: Comment un menteur peut-il dire « Je suis un menteur » ?
+      text: >-
+        Seule, la phrase « Je suis un menteur » est impossible. Mais si elle
+        est reliée à une autre par « et », un menteur peut la dire : la phrase
+        entière est fausse dès que l’une de ses parties l’est.
+    art:
+      says: « Je suis un menteur et B est un chevalier »
+      contradiction: une contradiction
+      fits: tout concorde
+      alone: « Je suis un menteur »
+      nobody: personne ne peut la dire
+      liar-can: un menteur peut la dire
+  - title: Une chaîne d’accusations
+    question: >-
+      Trois habitants de l’île, A, B et C, disent ceci. A : « B est un
+      menteur. » B : « C est un chevalier. » C : « A et B sont tous les deux
+      menteurs. » Qui est un chevalier, et qui est un menteur ?
+    steps:
+      - >-
+        **Par où commencer ?** Par celui qui en dit le plus, puisque ses
+        paroles ont le plus de conséquences. Ici, c’est C.
+      - >-
+        **Supposons que C soit un chevalier.** Alors A et B sont tous les deux
+        menteurs. Mais B a dit « C est un chevalier », ce qui serait vrai, et
+        un menteur ne dit jamais rien de vrai. **Contradiction.**
+      - >-
+        **C est donc un menteur.** Alors le « C est un chevalier » de B est
+        faux, et B est lui aussi un menteur.
+      - A a dit « B est un menteur », et c’est vrai. Donc A est un chevalier.
+    answer: A est un chevalier ; B et C sont des menteurs.
+    note:
+      title: "Vérification : chaque phrase une fois de plus"
+      text: >-
+        A : « B est un menteur » est vrai, et c’est un chevalier qui le dit.
+        B : « C est un chevalier » est faux, et c’est un menteur qui le dit.
+        C : « A et B sont tous les deux menteurs » est faux, puisque A est un
+        chevalier, et c’est un menteur qui le dit. Tout concorde.
+    art:
+      a-says: « B est un menteur »
+      b-says: « C est un chevalier »
+      c-says: « A et B sont tous les deux menteurs »
+      most: en dit le plus
+      contradiction: une contradiction
+      true-knight: vrai, et dit par un chevalier
+      false-liar: faux, et dit par un menteur
+  - title: La table ronde
+    question: >-
+      Dix habitants de l’île sont assis autour d’une table ronde. Chacun d’eux
+      dit : « Mon voisin de droite est un menteur. » Combien y a-t-il de
+      chevaliers à la table ?
+    steps:
+      - >-
+        Si un habitant est un chevalier, ses paroles sont vraies : son voisin
+        de droite est un menteur.
+      - >-
+        Si un habitant est un menteur, ses paroles sont fausses : son voisin
+        de droite est un chevalier.
+      - >-
+        Chevaliers et menteurs alternent donc autour de la table : V, M, V, M…
+        Exactement la moitié des dix sont des chevaliers : **5 chevaliers**.
+    answer: 5 chevaliers.
+    note:
+      title: Et si 9 habitants sont assis à la table ?
+      text: >-
+        Une alternance autour d’un nombre impair de places ne se referme
+        jamais : le dernier et le premier seraient de la même sorte. Une telle
+        table ne peut pas exister. Ici, les chevaliers et menteurs rencontrent
+        la parité.
+    art:
+      right-liar: le voisin de droite est un menteur
+      right-knight: le voisin de droite est un chevalier
+      half: 5 et 5
+      kinds: chevaliers et menteurs
+      turns: chacun regarde son voisin dans le sens horaire
+      clash: le dernier et le premier sont de la même sorte
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      L’enfant place les V et les M sans reprendre chaque phrase une dernière
+      fois, et l’une d’elles ne concorde pas.
+    say: « Relis chaque phrase. Est-elle vraie ou fausse, et qui l’a dite ? »
+  trusted_statement:
+    shows: >-
+      L’enfant croit ce que dit un habitant sans se demander qui l’a dit : A a
+      traité B de menteur, donc B en est forcément un.
+    say: « Et si c’est un menteur qui l’a dit ? Qu’est-ce qui est vrai, alors ? »
+  stopped_early:
+    shows: >-
+      L’enfant trouve qui est le premier habitant et s’arrête là, sans rien
+      décider pour les autres.
+    say: « Bien, A est un menteur. Qu’est-ce que cela t’apprend sur B ? »
+
+home:
+  - title: Jouez à l’île
+    text: >-
+      Vous mentez à chaque réponse, et l’enfant vous pose des questions.
+      Bientôt, l’enfant remarque qu’à « Tu mens ? » vous répondez toujours
+      « Non ».
+  - title: Questionnez au lieu de dire
+    text: >-
+      Au lieu d’une réponse, une question : « Et si c’est un chevalier, que
+      se passe-t-il ? » C’est l’idée clé du thème.
+  - title: Écrivez V et M au crayon
+    text: >-
+      Au-dessus de chaque nom, une hypothèse. Une contradiction ? Effacez-la
+      et essayez l’autre.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Chevaliers et menteurs »

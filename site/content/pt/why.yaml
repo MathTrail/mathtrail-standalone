@@ -1,0 +1,336 @@
+# The page "Why", for a parent, in Portuguese: why olympiad maths is worth a
+# child's time, how long people have learned it, what research has found about
+# it, how it differs from a school lesson, what a parent can do, how MathTrail
+# goes about it, and why it is no ordinary app. The grades, the topics' names
+# and the card's own words are not here: they are the catalog's numbers and the
+# widget's words. The card's options, its drawing, the history's pictures and
+# the works the page cites are the site's data; a finding here says what its
+# work found, no more.
+
+title: Por que matemática de olimpíada
+description: Por que os problemas de olimpíada valem o tempo de uma criança, o que as pesquisas descobriram sobre eles e como a mãe ou o pai pode ajudar com o MathTrail.
+
+# The label of the note that says plainly what the page does not promise.
+honest: Sinceramente
+
+# The fence: the problem the first screen sets beside a school sum, and the
+# card further down shows answered wrong. A variant of the site's own, never a
+# reference task word for word.
+task:
+  question: Uma cerca tem 12 metros de comprimento. Há um poste a cada 3 metros, inclusive nas duas pontas. Quantos postes há?
+  # The trap behind the wrong option picked on the card, as the card says it.
+  trap: Contou os espaços em vez dos postes.
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4 espaços. Uma cerca reta com postes nas duas pontas tem um poste a mais do que espaços. 4 + 1 = 5 postes.
+
+hero:
+  title: Por que matemática de olimpíada para a criança
+  lead: A escola ensina a resolver um problema a partir de um exemplo feito em aula. Os problemas de olimpíada ensinam a encontrar um caminho quando não há exemplo a seguir. Até o {last}º ano, a mãe ou o pai pode preparar a criança para eles, e o MathTrail foi feito para isso.
+  free: Grátis
+  open: Código aberto
+  school:
+    label: Uma conta de escola
+    text: É preciso saber dividir.
+    sum: 12 ÷ 3 = 4
+  olympiad:
+    label: Um problema de olimpíada
+    answer: "Resposta: {answer}"
+    trap: "Armadilha: 4 são os espaços, não os postes"
+    text: É preciso entender o que está acontecendo.
+  caption: Os mesmos números. Outro jeito de pensar.
+
+# How long people have learned to find a way with no example to follow: a
+# saying of Euclid's, then four eras, each with three pictures the page shows
+# in turn. The pictures are the site's data, era by era; each has the place a
+# chip over it names, its words for a screen reader and its caption with its
+# author and licence, and the chip that picks it, where that is not its place.
+history:
+  title: Há mais de dois mil anos se ensina a pensar sem um exemplo a seguir
+  lead: Problemas fora do padrão não são novidade. Em muitos países e ao longo de muitos séculos, as pessoas aprenderam a encontrar uma solução que ninguém lhes tinha mostrado e a explicar por que ela está certa, e cada geração transmitiu essa habilidade à seguinte.
+  quote: “Não há estrada real para a geometria.”
+  quoted: Euclides ao rei Ptolomeu, que perguntou se a geometria podia ser aprendida de um jeito mais fácil do que pelos “Elementos”. Assim conta Proclo, no século V.
+  # What a screen reader calls the choice of a picture.
+  choice: Imagens da história
+  eras:
+    - label: A Antiguidade · até o século VI
+      title: Demonstrações e livros de problemas
+      text: Os gregos começaram a demonstrar por que uma regra é verdadeira. Na China, “Os nove capítulos sobre a arte matemática” reuniram 246 problemas com suas soluções. Na Índia, os números passaram a ser escritos com um zero, do jeito que ainda os escrevemos.
+    - label: A Idade Média e depois · séculos IX–XIX
+      title: O problema como desafio
+      text: Em Bagdá, al-Khwarizmi escreveu o livro cujo título nos deu a palavra “álgebra”. Na Itália, matemáticos travavam duelos de problemas, e no Japão havia problemas pendurados nos templos, em tábuas de madeira.
+    - label: Fim do século XIX e século XX
+      title: Problemas para todas as crianças
+      text: "Todas as crianças passaram a ir à escola, e para quem tinha mais curiosidade surgiram círculos de matemática e olimpíadas: na Hungria desde 1894, em Leningrado desde 1934."
+    - label: Hoje
+      title: Um mentor para cada criança
+      text: "Um mentor pessoal já foi coisa de poucos: Aristóteles ensinou Alexandre, o Grande. Hoje toda criança pode ter um. No treinador do MathTrail, o companheiro nunca entrega a resposta: como os grandes mestres do passado, ele faz as perguntas que levam a criança à solução."
+      link: Ver o treinador →
+  pictures:
+    athens:
+      place: Grécia
+      alt: "Fragmento de um afresco: um sábio de cabelos grisalhos se inclina sobre uma lousa e traça com um compasso, com quatro discípulos ao redor."
+      caption: Euclides traça com um compasso numa lousa enquanto os discípulos observam; há quem diga que é Arquimedes. Fragmento do afresco “Escola de Atenas”, de Rafael, 1509–1511.
+    confucius:
+      place: China
+      alt: "Uma pintura: um mestre está sentado entre seus discípulos ao ar livre, e eles ouvem e discutem."
+      caption: Confúcio com seus discípulos. O cálculo era uma das “seis artes” que uma pessoa culta precisava saber. Pintura do século XIX, de artista desconhecido.
+    aryabhata:
+      place: Índia
+      alt: "Uma estátua branca: um sábio envolto num manto estende a mão."
+      caption: "Aryabhata, matemático e astrônomo indiano do século V. Ninguém sabe como ele era: esta é uma estátua moderna em Pune."
+    istanbul:
+      place: O mundo islâmico
+      alt: "Uma miniatura: sábios de turbante trabalham com um globo, instrumentos e livros."
+      caption: Astrônomos e matemáticos trabalhando no observatório de Taqi al-Din, em Istambul. Miniatura otomana do fim do século XVI.
+    pacioli:
+      place: Itália
+      alt: "Um retrato: um frade e matemático aponta para uma lousa com a inscrição Euclides, com um aluno ao lado e um poliedro de vidro pendurado sobre a mesa."
+      caption: O matemático Luca Pacioli com um aluno. Na borda da lousa com o desenho, lê-se “Euclides”. Retrato de 1495, atribuído a Jacopo de' Barbari.
+    sangaku:
+      place: Japão
+      alt: Uma tábua de madeira com desenhos coloridos de círculos e colunas de caracteres.
+      caption: "Um sangaku, tábua de problemas de geometria, no santuário Konnō Hachiman-gū, em Tóquio, 1859. Foto: Momotarou2012, CC BY-SA 3.0."
+    rachinsky:
+      place: Rússia
+      alt: "Uma pintura: meninos com camisas de camponês estão de pé diante de um quadro-negro com um problema e pensam; um deles, à frente, apoia o queixo na mão."
+      caption: "Alunos de uma escola rural resolvem de cabeça um problema do quadro: (10² + 11² + 12² + 13² + 14²) ÷ 365. Nikolai Bogdanov-Belsky, “Cálculo mental. Na escola pública de S. A. Ratchinski”, 1895."
+    st-louis:
+      place: EUA
+      alt: "Uma fotografia de uma turma: crianças escrevem colunas de números no quadro, a professora ajuda uma menina, e as outras crianças estão sentadas nas carteiras com livros."
+      caption: Crianças do 2º ano fazem contas no quadro. Escola Bates, St. Louis, início do século XX.
+    moscow:
+      place: URSS
+      alt: "Uma fotografia: um aluno junto a um quadro-negro com desenhos de geometria espacial olha para trás e sorri."
+      caption: "Um exame escolar: um aluno no quadro com um problema de geometria espacial. Moscou, década de 1950. Foto: Yu. D. Korolev, Arquivo Principal de Moscou, CC BY 4.0."
+    coach-canvas:
+      place: MathTrail
+      chip: Solução na área de desenho
+      alt: "A tela de um tablet: um problema sobre postes ao longo de uma estrada, um esboço pontilhado na área de desenho e, ao lado, a dica da raposa companheira e os passos: compreender, planejar, resolver, conferir."
+      caption: "Protótipo do treinador do MathTrail: a criança esboça uma solução na área de desenho, e o companheiro sugere começar com números pequenos."
+    coach-sheet:
+      place: MathTrail
+      chip: Problemas de uma folha
+      alt: "A tela de um tablet: a câmera fotografa uma folha de problemas de olimpíada, e o treinador encontrou seis problemas nela."
+      caption: "Protótipo do treinador do MathTrail: a criança fotografa uma folha de problemas, e o treinador encontra seis problemas nela."
+    coach-map:
+      place: MathTrail
+      chip: Um mapa de temas
+      alt: "A tela de um tablet: um mapa de temas de olimpíada em três passos, dos fundamentos aos problemas difíceis, e, ao lado, o tema “Enumeração de casos” e a etapa da criança nele."
+      caption: "Protótipo do treinador do MathTrail: um mapa de temas do mais simples ao mais difícil, e a etapa da criança em cada um."
+
+research:
+  title: O que as pesquisas descobriram
+  lead: Problemas de olimpíada são propostos a crianças há mais de um século, mas os estudos cuidadosos sobre o efeito deles são poucos. Estes são quatro deles.
+  # Each finding under a tag of where and whom, a short line in large letters
+  # with a line under it, and the words of the small drawing under its text.
+  findings:
+    rebholz2022:
+      tag: Alemanha · 3º e 4º anos
+      big: Um curso de problemas
+      small: e resultados melhores em duas frentes
+      title: A preparação aparece também na escola
+      text: Na Alemanha, crianças do 3º e do 4º ano fizeram um curso de problemas no estilo de olimpíada. Na Olimpíada de Matemática, elas se saíram claramente melhor do que as crianças que participaram sem o curso, e as do 4º ano também tiveram resultados melhores numa prova escolar de matemática. Foi o corpo docente que as escolheu para o curso.
+      mark:
+        - na olimpíada
+        - numa prova escolar
+    biondi2012:
+      tag: Brasil · 2009
+      big: 19 milhões
+      small: de estudantes participaram em um só ano
+      title: Escolas que participam da olimpíada têm notas mais altas em matemática
+      text: A Olimpíada Brasileira de Matemática das Escolas Públicas é aberta a qualquer estudante, e 19 milhões participaram em 2009. As escolas inscritas tiveram resultados melhores em matemática entre seus estudantes do 9º ano na prova nacional, e ainda melhores quanto mais anos tinham participado.
+      mark: mais anos de participação, notas mais altas
+    agarwal2020:
+      tag: A Olimpíada Internacional
+      big: IMO
+      small: quanto maior a nota, mais longe na ciência
+      title: Quem vai bem na olimpíada vai longe na ciência
+      text: Quanto maior a nota de quem competiu ainda adolescente na Olimpíada Internacional de Matemática, mais frequente foi, depois, chegar ao doutorado, publicar pesquisas, receber citações e ganhar os maiores prêmios da matemática.
+      mark:
+        - doutorado
+        - artigos
+        - citações
+        - grandes prêmios
+    nunes2007:
+      tag: Reino Unido · 6 anos
+      big: 16 meses
+      small: a lógica aos seis anos previu o desempenho em matemática
+      title: Raciocinar se aprende a partir dos seis anos
+      text: A qualidade do raciocínio lógico de crianças de seis anos previu o desempenho delas em matemática 16 meses depois. As crianças que foram ensinadas a raciocinar assim progrediram mais em matemática do que as que não foram.
+      mark:
+        from: 6 anos
+        to: +16 meses
+
+school:
+  title: A escola e as olimpíadas ensinam coisas diferentes
+  lead: Isso não é uma crítica à escola, que tem outra função. Mas a habilidade de encontrar uma solução quando nenhum método é dado não aparece por si só. É preciso treiná-la.
+  lesson: Uma aula comum
+  olympiad: Um problema de olimpíada
+  # Above the rows, an example of each: a school sum with its answer left
+  # blank, and the fence in short, with its posts.
+  example: Um exemplo
+  sum: 12 ÷ 3 =
+  done: "O método foi mostrado em aula: só falta repeti-lo."
+  fence: Uma cerca de 12 m, com postes a cada 3 m, inclusive nas duas pontas. Quantos postes?
+  found: "Nenhum método é dado, e é preciso encontrá-lo: 4 espaços, e um poste a mais do que espaços, então 5."
+  rows:
+    shape:
+      label: Como o problema é montado
+      lesson: Um método é mostrado e depois repetido em exemplos parecidos
+      olympiad: Nenhum método é dado, e é preciso encontrá-lo
+    valued:
+      label: O que conta
+      lesson: Fazer rápido e sem deslizes
+      olympiad: Entender o que está acontecendo e explicar por quê
+    mistake:
+      label: O que um erro significa
+      lesson: Um ponto perdido
+      olympiad: Um sinal de onde o raciocínio tomou o caminho errado
+    teaches:
+      label: O que ensina
+      lesson: A usar uma ferramenta conhecida
+      olympiad: A inventar uma quando não há nenhuma
+
+time:
+  title: Por que a escola não tem tempo para isso
+  # Each card with the words of the small drawing at its foot.
+  cards:
+    syllabus:
+      title: Um programa para a turma toda
+      text: Quem dá aula precisa levar cada estudante ao nível exigido. É difícil achar horas para problemas além do programa.
+      lesson: Uma aula
+      length: 45 minutos
+      all: o programa comum
+      extra: problemas além dele
+    answer:
+      title: A prova vê a resposta, não o raciocínio
+      text: A prova avalia o resultado. Raramente há tempo para ver como a criança raciocinou e onde exatamente errou.
+      steps: "a resolução: ninguém olha"
+      answer: "Resposta: {answer}"
+    circle:
+      title: Nem todo lugar tem um círculo de matemática
+      text: Nem toda escola tem um círculo de olimpíada, e o mais próximo pode ficar longe ou aceitar só crianças mais velhas.
+      none: nenhum
+      circle: um círculo
+
+parent:
+  title: A mãe ou o pai pode preparar a criança
+  note: O MathTrail não substitui quem ensina matemática de olimpíada, e um círculo forte, com treinador, vai render mais. Mas, até o {last}º ano, você pode preparar a criança para as olimpíadas por conta própria.
+  unneeded:
+    title: Você não precisa
+    items:
+      - Ter um diploma em matemática
+      - Saber as soluções de antemão
+      - Procurar e verificar problemas
+  taken:
+    title: O MathTrail assume
+    items:
+      - os problemas
+      - as respostas
+      - explicar os erros
+      - escolher o nível
+  needed:
+    title: O que cabe a você
+    items:
+      - title: A curiosidade da criança
+        text: Um problema de olimpíada é um quebra-cabeça, não uma prova. A criança deve ter curiosidade, não medo de errar.
+      - title: Explicar para que serve
+        text: Não “para tirar dez”, mas para aprender a inventar um caminho quando ninguém mostrou como.
+      - title: Seu tempo e seu interesse
+        text: Um pouco de tempo ao lado da criança, com frequência, é melhor do que muito tempo de uma vez só. Seu interesse por um problema é contagiante.
+  # Three moments of a lesson, each with what the child says and what the
+  # parent might answer; the letters stand for who speaks.
+  explain:
+    title: Como explicar à criança para que serve
+    lead: Três momentos comuns e o que você pode dizer. C é a criança.
+    child: C
+    you: Você
+    talks:
+      why:
+        moment: Pergunta “para quê?”
+        child: Para que eu preciso desses problemas? Ninguém mandou fazer.
+        you: "É como uma charada: a resposta está escondida, e você pode encontrá-la."
+      wrong:
+        moment: Erra
+        child: Errei de novo…
+        you: "Aqui você pode errar: o erro mostra onde pensar de novo."
+      right:
+        moment: Acerta
+        child: Consegui! A resposta é cinco.
+        you: O melhor não é a resposta, mas como você chegou até ela.
+
+thinking:
+  title: Como o MathTrail ensina a pensar
+  lead: Não pela quantidade de problemas, mas pelo que acontece em torno de cada um.
+  points:
+    - title: Um problema, uma ideia
+      text: Cada problema pertence a um tema, como “{enumeration}”, “{parity}” ou “{knights}”. Os temas formam um mapa, do mais simples ao mais difícil.
+    - title: Um problema ao alcance
+      text: Cada tema tem uma pontuação própria. Com base nela, o MathTrail escolhe o que vem a seguir, o tema e a dificuldade; o ano escolar só define o ponto de partida.
+    - title: Um erro é um diagnóstico
+      text: Por trás de cada alternativa errada há uma armadilha com nome. A explicação parte de como a criança raciocinou, não da resposta certa.
+    - title: Uma dica em vez da resposta
+      text: A criança pode abrir uma dica no cartão, e a pessoa adulta pode perguntar no chat, com as palavras da criança, “por que não 6?” O modelo responde sobre este mesmo problema.
+  topics: Ver os temas →
+  # The name of the child the card on this page shows, an invented one.
+  child: Cometa
+  caption: O cartão como um chat o mostra depois de uma resposta errada. A criança e os números são um exemplo.
+  # Two messages of the chat beneath the card: the adult's question and the
+  # model's reply, about the step and to nobody, for the adult to read out to
+  # the child. They are the site's words, never the card's.
+  chat:
+    label: Uma ilustração do chat
+    adult: Pessoa adulta
+    model: Modelo
+    question: Por que não 6?
+    reply: Com seis, um poste seria contado duas vezes. Percorrendo a cerca a partir da esquerda, cada espaço termina em um poste, então 4 espaços dão 4 postes, e o primeiro poste fica antes de todos eles. 4 + 1 = 5.
+
+app:
+  title: Por que este não é um app qualquer
+  lead: Num estudo dos apps que crianças de três a cinco anos usam para brincar, cerca de dois em cada três tinham recursos de design que mantêm a criança jogando por mais tempo ({source}). O MathTrail é feito de outro jeito, e isso pode ser conferido.
+  # A make-believe app of the kind that keeps a child at the screen, every
+  # trick of it, and what MathTrail has of them.
+  bait:
+    coins: "12.450"
+    gems: "87"
+    timer: 03:59 para o bônus
+    cheer: Você é fera!!!
+    praise: Você resolveu 1 conta de 1. Incrível!
+    chest: Abra o baú!
+    hat: "Chapéu de dragão · R$\u00a09,90"
+    premium: Seja premium e ganhe ×2 moedas!
+    caption: Parece familiar? O MathTrail não tem nada disso.
+  # Each card with the short things at its foot that show what it says.
+  cards:
+    checked:
+      title: Um programa verifica cada problema
+      text: O modelo escreve um problema e um programa que o resolve. O servidor roda o programa num ambiente fechado e isolado e verifica se exatamente uma alternativa está certa, se a resposta confere, se o texto é adequado ao ano escolar e se não repete o texto de problemas anteriores. Um problema que não passa nunca chega à criança.
+      checks:
+        - resposta única
+        - confere
+        - ao alcance
+        - não repetido
+      fails: não passa → nunca chega à criança
+    free:
+      title: Grátis, e o motivo é claro
+      text: O MathTrail não tem IA própria. O problema é escrito pelo modelo do seu chat, dentro do seu plano, e o plano Free do Claude serve. O servidor quase não tem o que pagar, então não há assinaturas, nem anúncios, nem temas bloqueados.
+      price: "R$\u00a00"
+      none:
+        - assinaturas
+        - anúncios
+        - temas bloqueados
+    data:
+      title: Os dados ficam com você
+      text: O perfil da criança é um arquivo no seu Google Drive. Só a resposta e a solução do problema em andamento ficam seladas, para que a criança não possa espiar. O servidor não guarda nada entre as requisições e não vende nada.
+      # After the name of the profile's file.
+      where: seu Google Drive
+      server: "no servidor: nada"
+    screen:
+      title: Nada que prenda a criança à tela
+      text: Sem moedas, sem baús, sem cronômetros, sem anúncios. Com o problema resolvido, dá para fechar o chat e conversar sobre ele no jantar.
+      none:
+        - moedas
+        - baús
+        - cronômetros
+        - anúncios
+      after: problema resolvido → jantar

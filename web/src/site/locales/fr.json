@@ -1,0 +1,122 @@
+{
+	"language.name": "Français",
+	"nav.language": "Langue",
+	"nav.pages": "Pages du site",
+	"nav.menu": "Menu",
+	"nav.topics": "Thèmes",
+	"nav.coach": "Coach",
+	"nav.beta": "Beta",
+	"nav.add": "Ajouter à Claude",
+	"nav.why": "Pourquoi",
+	"nav.techniques": "Techniques",
+	"nav.research": "Étude",
+	"nav.service": "Service",
+	"nav.technical": "Pages techniques",
+	"nav.about": "À propos",
+	"share.picture": "La page d’accueil de MathTrail\u00a0: sa promesse, à côté de la carte d’un problème telle qu’un chat l’affiche.",
+	"cite.one": "{first}, {year}",
+	"cite.two": "{first} et {second}, {year}",
+	"cite.many": "{first} et al., {year}",
+	"footer.links": "Liens",
+	"footer.source": "GitHub",
+	"group.logic": "Logique",
+	"group.counting": "Compter et dénombrer",
+	"group.time": "Le temps",
+	"group.numbers": "Nombres piégés",
+	"group.parts": "Parties d’un tout",
+	"group.games": "Stratégies et jeux",
+	"topics.builds_on": "S’appuie sur\u00a0: {topics}",
+	"topics.opens": "Mène à\u00a0: {topics}",
+	"topics.grades": "Niveaux {range}",
+	"topics.more": "En savoir plus →",
+	"topics.soon": "Bientôt",
+	"thumb.knight": "V",
+	"thumb.liar": "M",
+	"sign.divide": ":",
+	"sign.question": "?",
+	"techniques.count": {
+		"one": "{count} technique",
+		"many": "{count} de techniques",
+		"other": "{count} techniques"
+	},
+	"research.tasks": {
+		"one": "problème de référence",
+		"many": "de problèmes de référence",
+		"other": "problèmes de référence"
+	},
+	"research.checks": {
+		"one": "vérification",
+		"many": "de vérifications",
+		"other": "vérifications"
+	},
+	"research.passed": {
+		"one": "vérification",
+		"many": "de vérifications",
+		"other": "vérifications"
+	},
+	"research.topics": {
+		"one": "thème",
+		"many": "de thèmes",
+		"other": "thèmes"
+	},
+	"research.traps": {
+		"one": "piège",
+		"many": "de pièges",
+		"other": "pièges"
+	},
+	"research.pages": {
+		"one": "page",
+		"many": "de pages",
+		"other": "pages"
+	},
+	"research.places": {
+		"one": "position",
+		"many": "de positions",
+		"other": "positions"
+	},
+	"research.trial": {
+		"one": "problème",
+		"many": "de problèmes",
+		"other": "problèmes"
+	},
+	"research.answers": {
+		"one": "réponse",
+		"many": "de réponses",
+		"other": "réponses"
+	},
+	"research.given": {
+		"one": "réponse",
+		"many": "de réponses",
+		"other": "réponses"
+	},
+	"research.children": {
+		"one": "enfant",
+		"many": "d’enfants",
+		"other": "enfants"
+	},
+	"research.times": {
+		"one": "fois",
+		"many": "de fois",
+		"other": "fois"
+	},
+	"topic.path": "Vous êtes ici",
+	"topic.method": "L’idée clé",
+	"topic.teaches": "Ce qu’on y apprend",
+	"topic.contents": "Sur cette page",
+	"topic.solving": "Comment on le résout",
+	"topic.example": "Exemple {number} · {grades}",
+	"topic.answer": "Réponse",
+	"topic.traps": "Où les enfants se trompent",
+	"topic.traps_lead": "MathTrail explique chaque mauvaise réponse par le piège dans lequel elle est tombée. Voici les plus fréquents dans ce thème, avec une phrase à dire à votre enfant.",
+	"topic.trap": "Piège",
+	"topic.say": "Que lui dire",
+	"topic.child": "Enfant",
+	"topic.right": "Juste",
+	"topic.home": "Comment aider à la maison",
+	"topic.before": "À apprendre d’abord",
+	"topic.after": "Ouvre la voie à",
+	"topic.ask": "Demandez un problème sur ce thème",
+	"topic.all": "Tous les thèmes",
+	"copy.action": "Copier",
+	"copy.done": "Copié"
+}

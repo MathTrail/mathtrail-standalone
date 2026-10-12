@@ -1,0 +1,265 @@
+# The page of the topic of ordering, for a parent, in Portuguese. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. The page's drawings, each example's
+# level, and the answer its solver proves, are the site's data; an example here
+# is worked through to that answer. The traps are the topic's commonest, counted
+# in its reference tasks.
+
+title: Ordenação
+description: O que são os problemas de ordenação, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+# The words every drawing of the page writes its four children in: the
+# initial of each, and the name.
+art:
+  ann: A
+  ann-name: Ana
+  ben: B
+  ben-name: Bruno
+  kate: C
+  kate-name: Clara
+  dan-name: Davi
+  taller: mede mais
+
+hero:
+  lead: >-
+    Quem mede mais, quem nasceu antes, quem chegou primeiro? Nestes problemas,
+    é preciso juntar algumas comparações numa só ordem: por altura, por idade,
+    pelo lugar numa fila ou numa corrida. Para muitas crianças, esta é a
+    primeira cadeia de raciocínio, em que cada pista é um elo e nenhuma pode
+    ficar de fora.
+  method: Desenhar uma linha e colocar todo mundo nela
+  teaches: A juntar as pistas num só quadro e a ler uma comparação nos dois sentidos
+  # The words of its drawing: the clues and the rule over it, and the line's
+  # two ends in it.
+  art:
+    line: Pistas
+    clue-1: “Ana mede mais que Bruno”
+    clue-2: “Clara mede menos que Bruno”
+    clue-3: “Davi mede menos que Clara”
+    rule: colocar numa só linha
+    top: quem mede mais
+    bottom: quem mede menos
+
+basis:
+  title: As regras da linha
+  cards:
+    - title: Cada pista é uma seta
+      text: >-
+        “Ana mede mais que Bruno” põe Ana antes de Bruno na linha. Toda pista
+        diz quem vem primeiro, seja qual for a comparação: altura, idade ou
+        lugar numa corrida.
+      art:
+        clue: “Ana mede mais que Bruno”
+    - title: Leia nos dois sentidos
+      text: >-
+        “Bruno mede menos que Ana” diz o mesmo que “Ana mede mais que Bruno”.
+        Antes de colocar as pistas na linha, vire cada uma para que todas
+        apontem para o mesmo lado.
+      art:
+        clue: “Ana mede mais que Bruno”
+        turned: “Bruno mede menos que Ana”
+    - title: A cadeia continua
+      text: >-
+        Se Ana mede mais que Bruno e Bruno mede mais que Clara, então Ana
+        também mede mais que Clara, mesmo que nenhuma pista diga isso.
+      art:
+        implied: Ana mede mais que Clara
+
+idea:
+  title: Todas as pistas para o mesmo lado
+  lead: Monte a linha pista por pista, depois de reescrever cada uma com “mede mais que”. Cada passo acrescenta uma pessoa nova à linha.
+  table:
+    head:
+      - A pista
+      - Reescrita com “mede mais que”
+      - A linha até agora
+    rows:
+      - - “Ana mede mais que Bruno”
+        - Ana **mede mais** que Bruno
+        - Ana > Bruno
+      - - “Clara mede menos que Bruno”
+        - Bruno **mede mais** que Clara
+        - Ana > Bruno > Clara
+      - - “Davi mede menos que Clara”
+        - Clara **mede mais** que Davi
+        - Ana > Bruno > Clara > Davi
+  # The words of the drawings of the table: the note on a clue turned round.
+  art:
+    turned: virada
+  note:
+    title: Por que isso importa
+    text: >-
+      A maioria dos erros aqui vem de uma pista lida pelo lado errado: “mede
+      menos” tomado por “mede mais”, “depois” por “antes”. Uma pista que foi
+      virada antes de ir para a linha não tem como ser mal lida.
+
+method:
+  title: "Como resolver: desenhar a linha"
+  lead: >-
+    Desenhe uma linha de quem mede mais a quem mede menos, ou do primeiro ao
+    último, e coloque nela as pistas uma a uma, começando pelas que não deixam
+    dúvida. Quem ainda não tem lugar espera a próxima pista. Os exemplos abaixo
+    vão do mais simples a um de olimpíada.
+  steps:
+    - Virar todas as pistas para o mesmo lado
+    - Colocar as pistas na linha, primeiro as que não deixam dúvida
+    - Ler a resposta e conferir cada pista com ela
+  # The key under the steps: what the drawings' rings and outlines mean.
+  legend:
+    added: "um anel azul: o que este passo acrescenta"
+    free: um lugar ainda livre
+    block: "um bloco: dois sempre lado a lado"
+
+examples:
+  - title: Três barcos
+    question: >-
+      Três barcos apostaram corrida: um vermelho, um azul e um verde. O barco
+      vermelho chegou depois do azul. O barco verde chegou antes do azul. Qual
+      barco ganhou?
+    steps:
+      - >-
+        Vire a primeira pista: o barco vermelho chegou depois do azul, então o
+        azul chegou antes do vermelho.
+      - >-
+        Na linha, o primeiro fica à esquerda: azul, depois vermelho. O barco
+        verde chegou antes do azul, então vai na frente dos dois: verde, azul,
+        vermelho.
+      - >-
+        O primeiro da linha é o barco verde. Conferindo: vermelho depois do
+        azul, sim; verde antes do azul, sim.
+    answer: O barco verde ganhou.
+    badge: "1"
+    art:
+      red: vermelho
+      blue: azul
+      green: verde
+      before: antes
+      waits: espera
+  - title: A fila da cantina
+    question: >-
+      Cinco crianças estão na fila da cantina: Laura, Miguel, Nina, Otávio e
+      Paulo. Nina é a terceira. Otávio está logo atrás de Nina. Miguel está em
+      algum lugar à frente de Laura, e Laura não é a última. Quem fica em último
+      lugar?
+    steps:
+      - >-
+        Anote o que não deixa dúvida: Nina é a terceira, e Otávio, logo atrás
+        dela, é o quarto. Os lugares 1, 2 e 5 ficam para Miguel, Laura e Paulo.
+      - >-
+        Laura não é a última, então é a primeira ou a segunda. Miguel está em
+        algum lugar à frente dela, então ela não pode ser a primeira: Laura é a
+        segunda, e Miguel, o primeiro.
+      - >-
+        O único lugar que sobra, o quinto, é de Paulo. Confira cada pista:
+        todas são verdadeiras.
+    answer: Paulo fica em último lugar.
+    badge: P
+    note:
+      title: Cada pista conta
+      text: >-
+        Sem “Laura não é a última”, Laura também poderia ficar em último lugar:
+        é a pista curta com “não” que decide a fila.
+    art:
+      lena: L
+      lena-name: Laura
+      max: M
+      max-name: Miguel
+      nina: N
+      nina-name: Nina
+      oleg: O
+      oleg-name: Otávio
+      pavel: P
+      pavel-name: Paulo
+      wait: esperam
+      waits: espera
+      other: Sem essa pista, esta fila também serviria
+  - title: Seis corredores
+    question: >-
+      Seis corredores terminaram uma corrida sem empates: Alice, Bento, Caio,
+      Diana, Enzo e Flora. Bento chegou logo depois de Alice. Caio chegou depois
+      de Diana, mas antes de Alice. Flora chegou logo antes de Enzo, e Enzo não
+      foi o último. Diana não foi a primeira. Quem ganhou?
+    steps:
+      - >-
+        Encontre os blocos: “Bento logo depois de Alice” forma Alice-Bento, e
+        “Flora logo antes de Enzo” forma Flora-Enzo. Diana, depois Caio, depois
+        o bloco Alice-Bento vêm nessa ordem.
+      - >-
+        Diana não foi a primeira, então alguém chegou antes dela. Caio, Alice e
+        Bento chegaram todos depois de Diana: só Flora e Enzo podem estar na
+        frente dela, e os dois vêm juntos.
+      - >-
+        Então Flora-Enzo abre a corrida: Flora, Enzo, Diana, Caio, Alice,
+        Bento. Enzo não é o último, como diz a pista. Todas as pistas são
+        verdadeiras.
+    answer: Flora ganhou.
+    badge: F
+    note:
+      title: Os blocos andam juntos
+      text: >-
+        Quando uma pista diz “logo depois”, os dois corredores ficam sempre
+        lado a lado, aonde quer que vão. Trate os dois como um só bloco, e seis
+        corredores viram quatro peças para posicionar.
+    art:
+      ada: A
+      ada-name: Alice
+      bob: B
+      bob-name: Bento
+      cid: C
+      cid-name: Caio
+      dot: D
+      dot-name: Diana
+      eli: E
+      eli-name: Enzo
+      fay: F
+      fay-name: Flora
+      blocks: blocos
+      order: ordem
+      only: só estes cabem no “?”
+      six: 6 corredores
+      four: 4 blocos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      A criança usa uma pista e deixa passar outra, muitas vezes uma curta, com
+      “não”, e sobra espaço na linha para uma resposta errada.
+    say: “Que pista você ainda não usou?”
+    art:
+      question: A pista “Laura não é a última” ficou de fora
+  reversed_relation:
+    shows: >-
+      “Clara mede menos que Bruno” vai para a linha como se Clara medisse mais:
+      a pista é lida pelo lado errado, e a resposta sai invertida.
+    say: “Então quem mede mais? Diga ao contrário.”
+    art:
+      clue: “Clara mede menos que Bruno”
+  stopped_early:
+    shows: >-
+      A criança descobre que uma pessoa mede menos que outra e responde com
+      isso, embora a cadeia continue: Bruno mede menos que Ana, mas Clara mede
+      menos ainda.
+    say: “Tem alguém mais adiante na linha?”
+    art:
+      clue-1: “Bruno mede menos que Ana”
+      clue-2: “Clara mede menos que Bruno”
+      who: Quem mede menos?
+
+home:
+  - title: A família em fila
+    text: >-
+      Em casa, ponha todo mundo em fila por altura, depois por idade, e diga
+      cada pista em voz alta: “Papai mede mais que mamãe, então papai fica em
+      primeiro.”
+  - title: A linha antes da resposta
+    text: >-
+      Peça a linha no papel antes da resposta. Um desenho mostra na hora se
+      falta uma pista ou se alguma está virada para o lado errado.
+  - title: Diga ao contrário
+    text: >-
+      Proponha uma brincadeira rápida: você diz “o gato é menor que o
+      cachorro”, e a criança diz ao contrário: “o cachorro é maior que o gato”.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema de ordenação

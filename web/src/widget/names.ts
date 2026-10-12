@@ -1,4 +1,4 @@
-import { intlLocales } from "../i18n/lookup";
+import { intlLocales, listFormat } from "../i18n/lookup";
 import type { Words } from "../i18n/words";
 import type { Key } from "./words";
 
@@ -87,10 +87,7 @@ export function listed(words: Words<Key>, names: readonly string[]): string {
 		// A platform with no list formats of its own gets the commas alone.
 		return names.join(", ");
 	}
-	return new Intl.ListFormat(intlLocales(words.locale), {
-		type: "conjunction",
-		style: "narrow",
-	}).format(names);
+	return listFormat(words.locale).format(names);
 }
 
 /**

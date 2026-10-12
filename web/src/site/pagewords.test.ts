@@ -145,6 +145,48 @@ describe("a translation of a page's words", () => {
 		).toEqual([want]);
 	});
 
+	describe("keeps the English emphasis", () => {
+		// stressed are English words with an emphasis, a strong one and a star
+		// that stands for a digit.
+		const stressed = parsePageWords(
+			"title: Why\nlead: It is **free**, and *always*.\nstar: The star in 38*6\n",
+		);
+
+		test("agrees when it stresses what the English does, in its own order", () => {
+			expect(
+				pageWordsDisagreements(
+					stressed,
+					parsePageWords(
+						"title: Зачем\nlead: '*Всегда* и **бесплатно**.'\nstar: Звёздочка в 38*6\n",
+					),
+					"ru",
+				),
+			).toEqual([]);
+		});
+
+		test.each([
+			[
+				"an emphasis left out",
+				"title: Зачем\nlead: Бесплатно и *всегда*.\nstar: Звёздочка в 38*6\n",
+				"lead has [emphasis 1, strong emphasis 0, emphasis signs shown as written 0], the English [emphasis 1, strong emphasis 1, emphasis signs shown as written 0]",
+			],
+			[
+				"an emphasis the page cannot read, closed after a sign with no space",
+				"title: なぜ\nlead: '**無料。**いつでも*ずっと*。'\nstar: 38*6の星\n",
+				"lead has [emphasis 1, strong emphasis 0, emphasis signs shown as written 4], the English [emphasis 1, strong emphasis 1, emphasis signs shown as written 0]",
+			],
+			[
+				"the English star written otherwise",
+				"title: Зачем\nlead: '*Всегда* и **бесплатно**.'\nstar: Звёздочка в 38?6\n",
+				"star has [emphasis 0, strong emphasis 0, emphasis signs shown as written 0], the English [emphasis 0, strong emphasis 0, emphasis signs shown as written 1]",
+			],
+		])("disagrees for %s", (_, source, want) => {
+			expect(
+				pageWordsDisagreements(stressed, parsePageWords(source), "ru"),
+			).toEqual([want]);
+		});
+	});
+
 	test("holds the English to itself, for an empty text of its own", () => {
 		const empty = parsePageWords("title: Why\nlead:\n");
 

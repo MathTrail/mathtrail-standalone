@@ -88,6 +88,11 @@ techniques:
         anya: Аня
         borya: Боря
         vera: Вера
+      # The letter drawn on each child's face, one no other child's shares.
+      faces:
+        anya: А
+        borya: Б
+        vera: В
       pets:
         cat: кот
         dog: собака

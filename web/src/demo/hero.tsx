@@ -44,10 +44,10 @@ export function HeroDemo({
 	frame: HTMLElement;
 	bubble: HTMLElement | null;
 }) {
-	const words = useMemo(
-		() => openWords<Key>(data.locale, new Map([[data.locale, data.words]])),
-		[data],
-	);
+	const words = useMemo(() => {
+		const locale = withLatinDigits(data.locale);
+		return openWords<Key>(locale, new Map([[locale, data.words]]));
+	}, [data]);
 	const service = useMemo(() => demoService(data), [data]);
 	const [scene, setScene] = useState<Scene>({ kind: "task" });
 	const asks = useRef(0);
@@ -125,4 +125,19 @@ export function bringHeroAlive(document: Document, data: DemoData): boolean {
 	// The frame takes the focus when a card it holds gives way to the next.
 	frame.tabIndex = -1;
 	return true;
+}
+
+/**
+ * withLatinDigits is locale asking for its numbers in the digits 0 to 9, as
+ * every page of the site writes them: a browser's own data may have a
+ * language write its numbers in digits of its own, as some write Arabic's
+ * in ٠ to ٩.
+ */
+export function withLatinDigits(locale: string): string {
+	try {
+		return new Intl.Locale(locale, { numberingSystem: "latn" }).toString();
+	} catch {
+		// A platform that reads no locales writes the digits it writes.
+		return locale;
+	}
 }

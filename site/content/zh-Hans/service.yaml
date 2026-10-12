@@ -1,0 +1,476 @@
+title: 服务的工作原理
+description: "MathTrail 的内部工作原理：服务的各个部分及其连接方式、一节课的逐次调用、状态存放在哪里、家长云端硬盘中的档案文件，以及其中密封了什么。"
+hero:
+  badge: 写给技术读者
+  title: 服务的工作原理
+  lead: "MathTrail 位于一家人已经在用的聊天应用和家长的 Google 云端硬盘之间。每道题都由聊天模型来写，能不能送到孩子面前，则由服务决定。它是单一的程序：不调用任何自有模型，两次请求之间也不保留任何东西。"
+  chips:
+    - Cloud Run 上的一个 Go 二进制文件
+    - 无状态
+    - 无数据库
+    - 不自行调用 LLM
+    - MCP 2026-07-28 · MCP Apps
+  figure: MathTrail 的三层结构
+  client:
+    title: 聊天客户端
+    tag: 1 · 客户端
+    others: 其他 MCP Apps 宿主
+    note: 聊天模型出题，卡片把题目展示给孩子。
+  mcp: "{via} · 通过 HTTPS 的工具调用"
+  cloud:
+    title: Google Cloud 上的 MathTrail
+    tag: 2 · 运行时
+    sub: Cloud Run · 一个 Go 二进制文件 · 无状态
+    core: 核心：纯计算
+    around: "核心周边：OAuth、MCP 服务器、卡片、密封、限制。"
+  drive: "{via} · 使用家长自己的令牌"
+  storage:
+    title: Google 云端硬盘
+    tag: 3 · 存储
+    note: 每个孩子一个文件，存放在家长自己的云端硬盘里：这是唯一长期保存的东西。
+map:
+  title: 架构图
+  lead: 谁和谁通信。孩子和成年人都不直接访问 MathTrail，而是与聊天宿主交互。中间区块里的所有部分都属于同一个进程，而不是独立的服务。请选择任意一个部分，查看它的作用以及与之相连的部分。
+  legend: 服务的组成部分
+  whole: 未选择任何部分
+  hint: "请在架构图上选择一个部分：与它相连的一切保持明亮，其余部分会变淡。"
+  linked: 与之相连
+  reset: 清除 ✕
+  columns:
+    family:
+      title: 家庭的聊天应用
+      sub: 浏览器、电脑和手机上的 Claude · ChatGPT
+    service:
+      title: MathTrail
+      sub: 一个 Go 二进制文件 · Cloud Run · 独立域名
+      tag: 各部分之间是普通的函数调用
+    outside:
+      title: Google 和 GitHub
+      sub: 二进制文件之外仅有的几个服务
+  groups:
+    people:
+      title: 用户
+      short: 家庭的聊天应用
+    host:
+      title: 聊天宿主
+      short: 聊天宿主
+    entry:
+      title: 入口
+      short: MathTrail · 入口
+    tools:
+      title: 工具：读取档案、计算、写回
+      short: MathTrail · 工具
+    core:
+      title: 纯计算：不联网
+      short: MathTrail · 纯计算
+    around:
+      title: 核心周边
+      short: MathTrail · 核心周边
+    account:
+      title: 家长的 Google 账号
+      short: 家长的 Google 账号
+    cloud:
+      title: Google Cloud
+      short: Google Cloud
+    github:
+      title: GitHub
+      short: GitHub
+  parts:
+    adult:
+      name: 成年人
+      sub: 家长或老师 · 负责登录的人
+      about: "家长或老师。同时拥有聊天账号和 Google 账号：连接 MathTrail、登录一次、创建档案、在聊天中主持课程并关注进度。是唯一登录的人，也是唯一打字的人。"
+    kid:
+      name: 孩子
+      sub: 1～6年级 · 自己不登录
+      about: 1～6年级。在成年人的聊天里，在卡片上解题。自己不登录。
+    model:
+      name: 宿主的模型
+      sub: 编写题目、求解程序和讲解
+      about: Claude 或 ChatGPT。编写题目、一个 Starlark 求解程序、每个错误选项背后的讲解，以及一份自检；在不显示卡片的地方，用文字主持课程。MathTrail 本身不调用任何模型。
+    appsrt:
+      name: MCP Apps 运行时
+      sub: 卡片所在的沙箱内嵌框架
+      about: 在运行于沙箱中的内嵌框架里绘制卡片，把语言、平台和尺寸传给它，并带上宿主的令牌转发卡片自己的调用；卡片本身永远看不到这个令牌。
+    cimd:
+      name: 客户端元数据文档
+      sub: 宿主的 client_id 是一个 HTTPS 地址
+      about: 宿主用一个 HTTPS 地址来表明自己的身份。MathTrail 会获取该地址上的文档（有防范 SSRF 的保护），而不是维护一份客户端注册表。
+    router:
+      name: HTTP 路由器
+      sub: /mcp · /oauth/* · /health
+      about: "唯一的入口：/health、/mcp、OAuth 端点和 .well-known。超时、请求体大小上限、Origin 检查；签发方就是它自己的域名，其他任何 Host 都会收到404。"
+    authsrv:
+      name: 授权服务器
+      sub: OAuth 2.1 + PKCE，用户同意
+      about: "MathTrail 自己就是一个带 PKCE 的 OAuth 2.1 服务器：元数据、自己的同意屏幕、用 Google 账号登录、令牌、续期和撤销。有状态的服务器需要保存的一切，都密封在令牌和 Cookie 里。"
+    mcpsrv:
+      name: MCP 服务器
+      sub: Streamable HTTP，无状态
+      about: "协议：Streamable HTTP 2026-07-28，无状态，基于官方 Go SDK。它列出并调用工具，以 ui:// 资源的形式提供卡片，并把指令连同其版本号交给模型。"
+    limits:
+      name: 限制
+      sub: 按地址、按账号、按天
+      about: 登录前按地址、登录后按账号限制速率，另有一个总上限，都在内存中计数；此外还有每天的上限，由档案计数。超出限制时，返回一句简单的话，由模型转达。
+    tools:
+      name: 工具
+      about: "十二个工具，形式都一样：读取档案、计算、写回。大多数由模型调用；卡片调用属于自己的那几个：用于题目、答案、进度和档案表单。结果中从不包含任何机密。"
+    rule:
+      name: 规则
+      sub: 专题、目标、难度目标区间
+      about: "以确定性的方式选定出题要求：答错之后，还是同一个专题，用来巩固；否则选最久没出现的专题；难度取自答对概率在70%～85%之间的目标区间。"
+    rating:
+      name: 评分
+      sub: θ、δ、β · 基于 IRT 的 Elo
+      about: P = 0.2 + 0.8·σ(θ + δ − β)。Elo 只根据答案对不对来变动，步长逐渐缩小；采用国际象棋式的分值尺度，共十一个等级；一个专题是否算作已掌握，看的是一个保守的估计。
+    checks:
+      name: 检查
+      sub: 提交的题目必须通过的检查
+      about: "提交的题目必须通过以下检查：结构和五个互不相同的选项、课程语言的文字、互不相同的讲解、求解程序、自检、可读性、近似重复，以及图：图的格式、图中标注与题目是否对得上、图上没有写出答案。所有未通过的项目会一次性全部报告。"
+    solver:
+      name: 求解程序
+      sub: Starlark 沙箱，步数上限
+      about: 运行模型写的 Starlark 程序，由它逐一尝试各个选项；必须恰好有一个选项被算出是正确的。限制步数和时间，不能联网，也不能访问文件。
+    content:
+      name: 内容
+      sub: 目录、参考题、指令
+      about: "内置在二进制文件中、但不是代码的一切：专题、陷阱和技能的目录，参考题，模式（schema），求解程序模板，每种图各一个示例，以及带版本号的模型指令。"
+    widget:
+      name: 小组件
+      sub: 卡片 · 一个 HTML 文件
+      about: "卡片：用 Preact 构建成一个 HTML 文件，不从别处加载任何东西，各语言的词典都在其中。布局从320像素宽起就能正常使用，按钮大小适合手指点按。"
+    store:
+      name: 存储
+      sub: 档案和当前题目
+      about: 通过一个隐藏标记找到档案，写入前先比较，协调两个标签页，在家长要求时从云端硬盘中永久保留的版本恢复文件，并把云端硬盘调用控制在很小的预算之内。
+    seal:
+      name: 密封
+      sub: 令牌和已密封的答案
+      about: "一个机制，两项工作：把登录信息和 Google 的令牌密封进宿主持有的令牌里，把题目的答案（当前题目的，以及提前写好的那道题的）密封进档案里。密钥来自 Secret Manager，并按密钥 ID 轮换。"
+    logs:
+      name: 日志记录
+      sub: 汇总，不含个人数据
+      about: "每次调用记录一条结构化汇总：工具、结果、耗时、指令版本；尝试次数和被拒原因则作为题目的事件记录。不含个人数据，不含题目文本，不含答案。"
+    boot:
+      name: 容器与配置
+      sub: 环境、版本、关闭
+      about: 把各部分连接起来，并按相反的顺序关闭它们；使用超时和优雅关闭；从环境变量读取全部配置；如果在 Cloud Run 上带着开发开关，就拒绝启动。
+    goauth:
+      name: Google OAuth
+      sub: 仅 drive.file
+      about: 家长登录（只申请 drive.file 权限）、续期和撤销。撤销任何一个令牌，都会终止全部访问。
+    gdrive:
+      name: Drive API v3
+      sub: 唯一的长期存储
+      about: "唯一的长期存储：家长云端硬盘中一个可见的 MathTrail 文件夹里的一个 JSON 档案，用家长自己的令牌读写。"
+    sm:
+      name: Secret Manager
+      sub: 密封密钥、客户端密钥
+      about: "密封密钥和 Google 的客户端密钥：固定的版本，在实例启动时读取一次。"
+    ar:
+      name: Artifact Registry
+      sub: 镜像，按摘要（digest）引用
+      about: 每个修订版本的镜像，按摘要引用；旧镜像会被删除。
+    clog:
+      name: Cloud Logging
+      sub: stdout 的去处
+      about: 服务的 stdout 写到这里。用来统计孩子的日志行单独存放在一个存储桶中，保留62天。
+    bq:
+      name: BigQuery → Data Studio
+      sub: 保存多年的计数
+      about: 使用情况的计数保存多年，每晚重新统计一次；没有任何一张表包含孩子在统计中所用的名称。一份私有报告和一份公开报告，公开报告不显示少于十名孩子的分组。
+    ga:
+      name: Actions
+      sub: 构建、检查、部署
+      about: 构建、检查、发布镜像，以及通过工作负载身份联合进行部署，不使用服务账号密钥。
+    pages:
+      name: Pages
+      sub: 本网站、隐私政策和使用条款
+      about: "本网站：各专题的页面，以及同意屏幕所链接的隐私政策和使用条款。"
+  links:
+    adult-model: 聊天，以及在不显示卡片时用文字给出的题目
+    kid-appsrt: 题目和它的按钮
+    adult-authsrv: 在浏览器中用 Google 账号登录并同意
+    model-router: 通过 HTTPS 的工具调用
+    appsrt-router: "卡片自己的调用：题目、答案、进度、档案表单"
+    mcpsrv-appsrt: 以 ui:// 资源形式提供的卡片
+    authsrv-cimd: 获取客户端的文档
+    router-authsrv: /oauth/*
+    router-mcpsrv: /mcp
+    router-limits: 登录前后都会检查
+    mcpsrv-tools: tools/call
+    widget-mcpsrv: 内置的 HTML
+    content-mcpsrv: 服务器的指令
+    tools-rule: 选定出题要求
+    tools-rating: 更新评分
+    tools-checks: 检查提交的题目
+    tools-store: 读写档案
+    tools-content: 出题材料包
+    tools-limits: 每天的上限
+    tools-seal: 密封答案并解封
+    rule-content: 目录
+    checks-solver: 运行程序
+    checks-content: 模式（schema）和限制
+    authsrv-seal: 令牌和 Cookie
+    boot-router: 构建并启动它
+    tools-logs: 事件
+    authsrv-logs: 事件
+    store-logs: 事件
+    limits-logs: 事件
+    store-gdrive: 文件，使用家长的令牌
+    authsrv-goauth: 授权代码、令牌、续期、撤销
+    sm-boot: 启动时把机密载入环境变量
+    sm-seal: 密封密钥
+    ar-boot: 修订版本，按摘要引用
+    logs-clog: stdout
+    clog-bq: 每晚重新统计
+    ga-ar: 镜像
+    ga-pages: 发布网站
+    authsrv-pages: 指向隐私政策和使用条款的链接
+    appsrt-pages: 专题页面
+flow:
+  title: 一节课的逐次调用
+  lead: 模型和卡片调用同一组工具，依赖同一个事实来源：家长云端硬盘中的档案文件。要让课程继续下去，它们彼此之间无须传递任何信息。
+  legend: 场景
+  scenarios:
+    task: 出题
+    answer: 作答
+    signin: 登录
+  kinds:
+    call: 调用
+    reply: 返回
+    host: 宿主内部
+  actors:
+    adult: 成年人
+    kid: 孩子
+    card: 卡片
+    model: 宿主的模型
+    service: MathTrail
+    drive: 云端硬盘
+    browser: 家长的浏览器
+    host: 宿主
+    google: Google
+  task:
+    rows:
+      - “来一道新题”
+      - next_task
+      - "调用一开始，宿主就显示卡片：“正在准备下一道题…”"
+      - 限制 · 规则选定专题、水平和难度
+      - 写入未完成的请求
+      - 请求已开启：请获取出题材料包
+      - get_package
+      - 出题要求 · 3道参考题 · 陷阱 · 模板 · 图的示例
+      - 模型写出题目、一个 Starlark 求解程序和一份自检
+      - submit_task：最多尝试3次
+      - 检查 · 求解程序必须恰好找到一个正确选项
+      - 这道题成为当前题目，答案已密封
+      - read_task：卡片每4秒询问一次
+      - 文字 · 图 · 五个选项 · 提示，不含答案
+    caption: "每次调用还会从云端硬盘读取档案，图中省略了这些读取。等待中的卡片永远看不到出题材料包：其中的参考题带着答案。在孩子解题时，模型会用 prepare_task 提前写好下一道题；当要求再来一道时，next_task 会立即把它放到一张新卡片上，不必经历这段等待。"
+  answer:
+    rows:
+      - 点击选项C
+      - submit_answer：不消耗聊天的回合
+      - 只记第一次作答 · 此时才打开密封 · θ 和 δ 只根据对错变动
+      - 写入评分和历史记录
+      - 是否答对 · C背后的陷阱 · 解答图 · 步骤 · 评分（之前 → 之后）
+      - 卡片在原题的位置变成答案讲解
+      - ui/update-model-context：一行字，随成年人的下一条消息一起读取
+      - “为什么多了一根柱子？”
+      - 就这道题本身回答，补充卡片的内容
+    caption: 按下选项就会记录答案，早于任何讲解，卡片也会立刻变成答案讲解。聊天不消耗回合，模型也不画任何东西。模型会随成年人的下一条消息读到卡片发来的那一行，回答关于这道题的问题时，不复述卡片上的内容。如果宿主发给模型的那一行丢失了，模型会在下一次调用时补上。
+  signin:
+    rows:
+      - POST /mcp，不带令牌
+      - 401 · 元数据在哪里
+      - 打开 /oauth/authorize · PKCE S256
+      - authorize
+      - "自己的同意屏幕：哪个客户端，以及它会把家长送回哪里"
+      - 用 Google 账号登录 · 仅 drive.file
+      - 带着 Google 的授权代码返回
+      - /oauth/callback
+      - 交换授权代码
+      - /about：这是谁的云端硬盘？
+      - 用户 ID = 云端硬盘账号的 HMAC · Google 的令牌密封进我们的授权代码
+      - 302 · code = mt1.c.…
+      - 交回授权代码
+      - /oauth/token · 授权代码 + 代码验证器
+      - 访问令牌15分钟 · 刷新令牌30天
+    caption: "家长只需登录一次。服务不保存这次交换的任何内容：请求放在一个已密封的 state 参数里传递，Google 的令牌则放在一个已密封的授权代码里。"
+  machine:
+    title: 当前题目的状态机
+    lead: 每一条“只能一次”的规则都是档案中的一个字段，在同一次读取、计算和写入之内检查。除此之外，没有任何东西会记住任何事。
+    forward:
+      - 出题要求已备好
+      - 已密封，已发出
+      - 只记录一次
+    turns:
+      - 被拒，仍有尝试机会：每个请求最多三次
+      - 被拒三次，或从请求开启起满15分钟；不消耗当天的题目数，三次被拒算作当天一次失败的请求
+      - 作答前按了“再来一题”：记为跳过，评分不变
+      - 之后的任何作答（来自第二个标签页或来自模型）都只会拿回第一次的结果，不写入任何内容
+      - 下一道题，出现在新卡片上；已作答的那道题不再是当前题目
+      - 下一道题已提前写好：next_task 立即把它放到新卡片上，跳过 requested
+      - 密封已无法打开：密钥已轮换两次；不记录任何内容
+state:
+  title: 状态存放在哪里
+  lead: "有状态的服务器存进数据库的一切，在这里都由别人保管：聊天持有的已密封令牌、家长浏览器里的 Cookie，或家长自己的云端硬盘。无论重启服务，还是再启动一个副本，都不会丢失任何东西。"
+  self:
+    label: MathTrail 本身
+    value: 无
+    note: 没有账号，没有会话，没有注册信息，也没有 Google 令牌。每个请求都携带它所需要的一切。
+  stores:
+    tokens:
+      title: 聊天的令牌存储
+      sub: 已密封的令牌，对宿主不透明
+      rows:
+        access:
+          name: 访问令牌
+          life: 15分钟
+        refresh:
+          name: 刷新令牌
+          life: 30天，≤ 90天
+      note: 里面密封着 Google 的令牌、一个用于限制的不透明用户 ID，以及家长登录时所在的国家。
+    browser:
+      title: 家长的浏览器
+      sub: 两个 Cookie，没有会话
+      rows:
+        approvals:
+          name: 已批准的客户端
+          life: 180天
+        csrf:
+          name: 登录防护（CSRF）
+          life: 10分钟
+      note: 丢失它们的代价是多看一次同意屏幕，或者重新登录一次。
+    drive:
+      title: 家长的云端硬盘
+      sub: 唯一长期保存的东西
+      rows:
+        profile:
+          life: 直到被删除
+      note: 档案、评分和当前题目，其答案已密封。家长可以打开这个文件，云端硬盘也会保留它的版本记录。
+    secrets:
+      title: Secret Manager
+      sub: 在实例启动时读取一次
+      rows:
+        keys:
+          name: 密封密钥
+          sub: 轮换后，之前的密钥仍会被接受
+          life: 90天
+        client:
+          name: Google 的客户端密钥
+          life: 固定版本
+    memory:
+      title: 实例的内存
+      sub: "只有缓存：重启后丢失，也不会出任何问题"
+      rows:
+        rates:
+          name: 请求速率计数器
+          life: 几分钟
+        location:
+          name: 档案文件的位置
+          life: 10分钟
+        clients:
+          name: 客户端的文档
+          life: 5分钟～24小时
+  absent:
+    title: v1 中刻意省去的东西
+    items:
+      - 数据库
+      - 队列
+      - 会话存储
+      - 共享缓存
+      - 现成的题库
+      - LLM API 客户端
+      - REST 和 OpenAPI
+profile:
+  title: 档案文件
+  lead: "一个孩子，一个 JSON 文件：它不是服务器上某个事实的缓存，而是事实本身。每个区块都有上限，每次写入都会守住，所以文件永远不会无限增长：通常的文件保持在目标之内，接近各项上限的文件则会超出目标。做过的题以指纹形式保存，而不是保存文本。"
+  size: 文件大小
+  legend: 显示哪种大小
+  typical: 通常
+  cap: 接近上限
+  total: "≈ {kb} KB"
+  kb: "{kb} KB"
+  goal: "目标{kb} KB"
+  segment: "{name} · {typical} / {cap} KB"
+  heads:
+    block: 区块
+    holds: 内容
+    writers: 写入者
+    size: 大小
+  blocks:
+    fingerprints:
+      name: 指纹
+      holds: 最多200个已发出题目的草图，用于近似重复检查；不含文本、专题和日期
+    history:
+      name: 评分历史
+      holds: θ 和该专题的 δ 在最近每次作答之前的值，以及在最近7个有作答的日子里，每天开始时 θ 和每个专题的值
+    ratings:
+      name: 评分和专题
+      holds: "θ 和孩子的起点；每个专题的 δ、作答、掉进过的陷阱、掌握情况及其水平"
+    recent:
+      name: 最近作答
+      holds: 最近20次作答和跳过，并且永远不少于规则要读取的5次作答
+    sealed:
+      name: 当前题目（已密封）
+      holds: 答案、每个错误选项背后的陷阱、解答和求解程序，合成一个不透明的字符串
+    open:
+      name: 当前题目（明文）
+      holds: "卡片显示的内容：文字、图、五个选项、提示，以及作答之后的答案本身"
+    request:
+      name: 未完成的请求
+      holds: "题目编写期间：它的 ID、出题要求、已用的尝试次数，以及是谁选的专题"
+    service:
+      name: 服务与孩子
+      holds: 模式（schema）版本、一个随机 UUID、修订号；化名、年级、兴趣爱好、备注；当天的计数器
+  every-write: 每次写入
+  note: "提前写好的题目和当前题目放在一起，大小也差不多。文件中没有的内容：做过的题目的文本、孩子作答之前的明文答案、任何能识别家长身份的信息，以及等级（等级在显示时才计算）。云端硬盘不支持条件写入，因此保存前会重新读取一次文件，如果文件已经改变，写入就会被拒绝：两个标签页永远不会悄无声息地互相覆盖。"
+seal:
+  title: 密封了什么，有效期多长
+  lead: "一个机制承担两项工作：把登录信息密封进聊天持有的令牌里，把题目的答案（当前题目的，以及提前写好的那道题的）密封进档案里。每个密封都带有它的用途，所以访问令牌无法冒充刷新令牌，已密封的答案也无法冒充其他任何东西。"
+  token:
+    title: 拆开一个令牌
+    version: 格式版本
+    purpose: 用途
+    purposes:
+      c: 授权代码
+      a: 访问
+      r: 刷新
+      d: 客户端
+      s: state
+      k: 同意
+      t: 题目答案
+    key: 密钥 ID
+    key-note: 取自密钥本身，因此轮换时不会被察觉
+    cipher: 密文
+    cipher-note: XChaCha20-Poly1305，随机的192位 nonce
+    note: "不是 JWT：除了服务本身，没有人会读取它；从一个不透明的字符串里，也不会有任何声明（claim）泄漏到日志中。"
+  life:
+    title: 有效期，对数刻度
+    ticks:
+      - 1分钟
+      - 1小时
+      - 1天
+      - 1周
+      - 6个月
+    items:
+      code:
+        name: 授权代码
+        life: 60秒
+      signin:
+        name: 进行中的登录
+        life: 10分钟
+      access:
+        name: 访问令牌
+        life: 15分钟
+      refresh:
+        name: 刷新令牌
+        life: 30天，滑动延长，最长90天
+      key:
+        name: 密封密钥
+        life: 每90天轮换一次
+      approvals:
+        name: 已批准的客户端
+        life: 180天
+    note: 无状态的服务器无法把授权代码标记为已使用，所以授权代码的有效时间窗口很短。轮换之后，之前的密钥仍会被接受，所以更换密钥时，令牌和已密封的答案都不会失效。

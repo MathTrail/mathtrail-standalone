@@ -1,0 +1,246 @@
+# The page of the topic of games with a winning strategy, for a parent, in
+# French. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Jeux à stratégie gagnante
+description: Ce que sont les problèmes de jeux à stratégie gagnante, comment on les résout, où les enfants se trompent et comment les aider à la maison.
+
+# The words the page's drawings say of a position.
+art:
+  loses: perdante pour qui doit jouer
+  wins: gagnante
+
+hero:
+  lead: >-
+    Il y a 20 allumettes sur la table, et les joueurs en prennent 1, 2 ou 3 à
+    tour de rôle. Qui prend la dernière allumette gagne. Le premier joueur
+    peut-il toujours gagner ? Dans ces problèmes, l’enfant cherche un plan qui
+    gagne quoi que fasse l’autre joueur, et le trouve en partant de la fin de
+    la partie, pour savoir quelles positions sont perdantes pour le joueur dont
+    c’est le tour.
+  method: Partir de la fin et trouver les positions perdantes
+  teaches: À trouver un plan qui gagne quoi que fasse l’autre joueur
+  # The words of its drawing: the game it is drawn for.
+  art:
+    line: On prend 1, 2 ou 3 allumettes ; qui prend la dernière gagne
+
+basis:
+  title: Les règles des jeux
+  cards:
+    - title: En partant de la fin
+      text: >-
+        Partez de la fin de la partie, où l’on sait qui gagne, et remontez : une
+        position est perdante quand chaque coup qui en part mène à une position
+        gagnante pour l’autre joueur.
+      art:
+        back: de 0, la fin de la partie, vers les nombres plus grands
+    - title: Laisser à l’autre une position perdante
+      text: >-
+        Un coup gagnant laisse à l’autre joueur une position perdante. S’il
+        n’existe aucun coup de ce genre, la position est perdante, aussi habile
+        que soit le joueur.
+      art:
+        take: prendre 2
+        losing: perdante pour l’autre
+    - title: Copier et jouer en miroir
+      text: >-
+        Dans beaucoup de jeux, on gagne en gardant l’équilibre : on répond à
+        chaque coup de sorte que les deux coups fassent ensemble le même total,
+        ou on joue le même coup du côté symétrique.
+      art:
+        they: l’autre prend
+        answer: on prend
+
+idea:
+  title: Les positions perdantes
+  lead: Dans le jeu où l’on prend 1, 2 ou 3 allumettes et où la dernière allumette gagne, les positions perdantes pour le joueur dont c’est le tour reviennent toutes les 4 allumettes.
+  table:
+    head:
+      - Allumettes restantes
+      - Le meilleur coup
+      - Pourquoi
+    rows:
+      - - 1, 2 ou 3
+        - tout prendre
+        - la dernière allumette gagne
+      - - "4"
+        - aucun ne gagne
+        - après n’importe quel coup, l’autre joueur prend le reste
+      - - 5, 6 ou 7
+        - prendre 1, 2 ou 3 pour en laisser 4
+        - l’autre joueur reçoit un 4 perdant
+      - - "8"
+        - aucun ne gagne
+        - chaque coup laisse 5, 6 ou 7
+  note:
+    title: Pourquoi c’est important
+    text: >-
+      Les enfants pensent souvent que le premier joueur doit gagner, ou jouent
+      en espérant que l’autre joueur se trompe. Une stratégie gagnante marche
+      contre le meilleur jeu possible, et pour la trouver, il faut raisonner à
+      partir de la fin : une habitude qui vaut bien plus que les jeux.
+
+method:
+  title: "Comment le résoudre : en partant de la fin de la partie"
+  lead: >-
+    Écrivez les positions de la plus petite à la plus grande. Marquez une
+    position comme perdante quand chaque coup qui en part mène à une position
+    gagnante, et comme gagnante quand au moins un coup mène à une position
+    perdante. Le coup gagnant au départ est celui qui laisse une position
+    perdante. Les exemples ci-dessous vont du plus simple à un problème
+    d’olympiade.
+  steps:
+    - Partir des positions de la fin
+    - Marquer chacune comme gagnante ou perdante, de la plus petite à la plus grande
+    - Trouver le coup qui laisse une position perdante à l’autre joueur
+
+examples:
+  - title: Des bonbons dans un bol
+    question: >-
+      Il y a 23 bonbons dans un bol. Zoé et Léo jouent à tour de rôle, et Zoé
+      commence. À chaque coup, on prend 1, 2, 3 ou 4 bonbons. Qui prend le
+      dernier bonbon gagne. Combien de bonbons Zoé doit-elle prendre au premier
+      coup pour gagner à coup sûr ?
+    steps:
+      - >-
+        On part de la fin : s’il reste de 1 à 4 bonbons, le joueur dont c’est le
+        tour les prend tous et gagne. S’il en reste 5, chaque coup en laisse de
+        1 à 4 à l’autre joueur : 5 est donc une position perdante.
+      - >-
+        De la même façon, 10, 15 et 20 sont des positions perdantes : quoi qu’on
+        en prenne, l’autre joueur peut ramener le bol au multiple de 5 juste en
+        dessous.
+      - >-
+        Zoé prend donc 3 bonbons et en laisse 20. Quoi que prenne Léo, Zoé
+        complète jusqu’à 5 et laisse 15, puis 10, puis 5, et enfin plus rien.
+    answer: 3 bonbons.
+    note:
+      title: Pourquoi ne pas en prendre 4 ?
+      text: >-
+        En prendre 4 laisse 19 bonbons, et Léo en prend 4 pour en laisser 15,
+        une position perdante pour Zoé. Contre un joueur qui ne se trompe
+        jamais, seul le premier coup vers un multiple de 5 gagne.
+    art:
+      sweets: 23 bonbons, de 1 à 4 par coup
+      kim: Zoé −3
+      answer: Léo prend x, Zoé prend 5 − x
+      leo: Léo −4
+      lost: bol perdant pour Zoé
+  - title: La promenade du roi
+    question: >-
+      Un roi est posé dans le coin inférieur gauche d’un damier de 5 cases
+      sur 5. Deux joueurs le déplacent à tour de rôle d’une case vers le haut,
+      d’une case vers la droite ou d’une case en diagonale, vers le haut et à
+      droite. Qui amène le roi dans le coin supérieur droit gagne. Qui gagne si
+      les deux joueurs jouent au mieux ?
+    steps:
+      - >-
+        On compte combien de lignes et combien de colonnes il reste au roi à
+        parcourir. D’une case située à un coup du coin, le joueur dont c’est le
+        tour gagne aussitôt.
+      - >-
+        Une case est perdante pour le joueur dont c’est le tour quand les deux
+        nombres sont pairs : chaque coup rend l’un d’eux impair, et l’autre
+        joueur peut de nouveau les rendre pairs tous les deux.
+      - >-
+        Le roi part à 4 lignes et 4 colonnes du coin, deux nombres pairs : le
+        premier joueur perd donc. Le second répond chaque fois par un coup vers
+        une case paire, et atteint le coin.
+    answer: Le second joueur.
+    badge: 2e
+    note:
+      title: Commencer ne suffit pas
+      text: >-
+        Ici, le premier joueur perd quoi qu’il fasse. Dans chaque nouveau jeu,
+        mieux vaut vérifier en partant de la fin avant de supposer que le premier
+        coup gagne.
+    art:
+      moves: "coups : en haut, à droite, en diagonale en haut à droite"
+      green: en vert, victoire en un coup
+      red: points rouges, défaite pour qui doit jouer
+      start: le roi part d’une case perdante
+  - title: La marguerite
+    question: >-
+      Une marguerite a 12 pétales disposés en cercle. Deux joueurs arrachent à
+      tour de rôle soit un pétale, soit deux pétales qui poussent côte à côte,
+      sans espace entre eux. Qui arrache le dernier pétale gagne. Qui gagne si
+      les deux joueurs jouent au mieux ?
+    steps:
+      - >-
+        Quoi que le premier joueur arrache, un pétale ou deux, le cercle s’ouvre
+        et devient une rangée de 11 ou de 10 pétales.
+      - >-
+        Le second joueur arrache au beau milieu de cette rangée : un pétale dans
+        une rangée de 11, ou deux dans une rangée de 10. Il reste deux rangées
+        égales, face à face.
+      - >-
+        Ensuite, le second joueur reproduit chaque coup du premier dans l’autre
+        rangée. Chaque fois que le premier peut jouer, le second le peut aussi :
+        c’est donc le second qui arrache le dernier pétale.
+    answer: Le second joueur.
+    badge: 2e
+    note:
+      title: Pourquoi le milieu ?
+      text: >-
+        Couper la rangée en deux parties égales rend la position symétrique.
+        Copier ne peut pas faire perdre : la copie d’un coup est toujours
+        permise, car l’autre rangée est exactement pareille.
+    art:
+      eleven: le premier en a arraché un, laissant une rangée de 11
+      two-rows: deux rangées de 5 pétales
+      mirror: le premier a arraché dans la rangée bleue, le second a copié dans l’orange
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      Une règle du jeu est oubliée : un coup prend 5 bonbons alors que 4 au plus
+      sont permis, ou le roi va vers la gauche, ce que les règles interdisent.
+      Un plan bâti sur un coup interdit ne gagne rien.
+    say: « Quels coups les règles permettent-elles ? »
+    art:
+      question: De 1 à 4 bonbons par coup
+      five: prendre 5
+      three: prendre 3
+  first_move_assumed:
+    shows: >-
+      Jouer en premier passe pour une victoire assurée : « Zoé commence, donc
+      Zoé gagne. » Dans beaucoup de jeux, comme la promenade du roi, le premier
+      joueur perd quoi qu’il fasse.
+    say: « Et si l’autre joueur ne fait aucune erreur ? »
+    art:
+      question: La promenade du roi
+      first: le premier gagne
+      second: le second
+  best_case_not_worst:
+    shows: >-
+      Le plan ne marche que si l’autre joueur se trompe : Zoé prend 4 bonbons et
+      espère que Léo en prendra ensuite trop peu. Une stratégie gagnante doit
+      répondre au meilleur coup de l’autre joueur.
+    say: « Quelle est la meilleure réponse de l’autre joueur à ce coup ? »
+    art:
+      question: Premier coup de Zoé depuis 23
+      leo: Léo −4
+
+home:
+  - title: Jouez au jeu des allumettes
+    text: >-
+      Jouez à prendre 1, 2 ou 3 allumettes dans un tas de 15, et laissez
+      l’enfant commencer. Gagnez quelques parties, puis demandez pourquoi les
+      multiples de 4 reviennent sans cesse.
+  - title: Copiez le coup
+    text: >-
+      Dans n’importe quel jeu sur un plateau symétrique, essayez de copier le
+      coup de l’autre joueur du côté opposé. Demandez quand la copie marche, et
+      quand elle échoue.
+  - title: Inversez les rôles
+    text: >-
+      Quand l’enfant trouve un plan gagnant, inversez les rôles : c’est
+      maintenant l’enfant qui joue en second. Expliquer pourquoi, à partir de là,
+      le plan perd, c’est la moitié la plus profonde du thème.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Donne-moi un problème sur le thème « Jeux à stratégie gagnante »

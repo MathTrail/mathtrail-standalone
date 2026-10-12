@@ -1,0 +1,217 @@
+# The page of the topic of clocks, for a parent, in German. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. The page's drawings, each example's level,
+# and the answer its solver proves, are the site's data; an example here is
+# worked through to that answer. The traps are the topic's commonest, counted in
+# its reference tasks.
+
+title: Uhren
+description: Worum es bei „Uhren“ geht, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können.
+
+# The words the page's drawings write a length of time in.
+art:
+  minutes: "{count} min"
+  hours: "{count} h"
+  both: "{hours} h {minutes} min"
+
+hero:
+  lead: >-
+    Ein Spaziergang beginnt um 4:50 und dauert 25 Minuten: Wann endet er? In
+    diesen Aufgaben rechnet ein Kind Zeit dazu und zieht Zeit ab, und der
+    Haken ist, dass eine Stunde 60 Minuten hat, nicht 100. Die meisten Fehler
+    passieren dort, wo es über die volle Stunde, über Mittag oder über
+    Mitternacht hinausgeht.
+  method: Erst bis zur vollen Stunde gehen, dann weiter
+  teaches: Zeit über die volle Stunde und über Mitternacht hinweg rechnen und eine Uhrzeit von einer Zeitdauer unterscheiden
+  # The words of its drawing: the walk over it, and what its line of time
+  # shows under it.
+  art:
+    line: Ein Spaziergang ab 4:50, 25 Minuten lang
+    whole: erst bis zur vollen Stunde, dann weiter
+
+basis:
+  title: Die Regeln der Uhr
+  cards:
+    - title: Eine Stunde hat 60 Minuten
+      text: >-
+        Nicht 100. Also ergeben 8:50 und noch 20 Minuten 9:10, nicht 8:70, und
+        110 Minuten sind 1 Stunde 50 Minuten, nicht 1 Stunde 10.
+    - title: Über die volle Stunde
+      text: >-
+        Um Zeit über eine volle Stunde hinweg zu addieren, gehen Sie zuerst bis
+        zur vollen Stunde und addieren den Rest danach: von 8:50 aus 10 Minuten
+        bis 9:00, dann noch 10.
+    - title: Ein Tag hat 24 Stunden
+      text: >-
+        Nach 23:59 kommt 0:00 des nächsten Tages. Von 22:00 bis 6:00 sind es 2
+        Stunden bis Mitternacht und 6 Stunden danach.
+      art:
+        midnight: "0:00 ist Mitternacht, der Beginn des nächsten Tages"
+
+idea:
+  title: Über die volle Stunde
+  lead: Wie lange dauert es von einer Uhrzeit bis zur anderen? Halten Sie unterwegs bei der vollen Stunde an. So werden aus einer schweren Subtraktion zwei leichte Schritte.
+  table:
+    head:
+      - Von wann bis wann
+      - Über die volle Stunde
+      - Wie lange
+    rows:
+      - - 8:40 bis 9:15
+        - 20 min + 15 min
+        - 35 min
+      - - 10:50 bis 12:30
+        - 10 min + 1 h 30 min
+        - 1 h 40 min
+      - - 22:30 bis 6:00
+        - 1 h 30 min + 6 h
+        - 7 h 30 min
+  note:
+    title: Warum das wichtig ist
+    text: >-
+      Zieht ein Kind eine Uhrzeit schriftlich von einer anderen ab, wie bei
+      9:15 − 8:40, ist die Versuchung groß, 100 Minuten zu borgen statt 60.
+      Weiterzählen über die volle Stunde verleitet nie dazu.
+
+method:
+  title: "Lösungsweg: ein Zeitstrahl"
+  lead: >-
+    Zeichnen Sie eine Linie und tragen Sie die Uhrzeiten der Reihe nach ein,
+    die frühere links. Gehen Sie bis zur vollen Stunde, dann in ganzen Stunden
+    weiter, und addieren Sie zum Schluss die restlichen Minuten. Die Beispiele
+    unten reichen von ganz einfach bis Olympiade-Niveau.
+  steps:
+    - Die Uhrzeiten auf eine Linie setzen, die frühere zuerst
+    - Bis zur vollen Stunde gehen, dann weiter
+    - Die Schritte addieren und prüfen, ob die Antwort wie erwartet früher oder später liegt
+  # The key under the steps: what the drawings' boxes and arrows mean.
+  legend:
+    whole: eine volle Stunde
+    lasts: wie lange
+
+examples:
+  - title: Die Schwimmstunde
+    question: >-
+      Toms Schwimmstunde beginnt um 3:45 und dauert 40 Minuten. Um wie viel Uhr
+      endet sie?
+    steps:
+      - "Von 3:45 bis zur vollen Stunde, 4:00, sind es 15 Minuten."
+      - "Nach 4:00 bleiben 40 − 15 = 25 Minuten."
+      - "4:00 und noch 25 Minuten ergibt 4:25."
+    answer: Um 4:25.
+    note:
+      title: Warum nicht 3:85?
+      text: >-
+        45 + 40 = 85, aber eine Uhr hat keine 85 Minuten: Bei 60 beginnt die
+        nächste Stunde. Geht man zuerst bis zur vollen Stunde, entsteht so eine
+        Uhrzeit nie.
+    art:
+      start: Beginn der Schwimmstunde, 40 Minuten lang
+      split: 40 Minuten = 15 bis 4:00 + 25 danach
+      never: gibt es nicht
+      right: richtig
+  - title: Das Schachturnier
+    question: >-
+      Ein Schachturnier hat 5 Runden. Jede Runde dauert 50 Minuten, und
+      zwischen je zwei Runden gibt es eine Pause von 15 Minuten. Die erste
+      Runde beginnt um 10:00. Um wie viel Uhr endet die letzte Runde?
+    steps:
+      - "5 Runden zu je 50 Minuten: 5 × 50 = 250 Minuten Spielzeit."
+      - >-
+        Pausen gibt es nur zwischen den Runden, also sind es 4, nicht 5:
+        4 × 15 = 60 Minuten.
+      - >-
+        250 + 60 = 310 Minuten, das sind 5 Stunden 10 Minuten. 10:00 und noch 5
+        Stunden 10 Minuten ergibt 15:10.
+    answer: Um 15:10.
+    note:
+      title: Warum nicht 13:10?
+      text: >-
+        310 Minuten sind nicht 3 Stunden 10 Minuten: Eine Stunde hat 60
+        Minuten, nicht 100. 310 = 5 × 60 + 10.
+    art:
+      round: eine Runde, 50 min
+      break: eine Pause, 15 min
+      rounds: 5 × 50 = 250 Minuten
+      breaks: "eine Pause weniger als Runden: 4 × 15 = 60"
+      total: 310 min = 5 × 60 + 10
+      hours: 5 Stunden zu 60 Minuten und noch 10
+  - title: Zwei Städte
+    question: >-
+      Oma fliegt zu Anna, die in einer anderen Stadt wohnt. Das Flugzeug
+      startet um 8:00 nach den Uhren in Omas Stadt und landet um 8:30 nach den
+      Uhren in Annas Stadt. Die Uhren in Annas Stadt zeigen 4 Stunden weniger
+      an als die in Omas Stadt. Wie lange dauert der Flug?
+    steps:
+      - >-
+        8:00 und 8:30 werden auf verschiedenen Uhren abgelesen, also zuerst
+        beide Zeiten auf dieselbe Uhr umrechnen: auf Omas Uhr.
+      - "Wenn die Uhren in Annas Stadt 8:30 zeigen, zeigen Omas Uhren 4 Stunden mehr: 12:30."
+      - "Von 8:00 bis 12:30 auf derselben Uhr sind es 4 Stunden 30 Minuten."
+    answer: 4 Stunden 30 Minuten.
+    badge: "4:30"
+    note:
+      title: Eine halbe Stunde?
+      text: >-
+        8:30 − 8:00 ist nur dann eine halbe Stunde, wenn beide Zeiten auf
+        derselben Uhr stehen. Zeiten aus zwei Städten vergleicht man erst,
+        nachdem man eine davon auf die Uhr der anderen umgerechnet hat.
+    art:
+      take-off: Start, bei Oma
+      landing: Landung, bei Anna
+      grandma-clock: Omas Uhr
+      ann-clock: Annas Uhr
+      at-ann: bei Anna
+      at-grandma: bei Oma
+      grandma: Oma
+      ann: Anna
+      other: verschiedene Uhren
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_operation:
+    shows: >-
+      Das Kind wählt eine Rechenart, die die Frage nicht verlangt: Es addiert
+      zwei Uhrzeiten, als wären es Mengen, sodass 3 Uhr und 5 Uhr 8 ergeben,
+      oder multipliziert, wo nur weitergezählt werden muss. Eine Uhrzeit ist
+      ein Punkt auf einer Linie, keine Menge.
+    say: „Ist das eine Uhrzeit oder eine Zeitdauer?“
+    art:
+      question: "Von 3:00 bis 5:00: wie lange?"
+  time_unit_mixup:
+    shows: >-
+      Minuten werden gezählt, als hätte eine Stunde 100 davon: Aus 3:45 und
+      noch 40 Minuten wird 3:85, oder aus 310 Minuten werden 3 Stunden 10
+      Minuten.
+    say: „Wie viele Minuten hat eine Stunde?“
+    art:
+      question: "3:45 und noch 40 Minuten"
+  reversed_relation:
+    shows: >-
+      Früher und später werden vertauscht: Das Kind zählt rückwärts, wo die
+      Frage vorwärts geht, oder addiert einen Zeitunterschied, der abgezogen
+      werden müsste, und das Flugzeug landet, bevor es startet.
+    say: „Muss die Antwort früher oder später als der Anfang sein?“
+    art:
+      question: Start um 8:00 auf Omas Uhr
+      before: Landung vor dem Start?
+
+home:
+  - title: Eine Uhr mit Zeigern
+    text: >-
+      Sorgen Sie dafür, dass Ihr Kind eine Uhr mit Zeigern sehen kann, und
+      fragen Sie nebenbei: Wie spät ist es in einer Viertelstunde? Und wie spät
+      war es vor zwanzig Minuten?
+  - title: Wie lange noch?
+    text: >-
+      Schätzen Sie vor einem Zeichentrickfilm oder einem Spaziergang gemeinsam,
+      wie lange man noch warten muss, und prüfen Sie es dann auf der Uhr. Beim
+      echten Warten werden die Minuten greifbar.
+  - title: Ein Tagesplan
+    text: >-
+      Schreiben Sie einen Plan für einen freien Tag mit Uhrzeiten: ein
+      Spaziergang von 11:30 bis 12:15, Mittagessen um 12:30. Wie lange dauert
+      jeder Teil, und wie lange ist die Pause dazwischen?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Gib mir eine Aufgabe zum Thema „Uhren“

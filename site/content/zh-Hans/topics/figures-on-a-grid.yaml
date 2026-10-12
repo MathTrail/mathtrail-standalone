@@ -1,0 +1,177 @@
+# The page of the topic of figures on a square grid, for a parent, in Simplified
+# Chinese. The topic's name, its group, its grades and its traps' names are not
+# here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: 方格纸上的图形
+description: 什么是方格纸上的图形题，怎样解，孩子常在哪里出错，以及在家可以怎样帮忙。
+
+hero:
+  lead: >-
+    在方格纸上画一个图形：它占了多少个格子？它的边界有多长？这类题里，面积数的是格子，周长数的是格子的边，两者很容易弄混：一个长方形去掉角上的一个格子，周长却可以不变。整个本领就在于：数的时候一个不漏，也一个不重。
+  method: 数出每个格子朝外的边
+  teaches: 分清面积和周长，并能不漏不重地数格子和边
+  # The words of its drawing: the figure over it, what each of its two copies
+  # counts, and what the numbers in the cells mean.
+  art:
+    line: 由三个格子组成的图形
+    area: 面积：3个格子
+    perimeter: 周长：8条边
+    out: 右边的数：格子有几条边朝外，3 + 2 + 3 = 8
+
+basis:
+  title: 方格的规则
+  cards:
+    - title: 面积就是格子数
+      text: >-
+        方格纸上一个图形的面积，就是它占的格子数。两个半格合成一个整格。
+      art:
+        cells: 3个格子
+    - title: 周长就是边数
+      text: >-
+        周长是边界上格子的边的条数。图形里两个格子共用的边在内部，不算。
+      art:
+        shared: 内部共用的边不算
+    - title: 两回事
+      text: >-
+        面积相同的两个图形，周长可以不同：四个格子排成一行，周长是10；排成正方形，周长是8。
+      art:
+        perimeter: 周长{count}
+
+idea:
+  title: 数朝外的边
+  lead: 每个格子有4条边。只有当一条边的另一侧没有图形的格子时，这条边才算进周长。
+  table:
+    head:
+      - 图形
+      - 面积（格子数）
+      - 周长（边数）
+    rows:
+      - - 1个格子
+        - "1"
+        - "4"
+      - - 并排的2个格子
+        - "2"
+        - 4 + 4 − 2 = 6
+      - - 排成一行的4个格子
+        - "4"
+        - "10"
+      - - 2 × 2的正方形
+        - "4"
+        - "8"
+  note:
+    title: 为什么重要
+    text: >-
+      求周长时，孩子常常去数格子，或者把每个格子的每条边都算上，共用的边就算了两次。只数朝外的边，这两种错误都能避免。
+
+method:
+  title: 解法：沿边界走一圈
+  lead: >-
+    在方格纸上画出图形。求面积，就一行一行地数格子。求周长，就沿着边界走一圈，数经过的格子的边。图形被剪开时，要按一定的顺序列举各块，这样既不会漏掉一块，也不会把一块数两次。下面的例题由浅入深，从最简单的一直到奥数竞赛题。
+  steps:
+    - 在方格纸上画出图形
+    - 面积数格子，周长数朝外的边
+    - 换一种数法再检验
+  # The key under the steps: what the drawings' lines and numbers mean.
+  legend:
+    border: 边界，即周长
+    cut: 剪开的线
+    count: 数字：有几条边朝外
+
+examples:
+  - title: 十字形
+    question: >-
+      一个十字形由5个格子组成：中间一个，上下左右各一个。按格子的边来数，这个十字形的周长是多少？
+    steps:
+      - 四周的4个格子，每个都有3条边朝外，所以它们一共有4 × 3 = 12条边朝外。
+      - 中间的格子没有朝外的边，因为它的每条边都挨着四周的一个格子。
+      - 所以周长是12条格子的边。
+    answer: 12条格子的边。
+    note:
+      title: 另一种数法
+      text: >-
+        5个格子共有5 × 4 = 20条边。中间格子和四周格子之间的4条边，每条都被两边的格子各算了一次，也就是算了两次，而且它们都在内部：20 − 2 × 4 = 12。
+    art:
+      ends: 四周4格，各3条边
+      middle: 中间：0
+      border: 边界：12条边
+      inner: 红色：内部的4条边
+  - title: 长条一分为二
+    question: >-
+      一个2 × 4的长条，沿格线剪成两块，每块4个格子，而且每块都必须连成一片。一共有多少种不同的剪法？
+    steps:
+      - 从中间横着剪开，得到两行，每行4格：1种。
+      - 从中间竖着剪开，得到两个2 × 2的正方形：1种。
+      - >-
+        剪口先竖着走、再横着走、再竖着走，会得到两个L形，而且中间的台阶可以朝这边，也可以朝那边：2种。一共4种。
+    answer: 4种。
+    note:
+      title: 为什么不是8种？
+      text: >-
+        如果一块一块地列举，每种剪法都会被找到两次，它的两块各一次。规定第一块总是包含左上角的格子，每种剪法就只算一次。
+    art:
+      along: 横着剪
+      across: 竖着剪
+      step: 台阶
+      back: 反过来
+      same: 同一种剪法
+      dot: 圆点是左上角的格子，总在蓝色那块里
+  - title: 对角线
+    question: >-
+      在方格纸上画一个3 × 5的长方形，再从它的一个角到对面的角画一条线段。这条线段穿过多少个格子？线段经过格子内部才算，只碰到格子的一个角不算。
+    steps:
+      - >-
+        线段从一个角走到对面的角，在长方形内部每穿过一条格线，就进入一个新的格子。
+      - >-
+        它穿过一个方向的4条格线和另一个方向的2条，而且从不同时穿过两条：3和5除了1没有别的公因数，所以线段一路上不经过任何格点。
+      - 它从1个格子出发，又进入4 + 2 = 6个格子，一共7个格子。
+    answer: 7个格子。
+    note:
+      title: 穿过格点
+      text: >-
+        在4 × 6的长方形里，线段会经过一个格点，在那里同时穿过两条格线，只进入一个格子，而不是两个。它穿过4 + 6 − 2 = 8个格子：2是能同时整除4和6的最大的数。
+    art:
+      points: 圆点：线段穿过格线的地方
+      down: 4条竖线
+      across: 2条横线
+      green: 1 + 4 + 2 = 7个绿格子
+      node: 红点是格点：8个格子
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      同一样东西数了两次：把格子共用的边也加进了周长，或者长条的每种剪法，按它的两块各列了一次。
+    say: “有没有哪条边、哪种剪法，从两边各数了一次？”
+    art:
+      question: 两个并排格子的周长
+  missed_case:
+    shows: >-
+      漏掉了一种情况：台阶朝另一边的剪法、凹角里的一段边界，或者只数了横放的多米诺骨牌，没数竖放的。
+    say: “还有没有没试过的办法，比如反过来？”
+    art:
+      question: 2 × 4长条的剪法
+  ignored_condition:
+    shows: >-
+      漏看了一个条件：把散开的一块算作一块，把只有一个角相碰的格子算作相邻，或者说线段穿过了一个它只碰到的格子。
+    say: “这一块、这个格子，真的符合题目说的吗？”
+    art:
+      question: 每块都连成一片
+      broken: 蓝色那块散开了
+      whole: 两块都连成一片
+
+home:
+  - title: 方格纸
+    text: >-
+      手边常备方格纸，和孩子一起画由4个或5个格子组成的图形。哪个图形的边界最长？哪个最短？
+  - title: 沿边界走
+    text: >-
+      用手指沿着边界一条边一条边地走一圈，数出周长。再数每个格子朝外的边，看看两个结果是否一样。
+  - title: 剪一剪，数一数
+    text: >-
+      把一张纸条剪成大小相同的两块，找出尽可能多的剪法。把剪好的摆出来，做到一种不漏，也一种不重。
+
+# What a parent can write in the chat to get a task on this topic.
+ask: 来一道“方格纸上的图形”的题

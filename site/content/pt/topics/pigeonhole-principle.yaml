@@ -1,0 +1,216 @@
+# The page of the topic of the pigeonhole principle, for a parent, in
+# Portuguese. The topic's name, its group, its grades and its traps' names are
+# not here: they are the card's words and the catalog's numbers. The page's
+# drawings, each example's level, and the answer its solver proves, are the
+# site's data; an example here is worked through to that answer. The traps are
+# the topic's commonest, counted in its reference tasks.
+
+title: Princípio da casa dos pombos
+description: O que são os problemas do princípio da casa dos pombos, como se resolvem, onde as crianças costumam errar e como ajudar em casa.
+
+hero:
+  lead: >-
+    Cinco pombos voam para quatro casas: alguma casa com certeza vai ficar com
+    dois deles. Nestes problemas, a criança prova que algo tem que acontecer,
+    por maior que seja o azar: duas meias da mesma cor tiradas de uma gaveta no
+    escuro, dois aniversários no mesmo mês. É o primeiro contato com um
+    raciocínio sobre o pior caso, e não sobre o caso em que se tem sorte.
+  method: Levar o maior azar até o fim e depois somar um
+  teaches: A provar que algo tem que acontecer, e não só que pode acontecer
+  # The words of its drawing: the pigeons and the cages over it, and what the
+  # seating always comes to.
+  art:
+    line: Cinco pombos, quatro casas
+    seat: distribua como quiser
+    two: dois
+    always: seja como for, alguma casa fica com dois
+
+basis:
+  title: As regras do pior caso
+  cards:
+    - title: Mais pombos do que casas
+      text: >-
+        Se há mais pombos do que casas, alguma casa fica com pelo menos dois.
+        Distribua os pombos da forma mais equilibrada que quiser: sempre sobra
+        um.
+    - title: Para ter certeza
+      text: >-
+        “Para ter certeza” quer dizer: saia o que sair do saco. Então imagine
+        tudo dando o mais errado possível e veja até onde o azar pode ir.
+      art:
+        luck: sorte
+        not-counted: não conta
+        bad-luck: azar
+    - title: Mais um decide
+      text: >-
+        Quando o azar se esgota, com cada cor já tirada uma vez e cada casa já
+        ocupada uma vez, o próximo com certeza dá o que você quer.
+      art:
+        eighth: um para cada dia; o oitavo forma um par
+
+idea:
+  title: O maior azar e depois mais um
+  lead: Cada pergunta quer saber o que acontece com certeza. A resposta é até onde o azar pode ir, mais um.
+  table:
+    head:
+      - Para ter com certeza
+      - O azar pode dar antes
+      - Então, pegue
+    rows:
+      - - duas pessoas nascidas no mesmo dia da semana
+        - uma nascida em cada um dos 7 dias
+        - 7 + 1 = 8 pessoas
+      - - uma bola vermelha, entre 6 azuis e 4 vermelhas
+        - as 6 bolas azuis
+        - 6 + 1 = 7 bolas
+      - - duas bolas vermelhas, entre 6 azuis e 4 vermelhas
+        - as 6 bolas azuis e uma vermelha
+        - 6 + 1 + 1 = 8 bolas
+  note:
+    title: Por que isso importa
+    text: >-
+      As crianças muitas vezes contam com a sorte: “Pode ser que eu tire duas
+      vermelhas logo de cara.” Um problema que diz “para ter certeza” pergunta
+      o que acontece com o maior azar, e o hábito de pensar nele vale mais do
+      que qualquer fórmula.
+
+method:
+  title: "Como resolver: o maior azar e depois mais um"
+  lead: >-
+    Diga quais são as casas, como as cores, os meses ou os dias da semana, e
+    leve o maior azar até o fim: tire tudo o que ainda não dá o que a pergunta
+    quer. O próximo com certeza vai dar. Os exemplos abaixo vão do mais simples
+    a um de olimpíada.
+  steps:
+    - Encontrar as casas e os pombos
+    - Levar o maior azar até o fim
+    - Somar um e conferir se ele decide
+  # The key under the steps: what the drawings' bracket and ring mean.
+  legend:
+    bad-luck: azar
+    decides: o mais um que decide
+
+examples:
+  - title: Balas em um pote
+    question: >-
+      Um pote tem 8 balas de limão e 2 de laranja. Sem olhar, quantas balas
+      Alex precisa tirar para ter certeza de pegar uma de laranja?
+    steps:
+      - Alex quer uma bala de laranja. O maior azar é tirar uma de limão atrás da outra.
+      - >-
+        Só há 8 balas de limão: depois dessas 8, só sobram as de laranja no
+        pote.
+      - "A 9ª bala com certeza é de laranja: 8 + 1 = 9."
+    answer: 9 balas.
+    art:
+      lemon: limão, 8
+      orange: laranja, 2
+      unlucky: sem sorte
+      all-lemons: as 8 de limão
+      lemons: 8 de limão
+  - title: Duas meias pretas
+    question: >-
+      Uma gaveta tem 8 meias pretas, 6 brancas e 2 listradas, todas misturadas.
+      No escuro, quantas meias Gabriel precisa tirar para ter certeza de pegar
+      duas pretas?
+    steps:
+      - >-
+        O maior azar: primeiro saem as meias que não são pretas. São 6 brancas
+        e 2 listradas, 8 meias sem nenhuma preta entre elas.
+      - >-
+        O azar ainda pode continuar: a próxima meia é preta, mas só uma. São 9
+        meias e só uma preta entre elas.
+      - >-
+        A 10ª meia com certeza também é preta, porque só sobraram meias pretas.
+        Então, 10 meias.
+    answer: 10 meias.
+    note:
+      title: Por que não 9?
+      text: >-
+        Depois de todas as 6 meias brancas e as 2 listradas, o azar ainda tem
+        mais uma rodada: uma única meia preta. Duas pretas só ficam garantidas
+        com a 10ª.
+    art:
+      black: pretas, 8
+      white: brancas, 6
+      striped: listradas, 2
+      no-black: 8 sem nenhuma preta
+      not-black: 8 não pretas
+      one: uma
+      only-one: 9 meias, e só uma preta
+  - title: Somas em uma grade
+    question: >-
+      Cada quadradinho de uma grade de 2 por 2 tem um 1, um 2 ou um 3. Calcule
+      a soma dos dois números de cada linha, de cada coluna e de cada diagonal.
+      É verdade que, entre essas seis somas, sempre há duas iguais?
+    steps:
+      - >-
+        Conte as casas: a soma de dois números entre 1, 2 e 3 é um dos números
+        2, 3, 4, 5 e 6, cinco valores ao todo.
+      - "Conte os pombos: 2 linhas, 2 colunas e 2 diagonais dão 6 somas."
+      - >-
+        Seis somas e só cinco valores: duas das somas têm que ser iguais,
+        sejam quais forem os números da grade.
+    answer: Sim, sempre.
+    badge: Sim
+    note:
+      title: As casas nem sempre são caixas
+      text: >-
+        Aqui as casas são os valores que uma soma pode ter, e os pombos são as
+        linhas, as colunas e as diagonais da grade. A arte destes problemas
+        está em ver o que faz o papel das casas.
+    art:
+      example: "por exemplo: 1, 2 ou 3 em cada quadradinho"
+      cages: 5 casas, as somas possíveis
+      row: linha
+      column: col.
+      diagonal: diag.
+      pigeons: 6 somas, 6 pombos
+      two: "6 pombos em 5 casas: alguma casa tem dois"
+      cages-name: casas
+      pigeons-name: pombos
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  best_case_not_worst:
+    shows: >-
+      A criança conta com a sorte: “Se as duas primeiras meias forem pretas,
+      duas bastam.” A pergunta diz “para ter certeza”, e é justamente a sorte
+      que essas palavras excluem.
+    say: “E se você tiver o maior azar possível?”
+    art:
+      question: Duas pretas, com certeza
+  ignored_condition:
+    shows: >-
+      Uma palavra da pergunta se perde: “duas meias pretas” é lido como “duas
+      meias da mesma cor”, ou “uma de cada cor”, como “uma cor só”.
+    say: “Leia a pergunta de novo. Do que exatamente você precisa ter certeza?”
+    art:
+      question: "Pede-se: duas meias **pretas**"
+      black-pair: um par de pretas
+  off_by_one:
+    shows: >-
+      A criança leva o maior azar até o fim e para por aí, esquecendo o mais um
+      que decide, ou soma um a mais.
+    say: “Depois do maior azar, o que o próximo vai dar?”
+    art:
+      question: 8 de limão e 2 de laranja
+
+home:
+  - title: Meias no escuro
+    text: >-
+      Coloque meias de duas ou três cores em um saco e vá tirando de olhos
+      fechados: quantas é preciso tirar para ter um par com certeza? Tente
+      várias vezes. A sorte muda; a resposta, não.
+  - title: Tem que ou pode?
+    text: >-
+      Quando a criança disser “pode acontecer”, pergunte: “E pode não
+      acontecer?” A diferença entre “pode” e “tem que” é o tema inteiro.
+  - title: Procurar as casas
+    text: >-
+      Procure casas nas contagens do dia a dia junto com a criança: os sete
+      dias da semana, os doze meses, as quatro estações. “Somos 30: é certo que
+      duas pessoas fazem aniversário no mesmo mês?”
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Quero um problema do princípio da casa dos pombos
