@@ -298,6 +298,36 @@ function textIn(node: DefaultTreeAdapterTypes.Node): string {
 	return "childNodes" in node ? node.childNodes.map(textIn).join("") : "";
 }
 
+// pathStepsIn are the words of the steps of the path a page shows at its top,
+// the items of its navigation of class "s-path", in order: parsed rather than
+// matched, as the page's links are, so that the markup inside a step is read
+// as markup and its text as a browser shows it.
+function pathStepsIn(html: string): string[] {
+	const steps: string[] = [];
+	const walk = (node: DefaultTreeAdapterTypes.Node, inPath: boolean): void => {
+		if (!("childNodes" in node)) {
+			return;
+		}
+		let within = inPath;
+		if ("tagName" in node) {
+			const classes = (
+				node.attrs.find((attr) => attr.name === "class")?.value ?? ""
+			).split(" ");
+			if (node.tagName === "nav" && classes.includes("s-path")) {
+				within = true;
+			} else if (within && node.tagName === "li") {
+				steps.push(textIn(node));
+				return;
+			}
+		}
+		for (const child of node.childNodes) {
+			walk(child, within);
+		}
+	};
+	walk(parse(html), false);
+	return steps;
+}
+
 // urlsIn are the addresses every url() of a stylesheet names, sorted.
 function urlsIn(style: string): string[] {
 	return [...style.matchAll(/url\(\s*["']?([^"')]*)["']?\s*\)/g)]
@@ -618,11 +648,7 @@ describe("the site built from this repository", { timeout: 60_000 }, () => {
 					},
 				]);
 			} else if (topic) {
-				const shown = [
-					...(
-						html.match(/<nav class="s-path"[^>]*><ol>(.*?)<\/ol>/s)?.[1] ?? ""
-					).matchAll(/<li[^>]*>(.*?)<\/li>/gs),
-				].map(([, step]) => unescaped((step ?? "").replace(/<[^>]+>/g, "")));
+				const shown = pathStepsIn(html);
 				const steps = (said[0]?.itemListElement ?? []) as {
 					position: number;
 					name: string;
