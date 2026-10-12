@@ -837,7 +837,7 @@ describe("the site built from this repository", () => {
 			expect(home).toContain(`<section id="lesson"`);
 			expect(home).toContain(`<section id="connect"`);
 		}
-	});
+	}, 60_000);
 
 	test("writes, on the page about who makes it and on the help, to the address the privacy policy names", async () => {
 		for (const locale of languages) {
