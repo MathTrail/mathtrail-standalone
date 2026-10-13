@@ -88,6 +88,24 @@ OAuth 2.1 with PKCE, by a client ID metadata document or by dynamic client regis
 - **The password** is typed into the form from the password manager, and is written nowhere else.
 - **The steps to try:** the three examples below, and "What to try" in [reviewers.md](reviewers.md).
 
+The instructions for the step's text field, from [reviewers.md](reviewers.md); the password goes into the step's credentials alone:
+
+```text claude-test-launch
+Sign-in for reviewers, with no Google account:
+1. Add MathTrail as a custom connector with the address https://mcp.mathtrail.app/mcp, then press Connect.
+2. MathTrail's page "Connect … to MathTrail?" opens. At its foot, open "Reviewing MathTrail for a directory?", type the reviewer's password from this form, and press "Sign in as the reviewer". Do not press "Allow": it signs a parent in with Google, and the browser remembers it. If the page goes straight to Google, clear the cookies of mcp.mathtrail.app and connect again.
+3. The chat comes back connected to a demo profile: a child known by the pseudonym Comet, grade 3, with about thirty tasks answered, some wrongly on purpose. Nothing done in it reaches a real family.
+
+What to try, typing as the adult who runs the lesson; the child answers on the card:
+1. "Let's do a MathTrail task." A card shows that the task is being written, and within a minute or two it shows the task and five options.
+2. Tap an option on the card: it turns into how the answer went, with the mistake behind a wrong answer, a picture of the solution and the solution step by step. An answer told in the chat, "We don't know this one" among them, gets the same card below.
+3. On a task's card, the bulb opens the hint, and the two arrows in a circle ask for another task: in Claude, press Enter to send the words the card puts in the chat. The task written ahead comes at once, on a new card below.
+4. "How is my child doing?" The progress card shows each topic's rank, what moved over the past week, a review of strengths and topics to develop, and the mistakes that repeat.
+5. "Change my child's interests to space and dinosaurs." Claude asks to allow the save, then says what was saved. Profile & progress, at the top of a task's card, shows the profile and a form to edit it.
+
+The demo child has 50 new tasks a day, shared by every reviewer. The whole page for reviewers: https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/reviewers.md
+```
+
 ### Allowed link URIs (CL-12)
 
 `https://mathtrail.app`. The card links only to the site's pages (R186), and nothing else of the project's is a link target.

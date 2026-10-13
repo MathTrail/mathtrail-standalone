@@ -3,7 +3,9 @@ package mcpserver
 import (
 	"context"
 	"fmt"
+	"reflect"
 
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -100,11 +102,11 @@ func Define[In, Out any](spec Spec, handle Handler[In, Out]) Tool {
 
 func (d definition[In, Out]) name() string { return d.spec.Name }
 
-// add registers the tool with the protocol, which derives its input and output
-// schemas from In and Out and checks every call's arguments against the first
-// before the handler sees them. The library panics on a type it cannot derive
-// a schema from; that is a mistake in the tool's definition, and it is told as
-// a refusal to build the endpoint rather than as a crash.
+// add registers the tool with the protocol, which checks every call's
+// arguments against the input schema before the handler sees them, and
+// derives the output schema from Out. The library panics on a type it cannot
+// derive a schema from; that is a mistake in the tool's definition, and it is
+// told as a refusal to build the endpoint rather than as a crash.
 func (d definition[In, Out]) add(server *mcp.Server) (err error) {
 	switch {
 	case d.spec.WidgetOnly && d.spec.DrawsCard:
@@ -121,8 +123,51 @@ func (d definition[In, Out]) add(server *mcp.Server) (err error) {
 			err = fmt.Errorf("%w: tool %q cannot be defined: %v", ErrSettings, d.spec.Name, recovered)
 		}
 	}()
-	mcp.AddTool(server, d.tool(), d.call)
+	tool := d.tool()
+	schema, err := inputSchema[In]()
+	if err != nil {
+		return fmt.Errorf("%w: tool %q cannot be defined: %w", ErrSettings, d.spec.Name, err)
+	}
+	tool.InputSchema = schema
+	mcp.AddTool(server, tool, d.call)
 	return nil
+}
+
+// anyJSON is the schema of a value that may be any JSON: every kind of JSON
+// named as its type, and its items, should it be a list, left open. A host that
+// reads the schema as the definition of a function may refuse a list whose
+// items it is not told of, and open items say they may be anything, as the
+// type does. They are a schema with a description and nothing else, since the
+// library writes a schema with nothing in it as true, which such a host need
+// not take for a schema of the items.
+var anyJSON = &jsonschema.Schema{
+	Types: []string{"object", "string", "array", "number", "boolean", "null"},
+	Items: &jsonschema.Schema{Description: "any JSON value"},
+}
+
+// inputSchema is the schema the library would derive from In — from what a
+// pointer points at, and an object of anything for In that is any — with
+// anyJSON for every value of any JSON in it, at any depth: a part of a task,
+// above all, which arrives as its JSON or as a string of it and is read by the
+// checks in their own words. A directory's portal refuses a parameter that
+// names no type, and anyJSON accepts what an untyped value did. A narrower
+// type would let the library refuse a part before any check runs, in a message
+// that quotes the part, the task's answer with it.
+func inputSchema[In any]() (*jsonschema.Schema, error) {
+	in := reflect.TypeFor[In]()
+	if in == reflect.TypeFor[any]() {
+		return &jsonschema.Schema{Type: "object"}, nil
+	}
+	if in.Kind() == reflect.Pointer {
+		in = in.Elem()
+	}
+	schema, err := jsonschema.ForType(in, &jsonschema.ForOptions{
+		TypeSchemas: map[reflect.Type]*jsonschema.Schema{reflect.TypeFor[any](): anyJSON},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("mcp: derive the input schema: %w", err)
+	}
+	return schema, nil
 }
 
 // tool is the definition a host lists.
