@@ -708,6 +708,118 @@ func partsAsStrings(t testing.TB, race map[string]any) map[string]any {
 	return race
 }
 
+// A part of the task that is neither an object nor a string — a list, a
+// number, nothing — still reaches the structure check, which refuses it in its
+// own words. The library, had it refused the part first, would have quoted it:
+// the whole task, its answer with it.
+func TestAPartOfAnyKindOfJSONReachesTheChecks(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range []struct {
+		name, part string
+		value      func(race map[string]any) any
+		says       string
+	}{
+		{"a task in a list", "task", func(race map[string]any) any { return []any{race["task"]} }, "task must be a JSON object"},
+		{"a task in a list of lists", "task", func(race map[string]any) any { return []any{[]any{race["task"]}} }, "task must be a JSON object"},
+		{"a self-check as a number", "self_check", func(map[string]any) any { return 7 }, "self_check must be a JSON object"},
+		{"a task as null", "task", func(map[string]any) any { return nil }, "task is missing"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept := racer(t)
+			_, session := lesson(t, kept)
+			race := raceOn(askForTheRace(t, session, kept))
+			race[c.part] = c.value(race)
+
+			handed := call(t, session, "submit_task", race)
+			if handed.IsError {
+				t.Fatalf("submit_task with %s = %q, want the checks to refuse it", c.name, textOf(t, handed))
+			}
+			refused := payloadOf[handedInPayload](t, handed)
+			if refused.Code != "bad_structure" || len(refused.Reasons) == 0 ||
+				!slices.Contains(refused.Reasons[0].Messages, c.says) {
+				t.Errorf("submit_task with %s = %+v, want it refused as %q", c.name, refused, c.says)
+			}
+			if text := textOf(t, handed); strings.Contains(text, raceQuestion) {
+				t.Errorf("the refusal says %q, want it quoting nothing of the task", text)
+			}
+		})
+	}
+}
+
+// Every parameter of every tool names its type, at any depth, which a
+// directory's portal asks of a connector before it is submitted; one that
+// takes any JSON names every kind of JSON.
+func TestEveryParameterOfEveryToolNamesAType(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, racer(t))
+	listed, err := session.ListTools(t.Context(), nil)
+	if err != nil {
+		t.Fatalf("ListTools() error = %v, want nil", err)
+	}
+	if len(listed.Tools) == 0 {
+		t.Fatal("no tool is listed, want the service's tools")
+	}
+	for _, tool := range listed.Tools {
+		raw, err := json.Marshal(tool.InputSchema)
+		if err != nil {
+			t.Fatalf("encode %s's schema: %v", tool.Name, err)
+		}
+		var schema map[string]any
+		if err := json.Unmarshal(raw, &schema); err != nil {
+			t.Fatalf("read %s's schema %s: %v", tool.Name, raw, err)
+		}
+		for _, untyped := range untypedValues(schema, tool.Name) {
+			t.Errorf("%s, want every parameter typed and every list's items given as a schema", untyped)
+		}
+	}
+}
+
+// untypedValues say, by their paths from the tool, which parameters within a
+// schema name no type, at any depth of its properties, items and values, and
+// which lists among them leave their items unsaid.
+func untypedValues(schema map[string]any, path string) []string {
+	var untyped []string
+	if _, told := schema["items"].(map[string]any); slices.Contains(typesOf(schema), "array") && !told {
+		untyped = append(untyped, path+" is a list whose items are unsaid")
+	}
+	properties, _ := schema["properties"].(map[string]any)
+	for _, name := range slices.Sorted(maps.Keys(properties)) {
+		property, _ := properties[name].(map[string]any)
+		if _, typed := property["type"]; !typed {
+			untyped = append(untyped, path+"."+name+" names no type")
+		}
+		untyped = append(untyped, untypedValues(property, path+"."+name)...)
+	}
+	for _, within := range []struct{ key, path string }{{"items", path + "[]"}, {"additionalProperties", path + "{}"}} {
+		if inner, isSchema := schema[within.key].(map[string]any); isSchema {
+			untyped = append(untyped, untypedValues(inner, within.path)...)
+		}
+	}
+	return untyped
+}
+
+// typesOf are the kinds of JSON a schema names, from a type given alone or as
+// a list.
+func typesOf(schema map[string]any) []string {
+	switch named := schema["type"].(type) {
+	case string:
+		return []string{named}
+	case []any:
+		kinds := make([]string, 0, len(named))
+		for _, kind := range named {
+			if text, isText := kind.(string); isText {
+				kinds = append(kinds, text)
+			}
+		}
+		return kinds
+	}
+	return nil
+}
+
 // The third refusal closes the request: nothing reaches the child, the day's
 // failed generations go up and its accepted tasks do not. A task handed in
 // after that is for a request that is over, and spends nothing.
