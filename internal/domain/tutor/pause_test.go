@@ -106,8 +106,8 @@ func TestAProbeTakesTheLastOfEverySixTasks(t *testing.T) {
 		}
 		want := tasks == 11 || tasks == 17 || tasks == 23
 		if got := brief.TargetConcept == "logic.ordering"; got != want {
-			t.Errorf("at %d tasks behind the child the topic is %s, want a probe of logic.ordering %t",
-				tasks, brief.TargetConcept, want)
+			t.Errorf("at %d tasks behind the child the topic is %s, a probe of logic.ordering %t, want %t",
+				tasks, brief.TargetConcept, got, want)
 		}
 	}
 }

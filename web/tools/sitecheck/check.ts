@@ -408,73 +408,98 @@ function head(
 	files: Map<string, number>,
 	options: Options,
 ): Finding[] {
-	const findings: Finding[] = [];
-	const report = (message: string) =>
-		findings.push({ path: page.file, rule: "head", message });
+	const problems = [
+		...missingProblems(page),
+		...lengthProblems(page),
+		...repetitionProblems(page),
+		...page.images.map((picture) =>
+			pictureProblem(picture, page, files, options),
+		),
+		canonicalProblem(page, options),
+		...alternateProblems(page, pages, options),
+	];
+	return problems
+		.filter((problem) => problem !== undefined)
+		.map((message) => ({ path: page.file, rule: "head", message }));
+}
 
+// missingProblems is what the head lacks, or says against the address it is
+// served at: its language, its direction, its title and its description.
+function missingProblems(page: Page): string[] {
+	const problems: string[] = [];
 	if (page.lang === "") {
-		report("<html> carries no lang");
+		problems.push("<html> carries no lang");
 	} else if (page.lang !== page.locale) {
-		report(
+		problems.push(
 			`<html lang="${page.lang}"> disagrees with the locale "${page.locale}" the page is served under`,
 		);
 	}
 	if (page.dir === "") {
-		report("<html> carries no dir");
+		problems.push("<html> carries no dir");
 	}
 	if (page.title === "") {
-		report("the page has no title");
+		problems.push("the page has no title");
 	}
 	if (page.description === "") {
-		report("the page has no description");
+		problems.push("the page has no description");
 	}
+	return problems;
+}
+
+// lengthProblems is the title or the description that runs longer than a
+// search result shows whole.
+function lengthProblems(page: Page): string[] {
 	const lengths: [string, string, number][] = [
 		["title", page.title, titleUnits],
 		["description", page.description, descriptionUnits],
 	];
-	for (const [what, text, shown] of lengths) {
+	return lengths.flatMap(([what, text, shown]) => {
 		const units = unitsOf(text);
-		if (units > shown) {
-			report(
-				`the ${what} runs to ${units} units, and a search result shows ${shown} whole`,
-			);
-		}
-	}
+		return units > shown
+			? [
+					`the ${what} runs to ${units} units, and a search result shows ${shown} whole`,
+				]
+			: [];
+	});
+}
+
+// repetitionProblems is what the head states more than once, leaving a search
+// engine to choose which to read.
+function repetitionProblems(page: Page): string[] {
 	const stated: [string, number][] = [
 		["title", page.stated.title],
 		["description", page.stated.description],
 		["canonical address", page.stated.canonical],
 	];
-	for (const [what, times] of stated) {
-		if (times > 1) {
-			report(
+	return stated
+		.filter(([, times]) => times > 1)
+		.map(
+			([what, times]) =>
 				`the head states a ${what} ${times} times, and a search engine reads one`,
-			);
-		}
-	}
-	for (const picture of page.images) {
-		const problem = pictureProblem(picture, page, files, options);
-		if (problem !== undefined) {
-			report(problem);
-		}
-	}
+		);
+}
 
-	const canonical = canonicalProblem(page, options);
-	if (canonical !== undefined) {
-		report(canonical);
-	}
-
+// alternateProblems is every language the site has the page in that the head
+// names at no address or at another one than the page's.
+function alternateProblems(
+	page: Page,
+	pages: Map<string, Page>,
+	options: Options,
+): string[] {
+	const problems: string[] = [];
 	for (const [hreflang, url] of expectedAlternates(page, pages, options)) {
 		const named = page.alternates.get(hreflang);
 		if (named === undefined) {
-			report(`no alternate for "${hreflang}", which the site has at "${url}"`);
+			problems.push(
+				`no alternate for "${hreflang}", which the site has at "${url}"`,
+			);
 		} else if (named !== url) {
-			report(
+			problems.push(
 				`alternate for "${hreflang}" is "${named}", and that page is at "${url}"`,
 			);
 		}
 	}
-	return findings;
+	return problems;
 }
 
 // titleUnits and descriptionUnits are how long a title and a description can
@@ -498,6 +523,11 @@ const narrow = /[\uff61-\uffdc]/u;
 // character that only formats, such as a mark of direction or a soft hyphen.
 const invisible = /[\p{M}\p{Cf}]/u;
 
+// spacing matches a mark that stands beside its letter and takes room of its
+// own, as Devanagari's vowel signs ा and ि do: «का» runs about as wide as two
+// Latin letters, though a reader sees one syllable.
+const spacing = /\p{Mc}/u;
+
 // spaces matches a run of the white space HTML collapses to one space, as a
 // search result shows it.
 const spaces = /[\t\n\f\r ]+/g;
@@ -508,15 +538,17 @@ const graphemes = new Intl.Segmenter("und", { granularity: "grapheme" });
 
 // unitsOf is how long text runs in a search result, its white space collapsed
 // and each character a reader sees counted once: as two when it is wide, as
-// none when it takes no room, and as one otherwise.
+// none when it takes no room, and as one otherwise, and one more for each
+// mark in it that takes room of its own.
 function unitsOf(text: string): number {
 	let units = 0;
 	for (const { segment } of graphemes.segment(text.replace(spaces, " "))) {
-		const base = String.fromCodePoint(segment.codePointAt(0) ?? 0);
+		const [base = "", ...marks] = segment;
 		if (invisible.test(base)) {
 			continue;
 		}
 		units += wide.test(base) && !narrow.test(base) ? 2 : 1;
+		units += marks.filter((mark) => spacing.test(mark)).length;
 	}
 	return units;
 }

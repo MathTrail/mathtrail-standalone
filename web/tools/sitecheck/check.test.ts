@@ -230,6 +230,16 @@ describe("check", () => {
 		expect(await check(dir, options())).toEqual([]);
 	});
 
+	test("counts a vowel sign that stands beside its letter as one more, and one that sits above or below it as none", async () => {
+		const dir = await site((files) => {
+			files["ru/index.html"] = pageAt("/ru/", addresses)
+				.replace(titleAt("/ru/"), "का".repeat(30))
+				.replace(descriptionAt("/ru/"), "के".repeat(160));
+		});
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
 	const broken: {
 		name: string;
 		change?: (files: Record<string, string>) => void;
@@ -844,6 +854,17 @@ describe("check", () => {
 			rule: "head",
 			contains:
 				"the description runs to 161 units, and a search result shows 160 whole",
+		},
+		{
+			name: "a title of syllables with vowel signs beside their letters longer than a search result shows",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					titleAt("/ru/"),
+					"का".repeat(31),
+				);
+			},
+			rule: "head",
+			contains: "the title runs to 62 units",
 		},
 		{
 			name: "a title of wide symbols longer than a search result shows",

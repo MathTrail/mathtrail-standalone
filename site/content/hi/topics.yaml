@@ -1,0 +1,87 @@
+# The page of the topics, in Hindi: what a child's tasks are about, how the
+# topics build on one another, and every topic of the catalog with a drawing
+# and a line for the parent. A topic's name is the card's own, from the
+# widget's words; its grades and its links are the catalog's, and its group
+# the site's data.
+
+title: बच्चों के लिए ओलंपियाड गणित के विषय
+description: MathTrail में बच्चों के लिए ओलंपियाड गणित के सवालों के सभी विषय, तर्क की पहेलियों और “घड़ी” से “कबूतरखाना सिद्धांत” और “प्रतिशत” तक, और वे आपस में कैसे जुड़े हैं।
+
+hero:
+  title: आपके बच्चे को कौन-से सवाल मिलते हैं
+  lead: MathTrail का हर सवाल किसी एक विषय का होता है। यहाँ सभी विषय हैं, उनके सवाल कैसे होते हैं, और कुछ विषय दूसरों पर कैसे टिके हैं।
+  # The name of the child the card on this page shows, an invented one.
+  child: धूमकेतु
+  caption: प्रगति, जैसी चैट उसे दिखाता है, हर विषय में एक पड़ाव के साथ। बच्चा और संख्याएँ सिर्फ़ उदाहरण हैं।
+
+map:
+  title: विषय आपस में कैसे जुड़े हैं
+  lead: कुछ विषय दूसरों पर टिके हैं। “सभी विकल्प गिनना” विषय “कबूतरखाना सिद्धांत” और “सच्चे और झूठे”, दोनों के लिए ज़रूरी है। जब बच्चा किसी कठिन विषय पर अटक जाए, तो एक कदम पीछे लौटकर उस विषय पर जाने से मदद मिलती है, जिस पर कठिन विषय टिका है।
+  layers:
+    - step: चरण 1
+      name: आधार
+      lead: पहले से लगभग कुछ जानना ज़रूरी नहीं।
+    - step: चरण 2
+      name: नियम
+      lead: एक-एक स्थिति पर सोचकर निकाली गई बात नियम बन जाती है।
+    - step: चरण 3
+      name: कठिन सवाल
+      lead: कई विचार एक साथ ध्यान में रखने होते हैं।
+  hint: किसी विषय पर पॉइंटर ले जाएँ या Tab से उस तक पहुँचें, ताकि वे विषय चमक उठें, जिन पर वह टिका है और जिनका रास्ता वह खोलता है।
+  # Said under the map while a topic is pointed at: its name, every topic
+  # below it, and every topic above it.
+  say: "**{topic}** · पहले: {before} · आगे का रास्ता: {after}"
+  foundation: कुछ नहीं, यह खुद आधार है
+  summit: कुछ नहीं, यह खुद शिखर है
+  legend:
+    first: पहले
+    topic: विषय
+    then: फिर
+
+groups:
+  label: विषयों के समूह
+  logic: "तर्क: मान लेना, उससे नतीजा निकालना, विरोधाभास ढूँढना।"
+  counting: हर स्थिति गिनना, और कोई न छोड़ना।
+  time: घड़ी, हफ़्ते के दिन और साल, और उनके साथ क्या बदलता है।
+  numbers: ऐसी संख्याएँ, जिनमें गिनती की रफ़्तार से ज़्यादा विचार मायने रखता है।
+  parts: "हिस्सों में बँटा पूरा: भिन्न, प्रतिशत और अनुपात।"
+  games: ऐसी योजना ढूँढना, जो काम करे, चाहे सामने वाला खिलाड़ी या तराज़ू कुछ भी करे।
+
+# Every topic of the catalog, by its slug: a line for the parent. Its card's
+# drawing is the site's data, one of the site's own small drawings and never a
+# reference task's, and it reads no words of this file.
+topics:
+  ordering:
+    phrase: "कौन लंबा है, कौन बड़ा, कौन तेज़: कुछ सुरागों से सबको क्रम में लगाना।"
+  knights-and-liars:
+    phrase: कुछ हमेशा सच बोलते हैं, बाकी हमेशा झूठ। उनकी बातों से पता लगाना कि कौन क्या है।
+  enumeration:
+    phrase: हर स्थिति को तय क्रम में लिखना, ताकि कोई न छूटे और कोई दो बार न गिनी जाए।
+  gaps-and-boundaries:
+    phrase: "खंभे और अंतराल, मंज़िलें और सीढ़ियाँ: कब एक जोड़ना है, और कब नहीं।"
+  clocks:
+    phrase: "कितना समय बीता, और कितने बजे होंगे: सुइयाँ, डायल, दोपहर 12 बजे के पार जाना।"
+  calendar-and-age:
+    phrase: हफ़्ते के दिन, महीने और उम्र। उम्र का अंतर कभी नहीं बदलता, और हफ़्ता फिर से लौट आता है।
+  pigeonhole-principle:
+    phrase: अगर कबूतर खानों से ज़्यादा हों, तो किसी न किसी खाने में दो ज़रूर होंगे।
+  parity-and-alternation:
+    phrase: "सम और विषम, एक छोड़कर एक: बिना सब कुछ गिने क्या जाना जा सकता है।"
+  arithmetic-with-a-trick:
+    phrase: "चतुराई से गिनना: क्रम बदलना, समूह बनाना, और हिसाब लगाने से पहले आसान रास्ता पहचानना।"
+  weighing-and-pouring:
+    phrase: सबसे कम बार तौलकर नकली सिक्का ढूँढना, या बिना निशान वाले जगों से पानी नापना।
+  parts-and-shares:
+    phrase: "आधा, एक-तिहाई, एक-चौथाई: पूरे का हिस्सा, और हिस्से से पूरा।"
+  percentages:
+    phrase: यह कितने प्रतिशत है, और किसका। एक प्रतिशत यानी सौवाँ हिस्सा।
+  ratios-and-sharing:
+    phrase: "2 : 3 के अनुपात में बाँटना, और पता लगाना कि एक हिस्सा कितना है।"
+  figures-on-a-grid:
+    phrase: खानों से क्षेत्रफल और परिमाप। काटना, जोड़ना, और बिना कोई खाना छोड़े गिनना।
+  divisibility-and-remainders:
+    phrase: संख्या बिना शेष के बँटती है या नहीं, और न बँटे, तो क्या बचता है।
+  overlapping-groups:
+    phrase: कुछ बच्चे एक साथ दो क्लब जाते हैं। उन्हें दो बार गिनने से कैसे बचें।
+  winning-strategy:
+    phrase: आखिरी तीली कौन उठाएगा? जीतने वाली स्थितियाँ ढूँढना, सामने वाला खिलाड़ी चाहे जो करे।

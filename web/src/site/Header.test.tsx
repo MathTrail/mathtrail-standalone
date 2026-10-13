@@ -7,11 +7,12 @@ function offered(locale: string, name: string): LanguageLink {
 }
 
 describe("the language picker", () => {
-	test("lists the languages by their own names: the Latin ones first, then the Cyrillic, the Arabic and the Han", () => {
+	test("lists the languages by their own names: the Latin ones first, then the Cyrillic, the Arabic, the Devanagari and the Han", () => {
 		const languages = [
 			offered("zh-Hans", "简体中文"),
 			offered("ar", "العربية"),
 			offered("ja", "日本語"),
+			offered("hi", "हिन्दी"),
 			offered("ru", "Русский"),
 			offered("pt", "Português"),
 			offered("fr", "Français"),
@@ -28,6 +29,7 @@ describe("the language picker", () => {
 			"pt",
 			"ru",
 			"ar",
+			"hi",
 			"ja",
 			"zh-Hans",
 		]);

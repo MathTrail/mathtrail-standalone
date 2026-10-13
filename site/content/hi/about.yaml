@@ -1,0 +1,55 @@
+# The page "About", for a parent, in Hindi: who makes MathTrail — one family,
+# each of us under a role — and where to write. The children go by their place
+# in the family, never by name, and each of us by the key our photograph goes
+# by. The address and the link to the code are the footer's, which the page
+# fills in.
+
+title: हमारे बारे में
+description: "MathTrail को एक परिवार बनाता है: कौन क्या करता है, और हमसे कैसे संपर्क करें।"
+
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
+hero:
+  title: MathTrail को एक परिवार बनाता है
+  lead: >-
+    MathTrail की शुरुआत माता-पिता की परवाह से हुई। हम चार हैं: पापा
+    प्लेटफ़ॉर्म बनाते हैं, माँ प्रोजेक्ट में अपनापन और व्यवस्था बनाए रखती हैं,
+    हमारा चंचल बड़ा बेटा चमकती आँखों से नए सवाल चुटकियों में हल कर देता है,
+    और छोटा बेटा बस पास में मीठी-मीठी साँसें लेता है और हमें याद दिलाता है कि
+    यह सब किसलिए है।
+  photo: हम चारों चॉकलेट केक वाली मेज़ पर, और पापा की गोद में छोटा बेटा।
+
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
+team:
+  title: हम कौन हैं
+  members:
+    mum:
+      role: हर चीज़ की सीईओ
+      name: माँ
+      text: विचार उन्हीं का है, और प्रोजेक्ट की मुख्य डिज़ाइनर भी वही हैं। प्रोडक्ट की ज़रूरतें तय करती हैं और बाकी सब कुछ भी सँभालती हैं, यानी बिलकुल सब कुछ!
+      photo: बेज रंग की जैकेट में मुस्कुराती माँ।
+    dad:
+      role: फ़ुल-स्टैक गोदी-मास्टर
+      name: पापा
+      text: एक हाथ से कोड लिखते हैं और दूसरे से बच्चे को झुलाते हैं। डिप्लॉय सिर्फ़ दोपहर की नींद के बाद करते हैं, वरना प्रोडक्शन जाग जाएगा और रोने लगेगा।
+      photo: पापा, सीने पर कैरियर में छोटे बेटे को लिए हुए; बच्चे के कानों पर शोर से बचाने वाले हेडफ़ोन।
+    older-son:
+      role: चीफ़ सवाल-सुलझाऊ
+      name: बड़ा बेटा
+      text: नए सवाल सबसे पहले हल करता है और ईमानदारी से बताता है कि कहाँ बात साफ़ नहीं है।
+      photo: बड़ा बेटा Lego की ईंटों से बना खिलौना लिए हुए, और उसके चारों ओर सफ़ेद लकीरों से बने तारे और ताज।
+    younger-son:
+      role: R&D इंटर्न (क्रैश-टेस्ट)
+      name: छोटा बेटा
+      text: अभी खिलौनों की मज़बूती जाँचता है। उसके पहले सवाल तक अभी दो-एक साल बाकी हैं।
+      photo: मुलायम दरी पर पेट के बल लेटा छोटा बेटा, पास में एक टेडी बियर।
+
+contact:
+  title: कोई गलती मिली, या कोई विचार है?
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: हमें {address} पर लिखें या {issue} — हम सब कुछ पढ़ते हैं।
+  issue: GitHub पर issue खोलें
+  write: हमें लिखें
+  github: GitHub

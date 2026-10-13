@@ -1,0 +1,186 @@
+# The home page, for a parent: what MathTrail is, why not just ask the chat,
+# how a lesson goes — the card of the widget at every step — and how to
+# connect. The grades, the names of the traps, the card's picture, options and
+# rating, the connector's address and the card's own words are not here: they
+# are the catalog's numbers, the site's data, the widget's words and the
+# site's own.
+
+title: MathTrail — आपके चैट में ओलंपियाड गणित
+description: बच्चों के लिए ओलंपियाड गणित के सवाल और गणित की पहेलियाँ, आपके अपने चैट में, मुफ़्त और अनगिनत। MathTrail हर सवाल जाँचता है, हर गलती को समझाता है और बच्चे की प्रगति याद रखता है।
+
+hero:
+  free: मुफ़्त
+  open: ओपन सोर्स
+  title: ओलंपियाड गणित, उसी चैट में जो आपके पास पहले से है।
+  # The promise, word for word as the README gives it.
+  lead: कक्षा {range} के लिए ओलंपियाड जैसे गणित के जाँचे हुए सवालों का कभी न खत्म होने वाला सिलसिला, किसी भी भाषा में, बच्चे की गलती के निदान और उसकी प्रगति की याद के साथ।
+  # How the task on the card was picked for the lesson's child: the child's
+  # topics, then the chance of a right answer and the reasons. The topics and
+  # the numbers are the site's data.
+  pick:
+    label: अगला सवाल कैसे चुना गया
+    title: गाल्ट के लिए चुना गया
+    skills: गाल्ट के कौशल
+    why: यही सवाल क्यों
+    auto: अपने-आप चुना गया
+    chance: "संभावना {chance} — सही दायरे में"
+    reasons:
+      - सबसे कमज़ोर विषय
+      - "हाल की गलती का जाल फिर से: “अंतराल गिनने में एक की चूक”"
+      - 5 दिन से अभ्यास नहीं हुआ
+  see: एक पाठ देखें
+  note: जब तक आपका बच्चा सवाल हल करे, अपने लिए चाय डाल लें।
+
+# The frame a card stands in: the chat a parent already uses, with the
+# parent's message above the card.
+chat:
+  title: आपका चैट
+  ask: एक नया सवाल दें
+  progress: मेरे बच्चे की प्रगति कैसी है?
+
+pillars:
+  title: सीधे चैट से ही क्यों न पूछें?
+  lead: "चैट का मॉडल एक सेकंड में सवाल लिख देता है — और उतनी ही जल्दी चूक भी जाता है: दो विकल्प, और दोनों सही; ऐसा हल, जिसका हिसाब नहीं बैठता; कल का ही सवाल, बस नई संख्याओं के साथ। और अगर आपका बच्चा ज़िद करे, तो मॉडल खुशी-खुशी उसकी बात मान लेता है। MathTrail मॉडल को वही करने देता है, जो वह अच्छी तरह करता है — लिखना — और बाकी सब कुछ एक प्रोग्राम से जाँचता है।"
+  # A chat asked alone for a task. Its options, and which of them are right,
+  # are the site's data.
+  alone:
+    name: सिर्फ़ चैट
+    ask: कक्षा 3 के लिए ओलंपियाड का एक सवाल दें
+    task: एक संख्या 2 से भी विभाज्य है और 3 से भी। यह कौन-सी संख्या हो सकती है?
+    flag: दो सही जवाब — किसी ने जाँचा नहीं
+  # The chat alone against the chat with MathTrail, both asked what the chat
+  # alone was asked, point against point.
+  versus:
+    asked: "“{ask}”"
+    alone:
+      - दो विकल्प एक साथ सही हो सकते हैं — या एक भी नहीं।
+      - बच्चे की ज़िद पर गलत जवाब भी मान लेता है।
+      - भूल जाता है कि आपके बच्चे से कहाँ गलती हुई।
+      - "आपको पता होना चाहिए कि क्या माँगना है: विषय, स्तर, आगे क्या।"
+      - हर सवाल अलग-थलग है, बच्चों के सीखने के किसी मॉडल के बिना।
+      - आपके बच्चे को पहले से क्या आता है, इसका कोई नक्शा नहीं।
+    ours:
+      name: चैट + MathTrail
+      points:
+        - "ठीक एक सही विकल्प: सवाल हल करने वाला प्रोग्राम (सॉल्वर) हर स्थिति आज़माकर देखता है।"
+        - जवाब एक टैप से दर्ज होता है — बहस करके उसे सही नहीं ठहराया जा सकता।
+        - कौशल और गलतियाँ याद रखता है और अगला सवाल चुनता है।
+        - "बस “एक नया सवाल” कहना काफ़ी है: विषय और स्तर MathTrail चुनता है।"
+        - "शोध पर आधारित कौशल मॉडल: IRT के ऊपर Elo, 11 पड़ाव।"
+        - हर विषय की अपनी रेटिंग, और एक नक्शा कि कौन-सा विषय किन विषयों पर आधारित है।
+  tiles:
+    # The languages are named each in itself; this follows them.
+    endless:
+      title: सवाल कभी खत्म नहीं होते।
+      text: हर सवाल आपके बच्चे के विषय, स्तर और सबसे ताज़ा गलती के हिसाब से नए सिरे से लिखा जाता है — आपके चैट की भाषा में, किसी तैयार भंडार से निकाला नहीं जाता। हर तीसरा सवाल उसकी रुचियों के इर्द-गिर्द बुना जाता है।
+      more: + कोई भी भाषा
+    checked:
+      title: मॉडल की जाँच एक प्रोग्राम करता है।
+      text: "सवाल आपके बच्चे तक तभी पहुँचता है, जब वह हर जाँच में पास हो जाए: एक ही सही विकल्प, सॉल्वर से दोबारा निकला वही जवाब, कक्षा के हिसाब से पढ़ने लायक भाषा, कोई दोहराव नहीं, और अगर चित्र हो, तो उस पर वैसे ही लेबल, जैसे सवाल में हैं, और जवाब का कोई निशान नहीं।"
+      checks:
+        - एक जवाब
+        - सॉल्वर
+        - पढ़ने लायक
+        - दोहराव नहीं
+    diagnosis:
+      title: गलती एक निदान है।
+      # The traps are the catalog's, under the names the card gives them.
+      text: हर गलत विकल्प के पीछे नाम वाला एक जाल छिपा होता है — “{first}”, “{second}”, “{third}”। समझाना इस बात से शुरू होता है कि आपके बच्चे ने कैसे सोचा, सही जवाब से नहीं।
+      trap: "जाल: खंभे नहीं, अंतराल गिने गए"
+  behind:
+    title: हर सवाल के पीछे क्या है
+    # Under the words, what the parent says, and what MathTrail picks.
+    coach:
+      title: शिक्षक होना ज़रूरी नहीं।
+      text: ओलंपियाड के विषय जानना या स्तर चुनना ज़रूरी नहीं। “एक नया सवाल” कहें — आगे किस चीज़ का अभ्यास हो और वह कितना कठिन हो, यह कोच तय करता है।
+      picked: "विषय + स्तर: चुन लिए गए"
+    research:
+      title: शोध पर आधारित मॉडल।
+      text: हल करने की संभावना मनोमिति में इस्तेमाल होने वाले एक कौशल मॉडल से आती है — आइटम रिस्पॉन्स थ्योरी (IRT) के ऊपर Elo — और सवाल वहीं रखे जाते हैं, जहाँ बच्चे को 70–85% बार सफलता मिले।
+      formula: P = 0.2 + 0.8·σ(θ + δ − β)
+    # Under the words, a topic between two it builds on, as the catalog has
+    # them.
+    map:
+      title: कौशलों और विषयों का नक्शा।
+      text: MathTrail जानता है कि कौन-से विषय किन पर आधारित हैं — “सच्चे और झूठे” विषय से पहले “क्रम में लगाना” और “सभी विकल्प गिनना” आते हैं — और हर विषय में आपके बच्चे की रेटिंग रखता है।
+
+lesson:
+  eyebrow: पाठ कैसे चलता है
+  title: एक बार में एक सवाल, आपके अपने चैट में।
+  lead: आप पास बैठें, और टैप बच्चा करे। हर कदम के साथ वह कार्ड है, जैसा चैट उसे उस पल दिखाता है।
+  # The steps in the order a lesson takes them, each beside its card.
+  steps:
+    generating:
+      title: सवाल माँगें
+      text: “एक नया सवाल दें” लिखें। MathTrail विषय और कठिनाई चुनता है, चैट सवाल लिखता है, और एक प्रोग्राम आपके बच्चे के देखने से पहले हर जवाब जाँचता है।
+    selected:
+      title: बटन से जवाब
+      text: पाँच विकल्प, A से E तक। जवाब एक टैप से तुरंत दर्ज हो जाता है — कुछ भी समझाए जाने से पहले, इसलिए बातों से उसे सही नहीं ठहराया जा सकता।
+    hint:
+      title: रास्ता नहीं सूझ रहा? संकेत, जवाब नहीं
+      text: संकेत शुरुआत का रास्ता दिखाता है — जैसे, छोटी बाड़ का चित्र बनाना — और जवाब तब तक छिपा रहता है, जब तक बच्चा कोई एक जवाब न चुन ले।
+    wrong:
+      title: गलत जवाब सबक बन जाता है
+      text: हर गलत विकल्प के पीछे एक जाना-पहचाना जाल छिपा है। बच्चे के जवाब देते ही कार्ड जवाब के विश्लेषण में बदल जाता है, जाल को उसी रूप में बताता है जिसमें आपके बच्चे से गलती हुई — “खंभों की जगह अंतराल गिने गए” — और फिर हल को कदम-दर-कदम समझाता है।
+    question:
+      title: अपने शब्दों में “क्यों” पूछें
+      text: जवाब दर्ज होते ही चैट में पूछें — “एक खंभा ज़्यादा क्यों?” — और मॉडल इसी सवाल के बारे में जवाब देता है।
+    progress:
+      title: प्रगति, जिसे आसानी से पढ़ा जा सके
+      text: "अब तक हासिल पड़ाव और हर विषय का पड़ाव, बार-बार होने वाली गलतियाँ, आगे क्या है — और आपके लिए एक समीक्षा: मज़बूत पक्ष और जिन पर काम करना है।"
+  # The name of the child the cards show, an invented one, which the first
+  # screen picks a task for.
+  child: गाल्ट
+  # Two messages of the chat beneath a card answered wrong: the adult's
+  # question and the model's reply, about the step and to nobody, for the adult
+  # to read out to the child. They are the site's words, never the card's.
+  chat:
+    label: चैट का एक उदाहरण
+    adult: बड़ा व्यक्ति
+    model: मॉडल
+    question: एक खंभा ज़्यादा क्यों?
+    reply: बाड़ के साथ बाईं ओर से चलते हुए हर अंतराल एक खंभे पर खत्म होता है, इसलिए 4 अंतराल 4 खंभे देते हैं, और पहला खंभा इन सबसे पहले खड़ा है। 4 + 1 = 5।
+
+# The task of the lesson: a variant of a reference task, never one word for
+# word.
+task:
+  question: एक बाड़ 12 मीटर लंबी है। हर 3 मीटर पर एक खंभा लगा है, दोनों सिरों पर भी। कितने खंभे हैं?
+  hint: पहले 6 मीटर लंबी एक छोटी बाड़ लेकर देखो, जिसमें हर 3 मीटर पर एक खंभा हो। उसका चित्र बनाओ और खंभे गिनो।
+  # The trap behind each wrong option, as the card says it once that option
+  # is picked: the steps pick one, and the card on the first screen any.
+  traps:
+    a: खंभों की संख्या की जगह खंभों के बीच की दूरी बता दी गई।
+    b: खंभों की जगह अंतराल गिने गए।
+    d: लंबाई को दूरी से भाग देने की जगह उससे गुणा कर दिया गया।
+    e: खंभे गिनने की जगह सवाल से बाड़ की लंबाई ही उठा ली गई।
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4 अंतराल। सीधी बाड़ में, जिसके दोनों सिरों पर खंभे हों, खंभे अंतरालों से एक ज़्यादा होते हैं। 4 + 1 = 5 खंभे।
+
+connect:
+  eyebrow: कनेक्ट करें
+  title: पहले सवाल तक बस कुछ कदम।
+  claude:
+    pill: अभी काम करता है · Free प्लैन में भी
+    # The steps of Claude's own help on custom connectors; the address follows
+    # the third.
+    steps:
+      open: Claude में {connectors} खोलें।
+      add: "**+ जोड़ें** दबाएँ और **कस्टम कनेक्टर जोड़ें** चुनें।"
+      paste: "इसका नाम MathTrail रखें और पता पेस्ट करें:"
+      sign: "**जारी रखें** दबाएँ, और फिर से **जारी रखें**: Claude साइन-इन की जो सेटिंग खुद पहचानता है, उन्हें बदलने की ज़रूरत नहीं है। फिर **जोड़ें** दबाएँ, उसके बाद **कनेक्ट करें** दबाएँ और Google से साइन इन करें। MathTrail आपकी Google Drive में एक फ़ाइल रखने की अनुमति माँगता है — आपके बच्चे की प्रोफ़ाइल। Google की स्क्रीन पर इसकी अनुमति दें: इस फ़ाइल के बिना प्रगति रखने की कोई जगह नहीं है।"
+      chat: "किसी चैट में **+** → **कनेक्टर** दबाएँ, MathTrail चालू करें और लिखें: “चलिए, MathTrail का एक सवाल हल करें।”"
+    # Claude's own names for the page, as Claude writes them in the page's
+    # language, and in English where Claude does not speak it.
+    connectors: कस्टमाइज़ → कनेक्टर
+    note: Free प्लैन में एक ही कस्टम कनेक्टर जोड़ा जा सकता है।
+  chatgpt:
+    pill: अभी डायरेक्टरी में नहीं
+    text: Free प्लान वाले ChatGPT खातों में ऐप सिर्फ़ ChatGPT की डायरेक्टरी से जोड़े जा सकते हैं। जैसे ही MathTrail वहाँ सूची में आ जाए, उसे नाम से ढूँढें, कनेक्ट करें और Google से साइन इन करें। अभी वह वहाँ नहीं है।
+    dev: "तब तक, ChatGPT का डेवलपर मोड, जो वेब पर Plus, Pro, Business, Enterprise और Education प्लान में मिलता है, किसी ऐप को उसके पते से जोड़ने देता है: उसे चालू करें और ऊपर दिए पते से ऐप जोड़ें, जैसा {openai}। ChatGPT में MathTrail की जाँच अभी चल रही है।"
+    openai: OpenAI बताता है
+  need: आपको Claude या ChatGPT खाता और एक Google खाता चाहिए; आपके बच्चे को इनमें से कोई नहीं चाहिए।
+
+ask:
+  title: एक सवाल से शुरू करें।
+  lead: MathTrail को Claude में जोड़ें — इसमें लगभग दो मिनट लगते हैं।
+  code: GitHub पर कोड देखें

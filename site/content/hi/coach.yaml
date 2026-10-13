@@ -1,0 +1,48 @@
+# The page "Coach", for a parent, in Hindi: a product of its own, still in
+# the making, that leads a child through a problem on a tablet, and its
+# prototype to try in a frame. The prototype speaks English alone in every
+# language of the page and is never translated. The number of techniques on
+# the first screen's second button is the site's data.
+
+title: कोच
+description: हम 7 से 12 साल के बच्चों के लिए एक कोच बना रहे हैं, जिसमें बच्चे टैबलेट पर ओलंपियाड के सवाल हल करते हैं और उन पर खुद सोचते हैं। इसका प्रोटोटाइप आज़माएँ।
+
+hero:
+  badge: तैयारी में
+  title: ओलंपियाड गणित, जहाँ सोचना बच्चे का काम है
+  lead: "हम 7 से 12 साल के बच्चों के लिए एक कोच बना रहे हैं। सवाल का हल टैबलेट पर बच्चे के हाथ से बनता है: कैनवास पर चित्रों और लिखावट से, जैसे कॉपी में। बच्चे का चुना हुआ साथी उसे चार कदमों से होकर आगे ले चलता है और सही दिशा दिखाने वाले सवाल पूछता है। साथी जवाब कभी नहीं बताता: जवाब बच्चे को ही लिखना होता है।"
+  try: प्रोटोटाइप आज़माएँ
+  # A screen of the prototype beside the words: what it shows, for whoever
+  # cannot see it, and the line under it.
+  screen: "MathTrail का प्रोटोटाइप: बच्चे द्वारा साथी का चुनाव"
+  caption: "प्रोटोटाइप की एक स्क्रीन: किसके साथ सवाल हल करना है, यह चुनाव बच्चे का है। इसे नीचे आज़माएँ।"
+
+# What the coach is about, a card for each idea, under a heading a screen
+# reader alone says.
+ideas:
+  title: कोच कैसा होगा
+  items:
+    - title: पोल्या के चार कदम
+      text: समझना → योजना बनाना → हल करना → जाँचना। कदम हमेशा सामने रहते हैं।
+    - title: कॉपी जैसा कैनवास
+      text: चित्र हल का हिस्सा है। संकेत एक-एक करके आते हैं, और चुनने के लिए कोई विकल्प नहीं होते।
+    - title: बच्चे का अपना साथी
+      text: लोमड़ी, रोबोट, उल्लू, बिल्ली, डायनासोर, या बच्चे का खुद बनाया हुआ साथी।
+
+# The prototype in its frame: the frame's name for a screen reader, the line
+# under it, and the link that opens it alone.
+prototype:
+  frame: MathTrail — एक इंटरैक्टिव प्रोटोटाइप
+  caption: "एक इंटरैक्टिव प्रोटोटाइप: हल का चित्र बनाकर देखें"
+  open: पूरी स्क्रीन पर खोलें ↗
+
+# What the prototype is, and what it only pretends to do yet.
+notes:
+  title: यह एक प्रोटोटाइप है
+  text: हर चीज़ पर क्लिक किया जा सकता है, और कैनवास पर माउस या उँगली से चित्र बनाया जा सकता है। अभी इंटरफ़ेस अंग्रेज़ी में है।
+  imitated:
+    title: अभी सिर्फ़ दिखाने के लिए
+    items:
+      - लिखावट और चित्रों को पहचानना
+      - साथी की आवाज़
+      - फ़ोटो से सवाल

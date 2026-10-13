@@ -1089,8 +1089,9 @@ a:hover {
 
 /* On the page of the topics a card's drawing and its words are two rows that
    the cards beside it share, so that their names stand level under drawings
-   of any height. */
+   of any height. The card is also the box its one link covers (below). */
 .s-topic-card {
+	position: relative;
 	display: grid;
 	grid-row: span 2;
 	grid-template-rows: subgrid;
@@ -1144,10 +1145,6 @@ a:hover {
    related topic's card on a topic's page is a link all over; the sign at its
    foot takes the colours a link has, and the name shows the link's focus as
    every link does. */
-.s-topic-card {
-	position: relative;
-}
-
 .s-topic-link {
 	color: inherit;
 	text-decoration: none;
@@ -14740,9 +14737,20 @@ a.s-related-card:hover {
 	font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.125rem);
 }
 
-/* Chinese, Japanese and Arabic write no italic, which a browser would draw by
-   slanting the characters: a caption and an emphasis stand upright there, a
-   title of a book being set apart by its own brackets, 『…』, 《…》 and «…». */
-:root:is(:lang(ja), :lang(zh), :lang(ar)) :is(em, .s-technique-caption) {
+/* Devanagari joins the letters of a word under one line along their tops,
+   which the tightening of the Latin letters would break and overlap: on a
+   page in Hindi every text keeps its letters' own spacing, the Latin mark and
+   figures too, which lose a hair of their tightening there, but for the tag
+   "Beta", which is spaced out as a tag. */
+:root:lang(hi) :not(.s-nav-tag) {
+	letter-spacing: normal;
+}
+
+/* Chinese, Japanese, Arabic and Hindi write no italic, which a browser would
+   draw by slanting the characters: a caption and an emphasis stand upright
+   there, a title of a book being set apart by its own brackets or quotes,
+   『…』, 《…》, «…» and “…”. */
+:root:is(:lang(ja), :lang(zh), :lang(ar), :lang(hi))
+:is(em, .s-technique-caption) {
 	font-style: normal;
 }

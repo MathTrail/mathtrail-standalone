@@ -23,7 +23,7 @@ Do not press **Allow** on that page. It signs a parent in with Google, and the b
 
 ## The demo profile
 
-The account opens one demo profile: a child known by a pseudonym, with the trial series done and about twenty tasks answered, some of them wrongly on purpose. It is a profile made for review, kept in a demo Google account's Drive, and nothing done in it reaches a real family or is counted as a child.
+The account opens one demo profile: a child known by a pseudonym, with the trial series done and about thirty tasks answered, some of them wrongly on purpose. It is a profile made for review, kept in a demo Google account's Drive, and nothing done in it reaches a real family or is counted as a child.
 
 ## What to try
 
@@ -34,7 +34,7 @@ In a chat with MathTrail switched on, type as the adult would; the card is the c
 3. **The hint.** Press the bulb, **Hint**, on the card before answering.
 4. **Another task.** Press the two arrows in a circle, **Another task**, on a task's card before its answer, or **Another task** under how the answer went. The card puts its words in the chat — in Claude, press Enter to send them —, the task written ahead appears at once on a new card below, and the model writes the one after it. Or ask for one in the chat, or ask for a topic: "Let's practise counting."
 5. **The progress.** Say "Show the progress." The card shows each topic's rank, what moved since the last task and over the past week, the **Review** — strengths, topics to develop and what to do next — and **Mistakes that repeat**.
-6. **The profile.** Open **Profile and progress** at the top of a task's card: its **Profile · for the parent** section shows the profile, and **Edit** there changes the interests or the grade. Or ask in the chat: "Change my child's interests to space and dinosaurs." The profile has no card of its own: asked to show it, the chat tells it in words.
+6. **The profile.** Open **Profile & progress** at the top of a task's card: its **Profile · for the parent** section shows the profile, and **Edit** there changes the interests or the grade. Or ask in the chat: "Change my child's interests to space and dinosaurs." The profile has no card of its own: asked to show it, the chat tells it in words.
 
 ## Where the answer is shown
 

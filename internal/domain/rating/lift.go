@@ -38,7 +38,8 @@ func ReachedAt(point Point) float64 {
 // one whose numbers are no numbers.
 func Lifted(stepped State, before float64, easiest Point) State {
 	target := max(before+ProbeLift, ReachedAt(easiest))
-	if !(stepped.Level() < target) {
+	level := stepped.Level()
+	if math.IsNaN(level) || math.IsNaN(target) || level >= target {
 		return stepped
 	}
 	lifted, aim := stepped, target
