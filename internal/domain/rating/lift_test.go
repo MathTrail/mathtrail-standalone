@@ -100,6 +100,47 @@ func TestAStateThatIsNoNumberIsNotLifted(t *testing.T) {
 	}
 }
 
+// A topic deep below a high overall level is lifted all the way to its target,
+// though its correction is rounded at a scale far coarser than the target's.
+// These are the numbers the property below once found short by 1.8e-16: the
+// topic stood at 0.025, so ProbeLift sets the target at 0.125, far above where
+// its easiest point comes into reach.
+func TestALiftReachesItsTargetDeepBelowTheOverallLevel(t *testing.T) {
+	t.Parallel()
+	const target = 0.12499659422938976
+	stepped := rating.State{Theta: 4.1997847206161705, Delta: -4.124788126386781, Answers: 120, TopicAnswers: 9}
+
+	lifted := rating.Lifted(stepped, stepped.Level()-0.05, rating.Point{GradeLevel: rating.Grades12, Difficulty: 2})
+
+	if got := lifted.Level(); got < target || got-target >= 1e-9 {
+		t.Errorf("lifted to %.20g, want at the target, %.20g", got, target)
+	}
+	if lifted.Delta < stepped.Delta {
+		t.Errorf("the correction went down to %v from %v, want it raised", lifted.Delta, stepped.Delta)
+	}
+	if lifted.Theta != stepped.Theta || lifted.Answers != stepped.Answers || lifted.TopicAnswers != stepped.TopicAnswers {
+		t.Errorf("lifted to %+v, want the overall level and the counts left as %+v", lifted, stepped)
+	}
+}
+
+// A target or an overall level that is infinite is no number a lift can reach,
+// and the state is left as the step left it: a lift never makes infinite or
+// no number what it was given as neither.
+func TestAnInfiniteTargetOrLevelIsNotLifted(t *testing.T) {
+	t.Parallel()
+	for name, c := range map[string]struct {
+		stepped rating.State
+		before  float64
+	}{
+		"a target at infinity":          {rating.State{Theta: 0.5, Delta: -0.2}, math.Inf(1)},
+		"an overall level at -infinity": {rating.State{Theta: math.Inf(-1)}, 0},
+	} {
+		if lifted := rating.Lifted(c.stepped, c.before, easiestOfTheLadder); lifted != c.stepped {
+			t.Errorf("%s: lifted to %+v, want it left as %+v", name, lifted, c.stepped)
+		}
+	}
+}
+
 func TestARightAnswerToAProbeHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 	properties := gopter.NewProperties(nil)
