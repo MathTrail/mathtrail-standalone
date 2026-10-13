@@ -208,8 +208,8 @@ function LanguagePicker({ languages }: { languages: readonly LanguageLink[] }) {
 }
 
 // letters orders the languages' names as the letters of every script are
-// ordered: the Latin ones first, then the Cyrillic, the Arabic and the Han,
-// and each script by its own letters.
+// ordered: the Latin ones first, then the Cyrillic, the Arabic, the Devanagari
+// and the Han, and each script by its own letters.
 const letters = new Intl.Collator("en");
 
 /**

@@ -16,7 +16,7 @@ As of 9 October 2026.
 - **The child's data.** The child is known by a pseudonym alone. The profile is one file in the adult's own Google Drive, and the service keeps no database. The counts kept for grant applications hold no identifier ([privacy policy](https://mathtrail.app/en/privacy/), [data inventory](data-inventory.md)).
 - **Schools.** A pilot in a school means families using MathTrail at home on the school's recommendation: the school hands over no student data and receives none, and the free app has no school or class accounts.
 - **Content.** 603 reference tasks in 17 topics, each with a worked solution and every wrong option labelled with one of 20 catalogued traps; 33 solver programs in Starlark; 25 skills.
-- **Reach.** The card speaks 64 languages, the site nine of them: English, Spanish, Portuguese, German, French, Japanese, Russian, Simplified Chinese and Arabic.
+- **Reach.** The card speaks 64 languages, the site ten of them: English, Spanish, Portuguese, German, French, Japanese, Russian, Simplified Chinese, Arabic and Hindi.
 - **Status.** Live since the first release, v0.1.0, on 22 September 2026; the release the service runs is v0.4.4, of 9 October 2026. The service answers at `mcp.mathtrail.app` and the site is [mathtrail.app](https://mathtrail.app). Use has been counted since 4 October 2026, and the first month with public numbers can be November 2026.
 - **Public goods.** The code, the reference tasks with their solvers and trap labels, and the SQL of the views that publish the counts, all under MIT; and the public report of the counts, once it is published.
 - **Contact.** [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).

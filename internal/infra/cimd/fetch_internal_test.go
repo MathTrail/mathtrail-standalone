@@ -259,7 +259,14 @@ func TestARedirectIsNotFollowed(t *testing.T) {
 func TestOnlyAFailureThatMightPassIsTriedAgain(t *testing.T) {
 	t.Parallel()
 
-	stalling := func(w http.ResponseWriter, r *http.Request) { <-r.Context().Done() }
+	// A server that never answers holds the request until the client gives up,
+	// then drops it with no answer at all. A handler that merely returned would
+	// have net/http answer 200 with an empty body, which can still reach a
+	// client caught between telling the server it is closing and closing.
+	stalling := func(_ http.ResponseWriter, r *http.Request) {
+		<-r.Context().Done()
+		panic(http.ErrAbortHandler)
+	}
 	failing := func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusInternalServerError) }
 	missing := func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNotFound) }
 	oversized := func(w http.ResponseWriter, _ *http.Request) {
