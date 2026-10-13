@@ -56,13 +56,23 @@ Education
 - **Documentation:** https://mathtrail.app/en/help/ (CL-13, R229).
 - **Privacy policy:** https://mathtrail.app/en/privacy/ (CL-20).
 - **Support contact:** altedtech.info@gmail.com (CL-21).
-- **The icon:** `plugin/assets/logo.png`, 1024 pixels square. The portal's rule for it is not documented; a public report quotes "Square PNG or JPEG, 512 to 2048 px per side, under 2 MB", which it meets (§10 of catalogs.md).
+- **The icon,** by its address, which the portal checks with "Check icon": `https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/main/plugin/assets/logo.png`, the logo of `plugin/assets/logo.png`, 1024 pixels square. The portal recommends the favicon of the server's address instead, which Claude takes from Google and which still showed the earlier mark on 2026-10-13 (§10 of catalogs.md).
 
 ### Use cases (CL-05)
 
-- **What it is for:** a lesson of olympiad-style maths for a child in grades 1 to 6, run by a parent or a tutor in their own chat; the child's progress and what to practise next; the child's profile, and a topic to keep the lessons to.
-- **What users need before they connect:** a Claude account and a Google account. The child needs neither.
-- **Whether it reads or writes:** both. It reads and writes one file, the child's profile, which it creates in the signed-in adult's Google Drive; the `drive.file` permission reaches no other file.
+The portal asks for up to three use cases, each with an example prompt, the prerequisites, and whether the connector reads, writes or both; reviewers see them, and the listing does not. As entered on 2026-10-13, a use case and its prompt to a line:
+
+```text claude-use-cases
+Run a maths lesson | Let's do a MathTrail task.
+See the child's progress | How is my child doing?
+Change the child's profile | Change my child's interests to space and dinosaurs.
+```
+
+```text claude-prerequisites
+A Claude account and a Google account for the adult who runs the lesson; the child needs no account. At sign-in, the adult lets MathTrail keep one file, the child's profile, in their own Google Drive.
+```
+
+- **Read and write:** it reads and writes one file, the child's profile, which it creates in the signed-in adult's Google Drive; the `drive.file` permission reaches no other file. With Read only chosen, the portal names the five tools whose annotations write.
 
 ### Company (CL-06)
 
@@ -71,11 +81,11 @@ ALT EdTech
 ```
 
 - **Website:** https://mathtrail.app
-- **Contact for review updates:** altedtech.info@gmail.com
+- **The primary contact,** whom reviewers write to, is the author, at the address of the Claude account that submits: the portal fills it in. The listing's public support contact is altedtech.info@gmail.com.
 
 ### Authentication (CL-07)
 
-OAuth 2.1 with PKCE, by a client ID metadata document or by dynamic client registration, at `https://mcp.mathtrail.app`. The adult then signs in with Google, which is asked for `drive.file` alone (R225).
+OAuth 2.1 with PKCE, by a client ID metadata document or by dynamic client registration, at `https://mcp.mathtrail.app`. The adult then signs in with Google, which is asked for `drive.file` alone (R225). The portal detects the sign-in and takes one way for the client: entered as detected, always required, with a client ID metadata document.
 
 ### Data handling (CL-08)
 
@@ -85,15 +95,16 @@ OAuth 2.1 with PKCE, by a client ID metadata document or by dynamic client regis
 ### Test and launch (CL-09)
 
 - **The account:** the reviewers' sign-in of [reviewers.md](reviewers.md). On MathTrail's consent screen, the reviewer opens "Reviewing MathTrail for a directory?" and types the password, with no Google step. It opens a demo profile with a filled progress.
-- **The password** is typed into the form from the password manager, and is written nowhere else.
+- **The password** goes on the last line of the instructions, from the password manager: the step has one field, which only reviewers see. It is written nowhere else.
 - **The steps to try:** the three examples below, and "What to try" in [reviewers.md](reviewers.md).
+- **Self-tested:** "I have run every tool via MCP Inspector or as a custom connector in Claude", ticked once every tool has been run, the card's `edit_profile` through the profile's form.
 
-The instructions for the step's text field, from [reviewers.md](reviewers.md); the password goes into the step's credentials alone:
+The instructions for the step's field, from [reviewers.md](reviewers.md), as entered on 2026-10-13; the password follows "Reviewer's password:" on their last line:
 
 ```text claude-test-launch
 Sign-in for reviewers, with no Google account:
 1. Add MathTrail as a custom connector with the address https://mcp.mathtrail.app/mcp, then press Connect.
-2. MathTrail's page "Connect … to MathTrail?" opens. At its foot, open "Reviewing MathTrail for a directory?", type the reviewer's password from this form, and press "Sign in as the reviewer". Do not press "Allow": it signs a parent in with Google, and the browser remembers it. If the page goes straight to Google, clear the cookies of mcp.mathtrail.app and connect again.
+2. MathTrail's page "Connect … to MathTrail?" opens. At its foot, open "Reviewing MathTrail for a directory?", type the reviewer's password given at the end of these instructions, and press "Sign in as the reviewer". Do not press "Allow": it signs a parent in with Google, and the browser remembers it. If the page goes straight to Google, clear the cookies of mcp.mathtrail.app and connect again.
 3. The chat comes back connected to a demo profile: a child known by the pseudonym Comet, grade 3, with about thirty tasks answered, some wrongly on purpose. Nothing done in it reaches a real family.
 
 What to try, typing as the adult who runs the lesson; the child answers on the card:
@@ -104,6 +115,16 @@ What to try, typing as the adult who runs the lesson; the child answers on the c
 5. "Change my child's interests to space and dinosaurs." Claude asks to allow the save, then says what was saved. Profile & progress, at the top of a task's card, shows the profile and a form to edit it.
 
 The demo child has 50 new tasks a day, shared by every reviewer. The whole page for reviewers: https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/reviewers.md
+
+Reviewer's password:
+```
+
+### Compliance (CL-10)
+
+The seven acknowledgments, all ticked; their words are in [report 17](live/17-directory-claude.md). The step's additional note, optional, as entered:
+
+```text claude-additional-notes
+MathTrail is used by an adult, a parent or a tutor, in their own Claude chat: the adult types every message, and the child, sitting beside them, only taps an option on the card and never types in the chat or needs an account. The child is known by a pseudonym alone, and the profile is one file in the adult's own Google Drive. MathTrail makes no model calls of its own: Claude writes each task from get_package, which returns MathTrail's own guide, built into the server and public in its repository, and MathTrail checks the task before the child sees it.
 ```
 
 ### Allowed link URIs (CL-12)
@@ -118,7 +139,7 @@ The demo child has 50 new tasks a day, shared by every reviewer. The whole page 
 
 ### Screenshots (CL-11)
 
-PNG, at least 1000 pixels wide, three to five, of the card alone and without the prompt in the picture. `just listing-shots` takes them from the widget's preview into `web/listing/`, 1280 pixels wide, with the card's version left out and the task's row of posts cut short, in the order and the themes below (R232). Each picture's prompt is given beside it. No picture shows an answer before the child has answered, or the chat's log of tool calls (О-27).
+On 2026-10-13 the portal asked for none (§10 of catalogs.md); the pictures stay ready for an edit of the listing. PNG, at least 1000 pixels wide, three to five, of the card alone and without the prompt in the picture. `just listing-shots` takes them from the widget's preview into `web/listing/`, 1280 pixels wide, with the card's version left out and the task's row of posts cut short, in the order and the themes below (R232). Each picture's prompt is given beside it. No picture shows an answer before the child has answered, or the chat's log of tool calls (О-27).
 
 1. "Let's do a MathTrail task." The card with the task and its five options, in the light theme.
 2. "Let's do a MathTrail task.", then the bulb, Hint, tapped on the card. The same card with the hint open, in the dark theme.
