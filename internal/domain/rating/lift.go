@@ -8,9 +8,12 @@ import "math"
 // waited for, and the topic comes back by at least this much.
 const ProbeLift = 0.1
 
-// nudges bounds the steps of the least float64 that ReachedAt and Lifted take
-// past a level worked out backwards: one or two always do, and the bound only
-// keeps a loop over floats from running on a number that no step moves.
+// nudges bounds the steps ReachedAt and Lifted take past a level worked out
+// backwards. ReachedAt steps the level itself by the least float64; Lifted
+// raises the correction by the gap still left or by its own least step,
+// whichever is larger, so that no step of it is too small to move the level.
+// The bound only keeps a loop over floats from running on a number that no
+// step moves.
 const nudges = 16
 
 // ReachedAt is the lowest level at which a task at this point is in reach, as
@@ -35,20 +38,33 @@ func ReachedAt(point Point) float64 {
 // stood ahead of the answer, and at least where its easiest point is in reach.
 // The overall level and the counts stay as the step left them, since the lift
 // is the topic's alone; a step that went further is left as it is, and so is
-// one whose numbers are no numbers.
+// one whose level or target is not a finite number, which no lift makes one.
+//
+// The correction is worked out from the target and then raised by what is
+// still short of it, or by its own least step when the gap is smaller than
+// that. A correction far larger than the level it leaves — a topic deep below
+// a high overall level — is rounded at its own scale, much coarser than the
+// target's, so stepping the target instead could leave the level short of it
+// however many times it stepped.
 func Lifted(stepped State, before float64, easiest Point) State {
 	target := max(before+ProbeLift, ReachedAt(easiest))
 	level := stepped.Level()
-	if math.IsNaN(level) || math.IsNaN(target) || level >= target {
+	if !finite(level) || !finite(target) || level >= target {
 		return stepped
 	}
-	lifted, aim := stepped, target
+	lifted := stepped
+	lifted.Delta = target - lifted.Theta
 	for range nudges {
-		lifted.Delta = aim - lifted.Theta
-		if lifted.Level() >= target {
+		short := target - lifted.Level()
+		if short <= 0 {
 			break
 		}
-		aim = math.Nextafter(aim, math.Inf(1))
+		lifted.Delta = max(lifted.Delta+short, math.Nextafter(lifted.Delta, math.Inf(1)))
 	}
 	return lifted
+}
+
+// finite reports whether a number is one: neither NaN nor an infinity.
+func finite(number float64) bool {
+	return !math.IsNaN(number) && !math.IsInf(number, 0)
 }
