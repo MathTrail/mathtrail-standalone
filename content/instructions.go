@@ -15,6 +15,9 @@ const (
 	// serverInstructionsName is the file the MCP endpoint hands every model
 	// that connects, before any tool is called.
 	serverInstructionsName = "mcp_instructions.md"
+	// widgetDescriptionName is the file a host that tells its model about the
+	// widget's page tells it, as a card loads.
+	widgetDescriptionName = "widget_description.md"
 	// The version is long enough to name one wording among all the wordings this
 	// service will ever have, and short enough to read in a log line.
 	versionLength = 12
@@ -34,7 +37,9 @@ type instructionFile struct {
 // model to guess how a task is written and handed in. So is a set without the
 // server's instructions, which every model is given as it connects: without
 // them a model meets the tools with nothing said about the child, the answer
-// or the order of a lesson.
+// or the order of a lesson. And so is a set without the widget's description:
+// a host that hands its model a card's payload without the words beside it
+// would tell it nothing of what the card shows.
 func loadInstructions(src fs.FS) ([]instructionFile, error) {
 	entries, err := fs.ReadDir(src, instructionsDir)
 	if err != nil {
@@ -66,6 +71,9 @@ func loadInstructions(src fs.FS) ([]instructionFile, error) {
 	}
 	if !slices.ContainsFunc(entries, func(entry fs.DirEntry) bool { return entry.Name() == serverInstructionsName }) {
 		p.addf("%s: the file is missing, and every model that connects is given it", serverInstructionsName)
+	}
+	if !slices.ContainsFunc(entries, func(entry fs.DirEntry) bool { return entry.Name() == widgetDescriptionName }) {
+		p.addf("%s: the file is missing, and a host tells its model what a card shows by it", widgetDescriptionName)
 	}
 	return instructions, p.err()
 }

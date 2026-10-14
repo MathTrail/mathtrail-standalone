@@ -58,6 +58,7 @@ func FuzzToolArguments(f *testing.F) {
 			Traces:              tracenoop.NewTracerProvider(),
 			Logger:              zap.New(core),
 			Widget:              page,
+			WidgetDescription:   widgetDescription,
 			Origin:              serviceOrigin,
 			Site:                siteOrigin,
 		}, tools()[0])
@@ -179,6 +180,7 @@ func callOn(t *testing.T, p *profile.Profile, tool, arguments string) map[string
 		Traces:              tracenoop.NewTracerProvider(),
 		Logger:              zap.New(core),
 		Widget:              page,
+		WidgetDescription:   widgetDescription,
 		Origin:              serviceOrigin,
 		Site:                siteOrigin,
 	}, slices.Concat(service.ProfileTools(), service.TaskTools())...)

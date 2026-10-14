@@ -47,6 +47,7 @@ func (h *signIn) serveResource(t *testing.T) {
 		Traces:              tracenoop.NewTracerProvider(),
 		Logger:              zap.NewNop(),
 		Widget:              "<!doctype html><title>the widget</title>",
+		WidgetDescription:   "The card the adult and the child see.",
 		Origin:              "https://mcp.example",
 		Site:                "https://site.example",
 	}, mcpserver.Define(mcpserver.Spec{Name: "whoami", Title: "Who am I", Description: "Says whom a call acts for.", Effect: mcpserver.Reads},

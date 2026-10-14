@@ -264,6 +264,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		Logger:              log,
 		ProjectID:           cfg.GCPProjectID,
 		Widget:              widget.Page(),
+		WidgetDescription:   embedded.WidgetDescription(),
 		Origin:              cfg.Origin(),
 		Site:                cfg.Site(),
 	}, slices.Concat(lesson.ProfileTools(), lesson.TaskTools())...)

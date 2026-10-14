@@ -124,3 +124,11 @@ func TestInstructionsWithoutTheServerInstructionsStopTheService(t *testing.T) {
 	delete(src, instructionsDir+"/"+serverInstructionsName)
 	wantProblem(t, src, serverInstructionsName+": the file is missing")
 }
+
+func TestInstructionsWithoutTheWidgetsDescriptionStopTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	delete(src, instructionsDir+"/"+widgetDescriptionName)
+	wantProblem(t, src, widgetDescriptionName+": the file is missing")
+}

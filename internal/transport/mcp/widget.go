@@ -25,21 +25,22 @@ type Sandbox struct {
 	Site string
 }
 
-// addWidget serves page as the widget's resource at WidgetURI.
+// addWidget serves page as the widget's resource at WidgetURI, described to a
+// host's model as description says.
 //
 // What a host needs to know about the page travels twice: with the resource
 // where it is listed, and with the page where it is read. A host takes what
 // came with the page and falls back to the listing, and the library copies
 // neither onto the other.
-func addWidget(server *mcp.Server, page string, sandbox Sandbox) {
+func addWidget(server *mcp.Server, page, description string, sandbox Sandbox) {
 	server.AddResource(&mcp.Resource{
 		URI:      WidgetURI,
 		Name:     "widget",
 		Title:    "MathTrail",
 		MIMEType: widgetMIME,
-		Meta:     widgetMeta(sandbox),
+		Meta:     widgetMeta(description, sandbox),
 	}, func(context.Context, *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
-		return widgetRead(page, sandbox), nil
+		return widgetRead(page, description, sandbox), nil
 	})
 }
 
@@ -48,13 +49,13 @@ func addWidget(server *mcp.Server, page string, sandbox Sandbox) {
 // library writes into whatever a handler returns — the address, the type, the
 // cache hint, the server's own name — so a result shared between reads would
 // be written by several of them at once.
-func widgetRead(page string, sandbox Sandbox) *mcp.ReadResourceResult {
+func widgetRead(page, description string, sandbox Sandbox) *mcp.ReadResourceResult {
 	return &mcp.ReadResourceResult{
 		Contents: []*mcp.ResourceContents{{
 			URI:      WidgetURI,
 			MIMEType: widgetMIME,
 			Text:     page,
-			Meta:     widgetMeta(sandbox),
+			Meta:     widgetMeta(description, sandbox),
 		}},
 	}
 }
@@ -76,8 +77,13 @@ func widgetRead(page string, sandbox Sandbox) *mcp.ReadResourceResult {
 // It runs the page in a sandbox made from the origin it is given, under a key
 // of its own as well. The standard key for that origin is left unset: Claude
 // makes the sandbox's origin itself, and draws no card for a page that names
-// another.
-func widgetMeta(sandbox Sandbox) mcp.Meta {
+// another. It tells its model what the page shows, under a third key of its
+// own, as a card loads. A tool whose result ChatGPT draws as a card reaches its
+// model as the payload alone, without the words around it, so the description
+// is where its model reads what the card shows and what to say beside it: told
+// nothing of it, the model wrote every task out under the card that showed it,
+// hint and all. Claude reads no key of ChatGPT's.
+func widgetMeta(description string, sandbox Sandbox) mcp.Meta {
 	redirects := []string{}
 	if sandbox.Site != "" {
 		redirects = append(redirects, sandbox.Site)
@@ -98,6 +104,7 @@ func widgetMeta(sandbox Sandbox) mcp.Meta {
 			"frame_domains":    []string{},
 			"redirect_domains": redirects,
 		},
+		"openai/widgetDescription": description,
 	}
 	if sandbox.Origin != "" {
 		meta["openai/widgetDomain"] = sandbox.Origin

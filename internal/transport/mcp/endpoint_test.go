@@ -614,6 +614,7 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 			Traces:              tracenoop.NewTracerProvider(),
 			Logger:              zap.NewNop(),
 			Widget:              page,
+			WidgetDescription:   widgetDescription,
 			Origin:              serviceOrigin,
 			Site:                siteOrigin,
 		}
@@ -634,6 +635,8 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 	withoutVersion.InstructionsVersion = ""
 	withoutWidget := settings()
 	withoutWidget.Widget = ""
+	withoutWidgetDescription := settings()
+	withoutWidgetDescription.WidgetDescription = ""
 	withoutOrigin := settings()
 	withoutOrigin.Origin = ""
 	withoutSite := settings()
@@ -680,6 +683,7 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 		{name: "no instructions", settings: withoutInstructions, want: "Instructions"},
 		{name: "no version of the instructions", settings: withoutVersion, want: "InstructionsVersion"},
 		{name: "no widget", settings: withoutWidget, want: "Widget"},
+		{name: "no description of the widget", settings: withoutWidgetDescription, want: "WidgetDescription"},
 		{name: "no origin of the service", settings: withoutOrigin, want: "Origin"},
 		{name: "no site", settings: withoutSite, want: "Site"},
 		{name: "two tools of one name", settings: settings(), tools: []mcpserver.Tool{echo, echo}, want: `"echo"`},

@@ -46,6 +46,9 @@ type Settings struct {
 	// Widget is the page every card is drawn by, served to a host as the
 	// widget's resource.
 	Widget string
+	// WidgetDescription is what a host that tells its model about the page
+	// tells it as a card loads: ChatGPT does, under a key of its own.
+	WidgetDescription string
 	// Origin is the service's public origin, which a host that gives each app
 	// a sandbox of its own makes the widget's from.
 	Origin string
@@ -94,6 +97,11 @@ func (s *Settings) validate() error {
 		// A tool that draws a card would point the host at a page it cannot
 		// have, and the host would draw an empty frame for the child.
 		return fmt.Errorf("%w: Widget must be set", ErrSettings)
+	case s.WidgetDescription == "":
+		// A host that hands its model a card's payload without the words
+		// beside it would tell the model nothing of what the card shows, and
+		// the model would write the task out under the card that shows it.
+		return fmt.Errorf("%w: WidgetDescription must be set", ErrSettings)
 	case s.Origin == "":
 		// A host would run the page in a sandbox it shares with other apps.
 		return fmt.Errorf("%w: Origin must be set", ErrSettings)
@@ -154,7 +162,7 @@ func NewHandler(settings *Settings, tools ...Tool) (http.Handler, error) {
 			},
 		},
 	)
-	addWidget(server, settings.Widget, Sandbox{Origin: settings.Origin, Site: settings.Site})
+	addWidget(server, settings.Widget, settings.WidgetDescription, Sandbox{Origin: settings.Origin, Site: settings.Site})
 
 	names := make(map[string]struct{}, len(tools))
 	for _, tool := range tools {
