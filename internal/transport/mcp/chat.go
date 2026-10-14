@@ -6,12 +6,11 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// chatKind is how the chat a call came from shows a tool's result, as the
-// client that made the call says: drawn as a card, or as the words alone. The
-// words a tool hands back tell each chat its own case alone. Told both, a model
-// that never sees the card it drew may take the case without one for its own,
-// as ChatGPT's did: it read the task out under the card that showed it, and
-// drew a quiz of its own beside it.
+// chatKind is how the chat a call came from shows a tool's result: drawn as a
+// card, or as the words alone. The words a tool hands back tell each chat its
+// own case alone. Told both, a model that never sees the card it drew may take
+// the case without one for its own, as ChatGPT's did: it read the task out
+// under the card that showed it, and drew a quiz of its own beside it.
 type chatKind int
 
 const (
@@ -20,7 +19,7 @@ const (
 	// MathTrail is listed in draws cards.
 	cardsChat chatKind = iota
 	// wordsChat is a chat that shows the words alone: its client declares no
-	// MCP Apps.
+	// MCP Apps, and is not ChatGPT.
 	wordsChat
 )
 
@@ -28,20 +27,39 @@ const (
 // that draws a tool's result as a card.
 const appsExtension = "io.modelcontextprotocol/ui"
 
-// chatOf is the chat a client's capabilities describe. A client that declares
-// MCP Apps draws the cards, whatever kinds of page it names for them: a chat
-// taken wrongly for one that draws cards costs the adult a message, to say no
-// card shows the task, while one taken wrongly for words alone has the task
-// written out under the card that shows it. A client on the newest version of
-// the protocol declares its capabilities with every request. One on an earlier
-// version declared them once, in a handshake a server that keeps no session
-// never sees, and its calls come with none, which is no word that it draws no
-// cards.
-func chatOf(client *mcp.ClientCapabilities) chatKind {
+// What a client declared of MCP Apps with its call, as the call's line says
+// it: whether a host that draws cards says so is learnt from the lines.
+const (
+	appsDeclared = "declared"
+	appsNone     = "none"
+	appsUnknown  = "unknown"
+)
+
+// appsOf is what a client declared of MCP Apps, whatever kinds of page it named
+// for them. A client on the newest version of the protocol declares its
+// capabilities with every request. One on an earlier version declared them
+// once, in a handshake a server that keeps no session never sees, and its calls
+// come with none, which is no word either way.
+func appsOf(client *mcp.ClientCapabilities) string {
 	if client == nil {
-		return cardsChat
+		return appsUnknown
 	}
 	if _, declared := client.Extensions[appsExtension]; declared {
+		return appsDeclared
+	}
+	return appsNone
+}
+
+// chatOf is the chat a call came from. ChatGPT draws the cards on every
+// surface it has, and is taken to whatever it declares: told the words alone,
+// its model would read every task out under the card that shows it. Any other
+// client shows the words alone only when it declares no MCP Apps: a chat taken
+// wrongly for one that draws cards costs the adult a message, to say no card
+// shows the task, while one taken wrongly for words alone has the task written
+// out under the card. ChatGPT is told by the family the log names a host by, so
+// a family read wider changes what a model is told as well as the line.
+func chatOf(client *mcp.ClientCapabilities, info *mcp.Implementation) chatKind {
+	if clientFamily(info) == familyChatGPT || appsOf(client) != appsNone {
 		return cardsChat
 	}
 	return wordsChat

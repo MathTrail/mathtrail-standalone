@@ -568,7 +568,13 @@ describe("the form of the profile", () => {
 		);
 		expect(root.querySelector(".mt-form")).toBeNull();
 		expect(() => buttonIn(root, "Edit")).toThrow();
-		expect(document.activeElement).toBe(root.querySelector(".mt-fields-said"));
+		// The note takes the focus in an effect after the card has drawn it,
+		// which need not have run by the time the note is first found.
+		await vi.waitFor(() =>
+			expect(document.activeElement).toBe(
+				root.querySelector(".mt-fields-said"),
+			),
+		);
 		expect(heard.modelLines).toEqual([]);
 	});
 

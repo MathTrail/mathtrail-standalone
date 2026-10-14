@@ -256,22 +256,28 @@ func (h *harness) connect(t *testing.T, version string) *mcp.ClientSession {
 }
 
 // chatHost is how a case's client presents itself: as a chat host that draws
-// the cards, declaring MCP Apps as Claude and ChatGPT do, or as one that shows
-// the words alone and declares none, as Claude Code does.
+// the cards, declaring MCP Apps as Claude does; as one that shows the words
+// alone and declares none, as Claude Code does; or as ChatGPT declaring none,
+// which draws the cards all the same.
 type chatHost int
 
 const (
 	drawingCards chatHost = iota
 	wordsAlone
+	chatGPTDeclaringNone
 )
 
-// connectChat is connect, for a chat host that draws the cards or for one that
-// shows the words alone.
+// connectChat is connect, for a chat host as the case has it present itself:
+// one that draws the cards, one that shows the words alone, or ChatGPT
+// declaring no MCP Apps.
 func (h *harness) connectChat(t *testing.T, version string, host chatHost) *mcp.ClientSession {
 	t.Helper()
 
 	open := newOpenAnswers()
 	name, capabilities := "claude-code", &mcp.ClientCapabilities{}
+	if host == chatGPTDeclaringNone {
+		name = "openai-mcp"
+	}
 	if host == drawingCards {
 		name = "claude-ai"
 		capabilities.AddExtension("io.modelcontextprotocol/ui", map[string]any{

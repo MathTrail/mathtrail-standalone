@@ -228,7 +228,7 @@ func (d definition[In, Out]) call(ctx context.Context, req *mcp.CallToolRequest,
 	if !signedIn {
 		return nil, none, explain(errNotSignedIn)
 	}
-	reply, err := d.handle(withChat(ctx, chatOf(req.ClientCapabilities())), account, in)
+	reply, err := d.handle(withChat(ctx, chatOf(req.ClientCapabilities(), req.ClientInfo())), account, in)
 	if err != nil {
 		return nil, none, explain(err)
 	}

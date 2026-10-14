@@ -487,7 +487,10 @@ const hostReadsFirst = 512
 
 // Who runs the lesson is said before anything else: the adult types every
 // message, and the child, beside them, answers on the card and never in the
-// chat, so the model talks with the adult.
+// chat, so the model talks with the adult. Where a card shows a task, both see
+// it, so until the child answers or the adult asks, the model says nothing of
+// it, writes none of it out and makes no quiz of it: ChatGPT keeps this much
+// first, and its model wrote every task out under the card that showed it.
 func TestTheInstructionsOpenWithWhoRunsTheLesson(t *testing.T) {
 	t.Parallel()
 
@@ -499,6 +502,9 @@ func TestTheInstructionsOpenWithWhoRunsTheLesson(t *testing.T) {
 		"answers each task on its card",
 		"never types in the chat",
 		"you talk with the adult",
+		"Where a card shows a task, both see it",
+		"until the child answers or the adult asks, say nothing of it",
+		"nor write it, its options or hint out, nor make a quiz of it",
 	} {
 		if !strings.Contains(opening, says) {
 			t.Errorf("the first %d characters of the server instructions do not say %q", hostReadsFirst, says)
@@ -523,7 +529,7 @@ func TestAlwaysSaysEveryRuleOfALesson(t *testing.T) {
 		{"the answer waits for the child's", "keep the answer, the solution and the explanations to yourself"},
 		{"the answer waits even when the adult asks for it", "even when the adult asks"},
 		{"the hint comes only when asked for", "give the hint only when asked"},
-		{"a task on the card gets no word of the model's own", "say nothing of a task on the card"},
+		{"a task on the card gets no word of the model's own", "until the child answers or the adult asks, say nothing of it"},
 		{"the adult gives the child's answer in the chat", "When the adult gives the child's answer in the chat"},
 		{"an answer is recorded before it is explained", "before you explain anything"},
 		{`"I don't know" is an answer`, "\"I don't know\" is the answer `?`"},
