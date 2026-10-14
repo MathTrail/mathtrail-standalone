@@ -4,7 +4,7 @@
 # the one its tests run on, and moves with it.
 
 # The widget comes first: the Go build embeds the one page it leaves.
-FROM node:24.21.0-trixie-slim@sha256:8ec5d7557396cfe32d21c3f9c13072355ceab22b584578ca4bb28af31120cffe AS widget
+FROM node:24.21.0-trixie-slim@sha256:173f125896c3b47ddf056734c7ea789d04595a6a08769a8f78e0df642781fb66 AS widget
 
 WORKDIR /src/web
 
