@@ -55,6 +55,9 @@ const (
 	instructions        = "An adult runs the lesson; you talk with the adult and write the tasks."
 	// page stands in for the widget every card is drawn by.
 	page = "<!doctype html><title>the widget</title>"
+	// widgetDescription stands in for what a host tells its model of the
+	// widget's page.
+	widgetDescription = "The card the adult and the child see."
 	// serviceOrigin and siteOrigin stand in for the service's public origin
 	// and the site's.
 	serviceOrigin = "https://mcp.example"
@@ -209,6 +212,7 @@ func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserv
 		Logger:              h.log,
 		ProjectID:           projectID,
 		Widget:              page,
+		WidgetDescription:   widgetDescription,
 		Origin:              serviceOrigin,
 		Site:                siteOrigin,
 	}, served...)

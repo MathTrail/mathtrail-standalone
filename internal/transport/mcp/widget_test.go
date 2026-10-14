@@ -3,6 +3,7 @@ package mcpserver_test
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
@@ -16,7 +17,8 @@ import (
 // four lists that are empty and said to be — and no border of the host's,
 // since the card draws its own. Under ChatGPT's own keys, the same lists, the
 // site as the one origin a card's links lead to, and the service's origin to
-// make the page's sandbox from.
+// make the page's sandbox from. What ChatGPT tells its model of the page is
+// held to its words apart.
 const widgetPolicy = `{"openai/widgetCSP":{"connect_domains":[],"frame_domains":[],"redirect_domains":["` + siteOrigin +
 	`"],"resource_domains":[]},"openai/widgetDomain":"` + serviceOrigin + `",` +
 	`"ui":{"csp":{"baseUriDomains":[],"connectDomains":[],"frameDomains":[],"resourceDomains":[]},"prefersBorder":false}}`
@@ -32,8 +34,15 @@ func metaJSON(t *testing.T, meta mcp.Meta) string {
 	return string(encoded)
 }
 
+// widgetDescriptionKey is where ChatGPT reads what to tell its model of the
+// page as a card loads.
+const widgetDescriptionKey = "openai/widgetDescription"
+
 // wantDescribedAsTheWidget fails unless what a host was handed — the listing
-// or the page — names the widget as an app and carries its policy.
+// or the page — names the widget as an app, carries its policy, and tells
+// ChatGPT's model of the page what the endpoint was given to tell it: a tool
+// whose result ChatGPT draws as a card reaches its model without its words, and
+// the model wrote every task out under the card, hint and all.
 func wantDescribedAsTheWidget(t *testing.T, uri, mimeType string, meta mcp.Meta) {
 	t.Helper()
 
@@ -43,8 +52,13 @@ func wantDescribedAsTheWidget(t *testing.T, uri, mimeType string, meta mcp.Meta)
 	if mimeType != "text/html;profile=mcp-app" {
 		t.Errorf("mimeType = %q, want text/html;profile=mcp-app", mimeType)
 	}
-	if got := metaJSON(t, meta); got != widgetPolicy {
+	policy := maps.Clone(meta)
+	delete(policy, widgetDescriptionKey)
+	if got := metaJSON(t, policy); got != widgetPolicy {
 		t.Errorf("_meta = %s, want %s", got, widgetPolicy)
+	}
+	if got := meta[widgetDescriptionKey]; got != widgetDescription {
+		t.Errorf("_meta[%q] = %v, want %q", widgetDescriptionKey, got, widgetDescription)
 	}
 }
 

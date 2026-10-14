@@ -386,7 +386,7 @@ func TestInstructionsAreInTheBinary(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)
 
-	for _, name := range []string{"mcp_instructions.md", "task_writing.md"} {
+	for _, name := range []string{"mcp_instructions.md", "task_writing.md", "widget_description.md"} {
 		text, ok := c.Instruction(name)
 		if !ok || text == "" {
 			t.Errorf("Instruction(%s) = %q, %v; want the text of the file", name, text, ok)
@@ -394,6 +394,35 @@ func TestInstructionsAreInTheBinary(t *testing.T) {
 	}
 	if _, ok := c.Instruction("play_session.md"); ok {
 		t.Error("Instruction(play_session.md) found a file this service does not ship")
+	}
+}
+
+// The widget's description is what ChatGPT's model reads of a card as it
+// loads, and all it reads beside a tool whose result is drawn as a card: so it
+// says, as the instructions do, that the answer stays hidden until the child
+// answers, that a task on the card is not written out, nor why it came, and is
+// read out only when the adult asks or no card shows it, that the hint comes
+// when asked, a sentence at most beside how an answer went, and the rating's
+// number beside the progress, once there is one. Told nothing, the model wrote
+// every task out under the card, hint and all.
+func TestTheWidgetsDescriptionSaysWhatTheInstructionsSay(t *testing.T) {
+	t.Parallel()
+
+	description := loaded(t).WidgetDescription()
+	for _, says := range []string{
+		"which the adult and the child both see",
+		"Until the child answers, keep the answer, the solution and the explanations to yourself, even when the adult asks",
+		"Never say why a task comes", "do not write it, its options or its hint out on your own",
+		"read it out only when the adult asks or says the card shows nothing", "give the hint only when asked",
+		"read the last recorded answer", "add one short sentence at most; asked, answer the question, adding to the card",
+		"say the rating's number yourself, or that it comes after the first five tasks",
+	} {
+		if !strings.Contains(description, says) {
+			t.Errorf("WidgetDescription() = %q, want it saying %q", description, says)
+		}
+	}
+	if description != strings.TrimSpace(description) {
+		t.Errorf("WidgetDescription() = %q, want it with no space around it", description)
 	}
 }
 

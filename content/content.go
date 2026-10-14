@@ -286,6 +286,14 @@ func (c *Content) Instruction(name string) (string, bool) {
 // answer that stays hidden.
 func (c *Content) ServerInstructions() string { return c.instructions[serverInstructionsName] }
 
+// WidgetDescription is what a host that tells its model about the widget's
+// page tells it as a card loads: that the adult and the child see the card,
+// what it shows, and what the instructions say of each thing it shows. It is an
+// instruction file like the others, so a change to it moves the version.
+func (c *Content) WidgetDescription() string {
+	return strings.TrimSpace(c.instructions[widgetDescriptionName])
+}
+
 // InstructionsVersion identifies what this binary tells the model about
 // writing a task: the instructions, and the solver templates and examples of
 // pictures it is shown beside them. Every log line about a generated task
