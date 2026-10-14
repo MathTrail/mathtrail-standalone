@@ -295,31 +295,50 @@ const firstRunText = "There is no profile yet. If the adult made one before, it 
 	"or school — and the school grade from 1 to 6. Interests, skills the child has not met at school yet, notes " +
 	"about the child and the language of the lessons are optional. Then create the profile with save_profile."
 
-// onTheCardText is what the model is told of a task on the child's card,
-// accepted or handed in again, followed by the task in words. Where a card
-// shows the task, the child answers there and the card records the answer: a
+// taskText is what the model is told of a task on the child's card, accepted,
+// handed in again or written ahead, followed by the task in words: in a chat
+// that draws the cards, that the card shows it, and in one that draws none,
+// that it is read out. A host may keep only the start of the instructions, so
+// the words that come with the task are where these rules are sure to be read.
+func taskText(chat chatKind) string {
+	if chat == wordsChat {
+		return readOutText
+	}
+	return onTheCardText
+}
+
+// onTheCardText is what a chat that draws the cards is told of a task. The
+// card shows the task by itself: a model that says the task is on the card
+// speaks before a card still asking how its task stands has it, and the child
+// looks for a task that is not there yet; a model that writes the task out
+// draws it twice, and a quiz it draws of its own takes an answer the service
+// never records. The child answers on the card, which records the answer: a
 // model told only to record it asks for the letter in the chat, and every such
 // message spends one of the adult's chat messages on an answer the card
 // already has. It adds nothing of its own until the child answers or the adult
 // asks, since a word about why the task came, or about the way to solve it,
-// gives the task away. Without a card the task is read out for the adult to
-// read to the child, and the answer the adult gives in the chat is recorded. A
-// host may keep only the start of the instructions, so the words that come
-// with the task are where these rules are sure to be read.
-const onTheCardText = "Where the card next_task drew shows it, the child answers there, and the card records the " +
-	"answer itself: do not ask for the answer in the chat, which would cost the adult a message, and add nothing " +
-	"of your own about the task — not its topic, not why it came, not how to solve it — until the child has " +
-	"answered or the adult asks about it. Without a card, or if the adult says the card shows no task, read out " +
-	"the question and the options A to E below and nothing else, for the adult to read to the child; " +
-	"give the hint only when it is asked for, and record with submit_answer the child's answer the adult gives " +
-	"in the chat."
+// gives the task away. The words of the task follow all the same, for the one
+// case a card may still fail in: the adult says it shows no task, or a note of
+// the chat's says it draws none.
+const onTheCardText = "The card shows the task by itself: do not announce it, and do not write the task, its " +
+	"options or its hint in the chat, in words or as a quiz of your own. The child answers on the card, and the " +
+	"card records the answer itself: do not ask for the answer in the chat, which would cost the adult a message, " +
+	"and add nothing of your own about the task — not its topic, not why it came, not how to solve it — until the " +
+	"child has answered or the adult asks about it. Only if the adult says the card shows no task, or you are told " +
+	"this chat draws no cards, read out the question and the options A to E below and nothing else, for the adult " +
+	"to read to the child; give the hint only when it is asked for, and record with submit_answer the child's " +
+	"answer the adult gives in the chat."
 
-// shownByTheCard is what the model is told of a task a card shows by itself.
-// A model that says the task is on the card speaks before a card still asking
-// how its task stands has it, and the child looks for a task that is not there
-// yet; the card needs no word to show it. It holds where a card shows the task
-// alone: without one, the task is read out, as the words after it say.
-const shownByTheCard = "Where a card shows the task, it shows it by itself: do not announce it."
+// readOutText is what a chat that draws no cards is told of a task. The task
+// stands on the child's card all the same, and nobody sees that card there, so
+// the task is read out for the adult to read to the child, the answer the adult
+// gives in the chat is recorded, and the model adds nothing of its own until
+// the child answers or the adult asks, as on a card.
+const readOutText = "This chat draws no cards, so nobody sees the task on the child's card: read out the " +
+	"question and the options A to E below and nothing else, for the adult to read to the child, and add nothing " +
+	"of your own about the task — not its topic, not why it came, not how to solve it — until the child has " +
+	"answered or the adult asks about it. Give the hint only when it is asked for, and record with submit_answer " +
+	"the child's answer the adult gives in the chat."
 
 // forYouAlone is what the model may tell the adult while it writes a task: that
 // one is on its way, and nothing of what it was handed to write it from.

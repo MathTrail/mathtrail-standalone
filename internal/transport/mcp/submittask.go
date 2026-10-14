@@ -277,7 +277,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	now := s.now()
 	request := p.OpenRequest
 	if request == nil || request.ID != in.RequestID || !request.Awaited(s.window, now) {
-		return s.stale(p, in.RequestID, now), nil
+		return s.stale(p, in.RequestID, chatFrom(ctx), now), nil
 	}
 	noteTaskRequest(ctx, request.ID)
 	outcome, err := s.judge(ctx, examined, checks.Against{
@@ -343,9 +343,11 @@ func (s *Service) judge(ctx context.Context, examined checks.Examined, against c
 // A task written ahead and kept already is told as kept again: handed in twice,
 // the answer to the first gone astray, it is the same task. Otherwise the card
 // shows the task the child is working on, when there is one: a task handed in
-// twice must not take the task off the card the child is working on. A task
-// that has had its answer is done with, and the card says no task comes to it.
-func (s *Service) stale(p *profile.Profile, requestID string, now time.Time) Reply[handedInOut] {
+// twice must not take the task off the card the child is working on, and the
+// words tell the chat it came from what they tell of any task on the card. A
+// task that has had its answer is done with, and the card says no task comes
+// to it.
+func (s *Service) stale(p *profile.Profile, requestID string, chat chatKind, now time.Time) Reply[handedInOut] {
 	if ready := p.ReadyTask; ready != nil && ready.ID == profile.TaskIDFor(requestID) {
 		return s.keptReply(p, fmt.Sprintf("Task %s was accepted already and is kept: nothing was checked or spent.",
 			ready.ID))
@@ -371,8 +373,8 @@ func (s *Service) stale(p *profile.Profile, requestID string, now time.Time) Rep
 			},
 		}
 	}
-	reply := s.onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card. %s %s Ask for a new task only "+
-		"when another is asked for.", lead, task.ID, shownByTheCard, onTheCardText))
+	reply := s.onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card. %s Ask for a new task only "+
+		"when another is asked for.", lead, task.ID, taskText(chat)))
 	reply.Payload.Status, reply.Payload.Code = statusStale, codeStaleRequest
 	return reply
 }
@@ -466,10 +468,9 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 	s.events.write(ctx, done.account, eventTaskAccepted, s.acceptedLine(ctx, p, done.account, issued, &handedOut{
 		attempts: done.attempt, written: done.now.Sub(request.OpenedAt.Time),
 	}, done.now)...)
-	reply := s.onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s goes on the child's card now. %s %s "+
+	reply := s.onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s goes on the child's card now. %s "+
 		"Never say which option is right before the child has answered, even when the adult asks. %s", done.attempt,
-		issued.ID, shownByTheCard,
-		onTheCardText, aheadNextText))
+		issued.ID, taskText(chatFrom(ctx)), aheadNextText))
 	reply.Payload.Attempt = done.attempt
 	return reply, nil
 }

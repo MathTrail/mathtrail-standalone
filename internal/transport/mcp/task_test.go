@@ -461,13 +461,13 @@ func wantNoPackage(t *testing.T, result *mcp.CallToolResult, pack map[string]jso
 // The words around a task keep the model from giving it away: while the task
 // is written the adult hears only that one is coming — so say the request and
 // the package alike — and once the card shows it — accepted, or handed in
-// again after it was — the model does not announce it where a card shows it,
-// since the card shows it by itself, reads it out where none does, and adds
-// nothing of its own until the child answers or the adult asks. A task just accepted
-// goes on the card now rather than being on it: a card still asking how its
-// task stands has not shown it yet. A host may keep only the start of the
-// instructions, so the words that come with the task are where the rule is
-// sure to be read.
+// again after it was — the model does not announce it, since the card shows it
+// by itself, writes it out neither in words nor as a quiz of its own, reads it
+// out only on the word that no card shows it, and adds nothing of its own
+// until the child answers or the adult asks. A task just accepted goes on the
+// card now rather than being on it: a card still asking how its task stands
+// has not shown it yet. A host may keep only the start of the instructions, so
+// the words that come with the task are where the rule is sure to be read.
 func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 	t.Parallel()
 
@@ -492,13 +492,65 @@ func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 	} {
 		text := textOf(t, call(t, session, "submit_task", race))
 		for _, says := range []string{
-			tc.where, "Where a card shows the task, it shows it by itself: do not announce it.",
-			"add nothing of your own about the task", "Without a card, or if the adult says the card shows no task, read out",
+			tc.where, "The card shows the task by itself: do not announce it", "as a quiz of your own",
+			"add nothing of your own about the task",
+			"Only if the adult says the card shows no task, or you are told this chat draws no cards, read out",
 		} {
 			if !strings.Contains(text, says) {
 				t.Errorf("submit_task %s says %q, want %q", tc.handedIn, text, says)
 			}
 		}
+	}
+}
+
+// Each chat is told its own case of a task on the card, and that one alone: a
+// chat that draws the cards that the card shows the task, and one that shows
+// the words alone that the task is read out. A client that declares MCP Apps
+// draws the cards, and one that declares none shows the words alone; one on an
+// earlier version of the protocol, whose calls declare nothing, is taken to
+// draw them. Told both cases, ChatGPT's model, which never sees the card, read
+// the task out under it. The task's words are the same wherever a task comes
+// to the card: accepted, handed in again, or written ahead and handed out.
+func TestEachChatIsToldItsOwnCaseOfATask(t *testing.T) {
+	t.Parallel()
+
+	const (
+		onTheCard = "The card shows the task by itself: do not announce it"
+		readOut   = "This chat draws no cards, so nobody sees the task on the child's card: read out the question"
+	)
+	for _, tc := range []struct {
+		name, version string
+		chat          chatHost
+		says, saysNot string
+	}{
+		{name: "a chat that declares MCP Apps", chat: drawingCards, says: onTheCard, saysNot: readOut},
+		{name: "a chat that declares none", chat: wordsAlone, says: readOut, saysNot: onTheCard},
+		{
+			name: "a chat on an earlier protocol, whose calls declare nothing", version: "2025-11-25",
+			chat: wordsAlone, says: onTheCard, saysNot: readOut,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept := racer(t)
+			_, session := lessonIn(t, kept, tc.version, tc.chat)
+			race := raceOn(wantRequestOpened(t, session, call(t, session, "next_task", raceChoice), kept))
+			accepted := textOf(t, call(t, session, "submit_task", race))
+			again := textOf(t, call(t, session, "submit_task", race))
+			prepared(t, session, aheadChoice)
+			call(t, session, "submit_task", relayOn(aheadOpen(t, kept)))
+			handedOut := textOf(t, call(t, session, "next_task", map[string]any{"language": "en"}))
+			for name, words := range map[string]string{
+				"submit_task when accepted":                accepted,
+				"submit_task when handed in again":         again,
+				"next_task handing the task written ahead": handedOut,
+			} {
+				if !strings.Contains(words, tc.says) || strings.Contains(words, tc.saysNot) {
+					t.Errorf("%s says %q, want %q and not %q", name, words, tc.says, tc.saysNot)
+				}
+			}
+		})
 	}
 }
 
@@ -508,10 +560,11 @@ func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 // the parent's chat messages on an answer the card already has. The model is
 // told so where it reads it as the task comes — the words of the task accepted,
 // or handed in again while the card shows it — and the words of the task say
-// what to do without a card: read the task out for the adult to read to the
-// child, and record the child's answer the adult gives in the chat. The
-// descriptions of the tools that hand a task in and record an answer say that
-// the card records it, and leave what to do about it to the words.
+// what to do should the adult say the card shows no task: read the task out
+// for the adult to read to the child, and record the child's answer the adult
+// gives in the chat. The descriptions of the tools that hand a task in and
+// record an answer say that the card records it, and leave what to do about it
+// to the words.
 func TestTheModelAsksForNoAnswerTheCardRecords(t *testing.T) {
 	t.Parallel()
 
@@ -521,9 +574,8 @@ func TestTheModelAsksForNoAnswerTheCardRecords(t *testing.T) {
 	for _, handedIn := range []string{"when accepted", "when handed in again"} {
 		text := textOf(t, call(t, session, "submit_task", race))
 		for _, says := range []string{
-			"Where the card next_task drew shows it, the child answers there, and the card records the answer itself: " +
-				"do not ask for the answer in the chat",
-			"Without a card, or if the adult says the card shows no task, read out the question",
+			"The child answers on the card, and the card records the answer itself: do not ask for the answer in the chat",
+			"Only if the adult says the card shows no task, or you are told this chat draws no cards, read out the question",
 			"for the adult to read to the child",
 			"record with submit_answer the child's answer the adult gives in the chat",
 		} {

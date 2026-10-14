@@ -67,7 +67,9 @@ func (h *harness) connectAs(t *testing.T, name, token string) (*mcp.ClientSessio
 }
 
 // connectThrough is a client that gives itself the name given and sends every
-// request through the transport given.
+// request through the transport given. It declares no capabilities beyond the
+// library's own, so the service takes it, on the newest protocol, for a chat
+// that shows the words alone, as Claude Code is.
 func (h *harness) connectThrough(t *testing.T, name string, through http.RoundTripper) (*mcp.ClientSession, error) {
 	t.Helper()
 

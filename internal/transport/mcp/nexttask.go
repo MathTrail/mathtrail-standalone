@@ -297,8 +297,8 @@ func (s *Service) serveReady(ctx context.Context, account store.Account, p *prof
 	}
 	reply := Reply[requestOut]{
 		Text: joined(lead, fmt.Sprintf("Task %s, written ahead, is on the child's card now. %s Never say which "+
-			"option is right before the child has answered, even when the adult asks. %s", task.ID, onTheCardText,
-			aheadNextText),
+			"option is right before the child has answered, even when the adult asks. %s", task.ID,
+			taskText(chatFrom(ctx)), aheadNextText),
 			lessonLanguageText(&p.Student)) + "\n\n" + taskWords(task),
 		Payload: requestOut{
 			Screen: screenTask, Task: s.cardOf(p, task), TopicChoice: choice, LastAnswer: lastAnswerOf(p),

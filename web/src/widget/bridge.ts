@@ -84,8 +84,8 @@ export type Host = {
 	sendMessage(text: string): Promise<void>;
 	/**
 	 * tellModel gives the model a line to read with the next message in the
-	 * chat, spending no turn of the conversation. Each line replaces the one
-	 * before.
+	 * chat, spending no turn of the conversation, and marked for the model
+	 * alone. Each line replaces the one before.
 	 */
 	tellModel(text: string): Promise<void>;
 	/**
@@ -218,8 +218,15 @@ export function openBridge(): Bridge & Host {
 				return false;
 			}
 		},
+		// The line is marked for the model alone: ChatGPT shows any other block
+		// of the model's context as an attachment in its message box, which the
+		// adult would see and might take away.
 		async tellModel(text) {
-			await app.updateModelContext({ content: [{ type: "text", text }] });
+			await app.updateModelContext({
+				content: [
+					{ type: "text", text, annotations: { audience: ["assistant"] } },
+				],
+			});
 		},
 	};
 }

@@ -73,12 +73,19 @@ func showIt(t *testing.T, session *mcp.ClientSession, id string) *mcp.CallToolRe
 // whatever else the case changes in its parts.
 func lessonShowing(t *testing.T, kept store.Storage, changes ...func(*mcpserver.Parts)) (*harness, *mcp.ClientSession) {
 	t.Helper()
+	return lessonShowingIn(t, kept, drawingCards, changes...)
+}
+
+// lessonShowingIn is lessonShowing, in a chat host that draws the cards or in
+// one that shows the words alone.
+func lessonShowingIn(t *testing.T, kept store.Storage, chat chatHost, changes ...func(*mcpserver.Parts)) (*harness, *mcp.ClientSession) {
+	t.Helper()
 
 	h := newHarness(t)
 	service := lessonService(t, h, kept, &clock{at: lessonDay}, nil, changes...)
 	mcpserver.PauseForAnswer(service, time.Millisecond)
 	h.start(t, mcpserver.DevSignIn, slices.Concat(service.ProfileTools(), service.TaskTools())...)
-	session := h.connect(t, "")
+	session := h.connectChat(t, "", chat)
 	return h, session
 }
 
@@ -98,7 +105,7 @@ func TestTheCardOfHowAnAnswerWentShowsIt(t *testing.T) {
 	}{
 		{name: "right", answers: rating.TrialAnswers, answer: "C", says: "and it is right. Praise briefly"},
 		{name: "wrong", answers: rating.TrialAnswers, answer: "A", says: raceExplained[0]},
-		{name: "I don't know", answers: rating.TrialAnswers, answer: "?", says: "Without a card, go through the solution"},
+		{name: "I don't know", answers: rating.TrialAnswers, answer: "?", says: "which counts as a wrong answer; the right option is C)"},
 		{name: "in the trial series", answer: "B", says: "1 of 5 tasks done", inSeries: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -119,12 +126,43 @@ func TestTheCardOfHowAnAnswerWentShowsIt(t *testing.T) {
 			if (payload.TopicChoice == nil) != tc.inSeries {
 				t.Errorf("topic_choice = %+v, want one only once the trial series is over", payload.TopicChoice)
 			}
-			if text := textOf(t, shown); !strings.Contains(text, "the card below shows how the answer to task "+id) ||
-				!strings.Contains(text, tc.says) || !strings.Contains(text, "Solution: ") || !strings.Contains(text, notRetold) {
-				t.Errorf("the words are %q, want the card named and retold by nobody, %q and the solution", text, tc.says)
+			if text := textOf(t, shown); !strings.Contains(text, "The card below shows how the answer to task "+id) ||
+				!strings.Contains(text, tc.says) || !strings.Contains(text, "Solution: ") || !strings.Contains(text, notRetold) ||
+				!strings.Contains(text, shownNowhere) {
+				t.Errorf("the words are %q, want the card named and retold by nobody but where it shows nothing, %q and "+
+					"the solution", text, tc.says)
 			}
 			if after, _ := profile.Marshal(loadedOf(t, kept)); !bytes.Equal(after, before) {
 				t.Error("show_result changed the profile, want it as the answer left it")
+			}
+		})
+	}
+}
+
+// In a chat that shows the words alone, show_result tells how the answer went
+// in words, as the words of submit_answer do there, and names no card: the
+// model explains the answer itself, from what went wrong on the way to it or,
+// for "I don't know", through the solution.
+func TestShowResultTellsTheAnswerInWordsWhereNoCardIsDrawn(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct{ name, answer, says string }{
+		{"a wrong letter", "A", "Start from that, then go through the solution step by step, simply and kindly."},
+		{"I don't know", "?", "Go through the solution step by step, simply and kindly."},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept := keptAsIs(t, raceOnTheCard(t, rating.TrialAnswers))
+			_, session := lessonShowingIn(t, kept, wordsAlone)
+			id := loadedOf(t, kept).CurrentTask.ID
+			answerIt(t, session, id, tc.answer, false)
+
+			text := textOf(t, showIt(t, session, id))
+			wantSaid(t, text, "This chat draws no cards: tell how the answer to task "+id+" went in words.",
+				tc.says, "Solution: ")
+			if strings.Contains(text, "The card below") || strings.Contains(text, notRetold) || strings.Contains(text, shownNowhere) {
+				t.Errorf("the words are %q, want no card named where none is drawn", text)
 			}
 		})
 	}

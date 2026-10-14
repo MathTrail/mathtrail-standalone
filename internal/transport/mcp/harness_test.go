@@ -244,12 +244,39 @@ func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserv
 }
 
 // connect is a client of the protocol, speaking the version a case chooses —
-// the newest one when it chooses none — and named as a chat host would be.
+// the newest one when it chooses none — and named as a chat host that draws
+// the cards would be, declaring MCP Apps as Claude and ChatGPT do.
 func (h *harness) connect(t *testing.T, version string) *mcp.ClientSession {
+	t.Helper()
+	return h.connectChat(t, version, drawingCards)
+}
+
+// chatHost is how a case's client presents itself: as a chat host that draws
+// the cards, declaring MCP Apps as Claude and ChatGPT do, or as one that shows
+// the words alone and declares none, as Claude Code does.
+type chatHost int
+
+const (
+	drawingCards chatHost = iota
+	wordsAlone
+)
+
+// connectChat is connect, for a chat host that draws the cards or for one that
+// shows the words alone.
+func (h *harness) connectChat(t *testing.T, version string, host chatHost) *mcp.ClientSession {
 	t.Helper()
 
 	open := newOpenAnswers()
-	client := mcp.NewClient(&mcp.Implementation{Name: "claude-code", Version: "1.0.0"}, nil)
+	name, capabilities := "claude-code", &mcp.ClientCapabilities{}
+	if host == drawingCards {
+		name = "claude-ai"
+		capabilities.AddExtension("io.modelcontextprotocol/ui", map[string]any{
+			"mimeTypes": []string{"text/html;profile=mcp-app"},
+		})
+	}
+	client := mcp.NewClient(&mcp.Implementation{Name: name, Version: "1.0.0"}, &mcp.ClientOptions{
+		Capabilities: capabilities,
+	})
 	session, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{
 		Endpoint:             h.server.URL + "/mcp",
 		HTTPClient:           &http.Client{Transport: answerCounter{base: http.DefaultTransport, open: open}},
