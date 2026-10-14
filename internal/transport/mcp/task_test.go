@@ -508,9 +508,10 @@ func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 // the words alone that the task is read out. A client that declares MCP Apps
 // draws the cards, and one that declares none shows the words alone; one on an
 // earlier version of the protocol, whose calls declare nothing, is taken to
-// draw them. Told both cases, ChatGPT's model, which never sees the card, read
-// the task out under it. The task's words are the same wherever a task comes
-// to the card: accepted, handed in again, or written ahead and handed out.
+// draw them, and so is ChatGPT, whatever it declares. Told both cases,
+// ChatGPT's model, which never sees the card, read the task out under it. The
+// task's words are the same wherever a task comes to the card: accepted,
+// handed in again, or written ahead and handed out.
 func TestEachChatIsToldItsOwnCaseOfATask(t *testing.T) {
 	t.Parallel()
 
@@ -529,6 +530,7 @@ func TestEachChatIsToldItsOwnCaseOfATask(t *testing.T) {
 			name: "a chat on an earlier protocol, whose calls declare nothing", version: "2025-11-25",
 			chat: wordsAlone, says: onTheCard, saysNot: readOut,
 		},
+		{name: "ChatGPT, declaring no MCP Apps", chat: chatGPTDeclaringNone, says: onTheCard, saysNot: readOut},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -601,6 +603,35 @@ func TestTheModelAsksForNoAnswerTheCardRecords(t *testing.T) {
 			t.Errorf("%s is described as %q, want it saying %q", tool, described[tool], says)
 		}
 	}
+}
+
+// The description of next_task says when to call it, MathTrail named or not,
+// and for what it is not: a host that chooses an app's tool by the tools'
+// descriptions, as ChatGPT does, otherwise called MathTrail only when the adult
+// named it with "@". It says nothing of reading a task out, which a card shows
+// by itself.
+func TestNextTaskSaysWhenToCallIt(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, racer(t))
+	listed, err := session.ListTools(t.Context(), nil)
+	if err != nil {
+		t.Fatalf("ListTools() error = %v", err)
+	}
+	for _, tool := range listed.Tools {
+		if tool.Name != "next_task" {
+			continue
+		}
+		if says := "Call it whenever the adult asks for a maths task for the child, grades 1 to 6, or another one, " +
+			"MathTrail named or not; not for homework or another subject."; !strings.Contains(tool.Description, says) {
+			t.Errorf("next_task is described as %q, want it saying %q", tool.Description, says)
+		}
+		if strings.Contains(tool.Description, "reads it out") {
+			t.Errorf("next_task is described as %q, want nothing in it of reading a task out", tool.Description)
+		}
+		return
+	}
+	t.Fatal("next_task is not listed")
 }
 
 // wantOnTheCard holds what submit_task answered to the race on the child's card

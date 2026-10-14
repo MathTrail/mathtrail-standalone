@@ -175,9 +175,11 @@ type observedCall struct {
 	tool     string
 	protocol string
 	client   string
-	user     string
-	panic    []zap.Field
-	note     *callNote
+	// apps is what the client declared of MCP Apps with the call.
+	apps  string
+	user  string
+	panic []zap.Field
+	note  *callNote
 }
 
 // noteKey holds the note a call's tool leaves for the call's line. It is a
@@ -233,6 +235,7 @@ func (b *boundary) begin(ctx context.Context, req *mcp.CallToolRequest) (context
 		tool:     tool,
 		protocol: protocol,
 		client:   clientFamily(req.ClientInfo()),
+		apps:     appsOf(req.ClientCapabilities()),
 		note:     &callNote{},
 	}
 	if account, signedIn := accountFrom(ctx); signedIn {
@@ -291,6 +294,7 @@ func (b *boundary) callFields(ctx context.Context, call *observedCall, ended ver
 		zap.String("instructions_version", b.instructionsVersion),
 		zap.String("protocol_version", call.protocol),
 		zap.String("client", call.client),
+		zap.String("apps", call.apps),
 	}
 	if ended.status != "" {
 		fields = append(fields, zap.String("status", ended.status))

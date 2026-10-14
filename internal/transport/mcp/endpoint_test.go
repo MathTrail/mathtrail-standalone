@@ -114,6 +114,7 @@ func TestACallIsAnsweredAndLeavesOneLine(t *testing.T) {
 		"outcome":              "ok",
 		"protocol_version":     "2026-07-28",
 		"client":               "claude",
+		"apps":                 "declared",
 		"user":                 mcpserver.DevAccount,
 		"instructions_version": instructionsVersion,
 	} {
@@ -135,6 +136,34 @@ func TestACallIsAnsweredAndLeavesOneLine(t *testing.T) {
 	}
 	if id == "" || requestLines != 1 {
 		t.Errorf("request_id = %q names %d request lines, want exactly the call's own", id, requestLines)
+	}
+}
+
+// A call's line says what its client declared of MCP Apps, so that whether a
+// host that draws the cards says so is learnt from the lines: declared, none,
+// or unknown for a call on an earlier protocol, which carries no capabilities.
+func TestACallsLineSaysWhatItsClientDeclaredOfMCPApps(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, version string
+		host          chatHost
+		want          string
+	}{
+		{"a client declaring MCP Apps", "", drawingCards, "declared"},
+		{"a client declaring none", "", wordsAlone, "none"},
+		{"a client on an earlier protocol", "2025-11-25", drawingCards, "unknown"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := serve(t, mcpserver.DevSignIn)
+			call(t, h.connectChat(t, tc.version, tc.host), "echo", map[string]any{"say": "hello"})
+			h.settle()
+			if got := field(t, h.lineOf(t, "echo"), "apps"); got != tc.want {
+				t.Errorf("apps = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }
 

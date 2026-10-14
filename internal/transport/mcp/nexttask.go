@@ -102,9 +102,11 @@ func (s *Service) nextTaskTool() Tool {
 	return Define(Spec{
 		Name:  "next_task",
 		Title: "Ask for the next task",
-		Description: "Asks for the child's next task and draws the card it comes to. When a task written ahead is " +
-			"kept for the child, it is on the card at once and the result reads it out: then call prepare_task to " +
-			"write the one after it. Otherwise it opens a request, and the card shows the child a wait meanwhile. " +
+		Description: "Asks for the child's next task and draws the card it comes to. Call it whenever the adult " +
+			"asks for a maths task for the child, grades 1 to 6, or another one, MathTrail named or not; not for " +
+			"homework or another subject. When a task written ahead is kept for the child, it is on the card at " +
+			"once: then call prepare_task to write the one after it. Otherwise it opens a request, and the card " +
+			"shows the child a wait meanwhile. " +
 			"It does not write the task: you do. At once call get_package with its request_id for what to write it " +
 			"from — the brief, reference tasks and the page on how to write and hand in a task — and hand the task " +
 			"in with submit_task. Always pass language, the language of the chat; when the profile names a language " +
