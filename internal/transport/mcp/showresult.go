@@ -103,7 +103,7 @@ func (s *Service) showResult(ctx context.Context, account store.Account, in show
 		return Reply[shownOut]{}, fmt.Errorf("mcp: tell how the answer went: %w", err)
 	}
 	noteTaskRequest(ctx, profile.RequestIDFor(p.CurrentTask.ID))
-	return s.shown(p, &recorded)
+	return s.shown(p, &recorded, chatFrom(ctx))
 }
 
 // toldOnceWritten reads the profile and tells how the answer to the task went,
@@ -126,15 +126,15 @@ func (s *Service) toldOnceWritten(ctx context.Context, account store.Account, ta
 }
 
 // shown is how the answer went, as its card shows it and as the words tell it
-// to the model.
-func (s *Service) shown(p *profile.Profile, recorded *profile.Recorded) (Reply[shownOut], error) {
+// to the model in the chat the call came from.
+func (s *Service) shown(p *profile.Profile, recorded *profile.Recorded, chat chatKind) (Reply[shownOut], error) {
 	choice, err := s.topicChoiceOf(p, s.now())
 	if err != nil {
 		return Reply[shownOut]{}, fmt.Errorf("mcp: the choice of the topic: %w", err)
 	}
 	went, repeated := s.wentOf(p, recorded, choice)
 	return Reply[shownOut]{
-		Text:    s.shownText(p.CurrentTask, recorded, repeated),
+		Text:    s.shownText(p.CurrentTask, recorded, repeated, chat),
 		Payload: shownOut{Screen: screenResult, LastAnswer: lastAnswerOf(p), wentOut: went},
 	}, nil
 }
@@ -148,13 +148,16 @@ func (s *Service) answeredTaskOf(task *profile.CurrentTask) *answeredTaskOut {
 	return out
 }
 
-// shownText tells the model how the answer went, as the card below shows it,
-// for it to add a sentence at most beside the card, or to explain it in full
-// without one.
-func (s *Service) shownText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool) string {
-	lead := fmt.Sprintf("Where cards are shown, the card below shows how the answer to task %s went: the verdict, "+
-		"the trap, the solution step by step and the rating. %s", task.ID, besideACard)
-	return joined(lead, outcomeText(task, recorded, repeated), aboutTheStep, s.standingText(recorded)) +
+// shownText tells the model how the answer went: in a chat that draws the
+// cards, as the card below shows it, for it to add a sentence at most beside
+// the card, and in one that draws none, for it to explain in full.
+func (s *Service) shownText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool, chat chatKind) string {
+	lead := fmt.Sprintf("The card below shows how the answer to task %s went: the verdict, the trap, the solution "+
+		"step by step and the rating. %s %s", task.ID, besideACard, shownNowhereText)
+	if chat == wordsChat {
+		lead = fmt.Sprintf("This chat draws no cards: tell how the answer to task %s went in words.", task.ID)
+	}
+	return joined(lead, outcomeText(task, recorded, repeated, chat), aboutTheStep, s.standingText(recorded)) +
 		"\nSolution: " + quoted(recorded.Solution)
 }
 

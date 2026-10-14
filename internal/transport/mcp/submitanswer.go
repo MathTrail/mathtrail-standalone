@@ -311,7 +311,7 @@ func (s *Service) told(ctx context.Context, p *profile.Profile, recorded *profil
 	}
 	went, repeated := s.wentOf(p, recorded, choice)
 	return Reply[answeredOut]{
-		Text:    s.toldText(p.CurrentTask, recorded, repeated),
+		Text:    s.toldText(p.CurrentTask, recorded, repeated, chatFrom(ctx)),
 		Payload: answeredOut{Screen: screenResult, LastAnswer: lastAnswerOf(p), wentOut: went},
 	}
 }
@@ -372,24 +372,43 @@ func resultOf(taskID string, recorded *profile.Recorded, repeated bool) *resultO
 // scale.
 func shownRating(level float64) int { return rating.Shown(rating.Elo(level)) }
 
-// toldText tells how an answer went, for the model to go by: where cards are
-// shown, a card says it all and the model adds a sentence at most, and where
-// none is, the model explains it. Then the solution, and where the child
-// stands now.
-func (s *Service) toldText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool) string {
+// toldText tells how an answer went, for the model to go by: in a chat that
+// draws the cards, a card says it all and the model adds a sentence at most,
+// and in one that draws none, the model explains it. Then the solution, and
+// where the child stands now.
+func (s *Service) toldText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool, chat chatKind) string {
 	lead := fmt.Sprintf("The answer to task %s is recorded.", task.ID)
-	card := fmt.Sprintf("Where cards are shown and you recorded this answer, given in the chat, call show_result "+
-		"with task_id %s now: its card shows how the answer went, with the trap and the solution step by step. An "+
-		"answer pressed on the card has turned that card into the same, and nothing more is called for it. %s",
-		task.ID, besideACard)
 	if recorded.Again {
 		lead = fmt.Sprintf("Task %s was answered before, and nothing was recorded now: this is what was recorded then.", task.ID)
-		card = fmt.Sprintf("Where cards are shown, the card that took the answer shows how it went already; for an "+
-			"answer given in the chat, show_result with task_id %s draws that card. %s", task.ID, besideACard)
 	}
-	return joined(lead, card, outcomeText(task, recorded, repeated), aboutTheStep, s.standingText(recorded)) +
-		"\nSolution: " + quoted(recorded.Solution)
+	return joined(lead, cardOfTheAnswerText(task, recorded.Again, chat), outcomeText(task, recorded, repeated, chat),
+		aboutTheStep, s.standingText(recorded)) + "\nSolution: " + quoted(recorded.Solution)
 }
+
+// cardOfTheAnswerText is the card that shows how an answer went, in a chat that
+// draws the cards: the card that took an answer turned into it, show_result
+// draws it for an answer given in the chat, and beside it the model adds a
+// sentence at most. A chat that draws none is told of no card.
+func cardOfTheAnswerText(task *profile.CurrentTask, again bool, chat chatKind) string {
+	switch {
+	case chat == wordsChat:
+		return ""
+	case again:
+		return fmt.Sprintf("The card that took the answer shows how it went already; for an answer given in the "+
+			"chat, show_result with task_id %s draws that card. %s %s", task.ID, besideACard, shownNowhereText)
+	}
+	return fmt.Sprintf("If you recorded this answer, given in the chat, call show_result with task_id %s now: its "+
+		"card shows how the answer went, with the trap and the solution step by step. An answer pressed on the card "+
+		"has turned that card into the same, and nothing more is called for it. %s %s", task.ID, besideACard,
+		shownNowhereText)
+}
+
+// shownNowhereText is what a chat that draws the cards is told to do should a
+// card of how an answer went fail: on the adult's word that none shows it, the
+// model tells it in words, as it would where no card is drawn.
+const shownNowhereText = "If the adult says no card shows how the answer went, tell it in words instead: start " +
+	"from what went wrong on the way to it, or else from the step that decides it, go through the solution step " +
+	"by step, simply and kindly, and end with one short reminder of the mistake if the child has made it before."
 
 // besideACard is what the model adds to a card that shows how an answer went:
 // a sentence at most, since the card says the rest, and a retelling would say
@@ -398,41 +417,53 @@ const besideACard = "Beside it, add one short sentence at most, and retell neith
 
 // outcomeText is how an answer went, for the model to go by: the child's
 // choice and the right option with their texts, what went wrong on the way to
-// a wrong one — and whether it has come up before — and how to explain it
-// where no card shows it. The texts of the task stand in quotes, in the task's
-// own language, around sentences of the service's.
-func outcomeText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool) string {
+// a wrong one — and whether it has come up before — and, in a chat that draws
+// no cards, how to explain it. The texts of the task stand in quotes, in the
+// task's own language, around sentences of the service's.
+func outcomeText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool, chat chatKind) string {
 	right := fmt.Sprintf("%s) %s", recorded.Right, quoted(task.Options[recorded.Right]))
 	switch {
 	case recorded.Choice == profile.DontKnow:
-		return fmt.Sprintf("The child did not know, which counts as a wrong answer; the right option is %s. %s",
-			right, withoutACard)
+		text := fmt.Sprintf("The child did not know, which counts as a wrong answer; the right option is %s.", right)
+		if chat == wordsChat {
+			text += " " + throughTheSolution
+		}
+		return text
 	case recorded.Correct:
 		return fmt.Sprintf("The child chose %s, and it is right. Praise briefly, and go through the solution if "+
 			"the adult asks for it.", right)
 	}
-	return fmt.Sprintf("The child chose %s) %s, and it is wrong; the right option is %s. %s",
-		recorded.Choice, quoted(task.Options[recorded.Choice]), right, mistakeText(recorded.Trap, repeated))
+	return joined(fmt.Sprintf("The child chose %s) %s, and it is wrong; the right option is %s.",
+		recorded.Choice, quoted(task.Options[recorded.Choice]), right), mistakeText(recorded.Trap, repeated, chat))
 }
 
-// withoutACard is how a solution is told where no card shows it: the whole of
-// it, step by step, as the card would.
-const withoutACard = "Without a card, go through the solution step by step, simply and kindly."
+// throughTheSolution is how a solution is told where no card shows it: the
+// whole of it, step by step, as the card would.
+const throughTheSolution = "Go through the solution step by step, simply and kindly."
 
 // mistakeText is what went wrong on the way to a wrong letter, when the task
-// says, and how to explain it where no card shows it: from that, and then
-// through the solution — and, when the child has made the same mistake before,
-// which the card marks, with a short reminder of it in the model's own words.
-func mistakeText(trap profile.Distractor, repeated bool) string {
+// says, and whether the child has made the same mistake before, which the card
+// marks. A chat that draws no cards is told how to explain it as well: from
+// that, and then through the solution — and, for a mistake made before, with a
+// short reminder of it in the model's own words.
+func mistakeText(trap profile.Distractor, repeated bool, chat chatKind) string {
 	if trap.Text == "" {
-		return "Without a card, explain the step that decides it, then go through the solution step by step, simply " +
-			"and kindly."
+		if chat == wordsChat {
+			return "Explain the step that decides it, then go through the solution step by step, simply and kindly."
+		}
+		return ""
 	}
-	text := "What went wrong on the way to it: " + quoted(trap.Text) + ". Without a card, start from that, then go " +
-		"through the solution step by step, simply and kindly."
+	text := "What went wrong on the way to it: " + quoted(trap.Text) + "."
+	if chat == cardsChat {
+		if repeated {
+			text += " The child has made this mistake before among the latest answers, and the card says so."
+		}
+		return text
+	}
+	text += " Start from that, then go through the solution step by step, simply and kindly."
 	if repeated {
-		text += " The child has made this mistake before among the latest answers: without a card, end with one " +
-			"short reminder of it, in your own words, that the child can keep in mind next time."
+		text += " The child has made this mistake before among the latest answers: end with one short reminder of " +
+			"it, in your own words, that the child can keep in mind next time."
 	}
 	return text
 }

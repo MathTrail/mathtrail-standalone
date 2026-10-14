@@ -214,20 +214,21 @@ func (d definition[In, Out]) tool() *mcp.Tool {
 	}
 }
 
-// call runs the handler for the account the call acts for, and turns whatever
-// it hands back into what the protocol sends.
+// call runs the handler for the account the call acts for, in a context that
+// says which chat the call came from, and turns whatever it hands back into
+// what the protocol sends.
 //
 // An error never reaches the protocol as it is: the protocol would put its
 // text in front of the model, and the text of an error is whatever the code
 // that made it had in hand. It is replaced by a failure, whose text is one
 // sentence of ours.
-func (d definition[In, Out]) call(ctx context.Context, _ *mcp.CallToolRequest, in In) (*mcp.CallToolResult, Out, error) {
+func (d definition[In, Out]) call(ctx context.Context, req *mcp.CallToolRequest, in In) (*mcp.CallToolResult, Out, error) {
 	var none Out
 	account, signedIn := accountFrom(ctx)
 	if !signedIn {
 		return nil, none, explain(errNotSignedIn)
 	}
-	reply, err := d.handle(ctx, account, in)
+	reply, err := d.handle(withChat(ctx, chatOf(req.ClientCapabilities())), account, in)
 	if err != nil {
 		return nil, none, explain(err)
 	}

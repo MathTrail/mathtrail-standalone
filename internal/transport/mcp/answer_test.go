@@ -76,6 +76,11 @@ type answerPayload struct {
 // solution retold by nobody.
 const notRetold = "add one short sentence at most, and retell neither the trap nor the solution"
 
+// shownNowhere is how the words of an answer, in a chat that draws the cards,
+// say what to do should the card of how it went show nothing: tell it in
+// words, on the adult's word.
+const shownNowhere = "If the adult says no card shows how the answer went, tell it in words instead"
+
 // onTheCardAlready is how the words of an answer say that one pressed on the
 // card needs no show_result: the card that took it shows how it went.
 const onTheCardAlready = "An answer pressed on the card has turned that card into the same, and nothing more is called for it."
@@ -499,6 +504,37 @@ func TestAnAnswerFromTheCardAndTheModelIsRecordedOnce(t *testing.T) {
 	h.settle()
 	if lines := linesOf(h, "answer_recorded"); len(lines) != 1 {
 		t.Errorf("answer_recorded lines = %d, want the one answer recorded", len(lines))
+	}
+}
+
+// An answer told again, in a chat that draws the cards, names the card that
+// took it and what to do should that card show nothing; a chat that shows the
+// words alone is told of no card.
+func TestAnAnswerToldAgainNamesTheCardThatTookIt(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name   string
+		chat   chatHost
+		onCard bool
+	}{
+		{"on a card", drawingCards, true},
+		{"in words", wordsAlone, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := raceOnTheCard(t, rating.TrialAnswers)
+			_, session := lessonIn(t, keptAsIs(t, p), "", tc.chat)
+			answerIt(t, session, p.CurrentTask.ID, "A", false)
+			again := textOf(t, answerIt(t, session, p.CurrentTask.ID, "A", false))
+			wantSaid(t, again, "was answered before, and nothing was recorded now")
+			for _, card := range []string{"The card that took the answer shows how it went already", shownNowhere} {
+				if said := strings.Contains(again, card); said != tc.onCard {
+					t.Errorf("the words of an answer told again say %q: %v, want %v: %s", card, said, tc.onCard, again)
+				}
+			}
+		})
 	}
 }
 
@@ -994,17 +1030,21 @@ func histogramLabels[N int64 | float64](point metricdata.HistogramDataPoint[N]) 
 
 // A wrong letter is explained by what the task says went wrong on the way to
 // it, and the trap behind it is named on a span and in a line only when the
-// catalog has it; a letter the task says nothing about is explained by the
-// solution alone.
+// catalog has it. A letter the task says nothing about is explained, in a chat
+// that shows the words alone, by the solution alone; in one that draws the
+// cards, whose card shows the solution, nothing is added for it.
 func TestAWrongLetterIsExplainedByWhatTheTaskSays(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		name, answer, trap, says string
+		name, answer, trap string
+		chat               chatHost
+		says               string
 	}{
-		{"a trap the catalog has", "A", "reversed_relation", "What went wrong on the way to it"},
-		{"a trap the catalog does not have", "B", other, "What went wrong on the way to it"},
-		{"no trap at all", "D", "", "and it is wrong; the right option is C) \"Ben\". Without a card, explain the step that decides it"},
+		{"a trap the catalog has", "A", "reversed_relation", wordsAlone, "What went wrong on the way to it"},
+		{"a trap the catalog does not have", "B", other, wordsAlone, "What went wrong on the way to it"},
+		{"no trap at all", "D", "", wordsAlone, "and it is wrong; the right option is C) \"Ben\". Explain the step that decides it"},
+		{"no trap at all, on a card", "D", "", drawingCards, "and it is wrong; the right option is C) \"Ben\". Word it about the step"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -1012,7 +1052,7 @@ func TestAWrongLetterIsExplainedByWhatTheTaskSays(t *testing.T) {
 			p := fuzzProfile(t)
 			p.Ratings.Answers = rating.TrialAnswers
 			raceWithOtherTraps(t, p)
-			h, session := lesson(t, keptAsIs(t, p))
+			h, session := lessonIn(t, keptAsIs(t, p), "", tc.chat)
 			if text := textOf(t, answerIt(t, session, p.CurrentTask.ID, tc.answer, false)); !strings.Contains(text, tc.says) {
 				t.Errorf("the words are %q, want them to say %q", text, tc.says)
 			}
@@ -1164,19 +1204,22 @@ func fellFor(trap string, i int) profile.Answer {
 }
 
 // The second time among the latest answers the child falls for a trap, it is
-// marked as a mistake that repeats, and the model is asked to end with a short
-// reminder of it in its own words where no card shows it; the first time,
-// neither.
+// marked as a mistake that repeats, and the model is told so, as the card says
+// it; in a chat that shows the words alone, the model is asked as well to end
+// with a short reminder of it in its own words. The first time, neither.
 func TestATrapFallenForAgainIsMarkedAsOneThatRepeats(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
 		name     string
 		before   int
+		chat     chatHost
 		repeated bool
 	}{
-		{"the first time", 0, false},
-		{"the second time", 1, true},
+		{"the first time, on a card", 0, drawingCards, false},
+		{"the second time, on a card", 1, drawingCards, true},
+		{"the first time, in words", 0, wordsAlone, false},
+		{"the second time, in words", 1, wordsAlone, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -1185,14 +1228,64 @@ func TestATrapFallenForAgainIsMarkedAsOneThatRepeats(t *testing.T) {
 			for i := range tc.before {
 				p.Recent = append(p.Recent, fellFor(raceTraps[0], i))
 			}
-			_, session := lesson(t, keptAsIs(t, p))
+			_, session := lessonIn(t, keptAsIs(t, p), "", tc.chat)
 
 			result := answerIt(t, session, p.CurrentTask.ID, "A", false)
 			if trap := answered(t, result).Trap; trap == nil || trap.ID != raceTraps[0] || trap.Repeated != tc.repeated {
 				t.Errorf("trap = %+v, want %s with repeated %v", trap, raceTraps[0], tc.repeated)
 			}
-			if reminded := strings.Contains(textOf(t, result), "end with one short reminder of it"); reminded != tc.repeated {
-				t.Errorf("the words ask for a reminder: %v, want %v: %s", reminded, tc.repeated, textOf(t, result))
+			text := textOf(t, result)
+			if told := strings.Contains(text, "The child has made this mistake before"); told != tc.repeated {
+				t.Errorf("the words tell a mistake made before: %v, want %v: %s", told, tc.repeated, text)
+			}
+			wantReminder := tc.repeated && tc.chat == wordsAlone
+			if reminded := strings.Contains(text, "end with one short reminder of it"); reminded != wantReminder {
+				t.Errorf("the words ask for a reminder: %v, want %v: %s", reminded, wantReminder, text)
+			}
+		})
+	}
+}
+
+// An answer given in the chat is told to each chat in its own way: a chat that
+// draws the cards is sent to show_result, whose card shows how the answer
+// went, with a sentence at most beside it; one that shows the words alone is
+// told how to explain the answer — from what went wrong on the way to it, or,
+// for "I don't know", through the solution — and of no card. A client on an
+// earlier version of the protocol, whose calls declare nothing, is taken to
+// draw the cards.
+func TestEachChatIsToldAnAnswerInItsOwnWay(t *testing.T) {
+	t.Parallel()
+
+	const (
+		toTheCard  = "call show_result with task_id"
+		fromTheWay = "Start from that, then go through the solution step by step, simply and kindly."
+		through    = "Go through the solution step by step, simply and kindly."
+	)
+	onTheCard := []string{toTheCard, notRetold, shownNowhere}
+	for _, tc := range []struct {
+		name, version, answer string
+		chat                  chatHost
+		says                  []string
+		saysNot               string
+	}{
+		{name: "a wrong letter, on a card", answer: "A", chat: drawingCards, says: onTheCard, saysNot: fromTheWay},
+		{name: "a wrong letter, in words", answer: "A", chat: wordsAlone, says: []string{fromTheWay}, saysNot: "show_result"},
+		{name: "I don't know, on a card", answer: "?", chat: drawingCards, says: onTheCard, saysNot: through},
+		{name: "I don't know, in words", answer: "?", chat: wordsAlone, says: []string{through}, saysNot: "show_result"},
+		{
+			name: "a wrong letter, on an earlier protocol", version: "2025-11-25", answer: "A",
+			chat: wordsAlone, says: onTheCard, saysNot: fromTheWay,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := raceOnTheCard(t, rating.TrialAnswers)
+			_, session := lessonIn(t, keptAsIs(t, p), tc.version, tc.chat)
+			text := textOf(t, answerIt(t, session, p.CurrentTask.ID, tc.answer, false))
+			wantSaid(t, text, tc.says...)
+			if strings.Contains(text, tc.saysNot) {
+				t.Errorf("the words are %q, want them not saying %q", text, tc.saysNot)
 			}
 		})
 	}

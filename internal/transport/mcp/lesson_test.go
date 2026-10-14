@@ -91,12 +91,31 @@ func lesson(t *testing.T, kept store.Storage) (*harness, *mcp.ClientSession) {
 // recorded under the call.
 func lessonWith(t *testing.T, kept store.Storage, moving *clock, runner solver.Runner) (*harness, *mcp.ClientSession) {
 	t.Helper()
+	h := serveLesson(t, kept, moving, runner)
+	session := h.connect(t, "")
+	return h, session
+}
+
+// lessonIn is lesson, in a chat host that draws the cards or in one that shows
+// the words alone, connected on the version of the protocol given — the newest
+// one when it gives none.
+func lessonIn(t *testing.T, kept store.Storage, version string, chat chatHost) (*harness, *mcp.ClientSession) {
+	t.Helper()
+	h := serveLesson(t, kept, &clock{at: lessonDay}, nil)
+	session := h.connectChat(t, version, chat)
+	return h, session
+}
+
+// serveLesson serves every tool of the lesson over kept, on a clock the case
+// moves, and in a sandbox of the case's own when it hands one in rather than
+// nil, with no client connected yet.
+func serveLesson(t *testing.T, kept store.Storage, moving *clock, runner solver.Runner) *harness {
+	t.Helper()
 
 	h := newHarness(t)
 	service := lessonService(t, h, kept, moving, runner)
 	h.start(t, mcpserver.DevSignIn, slices.Concat(service.ProfileTools(), service.TaskTools())...)
-	session := h.connect(t, "")
-	return h, session
+	return h
 }
 
 // lessonService is the tools of the lesson over kept, recording into the

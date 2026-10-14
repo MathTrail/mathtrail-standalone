@@ -215,6 +215,29 @@ describe("what the card asks of the host", () => {
 
 		expect(heard.modelLines).toEqual(["The child answered."]);
 	});
+
+	// ChatGPT shows any other block of the model's context as an attachment in
+	// its message box, which the adult would see and might take away.
+	test("a line is marked for the model alone", async () => {
+		const { host, widgetSide } = await openTestHost();
+		const told: unknown[] = [];
+		host.onupdatemodelcontext = async (params) => {
+			told.push(...(params.content ?? []));
+			return {};
+		};
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		await bridge.tellModel("The child answered.");
+
+		expect(told).toEqual([
+			{
+				type: "text",
+				text: "The child answered.",
+				annotations: { audience: ["assistant"] },
+			},
+		]);
+	});
 });
 
 describe("the call that drew the card", () => {
