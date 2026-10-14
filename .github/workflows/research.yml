@@ -104,7 +104,7 @@ jobs:
         run: just research reproduce "$EXPERIMENT" "$RUNNER_TEMP/run" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Keep what the run wrote
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: reproduced-${{ matrix.experiment }}
           path: ${{ runner.temp }}/run
@@ -212,14 +212,14 @@ jobs:
               echo
               echo "E-A4's times are those of the run the paper describes, on $processor."
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: paper-a
           path: research/paper-a/build/*.pdf
           retention-days: 7
           overwrite: true
       - name: Hand the named paper on to the page's data
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: paper-a-site
           path: |
@@ -232,7 +232,7 @@ jobs:
       # page that ran over, or the line that ran past the margins.
       - name: Keep the paper's builds
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: paper-a-builds
           path: |
@@ -299,7 +299,7 @@ jobs:
               echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       # Both lie in site/research, which the artifact holds as its root.
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: research-data
           path: |
