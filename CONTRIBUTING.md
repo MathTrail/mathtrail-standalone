@@ -4,7 +4,7 @@ Thank you for looking. This is a small project with one maintainer, and it is bu
 
 ## Before you write anything
 
-**Open an issue first** for anything beyond a typo. The order of the work is fixed: [`RUN.md`](RUN.md) lists the tasks in the order they are done, and what the product is meant to be is settled in [`PRODUCT-V1.md`](PRODUCT-V1.md). A change that does not fit either is not rejected because it is bad — it is rejected because the plan is what keeps this finishable by one person.
+**Open an issue first** for anything beyond a typo. The order of the work is fixed: [`RUN.md`](RUN.md) lists the tasks in the order they are done, and what the product is meant to be is settled in [`PRODUCT-V1.md`](PRODUCT-V1.md). A change that does not fit either is not rejected because it is bad — it is rejected because the plan is what keeps this finishable by one person. The tasks already finished are kept in [`docs/plan/`](docs/plan/README.md).
 
 If you are reporting a bug, an issue with what you did, what happened and what you expected is already a real contribution. Reports from actual use with a child are the most valuable thing this project can receive.
 

@@ -36,8 +36,9 @@ Technical shape:
 ## Documents
 
 - [PRODUCT-V1.md](PRODUCT-V1.md) — product requirements, platform research and the product decision log (О-questions in section 12). The source of truth for *what* we build.
-- [RUN.md](RUN.md) — the implementation plan: tasks T00–T65, run one at a time. Full executor rules are in its «Как пользоваться» section.
-- `SPEC.md` — the technical spec (written in RUN.md phase 1). The source of truth for *how*, once it exists.
+- [RUN.md](RUN.md) — the implementation plan, run one task at a time: the tasks being done now, the big ones for later, the author's open questions and the technical debt. Full executor rules are in its «Как пользоваться» section, and how the plan is kept in «Как устроен план».
+- [docs/plan/](docs/plan/README.md) — the plan's archive: what is done leaves RUN.md for it word for word, a file per phase (R308). It is not read whole. A task that is not in RUN.md is found there by its number, `grep -nE -e '^### T75\.7[.–]' -e '^ *- \*\*T75\.7[.*]' RUN.md docs/plan/*.md`, so a reference such as "RUN.md, T11" stays as it was written.
+- `SPEC.md` — the technical spec (written in phase 1 of the plan, now in `docs/plan/phase-01.md`). The source of truth for *how*, once it exists.
 - `docs/decisions.md` — implementation decision log, numbered R01… (created in T05). Read it before proposing design changes.
 - `docs/architecture/` — Mermaid diagrams (phase 1). `docs/live/` — reports of live runs in real chat hosts.
 - The author's designs — of the public site, the progress screen and the choice of the topic on a task's card — were self-unpacking pages under `draft/ui/`, removed on 2026-10-06 once every one was ported; they are in the history up to `66680ac`. The drafts that came after them, under `draft/`, were removed on 2026-10-07: those of the pages "Service" (R251) and "Coach" (R249) are in the history up to `7108ac9`; the one of "About" was never committed. The draft of the home page's phone and of the buttons under a task, `draft/MathTrail (4).html` (R262, R263), was removed on 2026-10-08 and is in the history up to `443b06f`. A draft still comes under `draft/` while it is ported, and leaves once it is; the static analysis and the build context leave the folder out. The widget's first design, `draft/ui/mathtrail-site/` (R89), was removed on 2026-10-03 and is in the history up to `8ff72f8`. The mockup the progress screen was first redrawn after, `rework/3a-ranks.png` (R147), was removed on 2026-10-11 and is in the history up to `ab73572`. The draft of the site's language picker, `draft/index.html` (R295), was removed on 2026-10-11 and is in the history up to `1ef44e3`. The site and the card are now their own reference: their code, seen in `just web-preview` and the built site (R156).
@@ -58,7 +59,7 @@ Project context lives in these files, not in chat history.
   - Drop a wrong finding with a one-line reason, and one that re-proposes a rejected alternative with no new evidence by naming the decision. A finding that questions PRODUCT-V1, SPEC or a decision for a reason that holds goes to the author as a question.
   - If anything was fixed, run the checks and the review once more. That second round is the last: its findings are handled the same way, and its fixes get the checks but no third review. The report says what was fixed, what was dropped and why, and what is left open.
   - `/code-review ultra` is billed and started only by the author; this rule does not cover it.
-- When done, mark the task in the RUN.md summary table: `[ ]` → `[x]`.
+- When done, follow RUN.md rule 10: mark the task in table 1 (`[ ]` → `[x]`), add a question left unanswered to table 3 and anything put off on purpose to table 4, and, if the task closed the last open task of its phase or is one of «Доработки», move what is done to `docs/plan/` in the same change.
 - Finish with a short report in Russian: what was done, which files, how to check it (commands), what the review found, what is still open.
 - Do not commit: the author commits after review.
 - Live runs in Claude or ChatGPT spend the author's subscription limits, and cloud actions may cost money. Say so and wait for confirmation before starting one.
@@ -79,7 +80,7 @@ Project context lives in these files, not in chat history.
   `.devcontainer/Dockerfile`, as a literal in `devcontainer.json`. No separate versions file,
   no checksum verification.
 - **Language: English everywhere.** Code, every comment in code and config files (Go, TS, SQL, YAML, HCL, Dockerfile, justfile, `.env.example`, …), model instructions and content in `content/`, locale keys, and every project document — PRODUCT-V1, SPEC, everything under `docs/`, `CLAUDE.md` and `README.md`.
-  - RUN.md and research/RUN.md are in Russian: they are the author's working plans of the tasks.
+  - RUN.md and research/RUN.md are in Russian: they are the author's working plans of the tasks. So is the product plan's archive under `docs/plan/`, which is RUN.md moved there word for word.
   - The paper draft under `research/` has a Russian copy beside it, `draft.ru.md`, for the author to read. The English file is the source and the one a venue receives; the copy follows it in the same change.
   - Reports to the author in chat are in Russian.
   - The frozen prototype copies under `docs/prototype/` stay in Russian as they were written: they are a historical record, cited but never rewritten.
