@@ -838,6 +838,19 @@ A decision can be revised by a later task on new facts; the revision is a new en
 - **Blocks:** nothing. S45 moves to `[~]`: the public totals reach the paper, and the numbers of the acceptance runs (T62–T64) were not moved.
 - **Sources:** Q66, Q86, Q87; rule G5; `site/content/en/privacy.md`, `infra/analytics/views/public/chances_total.sql`, `docs/research-page.md` §11, `docs/live/16-task-time.md` and `docs/decisions.md` (R213) at `443b06faaa6b`.
 
+### Q89. The module moves to Go 1.27.3, and its results keep the Go they were made with
+
+- **Question:** GO-2026-6809 (CVE-2026-111943), published on 2026-10-21, makes `crypto/x509` refuse known compromised intermediate certificates from Go 1.27.3 on, and the product moved to that Go on 2026-10-23. The module declared go 1.27.1, so every job that takes its Go from `go.mod` ran a Go without the fix: the reproductions, the paper's build, `paper.yml`, and `zenodo.yml`, whose tool talks to Zenodo over HTTPS. Does the module follow the product, and what becomes of results made with Go 1.27.1?
+- **Why it matters:** the paper's numbers must stay the bytes its experiments wrote, and a reader of the artifact must know which Go to run.
+- **Decision (the author, 2026-10-23: "всё переводи на go1.27.3"):** `go.mod` declares go 1.27.3.
+  - Under it the three experiments reproduce their results as `reproduce.sh` compares them: every file of E-A1 and E-A3, and E-A4's package sizes. The executor ran `just research reproduce` for each on 2026-10-23, and CI runs them again, since a program's key is its own bytes.
+  - The results stay as they were made. Their `provenance.txt` names Go 1.27.1, and so does E-A4's `machine_go`, which belongs to the machine that measured the times. C001 stays about the product at its pin, whose `go.mod` says 1.27.1.
+  - The artifact's README names `service/research/go.mod` as the Go to run, since the product's `service/go.mod` at the pin names the older one.
+  - The changed `go.mod` makes a new artifact, which `paper.yml` releases after the product's next release. T73.6 puts it on Zenodo.
+- **Who and when:** the author, 2026-10-23; done by the executor in the change that moved this `go.mod` to go 1.27.3, the one after the product's PR #148.
+- **Blocks:** nothing.
+- **Sources:** Q84, Q87; `go.mod`; `experiments/reproduce.sh`; `release/README.md`; `.github/workflows/research.yml`; https://pkg.go.dev/vuln/GO-2026-6809.
+
 ## Answer when convenient
 
 Questions about the author's reasons and intentions. They block nothing: each has a default, or needs none.

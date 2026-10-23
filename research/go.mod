@@ -1,6 +1,6 @@
 module github.com/MathTrail/mathtrail-standalone/research
 
-go 1.27.1
+go 1.27.3
 
 require (
 	github.com/MathTrail/mathtrail-standalone v0.1.53
