@@ -245,9 +245,9 @@
       "properties": {
         "given": {
           "type": "array",
-          "maxItems": 10,
+          "maxItems": 40,
           "uniqueItems": true,
-          "items": { "type": "integer", "minimum": 1, "maximum": 10 }
+          "items": { "type": "integer", "minimum": 1, "maximum": 40 }
         },
         "round": { "type": "integer", "minimum": 1 }
       }
@@ -257,7 +257,7 @@
       "type": "object",
       "required": ["number", "round"],
       "properties": {
-        "number": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "number": { "type": "integer", "minimum": 1, "maximum": 40 },
         "round": { "type": "integer", "minimum": 1 }
       }
     },

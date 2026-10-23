@@ -539,7 +539,7 @@ func playDay(t *testing.T, catalog tutor.Catalog, sealer profile.Sealer, d *dayS
 			set.previous = steps[len(steps)-1].topic
 		}
 
-		task := handedOut(t, p, &next, mode, sealer, now)
+		task := handedOut(t, p, tenIdeas, &next, mode, sealer, now)
 		given[task.Topic] = place
 		if random.Float64() >= d.Left {
 			set.right = answeredByChance(t, catalog, p, task, truth, sealer, random)

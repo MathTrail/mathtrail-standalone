@@ -240,7 +240,7 @@ func ideasNamed(p *profile.Profile, c tutor.Catalog) map[string]profile.Idea {
 	named := map[string]profile.Idea{}
 	for _, topic := range c.TopicIDs() {
 		for _, level := range c.LevelsOf(topic) {
-			named[topic+" "+string(level)] = tutor.NextIdea(p, topic, level)
+			named[topic+" "+string(level)] = tutor.NextIdea(p, topic, level, tenIdeas)
 		}
 	}
 	return named
@@ -255,5 +255,5 @@ func onTheCardFromTheRule(t *testing.T, p *profile.Profile, c tutor.Catalog, sea
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
-	return handedOut(t, p, &next, mode, sealer, day)
+	return handedOut(t, p, tenIdeas, &next, mode, sealer, day)
 }

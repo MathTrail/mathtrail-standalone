@@ -24,6 +24,10 @@ type catalog struct {
 	examples map[string][]string
 }
 
+// tenIdeas is how many ideas a topic's list holds in these tests when a test
+// sets no other length.
+const tenIdeas = 10
+
 func (c catalog) TopicIDs() []string { return c.topics }
 func (c catalog) TrapIDs() []string  { return c.traps }
 

@@ -432,8 +432,8 @@ func TestAKeptTaskIsHeldToTheRulesOfTheFile(t *testing.T) {
 		{"nobody who chose it", func(r *profile.ReadyTask) { r.TutorMode = "" }, "ready_task.tutor_mode"},
 		{"four options", func(r *profile.ReadyTask) { delete(r.Options, "E") }, "ready_task offers 4 options"},
 		{"a blank option", func(r *profile.ReadyTask) { r.Options["B"] = " " }, `ready_task.options shows nothing under "B"`},
-		{"an idea past the end of its list", func(r *profile.ReadyTask) { r.Idea.Number = profile.IdeasPerList + 1 },
-			"ready_task.idea is number 11"},
+		{"an idea past the end of its list", func(r *profile.ReadyTask) { r.Idea.Number = profile.MaxIdeasPerList + 1 },
+			"ready_task.idea is number 41"},
 		{"an idea named in no round", func(r *profile.ReadyTask) { r.Idea.Round = 0 }, "ready_task.idea is number 4 in round 0"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

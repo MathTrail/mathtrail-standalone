@@ -247,7 +247,7 @@ func TestAPackageNamesTheIdeaItsTaskIsBuiltOn(t *testing.T) {
 		named profile.Idea
 	}{
 		{"the first idea of the list", profile.Idea{Number: 1, Round: 1}},
-		{"the last idea of the list", profile.Idea{Number: profile.IdeasPerList, Round: 1}},
+		{"the last idea of the list", profile.Idea{Number: len(listed), Round: 1}},
 		{"an idea of a later round", profile.Idea{Number: 4, Round: 3}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -694,7 +694,7 @@ func TestARequestThePackageCannotBeBuiltFromMakesNoPackage(t *testing.T) {
 			asked.Idea = profile.Idea{}
 		}},
 		{"an idea past the end of the list", func(asked *content.Request) {
-			asked.Idea = profile.Idea{Number: profile.IdeasPerList + 1, Round: 1}
+			asked.Idea = profile.Idea{Number: shipped.IdeaCount("counting.gaps", rating.Grades12) + 1, Round: 1}
 		}},
 		{"an idea named in no round", func(asked *content.Request) {
 			asked.Idea = profile.Idea{Number: 3, Round: 0}

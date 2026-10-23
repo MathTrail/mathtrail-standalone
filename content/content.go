@@ -209,6 +209,13 @@ func (c *Content) LevelsOf(topic string) []rating.GradeLevel {
 	return slices.Clone(c.topicByID[topic].GradeLevels)
 }
 
+// IdeaCount is how many ideas a topic's list holds at a level, each list being
+// of a length of its own. A topic the catalog does not have, or a level it is
+// not taught at, has none.
+func (c *Content) IdeaCount(topic string, level rating.GradeLevel) int {
+	return len(c.ideas[topic][level])
+}
+
 // BasesOf lists the topics a topic builds on, in catalog order: none for a
 // foundation, and none for a topic the catalog does not have.
 func (c *Content) BasesOf(topic string) []string {

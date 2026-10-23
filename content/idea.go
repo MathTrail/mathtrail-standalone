@@ -13,13 +13,13 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// The ideas of a topic are the content's own: profile.IdeasPerList of them for
-// each level the topic is taught at, each the mathematics a task is built on
-// rather than its plot, and no two of them one task told twice. A package
-// names the one its task is built on, an idea the child has not been given in
-// its round, so that the tasks of a topic go through its ideas before any
-// comes back — the same list in every chat, where a list the model wrote for
-// itself would start again from its favourite idea each time.
+// The ideas of a topic are the content's own: a list for each level the topic
+// is taught at, of a length of its own, each idea the mathematics a task is
+// built on rather than its plot, and no two of them one task told twice. A
+// package names the one its task is built on, an idea the child has not been
+// given in its round, so that the tasks of a topic go through its ideas before
+// any comes back — the same list in every chat, where a list the model wrote
+// for itself would start again from its favourite idea each time.
 
 const (
 	// ideasDir holds one file for each topic, named by the topic's id.
@@ -28,6 +28,13 @@ const (
 	// longestIdea is how long an idea may be, in characters: a line that
 	// names an idea, not a task.
 	longestIdea = 200
+	// fewestIdeas is how few ideas a list may hold: every list began with
+	// ten, and the files of families name places on them, so a shorter list
+	// would leave some of those places with no idea. For the same reason a
+	// list that has grown does not shrink back, which the loader cannot see,
+	// since it reads a list as it is. The most a list may hold is the
+	// furthest place a profile names.
+	fewestIdeas = 10
 )
 
 // ideaFile is a topic's ideas as its file holds them: the list of each level
@@ -37,10 +44,10 @@ type ideaFile map[rating.GradeLevel][]string
 // loadIdeas reads the ideas of every topic, a file each, and refuses a list a
 // package could not name an idea from: a topic of the catalog without a file,
 // a file of no topic, a level the topic is not taught at or one it is taught
-// at left out, a list of another length, an idea that is empty, runs over a
-// line or past its length, or one said twice. Beside the ideas come their
-// files, as the version of the instructions counts them: an idea is part of
-// what the model is told.
+// at left out, a list shorter or longer than a list may be, an idea that is
+// empty, runs over a line or past its length, or one said twice. Beside the
+// ideas come their files, as the version of the instructions counts them: an
+// idea is part of what the model is told.
 func loadIdeas(src fs.FS, topics []Topic) (map[string]map[rating.GradeLevel][]string, []instructionFile, error) {
 	entries, err := fs.ReadDir(src, ideasDir)
 	if err != nil {
@@ -112,12 +119,13 @@ func loadIdeaFile(src fs.FS, topic *Topic) (ideaFile, []byte, error) {
 	return read, raw, nil
 }
 
-// checkIdeas checks one level's list: profile.IdeasPerList ideas, each a line
-// of its own within the length of one, and no two the same once their case and
-// their spaces are set aside.
+// checkIdeas checks one level's list: from fewestIdeas to
+// profile.MaxIdeasPerList ideas, each a line of its own within the length of
+// one, and no two the same once their case and their spaces are set aside.
 func checkIdeas(p *problems, level rating.GradeLevel, list []string) {
-	if len(list) != profile.IdeasPerList {
-		p.addf("level %q: %d ideas, and a list holds %d", level, len(list), profile.IdeasPerList)
+	if len(list) < fewestIdeas || len(list) > profile.MaxIdeasPerList {
+		p.addf("level %q: %d ideas, and a list holds from %d to %d",
+			level, len(list), fewestIdeas, profile.MaxIdeasPerList)
 	}
 	seen := make(map[string]int, len(list))
 	for i, idea := range list {

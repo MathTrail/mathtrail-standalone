@@ -197,20 +197,21 @@ func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, truth fl
 	if err != nil {
 		t.Fatalf("build the seal: %v", err)
 	}
-	task := handedOut(t, p, &brief, mode, sealer, now)
+	task := handedOut(t, p, tenIdeas, &brief, mode, sealer, now)
 	return answeredByChance(t, catalog, p, task, truth, sealer, random)
 }
 
 // handedOut puts the task a brief asks for on the card, as the service hands
-// one out at this moment: asked for on the idea the rule names, written and
-// accepted, and sealed as the service seals a task. C is right and B a slip.
-// A task still on the card without an answer is left behind, skipped.
-func handedOut(t *testing.T, p *profile.Profile, brief *profile.Brief, mode profile.TutorMode,
+// one out at this moment: asked for on the idea the rule names from its
+// topic's list of that many ideas, written and accepted, and sealed as the
+// service seals a task. C is right and B a slip. A task still on the card
+// without an answer is left behind, skipped.
+func handedOut(t *testing.T, p *profile.Profile, ideas int, brief *profile.Brief, mode profile.TutorMode,
 	sealer profile.Sealer, now time.Time) *profile.CurrentTask {
 	t.Helper()
 
 	request := p.Ask(brief, mode, "en", now)
-	request.Idea = tutor.NextIdea(p, brief.TargetConcept, brief.GradeLevel)
+	request.Idea = tutor.NextIdea(p, brief.TargetConcept, brief.GradeLevel, ideas)
 	task, err := p.Issue(&profile.Written{
 		Wording: "a task", Options: map[string]string{"A": "1", "B": "2", "C": "3", "D": "4", "E": "5"},
 		Hint: "hint", Fingerprint: "sketch", InstructionsVersion: "v",

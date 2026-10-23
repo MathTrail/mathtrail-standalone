@@ -230,7 +230,7 @@ func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Pro
 	request := p.Ask(asked.brief, asked.mode, p.Student.LessonLanguage(asked.language), now)
 	noteTaskRequest(ctx, request.ID)
 	request.Asked = asked.byPerson
-	request.Idea = tutor.NextIdea(p, request.Brief.TargetConcept, request.Brief.GradeLevel)
+	request.Idea = s.nextIdea(p, &request.Brief)
 	if err := s.canPackage(p, request); err != nil {
 		return Reply[requestOut]{}, err
 	}

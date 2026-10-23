@@ -15,10 +15,13 @@ import (
 // ideaPath is where the ideas of this topic live.
 func ideaPath(topic string) string { return ideasDir + "/" + topic + ideaSuffix }
 
-// sampleIdeas is a list with nothing wrong with it: as many ideas as a list
-// holds, each of its own.
-func sampleIdeas(level rating.GradeLevel) []string {
-	list := make([]string, profile.IdeasPerList)
+// sampleIdeas is a list with nothing wrong with it: as few ideas as a list may
+// hold, each of its own.
+func sampleIdeas(level rating.GradeLevel) []string { return ideasOfLength(level, fewestIdeas) }
+
+// ideasOfLength is a list of that many ideas, each of its own.
+func ideasOfLength(level rating.GradeLevel, length int) []string {
+	list := make([]string, length)
 	for i := range list {
 		list[i] = fmt.Sprintf("Idea %d of the topic at %s.", i+1, level)
 	}
@@ -39,25 +42,46 @@ func withIdeas(t *testing.T, src fstest.MapFS, topic string, levels ...rating.Gr
 
 var gapsLevels = []rating.GradeLevel{rating.Grades12, rating.Grades34, rating.Grades56}
 
+// A list is read as its file holds it, whatever its length from the fewest
+// ideas a list may hold to the most: ten at 1-2, twenty at 3-4 and forty at
+// 5-6. The catalog says how many ideas each list holds, and none for a topic
+// it does not have or a level the topic is not taught at.
 func TestIdeasAreReadAsTheirFileHoldsThem(t *testing.T) {
 	t.Parallel()
 
-	src := contentCopy(t)
-	withIdeas(t, src, "counting.gaps", gapsLevels...)
+	lengths := map[rating.GradeLevel]int{
+		rating.Grades12: fewestIdeas, rating.Grades34: 20, rating.Grades56: profile.MaxIdeasPerList,
+	}
+	src, file := contentCopy(t), ideaFile{}
+	for level, length := range lengths {
+		file[level] = ideasOfLength(level, length)
+	}
+	src[ideaPath("counting.gaps")] = asFile(t, file)
 	loaded, err := load(src)
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
-	for _, level := range gapsLevels {
-		if got, want := loaded.ideas["counting.gaps"][level], sampleIdeas(level); !slices.Equal(got, want) {
+	for level, length := range lengths {
+		if got, want := loaded.ideas["counting.gaps"][level], ideasOfLength(level, length); !slices.Equal(got, want) {
 			t.Errorf("ideas at %s = %q, want %q", level, got, want)
+		}
+		if got := loaded.IdeaCount("counting.gaps", level); got != length {
+			t.Errorf("IdeaCount(counting.gaps, %s) = %d, want %d", level, got, length)
+		}
+	}
+	for _, none := range []struct {
+		topic string
+		level rating.GradeLevel
+	}{{"percent.basic", rating.Grades12}, {"no.such.topic", rating.Grades12}} {
+		if got := loaded.IdeaCount(none.topic, none.level); got != 0 {
+			t.Errorf("IdeaCount(%s, %s) = %d, want 0 for a list the catalog does not have", none.topic, none.level, got)
 		}
 	}
 }
 
-// Every topic of the catalog has a full list at every level it is taught at:
-// a package of any topic at any of its levels names an idea, and no topic
-// runs out of ideas before the others do.
+// Every topic of the catalog has a list at every level it is taught at, of a
+// length a list may have: a package of any topic at any of its levels names an
+// idea, and every place a family's file may name is on its list.
 func TestEveryTopicHasAListOfIdeasAtEachOfItsLevels(t *testing.T) {
 	t.Parallel()
 
@@ -67,17 +91,18 @@ func TestEveryTopicHasAListOfIdeasAtEachOfItsLevels(t *testing.T) {
 	}
 	for _, topic := range shipped.topics {
 		for _, level := range topic.GradeLevels {
-			if got := len(shipped.ideas[topic.ID][level]); got != profile.IdeasPerList {
-				t.Errorf("%s at %s has %d ideas, want %d", topic.ID, level, got, profile.IdeasPerList)
+			if got := len(shipped.ideas[topic.ID][level]); got < fewestIdeas || got > profile.MaxIdeasPerList {
+				t.Errorf("%s at %s has %d ideas, want from %d to %d",
+					topic.ID, level, got, fewestIdeas, profile.MaxIdeasPerList)
 			}
 		}
 	}
 }
 
-// A list a package could not name an idea from stops the service: a list of
-// another length, an idea that says nothing, runs over a line or past the
-// length of one, an idea said twice however it is spelt, and a level the
-// topic is not taught at or one it is taught at left out.
+// A list a package could not name an idea from stops the service: a list
+// shorter or longer than a list may be, an idea that says nothing, runs over a
+// line or past the length of one, an idea said twice however it is spelt, and
+// a level the topic is not taught at or one it is taught at left out.
 func TestABrokenListOfIdeasStopsTheService(t *testing.T) {
 	t.Parallel()
 
@@ -87,9 +112,9 @@ func TestABrokenListOfIdeasStopsTheService(t *testing.T) {
 		want  string
 	}{
 		{"nine ideas", func(f ideaFile) { f[rating.Grades12] = f[rating.Grades12][:9] },
-			`level "1-2": 9 ideas, and a list holds 10`},
-		{"eleven ideas", func(f ideaFile) { f[rating.Grades12] = append(f[rating.Grades12], "One idea too many.") },
-			`level "1-2": 11 ideas, and a list holds 10`},
+			`level "1-2": 9 ideas, and a list holds from 10 to 40`},
+		{"forty-one ideas", func(f ideaFile) { f[rating.Grades12] = ideasOfLength(rating.Grades12, 41) },
+			`level "1-2": 41 ideas, and a list holds from 10 to 40`},
 		{"an idea of spaces", func(f ideaFile) { f[rating.Grades12][3] = " \t " },
 			`level "1-2": idea 4 is empty`},
 		{"an idea over two lines", func(f ideaFile) { f[rating.Grades12][3] = "One line.\nAnother." },
