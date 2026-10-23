@@ -22,7 +22,7 @@ This is the artifact of the paper *The Model Writes, the Service Checks: Olympia
 
 ## Reproducing the results
 
-You need Go at the version `go.mod` names. The first build downloads the Go modules `go.sum` lists. Every random choice comes from a fixed seed, so E-A1 and E-A3 reproduce byte for byte; the times E-A4 measures depend on the machine, the sizes it measures do not.
+You need Go at the version `service/research/go.mod` names; `service/go.mod` names the one the service was built with at its commit. The first build downloads the Go modules `go.sum` lists. Every random choice comes from a fixed seed, so E-A1 and E-A3 reproduce byte for byte; the times E-A4 measures depend on the machine, the sizes it measures do not.
 
 ```sh
 cd service/research
@@ -50,7 +50,7 @@ grep '^package' "$ea4/numbers.txt" | diff "$ea4/shipped-package-lines" -
 
 `reading.csv` holds verdicts on a sample of the out-of-scope cases: whether each case is the defect its operator is named after. No program makes them: they were recorded by the AI assistant that ran the experiment, and the paper does not report them. The run reads them from its output directory and adds them to its tables; without the file it leaves those entries out, and everything else comes out the same.
 
-`provenance.txt` beside each result names the commit the run was made on and the Go and Starlark versions it used.
+`provenance.txt` beside each result names the commit the run was made on and the Go and Starlark versions it used, and E-A4's `numbers.txt` names, beside its times, the machine and the Go that measured them. That Go can be an earlier patch release than the one `service/research/go.mod` names: the experiments reproduced their results with the later one before the module moved to it.
 
 Each results directory has a `numbers.txt` of `key=value` lines, and `paper-a/numbers.tex` defines one macro per line: `\stat{ea1}{key}` is E-A1's `key`, `ea3` E-A3's and `ea4` E-A4's; `product` is a fact of `evidence/product-stats.txt`, `ledger` one of `evidence/ledger-numbers.txt`, `literature` one of `literature/numbers.txt`, and `live` one of `paper-a/live.txt`, all under `service/research/`. `live.txt` gives a state, 0 while no snapshot has a month counted whole, 1 when the month's children were too few for its total to be shown and 2 when it is shown; the snapshot's month as `year` and `month`; and, at state 2, the snapshot's total as it stands.
 
