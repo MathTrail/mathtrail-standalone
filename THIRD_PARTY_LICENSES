@@ -111,7 +111,7 @@ MIT           preact@11.0.0                                  https://www.npmjs.c
 MIT           shebang-command@2.0.0                          https://www.npmjs.com/package/shebang-command/v/2.0.0
 MIT           shebang-regex@3.0.0                            https://www.npmjs.com/package/shebang-regex/v/3.0.0
 ISC           which@2.0.2                                    https://www.npmjs.com/package/which/v/2.0.2
-MIT           zod@4.6.5                                      https://www.npmjs.com/package/zod/v/4.6.5
+MIT           zod@4.6.7                                      https://www.npmjs.com/package/zod/v/4.6.7
 
 The prototype of the coach on the site is the export of the tool it was
 drawn in, shipped with two small pieces taken out of it, and it carries

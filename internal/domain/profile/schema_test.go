@@ -655,14 +655,16 @@ func TestTheSchemaAndTheServiceHoldTheIdeasAlike(t *testing.T) {
 		{"a round before the first", "ideas", `{"1-2": {"given": [1], "round": 0}}`, false, profile.ErrInvalid},
 		{"a round of no number", "ideas", `{"1-2": {"given": [1]}}`, false, profile.ErrInvalid},
 		{"an idea before the first place", "ideas", `{"1-2": {"given": [0], "round": 1}}`, false, profile.ErrInvalid},
-		{"an idea past the end of the list", "ideas", `{"1-2": {"given": [11], "round": 1}}`, false, profile.ErrInvalid},
+		{"the last place of the longest list", "ideas", `{"1-2": {"given": [40], "round": 1}}`, true, nil},
+		{"an idea past the end of the longest list", "ideas", `{"1-2": {"given": [41], "round": 1}}`, false, profile.ErrInvalid},
 		{"an idea given twice", "ideas", `{"1-2": {"given": [3, 3], "round": 1}}`, false, profile.ErrInvalid},
 		{"ideas given as null", "ideas", `{"1-2": {"given": null, "round": 1}}`, false, profile.ErrInvalid},
 		{"ideas given as nothing", "ideas", `{"1-2": {"round": 1}}`, false, profile.ErrInvalid},
 		{"ideas given as words", "ideas", `{"1-2": {"given": "3, 7", "round": 1}}`, false, profile.ErrMalformed},
 		{"an idea named", "idea", `{"number": 10, "round": 2}`, true, nil},
 		{"an idea of nothing at all", "idea", `{"number": 0, "round": 0}`, false, nil},
-		{"an idea past the end of the list named", "idea", `{"number": 11, "round": 1}`, false, profile.ErrInvalid},
+		{"the last place of the longest list named", "idea", `{"number": 40, "round": 1}`, true, nil},
+		{"an idea past the end of the longest list named", "idea", `{"number": 41, "round": 1}`, false, profile.ErrInvalid},
 		{"an idea named in no round", "idea", `{"number": 3}`, false, profile.ErrInvalid},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -726,10 +728,10 @@ func withIdeaPart(t *testing.T, part, raw string) []byte {
 	return edited
 }
 
-// The schema tells a reader how long a list of ideas is, in each place it
-// names an idea by its place on one, and that is the length the service holds
-// the lists to.
-func TestTheSchemaStatesHowLongAListOfIdeasIs(t *testing.T) {
+// The schema tells a reader how long a list of ideas may be, in each place it
+// names an idea by its place on one, and that is the longest list the rules of
+// the file take the places of.
+func TestTheSchemaStatesHowLongAListOfIdeasMayBe(t *testing.T) {
 	t.Parallel()
 
 	var document struct {
@@ -764,8 +766,8 @@ func TestTheSchemaStatesHowLongAListOfIdeasIs(t *testing.T) {
 		{"ideaRound.given.items.maximum", document.Defs.IdeaRound.Properties.Given.Items.Maximum},
 		{"idea.number.maximum", document.Defs.Idea.Properties.Number.Maximum},
 	} {
-		if tc.got != float64(profile.IdeasPerList) {
-			t.Errorf("the schema states %s as %v, want %d", tc.where, tc.got, profile.IdeasPerList)
+		if tc.got != float64(profile.MaxIdeasPerList) {
+			t.Errorf("the schema states %s as %v, want %d", tc.where, tc.got, profile.MaxIdeasPerList)
 		}
 	}
 }

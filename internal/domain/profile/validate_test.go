@@ -268,8 +268,8 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 		},
 		{
 			name:    "an idea past the end of its list",
-			breakIt: withIdeas(rating.Grades12, profile.IdeaRound{Given: []int{profile.IdeasPerList + 1}, Round: 1}),
-			wantSay: "topics[counting.gaps].ideas[1-2].given holds 11",
+			breakIt: withIdeas(rating.Grades12, profile.IdeaRound{Given: []int{profile.MaxIdeasPerList + 1}, Round: 1}),
+			wantSay: "topics[counting.gaps].ideas[1-2].given holds 41",
 		},
 		{
 			name:    "an idea given twice in one round",
@@ -593,7 +593,7 @@ func TestAnOpenRequestIsRefusedWhenItIsNotWhole(t *testing.T) {
 	whole := profile.OpenRequest{
 		Attempts:  1,
 		ID:        "req_1",
-		Idea:      profile.Idea{Number: profile.IdeasPerList, Round: 2},
+		Idea:      profile.Idea{Number: profile.MaxIdeasPerList, Round: 2},
 		Language:  "en-US",
 		OpenedAt:  profile.At(time.Date(2026, 9, 4, 10, 0, 0, 0, time.UTC)),
 		TutorMode: profile.TutorRule,
@@ -627,9 +627,9 @@ func TestAnOpenRequestIsRefusedWhenItIsNotWhole(t *testing.T) {
 		"open_request.brief.pedagogical_goal":       func(r *profile.OpenRequest) { r.Brief.PedagogicalGoal = "whatever" },
 		"open_request has no opened_at":             func(r *profile.OpenRequest) { r.OpenedAt = profile.Time{} },
 		"open_request has no language":              func(r *profile.OpenRequest) { r.Language = "" },
-		"open_request.idea is number 11":            func(r *profile.OpenRequest) { r.Idea.Number = profile.IdeasPerList + 1 },
+		"open_request.idea is number 41":            func(r *profile.OpenRequest) { r.Idea.Number = profile.MaxIdeasPerList + 1 },
 		"open_request.idea is number 0":             func(r *profile.OpenRequest) { r.Idea.Number = 0 },
-		"open_request.idea is number 10 in round 0": func(r *profile.OpenRequest) { r.Idea.Round = 0 },
+		"open_request.idea is number 40 in round 0": func(r *profile.OpenRequest) { r.Idea.Round = 0 },
 	}
 
 	for wantSay, breakIt := range cases {

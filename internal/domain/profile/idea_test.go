@@ -194,7 +194,7 @@ func TestTheIdeasGivenHoldTheirProperties(t *testing.T) {
 	t.Parallel()
 
 	sealer := newSealer(t)
-	anIdea := gopter.CombineGens(gen.IntRange(0, profile.IdeasPerList), gen.IntRange(1, 4)).Map(
+	anIdea := gopter.CombineGens(gen.IntRange(0, profile.MaxIdeasPerList), gen.IntRange(1, 4)).Map(
 		func(values []any) profile.Idea {
 			number, _ := values[0].(int)
 			round, _ := values[1].(int)
@@ -230,7 +230,7 @@ func TestTheIdeasGivenHoldTheirProperties(t *testing.T) {
 func eachOnceOnTheList(given []int) bool {
 	sorted := slices.Sorted(slices.Values(given))
 	return len(sorted) > 0 && len(slices.Compact(slices.Clone(sorted))) == len(sorted) &&
-		sorted[0] >= 1 && sorted[len(sorted)-1] <= profile.IdeasPerList
+		sorted[0] >= 1 && sorted[len(sorted)-1] <= profile.MaxIdeasPerList
 }
 
 // readsBackAlike reports whether the profile's file reads back with the topics'

@@ -270,12 +270,12 @@ func validateIdeas(id string, ideas map[rating.GradeLevel]IdeaRound) error {
 			return fmt.Errorf("%w: topics[%s].ideas[%s] has no given; a round with no idea given in it yet has []",
 				ErrInvalid, id, level)
 		}
-		var seen [IdeasPerList + 1]bool
+		var seen [MaxIdeasPerList + 1]bool
 		for _, number := range kept.Given {
 			switch {
-			case number < 1 || number > IdeasPerList:
+			case number < 1 || number > MaxIdeasPerList:
 				return fmt.Errorf("%w: topics[%s].ideas[%s].given holds %d, and an idea is a place from 1 to %d on its list",
-					ErrInvalid, id, level, number, IdeasPerList)
+					ErrInvalid, id, level, number, MaxIdeasPerList)
 			case seen[number]:
 				return fmt.Errorf("%w: topics[%s].ideas[%s].given holds idea %d twice, and a round gives an idea once",
 					ErrInvalid, id, level, number)
@@ -292,9 +292,9 @@ func validateIdea(field string, idea Idea) error {
 	if idea == (Idea{}) {
 		return nil
 	}
-	if idea.Number < 1 || idea.Number > IdeasPerList || idea.Round < 1 {
+	if idea.Number < 1 || idea.Number > MaxIdeasPerList || idea.Round < 1 {
 		return fmt.Errorf("%w: %s.idea is number %d in round %d, want a place from 1 to %d on its list in a round from 1",
-			ErrInvalid, field, idea.Number, idea.Round, IdeasPerList)
+			ErrInvalid, field, idea.Number, idea.Round, MaxIdeasPerList)
 	}
 	return nil
 }

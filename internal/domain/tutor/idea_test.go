@@ -35,8 +35,9 @@ func childCalled(t *testing.T, id string) *profile.Profile {
 }
 
 // ideasHandedOut hands out tasks of counting.gaps at 1-2 one after another,
-// each on the idea the rule names for it, and is those ideas, in order.
-func ideasHandedOut(t *testing.T, p *profile.Profile, tasks int) []profile.Idea {
+// each on the idea the rule names for it from a list of that many ideas, and
+// is those ideas, in order.
+func ideasHandedOut(t *testing.T, p *profile.Profile, ideas, tasks int) []profile.Idea {
 	t.Helper()
 
 	sealer, err := taskSeal()
@@ -46,50 +47,66 @@ func ideasHandedOut(t *testing.T, p *profile.Profile, tasks int) []profile.Idea 
 	brief := gapsBrief(rating.Grades12)
 	named := make([]profile.Idea, 0, tasks)
 	for range tasks {
-		named = append(named, tutor.NextIdea(p, brief.TargetConcept, brief.GradeLevel))
-		handedOut(t, p, &brief, profile.TutorRule, sealer, day)
+		named = append(named, tutor.NextIdea(p, brief.TargetConcept, brief.GradeLevel, ideas))
+		handedOut(t, p, ideas, &brief, profile.TutorRule, sealer, day)
 	}
 	return named
 }
 
 // The rule names an idea not yet given in its round: any idea of a list never
 // met, the one idea a round has left, and, once a round has given every idea,
-// one of the next round other than the idea given last. A level has a round of
-// its own, and a record a file was edited into still names an idea of the
-// list.
+// one of the next round other than the idea given last. A list that has grown
+// since its round opened gives its new ideas in that round, a list of one idea
+// gives it again, and a list of none names no idea. A level has a round of its
+// own, and a record a file was edited into still names an idea of the list.
 func TestTheRuleNamesAnIdeaNotYetGivenInItsRound(t *testing.T) {
 	t.Parallel()
 
 	whole := []int{4, 1, 7, 2, 9, 3, 10, 5, 8, 6}
 	for _, tc := range []struct {
 		name  string
-		ideas map[rating.GradeLevel]profile.IdeaRound
+		ideas int
+		kept  map[rating.GradeLevel]profile.IdeaRound
 		level rating.GradeLevel
 		holds func(profile.Idea) bool
 	}{
-		{"a list never met", nil, rating.Grades12,
-			func(idea profile.Idea) bool { return idea.Round == 1 }},
-		{"a round with one idea left", map[rating.GradeLevel]profile.IdeaRound{
+		{"a list never met", tenIdeas, nil, rating.Grades12,
+			func(idea profile.Idea) bool { return idea.Round == 1 && onTheList(idea, tenIdeas) }},
+		{"a round with one idea left", tenIdeas, map[rating.GradeLevel]profile.IdeaRound{
 			rating.Grades12: {Given: []int{4, 1, 7, 2, 9, 10, 5, 8, 6}, Round: 3},
 		}, rating.Grades12, func(idea profile.Idea) bool { return idea == profile.Idea{Number: 3, Round: 3} }},
-		{"a round with every idea given", map[rating.GradeLevel]profile.IdeaRound{
+		{"a round with every idea given", tenIdeas, map[rating.GradeLevel]profile.IdeaRound{
 			rating.Grades12: {Given: whole, Round: 3},
-		}, rating.Grades12, func(idea profile.Idea) bool { return idea.Round == 4 && idea.Number != 6 }},
-		{"a level never met beside one gone through", map[rating.GradeLevel]profile.IdeaRound{
+		}, rating.Grades12, func(idea profile.Idea) bool {
+			return idea.Round == 4 && idea.Number != 6 && onTheList(idea, tenIdeas)
+		}},
+		{"a level never met beside one gone through", tenIdeas, map[rating.GradeLevel]profile.IdeaRound{
 			rating.Grades12: {Given: whole, Round: 3},
-		}, rating.Grades34, func(idea profile.Idea) bool { return idea.Round == 1 }},
-		{"a record with places the list does not have", map[rating.GradeLevel]profile.IdeaRound{
+		}, rating.Grades34, func(idea profile.Idea) bool { return idea.Round == 1 && onTheList(idea, tenIdeas) }},
+		{"a record with places the list does not have", tenIdeas, map[rating.GradeLevel]profile.IdeaRound{
 			rating.Grades12: {Given: []int{0, 11, 3, -4}, Round: 2},
-		}, rating.Grades12, func(idea profile.Idea) bool { return idea.Round == 2 && idea.Number != 3 }},
+		}, rating.Grades12, func(idea profile.Idea) bool {
+			return idea.Round == 2 && idea.Number != 3 && onTheList(idea, tenIdeas)
+		}},
+		{"a list grown in a later round", 20, map[rating.GradeLevel]profile.IdeaRound{
+			rating.Grades12: {Given: whole, Round: 2},
+		}, rating.Grades12, func(idea profile.Idea) bool {
+			return idea.Round == 2 && idea.Number > len(whole) && onTheList(idea, 20)
+		}},
+		{"a list of one idea, its round over", 1, map[rating.GradeLevel]profile.IdeaRound{
+			rating.Grades12: {Given: []int{1}, Round: 1},
+		}, rating.Grades12, func(idea profile.Idea) bool { return idea == profile.Idea{Number: 1, Round: 2} }},
+		{"a list of no ideas", 0, nil, rating.Grades12,
+			func(idea profile.Idea) bool { return idea == profile.Idea{} }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			p := childCalled(t, "stu_ideas")
-			p.Topics["counting.gaps"] = profile.Topic{Ideas: tc.ideas, Traps: map[string]int{}}
-			idea := tutor.NextIdea(p, "counting.gaps", tc.level)
-			if idea.Number < 1 || idea.Number > profile.IdeasPerList || !tc.holds(idea) {
-				t.Errorf("NextIdea() = %+v, which is not what the record %+v leaves", idea, tc.ideas)
+			p.Topics["counting.gaps"] = profile.Topic{Ideas: tc.kept, Traps: map[string]int{}}
+			if idea := tutor.NextIdea(p, "counting.gaps", tc.level, tc.ideas); !tc.holds(idea) {
+				t.Errorf("NextIdea() = %+v from a list of %d, which is not what the record %+v leaves",
+					idea, tc.ideas, tc.kept)
 			}
 		})
 	}
@@ -97,33 +114,37 @@ func TestTheRuleNamesAnIdeaNotYetGivenInItsRound(t *testing.T) {
 
 // The order a list is gone through is each child's own: over a thousand
 // children, the first idea of a list is every idea on it, and none is first
-// twice as often as its share. A rule that named the first idea not given,
-// rather than drawing one, would start every child on the same idea.
+// twice as often as its share, however long the list. A rule that named the
+// first idea not given, rather than drawing one, would start every child on
+// the same idea.
 func TestChildrenMeetAListInOrdersOfTheirOwn(t *testing.T) {
 	t.Parallel()
 
 	const children = 1000
-	first := map[int]int{}
-	for i := range children {
-		p := childCalled(t, fmt.Sprintf("stu_%04d", i))
-		first[tutor.NextIdea(p, "counting.gaps", rating.Grades12).Number]++
-	}
-	if len(first) != profile.IdeasPerList {
-		t.Errorf("the first ideas of %d children are %v, want every idea of the list among them", children, first)
-	}
-	for number, times := range first {
-		if share := children / profile.IdeasPerList; times > 2*share {
-			t.Errorf("idea %d comes first for %d children of %d, want at most twice its share, %d",
-				number, times, children, 2*share)
+	for _, ideas := range []int{tenIdeas, 20, profile.MaxIdeasPerList} {
+		first := map[int]int{}
+		for i := range children {
+			p := childCalled(t, fmt.Sprintf("stu_%04d", i))
+			first[tutor.NextIdea(p, "counting.gaps", rating.Grades12, ideas).Number]++
+		}
+		if len(first) != ideas || slices.ContainsFunc(listOf(ideas), func(n int) bool { return first[n] == 0 }) {
+			t.Errorf("the first ideas of %d children on a list of %d are %v, want every idea of the list among them",
+				children, ideas, first)
+		}
+		for number, times := range first {
+			if share := children / ideas; times > 2*share {
+				t.Errorf("idea %d of %d comes first for %d children of %d, want at most twice its share, %d",
+					number, ideas, times, children, 2*share)
+			}
 		}
 	}
 }
 
 // Every draw of a round is a draw of its own: among the children whose first
-// draw takes the first idea of the list, the sixth draw takes the first idea
-// left about as often as chance has it, one child in five. Draws read off one
-// number for the whole round would tie the two, and take the first idea left
-// at the sixth draw for every one of those children.
+// draw takes the first idea of a list of ten, the sixth draw takes the first
+// idea left about as often as chance has it, one child in five. Draws read off
+// one number for the whole round would tie the two, and take the first idea
+// left at the sixth draw for every one of those children.
 func TestEveryDrawOfARoundIsADrawOfItsOwn(t *testing.T) {
 	t.Parallel()
 
@@ -137,8 +158,8 @@ func TestEveryDrawOfARoundIsADrawOfItsOwn(t *testing.T) {
 			p.Topics["counting.gaps"] = profile.Topic{Ideas: map[rating.GradeLevel]profile.IdeaRound{
 				rating.Grades12: {Given: given, Round: 1},
 			}, Traps: map[string]int{}}
-			left := slices.DeleteFunc(listOfIdeas(), func(n int) bool { return slices.Contains(given, n) })
-			number := tutor.NextIdea(p, "counting.gaps", rating.Grades12).Number
+			left := slices.DeleteFunc(listOf(tenIdeas), func(n int) bool { return slices.Contains(given, n) })
+			number := tutor.NextIdea(p, "counting.gaps", rating.Grades12, tenIdeas).Number
 			places = append(places, slices.Index(left, number))
 			given = append(given, number)
 		}
@@ -156,9 +177,9 @@ func TestEveryDrawOfARoundIsADrawOfItsOwn(t *testing.T) {
 }
 
 // Every round of a list is drawn afresh: two rounds a child opens with nothing
-// given in either open on the same idea only as often as chance has it, about
-// one child in ten. A draw that left the round out would open every round of a
-// child's list on one idea.
+// given in either open on the same idea of a list of ten only as often as
+// chance has it, about one child in ten. A draw that left the round out would
+// open every round of a child's list on one idea.
 func TestEveryRoundOfAListIsDrawnAfresh(t *testing.T) {
 	t.Parallel()
 
@@ -167,7 +188,7 @@ func TestEveryRoundOfAListIsDrawnAfresh(t *testing.T) {
 		p.Topics["counting.gaps"] = profile.Topic{Ideas: map[rating.GradeLevel]profile.IdeaRound{
 			rating.Grades12: {Given: []int{}, Round: round},
 		}, Traps: map[string]int{}}
-		return tutor.NextIdea(p, "counting.gaps", rating.Grades12).Number
+		return tutor.NextIdea(p, "counting.gaps", rating.Grades12, tenIdeas).Number
 	}
 	alike := 0
 	for i := range children {
@@ -181,63 +202,74 @@ func TestEveryRoundOfAListIsDrawnAfresh(t *testing.T) {
 	}
 }
 
-// What the rule names over a run of tasks of one list: a round of it gives
-// every idea once before any comes back, a new round never opens with the idea
-// the last one closed on, and the same profile, or the file it is read back
-// from, always names the same idea. Whatever record a file holds, the idea
-// named is one of the list, in a round from the first.
+// What the rule names over a run of tasks of one list, however long the list:
+// a round of it gives every idea once before any comes back, a new round never
+// opens with the idea the last one closed on while the list has another, and
+// the same profile, or the file it is read back from, always names the same
+// idea. Whatever record a file holds and however many ideas the list holds,
+// the idea named is one of the list, in a round from the first, and a list of
+// none names none.
 func TestTheIdeasNamedHoldTheirProperties(t *testing.T) {
 	t.Parallel()
 
 	properties := gopter.NewProperties(nil)
 	properties.Property("a round gives every idea of the list once", prop.ForAll(
-		func(id string, tasks int) bool {
-			return roundsGiveEachIdeaOnce(ideasHandedOut(t, childCalled(t, id), tasks))
+		func(id string, ideas, rounds, rest int) bool {
+			tasks := rounds*ideas + rest%ideas
+			return roundsGiveEachIdeaOnce(ideasHandedOut(t, childCalled(t, id), ideas, tasks), ideas)
 		},
-		gen.Identifier(), gen.IntRange(1, 3*profile.IdeasPerList+3),
+		gen.Identifier(), listLengths(1), gen.IntRange(1, 2), gen.IntRange(0, profile.MaxIdeasPerList),
 	))
 	properties.Property("a new round never opens with the idea the last one closed on", prop.ForAll(
-		func(id string) bool {
-			return noRoundOpensOnTheLast(ideasHandedOut(t, childCalled(t, id), 4*profile.IdeasPerList))
+		func(id string, ideas int) bool {
+			return noRoundOpensOnTheLast(ideasHandedOut(t, childCalled(t, id), ideas, 3*ideas+1), ideas)
 		},
-		gen.Identifier(),
+		gen.Identifier(), listLengths(2),
 	))
 	properties.Property("the same profile, and the file read back, name the same idea", prop.ForAll(
-		func(id string, tasks int) bool {
+		func(id string, ideas, tasks int) bool {
 			p := childCalled(t, id)
-			ideasHandedOut(t, p, tasks)
-			return namesTheSameIdeaReadBack(p)
+			ideasHandedOut(t, p, ideas, tasks)
+			return namesTheSameIdeaReadBack(p, ideas)
 		},
-		gen.Identifier(), gen.IntRange(0, 2*profile.IdeasPerList+1),
+		gen.Identifier(), listLengths(1), gen.IntRange(0, 2*profile.MaxIdeasPerList+1),
 	))
 	properties.Property("whatever record a file holds, the idea is of the list in a round from the first", prop.ForAll(
-		func(given []int, round int) bool {
+		func(given []int, round, ideas int) bool {
 			p := childCalled(t, "stu_any_record")
 			p.Topics["counting.gaps"] = profile.Topic{Ideas: map[rating.GradeLevel]profile.IdeaRound{
 				rating.Grades12: {Given: given, Round: round},
 			}, Traps: map[string]int{}}
-			return namedFrom(tutor.NextIdea(p, "counting.gaps", rating.Grades12), given, round)
+			return namedFrom(tutor.NextIdea(p, "counting.gaps", rating.Grades12, ideas), given, round, ideas)
 		},
-		gen.SliceOf(gen.IntRange(-2, profile.IdeasPerList+3)), gen.IntRange(-3, 1<<30-1),
+		gen.SliceOf(gen.IntRange(-2, profile.MaxIdeasPerList+3)), gen.IntRange(-3, 1<<30-1), listLengths(0),
 	))
 	properties.TestingRun(t)
 }
 
-// roundsGiveEachIdeaOnce reports whether ideas named one after another fill
-// their rounds in turn, a list's worth to a round, and give no idea twice in
-// a round.
-func roundsGiveEachIdeaOnce(named []profile.Idea) bool {
-	for start := 0; start < len(named); start += profile.IdeasPerList {
-		round := named[start:min(start+profile.IdeasPerList, len(named))]
+// listLengths is how long the list of a property may be, from the shortest
+// given to the longest a list may be, with ten, twenty and forty, the lengths
+// the lists are written to, drawn as often as all the others together.
+func listLengths(shortest int) gopter.Gen {
+	return gen.OneGenOf(gen.IntRange(shortest, profile.MaxIdeasPerList),
+		gen.OneConstOf(tenIdeas, 20, profile.MaxIdeasPerList))
+}
+
+// roundsGiveEachIdeaOnce reports whether ideas named one after another from a
+// list of that many fill their rounds in turn, a list's worth to a round, and
+// give no idea twice in a round.
+func roundsGiveEachIdeaOnce(named []profile.Idea, ideas int) bool {
+	for start := 0; start < len(named); start += ideas {
+		round := named[start:min(start+ideas, len(named))]
 		numbers := make([]int, 0, len(round))
 		for _, idea := range round {
-			if idea.Round != start/profile.IdeasPerList+1 {
+			if idea.Round != start/ideas+1 {
 				return false
 			}
 			numbers = append(numbers, idea.Number)
 		}
 		slices.Sort(numbers)
-		if len(slices.Compact(numbers)) != len(round) || numbers[0] < 1 || numbers[len(numbers)-1] > profile.IdeasPerList {
+		if len(slices.Compact(numbers)) != len(round) || numbers[0] < 1 || numbers[len(numbers)-1] > ideas {
 			return false
 		}
 	}
@@ -245,9 +277,10 @@ func roundsGiveEachIdeaOnce(named []profile.Idea) bool {
 }
 
 // noRoundOpensOnTheLast reports whether no round of ideas named one after
-// another opens with the idea the round before it closed on.
-func noRoundOpensOnTheLast(named []profile.Idea) bool {
-	for start := profile.IdeasPerList; start < len(named); start += profile.IdeasPerList {
+// another from a list of that many opens with the idea the round before it
+// closed on.
+func noRoundOpensOnTheLast(named []profile.Idea, ideas int) bool {
+	for start := ideas; start < len(named); start += ideas {
 		if named[start].Number == named[start-1].Number {
 			return false
 		}
@@ -256,37 +289,48 @@ func noRoundOpensOnTheLast(named []profile.Idea) bool {
 }
 
 // namesTheSameIdeaReadBack reports whether the profile names the same idea of
-// counting.gaps at 1-2 when asked again, and when read back from its file.
-func namesTheSameIdeaReadBack(p *profile.Profile) bool {
-	next := tutor.NextIdea(p, "counting.gaps", rating.Grades12)
+// counting.gaps at 1-2, from a list of that many ideas, when asked again, and
+// when read back from its file.
+func namesTheSameIdeaReadBack(p *profile.Profile, ideas int) bool {
+	next := tutor.NextIdea(p, "counting.gaps", rating.Grades12, ideas)
 	file, err := profile.Marshal(p)
 	if err != nil {
 		return false
 	}
 	read, err := profile.Parse(file)
-	return err == nil && tutor.NextIdea(p, "counting.gaps", rating.Grades12) == next &&
-		tutor.NextIdea(read, "counting.gaps", rating.Grades12) == next
+	return err == nil && tutor.NextIdea(p, "counting.gaps", rating.Grades12, ideas) == next &&
+		tutor.NextIdea(read, "counting.gaps", rating.Grades12, ideas) == next
 }
 
 // namedFrom reports whether an idea is one a record of a round and the ideas
-// given in it leaves: an idea of the list not given yet, in the same round, or,
-// once the round has given every idea, one of the next round other than the
-// idea given last.
-func namedFrom(idea profile.Idea, given []int, round int) bool {
-	if idea.Number < 1 || idea.Number > profile.IdeasPerList {
+// given in it leaves on a list of that many: an idea of the list not given
+// yet, in the same round, or, once the round has given every idea, one of the
+// next round other than the idea given last, unless the list has no other. A
+// list of none leaves no idea.
+func namedFrom(idea profile.Idea, given []int, round, ideas int) bool {
+	if ideas < 1 {
+		return idea == profile.Idea{}
+	}
+	if !onTheList(idea, ideas) {
 		return false
 	}
 	current := max(round, 1)
-	if slices.ContainsFunc(listOfIdeas(), func(n int) bool { return !slices.Contains(given, n) }) {
+	if slices.ContainsFunc(listOf(ideas), func(n int) bool { return !slices.Contains(given, n) }) {
 		return idea.Round == current && !slices.Contains(given, idea.Number)
 	}
-	return idea.Round == current+1 && idea.Number != given[len(given)-1]
+	return idea.Round == current+1 && (ideas == 1 || idea.Number != given[len(given)-1])
 }
 
-// listOfIdeas is every place on a list of ideas.
-func listOfIdeas() []int {
-	places := make([]int, 0, profile.IdeasPerList)
-	for number := 1; number <= profile.IdeasPerList; number++ {
+// onTheList reports whether an idea is a place on a list of that many ideas,
+// named in a round from the first.
+func onTheList(idea profile.Idea, ideas int) bool {
+	return idea.Number >= 1 && idea.Number <= ideas && idea.Round >= 1
+}
+
+// listOf is every place on a list of that many ideas.
+func listOf(ideas int) []int {
+	places := make([]int, 0, ideas)
+	for number := 1; number <= ideas; number++ {
 		places = append(places, number)
 	}
 	return places

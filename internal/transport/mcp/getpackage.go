@@ -131,7 +131,7 @@ func (s *Service) packageFor(p *profile.Profile, request *profile.OpenRequest) (
 		Grade:    p.Student.Grade,
 		Notes:    p.Student.Notes,
 		Answers:  tutor.AnswersBehind(p, request.Ahead),
-		Idea:     requestIdea(p, request),
+		Idea:     s.requestIdea(p, request),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("mcp: build the package: %w", err)
@@ -140,15 +140,25 @@ func (s *Service) packageFor(p *profile.Profile, request *profile.OpenRequest) (
 }
 
 // requestIdea is the idea a request's task is built on: the one the request
-// named when it was opened, or, for a request an earlier build opened, which
-// named none, the one a request opened now would name. Nothing given changes
-// while a request is open, so its package and its task are built on one idea
-// whenever either is asked for.
-func requestIdea(p *profile.Profile, request *profile.OpenRequest) profile.Idea {
-	if request.Idea != (profile.Idea{}) {
-		return request.Idea
+// named when it was opened, or the one a request opened now would name when
+// the request names none of its list — opened by an earlier build, which named
+// none, or by a build whose list was longer, on a place the list has no more.
+// Nothing given changes while a request is open, so its package and its task
+// are built on one idea whenever either is asked for.
+func (s *Service) requestIdea(p *profile.Profile, request *profile.OpenRequest) profile.Idea {
+	topic, level := request.Brief.TargetConcept, request.Brief.GradeLevel
+	named, length := request.Idea, s.content.IdeaCount(topic, level)
+	if named != (profile.Idea{}) && named.Number <= length {
+		return named
 	}
-	return tutor.NextIdea(p, request.Brief.TargetConcept, request.Brief.GradeLevel)
+	return tutor.NextIdea(p, topic, level, length)
+}
+
+// nextIdea is the idea of its topic's list the task of a brief is to be built
+// on, drawn from the list as long as the content has it now.
+func (s *Service) nextIdea(p *profile.Profile, brief *profile.Brief) profile.Idea {
+	topic, level := brief.TargetConcept, brief.GradeLevel
+	return tutor.NextIdea(p, topic, level, s.content.IdeaCount(topic, level))
 }
 
 // packageText puts the package after the words about it, where the model reads

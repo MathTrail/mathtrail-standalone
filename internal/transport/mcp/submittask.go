@@ -296,7 +296,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	}
 	// The task gives the idea its package named once it is handed out, the
 	// task of a request an earlier build opened, which named none, among them.
-	request.Idea = requestIdea(p, request)
+	request.Idea = s.requestIdea(p, request)
 	if request.Ahead {
 		return s.keep(ctx, done, in.Solver)
 	}

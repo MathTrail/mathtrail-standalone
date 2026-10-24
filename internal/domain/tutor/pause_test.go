@@ -260,7 +260,7 @@ func probed(t *testing.T, choice string) (*profile.Profile, profile.Recorded, fl
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
-	task := handedOut(t, p, &brief, mode, sealer, day)
+	task := handedOut(t, p, tenIdeas, &brief, mode, sealer, day)
 	before := p.LevelIn(task.Topic)
 	recorded, err := p.Record(profile.Answered{TaskID: task.ID, Choice: choice, At: day.Add(time.Minute)},
 		sealer, tutor.JudgingOf(p, c))
@@ -344,7 +344,7 @@ func TestATopicBehindComesRoundTwiceAsOften(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Next() error = %v, want nil", err)
 		}
-		counts[handedOut(t, p, &brief, mode, sealer, now).Topic]++
+		counts[handedOut(t, p, tenIdeas, &brief, mode, sealer, now).Topic]++
 		now = now.Add(time.Minute)
 	}
 	for _, topic := range c.topics {

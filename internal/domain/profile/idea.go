@@ -7,11 +7,11 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// IdeasPerList is how many ideas a topic's list holds at each level the topic
-// is taught at. An idea is named by its place on its list, from 1, so the
-// numbers the file keeps and the lists the content ships are held to one
-// length.
-const IdeasPerList = 10
+// MaxIdeasPerList is the most ideas a topic's list may hold at a level the
+// topic is taught at. An idea is named by its place on its list, from 1, so it
+// is also the furthest place the file names: each list has a length of its
+// own, which the content knows, and the file holds the places of the longest.
+const MaxIdeasPerList = 40
 
 // Idea is the idea of its topic's list a task is built on, at the level the
 // task is written for: its place on the list, from 1, and the round of the

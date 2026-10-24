@@ -1586,58 +1586,90 @@ func TestARequestOutOfAttemptsGivesNoIdea(t *testing.T) {
 	}
 }
 
-// A request an earlier build opened named no idea, and still has its package:
-// the idea a request opened now would name, which nothing given has moved since
-// the request was opened. Asking for the package writes nothing.
-func TestARequestThatNamedNoIdeaStillHasAPackage(t *testing.T) {
-	t.Parallel()
+// ideasOffTheList are the ideas an open request on logic.ordering at 1-2 may
+// keep that name none of its list: none at all, as an earlier build opened it,
+// and a place past the end of the list, as a build whose list was longer
+// opened it before a rollback.
+func ideasOffTheList(t *testing.T) map[string]profile.Idea {
+	t.Helper()
 
-	p := fuzzProfile(t)
-	if p.OpenRequest.Idea != (profile.Idea{}) {
-		t.Fatalf("the request is opened on %+v, want it to name no idea", p.OpenRequest.Idea)
+	loaded, err := shipped()
+	if err != nil {
+		t.Fatalf("content.Load() error = %v", err)
 	}
-	want := tutor.NextIdea(p, "logic.ordering", rating.Grades12)
-	kept := keptAsIs(t, p)
-	_, before := loadKept(t, kept)
-	_, session := lesson(t, kept)
-
-	var named profile.Idea
-	if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, fuzzRequest))["idea"], &named); err != nil {
-		t.Fatalf("read the package's idea: %v", err)
-	}
-	if named != want {
-		t.Errorf("the package names %+v, want the idea a request opened now names, %+v", named, want)
-	}
-	if _, after := loadKept(t, kept); after != before {
-		t.Errorf("the profile's revision moved from %v to %v, want get_package to write nothing", before, after)
+	return map[string]profile.Idea{
+		"no idea":                          {},
+		"a place past the end of the list": {Number: loaded.IdeaCount("logic.ordering", rating.Grades12) + 1, Round: 1},
 	}
 }
 
-// A request an earlier build opened named no idea, and its task gives the idea
-// its package named once it is handed out, so the request after it, at the same
-// level, names another.
-func TestATaskOfARequestThatNamedNoIdeaGivesTheIdeaItsPackageNamed(t *testing.T) {
+// A request that names no idea of its list still has its package: the idea a
+// request opened now would name, which nothing given has moved since the
+// request was opened. Asking for the package writes nothing.
+func TestARequestThatNamesNoIdeaOfItsListStillHasAPackage(t *testing.T) {
 	t.Parallel()
 
-	p := fuzzProfile(t)
-	request := *p.OpenRequest
-	kept := keptAsIs(t, p)
-	_, session := lesson(t, kept)
+	loaded, err := shipped()
+	if err != nil {
+		t.Fatalf("content.Load() error = %v", err)
+	}
+	for name, idea := range ideasOffTheList(t) {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	var named profile.Idea
-	if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, fuzzRequest))["idea"], &named); err != nil {
-		t.Fatalf("read the package's idea: %v", err)
+			p := fuzzProfile(t)
+			p.OpenRequest.Idea = idea
+			want := tutor.NextIdea(p, "logic.ordering", rating.Grades12, loaded.IdeaCount("logic.ordering", rating.Grades12))
+			kept := keptAsIs(t, p)
+			_, before := loadKept(t, kept)
+			_, session := lesson(t, kept)
+
+			var named profile.Idea
+			if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, fuzzRequest))["idea"], &named); err != nil {
+				t.Fatalf("read the package's idea: %v", err)
+			}
+			if named != want {
+				t.Errorf("the package names %+v, want the idea a request opened now names, %+v", named, want)
+			}
+			if _, after := loadKept(t, kept); after != before {
+				t.Errorf("the profile's revision moved from %v to %v, want get_package to write nothing", before, after)
+			}
+		})
 	}
-	if text := textOf(t, call(t, session, "submit_task", raceOn(&request))); !strings.HasPrefix(text, "Accepted") {
-		t.Fatalf("submit_task for the race said %q, want it accepted", text)
-	}
-	handed, _ := loadKept(t, kept)
-	given := handed.Topics["logic.ordering"].Ideas[rating.Grades12]
-	if !slices.Equal(given.Given, []int{named.Number}) || given.Round != named.Round {
-		t.Errorf("the ideas given are %+v, want the one the package named, %+v", given, named)
-	}
-	if again := askForTheRace(t, session, kept); again.Idea.Number == named.Number {
-		t.Errorf("the request after it names %+v, want another idea than the one given, %+v", again.Idea, named)
+}
+
+// A request that names no idea of its list has its task give the idea its
+// package named once it is handed out, so the request after it, at the same
+// level, names another.
+func TestATaskOfARequestThatNamesNoIdeaOfItsListGivesTheIdeaItsPackageNamed(t *testing.T) {
+	t.Parallel()
+
+	for name, idea := range ideasOffTheList(t) {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			p := fuzzProfile(t)
+			p.OpenRequest.Idea = idea
+			request := *p.OpenRequest
+			kept := keptAsIs(t, p)
+			_, session := lesson(t, kept)
+
+			var named profile.Idea
+			if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, fuzzRequest))["idea"], &named); err != nil {
+				t.Fatalf("read the package's idea: %v", err)
+			}
+			if text := textOf(t, call(t, session, "submit_task", raceOn(&request))); !strings.HasPrefix(text, "Accepted") {
+				t.Fatalf("submit_task for the race said %q, want it accepted", text)
+			}
+			handed, _ := loadKept(t, kept)
+			given := handed.Topics["logic.ordering"].Ideas[rating.Grades12]
+			if !slices.Equal(given.Given, []int{named.Number}) || given.Round != named.Round {
+				t.Errorf("the ideas given are %+v, want the one the package named, %+v", given, named)
+			}
+			if again := askForTheRace(t, session, kept); again.Idea.Number == named.Number {
+				t.Errorf("the request after it names %+v, want another idea than the one given, %+v", again.Idea, named)
+			}
+		})
 	}
 }
 

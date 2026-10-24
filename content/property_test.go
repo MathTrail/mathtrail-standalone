@@ -298,14 +298,14 @@ func TestATrapCatalogReadsOnlyWithEveryTrapsAdvice(t *testing.T) {
 func TestTheIdeaHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 
-	list := sampleIdeas(rating.Grades12)
+	list := ideasOfLength(rating.Grades12, 20)
 	properties := gopter.NewProperties(nil)
 	properties.Property("an idea on the list is named by the words at its place", prop.ForAll(
 		func(number, round int) bool {
 			idea, err := ideaOf(list, profile.Idea{Number: number, Round: round})
 			return err == nil && idea.Number == number && idea.Round == round && idea.Text == list[number-1]
 		},
-		gen.IntRange(1, profile.IdeasPerList),
+		gen.IntRange(1, len(list)),
 		gen.IntRange(1, 1<<30),
 	))
 	properties.Property("an idea off the list or of no round names nothing", prop.ForAll(
@@ -314,19 +314,22 @@ func TestTheIdeaHoldsItsProperties(t *testing.T) {
 			named := number >= 1 && number <= len(list) && round >= 1
 			return (err == nil) == named
 		},
-		gen.OneGenOf(gen.Int(), gen.IntRange(-1, profile.IdeasPerList+1)),
+		gen.OneGenOf(gen.Int(), gen.IntRange(-1, len(list)+1)),
 		gen.OneGenOf(gen.Int(), gen.IntRange(-1, 2)),
 	))
 	properties.TestingRun(t)
 }
 
 // A list is what a package names an idea from, so it is taken only when it
-// holds as many ideas as a list does and none of them twice — the same idea
-// in other capitals or with other spaces is said twice too.
+// holds from the fewest ideas a list may hold to the most, and none of them
+// twice — the same idea in other capitals or with other spaces is said twice
+// too.
 func TestAListOfIdeasIsTakenOnlyAsIdeasEachOfItsOwn(t *testing.T) {
 	t.Parallel()
 
-	const pool = 100 // ideas a list is drawn from, so that most lists hold none twice
+	// pool is how many ideas a list is drawn from: enough that most lists,
+	// the longest among them, hold none twice, and few enough that some do.
+	const pool = 2000
 	// spelling writes an idea of the pool in one of three ways a reader takes
 	// for the same idea.
 	spelling := func(pick int) string {
@@ -348,10 +351,11 @@ func TestAListOfIdeasIsTakenOnlyAsIdeasEachOfItsOwn(t *testing.T) {
 			}
 			p := &problems{file: ideasDir}
 			checkIdeas(p, rating.Grades12, list)
-			return (p.err() == nil) == (length == profile.IdeasPerList && len(ideas) == length)
+			worth := length >= fewestIdeas && length <= profile.MaxIdeasPerList
+			return (p.err() == nil) == (worth && len(ideas) == length)
 		},
-		gen.SliceOfN(profile.IdeasPerList+1, gen.IntRange(0, 3*pool-1)),
-		gen.IntRange(profile.IdeasPerList-1, profile.IdeasPerList+1),
+		gen.SliceOfN(profile.MaxIdeasPerList+1, gen.IntRange(0, 3*pool-1)),
+		gen.IntRange(fewestIdeas-1, profile.MaxIdeasPerList+1),
 	))
 	properties.TestingRun(t)
 }

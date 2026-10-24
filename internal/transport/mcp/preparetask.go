@@ -157,7 +157,7 @@ func (s *Service) prepared(p *profile.Profile, in *prepareTaskIn, language strin
 	}
 	// The task on the card gave its idea when it was handed out, so the task
 	// after it is built on another, even in the same round of the same list.
-	opened.Idea = tutor.NextIdea(p, opened.Brief.TargetConcept, opened.Brief.GradeLevel)
+	opened.Idea = s.nextIdea(p, &opened.Brief)
 	reply, err = s.packageWords(p, opened, aheadLead(opened))
 	return reply, opened, err
 }
