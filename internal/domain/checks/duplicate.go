@@ -11,15 +11,37 @@ package checks
 // measure its own against.
 const Threshold = 0.7
 
+// Earlier is a kind of earlier task a question is held to be new against, in
+// the word the log names it by.
+type Earlier string
+
+// The kinds of earlier task.
+const (
+	// EarlierReference is a reference task of the level the task was asked at.
+	EarlierReference Earlier = "reference"
+	// EarlierPast is a task the child has been given.
+	EarlierPast Earlier = "past"
+)
+
+// repeatedMessages are what the model is told to change when its question
+// repeats an earlier task, by the kind of that task.
+var repeatedMessages = map[Earlier]string{
+	EarlierReference: "task.question is a near-copy of one of the reference tasks; write a task of your own rather " +
+		"than a variant of an example",
+	EarlierPast: "task.question repeats a task this child has already been given; change the idea and the " +
+		"numbers, not only the wording",
+}
+
 // NearDuplicate checks that a question is new: that it copies none of the
 // reference tasks, and repeats none of the tasks the child has been given.
 //
 // The reference tasks are compared by their texts, which the binary carries,
 // and the child's past tasks by the fingerprints the profile keeps instead of
-// theirs. Each is reported once however many it resembles: the model is told
-// what to change, not how many times it failed to. The question is cut into
-// the shingles the language of the task calls for, as its readability is
-// counted, and what it is compared with is cut the same way.
+// theirs. Each kind is reported once however many of it the question
+// resembles: the model is told what to change, not how many times it failed
+// to. The question is cut into the shingles the language of the task calls
+// for, as its readability is counted, and what it is compared with is cut the
+// same way.
 func NearDuplicate(question, language string, references, fingerprints []string) []Problem {
 	unit := unitFor(question, language)
 	set := shinglesOf(question, unit)
@@ -27,8 +49,7 @@ func NearDuplicate(question, language string, references, fingerprints []string)
 	var problems []Problem
 	for _, reference := range references {
 		if set.jaccard(shinglesOf(reference, unit)) >= Threshold {
-			problems = append(problems, Problem{Code: CodeNearDuplicate, Message: "task.question is a near-copy " +
-				"of one of the reference tasks; write a task of your own rather than a variant of an example"})
+			problems = append(problems, repeats(EarlierReference))
 			break
 		}
 	}
@@ -37,10 +58,14 @@ func NearDuplicate(question, language string, references, fingerprints []string)
 	for _, stored := range fingerprints {
 		past, readable := readFingerprint(stored)
 		if readable && resemblance(&sketch, &past) >= Threshold {
-			problems = append(problems, Problem{Code: CodeNearDuplicate, Message: "task.question repeats a task " +
-				"this child has already been given; change the idea and the numbers, not only the wording"})
+			problems = append(problems, repeats(EarlierPast))
 			break
 		}
 	}
 	return problems
+}
+
+// repeats is the refusal of a question that repeats a kind of earlier task.
+func repeats(earlier Earlier) Problem {
+	return Problem{Code: CodeNearDuplicate, Message: repeatedMessages[earlier], NearDuplicateOf: earlier}
 }

@@ -92,6 +92,10 @@ type Submitted struct {
 	// Mended names the fields read as the model meant them rather than as it
 	// wrote them, never what was written in them.
 	Mended []string
+	// NearDuplicateOf names the kinds of earlier task the question repeats,
+	// each once, in the order they are compared: the reference tasks, then
+	// the child's own. It is empty unless the near-duplicate check failed.
+	NearDuplicateOf []Earlier
 }
 
 // Event is what the log keeps of this review. An outcome Judge did not return
@@ -110,6 +114,11 @@ func (o *Outcome) Event() Submitted {
 	}
 	for _, reason := range o.Reasons() {
 		event.Failed = append(event.Failed, reason.Code)
+	}
+	for _, problem := range o.Problems {
+		if problem.NearDuplicateOf != "" {
+			event.NearDuplicateOf = append(event.NearDuplicateOf, problem.NearDuplicateOf)
+		}
 	}
 	for _, run := range o.runs {
 		event.SolverSteps += run.Steps

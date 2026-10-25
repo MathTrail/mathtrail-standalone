@@ -16,6 +16,8 @@ import (
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 )
 
 // update rewrites the report the lines in testdata add up to. The report is
@@ -35,19 +37,14 @@ var update = flag.Bool("update", false, "rewrite testdata/report.md from testdat
 func TestTheLinesOfSomeLessonsAddUpToTheirReport(t *testing.T) {
 	t.Parallel()
 
-	in, err := os.Open(filepath.Join("testdata", "lines.jsonl"))
-	if err != nil {
-		t.Fatalf("open the lines: %v", err)
-	}
-	defer func() { _ = in.Close() }()
 	var out bytes.Buffer
-	if err = Run(in, &out); err != nil {
+	if err := Run(lessons(t), &out); err != nil {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 
 	kept := filepath.Join("testdata", "report.md")
 	if *update {
-		if err = os.WriteFile(kept, out.Bytes(), 0o600); err != nil {
+		if err := os.WriteFile(kept, out.Bytes(), 0o600); err != nil {
 			t.Fatalf("rewrite the report: %v", err)
 		}
 	}
@@ -58,6 +55,19 @@ func TestTheLinesOfSomeLessonsAddUpToTheirReport(t *testing.T) {
 	if got := out.String(); got != string(want) {
 		t.Errorf("the report is\n%s\nwant\n%s", got, want)
 	}
+}
+
+// lessons are the lines of the lessons the report is kept beside, as the
+// service writes them.
+func lessons(t *testing.T) io.Reader {
+	t.Helper()
+
+	in, err := os.Open(filepath.Join("testdata", "lines.jsonl"))
+	if err != nil {
+		t.Fatalf("open the lines: %v", err)
+	}
+	t.Cleanup(func() { _ = in.Close() })
+	return in
 }
 
 // A task is counted for the chat host of the tool call it came in, whose line
@@ -312,6 +322,72 @@ func TestARefusedAttemptIsCountedByOneCheckAndFailsEach(t *testing.T) {
 	}
 }
 
+// An attempt that failed as a near-duplicate is counted by the level it was
+// asked at and by what its question repeated, as its line names them, however
+// many other checks it failed; an attempt that failed none of it is not
+// counted there at all.
+func TestANearDuplicateIsCountedByWhatItRepeated(t *testing.T) {
+	t.Parallel()
+
+	c := tallied(t,
+		`{"message":"task_submitted","level":"1-2","attempt":1,"outcome":"rejected","primary":"near_duplicate","failed":["near_duplicate"],"near_duplicate_of":["reference"],"instructions_version":"v1"}`,
+		`{"message":"task_submitted","level":"1-2","attempt":2,"outcome":"rejected","primary":"readability","failed":["readability","near_duplicate"],"near_duplicate_of":["past"],"instructions_version":"v1"}`,
+		`{"message":"task_submitted","level":"3-4","attempt":1,"outcome":"rejected","primary":"near_duplicate","failed":["near_duplicate"],"near_duplicate_of":["reference","past"],"instructions_version":"v1"}`,
+		`{"message":"task_submitted","level":"3-4","attempt":2,"outcome":"rejected","primary":"readability","failed":["readability"],"near_duplicate_of":[],"instructions_version":"v1"}`,
+		`{"message":"task_submitted","level":"3-4","attempt":3,"outcome":"accepted","primary":"","failed":[],"near_duplicate_of":[],"instructions_version":"v1"}`,
+	)
+	want := map[repeatedBy]int{
+		{version: "v1", level: "1-2", kinds: "reference"}:       1,
+		{version: "v1", level: "1-2", kinds: "past"}:            1,
+		{version: "v1", level: "3-4", kinds: "reference, past"}: 1,
+	}
+	if !maps.Equal(c.repeated, want) {
+		t.Errorf("near-duplicates = %v, want %v", c.repeated, want)
+	}
+}
+
+// A line written before the service named what a near-duplicate repeated, and
+// the level it was asked at, says neither, and the attempt is counted as not
+// logged rather than as repeating nothing.
+func TestANearDuplicateWrittenBeforeTheServiceSaidWhatItRepeatedIsNotLogged(t *testing.T) {
+	t.Parallel()
+
+	rows := tallied(t,
+		`{"message":"task_submitted","attempt":1,"outcome":"rejected","primary":"near_duplicate","failed":["near_duplicate"],"instructions_version":"v1"}`,
+	).repeatedTable().rows
+	if want := [][]string{{"v1", notLogged, notLogged, "1"}}; !slices.EqualFunc(rows, want, slices.Equal) {
+		t.Errorf("near-duplicates = %v, want %v", rows, want)
+	}
+}
+
+// The attempts a version's near-duplicates repeated something in add up to
+// those that failed the near-duplicate check, in the lines of the lessons the
+// report is kept beside: the table tells apart what the check refused, and
+// leaves none of it out.
+func TestTheNearDuplicatesOfAVersionAddUpToTheAttemptsThatFailedTheCheck(t *testing.T) {
+	t.Parallel()
+
+	read, err := readAll(lessons(t))
+	if err != nil {
+		t.Fatalf("readAll() error = %v, want nil", err)
+	}
+	c := tally(read)
+	repeated := map[string]int{}
+	for key, attempts := range c.repeated {
+		repeated[key.version] += attempts
+	}
+	failed := map[string]int{}
+	for key, refused := range c.refusals {
+		if key.check == string(checks.CodeNearDuplicate) {
+			failed[key.version] = refused.failed
+		}
+	}
+	if len(failed) < 2 || !maps.Equal(repeated, failed) {
+		t.Errorf("near-duplicates by version = %v, want the attempts that failed the check, %v, of two versions at least",
+			repeated, failed)
+	}
+}
+
 // The versions of the instructions come in the order they first appear,
 // whatever the order of the lines: Cloud Logging hands the newest first.
 func TestVersionsComeInTheOrderTheyFirstAppear(t *testing.T) {
@@ -392,7 +468,7 @@ func TestAReportOfNoLinesSaysSo(t *testing.T) {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 	if got := out.String(); !strings.Contains(got, "No lines of the service's were read.") ||
-		strings.Count(got, "None in these lines.") != 22 || strings.Contains(got, "|") {
+		strings.Count(got, "None in these lines.") != 23 || strings.Contains(got, "|") {
 		t.Errorf("the report of no lines is\n%s\nwant it to say there are none, and no table", got)
 	}
 }

@@ -89,10 +89,14 @@ type line struct {
 	Ahead       bool `json:"ahead"`
 
 	// An attempt at a task: which of a request's attempts it was, the check it
-	// is counted by, and every check it failed.
-	Attempt whole    `json:"attempt"`
-	Primary string   `json:"primary"`
-	Failed  []string `json:"failed"`
+	// is counted by, every check it failed, the kinds of earlier task its
+	// question repeats when it failed as a near-duplicate, and the level it was
+	// asked at, which a line written before the service said so leaves unsaid.
+	Attempt         whole    `json:"attempt"`
+	Primary         string   `json:"primary"`
+	Failed          []string `json:"failed"`
+	NearDuplicateOf []string `json:"near_duplicate_of"`
+	Level           string   `json:"level"`
 	// A hand-in: how large it was, part by part, in bytes, which a line written
 	// before the service measured them leaves unsaid; what the format no longer
 	// reads that came all the same; and the fields read as they were meant.

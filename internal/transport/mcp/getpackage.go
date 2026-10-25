@@ -121,17 +121,18 @@ func (s *Service) noPackage(p *profile.Profile, now time.Time) Reply[any] {
 // packageFor is what the model is handed to write the request's task from: the
 // brief the request keeps, the idea its task is built on, the chances around it
 // for this child now, the child as the task is to be pitched at them, and the
-// answers the reference tasks turn with, the one awaited for the task on the
-// card among them when the request is for the task after it.
+// tasks of the topic the reference tasks turn with, the task on the card among
+// them when the request is for the task after it and of its topic.
 func (s *Service) packageFor(p *profile.Profile, request *profile.OpenRequest) ([]byte, error) {
+	topic := request.Brief.TargetConcept
 	pack, err := s.content.Package(&content.Request{
-		Language: request.Language,
-		Brief:    request.Brief,
-		Corridor: tutor.CorridorIn(p, s.content, request.Brief.TargetConcept),
-		Grade:    p.Student.Grade,
-		Notes:    p.Student.Notes,
-		Answers:  tutor.AnswersBehind(p, request.Ahead),
-		Idea:     s.requestIdea(p, request),
+		Language:   request.Language,
+		Brief:      request.Brief,
+		Corridor:   tutor.CorridorIn(p, s.content, topic),
+		Grade:      p.Student.Grade,
+		Notes:      p.Student.Notes,
+		TopicTasks: tutor.TopicTasksBehind(p, topic, request.Ahead),
+		Idea:       s.requestIdea(p, request),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("mcp: build the package: %w", err)

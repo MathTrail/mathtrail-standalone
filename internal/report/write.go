@@ -75,6 +75,12 @@ func write(out io.Writer, c *counts) error {
 			"file edited by hand holds.", c.kindsTable()},
 		{"Why attempts were refused", "An attempt is counted by one check, the first its refusal names, and " +
 			"fails that check and any others beside it.", c.refusalsTable()},
+		{"What near-duplicates repeated", "The attempts that failed near_duplicate, by the level they were asked " +
+			"at and the kinds of earlier task their question repeats: reference, a reference task of that level, " +
+			"and past, a task the child had been given. A line written before the service named them is not " +
+			"logged, and the release that began to name them kept its version of the instructions, so one " +
+			"version may hold both. A version's attempts add up to those that failed near_duplicate above.",
+			c.repeatedTable()},
 		{"Chances and what came of them", c.promisesAbout(), c.promisesTable()},
 		{"How the estimate keeps up", "The same answers by which of the child's answers each was: a right answer " +
 			"as 1 and a wrong one as 0, less the chance promised, on average, with the standard error of that " +
@@ -325,6 +331,25 @@ func (c *counts) refusalsTable() *table {
 	})
 	for _, key := range keys {
 		t.add(key.version, key.check, number(c.refusals[key].counted), number(c.refusals[key].failed))
+	}
+	return t
+}
+
+// repeatedTable is what the attempts refused as near-duplicates repeated under
+// each version, level by level, what was repeated most first.
+func (c *counts) repeatedTable() *table {
+	t := &table{columns: []string{"Instructions", "Level", "Near-duplicate of", "Attempts"}, named: 3}
+	keys := slices.Collect(maps.Keys(c.repeated))
+	slices.SortFunc(keys, func(a, b repeatedBy) int {
+		return cmp.Or(
+			cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
+			cmp.Compare(a.level, b.level),
+			cmp.Compare(c.repeated[b], c.repeated[a]),
+			cmp.Compare(a.kinds, b.kinds),
+		)
+	})
+	for _, key := range keys {
+		t.add(key.version, key.level, key.kinds, number(c.repeated[key]))
 	}
 	return t
 }

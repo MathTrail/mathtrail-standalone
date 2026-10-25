@@ -2,6 +2,7 @@ package checks_test
 
 import (
 	"encoding/base64"
+	"slices"
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
@@ -43,8 +44,9 @@ func TestACopyOfAReferenceTaskIsRefused(t *testing.T) {
 	t.Parallel()
 
 	problems := checks.NearDuplicate(sevenShips, "", []string{clock, spaceships}, nil)
-	if len(problems) != 1 || problems[0].Code != checks.CodeNearDuplicate || !mentions(problems, "reference tasks") {
-		t.Fatalf("NearDuplicate() = %v, want one near_duplicate about the reference tasks", problems)
+	if len(problems) != 1 || problems[0].Code != checks.CodeNearDuplicate || !mentions(problems, "reference tasks") ||
+		problems[0].NearDuplicateOf != checks.EarlierReference {
+		t.Fatalf("NearDuplicate() = %v, want one near_duplicate of a reference task", problems)
 	}
 }
 
@@ -65,20 +67,23 @@ func TestARepeatOfAPastTaskIsRefused(t *testing.T) {
 
 	past := []string{checks.Fingerprint(clock, ""), checks.Fingerprint(spaceships, "")}
 	problems := checks.NearDuplicate(spaceships, "", nil, past)
-	if len(problems) != 1 || problems[0].Code != checks.CodeNearDuplicate || !mentions(problems, "already been given") {
-		t.Fatalf("NearDuplicate() = %v, want one near_duplicate about a past task", problems)
+	if len(problems) != 1 || problems[0].Code != checks.CodeNearDuplicate || !mentions(problems, "already been given") ||
+		problems[0].NearDuplicateOf != checks.EarlierPast {
+		t.Fatalf("NearDuplicate() = %v, want one near_duplicate of a past task", problems)
 	}
 }
 
 // Each source is reported once however many of its entries the question
-// resembles, and both are reported when both are resembled.
+// resembles, and both are reported when both are resembled, each naming its
+// own kind of earlier task: the reference tasks first, as they are compared.
 func TestEachSourceIsReportedOnce(t *testing.T) {
 	t.Parallel()
 
 	references := []string{spaceships, spaceships, kittens}
 	past := []string{checks.Fingerprint(spaceships, ""), checks.Fingerprint(spaceships, "")}
-	if problems := checks.NearDuplicate(spaceships, "", references, past); len(problems) != 2 {
-		t.Fatalf("NearDuplicate() = %v, want exactly one problem per source", problems)
+	problems := checks.NearDuplicate(spaceships, "", references, past)
+	if got, want := kindsOf(problems), []checks.Earlier{checks.EarlierReference, checks.EarlierPast}; !slices.Equal(got, want) {
+		t.Fatalf("NearDuplicate() = %v, want exactly one problem per source, of %v", problems, want)
 	}
 }
 
@@ -150,4 +155,13 @@ func TestARepeatInChineseWithLatinNamesIsCaught(t *testing.T) {
 	if problems := checks.NearDuplicate(again, "zh", []string{first}, nil); len(problems) != 1 {
 		t.Errorf("NearDuplicate(against a reference task) = %v, want the copy refused", problems)
 	}
+}
+
+// kindsOf are the kinds of earlier task some problems name, in their order.
+func kindsOf(problems []checks.Problem) []checks.Earlier {
+	kinds := make([]checks.Earlier, 0, len(problems))
+	for _, problem := range problems {
+		kinds = append(kinds, problem.NearDuplicateOf)
+	}
+	return kinds
 }

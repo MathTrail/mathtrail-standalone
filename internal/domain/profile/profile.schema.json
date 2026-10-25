@@ -217,7 +217,7 @@
           "format": "date"
         },
         "skipped": {
-          "description": "Tasks of this topic left without an answer when another was asked for. No rating reads it: the progress screen shows it to the parent, and, over every topic and with the answers, it counts the tasks behind the child, which pick the ones dressed in an interest. Absent means none.",
+          "description": "Tasks of this topic left without an answer when another was asked for. No rating reads it: the progress screen shows it to the parent; over every topic and with the answers, it counts the tasks behind the child, which pick the ones dressed in an interest; and, with the topic's answers, it turns the reference tasks the topic's packages show. Absent means none.",
           "type": "integer",
           "minimum": 0
         },

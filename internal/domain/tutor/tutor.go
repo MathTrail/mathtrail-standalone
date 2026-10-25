@@ -297,18 +297,21 @@ func awaits(p *profile.Profile, ahead bool) bool {
 	return ahead && p.InFlight() != nil
 }
 
-// AnswersBehind is how many answers the child has given, as a task written now
-// counts them: with the answer to the task on the card among them when the task
-// is written ahead of that answer. The reference tasks of a package turn with
-// it, so a task written ahead is shown the same ones before that answer as
-// after it. A skip of the task on the card moves no answer, so after one the
-// reference tasks are those of the answers before it.
-func AnswersBehind(p *profile.Profile, ahead bool) int {
-	answers := p.Ratings.Answers
-	if awaits(p, ahead) {
-		answers++
+// TopicTasksBehind is how many tasks of a topic the child has left behind,
+// answered or skipped, at every level of it, as a task of that topic written
+// now counts them: with the task on the card among them when the task is
+// written ahead of its answer and the two share the topic. The reference
+// tasks of a package turn with it, so that the tasks of other topics coming
+// between do not bring the topic's last ones back, and a task written ahead is
+// shown the same ones before the task on the card is answered or skipped as
+// after: either leaves that task behind.
+func TopicTasksBehind(p *profile.Profile, topic string, ahead bool) int {
+	stats := p.Topics[topic]
+	tasks := stats.Answers + stats.Skipped
+	if awaits(p, ahead) && p.InFlight().Topic == topic {
+		tasks++
 	}
-	return answers
+	return tasks
 }
 
 // writtenAhead is what the rationale of a task written ahead opens with: that

@@ -16,6 +16,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -288,7 +289,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	}
 	done := &reviewed{
 		account: account, profile: p, revision: revision, outcome: &outcome, attempt: request.Attempts + 1,
-		now: now, started: started, size: size,
+		level: request.Brief.GradeLevel, now: now, started: started, size: size,
 	}
 
 	if !outcome.Accepted() {
@@ -381,14 +382,17 @@ func (s *Service) stale(p *profile.Profile, requestID string, chat chatKind, now
 
 // reviewed is a task handed in and judged, with what writing the outcome takes:
 // whose profile it goes into, as it was read, the review itself, the attempt
-// the task spent and the moment of the call.
+// the task spent, the level it was asked at and the moment of the call.
 type reviewed struct {
 	account  store.Account
 	profile  *profile.Profile
 	revision store.Revision
 	outcome  *checks.Outcome
 	attempt  int
-	now      time.Time
+	// level is the level of the request's brief, which the line about the
+	// review names.
+	level rating.GradeLevel
+	now   time.Time
 	// started is when the call began, for how long the review took.
 	started time.Time
 	// size is how large the hand-in was.
@@ -406,7 +410,7 @@ func (s *Service) record(ctx context.Context, done *reviewed) error {
 	}
 	event := done.outcome.Event()
 	s.events.write(ctx, done.account, eventTaskSubmitted,
-		submittedFields(done.attempt, &event, &done.size, done.outcome.Draft.Task, time.Since(done.started))...)
+		submittedFields(done, &event, time.Since(done.started))...)
 	return nil
 }
 
@@ -605,24 +609,24 @@ func reasonsText(outcome *checks.Outcome) string {
 	return strings.Join(lines, "\n")
 }
 
-// submittedFields are what the line about a review keeps of it: codes, counts,
-// costs and sizes, the fields the hand-in was read past or mended in by their
-// names, and not a word of the task. task is the task as it was read, whose
-// idea is measured as a part of it.
-func submittedFields(attempt int, event *checks.Submitted, size *handedIn, task *checks.Task, took time.Duration) []zap.Field {
-	failed := make([]string, 0, len(event.Failed))
-	for _, code := range event.Failed {
-		failed = append(failed, string(code))
-	}
+// submittedFields are what the line about a review keeps of it: the level the
+// task was asked at, codes, counts, costs and sizes, the fields the hand-in was
+// read past or mended in by their names, the kinds of earlier task its
+// question repeats, and not a word of the task. The task as it was read is
+// measured too, its idea as a part of it.
+func submittedFields(done *reviewed, event *checks.Submitted, took time.Duration) []zap.Field {
+	size, task := &done.size, done.outcome.Draft.Task
 	retired := slices.Clone(event.Retired)
 	if size.withBrief {
 		retired = append([]string{"brief"}, retired...)
 	}
 	return slices.Concat([]zap.Field{
-		zap.Int("attempt", attempt),
+		zap.String("level", string(done.level)),
+		zap.Int("attempt", done.attempt),
 		zap.String("outcome", event.Outcome),
 		zap.String("primary", string(event.Primary)),
-		zap.Strings("failed", failed),
+		zap.Strings("failed", wordsOf(event.Failed)),
+		zap.Strings("near_duplicate_of", wordsOf(event.NearDuplicateOf)),
 		zap.Strings("minor_issues", event.MinorIssues),
 		zap.Int64("duration_ms", took.Milliseconds()),
 		zap.Uint64("solver_steps", event.SolverSteps),
@@ -635,6 +639,16 @@ func submittedFields(attempt int, event *checks.Submitted, size *handedIn, task 
 		zap.Strings("retired", retired),
 		zap.Strings("mended", event.Mended),
 	}, solutionPictureFields(task))
+}
+
+// wordsOf are words of a closed list as a line keeps them, in their order: a
+// list, empty rather than absent when there are none.
+func wordsOf[Word ~string](list []Word) []string {
+	words := make([]string, 0, len(list))
+	for _, word := range list {
+		words = append(words, string(word))
+	}
+	return words
 }
 
 // solutionPictureFields are the kind of the picture of the solution a task

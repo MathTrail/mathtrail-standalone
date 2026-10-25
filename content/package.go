@@ -47,10 +47,11 @@ type Request struct {
 	Grade int
 	// Notes are what the parent wrote about the child.
 	Notes string
-	// Answers is how many answers the child has given. It rotates the
-	// reference tasks a package shows, so that a child asking for the same
-	// topic twice does not get the same examples twice.
-	Answers int
+	// TopicTasks is how many tasks of the brief's topic the child has left
+	// behind, answered or skipped. It turns the reference tasks a package
+	// shows, so that the tasks of other topics coming between do not bring a
+	// topic's last examples back.
+	TopicTasks int
 	// Idea is the idea of the topic's list at the brief's level the task is
 	// to be built on, as the request named it: its place on the list and the
 	// round of the list it was named in.
@@ -243,7 +244,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 		Pictures:  c.picturesFor(topic.ID),
 		Guide:     c.instructions[guideName],
 	}
-	examples := c.examplesFor(request.Brief.TargetConcept, level, request.Brief.Difficulty, request.Answers)
+	examples := c.examplesFor(request.Brief.TargetConcept, level, request.Brief.Difficulty, request.TopicTasks)
 	contents.Examples = make([]packageExample, 0, len(examples)) // a topic with none is shown an empty list, not null
 	for i := range examples {
 		task := &examples[i]
@@ -298,8 +299,9 @@ func twoPlaces(x float64) float64 { return math.Round(x*100) / 100 }
 // next nearest, taken from that level — or, where the topic has nothing at
 // that level, from the level below — with one that draws among them wherever
 // the level has one, and one that draws its solution wherever the level has
-// one. Within one difficulty the tasks take turns by the child's answer count.
-func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty, answers int) []Example {
+// one. Within one difficulty the tasks take turns by the tasks of the topic
+// the child has left behind.
+func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty, topicTasks int) []Example {
 	for known := level.Known(); known; level, known = levelBelow(level) {
 		var pool []Example
 		for i := range c.examples {
@@ -308,8 +310,8 @@ func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty,
 			}
 		}
 		if len(pool) > 0 {
-			picked := withADrawnTask(nearest(pool, difficulty, answers), pool, difficulty, answers)
-			return withADrawnSolution(picked, pool, difficulty, answers)
+			picked := withADrawnTask(nearest(pool, difficulty, topicTasks), pool, difficulty, topicTasks)
+			return withADrawnSolution(picked, pool, difficulty, topicTasks)
 		}
 	}
 	return nil
@@ -319,9 +321,9 @@ func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty,
 // them, where the pool has one: a model shown no picture describes none, even
 // in a topic with examples of pictures. When none of those picked draws, the
 // last of them gives way to the task that draws nearest the difficulty, and
-// tasks that draw at one difficulty take turns by the answer count, as all
+// tasks that draw at one difficulty take turns by the topic's tasks, as all
 // tasks of a difficulty do.
-func withADrawnTask(picked, pool []Example, difficulty, answers int) []Example {
+func withADrawnTask(picked, pool []Example, difficulty, topicTasks int) []Example {
 	if len(picked) == 0 || anyDraws(picked) {
 		return picked
 	}
@@ -335,7 +337,7 @@ func withADrawnTask(picked, pool []Example, difficulty, answers int) []Example {
 		return picked
 	}
 	shown := slices.Clone(picked)
-	shown[len(shown)-1] = nearest(drawn, difficulty, answers)[0]
+	shown[len(shown)-1] = nearest(drawn, difficulty, topicTasks)[0]
 	return shown
 }
 
@@ -356,8 +358,8 @@ func anyDraws(tasks []Example) bool {
 // solution nearest the difficulty comes last, after those of the difficulty
 // asked for, as a task shown for its picture does, and one of those picked
 // leaves for it (givingWay). Tasks that draw their solution at one difficulty
-// take turns by the answer count, as all tasks of a difficulty do.
-func withADrawnSolution(picked, pool []Example, difficulty, answers int) []Example {
+// take turns by the topic's tasks, as all tasks of a difficulty do.
+func withADrawnSolution(picked, pool []Example, difficulty, topicTasks int) []Example {
 	if len(picked) == 0 || anyDrawsItsSolution(picked) {
 		return picked
 	}
@@ -370,7 +372,7 @@ func withADrawnSolution(picked, pool []Example, difficulty, answers int) []Examp
 	if len(drawn) == 0 {
 		return picked
 	}
-	coming := nearest(drawn, difficulty, answers)[0]
+	coming := nearest(drawn, difficulty, topicTasks)[0]
 	leaving := givingWay(picked, coming.draws())
 	shown := slices.Delete(slices.Clone(picked), leaving, leaving+1)
 	return append(shown, coming)
@@ -406,10 +408,10 @@ func anyDrawsItsSolution(tasks []Example) bool {
 }
 
 // nearest are the three tasks of a pool nearest to a difficulty. Tasks of one
-// difficulty are rotated by the answer count before they are taken, so that
-// over any run of answers each of them is shown as often as the others; of two
-// difficulties equally near, the easier comes first.
-func nearest(pool []Example, difficulty, answers int) []Example {
+// difficulty are rotated by the topic's tasks before they are taken, so that
+// over any run of the topic's tasks each of them is shown as often as the
+// others; of two difficulties equally near, the easier comes first.
+func nearest(pool []Example, difficulty, topicTasks int) []Example {
 	byDifficulty := map[int][]Example{}
 	for i := range pool {
 		byDifficulty[pool[i].Difficulty] = append(byDifficulty[pool[i].Difficulty], pool[i])
@@ -423,7 +425,7 @@ func nearest(pool []Example, difficulty, answers int) []Example {
 	for _, at := range difficulties {
 		tasks := byDifficulty[at]
 		slices.SortFunc(tasks, func(a, b Example) int { return cmp.Compare(a.ID, b.ID) })
-		start := (answers%len(tasks) + len(tasks)) % len(tasks) // a count read from a file is not trusted to be positive
+		start := (topicTasks%len(tasks) + len(tasks)) % len(tasks) // a count read from a file is not trusted to be positive
 		picked = append(picked, slices.Concat(tasks[start:], tasks[:start])...)
 		if len(picked) >= examplesPerPackage {
 			return picked[:examplesPerPackage]
