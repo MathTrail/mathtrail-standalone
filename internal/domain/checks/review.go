@@ -145,7 +145,7 @@ func (r *reviewer) Judge(examined Examined, against Against) (Outcome, error) {
 	draft, task := *examined.draft, examined.draft.Task
 
 	var found findings
-	found.add(slices.Concat(examined.read, Structure(draft, r.content)), "")
+	found.add(slices.Concat(examined.read, Structure(draft, against.Language, r.content)), "")
 	found.add(r.language(task, against))
 	found.add(r.explanations(draft, against))
 	pictured := readPicture(task, against.Language)
@@ -159,13 +159,15 @@ func (r *reviewer) Judge(examined Examined, against Against) (Outcome, error) {
 	found.add(r.answers(examined.answer, draft))
 	found.add(r.blockingIssues(draft.SelfCheck))
 	found.add(r.nearDuplicates(task, against))
+	found.add(r.copiesInEnglish(task, against))
 
 	outcome := Outcome{
-		Draft:       draft,
-		Problems:    found.problems,
-		Unchecked:   found.unchecked,
-		MinorIssues: minorIssues(draft.SelfCheck),
-		judged:      true,
+		Draft:        draft,
+		Problems:     found.problems,
+		Unchecked:    found.unchecked,
+		MinorIssues:  minorIssues(draft.SelfCheck),
+		englishAsked: AsksQuestionInEnglish(against.Language),
+		judged:       true,
 	}
 	if examined.answer != nil {
 		outcome.runs = examined.answer.Runs
@@ -220,6 +222,21 @@ func (r *reviewer) nearDuplicates(task *Task, against Against) (problems []Probl
 	}
 	references := r.content.ReferenceQuestions(against.Asked.GradeLevel)
 	return NearDuplicate(task.Question, against.Language, references, against.Fingerprints), ""
+}
+
+// copiesInEnglish checks that the question in English of a task of a lesson in
+// another language copies no reference task of the level asked for: a copy
+// told in the lesson's language is seen by it alone. A lesson in English asks
+// for none, since its question is compared with them already.
+func (r *reviewer) copiesInEnglish(task *Task, against Against) (problems []Problem, unchecked string) {
+	switch {
+	case !AsksQuestionInEnglish(against.Language):
+		return nil, ""
+	case task == nil || solver.Blank(task.QuestionInEnglish):
+		return nil, "the question in English was not compared with the reference tasks: that needs task.question_en"
+	}
+	references := r.content.ReferenceQuestions(against.Asked.GradeLevel)
+	return NearCopyInEnglish(task.QuestionInEnglish, references), ""
 }
 
 // optionsOf are a task's five options as a solver takes them, and whether all

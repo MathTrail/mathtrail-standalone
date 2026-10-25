@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Task",
-  "description": "The task the model hands in. The language is an argument of the call, not a field here. Trap ids, five different options, a distractor for every wrong option and a picture held to the wording are checked by the service, not by this schema.",
+  "description": "The task the model hands in. The language is the open request's, not a field here, so this schema cannot require question_en where the lesson's language asks for it; the service does. Trap ids, five different options, a distractor for every wrong option and a picture held to the wording are checked by the service, not by this schema.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -24,6 +24,10 @@
       "description": "The wording the child reads, in the lesson's language, which the package names.",
       "type": "string",
       "minLength": 1
+    },
+    "question_en": {
+      "description": "Required in a lesson whose language is not English: the question in English, with the same names, numbers and conditions, which the reference tasks are compared with. The child never sees it. A lesson in English needs none, and the text of one sent is not read.",
+      "type": "string"
     },
     "picture": {
       "description": "Optional: the picture the card draws for the task, described rather than drawn. A task without it has no picture.",

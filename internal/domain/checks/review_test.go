@@ -228,7 +228,7 @@ var refusals = []struct {
 }{
 	{"a core idea left unsaid", func(s *scenario) { s.draft.Task.CoreIdea = "" },
 		checks.CodeBadStructure, "task.core_idea"},
-	{"a task in another language than the lesson's", func(s *scenario) { s.language = "ru" },
+	{"a task in another language than the lesson's", inRussian,
 		checks.CodeWrongLanguage, "mostly not in Cyrillic letters, which ru, the language of the lesson, is written in"},
 	{"two explanations saying the same", func(s *scenario) {
 		s.draft.Task.Distractors["D"] = checks.Distractor{Trap: "wrong_operation", Text: "You missed one pair."}
@@ -276,6 +276,43 @@ var refusals = []struct {
 	{"a repeat of a task the child has had", func(s *scenario) {
 		s.fingerprints = []string{checks.Fingerprint(s.draft.Task.Question, "")}
 	}, checks.CodeNearDuplicate, "already been given"},
+	{"a task of a lesson in Russian without its question in English", func(s *scenario) {
+		russianLesson(s)
+		s.draft.Task.QuestionInEnglish = ""
+	}, checks.CodeBadStructure, "task.question_en is missing or empty"},
+	{"a copy of a reference task told in the lesson's language", func(s *scenario) {
+		russianLesson(s)
+		s.references = []string{s.draft.Task.QuestionInEnglish}
+	}, checks.CodeNearDuplicate, "task.question_en is a near-copy of one of the reference tasks"},
+}
+
+// The refusals that judge another task than the one the others break: the task
+// of a lesson in Russian.
+var inRussianLessons = []string{
+	"a task of a lesson in Russian without its question in English",
+	"a copy of a reference task told in the lesson's language",
+}
+
+// russianLesson has a scenario judged in a lesson in Russian, with the task of
+// validDraft as a model writes it for one, and a solver that finds its answer.
+func russianLesson(s *scenario) {
+	s.language, s.draft, s.runner = "ru", russianDraft(), &working{value: "шесть пар"}
+}
+
+// inRussian has a scenario judged in a lesson in Russian, its task giving its
+// question in English as well, as such a lesson asks: a task written in English
+// is then wrong for its letters, and for nothing else.
+func inRussian(s *scenario) {
+	s.language = "ru"
+	s.draft = withItsQuestionInEnglish(s.draft)
+}
+
+// withItsQuestionInEnglish is a draft whose question in English is its own
+// question: a task written in English, as a lesson in another language would
+// have it hand its question in English in.
+func withItsQuestionInEnglish(draft checks.Draft) checks.Draft {
+	draft.Task.QuestionInEnglish = draft.Task.Question
+	return draft
 }
 
 // picture gives a scenario's task a picture, and a sentence of its question
@@ -429,9 +466,10 @@ func TestEveryFailedCheckIsReportedInItsOrder(t *testing.T) {
 	t.Parallel()
 
 	broken := accepted()
+	apart := append([]string{"a solver that finds another answer", "a self-check that finds the task unsolvable",
+		"a repeat of a task the child has had"}, inRussianLessons...)
 	for _, test := range refusals {
-		if test.name != "a solver that finds another answer" && test.name != "a self-check that finds the task unsolvable" &&
-			test.name != "a repeat of a task the child has had" {
+		if !slices.Contains(apart, test.name) {
 			test.change(&broken)
 		}
 	}
@@ -712,7 +750,7 @@ func TestATaskDeclaredRussianIsHeldToItsLettersAndNotToFleschKincaid(t *testing.
 	if codes := codesOf(&english); !slices.Equal(codes, []checks.Code{checks.CodeReadability}) {
 		t.Errorf("in English: codes = %v, want only %q", codes, checks.CodeReadability)
 	}
-	hard.language = "ru"
+	inRussian(&hard)
 	russian := hard.review(t)
 	if codes := codesOf(&russian); !slices.Equal(codes, []checks.Code{checks.CodeWrongLanguage}) {
 		t.Errorf("declared Russian: codes = %v, want only %q", codes, checks.CodeWrongLanguage)
@@ -721,9 +759,10 @@ func TestATaskDeclaredRussianIsHeldToItsLettersAndNotToFleschKincaid(t *testing.
 
 // russianDraft is the task of validDraft as a model writes it for a lesson in
 // Russian: what the child reads is in Russian, and what only the service
-// reads — the idea, the plan, the self-check — is left in English.
+// reads — the idea, the question in English, the self-check — is left in
+// English.
 func russianDraft() checks.Draft {
-	draft := validDraft()
+	draft := withItsQuestionInEnglish(validDraft())
 	draft.Task.Question = "Четыре космических корабля стыкуются парами. Сколько разных пар у них может получиться?"
 	draft.Task.Options = map[string]string{
 		"A": "четыре пары", "B": "пять пар", "C": "шесть пар", "D": "восемь пар", "E": "двенадцать пар",
@@ -754,7 +793,8 @@ func TestATaskIsHeldToTheLettersOfItsLesson(t *testing.T) {
 	}{
 		{"Russian in a lesson in Russian", russianDraft(), "шесть пар", "ru", nil},
 		{"Russian asked for in no language", russianDraft(), "шесть пар", "", nil},
-		{"English in a lesson in Russian", validDraft(), "six pairs", "ru", []checks.Code{checks.CodeWrongLanguage}},
+		{"English in a lesson in Russian", withItsQuestionInEnglish(validDraft()), "six pairs", "ru",
+			[]checks.Code{checks.CodeWrongLanguage}},
 		{"Russian in a lesson in English", russianDraft(), "шесть пар", "en", []checks.Code{checks.CodeWrongLanguage}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -858,8 +898,11 @@ func TestNothingOfTheTaskLeavesTheReview(t *testing.T) {
 			if err != nil {
 				t.Fatalf("marshal the event: %v", err)
 			}
-			repeatsNone(t, []string{string(logged)},
-				append(slices.Clone(written), broken.draft.Task.Question, broken.draft.Task.Solution))
+			private := append(slices.Clone(written), broken.draft.Task.Question, broken.draft.Task.Solution)
+			if inEnglish := broken.draft.Task.QuestionInEnglish; inEnglish != "" {
+				private = append(private, inEnglish)
+			}
+			repeatsNone(t, []string{string(logged)}, private)
 		})
 	}
 }

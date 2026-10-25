@@ -89,8 +89,76 @@ func validDraft() checks.Draft {
 func TestAWellFormedDraftPasses(t *testing.T) {
 	t.Parallel()
 
-	if problems := checks.Structure(validDraft(), testCatalog); len(problems) != 0 {
+	if problems := checks.Structure(validDraft(), "en", testCatalog); len(problems) != 0 {
 		t.Fatalf("Structure() = %v, want no problems", problems)
+	}
+}
+
+// A task of a lesson in a language other than English gives its question in
+// English as well, and one that does not is refused: the member is named, what
+// it is said, and the model is sent to the guide. A lesson in English asks for
+// none, and neither does a task asked for in no language.
+func TestALessonInAnotherLanguageAsksForItsQuestionInEnglish(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, language, inEnglish string
+		refused                   bool
+	}{
+		{"a lesson in Russian", "ru", "", true},
+		{"a lesson in Chinese, its question in English only spaces", "zh-Hans", "   ", true},
+		{"a lesson in Russian, with its question in English", "ru", "How many pairs can four ships make?", false},
+		{"a lesson in English", "en", "", false},
+		{"a lesson in British English", "en-GB", "", false},
+		{"a task asked for in no language", "", "", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			draft := validDraft()
+			draft.Task.QuestionInEnglish = tc.inEnglish
+			problems := checks.Structure(draft, tc.language, testCatalog)
+			if tc.refused {
+				wantTheQuestionInEnglishAskedFor(t, problems, tc.language)
+			} else if len(problems) != 0 {
+				t.Errorf("Structure() = %v, want no problems", problems)
+			}
+		})
+	}
+}
+
+// wantTheQuestionInEnglishAskedFor holds what the structure check found to the
+// one refusal of a task without its question in English, in a lesson in this
+// language: the member named, what it is said, and the guide pointed at.
+func wantTheQuestionInEnglishAskedFor(t *testing.T, problems []checks.Problem, language string) {
+	t.Helper()
+
+	for _, said := range []string{"task.question_en is missing or empty", "a lesson in " + language,
+		"with the same names, numbers and conditions", "get_package with the same request_id"} {
+		if len(problems) != 1 || !mentions(problems, said) {
+			t.Errorf("Structure() = %v, want one problem saying %q", problems, said)
+		}
+	}
+}
+
+// A lesson asks for the question in English when its tag names a language and
+// that language is not English, however the tag spells either, and whether or
+// not the language check knows its letters. A tag that names no language —
+// none, several, none at all, one not yet coded or one guessed from a country —
+// which only a profile edited by hand holds, asks for nothing, as no tag at all
+// does.
+func TestWhichLessonsAskForTheQuestionInEnglish(t *testing.T) {
+	t.Parallel()
+
+	for language, asks := range map[string]bool{
+		"ru": true, "zh-Hans": true, "pt-BR": true, "iw": true, "si": true,
+		"en": false, "en-GB": false, "EN_us": false, "eng": false,
+		"": false, "und": false, "mul": false, "zxx": false, "mis": false, "und-US": false, "x-pig": false,
+		"Otter": false,
+	} {
+		if got := checks.AsksQuestionInEnglish(language); got != asks {
+			t.Errorf("AsksQuestionInEnglish(%q) = %v, want %v", language, got, asks)
+		}
 	}
 }
 
@@ -185,7 +253,7 @@ func TestABrokenDraftIsRefusedByName(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			problems := checks.Structure(draft, testCatalog)
+			problems := checks.Structure(draft, "en", testCatalog)
 			if !mentions(problems, test.want) {
 				t.Fatalf("Structure() = %v, want a problem mentioning %q", problems, test.want)
 			}
@@ -215,7 +283,7 @@ func TestNoRefusalQuotesAnOption(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			for _, problem := range checks.Structure(draft, testCatalog) {
+			for _, problem := range checks.Structure(draft, "en", testCatalog) {
 				if quoted := quotedOption(problem.Message, options); quoted != "" {
 					t.Errorf("%q quotes %q", problem.Message, quoted)
 				}
@@ -271,7 +339,7 @@ func TestEveryFaultyEntryIsReported(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			problems := checks.Structure(draft, testCatalog)
+			problems := checks.Structure(draft, "en", testCatalog)
 			for _, want := range test.want {
 				if !mentions(problems, want) {
 					t.Errorf("Structure() = %v, want a problem mentioning %q", problems, want)
@@ -289,7 +357,7 @@ func TestAnUnknownTrapIsNamedOnce(t *testing.T) {
 	draft.Task.Distractors["A"] = checks.Distractor{Trap: "guessed", Text: "A guess."}
 	draft.Task.Distractors["B"] = checks.Distractor{Trap: "guessed", Text: "Another guess."}
 	named := 0
-	for _, problem := range checks.Structure(draft, testCatalog) {
+	for _, problem := range checks.Structure(draft, "en", testCatalog) {
 		if strings.Contains(problem.Message, `"guessed"`) {
 			named++
 		}
@@ -320,7 +388,7 @@ func TestWhatTheFormatAllowsPasses(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			if problems := checks.Structure(draft, testCatalog); len(problems) != 0 {
+			if problems := checks.Structure(draft, "en", testCatalog); len(problems) != 0 {
 				t.Fatalf("Structure() = %v, want no problems", problems)
 			}
 		})
@@ -333,7 +401,7 @@ func TestWhatTheFormatAllowsPasses(t *testing.T) {
 func TestAPartThatCouldNotBeReadIsNotCheckedAgain(t *testing.T) {
 	t.Parallel()
 
-	if problems := checks.Structure(checks.Draft{}, testCatalog); len(problems) != 0 {
+	if problems := checks.Structure(checks.Draft{}, "en", testCatalog); len(problems) != 0 {
 		t.Fatalf("Structure(empty draft) = %v, want no problems", problems)
 	}
 }
@@ -373,12 +441,12 @@ func TestATextLongerThanACardHoldsIsRefused(t *testing.T) {
 
 			atTheLimit := validDraft()
 			tc.set(&atTheLimit, strings.Repeat("я", tc.longest))
-			if problems := checks.Structure(atTheLimit, testCatalog); len(problems) != 0 {
+			if problems := checks.Structure(atTheLimit, "en", testCatalog); len(problems) != 0 {
 				t.Errorf("Structure() at %d characters = %v, want no problems", tc.longest, problems)
 			}
 			past := validDraft()
 			tc.set(&past, strings.Repeat("я", tc.longest+1))
-			if problems := checks.Structure(past, testCatalog); !mentions(problems, tc.want) {
+			if problems := checks.Structure(past, "en", testCatalog); !mentions(problems, tc.want) {
 				t.Errorf("Structure() at %d characters = %v, want a problem mentioning %q", tc.longest+1, problems, tc.want)
 			}
 		})

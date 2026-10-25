@@ -1,6 +1,6 @@
 # What the log adds up to
 
-184 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 10:15:01 UTC. 2 more lines, not the service's, were left out.
+193 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 11:03:00 UTC. 2 more lines, not the service's, were left out.
 
 ## Tasks
 
@@ -13,6 +13,7 @@ Asked for counts the requests opened; handed in, the attempts judged, of which t
 | 88b63e22129c | (call not read) | 0 | 1 | 0 | 0 |
 | 88b63e22129c | claude | 3 | 2 | 0 | 0 |
 | 88b63e22129c | other | 1 | 2 | 2 | 0 |
+| 5e6f7a8b9c0d | chatgpt | 1 | 3 | 2 | 0 |
 
 ## Accepted tasks
 
@@ -24,6 +25,7 @@ The attempts an accepted task took, and the seconds from its request to its acce
 | 88b63e22129c | (call not read) | 1 | 1 | 1 | 1.0 | 70 | 70 | 70 |
 | 88b63e22129c | claude | 3 | 1 | 3 | 1.0 | 40 | 40 | 40 |
 | f3e2d1c0b9a8 | (call not read) | 3 | 2 | 3 | 1.0 | 40 | 40 | 40 |
+| 5e6f7a8b9c0d | chatgpt | 1 | 0 | 0 | 3.0 | 180 | 180 | 180 |
 
 ## Tasks written ahead
 
@@ -72,6 +74,7 @@ How large the tasks handed in were, in bytes of the JSON the checks read: the ta
 | 88b63e22129c | claude | before | 1 | 0 | 2900 | 520 | 810 | 1060 | 4960 | 4960 |
 | 88b63e22129c | claude | now | 1 | 0 | 1650 | 250 | 690 | 140 | 2590 | 2590 |
 | 88b63e22129c | other | now | 2 | 0 | 1500 | 240 | 600 | 130 | 2340 | 2540 |
+| 5e6f7a8b9c0d | chatgpt | now | 3 | 0 | 1850 | 240 | 560 | 125 | 2650 | 2710 |
 
 ## What was mended
 
@@ -81,6 +84,14 @@ The fields read as they were meant rather than as they were written — a letter
 |---|---|---:|
 | 88b63e22129c | self_check.final_answer | 1 |
 | 88b63e22129c | task.correct_answer | 1 |
+
+## Questions in English
+
+The hand-ins of lessons in another language than English, which give their question in English as well, for the comparison with the reference tasks, and how many came with it: one that came without it was refused as bad_structure. A lesson in English asks for none, and a line written before the service asked for one says nothing of it; neither is counted.
+
+| Instructions | Host | Asked for one | Came with one |
+|---|---|---:|---:|
+| 5e6f7a8b9c0d | chatgpt | 3 | 2 |
 
 ## Pictures by topic
 
@@ -94,6 +105,7 @@ The tasks accepted on each topic whose line says whether they came with a pictur
 | f3e2d1c0b9a8 | counting.gaps | 1 | 1 |
 | f3e2d1c0b9a8 | logic.ordering | 1 | 0 |
 | f3e2d1c0b9a8 | time.clocks | 1 | 1 |
+| 5e6f7a8b9c0d | logic.ordering | 1 | 0 |
 
 ## Pictures by kind
 
@@ -117,16 +129,19 @@ An attempt is counted by one check, the first its refusal names, and fails that 
 | 0a1b2c3d4e5f | near_duplicate | 0 | 1 |
 | 88b63e22129c | near_duplicate | 1 | 2 |
 | 88b63e22129c | readability | 1 | 1 |
+| 5e6f7a8b9c0d | bad_structure | 1 | 1 |
+| 5e6f7a8b9c0d | near_duplicate | 1 | 1 |
 
 ## What near-duplicates repeated
 
-The attempts that failed near_duplicate, by the level they were asked at and the kinds of earlier task their question repeats: reference, a reference task of that level, and past, a task the child had been given. A line written before the service named them is not logged, and the release that began to name them kept its version of the instructions, so one version may hold both. A version's attempts add up to those that failed near_duplicate above.
+The attempts that failed near_duplicate, by the level they were asked at and the kinds of earlier task their question repeats: reference, a reference task of that level, past, a task the child had been given, and reference_en, a reference task of that level that the question in English of a lesson in another language copies. A line written before the service named them is not logged, and the release that began to name them kept its version of the instructions, so one version may hold both. A version's attempts add up to those that failed near_duplicate above.
 
 | Instructions | Level | Near-duplicate of | Attempts |
 |---|---|---|---:|
 | 0a1b2c3d4e5f | (not logged) | (not logged) | 1 |
 | 88b63e22129c | 3-4 | reference | 1 |
 | 88b63e22129c | 3-4 | reference, past | 1 |
+| 5e6f7a8b9c0d | 1-2 | reference_en | 1 |
 
 ## Chances and what came of them
 
@@ -184,10 +199,10 @@ Milliseconds are the service's own time for a call, from its start to its answer
 | Host | Tool | Calls | Answered | Refused | Failed | Invalid | Milliseconds, median | Milliseconds, 95th percentile | Without Drive, median | Without Drive, 95th percentile |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | chatgpt | get_profile | 1 | 0 | 0 | 1 | 0 | 5000 | 5000 | 5000 | 5000 |
-| chatgpt | next_task | 2 | 2 | 0 | 0 | 0 | 90 | 140 | 90 | 140 |
+| chatgpt | next_task | 3 | 3 | 0 | 0 | 0 | 100 | 140 | 100 | 140 |
 | chatgpt | other | 1 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 |
 | chatgpt | read_task | 1 | 1 | 0 | 0 | 0 | 3900 | 3900 | 3900 | 3900 |
-| chatgpt | submit_task | 4 | 1 | 3 | 0 | 0 | 310 | 1700 | 310 | 1700 |
+| chatgpt | submit_task | 7 | 2 | 5 | 0 | 0 | 270 | 1700 | 270 | 1700 |
 | claude | get_profile | 1 | 1 | 0 | 0 | 0 | 5 | 5 | 5 | 5 |
 | claude | get_progress | 1 | 1 | 0 | 0 | 0 | 400 | 400 | 70 | 70 |
 | claude | next_task | 6 | 5 | 1 | 0 | 0 | 120 | 300 | 60 | 300 |
@@ -237,7 +252,7 @@ The children the counts for grant applications are taken from, by the rules thos
 | Day | Children | Tasks | Answers | Topics won |
 |---|---:|---:|---:|---:|
 | 2026-09-29 | 2 | 3 | 1 | 2 |
-| 2026-09-30 | 1 | 4 | 0 | 0 |
+| 2026-09-30 | 2 | 5 | 0 | 0 |
 
 ## The rules of the log
 

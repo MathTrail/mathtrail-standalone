@@ -59,7 +59,9 @@ const (
 	// blocking issue in.
 	CodeSelfCheckBlocking Code = "self_check_blocking"
 	// CodeNearDuplicate is a question that repeats a task the child has had,
-	// or copies a reference task the model was shown.
+	// or copies a reference task the model was shown: in the lesson's
+	// language, or, in a lesson in another language than English, in the
+	// question in English the task gives as well.
 	CodeNearDuplicate Code = "near_duplicate"
 )
 

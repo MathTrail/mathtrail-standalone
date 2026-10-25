@@ -135,7 +135,10 @@ func Language(task *Task, language string) []Problem {
 
 // writtenElsewhere is the refusal of texts written mostly in other letters
 // than the lesson's: it names them, the language and its letters, and says
-// what to write, quoting nothing of the task.
+// what to write, quoting nothing of the task. Where the lesson asks for the
+// question in English as well, it says that one stays in English: a model told
+// only to write the task in the lesson's language would rewrite it too, and the
+// reference tasks would be compared with a question they cannot be.
 func writtenElsewhere(astray []readText, letters, language string) Problem {
 	fields := make([]string, len(astray))
 	for i, read := range astray {
@@ -145,13 +148,18 @@ func writtenElsewhere(astray []readText, letters, language string) Problem {
 	if len(astray) > 1 || astray[0].plural {
 		verb = "are"
 	}
-	return Problem{Code: CodeWrongLanguage, Message: fmt.Sprintf(
+	message := fmt.Sprintf(
 		"%s %s mostly not in %s, which %s, the language of the lesson, is written in. "+
 			"Write every text the child reads in %s: the question, the options, the hint, the solution and the "+
 			"explanations, and the names in them. The reference tasks are in English whatever the language of the "+
-			"lesson; the task is not. Labels in Latin capitals, numbers and short symbols in small Latin letters, "+
-			"such as x, ab or cm, are not counted.",
-		inWords(fields, 0), verb, letters, language, language)}
+			"lesson; the task is not.",
+		inWords(fields, 0), verb, letters, language, language)
+	if AsksQuestionInEnglish(language) {
+		message += " Keep task.question_en in English: it is the question once more, with the same names, numbers " +
+			"and conditions, which the reference tasks are compared with."
+	}
+	return Problem{Code: CodeWrongLanguage, Message: message + " Labels in Latin capitals, numbers and short " +
+		"symbols in small Latin letters, such as x, ab or cm, are not counted."}
 }
 
 // textsRead are the texts of a task the child reads that are held to the

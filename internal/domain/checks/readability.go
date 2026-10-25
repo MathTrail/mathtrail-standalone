@@ -100,7 +100,11 @@ func heldTo(level rating.GradeLevel) rating.GradeLevel {
 // english says whether a language tag's primary subtag is English: "en",
 // "en-GB", "EN_us". The formula counts syllables the way English spells them,
 // and in any other language it measures nothing.
-func english(language string) bool { return primarySubtag(language) == "en" }
+func english(language string) bool { return primarySubtag(language) == englishTag }
+
+// englishTag is English as a language tag names it: the language the reference
+// tasks are written in.
+const englishTag = "en"
 
 // sentenceEnds are the marks that end a sentence, in the scripts a task may be
 // written in.

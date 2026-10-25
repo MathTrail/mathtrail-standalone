@@ -612,7 +612,8 @@ func reasonsText(outcome *checks.Outcome) string {
 // submittedFields are what the line about a review keeps of it: the level the
 // task was asked at, codes, counts, costs and sizes, the fields the hand-in was
 // read past or mended in by their names, the kinds of earlier task its
-// question repeats, and not a word of the task. The task as it was read is
+// question repeats, whether it gave its question in English where the lesson
+// asked for one, and not a word of the task. The task as it was read is
 // measured too, its idea as a part of it.
 func submittedFields(done *reviewed, event *checks.Submitted, took time.Duration) []zap.Field {
 	size, task := &done.size, done.outcome.Draft.Task
@@ -638,7 +639,19 @@ func submittedFields(done *reviewed, event *checks.Submitted, took time.Duration
 		zap.Int("total_bytes", size.task+size.selfCheck+size.solver+size.brief),
 		zap.Strings("retired", retired),
 		zap.Strings("mended", event.Mended),
+		questionInEnglishField(event),
 	}, solutionPictureFields(task))
+}
+
+// questionInEnglishField is whether the task came with its question in English,
+// on the line of a lesson that asked for one, and nothing on any other line. It
+// is named apart from the member it speaks of, so that nobody takes the field
+// for a place to put the member's text.
+func questionInEnglishField(event *checks.Submitted) zap.Field {
+	if event.QuestionInEnglishGiven == nil {
+		return zap.Skip()
+	}
+	return zap.Bool("question_en_given", *event.QuestionInEnglishGiven)
 }
 
 // wordsOf are words of a closed list as a line keeps them, in their order: a

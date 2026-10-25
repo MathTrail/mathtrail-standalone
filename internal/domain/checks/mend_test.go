@@ -20,7 +20,7 @@ func read(t *testing.T, submitted parts) (checks.Draft, []checks.Problem) {
 	t.Helper()
 
 	draft, problems := checks.Decode(submitted.task, submitted.selfCheck)
-	return draft, append(problems, checks.Structure(draft, testCatalog)...)
+	return draft, append(problems, checks.Structure(draft, "en", testCatalog)...)
 }
 
 // lowerKeys writes the keys of one object of a part in lower case, between

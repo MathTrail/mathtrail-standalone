@@ -346,6 +346,50 @@ func TestANearDuplicateIsCountedByWhatItRepeated(t *testing.T) {
 	}
 }
 
+// A copy of a reference task that the question in English of a lesson in
+// another language shows is counted by its own word, apart from a copy the
+// question itself shows, and beside a repeat of the child's own.
+func TestACopyFoundByTheQuestionInEnglishIsCountedApart(t *testing.T) {
+	t.Parallel()
+
+	c := tallied(t,
+		`{"message":"task_submitted","level":"1-2","attempt":1,"outcome":"rejected","primary":"near_duplicate","failed":["near_duplicate"],"near_duplicate_of":["reference_en"],"instructions_version":"v1"}`,
+		`{"message":"task_submitted","level":"1-2","attempt":2,"outcome":"rejected","primary":"near_duplicate","failed":["near_duplicate"],"near_duplicate_of":["past","reference_en"],"instructions_version":"v1"}`,
+		`{"message":"task_submitted","level":"1-2","attempt":1,"outcome":"rejected","primary":"near_duplicate","failed":["near_duplicate"],"near_duplicate_of":["reference"],"instructions_version":"v1"}`,
+	)
+	want := map[repeatedBy]int{
+		{version: "v1", level: "1-2", kinds: "reference_en"}:       1,
+		{version: "v1", level: "1-2", kinds: "past, reference_en"}: 1,
+		{version: "v1", level: "1-2", kinds: "reference"}:          1,
+	}
+	if !maps.Equal(c.repeated, want) {
+		t.Errorf("near-duplicates = %v, want %v", c.repeated, want)
+	}
+}
+
+// The hand-ins of a lesson that asked for the question in English are counted
+// by whether they came with it, for the version and the host they came in. A
+// line that says nothing of it — of a lesson in English, or written before the
+// service asked for one — is counted neither way, and a group of such lines
+// alone has no row.
+func TestTheQuestionsInEnglishAreCountedWhereALessonAskedForThem(t *testing.T) {
+	t.Parallel()
+
+	rows := tallied(t,
+		`{"message":"tool_call","tool":"submit_task","client":"chatgpt","request_id":"q1","instructions_version":"v2"}`,
+		`{"message":"task_submitted","attempt":1,"outcome":"rejected","primary":"bad_structure","failed":["bad_structure"],"question_en_given":false,"request_id":"q1","instructions_version":"v2"}`,
+		`{"message":"tool_call","tool":"submit_task","client":"chatgpt","request_id":"q2","instructions_version":"v2"}`,
+		`{"message":"task_submitted","attempt":2,"outcome":"accepted","primary":"","failed":[],"question_en_given":true,"request_id":"q2","instructions_version":"v2"}`,
+		`{"message":"tool_call","tool":"submit_task","client":"chatgpt","request_id":"q3","instructions_version":"v2"}`,
+		`{"message":"task_submitted","attempt":1,"outcome":"accepted","primary":"","failed":[],"request_id":"q3","instructions_version":"v2"}`,
+		`{"message":"tool_call","tool":"submit_task","client":"claude","request_id":"q4","instructions_version":"v1"}`,
+		`{"message":"task_submitted","attempt":1,"outcome":"accepted","primary":"","failed":[],"request_id":"q4","instructions_version":"v1"}`,
+	).inEnglishTable().rows
+	if want := [][]string{{"v2", "chatgpt", "2", "1"}}; !slices.EqualFunc(rows, want, slices.Equal) {
+		t.Errorf("questions in English = %v, want %v", rows, want)
+	}
+}
+
 // A line written before the service named what a near-duplicate repeated, and
 // the level it was asked at, says neither, and the attempt is counted as not
 // logged rather than as repeating nothing.
@@ -468,7 +512,7 @@ func TestAReportOfNoLinesSaysSo(t *testing.T) {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 	if got := out.String(); !strings.Contains(got, "No lines of the service's were read.") ||
-		strings.Count(got, "None in these lines.") != 23 || strings.Contains(got, "|") {
+		strings.Count(got, "None in these lines.") != 24 || strings.Contains(got, "|") {
 		t.Errorf("the report of no lines is\n%s\nwant it to say there are none, and no table", got)
 	}
 }

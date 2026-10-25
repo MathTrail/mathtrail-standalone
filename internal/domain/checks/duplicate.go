@@ -1,5 +1,7 @@
 package checks
 
+import "slices"
+
 // Threshold is the similarity at or above which a question counts as a
 // near-duplicate; changing it changes what the product calls a new task.
 //
@@ -11,8 +13,9 @@ package checks
 // measure its own against.
 const Threshold = 0.7
 
-// Earlier is a kind of earlier task a question is held to be new against, in
-// the word the log names it by.
+// Earlier is what a task was found to repeat, in the word the log names it by:
+// a kind of earlier task, and, of a reference task, whether it was the
+// question in English that copied it.
 type Earlier string
 
 // The kinds of earlier task.
@@ -21,6 +24,10 @@ const (
 	EarlierReference Earlier = "reference"
 	// EarlierPast is a task the child has been given.
 	EarlierPast Earlier = "past"
+	// EarlierReferenceInEnglish is a reference task of the level, which the
+	// question in English of a task of a lesson in another language copies:
+	// the task tells it again in the lesson's language.
+	EarlierReferenceInEnglish Earlier = "reference_en"
 )
 
 // repeatedMessages are what the model is told to change when its question
@@ -30,6 +37,9 @@ var repeatedMessages = map[Earlier]string{
 		"than a variant of an example",
 	EarlierPast: "task.question repeats a task this child has already been given; change the idea and the " +
 		"numbers, not only the wording",
+	EarlierReferenceInEnglish: "task.question_en is a near-copy of one of the reference tasks, so the task tells it " +
+		"again in the lesson's language; write a task of your own rather than a translation of an example, and " +
+		"keep task.question_en its question in English, with the same names, numbers and conditions",
 }
 
 // NearDuplicate checks that a question is new: that it copies none of the
@@ -47,11 +57,8 @@ func NearDuplicate(question, language string, references, fingerprints []string)
 	set := shinglesOf(question, unit)
 
 	var problems []Problem
-	for _, reference := range references {
-		if set.jaccard(shinglesOf(reference, unit)) >= Threshold {
-			problems = append(problems, repeats(EarlierReference))
-			break
-		}
+	if copiesOneOf(set, unit, references) {
+		problems = append(problems, repeats(EarlierReference))
 	}
 
 	sketch := sketchOf(set)
@@ -63,6 +70,29 @@ func NearDuplicate(question, language string, references, fingerprints []string)
 		}
 	}
 	return problems
+}
+
+// NearCopyInEnglish checks that the question in English of a task of a lesson
+// in another language copies none of the reference tasks. They are in English,
+// and a copy of one told in the lesson's language shares next to nothing with
+// them; its question in English is cut and compared as the question of a lesson
+// in English is, at the same threshold, and is reported once however many of
+// them it resembles. The child's past tasks are not compared with it: they are
+// known by the fingerprints of their questions, cut in their lessons' languages.
+func NearCopyInEnglish(questionInEnglish string, references []string) []Problem {
+	unit := unitFor(questionInEnglish, englishTag)
+	if copiesOneOf(shinglesOf(questionInEnglish, unit), unit, references) {
+		return []Problem{repeats(EarlierReferenceInEnglish)}
+	}
+	return nil
+}
+
+// copiesOneOf says whether a question, cut into its shingles, is a near-copy of
+// any of these reference tasks, each cut into the same unit.
+func copiesOneOf(set shingles, unit string, references []string) bool {
+	return slices.ContainsFunc(references, func(reference string) bool {
+		return set.jaccard(shinglesOf(reference, unit)) >= Threshold
+	})
 }
 
 // repeats is the refusal of a question that repeats a kind of earlier task.
