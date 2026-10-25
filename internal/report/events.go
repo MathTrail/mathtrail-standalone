@@ -78,9 +78,10 @@ var events = map[string][]string{
 	"task_skipped": {"topic", "level", "difficulty", "instructions_version", "user"},
 	"solver_run":   {"status", "steps", "duration_ms", "instructions_version", "user"},
 	"task_submitted": {
-		"attempt", "outcome", "primary", "failed", "minor_issues", "duration_ms", "solver_steps", "solver_ms",
-		"task_bytes", "self_check_bytes", "solver_bytes", "core_idea_bytes", "total_bytes", "retired", "mended",
-		"solution_picture", "solution_picture_bytes", "instructions_version", "user",
+		"level", "attempt", "outcome", "primary", "failed", "near_duplicate_of", "minor_issues", "duration_ms",
+		"solver_steps", "solver_ms", "task_bytes", "self_check_bytes", "solver_bytes", "core_idea_bytes",
+		"total_bytes", "retired", "mended", "solution_picture", "solution_picture_bytes", "instructions_version",
+		"user",
 	},
 	// A task handed out, an answer and a topic mastered are what the children
 	// are counted from, and each names its child by the name it is counted

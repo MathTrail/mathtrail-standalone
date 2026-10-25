@@ -2711,3 +2711,68 @@ func TestTheLineOfAHandInNamesWhatWasMended(t *testing.T) {
 		t.Errorf("mended = %v, want the answer named", mended)
 	}
 }
+
+// The line of a hand-in says the level the task was asked at and the kinds of
+// earlier task its question repeats: a reference task of that level, a task
+// the child was given, both, or none, so that the log can count copies of the
+// reference tasks apart from repeats of the child's own. The model is told
+// what it always was.
+func TestTheLineOfAHandInNamesWhatItsQuestionRepeats(t *testing.T) {
+	t.Parallel()
+
+	const (
+		copied = "task.question is a near-copy of one of the reference tasks; write a task of your own rather than " +
+			"a variant of an example"
+		repeated = "task.question repeats a task this child has already been given; change the idea and the numbers, " +
+			"not only the wording"
+	)
+	for _, tc := range []struct {
+		name                string
+		ofAReference, given bool
+		want, told          []string
+	}{
+		{"a question of its own", false, false, nil, nil},
+		{"a copy of a reference task", true, false, []string{"reference"}, []string{copied}},
+		{"a repeat of a task the child was given", false, true, []string{"past"}, []string{repeated}},
+		{"a copy of a reference task the child was given", true, true, []string{"reference", "past"},
+			[]string{copied, repeated}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h, text := handedInRepeating(t, tc.ofAReference, tc.given)
+			line := submittedLine(t, h)
+			if got, logged := line["near_duplicate_of"]; !logged || !slices.Equal(namesOf(got), tc.want) {
+				t.Errorf("near_duplicate_of = %v (logged: %v), want %v", got, logged, tc.want)
+			}
+			if line["level"] != string(rating.Grades12) {
+				t.Errorf("level = %v, want the level the race was asked at, %s", line["level"], rating.Grades12)
+			}
+			wantSaid(t, text, tc.told...)
+		})
+	}
+}
+
+// handedInRepeating hands the race in: its question a copy of the first
+// reference task its package shows, a question the child was given, both or
+// neither. It is the lesson the race was handed in in, and what the model was
+// told of it.
+func handedInRepeating(t *testing.T, ofAReference, given bool) (h *harness, told string) {
+	t.Helper()
+
+	kept := racer(t)
+	h, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+	race := raceOn(request)
+	task, _ := race["task"].(map[string]any)
+	if ofAReference {
+		task["question"] = exampleQuestionsIn(t, fetchPackage(t, session, request.ID))[0]
+	}
+	if given {
+		question, _ := task["question"].(string)
+		changeKept(t, kept, func(p *profile.Profile) {
+			p.TaskFingerprints = append(p.TaskFingerprints, checks.Fingerprint(question, "en"))
+		})
+	}
+	return h, textOf(t, call(t, session, "submit_task", race))
+}

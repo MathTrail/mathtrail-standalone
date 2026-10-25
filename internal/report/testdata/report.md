@@ -1,6 +1,6 @@
 # What the log adds up to
 
-178 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 10:15:01 UTC. 2 more lines, not the service's, were left out.
+184 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 10:15:01 UTC. 2 more lines, not the service's, were left out.
 
 ## Tasks
 
@@ -12,6 +12,7 @@ Asked for counts the requests opened; handed in, the attempts judged, of which t
 | 0a1b2c3d4e5f | claude | 1 | 2 | 1 | 0 |
 | 88b63e22129c | (call not read) | 0 | 1 | 0 | 0 |
 | 88b63e22129c | claude | 3 | 2 | 0 | 0 |
+| 88b63e22129c | other | 1 | 2 | 2 | 0 |
 
 ## Accepted tasks
 
@@ -70,6 +71,7 @@ How large the tasks handed in were, in bytes of the JSON the checks read: the ta
 | 88b63e22129c | (call not read) | now | 1 | 1 | 1480 | 230 | 520 | 120 | 2230 | 2230 |
 | 88b63e22129c | claude | before | 1 | 0 | 2900 | 520 | 810 | 1060 | 4960 | 4960 |
 | 88b63e22129c | claude | now | 1 | 0 | 1650 | 250 | 690 | 140 | 2590 | 2590 |
+| 88b63e22129c | other | now | 2 | 0 | 1500 | 240 | 600 | 130 | 2340 | 2540 |
 
 ## What was mended
 
@@ -113,6 +115,18 @@ An attempt is counted by one check, the first its refusal names, and fails that 
 | 0a1b2c3d4e5f | bad_structure | 1 | 1 |
 | 0a1b2c3d4e5f | readability | 1 | 2 |
 | 0a1b2c3d4e5f | near_duplicate | 0 | 1 |
+| 88b63e22129c | near_duplicate | 1 | 2 |
+| 88b63e22129c | readability | 1 | 1 |
+
+## What near-duplicates repeated
+
+The attempts that failed near_duplicate, by the level they were asked at and the kinds of earlier task their question repeats: reference, a reference task of that level, and past, a task the child had been given. A line written before the service named them is not logged, and the release that began to name them kept its version of the instructions, so one version may hold both. A version's attempts add up to those that failed near_duplicate above.
+
+| Instructions | Level | Near-duplicate of | Attempts |
+|---|---|---|---:|
+| 0a1b2c3d4e5f | (not logged) | (not logged) | 1 |
+| 88b63e22129c | 3-4 | reference | 1 |
+| 88b63e22129c | 3-4 | reference, past | 1 |
 
 ## Chances and what came of them
 
@@ -183,6 +197,8 @@ Milliseconds are the service's own time for a call, from its start to its answer
 | claude | submit_answer | 44 | 44 | 0 | 0 | 0 | 80 | 80 | 80 | 80 |
 | claude | submit_task | 6 | 4 | 2 | 0 | 0 | 250 | 1900 | 250 | 1900 |
 | claude | take_task | 1 | 1 | 0 | 0 | 0 | 1620 | 1620 | 1620 | 1620 |
+| other | next_task | 1 | 1 | 0 | 0 | 0 | 100 | 100 | 100 | 100 |
+| other | submit_task | 2 | 0 | 2 | 0 | 0 | 250 | 260 | 250 | 260 |
 
 ## Writes after the answer
 

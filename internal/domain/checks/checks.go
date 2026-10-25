@@ -80,8 +80,13 @@ type Problem struct {
 	// Code is which check failed.
 	Code Code
 	// Message says what to fix. It names fields, catalog ids and limits, and
-	// never an option's letter or text.
+	// never an option's letter or text. With the code, it is all the model is
+	// told of a problem.
 	Message string
+	// NearDuplicateOf is, for a near-duplicate, the kind of earlier task its
+	// question repeats, so that the log can count the kinds apart. Every other
+	// check leaves it empty, and the model reads the kind in the message.
+	NearDuplicateOf Earlier
 }
 
 // structural is a problem with the format of the submission.

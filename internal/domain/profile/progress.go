@@ -43,7 +43,9 @@ func (r Ratings) InTrial() bool { return r.Answers < rating.TrialAnswers }
 // added up here, so the answers themselves can be dropped.
 type Topic struct {
 	// Answers and Correct are how many answers this topic rests on and how
-	// many of them were right.
+	// many of them were right. With the tasks skipped, the answers count the
+	// tasks of the topic behind the child, which turn the reference tasks its
+	// packages show.
 	Answers int `json:"answers"`
 	Correct int `json:"correct"`
 	// Delta corrects the overall level for this topic — a child may count
@@ -75,9 +77,10 @@ type Topic struct {
 	MasteredSince *Date `json:"mastered_since"`
 	// Skipped is how many tasks of this topic were left without an answer when
 	// another was asked for. No rating reads it: it is for the parent, who can
-	// see from it that hard tasks are being leafed past, and, over every topic
-	// and with the answers, it counts the tasks behind the child, which pick
-	// the ones dressed in an interest.
+	// see from it that hard tasks are being leafed past; over every topic and
+	// with the answers, it counts the tasks behind the child, which pick the
+	// ones dressed in an interest; and, with the topic's answers, it counts the
+	// topic's own, which turn the reference tasks its packages show.
 	Skipped int `json:"skipped,omitzero"`
 	// TopStreak is the run of correct answers at the harder half of the
 	// corridor with no hint — the run the earlier rule mastered a topic by.

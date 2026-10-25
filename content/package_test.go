@@ -28,9 +28,9 @@ import (
 // that level with an interest to dress it in, notes and prohibitions:
 // everything a package can carry. The corridor is worked out over the whole
 // ladder, the most points a topic can have.
-func request(topic string, level rating.GradeLevel, difficulty, answers int) *content.Request {
+func request(topic string, level rating.GradeLevel, difficulty, turn int) *content.Request {
 	return &content.Request{
-		Language: "en", Grade: level.FirstGrade(), Answers: answers, Idea: profile.Idea{Number: 1, Round: 1},
+		Language: "en", Grade: level.FirstGrade(), TopicTasks: turn, Idea: profile.Idea{Number: 1, Round: 1},
 		Brief: profile.Brief{
 			PedagogicalGoal: profile.GoalNewTopic, TargetConcept: topic, GradeLevel: level, Difficulty: difficulty,
 			Setting:        "space",
@@ -392,9 +392,9 @@ func wantEveryPackageToDrawASolution(t *testing.T, shipped *content.Content, top
 	t.Helper()
 
 	for difficulty := 1; difficulty <= 5; difficulty++ {
-		for answers := range 5 {
-			_, got := packageFor(t, shipped, request(topic, level, difficulty, answers))
-			where := fmt.Sprintf("%s at %s, difficulty %d, after %d answers", topic, level, difficulty, answers)
+		for turn := range 5 {
+			_, got := packageFor(t, shipped, request(topic, level, difficulty, turn))
+			where := fmt.Sprintf("%s at %s, difficulty %d, at turn %d", topic, level, difficulty, turn)
 			wantAnExampleWith(t, got.Examples, "solution_picture", where)
 			if levelDraws {
 				wantAnExampleWith(t, got.Examples, "picture", where)
@@ -589,16 +589,16 @@ func TestEveryPackageStaysWithinTheBudget(t *testing.T) {
 }
 
 // typicalRequests ask for every topic at every level it is taught at and every
-// difficulty, with each of five answer counts, for a child with an ordinary
-// profile: an interest to dress the task in, a sentence of notes and two
-// skills left out.
+// difficulty, at each of five turns of the reference tasks, for a child with
+// an ordinary profile: an interest to dress the task in, a sentence of notes
+// and two skills left out.
 func typicalRequests(shipped *content.Content) []*content.Request {
 	var typical []*content.Request
 	for _, topic := range shipped.Topics() {
 		for _, level := range topic.GradeLevels {
 			for difficulty := profile.MinDifficulty; difficulty <= profile.MaxDifficulty; difficulty++ {
-				for answers := range 5 {
-					typical = append(typical, request(topic.ID, level, difficulty, answers))
+				for turn := range 5 {
+					typical = append(typical, request(topic.ID, level, difficulty, turn))
 				}
 			}
 		}
@@ -607,12 +607,12 @@ func typicalRequests(shipped *content.Content) []*content.Request {
 }
 
 // requestsAtTheLimits ask for every topic at every level it is taught at and
-// every difficulty, with each of five answer counts, for a child at every
-// limit the profile sets: the longest notes, a setting as long as an interest
-// may be, and as many excluded skills as it allows, the longest-described of
-// them. Each is the model's own choice, made with the longest reason the rule
-// takes. The child's own text and the model's reason are one letter repeated,
-// so that a wider letter makes a heavier package.
+// every difficulty, at each of five turns of the reference tasks, for a child
+// at every limit the profile sets: the longest notes, a setting as long as an
+// interest may be, and as many excluded skills as it allows, the
+// longest-described of them. Each is the model's own choice, made with the
+// longest reason the rule takes. The child's own text and the model's reason
+// are one letter repeated, so that a wider letter makes a heavier package.
 func requestsAtTheLimits(t *testing.T, shipped *content.Content, letter string) []*content.Request {
 	t.Helper()
 
@@ -629,8 +629,8 @@ func requestsAtTheLimits(t *testing.T, shipped *content.Content, letter string) 
 		for _, level := range topic.GradeLevels {
 			for difficulty := profile.MinDifficulty; difficulty <= profile.MaxDifficulty; difficulty++ {
 				rationale := longestRationale(t, shipped, topic.ID, rating.Point{GradeLevel: level, Difficulty: difficulty}, letter)
-				for answers := range 5 {
-					asked := request(topic.ID, level, difficulty, answers)
+				for turn := range 5 {
+					asked := request(topic.ID, level, difficulty, turn)
 					asked.Notes = strings.Repeat(letter, profile.MaxNotes)
 					asked.Brief.Setting = strings.Repeat(letter, profile.MaxInterest)
 					asked.Brief.ExcludedSkills = excluded

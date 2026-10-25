@@ -4,8 +4,10 @@ import (
 	"cmp"
 	"math"
 	"slices"
+	"strings"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
@@ -118,6 +120,11 @@ type refusedBy struct{ version, check string }
 // first check their refusal names, and all that failed it.
 type refusals struct{ counted, failed int }
 
+// repeatedBy is what attempts refused as near-duplicates repeated, under a
+// version of the instructions and at the level they were asked at: the kinds
+// of earlier task their lines name, as they name them.
+type repeatedBy struct{ version, level, kinds string }
+
 // toolOf is a tool as one chat host called it.
 type toolOf struct{ host, tool string }
 
@@ -145,6 +152,7 @@ type counts struct {
 	pictures map[topicOf]*pictures
 	kinds    map[kindOf]int
 	refusals map[refusedBy]*refusals
+	repeated map[repeatedBy]int
 	letGo    map[letGoFor]int
 	limits   map[string]int
 	tools    map[toolOf]*calls
@@ -186,7 +194,7 @@ func tally(in *input) *counts {
 		lines: len(lines), others: in.others, unreadable: in.unreadable,
 		tasks: map[group]*tasks{}, handIns: map[handInOf]*handIns{}, mends: map[mendOf]int{},
 		pictures: map[topicOf]*pictures{}, kinds: map[kindOf]int{}, refusals: map[refusedBy]*refusals{},
-		letGo:  map[letGoFor]int{},
+		repeated: map[repeatedBy]int{}, letGo: map[letGoFor]int{},
 		limits: map[string]int{}, tools: map[toolOf]*calls{}, handOuts: map[group]*handOuts{},
 		promises: map[promisedIn]*cameTrue{}, keptUp: map[keptUpIn]*keptUp{}, answersLeftOut: map[string]int{},
 	}
@@ -387,11 +395,15 @@ func pictureOf(l *line) (kind string, told bool) {
 }
 
 // refusedAttempt counts a refused attempt against the check it is counted by,
-// and against every check it failed.
+// and against every check it failed; and, when it failed as a near-duplicate,
+// against what it repeated.
 func (c *counts) refusedAttempt(l *line) {
-	checks := append([]string{l.Primary}, l.Failed...)
-	slices.Sort(checks)
-	for _, check := range slices.Compact(checks) {
+	if slices.Contains(l.Failed, string(checks.CodeNearDuplicate)) {
+		c.repeated[repeatedOf(l)]++
+	}
+	named := append([]string{l.Primary}, l.Failed...)
+	slices.Sort(named)
+	for _, check := range slices.Compact(named) {
 		if check == "" {
 			continue
 		}
@@ -408,6 +420,18 @@ func (c *counts) refusedAttempt(l *line) {
 			refused.failed++
 		}
 	}
+}
+
+// repeatedOf is what an attempt refused as a near-duplicate repeated. The
+// check finds a kind of earlier task whenever it fails, so a line that names
+// none was written before the service named them, and so was one that names
+// no level: what it leaves unsaid is not logged.
+func repeatedOf(l *line) repeatedBy {
+	key := repeatedBy{version: l.InstructionsVersion, level: cmp.Or(l.Level, notLogged), kinds: notLogged}
+	if len(l.NearDuplicateOf) > 0 {
+		key.kinds = strings.Join(l.NearDuplicateOf, ", ")
+	}
+	return key
 }
 
 // tasksOf is the tasks of a group, counted from nothing the first time the

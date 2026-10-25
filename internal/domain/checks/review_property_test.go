@@ -91,8 +91,12 @@ func TestTheReviewHoldsItsProperties(t *testing.T) {
 				if len(want) > 0 {
 					first = want[0]
 				}
+				var copied []checks.Earlier
+				if slices.Contains(want, checks.CodeNearDuplicate) {
+					copied = []checks.Earlier{checks.EarlierReference}
+				}
 				return slices.Equal(codesOf(&outcome), want) && outcome.Primary() == first &&
-					outcome.Accepted() == (len(want) == 0)
+					outcome.Accepted() == (len(want) == 0) && slices.Equal(outcome.Event().NearDuplicateOf, copied)
 			},
 			gen.IntRange(0, 1<<len(faults)-1),
 		))
@@ -126,7 +130,9 @@ func FuzzReview(f *testing.F) {
 		}
 		request := asked()
 		request.GradeLevel = rating.GradeLevel(level)
-		outcome, err := reviewer.Judge(examined, checks.Against{Asked: request, Language: language})
+		outcome, err := reviewer.Judge(examined, checks.Against{
+			Asked: request, Language: language, Fingerprints: []string{checks.Fingerprint(good.Task.Question, language)},
+		})
 		if err != nil {
 			t.Fatalf("Judge() error = %v for what Examine returned, against an open request", err)
 		}
@@ -135,18 +141,28 @@ func FuzzReview(f *testing.F) {
 }
 
 // keepsItsRules fails the test for an outcome that breaks a rule of its own:
-// a code it does not know or one out of the order of the checks, a check left
-// unrun with no fault of the format to account for it, an acceptance of
-// anything that failed, a first code that is not the one counted.
+// a code it does not know or one out of the order of the checks, a kind of
+// earlier task named by anything but a near-duplicate or a near-duplicate that
+// names none, a check left unrun with no fault of the format to account for
+// it, an acceptance of anything that failed, a first code that is not the one
+// counted, and a log that names other checks or other kinds of earlier task
+// than the problems do.
 func keepsItsRules(t *testing.T, outcome *checks.Outcome) {
 	t.Helper()
 
 	order := checks.Codes()
 	rank := -1
+	var repeated []checks.Earlier
 	for _, problem := range outcome.Problems {
 		at := slices.Index(order, problem.Code)
 		if at < 0 || at < rank || problem.Message == "" {
 			t.Fatalf("problems = %v, want messages under known codes in the order of the checks", outcome.Problems)
+		}
+		if (problem.Code == checks.CodeNearDuplicate) != (problem.NearDuplicateOf != "") {
+			t.Fatalf("problem %+v, want a kind of earlier task named by a near-duplicate, and by it alone", problem)
+		}
+		if problem.NearDuplicateOf != "" {
+			repeated = append(repeated, problem.NearDuplicateOf)
 		}
 		rank = at
 	}
@@ -162,5 +178,8 @@ func keepsItsRules(t *testing.T, outcome *checks.Outcome) {
 	}
 	if event := outcome.Event(); !slices.Equal(event.Failed, codesOf(outcome)) {
 		t.Fatalf("Event().Failed = %v, want %v", event.Failed, codesOf(outcome))
+	}
+	if event := outcome.Event(); !slices.Equal(event.NearDuplicateOf, repeated) {
+		t.Fatalf("Event().NearDuplicateOf = %v, want the kinds its problems name, %v", event.NearDuplicateOf, repeated)
 	}
 }

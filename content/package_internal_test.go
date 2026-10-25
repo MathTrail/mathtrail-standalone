@@ -39,15 +39,15 @@ func TestTheExamplesAreTheNearestToTheDifficulty(t *testing.T) {
 	t.Parallel()
 
 	for _, test := range []struct {
-		name                string
-		counts              map[int]int
-		difficulty, answers int
-		want                []string
+		name             string
+		counts           map[int]int
+		difficulty, turn int
+		want             []string
 	}{
 		{"three of the requested difficulty", map[int]int{2: 5, 3: 5}, 3, 0, []string{"d3-1", "d3-2", "d3-3"}},
-		{"the next answer brings the next three", map[int]int{3: 5}, 3, 1, []string{"d3-2", "d3-3", "d3-4"}},
+		{"the next turn brings the next three", map[int]int{3: 5}, 3, 1, []string{"d3-2", "d3-3", "d3-4"}},
 		{"the turn comes round", map[int]int{3: 5}, 3, 4, []string{"d3-5", "d3-1", "d3-2"}},
-		{"five answers later, the same three", map[int]int{3: 5}, 3, 5, []string{"d3-1", "d3-2", "d3-3"}},
+		{"five turns later, the same three", map[int]int{3: 5}, 3, 5, []string{"d3-1", "d3-2", "d3-3"}},
 		{"too few at the difficulty: topped up from the nearest", map[int]int{1: 3, 3: 2, 4: 3}, 3, 0,
 			[]string{"d3-1", "d3-2", "d4-1"}},
 		{"of two equally near, the easier first", map[int]int{2: 3, 4: 3}, 3, 0, []string{"d2-1", "d2-2", "d2-3"}},
@@ -58,7 +58,7 @@ func TestTheExamplesAreTheNearestToTheDifficulty(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := idsOf(nearest(cell(test.counts), test.difficulty, test.answers)); !slices.Equal(got, test.want) {
+			if got := idsOf(nearest(cell(test.counts), test.difficulty, test.turn)); !slices.Equal(got, test.want) {
 				t.Errorf("nearest() = %v, want %v", got, test.want)
 			}
 		})
@@ -80,11 +80,11 @@ func TestAPackageShowsATaskThatDrawsWhereThePoolHasOne(t *testing.T) {
 	t.Parallel()
 
 	for _, test := range []struct {
-		name                string
-		counts              map[int]int
-		drawn               []string
-		difficulty, answers int
-		want                []string
+		name             string
+		counts           map[int]int
+		drawn            []string
+		difficulty, turn int
+		want             []string
 	}{
 		{"one of those picked draws: they stay", map[int]int{3: 5}, []string{"d3-2"}, 3, 0,
 			[]string{"d3-1", "d3-2", "d3-3"}},
@@ -102,8 +102,8 @@ func TestAPackageShowsATaskThatDrawsWhereThePoolHasOne(t *testing.T) {
 			t.Parallel()
 
 			pool := drawnCell(test.counts, test.drawn...)
-			picked := nearest(pool, test.difficulty, test.answers)
-			if got := idsOf(withADrawnTask(picked, pool, test.difficulty, test.answers)); !slices.Equal(got, test.want) {
+			picked := nearest(pool, test.difficulty, test.turn)
+			if got := idsOf(withADrawnTask(picked, pool, test.difficulty, test.turn)); !slices.Equal(got, test.want) {
 				t.Errorf("withADrawnTask(%v) = %v, want %v", idsOf(picked), got, test.want)
 			}
 		})
@@ -132,10 +132,10 @@ func drawnPool(counts []int, drawn []bool) []Example {
 func TestATaskThatDrawsIsShownWheneverThePoolHasOne(t *testing.T) {
 	t.Parallel()
 
-	shown := func(counts []int, drawn []bool, difficulty, answers int) (picked, got []Example, pool []Example) {
+	shown := func(counts []int, drawn []bool, difficulty, turn int) (picked, got []Example, pool []Example) {
 		pool = drawnPool(counts, drawn)
-		picked = nearest(pool, difficulty, answers)
-		return picked, withADrawnTask(picked, pool, difficulty, answers), pool
+		picked = nearest(pool, difficulty, turn)
+		return picked, withADrawnTask(picked, pool, difficulty, turn), pool
 	}
 	properties := gopter.NewProperties(nil)
 	for _, property := range []struct {
@@ -157,8 +157,8 @@ func TestATaskThatDrawsIsShownWheneverThePoolHasOne(t *testing.T) {
 		}},
 	} {
 		properties.Property(property.name, prop.ForAll(
-			func(counts []int, drawn []bool, difficulty, answers int) bool {
-				return property.holds(shown(counts, drawn, difficulty, answers))
+			func(counts []int, drawn []bool, difficulty, turn int) bool {
+				return property.holds(shown(counts, drawn, difficulty, turn))
 			},
 			gen.SliceOfN(5, gen.IntRange(0, 5)),
 			gen.SliceOfN(25, gen.Bool()),
@@ -185,11 +185,11 @@ func TestAPackageShowsATaskThatDrawsItsSolutionWhereThePoolHasOne(t *testing.T) 
 	t.Parallel()
 
 	for _, test := range []struct {
-		name                string
-		counts              map[int]int
-		solved, drawn       []string
-		difficulty, answers int
-		want                []string
+		name             string
+		counts           map[int]int
+		solved, drawn    []string
+		difficulty, turn int
+		want             []string
 	}{
 		{"one of those picked draws its solution: they stay", map[int]int{3: 5}, []string{"d3-2"}, nil, 3, 0,
 			[]string{"d3-1", "d3-2", "d3-3"}},
@@ -213,8 +213,8 @@ func TestAPackageShowsATaskThatDrawsItsSolutionWhereThePoolHasOne(t *testing.T) 
 			t.Parallel()
 
 			pool := solvedCell(test.counts, test.solved, test.drawn)
-			picked := withADrawnTask(nearest(pool, test.difficulty, test.answers), pool, test.difficulty, test.answers)
-			if got := idsOf(withADrawnSolution(picked, pool, test.difficulty, test.answers)); !slices.Equal(got, test.want) {
+			picked := withADrawnTask(nearest(pool, test.difficulty, test.turn), pool, test.difficulty, test.turn)
+			if got := idsOf(withADrawnSolution(picked, pool, test.difficulty, test.turn)); !slices.Equal(got, test.want) {
 				t.Errorf("withADrawnSolution(%v) = %v, want %v", idsOf(picked), got, test.want)
 			}
 		})
@@ -230,10 +230,10 @@ func TestAPackageShowsATaskThatDrawsItsSolutionWhereThePoolHasOne(t *testing.T) 
 func TestATaskThatDrawsItsSolutionIsShownWheneverThePoolHasOne(t *testing.T) {
 	t.Parallel()
 
-	shown := func(counts, drawing []int, difficulty, answers int) (picked, got, pool []Example) {
+	shown := func(counts, drawing []int, difficulty, turn int) (picked, got, pool []Example) {
 		pool = solvedPool(counts, drawing)
-		picked = withADrawnTask(nearest(pool, difficulty, answers), pool, difficulty, answers)
-		return picked, withADrawnSolution(picked, pool, difficulty, answers), pool
+		picked = withADrawnTask(nearest(pool, difficulty, turn), pool, difficulty, turn)
+		return picked, withADrawnSolution(picked, pool, difficulty, turn), pool
 	}
 	properties := gopter.NewProperties(nil)
 	for _, property := range []struct {
@@ -258,8 +258,8 @@ func TestATaskThatDrawsItsSolutionIsShownWheneverThePoolHasOne(t *testing.T) {
 		}},
 	} {
 		properties.Property(property.name, prop.ForAll(
-			func(counts, drawing []int, difficulty, answers int) bool {
-				return property.holds(shown(counts, drawing, difficulty, answers))
+			func(counts, drawing []int, difficulty, turn int) bool {
+				return property.holds(shown(counts, drawing, difficulty, turn))
 			},
 			gen.SliceOfN(5, gen.IntRange(0, 5)),
 			gen.SliceOfN(25, gen.IntRange(0, 3)),
@@ -329,18 +329,18 @@ func TestTheLevelBelowStandsInForAnEmptyOne(t *testing.T) {
 	}
 }
 
-// The turns are fair: over any five answers in a row, each task of a cell of
+// The turns are fair: over any five turns in a row, each task of a cell of
 // five is shown exactly three times, so that no example is a favourite.
 func TestTheExamplesTakeFairTurns(t *testing.T) {
 	t.Parallel()
 
 	pool := cell(map[int]int{3: 5})
 	properties := gopter.NewProperties(nil)
-	properties.Property("over five answers in a row, each of five tasks is shown three times", prop.ForAll(
+	properties.Property("over five turns in a row, each of five tasks is shown three times", prop.ForAll(
 		func(start int) bool {
 			shown := map[string]int{}
-			for answers := start; answers < start+5; answers++ {
-				for _, id := range idsOf(nearest(pool, 3, answers)) {
+			for turn := start; turn < start+5; turn++ {
+				for _, id := range idsOf(nearest(pool, 3, turn)) {
 					shown[id]++
 				}
 			}
