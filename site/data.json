@@ -714,6 +714,14 @@
 			{ "id": "dudeney", "died": 1930, "books": ["amusements", "canterbury"] },
 			{ "id": "loyd", "died": 1911, "books": ["cyclopedia"] },
 			{ "id": "carroll", "died": 1898, "books": ["tangled", "pillow"] }
+		],
+		"collections": [
+			{
+				"id": "mathnet",
+				"url": "https://mathnet.mit.edu",
+				"licence": "CC BY 4.0",
+				"level": "5-6"
+			}
 		]
 	}
 }

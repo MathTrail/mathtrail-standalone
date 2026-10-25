@@ -1,5 +1,5 @@
 title: Studie
-description: "Die Zahlen hinter MathTrail: die Prüfungen jeder Aufgabe, das Lernermodell im Vergleich mit seinen Zielen und woher die Referenzaufgaben stammen."
+description: "Die Zahlen hinter MathTrail: die Prüfungen jeder Aufgabe, das Lernermodell im Vergleich mit seinen Zielen und woher die Ideen der Aufgaben stammen."
 
 hero:
   badge: Für Fachleute
@@ -180,7 +180,7 @@ live:
       caption: Die Regel fordert die Aufgabe an, deren Lösungswahrscheinlichkeit am nächsten bei {middle} liegt, der Mitte des Korridors von {low} bis {high}. Der Punkt ist der Anteil richtiger Antworten, die gestrichelte Linie die Mitte des Korridors.
 
 sources:
-  title: Woher die Referenzaufgaben stammen
+  title: Woher die Ideen der Aufgaben stammen
   lead: Ideen sind nicht urheberrechtlich geschützt, Texte schon. Deshalb werden aus einem Buch nur die Idee einer Aufgabe und ihre Antwort übernommen; Wortlaut, Geschichte, Antwortmöglichkeiten und Fallen werden neu geschrieben.
   authors:
     perelman:
@@ -212,6 +212,10 @@ sources:
   died: † {year}
   public: Gemeinfrei
   public_note: Das Urheberrecht an diesen Büchern ist abgelaufen. Die Bücher gehören der Allgemeinheit, und alle dürfen sie kostenlos nutzen.
+  collections:
+    mathnet:
+      name: MathNet
+      note: Eine offene Sammlung von Olympiadeaufgaben aus vielen Ländern. Jedes Thema hat eine Liste von Ideen, auf denen seine Aufgaben aufbauen, und für die Klassen {first}–{last} stammen einige davon aus dieser Sammlung. Manche Länder behalten die Rechte an ihren Aufgaben, deshalb wird auch von hier nur eine Idee übernommen, nie ein Text.
   total: Insgesamt {count} {noun}
   each: jede mit einem Lösungsprogramm und einer Falle hinter jeder falschen Antwort
   level: "{count} · Klassen {first}–{last}"

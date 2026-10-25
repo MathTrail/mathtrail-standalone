@@ -16,9 +16,17 @@ const repository = join(
 	"..",
 );
 
-// authors are the authors the site's data names for the page.
+// mathnet is a collection of problems the site's data names for the page, and
+// authors are the authors and the collections it names.
+const mathnet = {
+	id: "mathnet",
+	url: "https://mathnet.mit.edu",
+	licence: "CC BY 4.0",
+	level: "5-6",
+};
 const authors = {
 	sources: [{ id: "perelman", died: 1942, books: ["firsthundred"] }],
+	collections: [mathnet],
 };
 
 // changed is the fixture with one thing changed, as edit changes it.
@@ -77,9 +85,23 @@ describe("the data of the page Research", () => {
 		]);
 	});
 
-	test("is refused when the site's data names no authors for it", () => {
+	test("is refused when the site's data names no authors or collections for it", () => {
 		expect(() => readResearch(siteCatalog, undefined, fixture)).toThrow(
-			"site/data.json names no authors for the page Research",
+			"site/data.json names no authors or collections of problems for the page Research",
+		);
+	});
+
+	test("gives each collection of problems the grades of its level", () => {
+		expect(read(fixture).collections).toEqual([
+			{ ...mathnet, first: 5, last: 6 },
+		]);
+	});
+
+	test("is refused when a collection names a level the catalog teaches no topic at", () => {
+		const unknown = { ...authors, collections: [{ ...mathnet, level: "7-8" }] };
+
+		expect(() => readResearch(siteCatalog, unknown, fixture)).toThrow(
+			"site/data.json gives the collection mathnet the level 7-8, at which the catalog teaches no topic",
 		);
 	});
 

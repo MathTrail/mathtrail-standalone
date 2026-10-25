@@ -11774,9 +11774,9 @@ a.s-related-card:hover {
 	font-size: 0.75rem;
 }
 
-/* Where the reference tasks came from: an author to a row, between rules,
-   and the reference tasks by level as a bar, each part as wide as its count
-   and darker the higher its grades. */
+/* Where the ideas of the tasks came from: an author or a collection of
+   problems to a row, between rules, and the reference tasks by level as a
+   bar, each part as wide as its count and darker the higher its grades. */
 .s-research-authors {
 	margin: 40px 0 0;
 	padding: 0;
@@ -11803,7 +11803,8 @@ a.s-related-card:hover {
 	font-weight: 600;
 }
 
-.s-research-died {
+.s-research-died,
+.s-research-licence {
 	margin-inline-start: 4px;
 	color: var(--s-outline);
 	font-size: 0.875rem;

@@ -9,19 +9,20 @@
     "Left and right gloves of two colours: how many to be sure of a left and a right of one colour.",
     "Number cards: how many to be sure of two that add up to a given sum.",
     "A box from which any few things taken out hold both colours: how many of each colour it holds.",
-    "Even and odd numbers: how many whole numbers to take to be sure that two of them add up to an even number."
+    "Even and odd numbers: how many whole numbers to take to be sure that two of them add up to an even number.",
+    "Number cards taken in the dark until their total is sure to reach a given number: in the worst case the smallest come first."
   ],
   "3-4": [
-    "Socks or balls of a few colours, the same number of each or not, taken in the dark: how many for two of one colour.",
-    "Pupils and the months or the days of a week: at least how many share one, or whether two must share.",
-    "Balls of a few colours: how many to be sure of one or two of one given colour.",
-    "Pencils of several colours, the same number of each: how many for one of every colour.",
+    "Piles or children that all have different numbers of things: at least 0 + 1 + 2 and so on are needed, so too few things cannot be shared that way.",
+    "Keys tried in locks one by one: in the worst case each key needs every lock but the last one left.",
+    "A round table with more than half of its seats taken by boys: two boys must sit opposite each other.",
+    "More pieces on a board than it has rows: two of them stand in the same row.",
     "Several of one colour, when one colour has too few to reach that many: how many to take to be sure.",
-    "Mixed-up socks of several colours: how many to be sure of two matching pairs.",
+    "Whole numbers from a range: how many to choose to be sure that two of them are next to each other.",
     "Whole numbers: how many to choose to be sure that two of them end in the same digit.",
     "Teams that play some games: whether two of them must have played the same number of games.",
-    "Cards numbered 1 to 10: how many to be sure two of them add up to a given sum.",
-    "Left and right gloves of a few colours: how many to be sure of a pair."
+    "Kings on a board, no two touching even at a corner: each square of two by two holds one at most.",
+    "Numbers round a circle, such as those of a clock face: some few neighbours add up to at least the average of all such groups."
   ],
   "5-6": [
     "Rolling a die: how many rolls to be sure one number comes three times.",
@@ -33,6 +34,14 @@
     "Seasons of birth and boys or girls: how many pupils to be sure of three of one kind.",
     "Whole numbers: how many to be sure three of them add up to a multiple of 3.",
     "Numbers from 1 to 10: how many to choose to be sure one divides another.",
-    "Points in a square: how many to be sure two lie in the same small square."
+    "Points in a square: how many to be sure two lie in the same small square.",
+    "A small table filled with a few kinds of numbers: its row, column and diagonal sums cannot all differ, since there are more lines than possible sums.",
+    "Numbered balls taken out until their product is sure to be a multiple of a given number: in the worst case everything that avoids it comes first.",
+    "Numbers chosen so that no two add up to a given total: they come from pairs that make it, so a number with no partner is sure to be chosen.",
+    "Tickets that guess the results of many games, one ticket for each result guessed every time: the commonest result makes one ticket right often.",
+    "Name cards round a table with nobody in front of their own: some turn of the table puts at least two people at their cards.",
+    "Different ages chosen so that no two pairs add up to the same: there are so many pair sums that the eldest must be old enough.",
+    "A memory game of cards in matching pairs, two turned at a time and remembered: how many turns make sure a pair is found.",
+    "Points with whole-number coordinates sorted by whether each coordinate is even or odd: four kinds, so of five points two have a midpoint on the grid."
   ]
 }

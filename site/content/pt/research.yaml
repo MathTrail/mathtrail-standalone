@@ -1,5 +1,5 @@
 title: Estudo
-description: "Os números por trás do MathTrail: as verificações de cada problema, o modelo do estudante diante das próprias metas e de onde vêm os problemas de referência."
+description: "Os números por trás do MathTrail: as verificações de cada problema, o modelo do estudante diante das próprias metas e de onde vêm as ideias dos problemas."
 
 hero:
   badge: Para o público técnico
@@ -180,7 +180,7 @@ live:
       caption: A regra pede o problema cuja chance está mais perto de {middle}, o meio do corredor de {low} a {high}. O ponto é a proporção de respostas certas, e a linha tracejada é o meio do corredor.
 
 sources:
-  title: De onde vieram os problemas de referência
+  title: De onde vieram as ideias dos problemas
   lead: Ideias não são protegidas por direitos autorais, mas textos são. Por isso, de um livro só se tiram a ideia de um problema e a sua resposta, e o enunciado, a história, as alternativas e as armadilhas são escritos de novo.
   authors:
     perelman:
@@ -212,6 +212,10 @@ sources:
   died: † {year}
   public: Em domínio público
   public_note: Os direitos autorais destes livros já expiraram. Eles pertencem a todos, e qualquer pessoa pode usá-los de graça.
+  collections:
+    mathnet:
+      name: MathNet
+      note: Uma coleção aberta de problemas de olimpíadas de muitos países. Cada tema tem uma lista de ideias em que seus problemas se baseiam, e para o {first}º–{last}º ano algumas delas vêm desta coleção. Alguns países mantêm os direitos sobre seus problemas, por isso também daqui só se tira a ideia, nunca o texto.
   total: No total, {count} {noun}
   each: cada um com um resolvedor e uma armadilha por trás de cada alternativa errada
   level: "{count} · {first}º–{last}º ano"
