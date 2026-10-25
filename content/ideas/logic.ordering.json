@@ -9,19 +9,28 @@
     "Arrivals by the clock: who came first and who came last from the time each child arrived.",
     "A line that turns round, so that the first becomes the last and every place counts from the other end.",
     "Towers of blocks compared in pairs: which tower is the tallest, and which comes second.",
-    "One child leaves a line and joins it again at the end: who is first, and who stands in front of whom now."
+    "One child leaves a line and joins it again at the end: who is first, and who stands in front of whom now.",
+    "Floors of a house: who lives on which floor, from who lives above or below whom.",
+    "Children in a row facing you: their left hand is on your right, so left and right swap.",
+    "Nesting dolls or cups that fit one into another: each goes into the next bigger one, so the order of sizes says which holds which.",
+    "Putting on clothes in order: what has to go on before what, such as socks before shoes, and which things can go in either order."
   ],
   "3-4": [
-    "A chain of five comparisons with one given backwards, so that it has to be turned round before it is read.",
+    "A line rebuilt from pairs that say who stands right behind whom: the first is the one who stands behind nobody, and the rest follow.",
     "Places at the finish told by how many runners finished ahead of or behind each one.",
     "A line in which the number of children in front of someone is a given multiple of the number behind.",
     "Known weights or heights matched to names from comparisons, one of them fixed by its number.",
     "A row with exactly some people between two of them, and a second clue that fixes both places.",
-    "Overtakings during a race: the places at the finish after a sequence of passes.",
+    "Couples in which the boy is taller than the girl and nobody is paired with a brother or sister: the order of heights decides who goes with whom.",
     "Two queues merged into one, each keeping its own order, with clues about who goes before whom.",
-    "Seats round a round table: neighbours on the left and on the right, and who sits opposite whom.",
+    "Numbers written in order of size with their digits replaced by letters: the order of the tens, and then of the ones, gives the order of the letters.",
     "A tournament ranked from 'won more games than' clues, with one result given in points.",
-    "Four comparisons of which exactly one is false: the order that makes the other three true."
+    "Four comparisons of which exactly one is false: the order that makes the other three true.",
+    "Things put into numbered places where each fits only some of them: start from the place only one thing fits, then the next one left with one choice.",
+    "Clues that say only what is not so, such as not first and not last: the places left to each one decide the order.",
+    "Clues such as 'A stands between B and C', which do not say which side is which: two orders fit until another clue decides.",
+    "Places in a contest with ties, counted as the task says: when two who share a place use up two places, the one after them comes two places below the shared one.",
+    "A line put in order of height by swapping two neighbours at a time: the fewest swaps needed."
   ],
   "5-6": [
     "Places in a contest from statements in which each speaker tells one true half and one false half.",
@@ -33,6 +42,13 @@
     "Two rankings of the same people by two measures, and who stands between whom in both.",
     "A place counted from both ends of a long line, such as fifth from the front and eighth from the back.",
     "The order of events in a day from clues about before, after and at the same time.",
-    "The one order that fits every clue, and how many orders fit once one clue is dropped."
+    "The one order that fits every clue, and how many orders fit once one clue is dropped.",
+    "People of different heights standing in a square: the tallest of the shortest in each row against the shortest of the tallest in each column.",
+    "Two rows where each person behind is taller than the one in front: sorting both rows by height keeps it so.",
+    "Overtakings counted for each pair of cars in a race: an odd number of passes swaps two cars, an even number leaves them as they were.",
+    "Neighbours climbing the stairs to their own floors: who lives on which floor, from who gets home before whom and how many floors another still has to go.",
+    "Rounds of a small tournament where each plays twice and referees once and nobody plays two rounds running: the order of the rounds rebuilt from the rules.",
+    "Children of different heights round a circle: who is taller than one neighbour and shorter than the other, and how many such there can be.",
+    "People of heights one apart lined up so that no two of neighbouring heights stand side by side: the orders that work."
   ]
 }

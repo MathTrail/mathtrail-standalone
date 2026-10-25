@@ -9,19 +9,24 @@
     "A child counted from the front and from the back of a queue: how many are in it.",
     "A frog jumping along a row of stones, skipping one stone each time: the jumps to the last.",
     "Beads on a closed necklace: as many gaps as beads.",
-    "A clock striking: the time from the first stroke to the last counted in gaps."
+    "A clock striking: the time from the first stroke to the last counted in gaps.",
+    "Children holding hands in a line: one pair of joined hands fewer than the children.",
+    "Cake layers with cream between every two: one layer of cream fewer than layers of cake.",
+    "A bus route of a few stops: one stretch fewer than the stops, and a ride counted in stretches."
   ],
   "3-4": [
-    "Trees along a road a given distance apart: the length of the row, or the number of trees.",
-    "A log cut into pieces of a given length: the cuts, and the time they take.",
-    "Whole numbers from one number to another, both ends counted.",
-    "A building's floors and flights: the steps from one floor to another.",
-    "A closed ring of beads or posts: as many gaps as objects.",
-    "A bell ringing at equal spaces: the time for more rings from the time for a few.",
-    "A pupil counted from the left and from the right: the length of the row.",
+    "Volumes standing in order on a shelf: from the first page of the first volume to the last page of the last, only the volumes between and the covers lie.",
+    "Pieces of chain joined into one long chain: one join fewer than the pieces, and opening every link of one short piece gives several joins at once.",
+    "Posts along a road, each showing how far it is to either end: the two numbers on every post add up to the length of the road.",
+    "Cups or chairs stacked one into another: the first counts whole, and each one more adds only the height of its rim.",
+    "A strip folded in half again and again: unfolded, it has one crease fewer than parts, and the parts double at every fold.",
+    "Something done a number of times from one hour to another, the first at the start and the last at the end, such as collecting the post: one gap fewer than times.",
+    "Digits used to number the pages of a book from 1: nine pages of one digit, then two digits for each page up to 99.",
     "Square tables pushed together in a row, one seat to a side: how many people can sit around them.",
     "A train of carriages with links between them, and the length of the whole train.",
-    "Pages numbered on both sides of the sheets: how many sheets a run of pages takes."
+    "Pages numbered on both sides of the sheets: how many sheets a run of pages takes.",
+    "Two clocks striking together at different paces, strokes that fall at once heard as one: the time from the number of strokes heard.",
+    "Straight cuts across a round pancake: each new cut adds one piece more than the points where it crosses earlier cuts, so the most pieces come when no three cuts meet."
   ],
   "5-6": [
     "A cake or a sheet cut along lines in two directions: the pieces from the cuts.",
@@ -33,6 +38,13 @@
     "Posts round a square or rectangular field, with a post at each corner.",
     "Two paths touching at one point, like a figure eight, and posts along both.",
     "Laps of a running track and the markers passed between two points.",
-    "A rope folded several times and cut through once: how many pieces fall apart."
+    "A rope folded several times and cut through once: how many pieces fall apart.",
+    "How many times as high one floor is as another: the flights up to each are compared, not the floor numbers, and the task says whether the ground floor is the first.",
+    "Rings of a few colours round a sausage: cutting along each colour gives so many pieces, so cutting along all of them gives one piece more than all the rings.",
+    "A ring such as a bagel cut across in several places: as many pieces as cuts, since a ring has no ends.",
+    "Several logs sawn up: each gives one piece more than its cuts, so the logs are the pieces less the cuts.",
+    "A log held at both ends while the middle pieces fall: the two held pieces count too, so there is one cut more than the pieces that fell.",
+    "Two rows of points at the same spacing, one with ten times as many: their lengths compare as the gaps, not as the points.",
+    "A piece fallen out of a book whose first and last page numbers use the same digits: the first page is odd and the last even, which fixes them."
   ]
 }
