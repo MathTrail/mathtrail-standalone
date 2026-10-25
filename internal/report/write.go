@@ -67,6 +67,10 @@ func write(out io.Writer, c *counts) error {
 		{"What was mended", "The fields read as they were meant rather than as they were written — a letter in " +
 			"another case, an option written as a number, no issues written as null — by how many hand-ins.",
 			c.mendsTable()},
+		{"Questions in English", "The hand-ins of lessons in another language than English, which give their " +
+			"question in English as well, for the comparison with the reference tasks, and how many came with it: " +
+			"one that came without it was refused as bad_structure. A lesson in English asks for none, and a line " +
+			"written before the service asked for one says nothing of it; neither is counted.", c.inEnglishTable()},
 		{"Pictures by topic", "The tasks accepted on each topic whose line says whether they came with a " +
 			"picture, and how many of them did. A line written before the service said so is left out.",
 			c.picturesTable()},
@@ -77,9 +81,10 @@ func write(out io.Writer, c *counts) error {
 			"fails that check and any others beside it.", c.refusalsTable()},
 		{"What near-duplicates repeated", "The attempts that failed near_duplicate, by the level they were asked " +
 			"at and the kinds of earlier task their question repeats: reference, a reference task of that level, " +
-			"and past, a task the child had been given. A line written before the service named them is not " +
-			"logged, and the release that began to name them kept its version of the instructions, so one " +
-			"version may hold both. A version's attempts add up to those that failed near_duplicate above.",
+			"past, a task the child had been given, and reference_en, a reference task of that level that the " +
+			"question in English of a lesson in another language copies. A line written before the service named " +
+			"them is not logged, and the release that began to name them kept its version of the instructions, so " +
+			"one version may hold both. A version's attempts add up to those that failed near_duplicate above.",
 			c.repeatedTable()},
 		{"Chances and what came of them", c.promisesAbout(), c.promisesTable()},
 		{"How the estimate keeps up", "The same answers by which of the child's answers each was: a right answer " +
@@ -263,6 +268,18 @@ func rankOf(sorted []int64, rank int) string {
 		return notLogged
 	}
 	return number(atRank(sorted, rank))
+}
+
+// inEnglishTable is, for each group, how many hand-ins were asked for their
+// question in English as well, and how many of them came with it.
+func (c *counts) inEnglishTable() *table {
+	t := &table{columns: []string{"Instructions", "Host", "Asked for one", "Came with one"}, named: 2}
+	for _, g := range c.groups() {
+		if counted := c.tasks[g]; counted.askedInEnglish > 0 {
+			t.add(g.version, g.host, number(counted.askedInEnglish), number(counted.inEnglish))
+		}
+	}
+	return t
 }
 
 // mendsTable is, under each version, the fields read as they were meant, the

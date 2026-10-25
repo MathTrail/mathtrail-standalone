@@ -1,7 +1,9 @@
 package checks_test
 
 import (
+	"reflect"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/leanovate/gopter"
@@ -28,7 +30,11 @@ var faults = []struct {
 	apply func(*faulty)
 }{
 	{checks.CodeBadStructure, func(f *faulty) { f.draft.Task.CoreIdea = "" }},
-	{checks.CodeWrongLanguage, func(f *faulty) { f.language = "ru" }},
+	{checks.CodeWrongLanguage, func(f *faulty) {
+		// A question in English unlike the reference task a copy is made
+		// against, so that a lesson in Russian copies nothing of its own.
+		f.language, f.draft.Task.QuestionInEnglish = "ru", robots
+	}},
 	{checks.CodeDistractorExplanations, func(f *faulty) {
 		f.draft.Task.Distractors["D"] = checks.Distractor{Trap: "wrong_operation", Text: "You missed one pair."}
 	}},
@@ -45,7 +51,8 @@ var faults = []struct {
 
 // broken is a task that passes, with the faults the bits of mask choose. It is
 // asked for in no language, which holds it neither to letters nor to the
-// reading grade of English, so that a lesson in Russian is a fault of its own.
+// reading grade of English and asks it for no question in English, so that a
+// lesson in Russian is a fault of its own.
 func broken(mask int) scenario {
 	f := faulty{scenario: accepted()}
 	f.askedFor(rating.Grades12)
@@ -101,6 +108,32 @@ func TestTheReviewHoldsItsProperties(t *testing.T) {
 			gen.IntRange(0, 1<<len(faults)-1),
 		))
 
+	properties.Property("in a lesson in English, the question in English is not read", prop.ForAll(
+		func(inEnglish string) bool {
+			plain, sent := accepted(), accepted()
+			plain.references, sent.references = []string{clock}, []string{clock}
+			sent.draft.Task.QuestionInEnglish = inEnglish
+			without, with := plain.review(t), sent.review(t)
+			return reflect.DeepEqual(without.Problems, with.Problems) && slices.Equal(without.Unchecked, with.Unchecked) &&
+				reflect.DeepEqual(without.Event(), with.Event())
+		},
+		gen.OneGenOf(gen.AnyString(), gen.Const(clock), gen.Const("")),
+	))
+
+	properties.Property("in a lesson in Russian, a question in English that is a reference task is a copy of it",
+		prop.ForAll(
+			func(words []string) bool {
+				task := scenario{runner: &working{value: "шесть пар"}}
+				russianLesson(&task)
+				task.draft.Task.QuestionInEnglish = strings.Join(words, " ")
+				task.references = []string{task.draft.Task.QuestionInEnglish}
+				outcome := task.review(t)
+				return slices.Equal(outcome.Event().NearDuplicateOf, []checks.Earlier{checks.EarlierReferenceInEnglish}) &&
+					slices.Equal(codesOf(&outcome), []checks.Code{checks.CodeNearDuplicate})
+			},
+			genWords(),
+		))
+
 	properties.TestingRun(t)
 }
 
@@ -114,6 +147,9 @@ func FuzzReview(f *testing.F) {
 	good := validDraft()
 	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "3-4", "en")
 	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "1-2", "ru")
+	russian := russianDraft()
+	f.Add([]byte(jsonOf(f, russian.Task)), []byte(jsonOf(f, russian.SelfCheck)), program, "3-4", "ru")
+	f.Add([]byte(`{"question":"Сколько пар?","question_en":" "}`), []byte(`{}`), "", "1-2", "uk")
 	f.Add([]byte(`{"options":{"A":"x"},"question":" "}`), []byte("{"), "", "", "")
 	f.Add([]byte(`{"question":"P is left of R.","drawing":"P───Q \n","picture":`+
 		`{"kind":"row","items":[{"label":"R"},{"label":"7"}],"copies":3}}`),
@@ -137,7 +173,36 @@ func FuzzReview(f *testing.F) {
 			t.Fatalf("Judge() error = %v for what Examine returned, against an open request", err)
 		}
 		keepsItsRules(t, &outcome)
+		keepsTheRulesOfItsLanguage(t, &outcome, language)
 	})
+}
+
+// keepsTheRulesOfItsLanguage fails the test for an outcome that breaks a rule
+// of the question in English: a log that says whether one came where none was
+// asked for, or does not say it of a task that could be read where one was; a
+// task of such a lesson that came without one and was not refused for it; and
+// a copy of a reference task found by a question in English no lesson asked
+// for.
+func keepsTheRulesOfItsLanguage(t *testing.T, outcome *checks.Outcome, language string) {
+	t.Helper()
+
+	asked := checks.AsksQuestionInEnglish(language)
+	given := outcome.Event().QuestionInEnglishGiven
+	if (given != nil) != (asked && outcome.Draft.Task != nil) {
+		t.Fatalf("QuestionInEnglishGiven = %v in a lesson in %q, want it said exactly of a task read where it is asked for",
+			given, language)
+	}
+	refused := slices.ContainsFunc(outcome.Problems, func(problem checks.Problem) bool {
+		return problem.Code == checks.CodeBadStructure && strings.Contains(problem.Message, "task.question_en is missing")
+	})
+	if given != nil && refused == *given {
+		t.Fatalf("a question in English given: %v, and refused for its want: %v; want one refused exactly when none came",
+			*given, refused)
+	}
+	if !asked && slices.Contains(outcome.Event().NearDuplicateOf, checks.EarlierReferenceInEnglish) {
+		t.Fatalf("NearDuplicateOf = %v in a lesson in %q, which asks for no question in English",
+			outcome.Event().NearDuplicateOf, language)
+	}
 }
 
 // keepsItsRules fails the test for an outcome that breaks a rule of its own:

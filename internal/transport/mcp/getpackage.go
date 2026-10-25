@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -80,11 +81,18 @@ func (s *Service) packageOfRequest(ctx context.Context, account store.Account, r
 
 // writtenInText says what of a request's task is written in its language:
 // everything the child reads, though the package it is written from is in
-// English.
+// English; and, where the language is another than English, that the task
+// gives its question in English as well, which a task is refused without.
 func writtenInText(request *profile.OpenRequest) string {
-	return fmt.Sprintf("Write every text the child reads in %s: the question, the options, the hint, the solution "+
+	text := fmt.Sprintf("Write every text the child reads in %s: the question, the options, the hint, the solution "+
 		"and the explanations, and the names in them. The package's reference tasks, solver templates and guide are "+
 		"in English whatever the language; the task is not.", request.Language)
+	if checks.AsksQuestionInEnglish(request.Language) {
+		text += " Give its question in English as well, in task.question_en, with the same names, numbers and " +
+			"conditions, as the guide in the package says: the reference tasks are compared with it, and a task " +
+			"without it is refused."
+	}
+	return text
 }
 
 // solutionDrawn is what the words of a package say of the picture of the

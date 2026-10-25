@@ -132,10 +132,63 @@ func TestADamagedFingerprintIsSkipped(t *testing.T) {
 func TestADuplicateRefusalQuotesNoOption(t *testing.T) {
 	t.Parallel()
 
-	for _, problem := range checks.NearDuplicate(spaceships, "", []string{spaceships}, []string{checks.Fingerprint(spaceships, "")}) {
+	problems := checks.NearDuplicate(spaceships, "", []string{spaceships}, []string{checks.Fingerprint(spaceships, "")})
+	for _, problem := range append(problems, checks.NearCopyInEnglish(spaceships, []string{spaceships})...) {
 		if letter.MatchString(problem.Message) {
 			t.Errorf("%q quotes an option's letter", problem.Message)
 		}
+	}
+}
+
+// A reference task told again in the lesson's language is a copy its question
+// in that language cannot show: tri-34-d3-1 put into Russian word for word
+// shares next to nothing with it. Its question in English, written from the
+// Russian alone, is 0.80 alike and is caught as a copy of it; a task on the
+// same idea that asks something else is 0.47 alike and is not. The translation
+// and the two questions in English come from the set such copies were first
+// measured on.
+func TestACopyToldInAnotherLanguageIsCaughtByItsQuestionInEnglish(t *testing.T) {
+	t.Parallel()
+
+	reference := []string{checks.ReferenceQuestion(t, "tri-34-d3-1")}
+	const (
+		translated = "Фая задумала число. Она умножила его на 5, а потом отняла 7. Получилось 23. Какое число задумала Фая?"
+		copied     = "Faya thought of a number. She multiplied it by 5 and then subtracted 7. She got 23. What number did " +
+			"Faya think of?"
+		another = "Katya thought of a number, added 8 to it, multiplied the result by 3 and got 60. What do you get if " +
+			"the number she thought of is multiplied by 2?"
+	)
+	if problems := checks.NearDuplicate(translated, "ru", reference, nil); len(problems) != 0 {
+		t.Errorf("NearDuplicate(the translation) = %v, want none: in Russian the copy cannot be seen", problems)
+	}
+	problems := checks.NearCopyInEnglish(copied, reference)
+	if got, want := kindsOf(problems), []checks.Earlier{checks.EarlierReferenceInEnglish}; !slices.Equal(got, want) ||
+		problems[0].Code != checks.CodeNearDuplicate || !mentions(problems, "rather than a translation of an example") {
+		t.Errorf("NearCopyInEnglish(its question in English) = %v, want one near_duplicate of %v", problems, want)
+	}
+	if problems := checks.NearCopyInEnglish(another, reference); len(problems) != 0 {
+		t.Errorf("NearCopyInEnglish(a task on the same idea) = %v, want none", problems)
+	}
+}
+
+// The question in English is cut as English is, into the trigrams of its
+// words, and held to the threshold a question in English is held to, whatever
+// the lesson's language: this copy of clk-34-d3-1 with new numbers is 0.65
+// alike word by word and passes, as the same task with new numbers and new
+// words of its plot passes in English. Cut into the characters of a lesson in
+// Chinese, it would be 0.73 alike and refused.
+func TestTheQuestionInEnglishIsMeasuredAsEnglish(t *testing.T) {
+	t.Parallel()
+
+	reference := []string{checks.ReferenceQuestion(t, "clk-34-d3-1")}
+	const retold = "A tower clock strikes twice at every half hour. At the start of every hour it strikes as many times " +
+		"as the hour it shows, from 1 to 6. How many strikes will it make in 6 hours?"
+	if problems := checks.NearDuplicate(retold, "zh", reference, nil); len(problems) != 1 {
+		t.Fatalf("NearDuplicate(cut as Chinese) = %v, want the copy refused, so that the case shows what the cut decides",
+			problems)
+	}
+	if problems := checks.NearCopyInEnglish(retold, reference); len(problems) != 0 {
+		t.Errorf("NearCopyInEnglish() = %v, want none: word by word it is 0.65 alike", problems)
 	}
 }
 

@@ -45,7 +45,7 @@ func TestAWellFormedSubmissionDecodesWhole(t *testing.T) {
 	if draft.Task == nil || draft.SelfCheck == nil || draft.Retired != nil {
 		t.Fatalf("Decode() = %+v, want every part read and nothing retired", draft)
 	}
-	if problems := checks.Structure(draft, testCatalog); len(problems) != 0 {
+	if problems := checks.Structure(draft, "en", testCatalog); len(problems) != 0 {
 		t.Fatalf("Structure() after Decode() = %v, want no problems", problems)
 	}
 }
@@ -142,7 +142,7 @@ func TestAPictureWrittenAsNothingIsNoPicture(t *testing.T) {
 		for _, written := range []any{nil, "", " "} {
 			submitted := validParts(t)
 			draft, problems := checks.Decode(withMember(t, submitted.task, test.member, written), submitted.selfCheck)
-			problems = append(problems, checks.Structure(draft, testCatalog)...)
+			problems = append(problems, checks.Structure(draft, "en", testCatalog)...)
 			drawn := map[string]json.RawMessage{"picture": draft.Task.Picture, "solution_picture": draft.Task.SolutionPicture}
 			if drawn[test.member] != nil || !slices.Contains(draft.Mended, "task."+test.member) ||
 				!refusedFor(problems, test.refusal) {
@@ -322,7 +322,7 @@ func TestAMistypedPartIsStillChecked(t *testing.T) {
 	if draft.Task == nil {
 		t.Fatal("the task was dropped over one mistyped member")
 	}
-	problems = append(problems, checks.Structure(draft, testCatalog)...)
+	problems = append(problems, checks.Structure(draft, "en", testCatalog)...)
 	if !mentions(problems, "task.hint") {
 		t.Errorf("got %v, want the empty hint found in the same pass", problems)
 	}
@@ -341,22 +341,26 @@ func withMember(t *testing.T, raw json.RawMessage, name string, value any) json.
 }
 
 // What the model hands in is untrusted input, and a panic reading it takes the
-// request handler down with it. Whatever arrives, reading and checking it ends
-// in problems, never in a crash — and a part that could not be read is always
-// named, and what was read past or mended only by the names of the format.
+// request handler down with it. Whatever arrives, for a lesson in whatever
+// language, reading and checking it ends in problems, never in a crash — and a
+// part that could not be read is always named, and what was read past or
+// mended only by the names of the format.
 func FuzzDecode(f *testing.F) {
 	valid := validParts(f)
-	f.Add([]byte(valid.task), []byte(valid.selfCheck))
-	f.Add([]byte(`{"options":{"A":1}}`), []byte(`null`))
-	f.Add([]byte(`{"distractors":{"B":{"trap":[]}}}`), []byte(`{"issues":[{"type":5}]}`))
-	f.Add([]byte(`{"drawing_structure":{"objects":[{"value":"x"}]},"picture":{"kind":7}}`), []byte(`"`))
-	f.Add([]byte(`{"drawing":"","drawing_structure":{},"picture":null}`), []byte(`{}`))
-	f.Add([]byte(`{"design_thought_process":"a plan","question":"?"}`), []byte(`{"design_thought_process":1}`))
-	f.Add([]byte(`{"options":{"a":4," B ":5.5,"c":"-1","D":1e3},"correct_answer":" e"}`), []byte(`{"issues":null,"final_answer":"unsolvable","option_check":{"a":"x","A":"y"}}`))
+	f.Add([]byte(valid.task), []byte(valid.selfCheck), "en")
+	f.Add([]byte(`{"options":{"A":1}}`), []byte(`null`), "ru")
+	f.Add([]byte(`{"distractors":{"B":{"trap":[]}}}`), []byte(`{"issues":[{"type":5}]}`), "")
+	f.Add([]byte(`{"drawing_structure":{"objects":[{"value":"x"}]},"picture":{"kind":7}}`), []byte(`"`), "en-GB")
+	f.Add([]byte(`{"drawing":"","drawing_structure":{},"picture":null}`), []byte(`{}`), "zh-Hans")
+	f.Add([]byte(`{"design_thought_process":"a plan","question":"?"}`), []byte(`{"design_thought_process":1}`), "en")
+	f.Add([]byte(`{"options":{"a":4," B ":5.5,"c":"-1","D":1e3},"correct_answer":" e"}`), []byte(`{"issues":null,"final_answer":"unsolvable","option_check":{"a":"x","A":"y"}}`), "EN_us")
+	f.Add([]byte(`{"question":"Сколько пар?","question_en":"How many pairs?"}`), []byte(`{}`), "ru")
+	f.Add([]byte(`{"question":"Сколько пар?","question_en":" "}`), []byte(`{}`), "uk")
+	f.Add([]byte(`{"question_en":["How many pairs?"]}`), []byte(`{}`), "en")
 
-	f.Fuzz(func(t *testing.T, task, selfCheck []byte) {
+	f.Fuzz(func(t *testing.T, task, selfCheck []byte, language string) {
 		draft, problems := checks.Decode(task, selfCheck)
-		problems = append(problems, checks.Structure(draft, testCatalog)...)
+		problems = append(problems, checks.Structure(draft, language, testCatalog)...)
 		wantProblemsOfTheFormat(t, problems)
 		wantEveryUnreadPartNamed(t, &draft, problems)
 		wantOnlyTheFormatsNames(t, &draft)

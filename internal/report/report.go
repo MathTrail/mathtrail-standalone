@@ -99,14 +99,17 @@ type line struct {
 	Level           string   `json:"level"`
 	// A hand-in: how large it was, part by part, in bytes, which a line written
 	// before the service measured them leaves unsaid; what the format no longer
-	// reads that came all the same; and the fields read as they were meant.
-	TaskBytes      *whole   `json:"task_bytes"`
-	SelfCheckBytes *whole   `json:"self_check_bytes"`
-	SolverBytes    *whole   `json:"solver_bytes"`
-	CoreIdeaBytes  *whole   `json:"core_idea_bytes"`
-	TotalBytes     *whole   `json:"total_bytes"`
-	Retired        []string `json:"retired"`
-	Mended         []string `json:"mended"`
+	// reads that came all the same; the fields read as they were meant; and,
+	// in a lesson that asked for its question in English, whether it came with
+	// one, which every other line leaves unsaid.
+	TaskBytes              *whole   `json:"task_bytes"`
+	SelfCheckBytes         *whole   `json:"self_check_bytes"`
+	SolverBytes            *whole   `json:"solver_bytes"`
+	CoreIdeaBytes          *whole   `json:"core_idea_bytes"`
+	TotalBytes             *whole   `json:"total_bytes"`
+	Retired                []string `json:"retired"`
+	Mended                 []string `json:"mended"`
+	QuestionInEnglishGiven *bool    `json:"question_en_given"`
 
 	// An accepted task: the attempts it took, the seconds from the request to
 	// the task, and the kind of its picture, or none. A line written before

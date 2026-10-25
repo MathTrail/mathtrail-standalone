@@ -84,13 +84,15 @@ func raceOn(request *profile.OpenRequest) map[string]any {
 
 // raceInRussianOn is the race as a model writes it for a lesson in Russian:
 // everything the child reads, and the names the solver matches, in Russian;
-// what only the service reads is left as it was.
+// what only the service reads is left as it was, and its question in English,
+// which a lesson in Russian asks for as well, is the race's own.
 func raceInRussianOn(request *profile.OpenRequest) map[string]any {
 	race := raceOn(request)
 	race["task"] = map[string]any{
 		"core_idea": "Order three runners from two comparisons.",
 		"question": "Аня, Бен и Кира бежали наперегонки. Бен прибежал раньше Киры. Аня прибежала позже Киры. " +
 			"Кто прибежал первым?",
+		"question_en":      raceQuestion,
 		"options":          map[string]string{"A": "Аня", "B": "Кира", "C": "Бен", "D": "Никто", "E": "Все вместе"},
 		"correct_answer":   "C",
 		"hint":             "Кто прибежал раньше Киры?",
@@ -1843,7 +1845,12 @@ func TestATaskInOtherLettersThanTheLessonsIsRefused(t *testing.T) {
 		t.Errorf("get_package says %q, want the model told to write every text the child reads in %s", lead, russian)
 	}
 
-	refused := payloadOf[handedInPayload](t, call(t, session, "submit_task", raceOn(request)))
+	// The race in English gives its question in English, as a lesson in Russian
+	// asks, so that its letters are all that is wrong with it.
+	english := raceOn(request)
+	task, _ := english["task"].(map[string]any)
+	task["question_en"] = raceQuestion
+	refused := payloadOf[handedInPayload](t, call(t, session, "submit_task", english))
 	if refused.Status != "rejected" || refused.Code != "wrong_language" || refused.Screen != "waiting" ||
 		refused.Language != russian || refused.AttemptsLeft == nil || *refused.AttemptsLeft != 2 {
 		t.Errorf("submit_task = %+v, want the race in English refused for its letters, two attempts left "+

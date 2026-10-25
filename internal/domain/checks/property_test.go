@@ -16,7 +16,8 @@ import (
 // only for the pairs Postgres was asked about: it does not care which side a
 // question is on, a question is wholly alike itself, the case of its letters
 // and what stands between its words change nothing, and two alphabets that
-// share no letter share nothing.
+// share no letter share nothing — so that a copy told in another one is seen
+// by its question in English alone.
 
 // genWords is a question as its words, from a small alphabet so that two
 // questions share some of them.
@@ -76,6 +77,17 @@ func TestTheMeasureHoldsItsProperties(t *testing.T) {
 			question := strings.Join(words, " ")
 			problems := checks.NearDuplicate(question, "", []string{question}, []string{checks.Fingerprint(question, "")})
 			return slices.Equal(kindsOf(problems), []checks.Earlier{checks.EarlierReference, checks.EarlierPast})
+		},
+		genWords(),
+	))
+
+	properties.Property("a copy told in other letters is seen by its question in English alone", prop.ForAll(
+		func(words []string) bool {
+			reference := strings.Join(words, " ")
+			told := strings.Join(cyrillic(words), " ")
+			return len(checks.NearDuplicate(told, "ru", []string{reference}, nil)) == 0 &&
+				slices.Equal(kindsOf(checks.NearCopyInEnglish(reference, []string{reference})),
+					[]checks.Earlier{checks.EarlierReferenceInEnglish})
 		},
 		genWords(),
 	))

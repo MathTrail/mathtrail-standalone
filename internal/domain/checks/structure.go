@@ -8,19 +8,22 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
 // Structure checks a draft against the format: every text the child or the
 // model relies on is there, the ids it names exist, and the self-check says
 // all it has to. Where the task stands — its topic, level and difficulty — is
-// not the draft's to say: the request it is handed in for keeps that.
+// not the draft's to say: the request it is handed in for keeps that. The
+// language of the lesson, which the request keeps too, says whether the task
+// gives its question in English as well.
 //
 // A part the draft could not read is not checked; Decode has already said why.
-func Structure(draft Draft, catalog TrapDescriber) []Problem {
+func Structure(draft Draft, language string, catalog TrapDescriber) []Problem {
 	var problems []Problem
 	if draft.Task != nil {
-		problems = append(problems, checkTask(draft.Task, catalog)...)
+		problems = append(problems, checkTask(draft.Task, language, catalog)...)
 	}
 	if draft.SelfCheck != nil {
 		problems = append(problems, checkSelfCheck(draft.SelfCheck)...)
@@ -44,10 +47,11 @@ const (
 // on is there and no longer than a card holds, the child is offered five
 // answers they can tell apart, and every wrong one, and only a wrong one,
 // carries the mistake it comes from.
-func checkTask(task *Task, catalog TrapDescriber) []Problem {
+func checkTask(task *Task, language string, catalog TrapDescriber) []Problem {
 	var problems []Problem
 	problems = append(problems, required("task.core_idea", task.CoreIdea)...)
 	problems = append(problems, required("task.question", task.Question)...)
+	problems = append(problems, checkQuestionInEnglish(task, language)...)
 	problems = append(problems, required("task.hint", task.Hint)...)
 	problems = append(problems, required("task.solution", task.Solution)...)
 	problems = append(problems, bounded("task.question", task.Question, longestQuestion)...)
@@ -58,6 +62,32 @@ func checkTask(task *Task, catalog TrapDescriber) []Problem {
 	problems = append(problems, checkPicture(task)...)
 	problems = append(problems, checkSolutionPicture(task)...)
 	return problems
+}
+
+// AsksQuestionInEnglish says whether a lesson in this language asks a task for
+// its question in English as well: a lesson in a language other than English,
+// which the reference tasks are written in, named by a tag a lesson is opened
+// in. A task that came with no language, or with a tag that names none — no
+// language, several, or one only guessed at, which a profile edited by hand
+// may hold — is held to no rule of a language, and to this one neither.
+func AsksQuestionInEnglish(language string) bool {
+	tag, _ := profile.LanguageTag(language) // a tag that breaks a rule comes back empty
+	return tag != "" && !english(tag)
+}
+
+// checkQuestionInEnglish checks that a task of a lesson in a language other
+// than English gives its question in English as well, which is what the
+// reference tasks are compared with. A lesson in English asks for none, and
+// the text of one sent is not read. The refusal says what the member is, for
+// a chat that took its package before the format had it.
+func checkQuestionInEnglish(task *Task, language string) []Problem {
+	if !AsksQuestionInEnglish(language) || !solver.Blank(task.QuestionInEnglish) {
+		return nil
+	}
+	return []Problem{structural("task.question_en is missing or empty: a task of a lesson in %s, which is not "+
+		"English, gives its question in English there as well, with the same names, numbers and conditions, for "+
+		"the comparison with the reference tasks, which are in English; the child never sees it. The guide in "+
+		"the package says so; get_package with the same request_id hands it back", language)}
 }
 
 // checkOptions checks that the child is offered five answers they can tell

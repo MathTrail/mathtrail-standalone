@@ -22,6 +22,9 @@ type Outcome struct {
 	MinorIssues []string
 	// runs are the runs of the solver, kept for what they cost.
 	runs []solver.Result
+	// englishAsked says the lesson asked the task for its question in English
+	// as well.
+	englishAsked bool
 	// judged says the checks were run: only then can anything be accepted.
 	judged bool
 }
@@ -93,9 +96,16 @@ type Submitted struct {
 	// wrote them, never what was written in them.
 	Mended []string
 	// NearDuplicateOf names the kinds of earlier task the question repeats,
-	// each once, in the order they are compared: the reference tasks, then
-	// the child's own. It is empty unless the near-duplicate check failed.
+	// each once, in the order they are compared: the reference tasks, the
+	// child's own, and the reference tasks again by the question in English.
+	// It is empty unless the near-duplicate check failed.
 	NearDuplicateOf []Earlier
+	// QuestionInEnglishGiven says, of a task of a lesson that asked for its
+	// question in English as well, whether it came with one; it is nil where
+	// none was asked for, in a lesson in English, and of a task that could not
+	// be read. Whether, and never what: the line is no place for a word of the
+	// task.
+	QuestionInEnglishGiven *bool
 }
 
 // Event is what the log keeps of this review. An outcome Judge did not return
@@ -119,6 +129,10 @@ func (o *Outcome) Event() Submitted {
 		if problem.NearDuplicateOf != "" {
 			event.NearDuplicateOf = append(event.NearDuplicateOf, problem.NearDuplicateOf)
 		}
+	}
+	if o.englishAsked && o.Draft.Task != nil {
+		given := !solver.Blank(o.Draft.Task.QuestionInEnglish)
+		event.QuestionInEnglishGiven = &given
 	}
 	for _, run := range o.runs {
 		event.SolverSteps += run.Steps

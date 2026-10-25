@@ -45,6 +45,10 @@ type tasks struct {
 	// handedIn counts the attempts judged, and refused those of them the
 	// checks refused.
 	handedIn, refused int
+	// askedInEnglish counts the attempts of lessons that asked for the
+	// question in English as well, and inEnglish those of them that came with
+	// it.
+	askedInEnglish, inEnglish int
 	// outOfAttempts counts the requests whose last attempt was refused.
 	outOfAttempts int
 	// attempts and seconds are, for every task accepted, the attempts it took
@@ -327,6 +331,7 @@ func (c *counts) task(l *line, counted *tasks) {
 		}
 	case eventTaskSubmitted:
 		counted.handedIn++
+		countQuestionInEnglish(l, counted)
 		if l.Outcome != outcomeRejected {
 			return
 		}
@@ -350,6 +355,20 @@ func (c *counts) task(l *line, counted *tasks) {
 	case eventTaskDropped:
 		counted.letGo++
 		c.letGo[letGoFor{version: l.InstructionsVersion, reason: l.Reason, written: l.Written}]++
+	}
+}
+
+// countQuestionInEnglish counts a hand-in of a lesson that asked for its
+// question in English as well, and whether it came with one. A line that says
+// nothing of it, of a lesson in English or written before the service asked
+// for one, is counted neither way.
+func countQuestionInEnglish(l *line, counted *tasks) {
+	if l.QuestionInEnglishGiven == nil {
+		return
+	}
+	counted.askedInEnglish++
+	if *l.QuestionInEnglishGiven {
+		counted.inEnglish++
 	}
 }
 

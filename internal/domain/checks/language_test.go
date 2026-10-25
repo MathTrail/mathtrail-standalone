@@ -353,6 +353,38 @@ func TestTheRefusalNamesWhatToMendAndQuotesNothing(t *testing.T) {
 	}
 }
 
+// In a lesson that asks for the question in English as well, the refusal of
+// the letters says that member stays in English, so that a model writing the
+// task again in the lesson's language does not write that one in it too; a
+// lesson in English asks for none, and its refusal says nothing of it.
+func TestTheRefusalOfTheLettersKeepsTheQuestionInEnglishInEnglish(t *testing.T) {
+	t.Parallel()
+
+	const kept = "Keep task.question_en in English: it is the question once more, with the same names, numbers and " +
+		"conditions, which the reference tasks are compared with."
+	for _, test := range []struct {
+		name, language string
+		task           *checks.Task
+		says           bool
+	}{
+		{"a task in English in a lesson in Russian", "ru", validDraft().Task, true},
+		{"a task in Russian in a lesson in English", "en", russianDraft().Task, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			problems := checks.Language(test.task, test.language)
+			if len(problems) != 1 {
+				t.Fatalf("Language() = %v, want the letters refused", problems)
+			}
+			if said := strings.Contains(problems[0].Message, kept); said != test.says {
+				t.Errorf("the refusal says %q, want the question in English kept in English said: %v",
+					problems[0].Message, test.says)
+			}
+		})
+	}
+}
+
 // withHint is a task with its hint written anew.
 func withHint(task *checks.Task, hint string) *checks.Task {
 	task.Hint = hint
