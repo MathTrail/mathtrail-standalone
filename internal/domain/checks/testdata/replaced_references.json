@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cal-12-d1-2",
+    "grade_level": "1-2",
+    "question": "Tom is 6 years old. How old will he be in 3 years?"
+  },
+  {
+    "id": "cal-12-d2-2",
+    "grade_level": "1-2",
+    "question": "In 4 years Mia will be 11 years old. How old is she now?"
+  },
+  {
+    "id": "cal-12-d2-5",
+    "grade_level": "1-2",
+    "question": "Grandpa is 60 years old. Dad is 35. How old was Grandpa when Dad was born?"
+  },
+  {
+    "id": "cal-12-d3-5",
+    "grade_level": "1-2",
+    "question": "Sasha was born in 2019. In which year will Sasha turn 10?"
+  },
+  {
+    "id": "cal-12-d4-2",
+    "grade_level": "1-2",
+    "question": "The ages of two sisters add up to 15. What will their ages add up to in 3 years?"
+  },
+  {
+    "id": "cal-12-d4-4",
+    "grade_level": "1-2",
+    "question": "Ben is 5 years old and his mum is 29. In how many years will Mum be exactly 3 times as old as Ben?"
+  },
+  {
+    "id": "cal-12-d5-2",
+    "grade_level": "1-2",
+    "question": "Kolya is 8 and his sister is 3. How old will Kolya be when he is exactly twice as old as his sister?"
+  },
+  {
+    "id": "cal-12-d5-4",
+    "grade_level": "1-2",
+    "question": "Twins Ann and Kate and their brother Tom are 23 years old altogether. Tom is 5 years older than each twin. How old is Tom?"
+  }
+]

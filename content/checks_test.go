@@ -1,6 +1,9 @@
 package content_test
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -120,47 +123,50 @@ func TestEveryReferenceTaskIsWrittenInTheLettersOfEnglish(t *testing.T) {
 	}
 }
 
-// The reference tasks of grades 5–6 were written for this service, so they
-// are held to what a task the model writes is held to wherever it applies to
-// them: a hint, and sentences a child of grade 5 can read — the youngest the
-// level is shown to, and so the strictest limits it has.
-func TestEveryTaskOfGradesFiveAndSixIsWrittenAsATaskMustBe(t *testing.T) {
+// The reference tasks written for this service — every task of grades 5–6, and
+// each task of grades 1–4 that took the place of one of the prototype's — are
+// held to what a task the model writes is held to wherever it applies to them:
+// a hint, and sentences a child of the youngest grade of their level can read,
+// the strictest limits the level has.
+func TestEveryTaskWrittenForTheServiceIsWrittenAsATaskMustBe(t *testing.T) {
 	t.Parallel()
 
+	ported := portedTasks(t)
 	checked := 0
 	for _, example := range loaded(t).Examples() {
-		if example.GradeLevel != rating.Grades56 {
+		if ported[example.ID] {
 			continue
 		}
 		checked++
 		if strings.TrimSpace(example.Hint) == "" {
 			t.Errorf("%s: got no hint, want one, as every task the model writes has", example.ID)
 		}
-		for _, problem := range checks.Readability(example.Question, "en", rating.Grades56) {
+		for _, problem := range checks.Readability(example.Question, "en", example.GradeLevel) {
 			t.Errorf("%s: %s", example.ID, problem.Message)
 		}
 	}
 	if checked == 0 {
-		t.Fatal("no reference task of grades 5–6, so nothing here was tested")
+		t.Fatal("no reference task written for this service, so nothing here was tested")
 	}
 }
 
-// No two reference tasks of grades 5–6 read as copies of each other. A new task
-// is held to the same measure against the reference tasks of its child's
-// level, so a pair of reference tasks that close would mean a model following
-// either one is refused as copying the other.
-func TestNoTwoTasksOfGradesFiveAndSixAreNearDuplicates(t *testing.T) {
+// No reference task written for this service reads as a copy of another task
+// of its level. A new task is held to the same measure against the reference
+// tasks of its child's level, so a pair of reference tasks that close would
+// mean a model following either one is refused as copying the other. Pairs of
+// the prototype's own tasks are left out: it wrote many that close.
+func TestNoTaskWrittenForTheServiceNearlyRepeatsATaskOfItsLevel(t *testing.T) {
 	t.Parallel()
 
-	var tasks []content.Example
-	for _, example := range loaded(t).Examples() {
-		if example.GradeLevel == rating.Grades56 {
-			tasks = append(tasks, example)
-		}
-	}
-	closest, between := 0.0, ""
+	ported := portedTasks(t)
+	tasks := loaded(t).Examples()
+	measured, closest, between := 0, 0.0, ""
 	for i := range tasks {
 		for j := i + 1; j < len(tasks); j++ {
+			if tasks[i].GradeLevel != tasks[j].GradeLevel || (ported[tasks[i].ID] && ported[tasks[j].ID]) {
+				continue
+			}
+			measured++
 			similarity := checks.Similarity(tasks[i].Question, tasks[j].Question)
 			if similarity >= checks.Threshold {
 				t.Errorf("%s and %s: similarity %.2f, want below %.2f", tasks[i].ID, tasks[j].ID, similarity, checks.Threshold)
@@ -170,5 +176,33 @@ func TestNoTwoTasksOfGradesFiveAndSixAreNearDuplicates(t *testing.T) {
 			}
 		}
 	}
-	t.Logf("the closest pair of %d tasks: %s, at %.2f", len(tasks), between, closest)
+	if measured == 0 {
+		t.Fatal("no pair holds a reference task written for this service, so nothing here was tested")
+	}
+	t.Logf("the closest of %d pairs: %s, at %.2f", measured, between, closest)
+}
+
+// portedTasks are the ids of the reference tasks ported from the prototype, as
+// its golden vectors name them, and only those: a task written for this service
+// in the place of one of them has an id of its own.
+func portedTasks(t *testing.T) map[string]bool {
+	t.Helper()
+
+	raw, err := os.ReadFile(filepath.Join("..", "testdata", "golden", "readability.json"))
+	if err != nil {
+		t.Fatalf("read the prototype's golden vectors: %v", err)
+	}
+	var golden struct {
+		Examples []struct {
+			ID string `json:"id"`
+		} `json:"examples"`
+	}
+	if err := json.Unmarshal(raw, &golden); err != nil {
+		t.Fatalf("parse the prototype's golden vectors: %v", err)
+	}
+	ported := make(map[string]bool, len(golden.Examples))
+	for _, example := range golden.Examples {
+		ported[example.ID] = true
+	}
+	return ported
 }

@@ -35,7 +35,7 @@ A child has a **grade** from 1 to 6, and a task has a **level** — the band of 
 
 | Level | Grades | Longest sentence | Flesch–Kincaid (English only) | Reference tasks |
 |---|---|---|---|---|
-| `1-2` | 1, 2 | 20 words | 4 | from the prototype |
+| `1-2` | 1, 2 | 20 words | 4 | from the prototype, but for eight of the calendar written in T104.17 |
 | `3-4` | 3, 4 | 25 words | 6 | from the prototype |
 | `5-6` | 5, 6 | **30 words** | 8 | written in T37–T39 |
 
@@ -171,7 +171,7 @@ The solver is not one of these fields. It is a file of its own, `content/example
 | `picture` | no | The description of a picture the card draws, wherever the task has something to see (R68, R228, R269). The format is 4.4 |
 | `options` | yes | Exactly five, all different |
 | `correct_answer` | yes | Exactly one letter |
-| `hint` | new tasks only | A nudge that does not give the answer away. The 450 ported tasks have none; the format the model must produce always does, and so does every task of `5-6` (1.6) |
+| `hint` | new tasks only | A nudge that does not give the answer away. The 442 ported tasks have none; the format the model must produce always does, and so does every task written for this service, those of `5-6` and the eight of the calendar of `1-2` (1.6) |
 | `solution` | yes | Short, step by step |
 | `distractors` | yes | One entry per wrong option: a trap id from the catalog and the text the child sees after answering |
 | the solver | yes, after T29–T31 | A file beside the tasks, not a field: `content/examples/solvers/<id>.star`. The Starlark program that brute-forces this very task. It makes every example re-checkable on the bench, and it is not what goes into the package — the model is shown the generalised templates of `content/solvers/` instead (R08) |
@@ -180,7 +180,7 @@ The solver is not one of these fields. It is a file of its own, `content/example
 
 ## 1.6 How many reference tasks, and in which batches
 
-**Grades 1–4 — 450 tasks, unchanged.** Five per (topic × level × difficulty) across the eighteen topic-and-level pairs of the prototype. They are ported as they are (T23); T29–T31 add a Starlark solver to each. Their questions stay word for word, since the near-duplicate check is measured against the prototype's numbers for them (5.6); T83 gave 59 of them a drawing, each where its question already names what the drawing labels — a number standing apart or a Latin capital (R228) — and T70.2 turned those drawings into pictures, the questions left as they were (4.4, R269, R271).
+**Grades 1–4 — 450 tasks, 442 of them the prototype's.** Five per (topic × level × difficulty) across the eighteen topic-and-level pairs of the prototype. They are ported as they are (T23); T29–T31 add a Starlark solver to each. Their questions stay word for word, since the near-duplicate check is measured against the prototype's numbers for them (5.6); T83 gave 59 of them a drawing, each where its question already names what the drawing labels — a number standing apart or a Latin capital (R228) — and T70.2 turned those drawings into pictures, the questions left as they were (4.4, R269, R271). Eight tasks of the calendar of `1-2` about ages gave way in T104.17 to tasks written for this service on the level's other ideas, each of the difficulty of the one it replaced and under a number of its own (R310). They are held to what a task of `5-6` is held to, below, their questions read within grade 1, and the prototype's questions of the eight are kept beside the tests, so that the comparison with the prototype's numbers still measures the 450 it measured.
 
 **Grades 5–6 — 153 new tasks.** Seventeen topics exist at `5-6` (the ten extended plus the seven new), and each gets **nine tasks: three each at difficulties 2, 3 and 4**.
 
@@ -850,7 +850,7 @@ The picture is read against the wording in four ways. Each leans away from a ref
   - the English "I";
   - straight after a number, where it is a unit ("a 3 L jug", "30 °C").
 - **Capitals written together** — the AB of a segment, the ABC of a triangle — are a label each when most of their letters are labels of the picture, and a word in capitals otherwise ("NOT").
-- **Numbers and quotations are not read.** Over the 450 reference questions, 351 hold a number and 110 hold a lone capital, nearly always the article "A"; all 21 short quotations are speech. Under this rule a single question names labels: the X, Y and Z of a locker code.
+- **Numbers and quotations are not read.** Over the prototype's 450 reference questions, 351 hold a number and 110 hold a lone capital, nearly always the article "A"; all 21 short quotations are speech. Under this rule a single question names labels: the X, Y and Z of a locker code.
 
 The refusal names the labels themselves: they are the wording's own words and say nothing about which option is right.
 
@@ -2164,7 +2164,7 @@ Collected while writing this part; none of them changes a product decision.
 1. **Nine reference tasks per topic at `5-6`, not twenty-five.** It is a deliberate asymmetry with grades 1–4 and the reason is the review cost of hand-written content. If T62 shows the model doing noticeably worse at difficulties 1 and 5 at that level, a fourth batch adds the missing anchors. **For:** T37–T39, T62.
 2. **The seven new topics are `5-6` only.** `number.divisibility` and `logic.sets` would work at `3-4` too, but that would mean another 18 reference tasks and another review. **For:** a later edition.
 3. **`geometry.grid` is the one topic that can fail its entry exam.** О-30 planned for that; T37 is where it is decided, and the replacement is chosen from the same list with no new decision round. **Passed in T37.1:** nine tasks whose solvers count cell sides, enumerate placements and split cells into pieces joined by sides, each a search rather than a formula, with no visual counting among them.
-4. **The prototype's reference tasks have no `hint`.** The format the model must produce always does, and the new `5-6` tasks will. Backfilling hints into the 450 ported examples is optional work nobody is scheduled to do. **For:** T23, T36.
+4. **The prototype's reference tasks have no `hint`.** The format the model must produce always does, and the new `5-6` tasks will. Backfilling hints into the 450 ported examples is optional work nobody is scheduled to do. **For:** T23, T36. **Since T104.17** eight of the 450 are tasks of the calendar of `1-2` written for this service in the place of eight ported ones, and they have hints (R310).
 5. **The `excluded_skills` cap in 04-profile reads "15 (the catalog's size)".** The catalog is 25 now, so the cap is the catalog's size, not the literal 15. **For:** T26. **Measured with the package (T36.1):** at 25 the budget test of 4.1 fails — 8 of the 2,550 packages of a child at every limit, written in Latin letters, go over by up to 224 bytes — so raising the cap is also a decision about the budget. **No longer, since T36a:** at 64 KB (R65) ten more excluded skills add about a kilobyte to a package that is under 25 KB at every limit, so the cap is a question for the profile alone. **Settled in T43:** the cap is 25, the size of the catalog, and a test of the content holds the two to one number; the budget of 4.1 is measured at it (R99).
 6. **The rank boundaries are defined here** because they are rating arithmetic, and T57 only draws them. If SPEC section 8 turns out to be a better home, move them there rather than duplicating them. **For:** T14, T57.
 
