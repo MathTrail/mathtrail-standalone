@@ -9,19 +9,26 @@
     "A circle of boys and girls standing in turn: how many of each.",
     "A frog jumping two stones at a time: which stones it can land on.",
     "Sweets shared equally between two friends and between some other number of friends.",
-    "Coins turned over one at a time: after how many turns they can all lie the other way up."
+    "Coins turned over one at a time: after how many turns they can all lie the other way up.",
+    "A number added to itself, or anything made of two equal halves, such as a double domino: the total is always even.",
+    "Two children taking turns, the first on every odd turn: whose turn a given one is, such as the ninth.",
+    "A strip of squares filled with dominoes, two squares each: a strip of an odd number of squares always leaves one empty.",
+    "Two numbers next to each other in counting, such as 7 and 8: one is even and the other odd, so their sum is odd."
   ],
   "3-4": [
     "The sum of two numbers is odd: what the other number can be.",
-    "How many odd numbers there are in a range.",
-    "A repeating pattern, of beads on a string or a traffic light's colours: what comes at a far-off place.",
+    "A number of things split into two groups: the groups can differ by an even number only when the whole is even, and by an odd number only when it is odd.",
+    "Plus and minus signs put between numbers in a row: whichever signs are chosen, the result is even or odd just as the plain sum is.",
     "A product of two numbers is odd: what that says about both of them.",
-    "A grasshopper jumping one step left or right each time: where it can be after some jumps.",
-    "A sum of many odd numbers, such as the cost of several things at an odd price: even or odd by how many there are.",
+    "Sheets torn out of a book: each holds an odd page and the next even one, so the two numbers on a sheet add up to an odd number.",
+    "A sum written in a column with its digits marked only even or odd: the evenness of each column, with what is carried, tells which digits can stand there.",
     "The sum of the odd numbers against the sum of the even numbers in a range.",
-    "A circle of children: whether boys and girls can take turns all the way round.",
-    "Coins turned over two at a time: the fewest moves to show all heads.",
-    "Number cards split into two piles with equal sums: which sets can be split."
+    "Points or children in a row with a new one put between every two neighbours: the count becomes odd, however many there were.",
+    "A sheet torn up again and again, one piece at a time into three parts or five: every tear adds an even number of pieces, so their count stays odd.",
+    "Number cards split into two piles with equal sums: which sets can be split.",
+    "Gears in a ring, each turning the next one the other way: with an odd number of gears none of them can turn.",
+    "Fruits picked by rules that change the number of one kind by two or not at all: that number stays even or odd, which tells the last fruit.",
+    "Creatures with three hands each, holding hands so that no hand is free: an odd number of them cannot do it."
   ],
   "5-6": [
     "Steps that add or multiply: which numbers can be reached.",
@@ -33,6 +40,14 @@
     "Frogs jumping over one another on a line: which places are possible.",
     "Switching three lamps in a row at a time: whether all of them can be on.",
     "Bugs crawling to neighbouring squares: how many squares can be left empty.",
-    "Handshakes at a party: how many people shook an odd number of hands."
+    "Handshakes at a party: how many people shook an odd number of hands.",
+    "Stories of different lengths in a book, each starting on a new page: a story of an odd length moves the next start from an odd page to an even one or back.",
+    "People standing so that all their distances differ, each shooting the nearest one: with an odd number of them, someone stays dry.",
+    "Coins of three colours, two of different colours traded for one of the third: whether each difference between the counts is even never changes.",
+    "A jumper on numbered points round a circle whose step depends on whether its point is odd or even: its places soon repeat in a cycle.",
+    "The squares of a chessboard numbered row by row: a row has an even number of squares, so the odd numbers lie on one colour in a row and on the other in the next.",
+    "Children round a table where each child and both neighbours together hold an odd number of sweets: the numbers repeat every three places, so unless three divides the count, each holds an odd number.",
+    "A number written as a sum of odd numbers in a row: an odd count of them gives an odd sum, and an even count a multiple of four.",
+    "Numbers chosen from a small set and told only by their product: when that product cannot tell whether their sum is odd or even."
   ]
 }

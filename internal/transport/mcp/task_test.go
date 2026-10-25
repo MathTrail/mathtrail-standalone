@@ -1528,16 +1528,23 @@ func TestAnUnansweredTaskIsSkippedByTheNextAsk(t *testing.T) {
 func TestThePackageNamesAnIdeaNotYetGivenInItsRound(t *testing.T) {
 	t.Parallel()
 
+	loaded, err := shipped()
+	if err != nil {
+		t.Fatalf("content.Load() error = %v", err)
+	}
+	length := loaded.IdeaCount("logic.ordering", rating.Grades12)
+	missing := length / 2
+
 	for _, tc := range []struct {
 		name   string
 		given  profile.IdeaRound
 		wanted string
 		holds  func(profile.Idea) bool
 	}{
-		{"every idea of the round given but one", profile.IdeaRound{Given: []int{1, 2, 3, 4, 5, 6, 8, 9, 10}, Round: 2},
-			"idea 7 of round 2", func(idea profile.Idea) bool { return idea == profile.Idea{Number: 7, Round: 2} }},
-		{"every idea of the round given", profile.IdeaRound{Given: []int{3, 1, 4, 2, 5, 9, 6, 8, 7, 10}, Round: 2},
-			"an idea of round 3 but 10", func(idea profile.Idea) bool { return idea.Round == 3 && idea.Number != 10 }},
+		{"every idea of the round given but one", profile.IdeaRound{Given: everyPlaceBut(length, missing), Round: 2},
+			fmt.Sprintf("idea %d of round 2", missing), func(idea profile.Idea) bool { return idea == profile.Idea{Number: missing, Round: 2} }},
+		{"every idea of the round given", profile.IdeaRound{Given: everyPlaceTheLastLast(length), Round: 2},
+			fmt.Sprintf("an idea of round 3 but %d", length), func(idea profile.Idea) bool { return idea.Round == 3 && idea.Number != length }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -1565,6 +1572,29 @@ func TestThePackageNamesAnIdeaNotYetGivenInItsRound(t *testing.T) {
 			}
 		})
 	}
+}
+
+// everyPlaceBut is the places of a list of ideas of that length, in order, but
+// the one missing.
+func everyPlaceBut(length, missing int) []int {
+	places := make([]int, 0, length)
+	for place := 1; place <= length; place++ {
+		if place != missing {
+			places = append(places, place)
+		}
+	}
+	return places
+}
+
+// everyPlaceTheLastLast is the places of a list of ideas of that length in an
+// order other than the list's: backwards from the one before the last, and the
+// last given last.
+func everyPlaceTheLastLast(length int) []int {
+	places := make([]int, 0, length)
+	for place := length - 1; place >= 1; place-- {
+		places = append(places, place)
+	}
+	return append(places, length)
 }
 
 // A request that runs out of attempts gives no idea: nothing it was asked for
