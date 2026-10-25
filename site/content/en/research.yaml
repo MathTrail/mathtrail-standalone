@@ -1,5 +1,5 @@
 title: Research
-description: "The numbers behind MathTrail: its checks of every task, its student model against its goals, and where its reference tasks come from."
+description: "The numbers behind MathTrail: its checks of every task, its student model against its goals, and where the ideas of its tasks come from."
 
 hero:
   badge: For technical readers
@@ -180,7 +180,7 @@ live:
       caption: The rule asks for the task whose chance is nearest {middle}, the middle of the corridor from {low} to {high}. The point is the share answered right, and the dashed line is the corridor's middle.
 
 sources:
-  title: Where the reference tasks came from
+  title: Where the ideas of the tasks came from
   lead: Ideas are not protected by copyright, and texts are. So from a book only a task's idea and its answer are taken, and the wording, the story, the options and the traps are written anew.
   authors:
     perelman:
@@ -212,6 +212,10 @@ sources:
   died: † {year}
   public: In the public domain
   public_note: The copyright in these books has run out. They belong to everyone, and anyone may use them for free.
+  collections:
+    mathnet:
+      name: MathNet
+      note: An open collection of olympiad problems from many countries. Each topic keeps a list of ideas its tasks are built on, and for grades {first}–{last} some of them come from this collection. Some countries keep the rights to their problems, so from it, too, only an idea is taken, never a text.
   total: In all, {count} {noun}
   each: each with a solver and a trap behind every wrong option
   level: "{count} · grades {first}–{last}"

@@ -47,8 +47,15 @@ const wordsIn = (locale: string) =>
 const tex = textOf("research", "paper-a", "main.tex");
 const russianDraft = textOf("research", "paper-a", "draft.ru.md");
 
-// names are the names on the page that carry digits of their own.
+// names are the names in the page's words that carry digits of their own, the
+// cipher that seals the answer; drawn are the names the drawn page shows with
+// digits, those and the licences of the collections of problems, which come
+// from the data rather than from the words.
 const names = ["XChaCha20-Poly1305"];
+const drawn = [
+	...names,
+	...file.research.collections.map(({ licence }) => licence),
+];
 
 // withPaper is the fixture as the bench writes it, the paper's PDF named;
 // withoutPaper is the same with no file of the paper shipped.
@@ -759,6 +766,22 @@ describe("the page Research", () => {
 		expect(texts(page, ".s-research-died")).toContain("† 1942");
 	});
 
+	test.each(languages)(
+		"names in %s the collection of problems the ideas come from, with its address, its licence and its grades",
+		(locale) => {
+			const shown = pages.get(locale) as Document;
+			const [collection] = file.research.collections;
+			const link = shown.querySelector(".s-research-collections a");
+
+			expect(link?.getAttribute("href")).toBe(collection?.url);
+			expect(link?.textContent).toBe("MathNet");
+			expect(texts(shown, ".s-research-licence")).toEqual([
+				collection?.licence,
+			]);
+			expect(values(shown, ".s-research-collections data")).toEqual(["5", "6"]);
+		},
+	);
+
 	test.each([
 		["English", "en", [", ", ", ", ", ", ", "]],
 		["Spanish", "es", [", ", ", ", ", ", " y "]],
@@ -1097,7 +1120,10 @@ describe("the numbers on the page Research", () => {
 			...noRanges,
 			...openRange,
 		]) {
-			expect(handTyped(each, { names, values: commits }), locale).toEqual([]);
+			expect(
+				handTyped(each, { names: drawn, values: commits }),
+				locale,
+			).toEqual([]);
 		}
 	});
 

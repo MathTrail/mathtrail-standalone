@@ -78,7 +78,7 @@ describe("the site's own data", () => {
 		expect(data.research).toBeUndefined();
 	});
 
-	test("holds the numbers of the page Research the build gives it, with the authors of the books the reference tasks come from", () => {
+	test("holds the numbers of the page Research the build gives it, with the authors of the books the reference tasks come from and the collections of problems the ideas come from", () => {
 		const research = siteData(fixture).research;
 
 		expect(research?.bench.rows.length).toBe(fixture.bench.rows.length);
@@ -92,6 +92,9 @@ describe("the site's own data", () => {
 		for (const author of research?.authors ?? []) {
 			expect(author.books.length).toBeGreaterThan(0);
 		}
+		expect(research?.collections.map(({ id, level }) => [id, level])).toEqual([
+			["mathnet", "5-6"],
+		]);
 	});
 });
 
@@ -395,6 +398,19 @@ describe("the site's data", () => {
 			"a map of a topic that builds on other than two",
 			home({ map: "counting.gaps" }),
 			"site/data.json: the home page shows counting.gaps between two topics it builds on, and it builds on 0",
+		],
+		[
+			"a collection of problems at an address that is not https",
+			{
+				...knights,
+				research: {
+					...file.research,
+					collections: [
+						{ ...file.research.collections[0], url: "http://mathnet.mit.edu" },
+					],
+				},
+			},
+			"research.collections[0].url",
 		],
 	])("is refused for %s", (_, broken, want) => {
 		expect(() => readSiteData(catalog, broken)).toThrow(want);

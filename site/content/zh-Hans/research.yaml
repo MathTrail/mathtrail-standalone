@@ -1,5 +1,5 @@
 title: 研究
-description: MathTrail 背后的数字：检查如何把关，让题目在毫无差错之前到不了孩子面前；学生模型对照目标表现如何；参考题从何而来。
+description: MathTrail 背后的数字：检查如何把关，让题目在毫无差错之前到不了孩子面前；学生模型对照目标表现如何；题目的思路从何而来。
 
 hero:
   badge: 写给技术读者
@@ -180,7 +180,7 @@ live:
       caption: 规则请求答对概率最接近{middle}的题，这个值是从{low}到{high}的目标区间的中点。圆点表示答对的比例，虚线表示目标区间的中点。
 
 sources:
-  title: 参考题从何而来
+  title: 题目的思路从何而来
   lead: 思路不受著作权保护，文字才受保护。所以从书中只取题目的思路和答案，题目的措辞、故事、选项和陷阱都重新编写。
   authors:
     perelman:
@@ -212,6 +212,10 @@ sources:
   died: 卒于{year}年
   public: 已进入公有领域
   public_note: 这些书的著作权保护期已满。它们属于所有人，任何人都可以免费使用。
+  collections:
+    mathnet:
+      name: MathNet
+      note: 一个公开的题库，收录了许多国家的数学奥林匹克竞赛题。每个专题都有一份思路清单，题目建立在这些思路之上，其中{first}–{last}年级的部分思路取自这个题库。有些国家保留了本国题目的权利，所以从这里也只取思路，从不取原文。
   total: 共{count}{noun}
   each: 每道题都有求解程序，每个错误选项背后都有一个陷阱
   level: "{count} · {first}–{last}年级"

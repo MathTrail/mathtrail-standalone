@@ -14,7 +14,7 @@ import { listMarks, useSiteWords } from "./words";
 /**
  * researchSections are the ids of the parts of the page "Research" that other
  * pages and links lead to: the student model, the live numbers, where the
- * reference tasks came from, and the whole paper.
+ * ideas of the tasks came from, and the whole paper.
  */
 export const researchSections = {
 	model: "student-model",
@@ -28,7 +28,7 @@ export const researchSections = {
  * goes from the chat's model through the checks to the child, and the way to
  * the paper; four things the paper shows; the student model against its
  * goals; the live numbers of the latest month counted whole, once there are
- * enough of them; where the reference tasks came from; and the whole paper.
+ * enough of them; where the ideas of the tasks came from; and the whole paper.
  * Every number it shows is its data's, computed from the commit the site is
  * built from or taken from the snapshot committed with it, or marked as one
  * its text chooses.
@@ -57,9 +57,11 @@ export function ResearchPage({ page, data }: PageProps) {
 	);
 }
 
-// Sources is where the reference tasks came from: the rule that takes an idea
-// and not a text, the authors of the books with the year each died, that the
-// books belong to everyone, and the reference tasks by level.
+// Sources is where the ideas of the tasks came from: the rule that takes an
+// idea and not a text, the authors of the books with the year each died, that
+// the books belong to everyone, the collections of problems that give ideas to
+// the topics' lists, each with its licence and the grades it gives them for,
+// and the reference tasks by level.
 function Sources({ page, research }: { page: PageReader; research: Research }) {
 	const words = useSiteWords();
 	const total = research.product.reference_tasks.total;
@@ -108,6 +110,24 @@ function Sources({ page, research }: { page: PageReader; research: Research }) {
 				</span>{" "}
 				<span>{page.text("sources.public_note")}</span>
 			</p>
+			<ul class="s-research-authors s-research-collections">
+				{research.collections.map((collection) => (
+					<li key={collection.id}>
+						<p class="s-research-author">
+							<a href={collection.url}>
+								{page.text(`sources.collections.${collection.id}.name`)}
+							</a>{" "}
+							<span class="s-research-licence">{collection.licence}</span>
+						</p>
+						<p class="s-research-books">
+							{page.text(`sources.collections.${collection.id}.note`, {
+								first: <Num value={collection.first} />,
+								last: <Num value={collection.last} />,
+							})}
+						</p>
+					</li>
+				))}
+			</ul>
 			<div class="s-research-total">
 				<p class="s-research-total-head">
 					<span class="s-research-total-count">

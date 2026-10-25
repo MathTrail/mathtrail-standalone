@@ -9,19 +9,32 @@
     "Two-digit numbers whose digits add up to a given number.",
     "A robot's steps, some to the right and one or two up, in any order: how many orders there are.",
     "Cones of two scoops from a few flavours, when the order of the scoops matters and when it does not.",
-    "Flags of two or three stripes, neighbouring stripes in different colours."
+    "Flags of two or three stripes, neighbouring stripes in different colours.",
+    "Two dice or spinners: the ways they can show a given total, the first and the second counted apart.",
+    "Each of a few things one of two ways, a coin heads or tails, a lamp on or off: every new thing doubles the results.",
+    "Climbing a few stairs one or two steps at a time: the ways sorted by the last step.",
+    "The different amounts a few coins make, one or more of them used at a time.",
+    "Rows of a few things where some are alike, such as two red beads and a blue one: swapping the alike ones makes no new row.",
+    "Four children split into two pairs: the partner of one child decides the whole split.",
+    "There and back by different paths: for each path there, every path back but that one.",
+    "Two things put in a row of places so that they are not side by side: their places listed in order."
   ],
   "3-4": [
-    "Games or cards among a group, every pair once or twice: the games from the players, or the players from the games.",
-    "Three-digit numbers from given digits, all different or with repeats allowed.",
-    "Choosing two or three things from a few, when the order does not matter.",
-    "Paths on a grid that only go right and up.",
-    "Ways to pay an amount with coins of three values.",
+    "A knockout tournament: every game sends one player home, so there is one game fewer than there are players.",
+    "Numbers that read the same from both ends: the first half of the digits decides the rest.",
+    "A few identical sweets shared among three children, each getting at least one: listed by what the first child gets.",
+    "People round a table, where turning the table round gives the same seating: one person's seat is fixed first.",
+    "In half of all the orders of a few people one stands before another, since swapping those two pairs the orders off.",
     "How many numbers in a range contain a given digit, or how many times a digit is written.",
     "A team with a captain: the members chosen, and then one of them to lead.",
-    "Lines with a rule: someone at an end, or two people never side by side.",
-    "Codes of letters and digits, or of digits written in increasing order.",
-    "The choices a condition rules out, counted and taken from all the choices: two children who are not both girls."
+    "Lines where boys and girls take turns: once it is known who stands first, the boys' orders are multiplied by the girls' orders.",
+    "Things handed back so that nobody gets their own, hats or letters: listed one by one for three or four people.",
+    "The choices a condition rules out, counted and taken from all the choices: two children who are not both girls.",
+    "Rectangles made of a given number of square tiles: the pairs of numbers that multiply to it, each pair once.",
+    "Pairs whose total is even or odd: counted as odd with odd and even with even, case by case.",
+    "Stacks of one or more of a few different books: the stacks of each height counted and then added.",
+    "Two things of different kinds bought from three kinds, such as a cup and a saucer: each pair of kinds multiplied, and the products added.",
+    "Two rooks of different colours on a small board that do not attack: the second keeps off the first one's row and column."
   ],
   "5-6": [
     "Menus and outfits with one combination that is not allowed.",
@@ -33,6 +46,16 @@
     "Numbers with conditions on their digits: all different, odd, or a given digit sum.",
     "Seats in a row with two rules at once, such as sitting together and not at an end.",
     "Teams under conditions: someone must be in, and two refuse to be together.",
-    "Rectangles or squares of every size in a small grid of cells."
+    "Rectangles or squares of every size in a small grid of cells.",
+    "A round-robin where every player won a different number of games: the wins are 0, 1, 2 and so on, so each order of players is one result.",
+    "Numbers chosen so that no pair adding up to a given total is taken whole: each pair gives none, its smaller or its bigger number.",
+    "Things chosen from a row so that no two are next to each other: closing up the gaps turns it into a plain choice.",
+    "Rows of numbers where each new one is the biggest or the smallest so far: from the back, every place but the first has two choices.",
+    "Problems solved by pupils, counted two ways, by the problems and by the pupils: the one count not given follows.",
+    "Rows of coloured balls worked back from how many rows there are to how many balls share a colour.",
+    "Different things shared so that nobody is left out: all the ways less those in which someone gets nothing.",
+    "Numbers paired up so that in every pair the bigger is at least twice the smaller: the small numbers must go with the big ones.",
+    "A small table whose rows and columns must add up to multiples of 3: the free cells decide all the others.",
+    "Seats on the two sides of a booth with room for so many on a side: the people split between the sides first, then each side seated."
   ]
 }

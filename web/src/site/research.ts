@@ -225,8 +225,10 @@ export type AnswersCell = LiveShown["kept_up"][number];
  * problem books the reference tasks take their ideas from, in the order the
  * page names them, each with the year the author died, from which most of the
  * world counts the term of the books' copyright, and the books by an id of the
- * site's own. The
- * names and the titles are words of the page, under the same ids.
+ * site's own; and the collections of problems that give ideas to the topics'
+ * lists at a level, each with its address, which is https, its licence and
+ * that level. The names, the titles and what a collection gives are words of
+ * the page, under the same ids.
  */
 export const researchSources = z.object({
 	sources: z
@@ -238,6 +240,16 @@ export const researchSources = z.object({
 			}),
 		)
 		.min(1),
+	collections: z
+		.array(
+			z.object({
+				id: z.string().regex(/^[a-z]+$/),
+				url: z.url({ protocol: /^https$/ }),
+				licence: z.string().min(1),
+				level: z.string(),
+			}),
+		)
+		.min(1),
 });
 
 /** ResearchSources is what the site's data gives the page "Research". */
@@ -245,6 +257,15 @@ export type ResearchSources = z.infer<typeof researchSources>;
 
 /** Author is an author of the problem books the reference tasks come from. */
 export type Author = ResearchSources["sources"][number];
+
+/**
+ * Collection is a collection of problems that gives ideas to the topics'
+ * lists at a level, with the first and the last grade of that level.
+ */
+export type Collection = ResearchSources["collections"][number] & {
+	readonly first: number;
+	readonly last: number;
+};
 
 /**
  * Level is a level of the reference tasks as the page shows it: the grades it
@@ -260,21 +281,24 @@ export type Level = {
 /**
  * Research is what the page "Research" draws: the file as the bench writes
  * it, the levels of the reference tasks from the lowest, and the authors of
- * the problem books, from the site's own data.
+ * the problem books and the collections of problems, from the site's own data.
  */
 export type Research = ResearchFile & {
 	readonly levels: readonly Level[];
 	readonly authors: readonly Author[];
+	readonly collections: readonly Collection[];
 };
 
 /**
  * readResearch reads the data of the page "Research" beside the catalog the
- * site reads and the authors the site's data names. A file of another shape
- * is refused, and so is one whose marks do not follow from its numbers, whose
- * counts disagree with the catalog, whose constants contradict what the page
- * says of them (so many options, the letters shifted so far, a guess of one
- * option in all of them, a corridor around its middle), or whose live numbers
- * show a cell their own rule hides.
+ * site reads and the authors and the collections the site's data names. A
+ * file of another shape is refused, and so is one whose marks do not follow
+ * from its numbers, whose counts disagree with the catalog, whose constants
+ * contradict what the page says of them (so many options, the letters shifted
+ * so far, a guess of one option in all of them, a corridor around its middle),
+ * or whose live numbers show a cell their own rule hides. A collection of a
+ * level the catalog teaches no topic at is refused too: the page says which
+ * grades it gives ideas for.
  */
 export function readResearch(
 	catalog: Catalog,
@@ -299,14 +323,37 @@ export function readResearch(
 	}
 	if (sources === undefined) {
 		throw new Error(
-			"site/data.json names no authors for the page Research, which its data needs",
+			"site/data.json names no authors or collections of problems for the page Research, which its data needs",
 		);
 	}
 	return {
 		...file,
 		levels: levelsOf(file.product.reference_tasks.by_level),
 		authors: sources.sources,
+		collections: sources.collections.map((collection) =>
+			collectionAt(catalog, collection),
+		),
 	};
+}
+
+// collectionAt is a collection with the grades of its level, which has to be
+// a level the catalog teaches a topic at: the collection gives ideas to the
+// lists of the topics there.
+function collectionAt(
+	catalog: Catalog,
+	collection: ResearchSources["collections"][number],
+): Collection {
+	if (
+		!catalog.topics.some((topic) =>
+			topic.grade_levels.includes(collection.level),
+		)
+	) {
+		throw new Error(
+			`site/data.json gives the collection ${collection.id} the level ${collection.level}, at which the catalog teaches no topic`,
+		);
+	}
+	const [first, last] = gradesOf([collection.level]);
+	return { ...collection, first, last };
 }
 
 /**

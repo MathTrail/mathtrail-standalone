@@ -1,5 +1,5 @@
 title: Étude
-description: "Les chiffres derrière MathTrail : ses vérifications de chaque problème, son modèle de l’élève face à ses objectifs, et d’où viennent ses problèmes de référence."
+description: "Les chiffres derrière MathTrail : ses vérifications de chaque problème, son modèle de l’élève face à ses objectifs, et d’où viennent les idées de ses problèmes."
 
 hero:
   badge: Pour un public technique
@@ -180,7 +180,7 @@ live:
       caption: La règle demande le problème dont la probabilité de réussite est la plus proche de {middle}, le milieu du couloir qui va de {low} à {high}. Le point est la part de bonnes réponses, et la ligne en pointillés, le milieu du couloir.
 
 sources:
-  title: D’où viennent les problèmes de référence
+  title: D’où viennent les idées des problèmes
   lead: Le droit d’auteur ne protège pas les idées, mais il protège les textes. C’est pourquoi, d’un livre, on ne prend que l’idée d’un problème et sa réponse ; l’énoncé, l’histoire, les réponses proposées et les pièges sont réécrits.
   authors:
     perelman:
@@ -212,6 +212,10 @@ sources:
   died: † {year}
   public: Dans le domaine public
   public_note: Les droits d’auteur sur ces livres ont expiré. Ils appartiennent à tous, et chacun peut les utiliser gratuitement.
+  collections:
+    mathnet:
+      name: MathNet
+      note: Un recueil ouvert de problèmes d’olympiades de nombreux pays. Chaque thème garde une liste d’idées sur lesquelles reposent ses problèmes, et pour les niveaux {first}–{last}, certaines viennent de ce recueil. Certains pays gardent les droits sur leurs problèmes, si bien que de ce recueil aussi on ne prend qu’une idée, jamais un texte.
   total: Au total, {count} {noun}
   each: chacun avec un solveur et un piège derrière chaque mauvaise réponse
   level: "{count} · niveaux {first}–{last}"
