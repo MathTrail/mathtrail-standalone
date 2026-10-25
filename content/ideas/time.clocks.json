@@ -9,17 +9,20 @@
     "Things done at the same time take no longer: three eggs boiled together in one pot.",
     "Half past, quarter past and quarter to: times said in words, and the minutes in parts of an hour.",
     "A clock face shows every time twice a day: how many times a day it shows a given hour.",
-    "A bus that leaves every few minutes: the next one after a given time."
+    "A bus that leaves every few minutes: the next one after a given time.",
+    "Reading a clock face: the long hand counts five minutes for each number, and the short hand, standing between two numbers, gives the earlier one as the hour.",
+    "The hours of a day shared out, such as sleep, school and play: together they make twenty-four, so one part is what the others leave of the day.",
+    "An alarm clock with a twelve-hour face, set in the evening for a morning hour: it rings the next time its hands reach that hour, which may be the same evening."
   ],
   "3-4": [
-    "A time some hours and minutes later or earlier, or the time between two, across the hour.",
+    "The minutes gone since one hour and those left until the next, one a given number of times the other: sixty minutes shared in that ratio give the time.",
     "Minutes in a few hours and a half.",
-    "Sleep from a time at night to a time in the morning, on the 24-hour clock.",
-    "A clock that strikes the hours and once at every half hour: the strokes in a day.",
-    "A watch that loses or gains minutes every hour: what it shows later, or how far a fast and a slow one drift apart.",
-    "A bus leaving every few minutes: when the bus of a given number leaves.",
+    "A length of time that grows by the same few minutes every day, such as daylight in spring: its length some days later, sixty minutes making an hour.",
+    "Jobs with room for only a few at a time, such as frying three pancakes two at a time, a minute a side: with more pancakes than places, the least time leaves no place empty while a side waits.",
+    "A clock face seen in a mirror: left and right swap, so the time it seems to show and the real time add up to twelve hours, twelve o'clock counting as nought.",
+    "A trip with a change, read from two timetables: the latest first bus that still catches the train, and the wait at the change.",
     "A digital clock over a day: how many times it shows a pattern, such as four equal digits.",
-    "A school day of lessons with breaks between them: when it ends.",
+    "The middle of a stretch of time, such as halfway between sunrise and sunset: half its length added to its start.",
     "The 24-hour clock and the 12-hour clock: the same moment written both ways.",
     "Minutes and seconds: the times of runners in a race, compared or added."
   ],
@@ -33,6 +36,10 @@
     "A flight there and back: the time in the air and the difference between the zones.",
     "A watch that gains a few minutes each hour: the true time when it shows a given time.",
     "Two clocks, one gaining and one losing: when they show the same time again.",
-    "The angle between the hands of a clock at a given time."
+    "The angle between the hands of a clock at a given time.",
+    "Clocks each wrong by a known number of minutes, without saying whether fast or slow: the true time is the one each reading misses by exactly its own error.",
+    "Boats that leave both ends of a route at the same hour every day, each so many days on the way: one meets those sailing when it starts and those leaving before it arrives.",
+    "Someone met on the way by a car that turns back at once and gets home some minutes early: the car skipped the drive there and back over the rest, half those minutes each way.",
+    "Moments when a 24-hour digital clock shows as many minutes as hours, such as 07:07: within a day each comes an hour and a minute after the one before."
   ]
 }

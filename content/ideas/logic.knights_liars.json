@@ -9,7 +9,13 @@
     "An islander asked whether another is a knight: what the answer tells about each of them.",
     "Two islanders saying the same sentence, and what follows for both of them.",
     "'Ben and I are of the same kind' said by one of two islanders: what it shows about the other.",
-    "A sentence about a plain fact, such as a sum or the days of a week, that sorts the speakers into knights and liars."
+    "A sentence about a plain fact, such as a sum or the days of a week, that sorts the speakers into knights and liars.",
+    "Suspects who each say who did it, with how many of them tell the truth known, such as only the guilty one: try each suspect as the guilty one and count the true sentences.",
+    "Creatures that lie about one thing only, such as their own gold, and tell the truth about all else: what a sentence is about decides whether it can be false.",
+    "Two claims of which one follows from the other, such as 'older than eleven' and 'older than ten', with exactly one of them wrong: the stronger claim is the wrong one.",
+    "Everyone in a group saying 'all the rest of you are liars': two knights would call each other liars, and if all were liars each would be right, so exactly one is a knight.",
+    "Two islanders who say opposite things, such as 'it rained' and 'it did not rain': one of them is a knight and the other a liar.",
+    "Creatures whose number of legs or spots says whether they tell the truth, speaking of those numbers: what each says must fit the kind its own number makes it."
   ],
   "5-6": [
     "Several islanders each saying how many knights there are, every number different.",
@@ -21,6 +27,11 @@
     "Statements joined by 'or' and 'and', such as 'I am a liar or Ben is a knight'.",
     "A row of islanders, each saying how many liars stand to the left of them.",
     "The fewest questions that tell the knights from the liars among a few islanders.",
-    "'Most of us are liars' said by some of the islanders in a group: how many knights the group can have."
+    "'Most of us are liars' said by some of the islanders in a group: how many knights the group can have.",
+    "Islanders who each support one of three or more teams, asked about every team: a knight says yes once and a liar to every team but its own, so the yeses count the knights.",
+    "Islanders who each think of a number and say in two sentences that it is more than one value and less than another: a liar's number fits neither, so its second value is at most its first.",
+    "Islanders in pairs, each calling the other a knight or a liar: two of a kind both say 'knight', and a knight with a liar both say 'liar', so 'liar' is said in twos.",
+    "Someone who lies on some days of the week and tells the truth on the others: a sentence about yesterday or tomorrow can be said only on the days it fits.",
+    "People who tell the truth to their own side and lie to the other, such as two firms or two teams: a sentence is true just when the one who says it and the one who hears it are on one side."
   ]
 }
