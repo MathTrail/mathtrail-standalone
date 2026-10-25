@@ -378,8 +378,8 @@ func TestTheRefusalOfTheLettersKeepsTheQuestionInEnglishInEnglish(t *testing.T) 
 				t.Fatalf("Language() = %v, want the letters refused", problems)
 			}
 			if said := strings.Contains(problems[0].Message, kept); said != test.says {
-				t.Errorf("the refusal says %q, want the question in English kept in English said: %v",
-					problems[0].Message, test.says)
+				t.Errorf("the refusal says %q: the question in English kept in English said = %v, want %v",
+					problems[0].Message, said, test.says)
 			}
 		})
 	}
