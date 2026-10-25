@@ -30,7 +30,7 @@ type measuredQuestion struct {
 	longest, sentences  int
 }
 
-func readGoldenReadability(t *testing.T) []measuredQuestion {
+func readGoldenReadabilityVectors(t *testing.T) goldenReadability {
 	t.Helper()
 
 	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "golden", "readability.json"))
@@ -41,19 +41,23 @@ func readGoldenReadability(t *testing.T) []measuredQuestion {
 	if err := json.Unmarshal(raw, &golden); err != nil {
 		t.Fatalf("parse the golden vectors: %v", err)
 	}
+	return golden
+}
+
+// readGoldenReadability is every question the prototype measured, beside what
+// it measured of it.
+func readGoldenReadability(t *testing.T) []measuredQuestion {
+	t.Helper()
+
+	golden := readGoldenReadabilityVectors(t)
 	questions := map[string]string{}
-	for _, reference := range readReferenceQuestions(t) {
+	for _, reference := range prototypeQuestionsOf(t, golden) {
 		questions[reference.ID] = reference.Question
 	}
-
 	measured := make([]measuredQuestion, 0, len(golden.Examples))
 	for _, example := range golden.Examples {
-		question, known := questions[example.ID]
-		if !known {
-			t.Fatalf("the golden vectors measure %s, and no reference task has that id", example.ID)
-		}
 		measured = append(measured, measuredQuestion{
-			id: example.ID, level: example.GradeLevel, question: question,
+			id: example.ID, level: example.GradeLevel, question: questions[example.ID],
 			fk: example.FK, longest: example.Longest, sentences: example.Sentences,
 		})
 	}

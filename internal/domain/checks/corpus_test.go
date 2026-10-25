@@ -23,8 +23,8 @@ type referenceQuestion struct {
 	Question   string `json:"question"`
 }
 
-// corpus is the reference questions of some levels in the order of their ids,
-// each cut into shingles once, and every pair of them measured.
+// corpus is reference questions in the order of their ids, each cut into
+// shingles once, and every pair of them measured.
 type corpus struct {
 	questions []referenceQuestion
 	sets      []shingles
@@ -37,23 +37,9 @@ type measuredPair struct {
 	similarity float64
 }
 
-// prototypeLevels are the levels of the prototype's own reference tasks, the
-// corpus Postgres measured. Tasks written since were never measured there, and
-// a comparison that counted them would be comparing two different corpora.
-var prototypeLevels = []string{"1-2", "3-4"}
-
-// readCorpus is the reference questions of these levels, or of every level
-// when none is named. The questions are chosen before any pair is made, so
-// that the pairs between two chosen levels are all there.
-func readCorpus(t *testing.T, levels ...string) corpus {
-	t.Helper()
-
-	questions := readReferenceQuestions(t)
-	if len(levels) > 0 {
-		questions = slices.DeleteFunc(questions, func(question referenceQuestion) bool {
-			return !slices.Contains(levels, question.GradeLevel)
-		})
-	}
+// corpusOf cuts each of these questions into shingles once and measures every
+// pair of them.
+func corpusOf(questions []referenceQuestion) corpus {
 	sets := make([]shingles, len(questions))
 	for i, question := range questions {
 		sets[i] = shinglesOf(question.Question, unitFor(question.Question, ""))
@@ -89,6 +75,63 @@ func readReferenceQuestions(t *testing.T) []referenceQuestion {
 		questions = append(questions, tasks...)
 	}
 	slices.SortFunc(questions, func(x, y referenceQuestion) int { return cmp.Compare(x.ID, y.ID) })
+	return questions
+}
+
+// prototypeQuestionsOf are the questions of the prototype's own reference
+// tasks, those these golden vectors measured, in the order of their ids. Tasks
+// written since were never measured there, and a comparison that counted them
+// would be comparing two different corpora. Each question is read as the
+// content holds it, or, for a task the content has since replaced, as the
+// prototype wrote it, kept beside these tests so that the corpus stays the one
+// that was measured.
+func prototypeQuestionsOf(t *testing.T, golden goldenReadability) []referenceQuestion {
+	t.Helper()
+
+	held := map[string]referenceQuestion{}
+	for _, question := range readReferenceQuestions(t) {
+		held[question.ID] = question
+	}
+	replaced := map[string]bool{}
+	for _, question := range readReplacedQuestions(t) {
+		if _, kept := held[question.ID]; kept {
+			t.Fatalf("%s is a replaced task of the prototype, and the content still has a task of that id", question.ID)
+		}
+		held[question.ID], replaced[question.ID] = question, true
+	}
+
+	questions := make([]referenceQuestion, 0, len(golden.Examples))
+	for _, measured := range golden.Examples {
+		question, known := held[measured.ID]
+		switch {
+		case !known:
+			t.Fatalf("the golden vectors measure %s, and neither the content nor its replaced tasks have that id", measured.ID)
+		case question.GradeLevel != measured.GradeLevel:
+			t.Fatalf("%s is a task of %s, and the golden vectors measured it at %s", measured.ID, question.GradeLevel, measured.GradeLevel)
+		}
+		delete(replaced, measured.ID)
+		questions = append(questions, question)
+	}
+	for id := range replaced {
+		t.Fatalf("%s is among the replaced tasks, and the golden vectors measure no task of that id", id)
+	}
+	slices.SortFunc(questions, func(x, y referenceQuestion) int { return cmp.Compare(x.ID, y.ID) })
+	return questions
+}
+
+// readReplacedQuestions reads the questions of the prototype's reference tasks
+// that the content has replaced with tasks written for this service.
+func readReplacedQuestions(t *testing.T) []referenceQuestion {
+	t.Helper()
+
+	raw, err := os.ReadFile(filepath.Join("testdata", "replaced_references.json"))
+	if err != nil {
+		t.Fatalf("read the replaced reference tasks: %v", err)
+	}
+	var questions []referenceQuestion
+	if err := json.Unmarshal(raw, &questions); err != nil {
+		t.Fatalf("parse the replaced reference tasks: %v", err)
+	}
 	return questions
 }
 
@@ -131,7 +174,7 @@ func TestTheReferenceCorpusMeasuresAsPostgresMeasuredIt(t *testing.T) {
 	t.Parallel()
 
 	golden := readGoldenCorpus(t)
-	references := readCorpus(t, prototypeLevels...)
+	references := corpusOf(prototypeQuestionsOf(t, readGoldenReadabilityVectors(t)))
 
 	t.Run("the fifty most alike pairs", func(t *testing.T) {
 		t.Parallel()
@@ -207,7 +250,7 @@ func checkNearest(t *testing.T, golden goldenCorpus, references corpus) {
 func TestTheSketchEstimatesTheMeasureWithinItsError(t *testing.T) {
 	t.Parallel()
 
-	references := readCorpus(t)
+	references := corpusOf(readReferenceQuestions(t))
 	sketches := make([][sketchSize]byte, len(references.sets))
 	for i, set := range references.sets {
 		sketches[i] = sketchOf(set)

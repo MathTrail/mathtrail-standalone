@@ -140,6 +140,19 @@ func TestANewChildOfGradesFiveAndSixIsGivenTheTopicsOwnTraps(t *testing.T) {
 	}
 }
 
+// The calendar of grades 1–2 has tasks written for this service in the place
+// of the prototype's tasks about ages, labelled so that a child new to the
+// topic is still given the two traps its tasks of 1–2 have always led with.
+// The pair is pinned, because one relabelled wrong option can tip a count.
+func TestANewChildOfTheCalendarOfGradesOneAndTwoIsGivenItsOwnTraps(t *testing.T) {
+	t.Parallel()
+
+	want := []string{"off_by_one", "wrong_operation"}
+	if got := loaded(t).ExampleTraps("time.calendar", rating.Grades12); len(got) < 2 || !slices.Equal(got[:2], want) {
+		t.Errorf("a child new to time.calendar at 1-2 is given %v first, want %v", got[:min(2, len(got))], want)
+	}
+}
+
 // trapCounts is how often each trap appears among the reference tasks of one
 // topic at one level, counted the long way round.
 func trapCounts(c *content.Content, topic string, level rating.GradeLevel) map[string]int {

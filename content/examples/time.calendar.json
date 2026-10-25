@@ -34,40 +34,6 @@
     }
   },
   {
-    "id": "cal-12-d1-2",
-    "topic": "time.calendar",
-    "grade_level": "1-2",
-    "difficulty": 1,
-    "question": "Tom is 6 years old. How old will he be in 3 years?",
-    "options": {
-      "A": "3",
-      "B": "6",
-      "C": "9",
-      "D": "8",
-      "E": "18"
-    },
-    "correct_answer": "C",
-    "solution": "Each year Tom gets one year older: 7, 8, 9. In 3 years he will be 9.",
-    "distractors": {
-      "A": {
-        "trap": "number_from_text",
-        "text": "3 is the number of years that pass."
-      },
-      "B": {
-        "trap": "number_from_text",
-        "text": "6 is Tom's age now."
-      },
-      "D": {
-        "trap": "off_by_one",
-        "text": "Count on 3 years from 6: 7, 8, 9."
-      },
-      "E": {
-        "trap": "wrong_operation",
-        "text": "You multiplied 6 by 3. Add 3 years instead."
-      }
-    }
-  },
-  {
     "id": "cal-12-d1-3",
     "topic": "time.calendar",
     "grade_level": "1-2",
@@ -170,6 +136,41 @@
     }
   },
   {
+    "id": "cal-12-d1-6",
+    "topic": "time.calendar",
+    "grade_level": "1-2",
+    "difficulty": 1,
+    "question": "It is November now. Which month will it be in 2 months?",
+    "options": {
+      "A": "December",
+      "B": "January",
+      "C": "February",
+      "D": "September",
+      "E": "November"
+    },
+    "correct_answer": "B",
+    "hint": "Name the months that come after November, one at a time.",
+    "solution": "1 month after November comes December. The next month is January, the first month of a new year.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "December comes 1 month after November. One more month is still to come."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "February comes 3 months after November, not 2."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "September was 2 months ago. The question asks about later."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "November is the month now, not the month in 2 months."
+      }
+    }
+  },
+  {
     "id": "cal-12-d2-1",
     "topic": "time.calendar",
     "grade_level": "1-2",
@@ -200,40 +201,6 @@
       "E": {
         "trap": "reversed_relation",
         "text": "Thursday is tomorrow."
-      }
-    }
-  },
-  {
-    "id": "cal-12-d2-2",
-    "topic": "time.calendar",
-    "grade_level": "1-2",
-    "difficulty": 2,
-    "question": "In 4 years Mia will be 11 years old. How old is she now?",
-    "options": {
-      "A": "4",
-      "B": "11",
-      "C": "15",
-      "D": "7",
-      "E": "44"
-    },
-    "correct_answer": "D",
-    "solution": "Now she is 4 years younger than she will be: 11 - 4 = 7.",
-    "distractors": {
-      "A": {
-        "trap": "number_from_text",
-        "text": "4 is the number of years."
-      },
-      "B": {
-        "trap": "number_from_text",
-        "text": "11 is her age in 4 years, not now."
-      },
-      "C": {
-        "trap": "reversed_relation",
-        "text": "Now she is younger than in 4 years, so take 4 away."
-      },
-      "E": {
-        "trap": "wrong_operation",
-        "text": "You multiplied 11 by 4."
       }
     }
   },
@@ -306,36 +273,72 @@
     }
   },
   {
-    "id": "cal-12-d2-5",
+    "id": "cal-12-d2-6",
     "topic": "time.calendar",
     "grade_level": "1-2",
     "difficulty": 2,
-    "question": "Grandpa is 60 years old. Dad is 35. How old was Grandpa when Dad was born?",
+    "question": "Lena stays at her grandma's for 4 nights. The day she goes and the day she comes back both count. How many days is she away from home?",
     "options": {
-      "A": "30",
-      "B": "25",
-      "C": "35",
-      "D": "60",
-      "E": "95"
+      "A": "4",
+      "B": "3",
+      "C": "6",
+      "D": "5",
+      "E": "8"
     },
-    "correct_answer": "B",
-    "solution": "Grandpa is 60 - 35 = 25 years older than Dad. When Dad was born, Grandpa was 25.",
+    "correct_answer": "D",
+    "hint": "Draw the days as dots and put a night between each two dots. How many dots do 4 nights need?",
+    "solution": "Each night comes between two days. 4 nights lie between 5 days: the day she goes, 3 days in the middle and the day she comes back.",
     "distractors": {
       "A": {
-        "trap": "wrong_operation",
-        "text": "You took 30 from 60. The difference between the ages is 60 - 35."
+        "trap": "number_from_text",
+        "text": "4 is the number of nights. There is one more day than nights."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "3 counts only the days in the middle. The day she goes and the day she comes back count too."
       },
       "C": {
-        "trap": "number_from_text",
-        "text": "35 is Dad's age now."
-      },
-      "D": {
-        "trap": "number_from_text",
-        "text": "60 is Grandpa's age now."
+        "trap": "off_by_one",
+        "text": "6 is one day too many: 4 nights lie between 5 days."
       },
       "E": {
         "trap": "wrong_operation",
-        "text": "You added the ages."
+        "text": "8 doubles the nights, but two nights in a row share the day between them."
+      }
+    }
+  },
+  {
+    "id": "cal-12-d2-7",
+    "topic": "time.calendar",
+    "grade_level": "1-2",
+    "difficulty": 2,
+    "question": "Tim goes to school from Monday to Friday. Saturday and Sunday are his days off. How many days off does he have in 3 weeks?",
+    "options": {
+      "A": "2",
+      "B": "3",
+      "C": "6",
+      "D": "15",
+      "E": "5"
+    },
+    "correct_answer": "C",
+    "hint": "How many days off are there in one week? Then count them week by week.",
+    "solution": "Every week has 2 days off, Saturday and Sunday. In 3 weeks that is 2 + 2 + 2 = 6 days off.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "2 days off come in one week, and there are 3 weeks."
+      },
+      "B": {
+        "trap": "number_from_text",
+        "text": "3 is the number of weeks, not the number of days off."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "15 is the number of school days in 3 weeks."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "5 adds the 3 weeks and the 2 days off. Each of the 3 weeks brings 2 days off."
       }
     }
   },
@@ -477,36 +480,37 @@
     }
   },
   {
-    "id": "cal-12-d3-5",
+    "id": "cal-12-d3-6",
     "topic": "time.calendar",
     "grade_level": "1-2",
     "difficulty": 3,
-    "question": "Sasha was born in 2019. In which year will Sasha turn 10?",
+    "question": "A chess club meets every 4 days: on 3 May, on 7 May, and so on. On which date is its fifth meeting?",
     "options": {
-      "A": "2009",
-      "B": "2019",
-      "C": "2029",
-      "D": "2020",
-      "E": "2030"
+      "A": "19 May",
+      "B": "15 May",
+      "C": "23 May",
+      "D": "20 May",
+      "E": "7 May"
     },
-    "correct_answer": "C",
-    "solution": "Sasha turns 10 ten years after being born: 2019 + 10 = 2029.",
+    "correct_answer": "A",
+    "hint": "Write down the dates of the meetings one after another, adding 4 days each time.",
+    "solution": "The meetings are on 3 May, 7 May, 11 May, 15 May and 19 May. The fifth one is on 19 May.",
     "distractors": {
-      "A": {
-        "trap": "reversed_relation",
-        "text": "2009 is 10 years before Sasha was born."
-      },
       "B": {
-        "trap": "number_from_text",
-        "text": "2019 is the year Sasha was born."
+        "trap": "off_by_one",
+        "text": "15 May is the fourth meeting. The fifth comes 4 days later."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "23 May adds 4 days five times, but the first meeting is 3 May itself."
       },
       "D": {
-        "trap": "stopped_early",
-        "text": "In 2020 Sasha turns 1."
+        "trap": "wrong_operation",
+        "text": "20 May multiplies 5 by 4 and forgets that the meetings start on 3 May."
       },
       "E": {
-        "trap": "off_by_one",
-        "text": "In 2030 Sasha turns 11."
+        "trap": "stopped_early",
+        "text": "7 May is only the second meeting."
       }
     }
   },
@@ -545,40 +549,6 @@
     }
   },
   {
-    "id": "cal-12-d4-2",
-    "topic": "time.calendar",
-    "grade_level": "1-2",
-    "difficulty": 4,
-    "question": "The ages of two sisters add up to 15. What will their ages add up to in 3 years?",
-    "options": {
-      "A": "21",
-      "B": "15",
-      "C": "18",
-      "D": "24",
-      "E": "45"
-    },
-    "correct_answer": "A",
-    "solution": "In 3 years each sister will be 3 years older, so the sum grows by 3 + 3 = 6: 15 + 6 = 21.",
-    "distractors": {
-      "B": {
-        "trap": "number_from_text",
-        "text": "15 is the sum now."
-      },
-      "C": {
-        "trap": "stopped_early",
-        "text": "Each of the two sisters gets 3 years older, not only one."
-      },
-      "D": {
-        "trap": "wrong_operation",
-        "text": "The sum grows by 3 for each sister: 6, not 9."
-      },
-      "E": {
-        "trap": "wrong_operation",
-        "text": "You multiplied 15 by 3."
-      }
-    }
-  },
-  {
     "id": "cal-12-d4-3",
     "topic": "time.calendar",
     "grade_level": "1-2",
@@ -609,40 +579,6 @@
       "E": {
         "trap": "number_from_text",
         "text": "31 is the number of days."
-      }
-    }
-  },
-  {
-    "id": "cal-12-d4-4",
-    "topic": "time.calendar",
-    "grade_level": "1-2",
-    "difficulty": 4,
-    "question": "Ben is 5 years old and his mum is 29. In how many years will Mum be exactly 3 times as old as Ben?",
-    "options": {
-      "A": "3",
-      "B": "5",
-      "C": "7",
-      "D": "9",
-      "E": "24"
-    },
-    "correct_answer": "C",
-    "solution": "Try year by year. In 7 years Ben will be 12 and Mum will be 36, and 36 = 3 × 12.",
-    "distractors": {
-      "A": {
-        "trap": "number_from_text",
-        "text": "3 is how many times older Mum will be."
-      },
-      "B": {
-        "trap": "number_from_text",
-        "text": "5 is Ben's age now."
-      },
-      "D": {
-        "trap": "off_by_one",
-        "text": "In 9 years Ben is 14 and Mum is 38, which is not 3 × 14."
-      },
-      "E": {
-        "trap": "answered_other_question",
-        "text": "24 is how many years older Mum is than Ben."
       }
     }
   },
@@ -681,6 +617,76 @@
     }
   },
   {
+    "id": "cal-12-d4-6",
+    "topic": "time.calendar",
+    "grade_level": "1-2",
+    "difficulty": 4,
+    "question": "Omar goes to school from Sunday to Thursday. In some year, 1 April is a Sunday, and April has 30 days. How many school days are there in that April?",
+    "options": {
+      "A": "20",
+      "B": "21",
+      "C": "30",
+      "D": "8",
+      "E": "22"
+    },
+    "correct_answer": "E",
+    "hint": "Which dates of April fall on a Friday or a Saturday? Omar goes to school on all the other days.",
+    "solution": "From 1 to 28 April there are 4 whole weeks, each with 5 school days: 5 + 5 + 5 + 5 = 20. 29 April is a Sunday and 30 April a Monday, 2 more school days. That makes 22.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "20 counts only the 4 whole weeks. 29 and 30 April are a Sunday and a Monday, school days too."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "21 counts school from Monday to Friday, but Omar goes to school from Sunday to Thursday."
+      },
+      "C": {
+        "trap": "number_from_text",
+        "text": "30 is the number of days in April, and there is no school on Fridays and Saturdays."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "8 is the number of days off: the Fridays and Saturdays of April."
+      }
+    }
+  },
+  {
+    "id": "cal-12-d4-7",
+    "topic": "time.calendar",
+    "grade_level": "1-2",
+    "difficulty": 4,
+    "question": "A family spends 3 nights in a hotel and the next 2 nights at grandma's. The day they leave home and the day they come back both count. How many days does the trip take?",
+    "options": {
+      "A": "7",
+      "B": "5",
+      "C": "6",
+      "D": "4",
+      "E": "10"
+    },
+    "correct_answer": "C",
+    "hint": "How many nights does the whole trip have? Each night lies between two days.",
+    "solution": "The family goes from the hotel straight to grandma's, so the trip has 3 + 2 = 5 nights in a row. 5 nights lie between 6 days.",
+    "distractors": {
+      "A": {
+        "trap": "double_count",
+        "text": "7 counts twice the day they move from the hotel to grandma's."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "5 is the number of nights, and there is one more day than nights."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "4 days are only the part of the trip spent in the hotel."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "10 doubles the 5 nights, as if each night had two days of its own."
+      }
+    }
+  },
+  {
     "id": "cal-12-d5-1",
     "topic": "time.calendar",
     "grade_level": "1-2",
@@ -711,40 +717,6 @@
       "E": {
         "trap": "reversed_relation",
         "text": "Sunday is 100 days after Friday, not before."
-      }
-    }
-  },
-  {
-    "id": "cal-12-d5-2",
-    "topic": "time.calendar",
-    "grade_level": "1-2",
-    "difficulty": 5,
-    "question": "Kolya is 8 and his sister is 3. How old will Kolya be when he is exactly twice as old as his sister?",
-    "options": {
-      "A": "5",
-      "B": "10",
-      "C": "6",
-      "D": "12",
-      "E": "16"
-    },
-    "correct_answer": "B",
-    "solution": "Kolya is always 5 years older than his sister. He is twice as old as her when she is 5 and he is 10.",
-    "distractors": {
-      "A": {
-        "trap": "answered_other_question",
-        "text": "5 is how many years older Kolya is."
-      },
-      "C": {
-        "trap": "answered_other_question",
-        "text": "6 is twice his sister's age now, not Kolya's age."
-      },
-      "D": {
-        "trap": "off_by_one",
-        "text": "At 12 his sister would be 7, and 12 is not twice 7."
-      },
-      "E": {
-        "trap": "wrong_operation",
-        "text": "You doubled Kolya's age now. His sister grows older too."
       }
     }
   },
@@ -783,40 +755,6 @@
     }
   },
   {
-    "id": "cal-12-d5-4",
-    "topic": "time.calendar",
-    "grade_level": "1-2",
-    "difficulty": 5,
-    "question": "Twins Ann and Kate and their brother Tom are 23 years old altogether. Tom is 5 years older than each twin. How old is Tom?",
-    "options": {
-      "A": "6",
-      "B": "9",
-      "C": "12",
-      "D": "11",
-      "E": "18"
-    },
-    "correct_answer": "D",
-    "solution": "If Tom were 5 years younger, all three would be the same age and together 23 - 5 = 18. So each twin is 6, and Tom is 6 + 5 = 11.",
-    "distractors": {
-      "A": {
-        "trap": "stopped_early",
-        "text": "6 is the age of each twin. Tom is 5 years older."
-      },
-      "B": {
-        "trap": "wrong_operation",
-        "text": "You shared 18 between 2 children, but there are 3."
-      },
-      "C": {
-        "trap": "off_by_one",
-        "text": "If Tom were 12, the twins would be 7 and the total would be 26."
-      },
-      "E": {
-        "trap": "stopped_early",
-        "text": "18 is the total of three equal ages, not Tom's age."
-      }
-    }
-  },
-  {
     "id": "cal-12-d5-5",
     "topic": "time.calendar",
     "grade_level": "1-2",
@@ -847,6 +785,76 @@
       "D": {
         "trap": "off_by_one",
         "text": "365 days are 52 weeks and 1 day, not 3 days."
+      }
+    }
+  },
+  {
+    "id": "cal-12-d5-6",
+    "topic": "time.calendar",
+    "grade_level": "1-2",
+    "difficulty": 5,
+    "question": "It is August now. A new library will open in 20 months. In which month will it open?",
+    "options": {
+      "A": "April",
+      "B": "August",
+      "C": "December",
+      "D": "March",
+      "E": "May"
+    },
+    "correct_answer": "A",
+    "hint": "Which month will it be 12 months from now? How many months are still left after that?",
+    "solution": "12 months after August it is August again. 20 - 12 = 8 months are left: September, October, November, December, January, February, March and April.",
+    "distractors": {
+      "B": {
+        "trap": "stopped_early",
+        "text": "August comes again after 12 months, and 8 of the 20 months are still to go."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "December was 20 months ago. The library opens later, not earlier."
+      },
+      "D": {
+        "trap": "off_by_one",
+        "text": "March comes 19 months after August, one month too early."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "May comes 21 months after August, one month too late."
+      }
+    }
+  },
+  {
+    "id": "cal-12-d5-7",
+    "topic": "time.calendar",
+    "grade_level": "1-2",
+    "difficulty": 5,
+    "question": "Today is 25 May. May has 31 days, and June has 30. What date will it be in 40 days?",
+    "options": {
+      "A": "3 July",
+      "B": "5 July",
+      "C": "30 June",
+      "D": "4 July",
+      "E": "15 April"
+    },
+    "correct_answer": "D",
+    "hint": "How many days are left in May after the 25th? Then go through the whole of June.",
+    "solution": "From 25 May to 31 May is 6 days. The 30 days of June bring it to 36 days, on 30 June. 4 more days lead to 4 July.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "3 July counts 25 May itself as one of the 40 days."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "5 July takes May as 30 days long, but May has 31."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "30 June is only 36 days from today: 4 days are still to come."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "15 April is 40 days before 25 May, not after it."
       }
     }
   },
