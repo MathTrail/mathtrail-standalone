@@ -1706,6 +1706,111 @@
     }
   },
   {
+    "id": "par-56-d1-1",
+    "topic": "parity.alternation",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Nine children each have two balloons, a red one and a yellow one. They swap balloons with each other so that as many children as possible end up holding two balloons of the same colour. At most how many children can do so?",
+    "options": {
+      "A": "18",
+      "B": "9",
+      "C": "4",
+      "D": "8",
+      "E": "7"
+    },
+    "correct_answer": "D",
+    "hint": "How many children can hold two red balloons? What happens to the red balloon left over?",
+    "solution": "The 9 red balloons make 4 pairs with one left over, and so do the 9 yellow ones. So 4 children can hold two red balloons and 4 others two yellow ones, and the last child holds the red and the yellow balloon left over. No more is possible, since 9 red balloons cannot all go in pairs. So at most 8 children can.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "18 is the number of balloons, not of children."
+      },
+      "B": {
+        "trap": "wrong_parity",
+        "text": "9 would need the 9 red balloons to go two to a child, but 9 is an odd number, so one red balloon is always left over."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "4 counts only the children with two red balloons. Four more can hold two yellow ones."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "7 leaves two children with a red and a yellow balloon each, but the red and the yellow balloon left over can go to the same child, so only one child misses out."
+      }
+    }
+  },
+  {
+    "id": "par-56-d1-2",
+    "topic": "parity.alternation",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Children stand in a circle, holding hands. Each child holds the hands of two boys or the hands of two girls. There are 7 boys in the circle and at least one girl. How many girls are there?",
+    "options": {
+      "A": "14",
+      "B": "7",
+      "C": "6",
+      "D": "8",
+      "E": "It cannot be told"
+    },
+    "correct_answer": "B",
+    "hint": "Look at a child and the next but one round the circle. Are they the same, both boys or both girls?",
+    "solution": "The two neighbours of every child are both boys or both girls, so every child is the same as the next but one. If the circle had an odd number of children, going round by twos would reach everyone and all would be the same, but there are boys and girls. So the number is even, boys and girls take turns round the circle, and there are as many girls as boys: 7.",
+    "distractors": {
+      "A": {
+        "trap": "wrong_operation",
+        "text": "14 gives each boy two girls of his own, but each girl holds two boys too, so the two numbers are the same."
+      },
+      "C": {
+        "trap": "wrong_parity",
+        "text": "With 6 girls the circle would have 13 children, an odd number, and then the rule would make all of them boys or all of them girls."
+      },
+      "D": {
+        "trap": "wrong_parity",
+        "text": "With 8 girls the circle would have 15 children, an odd number, and then the rule would make all of them the same."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "It can be told: the two neighbours of every child are alike, so boys and girls take turns round the circle."
+      }
+    }
+  },
+  {
+    "id": "par-56-d1-3",
+    "topic": "parity.alternation",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Sam picks two different whole numbers greater than 0, multiplies them, and multiplies the result by the difference of the two numbers. Which of these numbers can he get?",
+    "options": {
+      "A": "21",
+      "B": "15",
+      "C": "6",
+      "D": "35",
+      "E": "10"
+    },
+    "correct_answer": "C",
+    "hint": "If both numbers are odd, what kind of number is their difference?",
+    "solution": "If one of the two numbers is even, their product is even. If both are odd, their difference is even. Either way the result is even, so 15, 21 and 35 are impossible. 10 cannot be made either, while 3 and 2 give (3 − 2) × 3 × 2 = 6.",
+    "distractors": {
+      "A": {
+        "trap": "wrong_parity",
+        "text": "21 is odd, and the result is always even: two odd numbers have an even difference."
+      },
+      "B": {
+        "trap": "wrong_parity",
+        "text": "15 is odd, but the result is always even: if the two numbers are both odd, their difference is even."
+      },
+      "D": {
+        "trap": "wrong_parity",
+        "text": "35 is odd. Either one of the numbers is even, or both are odd and their difference is even, so the result is even."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "10 is even, but no two numbers give it. The result is always even, but not every even number can be made."
+      }
+    }
+  },
+  {
     "id": "par-56-d2-1",
     "topic": "parity.alternation",
     "grade_level": "5-6",
@@ -2019,6 +2124,111 @@
       "E": {
         "trap": "answered_other_question",
         "text": "4 is how many bugs can crawl onto the 5 dark squares, not how many squares stay empty."
+      }
+    }
+  },
+  {
+    "id": "par-56-d5-1",
+    "topic": "parity.alternation",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Mia writes the digits 1 to 7 in a row, each once. Then she counts the digits standing between 1 and 2, between 2 and 3, and so on up to between 6 and 7. At most how many of these six counts can be odd?",
+    "options": {
+      "A": "5",
+      "B": "6",
+      "C": "3",
+      "D": "7",
+      "E": "1"
+    },
+    "correct_answer": "A",
+    "hint": "The count between two digits is odd when both stand in odd places or both in even places. How many odd places does a row of 7 have?",
+    "solution": "Between two digits there is an odd number of others exactly when their places are both odd or both even. A row of 7 has four odd places and three even ones, so going from 1 to 7 the digits must change at least once from odd places to even ones or back, and the count at that change is even. So at most 5 of the six counts are odd, and 5 can be reached: 1 5 2 6 3 7 4 puts 1, 2, 3 and 4 in the odd places and 5, 6 and 7 in the even ones.",
+    "distractors": {
+      "B": {
+        "trap": "wrong_parity",
+        "text": "Six odd counts would put all seven digits in places of one kind, all odd or all even, but a row of 7 has only four odd places and three even ones."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "3 counts only the odd counts between 1, 2, 3 and 4 in the odd places, but 5, 6 and 7 in the even places add two more."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "7 is the number of digits, but there are only six counts."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "1 is how many times the digits must change from odd places to even ones, not how many counts are odd."
+      }
+    }
+  },
+  {
+    "id": "par-56-d5-2",
+    "topic": "parity.alternation",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A 63-digit number is written by repeating 1234567 nine times: 12345671234567 and so on. First all the digits in odd places are crossed out. In what is left, the digits in odd places are crossed out again, and so on until nothing is left. Which digit is crossed out last?",
+    "options": {
+      "A": "1",
+      "B": "2",
+      "C": "7",
+      "D": "4",
+      "E": "6"
+    },
+    "correct_answer": "D",
+    "hint": "Which places are left after each round? Look at the places 2, 4, 6 and so on, and then at the places 4, 8, 12.",
+    "solution": "After the first round the places 2, 4, 6 and so on are left, after the second the places 4, 8, 12, and after each round only the places that divide by twice as much. The place left last is the one that divides by 2 five times, place 32, since place 64 is past the 63 digits. The digits repeat every 7 places, and 32 = 4 × 7 + 4, so the digit in place 32 is 4.",
+    "distractors": {
+      "A": {
+        "trap": "wrong_parity",
+        "text": "1 is what is left if the digits in even places go each time, but it is the odd places that go."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "2 stands in place 16, one of the three places left after four rounds, but place 16 goes in the next round, and place 32 stays."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "7 is the last digit of the number, but its place, 63, is odd and goes in the very first round."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "6 stands in place 48, one of the last three places, 16, 32 and 48, but the next round keeps only the middle one, 32."
+      }
+    }
+  },
+  {
+    "id": "par-56-d5-3",
+    "topic": "parity.alternation",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Ann, Ben and Cat play table tennis. Two of them play each game while the third rests, and after each game the winner plays the next game against the one who rested. In the end Ann has played 15 games and Ben 21. At least how many games has Cat played?",
+    "options": {
+      "A": "6",
+      "B": "12",
+      "C": "11",
+      "D": "10",
+      "E": "24"
+    },
+    "correct_answer": "B",
+    "hint": "Who rests in the game after a loss? Can anyone rest in two games running?",
+    "solution": "The loser of a game rests in the next one and then plays again, so nobody rests in two games running. Every game has two players, so if there were n games, Cat played 2n − 15 − 21 = 2n − 36 of them and rested in 36 − n. Never resting twice running, Cat rested at most once more than Cat played: 36 − n ≤ 2n − 35, so n is at least 24. So Cat played at least 2 × 24 − 36 = 12 games, and 24 games can be played that way.",
+    "distractors": {
+      "A": {
+        "trap": "wrong_operation",
+        "text": "6 is 21 − 15, but every game has two players, so the three numbers of games add up to twice the number of games."
+      },
+      "C": {
+        "trap": "wrong_parity",
+        "text": "15 + 21 + 11 = 47 is odd, but every game has two players, so the three numbers of games add up to an even number."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "With 10 games Cat would rest in 13, but between 10 games there is room for only 11 rests, since nobody rests in two games running."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "24 is the fewest games played in all, not the games Cat played."
       }
     }
   }
