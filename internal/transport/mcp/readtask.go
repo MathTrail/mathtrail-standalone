@@ -29,16 +29,22 @@ type readTaskIn struct {
 // awaitedOut is how the task a card waits for stands: still being written,
 // with how many of its attempts the checks have turned down; on the child's
 // card, as the card shows it, with nothing that gives its answer away; or not
-// coming, the request over. It never carries a status: a card asking how a
+// coming, the request over, and then whether another task waits on the
+// child's card for its answer. It never carries a status: a card asking how a
 // task stands is answered, not refused, so the line its call leaves counts it
 // among the answers.
 type awaitedOut struct {
-	Screen     string      `json:"screen"`
-	Code       string      `json:"code,omitempty"`
-	Refused    int         `json:"refused,omitempty"`
-	LastAnswer *answerLine `json:"last_answer"`
-	Child      *childLine  `json:"child"`
-	Task       *cardOut    `json:"task"`
+	Screen  string `json:"screen"`
+	Code    string `json:"code,omitempty"`
+	Refused int    `json:"refused,omitempty"`
+	// AnotherWaits says, of a request whose task is not on the card, that
+	// another task is, without an answer: a card drawn again higher up the
+	// chat whose task this was asks for no other, which would set that one
+	// aside.
+	AnotherWaits bool        `json:"another_waits,omitempty"`
+	LastAnswer   *answerLine `json:"last_answer"`
+	Child        *childLine  `json:"child"`
+	Task         *cardOut    `json:"task"`
 	// Language is the lesson's: the task's once it is on the card, and the
 	// request's while it is being written.
 	Language string `json:"language,omitempty"`
@@ -165,6 +171,6 @@ func (s *Service) taskStands(ctx context.Context, p *profile.Profile, requestID 
 		awaited.Screen, awaited.Refused, awaited.Language = screenComing, refused, p.OpenRequest.Language
 		return Reply[awaitedOut]{Text: "The task is still being written.", Payload: awaited}, nil
 	}
-	awaited.Screen, awaited.Code = screenWaiting, codeStaleRequest
+	awaited.Screen, awaited.Code, awaited.AnotherWaits = screenWaiting, codeStaleRequest, p.InFlight() != nil
 	return Reply[awaitedOut]{Text: "No task is coming for this request: it is over.", Payload: awaited}, nil
 }

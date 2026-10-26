@@ -31,11 +31,17 @@ export const lessonStart: Lesson = {
 	answer: { state: "open" },
 };
 
-/** LessonEvent is something that happens on a task card. */
+/**
+ * LessonEvent is something that happens on a task card: an option picked, the
+ * service's word on the answer, the hint opened or closed, or the word that
+ * the task is no longer the one being solved, heard before another task or a
+ * topic was asked for.
+ */
 export type LessonEvent =
 	| { type: "picked"; choice: Letter }
 	| { type: "told"; outcome: AnswerOutcome }
-	| { type: "hint toggled" };
+	| { type: "hint toggled" }
+	| { type: "closed" };
 
 /**
  * next is the lesson after event. An event that cannot happen where the
@@ -55,6 +61,10 @@ export function next(lesson: Lesson, event: LessonEvent): Lesson {
 		case "hint toggled":
 			return canAnswer(lesson)
 				? { ...lesson, hint: toggled(lesson.hint) }
+				: lesson;
+		case "closed":
+			return canAnswer(lesson)
+				? { ...lesson, answer: { state: "closed" } }
 				: lesson;
 	}
 }

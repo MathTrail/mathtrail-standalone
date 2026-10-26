@@ -1027,6 +1027,29 @@ export const notComing = toolResult({
 	task: null,
 });
 
+/**
+ * setAside is what the service tells a card whose task another has taken the
+ * place of on the child's card, the other waiting for its answer.
+ */
+export const setAside = toolResult({
+	screen: "waiting",
+	code: "stale_request",
+	another_waits: true,
+	last_answer: null,
+	child: fence.child,
+	task: null,
+});
+
+/**
+ * liveFence is the fence under an id of the shape the service gives a task,
+ * after the request it was written for, so that its card can ask how that
+ * request stands.
+ */
+export const liveFence: Handed = {
+	...fence,
+	task: { ...fence.task, id: "tsk_fence" },
+};
+
 // toolResult is a tool's result with the payload a card is drawn from.
 function toolResult(
 	structuredContent: Record<string, unknown>,

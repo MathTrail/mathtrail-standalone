@@ -38,7 +38,7 @@ Which screen a card shows is decided by the payload, not by the tool: `get_progr
 | `get_package` | the model | **no** — the package is for the model alone (R152) | 1 | 0 | always |
 | `prepare_task` | the model | **no** — the package is for the model alone (R235) | 1 | 1 | nothing is to be written ahead and nothing let go, or a request open is handed back |
 | `submit_task` | the model | **no** — the card `next_task` drew turns into the task (R152); a task written ahead is kept | 1 | 1 | the request id is stale |
-| `read_task` | the widget only, from a card that waits for a task (R152) | **no** — the card that called it turns into its task | 1 | 0 | always |
+| `read_task` | the widget only, from a card that waits for a task (R152), and from a card about to ask for another task or save a topic, of its own task (R314) | **no** — the card that called it turns into its task, or closes when another task waits on the child's card in its own task's place | 1 | 0 | always |
 | `submit_answer` | the **widget**, or the model for an answer given in the chat | **no** — the card that sent it turns into how the answer went (R286) | 1 | 1 | this task was already answered |
 | `show_result` | the model, after an answer given in the chat | yes — how the answer went, on a card of its own below the task's (R278, R286) | 1, and up to two more while the answer's write lands | 0 | always |
 

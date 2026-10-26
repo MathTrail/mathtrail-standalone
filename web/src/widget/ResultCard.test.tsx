@@ -18,7 +18,10 @@ import {
 	flagsSolutionPicture,
 	flagsTask,
 	flagsTotal,
+	liveFence,
 	nothingShown,
+	onTheCard,
+	setAside,
 	shown,
 	topicSaved,
 	topicWords,
@@ -365,6 +368,83 @@ describe("another task, from the card of how an answer went", () => {
 		await vi.waitFor(() =>
 			expect(heard.messages).toEqual(["Another task", "Another task"]),
 		);
+	});
+});
+
+describe("another task, from a card of how an answer went that may have been drawn again", () => {
+	// liveFence is the fence under an id of the shape the service gives a
+	// task, after the request it was written for.
+	// confirmed is how long a case waits for the card to hear a second
+	// answer, which it asks for only after a pause.
+	const confirmed = { timeout: 5_000 };
+	const closedWords =
+		"This task is closed. The newest task is further down the chat.";
+	// standing answers how the request stands with answer, and a choice of
+	// the topic as saved.
+	const standing =
+		(answer: CallToolResult) =>
+		({ name }: { name: string }): CallToolResult =>
+			name === "read_task" ? answer : topicSaved("time.clocks");
+
+	test("closes the card, saying where the newest task is, once the service says twice that another task waits on the child's card in its task's place", async () => {
+		const heard = await drawCard(shown(liveFence, {}, {}), {
+			tools: standing(setAside),
+		});
+
+		press(button("Another task"));
+
+		await vi.waitFor(
+			() => expect(text(".mt-action-note")).toBe(closedWords),
+			confirmed,
+		);
+		expect(heard.calls).toEqual([
+			{ name: "read_task", arguments: { request_id: "req_fence" } },
+			{ name: "read_task", arguments: { request_id: "req_fence" } },
+		]);
+		expect(heard.messages).toEqual([]);
+		expect(root.querySelector(".mt-btns")).toBeNull();
+		expect(root.querySelector(".mt-topic-button")).toBeNull();
+		// How the answer went stays on the card.
+		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
+		await vi.waitFor(() =>
+			expect(document.activeElement).toBe(
+				root.querySelector(".mt-action-note"),
+			),
+		);
+	});
+
+	test("is asked of the chat once the service says the task is still on the child's card", async () => {
+		const heard = await drawCard(shown(liveFence, {}, {}), {
+			tools: standing(onTheCard),
+		});
+
+		press(button("Another task"));
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		expect(heard.calls).toHaveLength(1);
+	});
+
+	test("saves no topic chosen once the service says twice that another task waits on the child's card in its task's place", async () => {
+		const heard = await drawCard(shown(liveFence, {}, {}), {
+			tools: standing(setAside),
+		});
+
+		press(root.querySelector<HTMLElement>(".mt-topic-button") as HTMLElement);
+		press(
+			root.querySelector<HTMLElement>(
+				'.mt-topic-rows .mt-topic-option[aria-pressed="false"]',
+			) as HTMLElement,
+		);
+
+		await vi.waitFor(
+			() => expect(text(".mt-action-note")).toBe(closedWords),
+			confirmed,
+		);
+		expect(heard.calls.map(({ name }) => name)).toEqual([
+			"read_task",
+			"read_task",
+		]);
+		expect(heard.messages).toEqual([]);
 	});
 });
 

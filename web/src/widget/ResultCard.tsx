@@ -1,4 +1,4 @@
-import { useContext, useMemo, useRef } from "preact/hooks";
+import { useContext, useMemo, useRef, useState } from "preact/hooks";
 import {
 	Note,
 	SolutionSteps,
@@ -22,6 +22,7 @@ import { pageAddress } from "./links";
 import { topicName } from "./names";
 import type { AnswerResult, ResultShown, Shown } from "./payload";
 import { stepsOf } from "./steps";
+import { useStillOn } from "./stillOn";
 import {
 	ChoosesTopic,
 	TopicButton,
@@ -186,7 +187,13 @@ export function ResultFoot({
 	answeredHere: boolean;
 }) {
 	const words = useWords();
-	const another = useChatRequest(host);
+	// A card drawn again higher up the chat would set aside a newer card's
+	// task by asking for another or by saving a topic, so it asks first; a
+	// task no longer there leaves the card closed, saying where the newest
+	// task is.
+	const [closed, setClosed] = useState(false);
+	const stillOn = useStillOn(shown.task.id, () => setClosed(true));
+	const another = useChatRequest(host, stillOn);
 	const anotherButton = useRef<HTMLButtonElement>(null);
 	const note = useRef<HTMLParagraphElement>(null);
 	// A choice asks for a task, so it waits for an ask already on its way,
@@ -196,19 +203,20 @@ export function ResultFoot({
 	const choosing = useTopicChoice(shown.topic_choice, {
 		busy: () => !choosesTopic || another.busy(),
 		tell,
-		ask: another.send,
+		ask: another.sendChecked,
+		stillOn,
 	});
 	const saving = choosing.said === "saving";
 	const asking = another.state === "sending";
 	const asked = another.state === "sent";
-	useFocusKeptOnTheCard(answeredHere && !asked, anotherButton);
-	useFocusKeptOnTheCard(asked, note);
+	useFocusKeptOnTheCard(answeredHere && !asked && !closed, anotherButton);
+	useFocusKeptOnTheCard(asked || closed, note);
 
 	const offered = shown.topic_choice;
 	const topicLocked = !choosesTopic || asking || saving;
 	return (
 		<>
-			{!asked && (
+			{!asked && !closed && (
 				<>
 					<div class="mt-btns">
 						<Button
@@ -249,6 +257,7 @@ export function ResultFoot({
 				state={another.state}
 				taken="task.another_coming"
 				noteRef={note}
+				closed={closed}
 			/>
 		</>
 	);

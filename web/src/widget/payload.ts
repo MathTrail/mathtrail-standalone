@@ -308,19 +308,25 @@ export type Coming = { requestId: string; child: Child };
 /**
  * TaskStatus is how the task a card waits for stands, as the service last
  * said: still being written, with how many tries the checks have turned down;
- * on the card, as the card shows it; or not coming. A question that brought no
- * answer worth reading — the service failed, the call was lost or held back,
- * or what came does not read — leaves it unknown.
+ * on the card, as the card shows it; or not coming, or no longer on the card,
+ * and then whether another task waits on the child's card for its answer. A
+ * question that brought no answer worth reading — the service failed, the
+ * call was lost or held back, or what came does not read — leaves it unknown.
  */
 export type TaskStatus =
 	| { kind: "writing"; refused: number }
 	| { kind: "task"; handed: HandedTask }
-	| { kind: "over" }
+	| { kind: "over"; anotherWaits?: true }
 	| { kind: "unknown" };
 
 const writing = z.object({
 	screen: z.literal("coming"),
 	refused: z.number().int().nonnegative().default(0),
+});
+
+const over = z.object({
+	screen: z.literal("waiting"),
+	another_waits: z.boolean().optional().catch(undefined),
 });
 
 /**
@@ -347,6 +353,9 @@ export function readTaskStatus(result: CallToolResult): TaskStatus {
 				: { kind: "task", handed };
 		}
 		case "waiting":
+			return over.safeParse(payload).data?.another_waits === true
+				? { kind: "over", anotherWaits: true }
+				: { kind: "over" };
 		case "first_run":
 			return { kind: "over" };
 		default:
