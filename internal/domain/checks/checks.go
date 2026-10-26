@@ -26,8 +26,9 @@ const (
 	// CodeWrongLanguage is a text the child reads that is not written in the
 	// letters of the lesson's language: the question, the hint, the solution,
 	// or the explanations behind the wrong options taken together, most of it
-	// in other letters. Two languages written in the same letters are not told
-	// apart.
+	// in other letters; or the question in English, which a lesson in another
+	// language asks for, written mostly in other letters than Latin ones. Two
+	// languages written in the same letters are not told apart.
 	CodeWrongLanguage Code = "wrong_language"
 	// CodeDistractorExplanations is an explanation behind a wrong option that
 	// cannot tell a child what went wrong: a copy of another, of the solution

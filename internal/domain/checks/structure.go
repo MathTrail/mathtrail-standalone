@@ -85,9 +85,10 @@ func checkQuestionInEnglish(task *Task, language string) []Problem {
 		return nil
 	}
 	return []Problem{structural("task.question_en is missing or empty: a task of a lesson in %s, which is not "+
-		"English, gives its question in English there as well, with the same names, numbers and conditions, for "+
-		"the comparison with the reference tasks, which are in English; the child never sees it. The guide in "+
-		"the package says so; get_package with the same request_id hands it back", language)}
+		"English, gives its question in English there as well, with the same names, numbers and conditions and "+
+		"the names in Latin letters, for the comparison with the reference tasks, which are in English; the child "+
+		"never sees it. The guide in the package says so; get_package with the same request_id hands it back",
+		language)}
 }
 
 // checkOptions checks that the child is offered five answers they can tell

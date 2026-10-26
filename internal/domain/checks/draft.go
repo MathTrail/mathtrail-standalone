@@ -27,10 +27,11 @@ type Task struct {
 	// Question is the wording the child reads.
 	Question string `json:"question"`
 	// QuestionInEnglish is the question in English, with the same names,
-	// numbers and conditions, which a lesson in another language asks for as
-	// well: the reference tasks are in English, and a copy of one told in the
-	// lesson's language is found by it alone. The child never sees it, and
-	// nothing keeps it.
+	// numbers and conditions and the names in Latin letters, which a lesson in
+	// another language asks for as well: the reference tasks are in English,
+	// and a copy of one told in the lesson's language is found by it alone. One
+	// written mostly in other letters than Latin ones is refused. The child
+	// never sees it, and nothing keeps it.
 	QuestionInEnglish string `json:"question_en,omitempty"`
 	// Picture is the description of a picture the card draws, as it came: its
 	// own check reads it member by member, and a task with none has none.

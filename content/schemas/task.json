@@ -26,7 +26,7 @@
       "minLength": 1
     },
     "question_en": {
-      "description": "Required in a lesson whose language is not English: the question in English, with the same names, numbers and conditions, which the reference tasks are compared with. The child never sees it. A lesson in English needs none, and the text of one sent is not read.",
+      "description": "Required in a lesson whose language is not English: the question in English, with the same names, numbers and conditions and the names in Latin letters, which the reference tasks are compared with. The child never sees it. A lesson in English needs none, and the text of one sent is not read.",
       "type": "string"
     },
     "picture": {

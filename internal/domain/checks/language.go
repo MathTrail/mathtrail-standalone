@@ -7,12 +7,14 @@ import (
 )
 
 // lettering is a script as the language check holds a text to it: the letters
-// it is written in, what a refusal calls them, and whether the script the tag
-// library guesses a tag stands for is enough to hold a task to it.
+// it is written in, what a refusal calls them, whether the script the tag
+// library guesses a tag stands for is enough to hold a task to it, and whether
+// its short words in small Latin letters are words rather than symbols.
 type lettering struct {
 	letters       []*unicode.RangeTable
 	called        string
 	guessIsEnough bool
+	shortWords    bool
 }
 
 // The letterings of the languages written in more than one script of their
@@ -21,7 +23,14 @@ type lettering struct {
 // set. Japanese is written in kanji and kana together, and Korean in Hangul
 // with the Han characters it borrows.
 var (
-	chinese = lettering{
+	latin = lettering{letters: []*unicode.RangeTable{unicode.Latin}, called: "Latin letters"}
+	// englishLetters are what the question in English is held to: Latin letters, its
+	// short words in small letters, such as and, has and two, counted as words
+	// of it rather than as symbols, so that an honest question whose names are
+	// left in Cyrillic, Hangul or Arabic letters, a word each, is not
+	// outweighed by them.
+	englishLetters = lettering{letters: latin.letters, called: latin.called, shortWords: true}
+	chinese        = lettering{
 		letters: []*unicode.RangeTable{unicode.Han}, called: "Chinese characters", guessIsEnough: true,
 	}
 	japanese = lettering{
@@ -35,7 +44,7 @@ var (
 // under every code a tag of one of them may carry. A task in a language written
 // in a script left out is held to none.
 var letterings = map[string]lettering{
-	"Latn": {letters: []*unicode.RangeTable{unicode.Latin}, called: "Latin letters"},
+	"Latn": latin,
 	"Cyrl": {letters: []*unicode.RangeTable{unicode.Cyrillic}, called: "Cyrillic letters"},
 	"Grek": {letters: []*unicode.RangeTable{unicode.Greek}, called: "Greek letters"},
 	"Armn": {letters: []*unicode.RangeTable{unicode.Armenian}, called: "Armenian letters"},
@@ -112,34 +121,56 @@ type readText struct {
 // without one, is held to any of them, and a task in a language written in no
 // script the check knows, or whose script the tag library only guesses at, is
 // held to nothing.
+//
+// The question in English that a lesson in another language asks for is held
+// to Latin letters by the same measure, in every such lesson, whatever letters
+// the lesson's own language is written in: written in the lesson's language,
+// or with its names left in their own letters, it would leave the comparison
+// with the reference tasks nothing to compare. A question in another language
+// written in Latin letters — a lesson's language written in them, or another
+// spelt out in them — is not told apart from English this way.
 func Language(task *Task, language string) []Problem {
 	if task == nil {
 		return nil
 	}
-	lesson, held := lessonLetters(language)
-	if !held {
-		return nil
-	}
-
-	var astray []readText
-	for _, read := range textsRead(task) {
-		if mostlyElsewhere(read.texts, lesson.letters) {
-			astray = append(astray, read)
+	var found []Problem
+	englishAstray := AsksQuestionInEnglish(language) && mostlyElsewhere([]string{task.QuestionInEnglish}, &englishLetters)
+	if lesson, held := lessonLetters(language); held {
+		var astray []readText
+		for _, read := range textsRead(task) {
+			if mostlyElsewhere(read.texts, &lesson) {
+				astray = append(astray, read)
+			}
+		}
+		if len(astray) > 0 {
+			found = append(found, writtenElsewhere(astray, lesson.called, language, !englishAstray))
 		}
 	}
-	if len(astray) == 0 {
-		return nil
+	if englishAstray {
+		found = append(found, englishWrittenElsewhere())
 	}
-	return []Problem{writtenElsewhere(astray, lesson.called, language)}
+	return found
+}
+
+// englishWrittenElsewhere is the refusal of a question in English written
+// mostly in other letters than Latin ones, which says what the member is for
+// and how its names are written, quoting nothing of it.
+func englishWrittenElsewhere() Problem {
+	return Problem{Code: CodeWrongLanguage, Message: "task.question_en is mostly not in Latin letters. It is the " +
+		"question once more in English, which the reference tasks are compared with: write it in English, and the " +
+		"names in it in Latin letters, as English would spell them. Labels in Latin capitals and numbers are not " +
+		"counted."}
 }
 
 // writtenElsewhere is the refusal of texts written mostly in other letters
 // than the lesson's: it names them, the language and its letters, and says
 // what to write, quoting nothing of the task. Where the lesson asks for the
-// question in English as well, it says that one stays in English: a model told
-// only to write the task in the lesson's language would rewrite it too, and the
-// reference tasks would be compared with a question they cannot be.
-func writtenElsewhere(astray []readText, letters, language string) Problem {
+// question in English as well and that one is in Latin letters, it says that
+// it stays in English: a model told only to write the task in the lesson's
+// language would rewrite it too, and the reference tasks would be compared with
+// a question they cannot be. Where that one is refused as well, its own refusal
+// says what to do with it, and this one keeps out of it.
+func writtenElsewhere(astray []readText, letters, language string, keepEnglish bool) Problem {
 	fields := make([]string, len(astray))
 	for i, read := range astray {
 		fields[i] = read.field
@@ -154,9 +185,9 @@ func writtenElsewhere(astray []readText, letters, language string) Problem {
 			"explanations, and the names in them. The reference tasks are in English whatever the language of the "+
 			"lesson; the task is not.",
 		inWords(fields, 0), verb, letters, language, language)
-	if AsksQuestionInEnglish(language) {
+	if keepEnglish && AsksQuestionInEnglish(language) {
 		message += " Keep task.question_en in English: it is the question once more, with the same names, numbers " +
-			"and conditions, which the reference tasks are compared with."
+			"and conditions and the names in Latin letters, which the reference tasks are compared with."
 	}
 	return Problem{Code: CodeWrongLanguage, Message: message + " Labels in Latin capitals, numbers and short " +
 		"symbols in small Latin letters, such as x, ab or cm, are not counted."}
@@ -181,7 +212,7 @@ func textsRead(task *Task) []readText {
 // texts, taken together, is in these letters. Each text is counted on its
 // own, so that the end of one and the start of the next are never read as one
 // word.
-func mostlyElsewhere(texts []string, letters []*unicode.RangeTable) bool {
+func mostlyElsewhere(texts []string, letters *lettering) bool {
 	var own, all int
 	for _, text := range texts {
 		inLetters, read := counted(text, letters)
@@ -199,8 +230,8 @@ func mostlyElsewhere(texts []string, letters []*unicode.RangeTable) bool {
 // alone, which are labels such as AB, short words in small Latin letters, which
 // are symbols such as x, ab and cm, and single Greek letters such as π, but in
 // a lesson written in Greek. A mark is read with the letter it is written over.
-func counted(text string, letters []*unicode.RangeTable) (own, all int) {
-	reading := tally{letters: letters}
+func counted(text string, letters *lettering) (own, all int) {
+	reading := tally{lettering: letters}
 	for _, r := range text {
 		reading.read(r)
 	}
@@ -210,7 +241,7 @@ func counted(text string, letters []*unicode.RangeTable) (own, all int) {
 
 // tally is a text being counted, a character at a time.
 type tally struct {
-	letters  []*unicode.RangeTable
+	*lettering
 	word     []rune
 	own, all int
 }
@@ -237,7 +268,7 @@ func (t *tally) read(r rune) {
 // endWord counts the word read so far, unless it is a symbol, and starts the
 // next one.
 func (t *tally) endWord() {
-	if len(t.word) > 0 && !symbol(t.word, t.letters) {
+	if len(t.word) > 0 && !symbol(t.word, t.lettering) {
 		t.count(unicode.In(t.word[0], t.letters...))
 	}
 	t.word = t.word[:0]
@@ -279,18 +310,19 @@ func letterKind(r rune, letters []*unicode.RangeTable) int {
 // or opens its sentence with a capital.
 const shortSymbol = 3
 
-// symbol says whether a word is read in no language, in a lesson written in
-// these letters: Latin capitals alone, a label such as AB; a short word in
-// small Latin letters, a symbol such as x, ab or cm; or a single Greek letter,
-// a symbol such as π — but where the lesson is written in Greek, whose
-// articles ο and η and whose ή, "or", are words of a single letter. Every
-// letter of a word is of one kind, so its first tells which.
-func symbol(word []rune, letters []*unicode.RangeTable) bool {
+// symbol says whether a word is read in no language, in a text held to these
+// letters: Latin capitals alone, a label such as AB; a short word in small
+// Latin letters, a symbol such as x, ab or cm — but in a question in English,
+// whose and, has and two are words; or a single Greek letter, a symbol such as
+// π — but where the lesson is written in Greek, whose articles ο and η and
+// whose ή, "or", are words of a single letter. Every letter of a word is of
+// one kind, so its first tells which.
+func symbol(word []rune, held *lettering) bool {
 	switch {
 	case unicode.Is(unicode.Latin, word[0]):
-		return every(word, unicode.IsUpper) || len(word) <= shortSymbol && every(word, unicode.IsLower)
+		return every(word, unicode.IsUpper) || !held.shortWords && len(word) <= shortSymbol && every(word, unicode.IsLower)
 	case unicode.Is(unicode.Greek, word[0]):
-		return len(word) == 1 && !unicode.In(word[0], letters...)
+		return len(word) == 1 && !unicode.In(word[0], held.letters...)
 	}
 	return false
 }

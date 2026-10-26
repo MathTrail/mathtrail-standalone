@@ -361,7 +361,7 @@ func TestTheRefusalOfTheLettersKeepsTheQuestionInEnglishInEnglish(t *testing.T) 
 	t.Parallel()
 
 	const kept = "Keep task.question_en in English: it is the question once more, with the same names, numbers and " +
-		"conditions, which the reference tasks are compared with."
+		"conditions and the names in Latin letters, which the reference tasks are compared with."
 	for _, test := range []struct {
 		name, language string
 		task           *checks.Task
@@ -382,6 +382,73 @@ func TestTheRefusalOfTheLettersKeepsTheQuestionInEnglishInEnglish(t *testing.T) 
 					problems[0].Message, said, test.says)
 			}
 		})
+	}
+}
+
+// The question in English a lesson in another language asks for is held to
+// Latin letters by the same measure as the texts the child reads, whatever
+// letters the lesson's own language is written in, even none the check knows:
+// one left in the lesson's language, or whose names outweigh its English
+// words, is refused, and one whose names are spelt in Latin letters, or held
+// apart as single words, passes. A lesson in English reads none.
+func TestTheQuestionInEnglishIsHeldToLatinLetters(t *testing.T) {
+	t.Parallel()
+
+	const chinese, mongolian = "两个孩子分十二个坚果。", "Дөрвөн хөлөг онгоц хэдэн хос болох вэ?"
+	for _, test := range []struct {
+		name, language, question, english string
+		refused                           bool
+	}{
+		{"English in a lesson in Russian", "ru", russianQuestion, liveEnglish, false},
+		{"the Russian question once more", "ru", russianQuestion, russianQuestion, true},
+		{"names in Cyrillic among English words", "ru", russianQuestion,
+			"Маша and Петя share twelve nuts equally. How many nuts does each child get?", false},
+		{"as many names in Cyrillic as English words, short ones counted", "ru", russianQuestion,
+			"Аня gave Оля 2 nuts; Оля gave Вера 1. Who has most, Аня, Оля or Вера?", false},
+		{"names spelt in pinyin", "zh", chinese,
+			"Ouyang Ming and Sima Guang share twelve nuts. Ouyang Ming gets two more. How many does Sima Guang get?", false},
+		{"names left in Chinese characters", "zh", chinese,
+			"欧阳明 and 司马光 share twelve nuts. 欧阳明 gets two more. How many does 司马光 get?", true},
+		{"Cyrillic in a lesson in Mongolian, which the check holds to no letters", "mn", mongolian, mongolian, true},
+		{"labels and numbers alone", "ru", russianQuestion, "AB = 3, BC = 4, CD = ?", false},
+		{"anything at all in a lesson in English", "en", liveEnglish, russianQuestion, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			task := &checks.Task{Question: test.question, QuestionInEnglish: test.english}
+			problems := checks.Language(task, test.language)
+			refused := slices.ContainsFunc(problems, func(problem checks.Problem) bool {
+				return problem.Code == checks.CodeWrongLanguage && strings.HasPrefix(problem.Message, "task.question_en")
+			})
+			if refused != test.refused {
+				t.Errorf("Language() = %v, the question in English refused = %v, want %v", problems, refused, test.refused)
+			}
+			if !refused {
+				return
+			}
+			if said := problems[len(problems)-1].Message; strings.IndexFunc(said, func(r rune) bool { return r > unicode.MaxASCII }) >= 0 {
+				t.Errorf("the refusal %q quotes something of the question in English, want words of its own alone", said)
+			}
+		})
+	}
+}
+
+// A task whose texts and question in English swapped places — the texts the
+// child reads in English and the question in English in the lesson's language
+// — is told both, and the refusal of its texts does not tell the model to keep
+// the question in English as it is, which the second refusal says is not in
+// English.
+func TestASwappedTaskIsNotToldToKeepItsQuestionInEnglish(t *testing.T) {
+	t.Parallel()
+
+	task := &checks.Task{Question: liveEnglish, QuestionInEnglish: russianQuestion}
+	problems := checks.Language(task, "ru")
+	if len(problems) != 2 || !strings.HasPrefix(problems[1].Message, "task.question_en") {
+		t.Fatalf("Language() = %v, want the texts and the question in English refused, in that order", problems)
+	}
+	if strings.Contains(problems[0].Message, "Keep task.question_en in English") {
+		t.Errorf("the refusal of the texts says %q, want nothing of keeping the question in English", problems[0].Message)
 	}
 }
 
@@ -471,34 +538,57 @@ func TestLanguagesWrittenInTheSameLettersAreNotToldApart(t *testing.T) {
 // refuses nothing it has no language or no letter to judge, and comes to the
 // same whichever letters the explanations sit under.
 func FuzzLanguage(f *testing.F) {
-	f.Add(liveEnglish, "Who sits next to Alpha?", "Alpha is not in it.", "Beta sits there.", "Gamma does.", "ru")
-	f.Add("AB = 3, BC = 4. Найди AC.", "", "", "", "", "ru")
-	f.Add("Tom和Mary谁高？", "ー", "ＡＢ", "\xff", "e\u0301", "zh")
-	f.Add("x", "π", "2x", "I", "", "zh-Hant-TW")
-	f.Add(russianQuestion, "Kim", "", "", "", "sr-Latn")
-	f.Add("Ο Tom και η Mary;", "π", "ή", "α", "", "el")
-	f.Add(languagesOfTheCards["pa"], "چار جہاز", "", "", "", "pa-PK")
-	f.Add(languagesOfTheCards["am"], "ድመት፡ድመት", "", "", "", "am")
-	f.Add("", "", "", "", "", "")
+	f.Add(liveEnglish, "Who sits next to Alpha?", "Alpha is not in it.", "Beta sits there.", "Gamma does.", liveEnglish, "ru")
+	f.Add("AB = 3, BC = 4. Найди AC.", "", "", "", "", russianQuestion, "ru")
+	f.Add("Tom和Mary谁高？", "ー", "ＡＢ", "\xff", "e\u0301", "汤姆和玛丽", "zh")
+	f.Add("x", "π", "2x", "I", "", "", "zh-Hant-TW")
+	f.Add(russianQuestion, "Kim", "", "", "", "Kim", "sr-Latn")
+	f.Add("Ο Tom και η Mary;", "π", "ή", "α", "", "Tom and Mary?", "el")
+	f.Add(languagesOfTheCards["pa"], "چار جہاز", "", "", "", "چار جہاز", "pa-PK")
+	f.Add(languagesOfTheCards["am"], "ድመት፡ድመት", "", "", "", "", "am")
+	f.Add("", "", "", "", "", "", "")
 
-	f.Fuzz(func(t *testing.T, question, hint, solution, first, second, language string) {
-		task := &checks.Task{Question: question, Hint: hint, Solution: solution, Distractors: map[string]checks.Distractor{
-			"A": {Trap: "missed_case", Text: first}, "B": {Trap: "double_count", Text: second},
-		}}
+	f.Fuzz(func(t *testing.T, question, hint, solution, first, second, english, language string) {
+		task := &checks.Task{Question: question, Hint: hint, Solution: solution, QuestionInEnglish: english,
+			Distractors: map[string]checks.Distractor{
+				"A": {Trap: "missed_case", Text: first}, "B": {Trap: "double_count", Text: second},
+			}}
 		problems := checks.Language(task, language)
-		if len(problems) > 1 || len(problems) == 1 && (problems[0].Code != checks.CodeWrongLanguage || problems[0].Message == "") {
-			t.Fatalf("Language() = %v, want at most one problem, with a message, under %q", problems, checks.CodeWrongLanguage)
-		}
-		if len(problems) > 0 && (language == "" || !anyLetter(question, hint, solution, first, second)) {
+		wantTheLanguageRules(t, problems, language, english)
+		if len(problems) > 0 && (language == "" || !anyLetter(question, hint, solution, first, second, english)) {
 			t.Fatalf("Language() = %v in %q, want nothing refused without a language or a letter", problems, language)
 		}
-		elsewhere := &checks.Task{Question: question, Hint: hint, Solution: solution, Distractors: map[string]checks.Distractor{
-			"D": {Trap: "missed_case", Text: second}, "E": {Trap: "double_count", Text: first},
-		}}
+		elsewhere := &checks.Task{Question: question, Hint: hint, Solution: solution, QuestionInEnglish: english,
+			Distractors: map[string]checks.Distractor{
+				"D": {Trap: "missed_case", Text: second}, "E": {Trap: "double_count", Text: first},
+			}}
 		if again := checks.Language(elsewhere, language); !slices.Equal(messagesOf(again), messagesOf(problems)) {
 			t.Fatalf("Language() = %v with the explanations under other letters, want %v", again, problems)
 		}
 	})
+}
+
+// wantTheLanguageRules holds what the language check found to its rules: at
+// most two problems, each with a message, under its own code; the texts the
+// child reads first and the question in English second; and the question in
+// English refused only where the lesson asks for it and it has a letter.
+func wantTheLanguageRules(t *testing.T, problems []checks.Problem, language, english string) {
+	t.Helper()
+
+	ofTheEnglish := func(problem checks.Problem) bool { return strings.HasPrefix(problem.Message, "task.question_en") }
+	if len(problems) > 2 || slices.ContainsFunc(problems, func(problem checks.Problem) bool {
+		return problem.Code != checks.CodeWrongLanguage || problem.Message == ""
+	}) {
+		t.Fatalf("Language() = %v, want at most two problems, each with a message, under %q", problems,
+			checks.CodeWrongLanguage)
+	}
+	if len(problems) == 2 && (!ofTheEnglish(problems[1]) || ofTheEnglish(problems[0])) {
+		t.Fatalf("Language() = %v, want the texts the child reads first and the question in English second", problems)
+	}
+	if slices.ContainsFunc(problems, ofTheEnglish) && (!checks.AsksQuestionInEnglish(language) || !anyLetter(english)) {
+		t.Fatalf("Language() = %v in %q, want the question in English refused only where the lesson asks for it "+
+			"and it has a letter", problems, language)
+	}
 }
 
 // anyLetter says whether any of these texts holds a letter.

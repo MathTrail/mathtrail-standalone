@@ -38,7 +38,7 @@ func TestATextIsCountedAsAChildReadsIt(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			if own, all := counted(test.text, test.letters); own != test.own || all != test.all {
+			if own, all := counted(test.text, &lettering{letters: test.letters}); own != test.own || all != test.all {
 				t.Errorf("counted(%q) = %d of %d, want %d of %d", test.text, own, all, test.own, test.all)
 			}
 		})
