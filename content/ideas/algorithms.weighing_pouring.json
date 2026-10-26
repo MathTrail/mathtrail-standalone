@@ -9,7 +9,10 @@
     "Three parcels of different weights: two weighings that put them in order.",
     "A fake that may be heavier or lighter, nobody knows which, among three coins: the weighings it takes.",
     "Sharing water equally with jugs that have no marks.",
-    "Flour weighed out in halves: one bag split again and again on a balance."
+    "Flour weighed out in halves: one bag split again and again on a balance.",
+    "A balance with arms of different lengths and one true weight: balance the weight against sand, then pour flour in its place until the sand balances again, and the flour weighs as much as the weight.",
+    "A scale whose needle is off by the same amount every time: weighing two things apart and then together shows the error, and from it each true weight.",
+    "A jug of known size and a jug that holds one of two sizes, with no way to see how much is in a jug: pourings that end differently for the two sizes show which it is."
   ],
   "5-6": [
     "Three buckets and a tap: the steps to a given amount.",
@@ -21,6 +24,13 @@
     "Stones of different weights: the fewest weighings to find the heaviest.",
     "A fake that may be lighter or heavier, among a few coins.",
     "A full jug shared into two equal halves with two smaller jugs.",
-    "Weights that go up in powers of two or of three: which loads one set can weigh."
+    "Weights that go up in powers of two or of three: which loads one set can weigh.",
+    "A spoonful poured from one glass into another and a spoonful of the mix poured back: each glass holds what it held at first, so it has as much of the other drink as it lost of its own.",
+    "One fake among coins in three equal groups of several each, heavier or lighter, nobody knows which: two weighings, the second against a group shown to be real, tell only which, not the coin.",
+    "Weights or coins that should weigh as many grams as their labels say, one of them off: groups whose labels add up to the same total, made up with ones known to be right, find it.",
+    "Three piles of coins of different sizes, one fake coin in one of them: one weighing of the smallest pile against as many coins of another names a pile with no fake.",
+    "Four coins in a row, all real ones before all fakes, which are lighter, and some of each: one weighing of well-chosen coins tells which are fake, since it has three outcomes for the three cases.",
+    "Weights of 1, 2, 3 and so on, two of them on one pan: the pairs no other two can balance are those whose sum no other pair makes, the two smallest sums and the two largest.",
+    "Coins of two kinds with one fake among them, lighter if it is of one kind and heavier if of the other: both kinds on both pans, so that each outcome leaves about a third of the suspects."
   ]
 }
