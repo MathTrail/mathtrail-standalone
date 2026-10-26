@@ -37,7 +37,7 @@ Technical shape:
 
 - [PRODUCT-V1.md](PRODUCT-V1.md) — product requirements, platform research and the product decision log (О-questions in section 12). The source of truth for *what* we build.
 - [RUN.md](RUN.md) — the implementation plan, run one task at a time: the tasks being done now, the big ones for later, the author's open questions and the technical debt. Full executor rules are in its «Как пользоваться» section, and how the plan is kept in «Как устроен план».
-- [docs/plan/](docs/plan/README.md) — the plan's archive: what is done leaves RUN.md for it word for word, a file per phase (R308). It is not read whole. A task that is not in RUN.md is found there by its number, `grep -nE -e '^### T75\.7[.–]' -e '^ *- \*\*T75\.7[.*]' RUN.md docs/plan/*.md`, so a reference such as "RUN.md, T11" stays as it was written.
+- [docs/plan/](docs/plan/README.md) — the plan's archive: what is done leaves RUN.md for it word for word, a file per phase (R308). It is not read whole. Beside it, `docs/plan/later.md` holds the bodies of the big tasks for later, moved there word for word and read when one is taken. A task that is not in RUN.md is found there by its number, `grep -nE -e '^### T75\.7[.–]' -e '^ *- \*\*T75\.7[.*]' RUN.md docs/plan/*.md`, so a reference such as "RUN.md, T11" stays as it was written.
 - `SPEC.md` — the technical spec (written in phase 1 of the plan, now in `docs/plan/phase-01.md`). The source of truth for *how*, once it exists.
 - `docs/decisions.md` — implementation decision log, numbered R01… (created in T05). Read it before proposing design changes.
 - `docs/architecture/` — Mermaid diagrams (phase 1). `docs/live/` — reports of live runs in real chat hosts.
@@ -80,7 +80,7 @@ Project context lives in these files, not in chat history.
   `.devcontainer/Dockerfile`, as a literal in `devcontainer.json`. No separate versions file,
   no checksum verification.
 - **Language: English everywhere.** Code, every comment in code and config files (Go, TS, SQL, YAML, HCL, Dockerfile, justfile, `.env.example`, …), model instructions and content in `content/`, locale keys, and every project document — PRODUCT-V1, SPEC, everything under `docs/`, `CLAUDE.md` and `README.md`.
-  - RUN.md and research/RUN.md are in Russian: they are the author's working plans of the tasks. So is the product plan's archive under `docs/plan/`, which is RUN.md moved there word for word.
+  - RUN.md and research/RUN.md are in Russian: they are the author's working plans of the tasks. So is everything under `docs/plan/`, which is RUN.md moved there word for word: the plan's archive and the bodies of its big tasks for later.
   - The paper draft under `research/` has a Russian copy beside it, `draft.ru.md`, for the author to read. The English file is the source and the one a venue receives; the copy follows it in the same change.
   - Reports to the author in chat are in Russian.
   - The frozen prototype copies under `docs/prototype/` stay in Russian as they were written: they are a historical record, cited but never rewritten.
