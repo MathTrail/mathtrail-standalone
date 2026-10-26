@@ -66,3 +66,27 @@ func TestEveryAnswerIsReadToItsEnd(t *testing.T) {
 		})
 	}
 }
+
+// The calls go over a transport of their own rather than the one the whole
+// process shares, so that nothing else closing that one's idle connections can
+// fail a call that has already been answered; and the files and their history
+// share it, keeping one set of connections to Drive.
+func TestTheCallsHaveATransportOfTheirOwn(t *testing.T) {
+	t.Parallel()
+
+	settings := &Settings{Root: Google, Timeout: time.Second}
+	files, err := newFiles(settings)
+	if err != nil {
+		t.Fatalf("newFiles() error = %v, want nil", err)
+	}
+	if files.client.Transport == nil || files.client.Transport == http.DefaultTransport {
+		t.Errorf("the calls' transport is %T(%p), want one of their own rather than the standard one", files.client.Transport, files.client.Transport)
+	}
+	again, err := newFiles(settings)
+	if err != nil {
+		t.Fatalf("newFiles() error = %v, want nil", err)
+	}
+	if again.client.Transport != files.client.Transport {
+		t.Errorf("two sets of calls go over %p and %p, want them to share one transport", files.client.Transport, again.client.Transport)
+	}
+}

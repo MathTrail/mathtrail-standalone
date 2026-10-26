@@ -36,41 +36,64 @@ import (
 const (
 	callerAddress  = "203.0.113.9"
 	peerAddress    = "192.0.2.1"
+	peerPort       = "48151"
 	callerAgent    = "a-browser-nobody-wrote"
 	callerPassword = "hunter2"
 	callerName     = "masha-ivanova"
 	callerVerb     = "MASHA"
+	callerPort     = "6543"
 )
 
 // These build the real router, because the order these handlers run in is
 // what half of them are for, and that order is the router's to decide.
 
 // The guard. Nothing a request carried about who sent it, and nothing a child
-// or a task could be recognised by, may appear in a span's name or attributes —
-// the path and the verb as the caller wrote them included.
+// or a task could be recognised by, may leave the process in a span's name,
+// attributes, events or links — the path and the verb as the caller wrote
+// them, the port it wrote in its Host header and the connection's own
+// included. It reads the span as the exporter is handed it, after everything
+// the service installs between them.
 func TestASpanCarriesNothingThatIdentifiesTheCaller(t *testing.T) {
 	t.Parallel()
 
 	watched := newWatchedRouter(t)
-	watched.do(t, callerVerb, "/children/"+callerName+"?token="+callerPassword)
+	req := httptest.NewRequestWithContext(t.Context(), callerVerb, "/children/"+callerName+"?token="+callerPassword, http.NoBody)
+	req.Host = "example.com:" + callerPort
+	req.RemoteAddr = peerAddress + ":" + peerPort
+	req.Header.Set("X-Forwarded-For", callerAddress)
+	req.Header.Set("User-Agent", callerAgent)
+	watched.handler.ServeHTTP(httptest.NewRecorder(), req)
 
-	spans := watched.spans.Ended()
+	spans := watched.exported.GetSpans()
 	if len(spans) != 1 {
-		t.Fatalf("the recorder kept %d spans, want 1", len(spans))
+		t.Fatalf("the exporter was handed %d spans, want 1", len(spans))
 	}
 
-	forbidden := []string{callerAddress, peerAddress, callerAgent, callerPassword, callerName, callerVerb}
-	for _, secret := range forbidden {
-		if strings.Contains(spans[0].Name(), secret) {
-			t.Errorf("span name = %q, want it to carry no %q", spans[0].Name(), secret)
+	forbidden := []string{callerAddress, peerAddress, peerPort, callerAgent, callerPassword, callerName, callerVerb, callerPort}
+	carriesNone(t, "span name", spans[0].Name, forbidden)
+	carriesNone(t, "status", spans[0].Status.Description, forbidden)
+	for _, attr := range spans[0].Attributes {
+		carriesNone(t, "span attribute "+string(attr.Key), attr.Value.String(), forbidden)
+	}
+	for _, event := range spans[0].Events {
+		for _, attr := range event.Attributes {
+			carriesNone(t, "attribute "+string(attr.Key)+" of event "+event.Name, attr.Value.String(), forbidden)
 		}
 	}
-	for _, attr := range spans[0].Attributes() {
-		value := attr.Value.String()
-		for _, secret := range forbidden {
-			if strings.Contains(value, secret) {
-				t.Errorf("span attribute %s = %q, want it to carry no %q", attr.Key, value, secret)
-			}
+	for _, link := range spans[0].Links {
+		for _, attr := range link.Attributes {
+			carriesNone(t, "link attribute "+string(attr.Key), attr.Value.String(), forbidden)
+		}
+	}
+}
+
+// carriesNone holds one text of a span to carrying none of the secrets.
+func carriesNone(t *testing.T, what, text string, secrets []string) {
+	t.Helper()
+
+	for _, secret := range secrets {
+		if strings.Contains(text, secret) {
+			t.Errorf("%s = %q, want it to carry no %q", what, text, secret)
 		}
 	}
 }
@@ -92,6 +115,7 @@ func TestWhatTheCallerSentIsBlankedRatherThanDropped(t *testing.T) {
 	blanked := map[string]bool{
 		"client.address":               false,
 		"network.peer.address":         false,
+		"network.peer.port":            false,
 		"user_agent.original":          false,
 		"url.path":                     false,
 		"http.request.method_original": false,
@@ -419,12 +443,14 @@ func TestTheRequestLineNamesItsTrace(t *testing.T) {
 	}
 }
 
-// watchedRouter is the real router with everything it records kept in memory.
+// watchedRouter is the real router with everything it records kept in memory:
+// the spans as they ended, and as the exporter was handed them.
 type watchedRouter struct {
-	handler http.Handler
-	spans   *tracetest.SpanRecorder
-	reader  *sdkmetric.ManualReader
-	logs    *observer.ObservedLogs
+	handler  http.Handler
+	spans    *tracetest.SpanRecorder
+	exported *tracetest.InMemoryExporter
+	reader   *sdkmetric.ManualReader
+	logs     *observer.ObservedLogs
 
 	delivered      atomic.Int64
 	offered        atomic.Int64
@@ -443,17 +469,20 @@ func newWatchedRouter(t *testing.T, sampler ...sdktrace.Sampler) *watchedRouter 
 
 	recorded, logs := observer.New(zapcore.DebugLevel)
 	w := &watchedRouter{
-		spans:  tracetest.NewSpanRecorder(),
-		reader: sdkmetric.NewManualReader(),
-		logs:   logs,
+		spans:    tracetest.NewSpanRecorder(),
+		exported: tracetest.NewInMemoryExporter(),
+		reader:   sdkmetric.NewManualReader(),
+		logs:     logs,
 	}
 
-	// The real redactor, beside a recorder that keeps what survived it: the
-	// guard has to run against what the service actually installs.
+	// The real redactor, beside a recorder that keeps what survived it, and an
+	// exporter behind the real stripping: the guard has to run against what
+	// the service actually installs.
 	traces := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(kept),
 		sdktrace.WithSpanProcessor(telemetry.Redactor()),
 		sdktrace.WithSpanProcessor(w.spans),
+		sdktrace.WithSyncer(telemetry.Stripped(w.exported)),
 	)
 	t.Cleanup(func() { _ = traces.Shutdown(context.Background()) })
 
