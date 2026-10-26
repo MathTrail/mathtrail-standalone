@@ -289,7 +289,7 @@ func (h *harness) connectChat(t *testing.T, version string, host chatHost) *mcp.
 	})
 	session, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{
 		Endpoint:             h.server.URL + "/mcp",
-		HTTPClient:           &http.Client{Transport: answerCounter{base: http.DefaultTransport, open: open}},
+		HTTPClient:           &http.Client{Transport: answerCounter{base: h.transport(), open: open}},
 		DisableStandaloneSSE: true,
 		MaxRetries:           -1,
 	}, &mcp.ClientSessionOptions{ProtocolVersion: version})
@@ -303,6 +303,12 @@ func (h *harness) connectChat(t *testing.T, version string, host chatHost) *mcp.
 	})
 	return session
 }
+
+// transport is the one a case's requests go through: the test server's own.
+// Closing a test server empties the idle connections of the transport every
+// client shares by default, and an answer with no body, as a notification
+// gets, can be lost with them after the service gave it.
+func (h *harness) transport() http.RoundTripper { return h.server.Client().Transport }
 
 // sessionAnswers are the answers each session a case connected has open, so
 // that a call can wait for the server to be done with its request.

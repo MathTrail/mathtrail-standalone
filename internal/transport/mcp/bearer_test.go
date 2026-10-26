@@ -37,8 +37,10 @@ func readerEndingIn(left time.Duration) mcpserver.TokenReader {
 }
 
 // bearing is a client that sends every request with the token given, and,
-// given a counter, counts every answer in which the service gave up.
+// given a counter, counts every answer in which the service gave up. It sends
+// through the harness's transport, which connectThrough gives it.
 type bearing struct {
+	base   http.RoundTripper
 	token  string
 	failed *atomic.Int32
 }
@@ -46,7 +48,7 @@ type bearing struct {
 func (b bearing) RoundTrip(r *http.Request) (*http.Response, error) {
 	r = r.Clone(r.Context())
 	r.Header.Set("Authorization", "Bearer "+b.token)
-	resp, err := http.DefaultTransport.RoundTrip(r)
+	resp, err := b.base.RoundTrip(r)
 	if err == nil && b.failed != nil && resp.StatusCode >= http.StatusInternalServerError {
 		b.failed.Add(1)
 	}
@@ -67,12 +69,13 @@ func (h *harness) connectAs(t *testing.T, name, token string) (*mcp.ClientSessio
 }
 
 // connectThrough is a client that gives itself the name given and sends every
-// request through the transport given. It declares no capabilities beyond the
+// request through the bearing given. It declares no capabilities beyond the
 // library's own, so the service takes it, on the newest protocol, for a chat
 // that shows the words alone, as Claude Code is.
-func (h *harness) connectThrough(t *testing.T, name string, through http.RoundTripper) (*mcp.ClientSession, error) {
+func (h *harness) connectThrough(t *testing.T, name string, through bearing) (*mcp.ClientSession, error) {
 	t.Helper()
 
+	through.base = h.transport()
 	open := newOpenAnswers()
 	client := mcp.NewClient(&mcp.Implementation{Name: name, Version: "1.0.0"}, nil)
 	session, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{

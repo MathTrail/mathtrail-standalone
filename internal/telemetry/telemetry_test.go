@@ -271,7 +271,7 @@ func TestAStartAlreadyToldToStopIsRefused(t *testing.T) {
 		Enabled:     true,
 		Endpoint:    collector.url,
 		SampleRatio: 1,
-		HTTPClient:  signedClient(t),
+		HTTPClient:  signedClient(t, collector),
 		ProjectID:   "a-project",
 		Detector:    stubDetector{},
 	}, zaptest.NewLogger(t))
@@ -376,7 +376,7 @@ func TestSwitchedOffNothingLeavesTheProcess(t *testing.T) {
 		Enabled:     false,
 		Endpoint:    collector.url,
 		SampleRatio: 1,
-		HTTPClient:  signedClient(t),
+		HTTPClient:  signedClient(t, collector),
 		ProjectID:   "a-project",
 		Detector:    stubDetector{},
 	}, zaptest.NewLogger(t))
@@ -453,7 +453,7 @@ func newTelemetry(t *testing.T, c *collector, settings *telemetry.Settings) *tel
 	settings.Enabled = true
 	settings.Endpoint = c.url
 	settings.ProjectID = "a-project"
-	settings.HTTPClient = signedClient(t)
+	settings.HTTPClient = signedClient(t, c)
 	if settings.Detector == nil {
 		settings.Detector = stubDetector{}
 	}
@@ -479,9 +479,14 @@ type request struct {
 	body   []byte
 }
 
-// collector stands in for the one a deployment posts to.
+// collector stands in for the one a deployment posts to. Its client is the
+// test server's own, which no other case's server touches: closing a test
+// server empties the idle connections of the transport every client shares by
+// default, and the collector answers with no body, so a delivery already
+// answered can be lost with them.
 type collector struct {
 	url    string
+	client *http.Client
 	status int
 
 	mu   sync.Mutex
@@ -503,7 +508,7 @@ func newCollector(t *testing.T, status int) *collector {
 	}))
 	t.Cleanup(server.Close)
 
-	c.url = server.URL
+	c.url, c.client = server.URL, server.Client()
 	return c
 }
 
@@ -549,7 +554,7 @@ func TestWithoutAProjectNothingLeavesTheProcess(t *testing.T) {
 		Enabled:     true,
 		Endpoint:    collector.url,
 		SampleRatio: 1,
-		HTTPClient:  signedClient(t),
+		HTTPClient:  signedClient(t, collector),
 		Detector:    stubDetector{},
 	}, zaptest.NewLogger(t))
 	if err != nil {
@@ -568,11 +573,12 @@ func TestWithoutAProjectNothingLeavesTheProcess(t *testing.T) {
 
 // signedClient is what a real export would be signed with, so that a case
 // about something else — a switch, a missing project — fails when that
-// something else stops being what holds the data in.
-func signedClient(t *testing.T) *http.Client {
+// something else stops being what holds the data in. It posts through the
+// collector's own client.
+func signedClient(t *testing.T, c *collector) *http.Client {
 	t.Helper()
 
-	return oauth2.NewClient(t.Context(),
+	return oauth2.NewClient(context.WithValue(t.Context(), oauth2.HTTPClient, c.client),
 		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testToken, TokenType: "Bearer"}))
 }
 
@@ -638,6 +644,6 @@ func newSlowCollector(t *testing.T) *collector {
 	}))
 	t.Cleanup(server.Close)
 
-	c.url = server.URL
+	c.url, c.client = server.URL, server.Client()
 	return c
 }
