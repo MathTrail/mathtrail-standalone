@@ -9,6 +9,11 @@
     "A king moved towards a corner of a board in turn: the squares to leave the other player on.",
     "Coins in a row, one taken from either end in turn: how the first player makes sure of at least half.",
     "Symmetry: copying the other player's moves, such as coins placed on a round table, to win.",
-    "Writing the digits of a three-digit number in turn: whether the last player can make it divisible by 3."
+    "Writing the digits of a three-digit number in turn: whether the last player can make it divisible by 3.",
+    "Numbers said in turn, each between twice and three times the last, whoever reaches a limit losing: work back from the limit in bands of numbers.",
+    "A pile from which a move takes at least one thing and at most half of it, the one left facing a single thing losing: piles one less than a power of two lose for the player to move.",
+    "Cards 1 to 9 taken in turn, three that add up to 15 winning: the game is noughts and crosses on a magic square, so it ends in a draw.",
+    "Rooks put in turn on a square board so that none attacks another: each takes a row and a column, so the game lasts as many moves as there are rows, and that decides who moves last.",
+    "Two piles where a move eats one pile and splits the other into two: the player facing two odd piles loses."
   ]
 }

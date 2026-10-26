@@ -9,6 +9,11 @@
     "Twice as many in both groups as in neither, or another tie between the parts: each part from it.",
     "A small team in which most can do each of three things: the fewest who must do all three.",
     "Counts of those who did not do something: how many did both things.",
-    "Whole numbers up to some number that divide by 2 or by 3: counted without counting any twice."
+    "Whole numbers up to some number that divide by 2 or by 3: counted without counting any twice.",
+    "All but so many are cats and all but as many are owls, the rest of a third kind, each kind there at least once: cats and owls come out equal, and only all but two fixes the count, at one of each.",
+    "Each child holds three cards of two kinds and is counted for every word it can spell: the overlaps between the counts tell how many hold cards all of one kind.",
+    "Lists of those who solved the first problem, exactly one, at least one and both: which list is the longest, and when two lists can be the same.",
+    "Couples where a share of the men and a share of the women are married: as many married men as married women give the share of all who are married.",
+    "Boxes of a few things where every two boxes share exactly one thing: what one more box must hold to keep the rule."
   ]
 }
