@@ -121,7 +121,7 @@ var failures = []struct {
 	{
 		cause:    store.ErrUnavailable,
 		kind:     kindUnavailable,
-		sentence: "Google Drive is not answering at the moment, so nothing was saved. Make the same call again in a minute; if it keeps failing, tell the adult that Google Drive is having trouble.",
+		sentence: "Google Drive is not answering at the moment. If this call was to change the profile, the change may or may not have reached Drive, which can keep a change whose answer never arrives. Make the same call again in a minute; if it keeps failing, tell the adult that Google Drive is having trouble.",
 	},
 	{
 		// The file is no profile at all, and nothing was changed: putting an
