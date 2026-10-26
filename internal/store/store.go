@@ -74,7 +74,9 @@ var (
 	ErrUnsupported = errors.New("store: the profile was written by a version this one cannot read")
 	// ErrUnavailable means the place the profile is kept did not answer, or
 	// asked for a pause, and went on doing so for as long as a call can wait.
-	// Nothing was written.
+	// A read read nothing. A write may have landed all the same: the place
+	// can keep what it was sent without its answer reaching the caller, so a
+	// caller that has to know reads the profile again.
 	ErrUnavailable = errors.New("store: the profile could not be reached")
 )
 

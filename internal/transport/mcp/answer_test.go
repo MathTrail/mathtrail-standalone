@@ -1310,3 +1310,65 @@ func TestTheMapCarriesNothingOfATask(t *testing.T) {
 	secrets := append([]string{raceQuestion, raceSolution}, raceExplained...)
 	wantNoneOf(t, "the progress", []string{string(rawPayload(t, result))}, secrets)
 }
+
+// An answer to a task written ahead and kept, which a card shows because the
+// write of its hand-out did not land, records nothing. The words send the model
+// to record the answer again shortly and say that the next task asked for
+// brings the same task back, which it does, and its answer is then recorded.
+func TestAnAnswerToATaskKeptWhoseHandOutDidNotLandWaitsForItToComeBack(t *testing.T) {
+	t.Parallel()
+
+	kept := &failingLater{Storage: racer(t)}
+	h, session := lesson(t, kept)
+	_, relay := keepTheRelay(t, session, kept)
+	kept.armed.Store(true)
+	if card := payloadOf[requestPayload](t, call(t, session, "next_task", map[string]any{"language": "en"})); card.Task == nil ||
+		card.Task.ID != relay {
+		t.Fatalf("next_task = %+v, want the relay on the card at once", card)
+	}
+	if outcome := lateOutcome(t, h, "next_task"); outcome != "failed" {
+		t.Fatalf("the hand-out's write = %s, want it failed", outcome)
+	}
+	kept.armed.Store(false)
+	before, revision := loadKept(t, kept)
+
+	result := answerIt(t, session, relay, "C", false)
+	if got := payloadOf[answerPayload](t, result); got.Status != "stale" || got.Code != "stale_task" || got.Result != nil {
+		t.Errorf("submit_answer for the task kept = %+v, want it refused as stale_task, with no result", got)
+	}
+	wantSaid(t, textOf(t, result), "Nothing was recorded", "task "+relay+" is the task written ahead and kept",
+		"If next_task has put task "+relay+" on the card", "record the answer again in a minute",
+		"brings "+relay+" back on a new card")
+	if after, now := loadKept(t, kept); now != revision || after.CurrentTask.Answered != nil || after.ReadyTask == nil ||
+		after.ReadyTask.ID != before.ReadyTask.ID {
+		t.Errorf("the profile moved: revision %v from %v, the card %+v, the task kept %+v",
+			now, revision, after.CurrentTask, after.ReadyTask)
+	}
+
+	if card := payloadOf[requestPayload](t, call(t, session, "next_task", map[string]any{"language": "en"})); card.Task == nil ||
+		card.Task.ID != relay {
+		t.Fatalf("the next task asked for = %+v, want the relay back on a new card", card)
+	}
+	if answered := payloadOf[answerPayload](t, answerIt(t, session, relay, "C", false)); answered.Result == nil {
+		t.Errorf("the answer to the relay back on its card = %+v, want it recorded", answered)
+	}
+}
+
+// An answer under the id of the task the model wrote ahead, while the child
+// answered the task on the card, records nothing, and the words name the task
+// the file has on the card, so that the answer goes to it.
+func TestAnAnswerUnderTheIdOfTheTaskKeptNamesTheTaskOnTheCard(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	race, relay := keepTheRelay(t, session, kept)
+	onTheCard := profile.TaskIDFor(race.ID)
+
+	wantSaid(t, textOf(t, answerIt(t, session, relay, "C", false)), "Nothing was recorded",
+		"The file has task "+onTheCard+" on the child's card, without an answer: if the child's answer is to that "+
+			"task, record it with its id.")
+	if p, _ := loadKept(t, kept); p.CurrentTask.ID != onTheCard || p.CurrentTask.Answered != nil {
+		t.Errorf("the card holds %+v, want %s still waiting for its answer", p.CurrentTask, onTheCard)
+	}
+}

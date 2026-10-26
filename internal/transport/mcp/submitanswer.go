@@ -485,19 +485,54 @@ func (s *Service) standingText(recorded *profile.Recorded) string {
 }
 
 // notOnTheCard is an answer to a task that is not the one on the child's card:
-// skipped, left for a newer one, or never given. Nothing is recorded. A task
-// whose answer the window keeps is told that its answer is recorded, lest the
-// model tell the child it was lost; the words say what is on the card now, and
-// never repeat an id that arrived without the profile knowing it. The card that
-// sent the answer stays on its task.
+// skipped, left for a newer one, never given, or written ahead and kept but
+// not handed out in the file. Nothing is recorded. A task whose answer the
+// window keeps is told that its answer is recorded, lest the model tell the
+// child it was lost; the words say what is on the card now, and never repeat
+// an id that arrived without the profile knowing it. The card that sent the
+// answer stays on its task.
 func (s *Service) notOnTheCard(p *profile.Profile, taskID string) Reply[answeredOut] {
-	lead := "The task_id is not the task on the child's card: that task was skipped, left for a newer one or " +
+	lead, current := s.notOnTheCardWords(p, taskID)
+	return Reply[answeredOut]{
+		Text:    joined(lead, current, s.lastAnswerText(p)),
+		Payload: answeredOut{Screen: screenTask, Status: statusStale, Code: codeStaleTask, LastAnswer: lastAnswerOf(p)},
+	}
+}
+
+// notOnTheCardWords is what an answer to a task not on the card is told: why
+// nothing was recorded, and what stands on the card now.
+//
+// An answer to the task written ahead and kept is told apart, since it comes
+// two ways that the file cannot tell from each other. The model may have taken
+// the id of the task it wrote ahead for the one on the card; the words then
+// name the task the file has on the card, so that the answer is recorded
+// against it. Or next_task put the kept task on a card at once, and the write
+// of its hand-out, made after its reply, has not landed — it may still be on
+// its way, tried again on a fresh read, or it may have failed; the words then
+// send the model to record the answer again shortly and, if it is refused
+// again, to bring the task back with the next one asked for.
+func (s *Service) notOnTheCardWords(p *profile.Profile, taskID string) (lead, current string) {
+	if ready := p.ReadyTask; ready != nil && ready.ID == taskID {
+		lead = fmt.Sprintf("Nothing was recorded: task %s is the task written ahead and kept, which the profile's file "+
+			"has not handed out.", taskID)
+		switch task := p.CurrentTask; {
+		case task != nil && task.Answered == nil:
+			current = fmt.Sprintf("The file has task %s on the child's card, without an answer: if the child's answer "+
+				"is to that task, record it with its id. ", task.ID)
+		case task != nil:
+			current = fmt.Sprintf("The file has task %s on the child's card, answered already. ", task.ID)
+		}
+		return lead, current + fmt.Sprintf("If next_task has put task %[1]s on the card, its hand-out has not reached "+
+			"the file: record the answer again in a minute, and if it is refused again, the next task asked for brings "+
+			"%[1]s back on a new card, unless the day is over or the lesson has moved on from it, and the child answers "+
+			"it there.", taskID)
+	}
+	lead = "The task_id is not the task on the child's card: that task was skipped, left for a newer one or " +
 		"never given. Nothing was recorded."
 	if answer, found := p.AnswerTo(taskID); found {
 		lead = fmt.Sprintf("Task %s was answered already, and that answer, %s, is recorded; the task has left the "+
 			"card since, and nothing was recorded now.", answer.TaskID, howItWent(answer.Correct))
 	}
-	var current string
 	switch task, request := p.CurrentTask, s.waitedOpen(p, s.now()); {
 	case task == nil && request != nil:
 		current = fmt.Sprintf("There is no task on the card yet: request %s is open, and its task is still to be "+
@@ -510,10 +545,7 @@ func (s *Service) notOnTheCard(p *profile.Profile, taskID string) Reply[answered
 	default:
 		current = fmt.Sprintf("Task %s is on the card: record the child's answer to it with its id.", task.ID)
 	}
-	return Reply[answeredOut]{
-		Text:    joined(lead, current, s.lastAnswerText(p)),
-		Payload: answeredOut{Screen: screenTask, Status: statusStale, Code: codeStaleTask, LastAnswer: lastAnswerOf(p)},
-	}
+	return lead, current
 }
 
 // answerRefused is an answer that is none: neither a letter of the options nor

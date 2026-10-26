@@ -354,12 +354,18 @@ func (damagedNoMore) StartOver(context.Context, store.Account, *profile.Profile)
 }
 
 // A new start the store could not make is told as the store's failure, and
-// nothing is said to have started.
+// nothing is said to have started — nor that nothing was saved, since a write
+// Drive did not answer can have landed all the same.
 func TestANewStartTheStoreCouldNotMakeIsToldSo(t *testing.T) {
 	t.Parallel()
 
 	h, session := lesson(t, damagedNoMore{keptWith(t, "masha")})
-	wantOurSentence(t, call(t, session, "save_profile", startOver("Otter", 2)), "Google Drive is not answering at the moment")
+	result := call(t, session, "save_profile", startOver("Otter", 2))
+	wantOurSentence(t, result, "Google Drive is not answering at the moment. If this call was to change the profile, "+
+		"the change may or may not have reached Drive")
+	if text := textOf(t, result); strings.Contains(strings.ToLower(text), "nothing was saved") {
+		t.Errorf("text = %q, want no word that nothing was saved", text)
+	}
 	h.settle()
 	wantFailed(t, h, "save_profile", "drive_unavailable")
 }
