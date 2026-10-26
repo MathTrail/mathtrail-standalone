@@ -31,6 +31,9 @@ locals {
     "monitoring.googleapis.com",
     # The spend alert.
     "billingbudgets.googleapis.com",
+    # The project's log, where the platform keeps its record of the service's
+    # requests, and the exclusion that keeps the sign-in's addresses out of it.
+    "logging.googleapis.com",
   ]
 }
 

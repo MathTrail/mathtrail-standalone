@@ -308,14 +308,20 @@ gcloud projects get-iam-policy PROJECT_ID \
 
 It should name `roles/telemetry.writer` and `roles/serviceusage.serviceUsageConsumer`, and nothing else. The runtime identity's one other right — reading the three secrets — is granted on those secrets rather than on the project, so it does not appear here and its absence from this list is not a fault.
 
-**The two of the counts.** With `analytics` on, the configuration creates a log bucket, its sink and its link to BigQuery, and datasets, tables, views and a scheduled query, which need `roles/logging.configWriter` and `roles/bigquery.admin` on the applying identity. The bootstrap above grants both; a deployment that ran it before needs it again, or these two grants:
+**The exclusion from the request log.** Every deployment keeps Cloud Run's record of a request whose address carries a query out of the project's log: the sign-in's addresses carry a one-time code, the domain of a Workspace account and the email address a chat suggests there. The exclusion needs `roles/logging.configWriter` on the applying identity, with `analytics` on or off. The bootstrap has granted it since the counts came; a deployment bootstrapped before then needs the bootstrap again, or this grant:
 
 ```bash
-for role in roles/logging.configWriter roles/bigquery.admin; do
-  gcloud projects add-iam-policy-binding PROJECT_ID \
-    --member="serviceAccount:mathtrail-tf@PROJECT_ID.iam.gserviceaccount.com" \
-    --role="$role" --condition=None
-done
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member="serviceAccount:mathtrail-tf@PROJECT_ID.iam.gserviceaccount.com" \
+  --role=roles/logging.configWriter --condition=None
+```
+
+**The two of the counts.** With `analytics` on, the configuration creates a log bucket, its sink and its link to BigQuery, and datasets, tables, views and a scheduled query, which need `roles/logging.configWriter`, as the exclusion above does, and `roles/bigquery.admin` on the applying identity. The bootstrap above grants both; a deployment that ran it before needs it again, or the grant above and this one:
+
+```bash
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member="serviceAccount:mathtrail-tf@PROJECT_ID.iam.gserviceaccount.com" \
+  --role=roles/bigquery.admin --condition=None
 ```
 
 **The two of the load alert.** Where `operator_email` names an operator, the configuration creates a notification channel and the alert that mails it, which need `roles/monitoring.notificationChannelEditor` and `roles/monitoring.alertPolicyEditor` on the applying identity. A pull request's checks do not call Cloud Monitoring and pass without them, so grant them before merging the change that brings the alert, or the delivery after it stops at the alert:

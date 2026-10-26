@@ -125,7 +125,9 @@ fi
 # gets the two that let it send telemetry about itself. The two after those
 # make the counts of how the service is used, where a deployment keeps them: a
 # log bucket, the sink that fills it and its link to BigQuery, and the datasets,
-# tables, views and nightly query the counts live in. The last two make the
+# tables, views and nightly query the counts live in. Every deployment needs
+# the first of them, logging.configWriter, all the same: it keeps the sign-in's
+# addresses out of the platform's record of requests. The last two make the
 # load alert, where a deployment names its operator: the channel that mails
 # them and the alert it mails.
 echo "==> what it may do"

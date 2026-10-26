@@ -5,7 +5,7 @@ description: Ce que MathTrail sait de votre enfant, où c’est conservé, et co
 
 # Politique de confidentialité
 
-Dernière mise à jour : 10 octobre 2026.
+Dernière mise à jour : 26 octobre 2026.
 
 MathTrail est un projet gratuit et open source, conçu et géré par ALT EdTech. Les questions sur cette politique ou sur les données de votre enfant sont à adresser à [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). La façon de le connecter, et ce qu’il faut faire si quelque chose semble anormal, sont expliquées sur la [page d’aide](../help/).
 
@@ -76,7 +76,7 @@ Ces lignes sont conservées 62 jours au plus. Ce qui est conservé ensuite, ce s
 
 Les journaux ne contiennent jamais ni le pseudonyme, ni le texte d’un problème, ni la lettre d’une réponse, ni l’adresse e-mail, ni le jeton, ni l’identifiant de l’enfant, ni l’adresse d’où provient une requête.
 
-Par ailleurs, Google Cloud Run conserve l’enregistrement standard de chaque requête adressée à n’importe quel service qu’il héberge : l’heure, l’adresse d’où elle provient, la façon dont le navigateur s’identifie, la page qui l’a envoyée, l’adresse complète demandée, le statut, ainsi que la taille et la durée de la réponse. Pendant une connexion, l’adresse demandée porte ce que le chat et Google y ont mis : le code de connexion à usage unique de Google, que seul le service peut échanger, le domaine d’un compte Google Workspace, et l’adresse e-mail avec laquelle le chat suggère de se connecter, s’il en suggère une. Cet enregistrement ne contient aucune donnée du profil, aucun texte de problème et aucune réponse, et il est conservé 30 jours.
+Par ailleurs, Google Cloud Run conserve par défaut l’enregistrement standard de chaque requête adressée à n’importe quel service qu’il héberge : l’heure, l’adresse d’où elle provient, la façon dont le navigateur s’identifie, la page qui l’a envoyée, l’adresse complète demandée, le statut, ainsi que la taille et la durée de la réponse. Pendant une connexion, l’adresse demandée porte, après un point d’interrogation, ce que le chat et Google y ont mis : le code de connexion à usage unique de Google, que seul le service peut échanger, le domaine d’un compte Google Workspace, et l’adresse e-mail avec laquelle le chat suggère de se connecter, s’il en suggère une. MathTrail fait en sorte que Google Cloud ne conserve l’enregistrement d’aucune requête dont l’adresse porte une telle partie, si bien que rien de tout cela n’est plus conservé dans cet enregistrement. Les autres enregistrements ne contiennent aucune donnée du profil, aucun texte de problème, aucune réponse et aucune adresse e-mail, et chacun est conservé 30 jours. Les enregistrements des connexions faits avant cette mise à jour les contiennent encore jusqu’à la fin de leurs 30 jours.
 
 ### Le pays depuis lequel vous vous connectez
 

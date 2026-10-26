@@ -5,7 +5,7 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 # Privacy policy
 
-Last updated: 10 October 2026.
+Last updated: 26 October 2026.
 
 MathTrail is a free, open-source project, made and run by ALT EdTech. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). How to connect it, and what to do when something looks wrong, is on the [help page](../help/).
 
@@ -76,7 +76,7 @@ These lines are kept for at most 62 days. What is kept after that are totals —
 
 The logs never contain the pseudonym, the text of a task, the letter of an answer, an email address, a token, the child's identifier, or the address a request came from.
 
-Separately, Google Cloud Run keeps the standard record of every request to any service on it: the time, the address it came from, what the browser says it is, the page that sent it, the full address asked for, the status, and the size and duration of the answer. During a sign-in, the address asked for carries what the chat and Google put in it: Google's one-time sign-in code, which only the service can redeem, the domain of a Google Workspace account, and the email address the chat suggests signing in with, if it suggests one. That record holds no profile data, no task text and no answers, and it is kept for 30 days.
+Separately, Google Cloud Run keeps by default the standard record of every request to any service on it: the time, the address it came from, what the browser says it is, the page that sent it, the full address asked for, the status, and the size and duration of the answer. During a sign-in, the address asked for carries what the chat and Google put in it after a question mark: Google's one-time sign-in code, which only the service can redeem, the domain of a Google Workspace account, and the email address the chat suggests signing in with, if it suggests one. MathTrail has Google Cloud keep no record of a request whose address carries such a part, so none of these is kept in this record any more. The other records hold no profile data, no task text, no answers and no email address, and each is kept for 30 days. Records of sign-in requests made before this update still hold them until their 30 days are up.
 
 ### The country you sign in from
 
