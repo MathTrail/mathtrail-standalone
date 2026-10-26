@@ -216,11 +216,26 @@ func New(settings *Settings) (SignIn, error) {
 			RedirectURL: settings.RedirectURL,
 			Scopes:      []string{ScopeDriveFile},
 		},
-		client:    &http.Client{Timeout: callTimeout},
+		client:    &http.Client{Timeout: callTimeout, Transport: transport},
 		aboutURL:  endpoints.About,
 		revokeURL: endpoints.Revoke,
 		now:       settings.Now,
 	}, nil
+}
+
+// transport carries the sign-in's calls to Google over connections nothing
+// else in the process shares. The standard transport is shared by everything,
+// and whatever closes its idle connections would fail a call of these whose
+// answer, with no body, had already come and given its connection back.
+var transport = ownTransport()
+
+// ownTransport is a copy of the standard transport, or the standard one itself
+// where something has put another kind of transport in its place.
+func ownTransport() http.RoundTripper {
+	if standard, ok := http.DefaultTransport.(*http.Transport); ok {
+		return standard.Clone()
+	}
+	return http.DefaultTransport
 }
 
 // AuthURL asks Google for the one scope, and for a refresh token on every

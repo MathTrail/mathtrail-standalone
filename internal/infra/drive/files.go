@@ -58,14 +58,34 @@ func newFiles(settings *Settings) (*files, error) {
 		return nil, err
 	}
 	return &files{
-		// A redirect is never followed: Drive's API answers where it is asked,
-		// and a request that carries a parent's token goes nowhere else.
-		client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error {
-			return http.ErrUseLastResponse
-		}},
+		client: &http.Client{
+			Transport: transport,
+			// A redirect is never followed: Drive's API answers where it is
+			// asked, and a request that carries a parent's token goes nowhere
+			// else.
+			CheckRedirect: func(*http.Request, []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
 		root:    strings.TrimSuffix(settings.Root, "/"),
 		timeout: settings.Timeout,
 	}, nil
+}
+
+// transport carries every call of this package, the files' and their
+// history's alike, over connections to Drive that nothing else in the process
+// shares. The standard transport is shared by everything, and whatever closes
+// its idle connections would fail a call of these whose answer, with no body,
+// had already come and given its connection back.
+var transport = ownTransport()
+
+// ownTransport is a copy of the standard transport, or the standard one itself
+// where something has put another kind of transport in its place.
+func ownTransport() http.RoundTripper {
+	if standard, ok := http.DefaultTransport.(*http.Transport); ok {
+		return standard.Clone()
+	}
+	return http.DefaultTransport
 }
 
 // request is one call before it is made: what it is called in an error, and

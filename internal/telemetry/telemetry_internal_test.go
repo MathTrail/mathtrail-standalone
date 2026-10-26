@@ -318,7 +318,7 @@ func TestTheExporterNeverSeesTheTextOfAStatus(t *testing.T) {
 	t.Parallel()
 
 	exported := tracetest.NewInMemoryExporter()
-	traces := sdktrace.NewTracerProvider(sdktrace.WithSyncer(withoutStatusText(exported)))
+	traces := sdktrace.NewTracerProvider(sdktrace.WithSyncer(Stripped(exported)))
 	t.Cleanup(func() { _ = traces.Shutdown(context.Background()) })
 
 	_, span := traces.Tracer("test").Start(t.Context(), "request")

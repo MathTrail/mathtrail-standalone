@@ -176,7 +176,7 @@ func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, 
 			// Before the batcher, so that nothing forbidden is ever queued for
 			// sending rather than removed on the way out.
 			sdktrace.WithSpanProcessor(Redactor()),
-			sdktrace.WithBatcher(withoutStatusText(traceExporter), sdktrace.WithExportTimeout(exportTimeout)),
+			sdktrace.WithBatcher(Stripped(traceExporter), sdktrace.WithExportTimeout(exportTimeout)),
 		),
 		metrics: sdkmetric.NewMeterProvider(
 			sdkmetric.WithResource(res),
