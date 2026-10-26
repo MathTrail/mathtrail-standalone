@@ -506,8 +506,10 @@ func (s *Service) topicsText(topics []progress.Topic) string {
 	}
 	if paused {
 		words = joined(words, fmt.Sprintf("A topic paused is one whose easiest tasks are still too hard: it "+
-			"leaves the turns, and once in %d tasks a paused topic comes back as a probe, its easiest task; a "+
-			"right answer to the probe takes the topic off the pause. The adult can also keep the lessons to it.",
+			"leaves the turns, and once in %d tasks a paused topic comes back as a probe, its easiest task, as "+
+			"soon as the child's overall level reaches that task; a topic of a level the child has not grown into "+
+			"yet waits for it. A right answer to the probe takes the topic off the pause. The adult can also keep "+
+			"the lessons to it.",
 			tutor.ProbeEvery))
 	}
 	return words

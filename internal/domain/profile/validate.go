@@ -187,7 +187,7 @@ func (p *Profile) countsUpTo(most int) error {
 // countsUpTo reports a count of one topic past the most given: of its answers
 // and runs, of a trap it counts, or of the rounds of its ideas.
 func (t *Topic) countsUpTo(most int) error {
-	if past(most, t.Answers, t.Correct, t.Skipped, t.TopStreak, t.WrongStreak) {
+	if past(most, t.Answers, t.Correct, t.Skipped, t.Discarded, t.TopStreak, t.WrongStreak) {
 		return fmt.Errorf("%w: a topic counts past %d", ErrInvalid, most)
 	}
 	for _, times := range t.Traps {
@@ -225,7 +225,8 @@ func validateTopics(topics map[string]Topic) error {
 		switch {
 		case id == "":
 			return fmt.Errorf("%w: topics has an entry with no id", ErrInvalid)
-		case topic.Answers < 0 || topic.Correct < 0 || topic.Skipped < 0 || topic.TopStreak < 0 || topic.WrongStreak < 0:
+		case topic.Answers < 0 || topic.Correct < 0 || topic.Skipped < 0 || topic.Discarded < 0 || topic.TopStreak < 0 ||
+			topic.WrongStreak < 0:
 			return fmt.Errorf("%w: topics[%s] counts answers, and a count is never negative", ErrInvalid, id)
 		case !isNumber(topic.Delta):
 			return fmt.Errorf("%w: topics[%s].delta is %v, and a level is a number", ErrInvalid, id, topic.Delta)

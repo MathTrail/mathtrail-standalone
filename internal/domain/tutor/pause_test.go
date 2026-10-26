@@ -58,6 +58,77 @@ func TestATopicOnPauseIsOneMetAndOutOfReach(t *testing.T) {
 	}
 }
 
+// A topic of a level the child has not grown into, met once because a person
+// or the model chose it, is on pause like any topic met and out of reach, but
+// no probe takes it until the overall level reaches its easiest task: probed
+// every sixth task, it would be failed again and again, and a right answer
+// guessed among five options would lift the child into tasks of a level far
+// above their own. Once the overall level comes to it, the topic's own
+// correction alone keeps it out of reach, and the probes take it.
+func TestATopicOnPauseBeyondTheOverallLevelWaitsForIt(t *testing.T) {
+	t.Parallel()
+	c := withAnOlderTopic()
+	p := pausing(t, 11) // eleven tasks behind: the next takes a probe's turn
+	issued(p, "percent.basic", day, 1)
+	older := p.Topics["percent.basic"]
+	older.Correct, older.Delta = 0, -1
+	p.Topics["percent.basic"] = older
+
+	if got := tutor.PausedTopics(p, c); !slices.Contains(got, "percent.basic") {
+		t.Fatalf("PausedTopics() = %v, want percent.basic among them: it was met, and is out of reach", got)
+	}
+	if got := tutor.Probeable(p, c); slices.Contains(got, "percent.basic") {
+		t.Errorf("Probeable() = %v at an overall level of %.1f, want no percent.basic: its easiest task, of grades "+
+			"5–6, is beyond that level", got, p.Ratings.Theta)
+	}
+	brief, _, err := tutor.Next(p, c, tutor.Choice{})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if brief.TargetConcept != "logic.ordering" || !strings.Contains(brief.Rationale, "probes") {
+		t.Errorf("Next() set %s with the rationale %q, want a probe of logic.ordering, the topic on pause the "+
+			"overall level reaches", brief.TargetConcept, brief.Rationale)
+	}
+
+	p.Ratings.Theta = 3.6 // the overall level of a child of grades 5–6, which reaches the topic's easiest task
+	if got := tutor.PausedTopics(p, c); !slices.Equal(got, []string{"percent.basic"}) {
+		t.Fatalf("PausedTopics() = %v at an overall level of 3.6, want [percent.basic]", got)
+	}
+	brief, _, err = tutor.Next(p, c, tutor.Choice{})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if brief.TargetConcept != "percent.basic" || !strings.Contains(brief.Rationale, "probes") {
+		t.Errorf("Next() set %s with the rationale %q, want a probe of percent.basic", brief.TargetConcept, brief.Rationale)
+	}
+}
+
+// A task the rule set on a topic that has since gone on pause beyond the
+// overall level — written ahead while it was within reach, the answer before
+// it bringing the level down — is no probe: it is answered as any task, and
+// its right answer lifts nothing into reach.
+func TestATaskOnATopicBeyondTheOverallLevelIsNoProbe(t *testing.T) {
+	t.Parallel()
+	c := withAnOlderTopic()
+	p := pausing(t, 11)
+	issued(p, "percent.basic", day, 1)
+	older := p.Topics["percent.basic"]
+	older.Correct, older.Delta = 0, -1
+	p.Topics["percent.basic"] = older
+
+	if tutor.Probes(p, c, "percent.basic", profile.TutorRule) {
+		t.Errorf("Probes(percent.basic) = true at an overall level of %.1f, want false: its easiest task is beyond it",
+			p.Ratings.Theta)
+	}
+	if !tutor.Probes(p, c, "logic.ordering", profile.TutorRule) {
+		t.Error("Probes(logic.ordering) = false, want true: the overall level reaches its easiest task")
+	}
+	p.CurrentTask = &profile.CurrentTask{ID: "tsk_older", Topic: "percent.basic", TutorMode: profile.TutorRule}
+	if judging := tutor.JudgingOf(p, c); judging.Probe {
+		t.Error("JudgingOf() of a task on percent.basic is a probe, want none: no lift may follow its answer")
+	}
+}
+
 // While the lessons are kept to a topic a person chose, the rule's turns do
 // not run, so no topic is on pause and none is probed — not even the chosen
 // topic when it stands out of reach, which every task is set on.

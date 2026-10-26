@@ -272,6 +272,31 @@ func TestATaskWhoseSealWillNotOpenTakesNoAnswer(t *testing.T) {
 	if p.CurrentTask != nil || len(p.Recent) != len(parseFixture(t, "olya").Recent) {
 		t.Errorf("the task was discarded with %d entries in the window, want it gone and nothing written", len(p.Recent))
 	}
+	// It is behind the child all the same: the turns counted it while it
+	// waited on the card, and they go on counting it.
+	fresh := parseFixture(t, "olya").Topics["counting.gaps"]
+	after := p.Topics["counting.gaps"]
+	if after.Discarded != fresh.Discarded+1 || after.Skipped != fresh.Skipped {
+		t.Errorf("Topics[counting.gaps] counts %d discarded and %d skipped, want %d and %d: the task is behind the "+
+			"child, and the child did not leaf past it", after.Discarded, after.Skipped, fresh.Discarded+1, fresh.Skipped)
+	}
+}
+
+// A task whose seal is lost once its answer is in is counted by that answer
+// alone: it leaves the card with nothing more counted.
+func TestATaskAnsweredBeforeItsSealWasLostIsCountedOnce(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "olya")
+	id := answering(t, p, "counting.gaps", 3)
+	give(t, p, id, rightLetter, issued.Add(time.Minute))
+	answered := p.Topics["counting.gaps"]
+
+	p.DiscardTask()
+	if got := p.Topics["counting.gaps"]; got.Discarded != answered.Discarded || got.Answers != answered.Answers {
+		t.Errorf("Topics[counting.gaps] = %d discarded and %d answers, want %d and %d: the answer counts the task",
+			got.Discarded, got.Answers, answered.Discarded, answered.Answers)
+	}
 }
 
 // An answer for a task nobody is working on changes nothing, and says which

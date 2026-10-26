@@ -238,6 +238,37 @@ func TestATaskWrittenAheadCountsTheSameBeforeTheAnswerToTheCardAsAfter(t *testin
 		},
 		genSeed(),
 	))
+	properties.Property("taking it off the card, its seal lost, moves no count and no idea", prop.ForAll(
+		func(s *seed) bool {
+			p := s.build()
+			onTheCardFromTheRule(t, p, c, sealer)
+			tasks, ideas := topicTasksCounted(p, c, true), ideasNamed(p, c)
+			p.DiscardTask()
+			return reflect.DeepEqual(topicTasksCounted(p, c, false), tasks) && reflect.DeepEqual(ideasNamed(p, c), ideas)
+		},
+		genSeed(),
+	))
+	properties.Property("taking it off the card, its seal lost, leaves the next task the turn the task written "+
+		"ahead of it took: the same dress and the same probe's turn", prop.ForAll(
+		func(s *seed) bool {
+			p := s.build()
+			onTheCardFromTheRule(t, p, c, sealer)
+			ahead, _, err := tutor.Ahead(p, c, tutor.Choice{})
+			if err != nil {
+				t.Errorf("Ahead() error = %v, want nil", err)
+				return false
+			}
+			probeAhead := tutor.ProbeDue(p)
+			p.DiscardTask()
+			next, _, err := tutor.Next(p, c, tutor.Choice{})
+			if err != nil {
+				t.Errorf("Next() error = %v, want nil", err)
+				return false
+			}
+			return next.Setting == ahead.Setting && tutor.ProbeDue(p) == probeAhead
+		},
+		genSeed(),
+	))
 	properties.TestingRun(t)
 }
 

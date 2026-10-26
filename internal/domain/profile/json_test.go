@@ -422,6 +422,11 @@ func TestACountLeavesRoomForOneMore(t *testing.T) {
 			topic.Answers = count
 			p.Topics["counting.gaps"] = topic
 		}},
+		{"a topic's tasks taken off the card", func(_ *testing.T, p *profile.Profile, count int) {
+			topic := p.Topics["counting.gaps"]
+			topic.Discarded = count
+			p.Topics["counting.gaps"] = topic
+		}},
 		{"a trap fallen for", func(_ *testing.T, p *profile.Profile, count int) {
 			topic := p.Topics["counting.gaps"]
 			topic.Traps = map[string]int{"off_by_one": count}

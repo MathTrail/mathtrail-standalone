@@ -587,3 +587,40 @@ func TestTheAnswerToATaskIsFoundInTheWindow(t *testing.T) {
 		t.Errorf("AnswerTo() = %+v, want no answer to a task never given", got)
 	}
 }
+
+// The day a topic is given is the family's, the day the limits count: a task
+// handed out at eight in the evening, five hours behind UTC, is given on that
+// evening's date rather than on the next day's in UTC. Until a card has told a
+// clock, the day is the UTC day.
+func TestATopicIsGivenOnTheFamilysDay(t *testing.T) {
+	t.Parallel()
+
+	evening := time.Date(2026, 10, 27, 1, 0, 0, 0, time.UTC) // 20:00 on 26 October, five hours behind UTC
+	for _, tc := range []struct {
+		name   string
+		offset int
+		want   profile.Date
+	}{
+		{"by the clock a card told", -300, profile.DateOf(time.Date(2026, 10, 26, 12, 0, 0, 0, time.UTC))},
+		{"before any card told a clock", 0, profile.DateOf(evening)},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := parseFixture(t, "dima")
+			p.Daily = profile.Daily{UTCOffset: tc.offset}
+			brief := briefOn("counting.gaps")
+			p.Ask(&brief, profile.TutorRule, "en", evening)
+			if _, err := p.Issue(written(), secret(), newSealer(t), evening); err != nil {
+				t.Fatalf("Issue() error = %v, want nil", err)
+			}
+			if got := p.Topics["counting.gaps"].LastIssued; !got.Equal(tc.want.Time) {
+				t.Errorf("Topics[counting.gaps].LastIssued = %s, want %s", got.Format(time.DateOnly), tc.want.Format(time.DateOnly))
+			}
+			if got := p.Daily.Date; !got.Equal(tc.want.Time) {
+				t.Errorf("Daily.Date = %s, want %s: the topic's day and the limits' day are one day",
+					got.Format(time.DateOnly), tc.want.Format(time.DateOnly))
+			}
+		})
+	}
+}

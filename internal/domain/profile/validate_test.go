@@ -364,6 +364,15 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			wantSay: `recent[0] is "I don't know"`,
 		},
 		{
+			name: "a topic that lost fewer than no tasks off the card",
+			breakIt: func(p *profile.Profile) {
+				topic := p.Topics["counting.gaps"]
+				topic.Discarded = -1
+				p.Topics["counting.gaps"] = topic
+			},
+			wantSay: "topics[counting.gaps] counts answers",
+		},
+		{
 			name: "a topic skipped fewer than no times",
 			breakIt: func(p *profile.Profile) {
 				topic := p.Topics["counting.gaps"]
