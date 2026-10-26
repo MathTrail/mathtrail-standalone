@@ -1734,6 +1734,119 @@
     }
   },
   {
+    "id": "clk-56-d1-1",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A baker wants fresh bread when the shop opens at 7:00. Mixing the dough takes 20 minutes, letting it rise takes 2 hours, baking takes 40 minutes and cooling takes 15 minutes. The oven needs 30 minutes to heat up, and it can heat while the dough rises. What is the latest time the baker can start?",
+    "options": {
+      "A": "4:00",
+      "B": "3:15",
+      "C": "10:15",
+      "D": "3:45",
+      "E": "3:35"
+    },
+    "correct_answer": "D",
+    "hint": "Work back from 7:00, one step at a time. Does heating the oven add any time?",
+    "solution": "Going back from 7:00: cooling takes 15 minutes, so baking must end by 6:45 and start by 6:05. The dough rises for the 2 hours before that, from 4:05, and the oven heats during the rise, so it adds no time. Mixing takes the 20 minutes before 4:05, so the baker must start by 3:45.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "4:00 leaves out the 15 minutes of cooling, but the bread has to be cool by 7:00."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "3:15 adds the oven's 30 minutes as a step of its own, but the oven heats while the dough rises."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "10:15 adds the 3 hours 15 minutes of work to 7:00, but the work has to be done before the shop opens, not after."
+      },
+      "E": {
+        "trap": "time_unit_mixup",
+        "text": "3:35 turns the 195 minutes of work into 3.25 hours and reads that as 3 hours 25 minutes. A quarter of an hour is 15 minutes, so the work takes 3 hours 15 minutes."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d1-2",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A cuckoo clock calls once at every half hour, and at every full hour it calls as many times as the hour on its face. Its hands show 4:20. Tim turns the minute hand forward 3 whole turns, and the hour hand moves along with it. How many times does the cuckoo call?",
+    "picture": {
+      "kind": "clock",
+      "time": "4:20"
+    },
+    "options": {
+      "A": "18",
+      "B": "21",
+      "C": "25",
+      "D": "24",
+      "E": "6"
+    },
+    "correct_answer": "B",
+    "hint": "One whole turn of the minute hand takes the clock on by an hour. Which full hours and half hours does it pass?",
+    "solution": "Each whole turn of the minute hand moves the clock on by one hour, so the hands go from 4:20 to 7:20. On the way they pass 5:00, 6:00 and 7:00, with 5 + 6 + 7 = 18 calls, and the half hours 4:30, 5:30 and 6:30, with one call each. That makes 18 + 3 = 21 calls.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "18 counts only the calls at the full hours. The clock also calls once at each of the half hours 4:30, 5:30 and 6:30."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "25 counts the 4 calls of 4:00 too, but the hands were already past 4:00 when Tim began."
+      },
+      "D": {
+        "trap": "double_count",
+        "text": "24 gives the full hours a half-hour call as well, but at 5:00, 6:00 and 7:00 the cuckoo calls only the hour."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "6 is how many times the cuckoo starts calling. At 5:00, 6:00 and 7:00 it calls several times."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d1-3",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A storyteller cat tells a tale, then sings a song, then tells a tale again, and so on, with no breaks. A tale takes 7 minutes and a song 4 minutes. The cat starts its first tale at 9:00. How many minutes after 10:00 does it start its next song?",
+    "picture": {
+      "kind": "clock",
+      "time": "9:00"
+    },
+    "options": {
+      "A": "3",
+      "B": "5",
+      "C": "2",
+      "D": "6",
+      "E": "7"
+    },
+    "correct_answer": "C",
+    "hint": "How long do a tale and the song after it take? What is the cat doing at 10:00?",
+    "solution": "A tale and the song after it take 7 + 4 = 11 minutes, so tales start at 9:00, 9:11, 9:22, 9:33, 9:44 and 9:55. At 10:00 the cat is 5 minutes into the tale it began at 9:55, which ends at 10:02. So its next song starts 2 minutes after 10:00.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "3 forgets the songs between the tales: with tales alone, the tale under way at 10:00 would have begun at 9:56 and end at 10:03."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "5 minutes is how long the cat has been telling its tale at 10:00. The tale still has 2 minutes to go."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "6 puts each song before its tale, but the cat tells a tale first and sings after it."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "7 is the length of a whole tale, but the tale began at 9:55, so 5 of its minutes are gone by 10:00."
+      }
+    }
+  },
+  {
     "id": "clk-56-d2-1",
     "topic": "time.clocks",
     "grade_level": "5-6",
@@ -2049,6 +2162,111 @@
       "E": {
         "trap": "time_unit_mixup",
         "text": "144 is the number of hours it takes, not the number of days."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d5-1",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A bus leaves town A at 8:00 and gets to town B at 14:00. Another bus leaves B at 9:00 and gets to A at 12:00. Both go along the same road, each at its own steady speed. At what time do they meet?",
+    "options": {
+      "A": "10:40",
+      "B": "10:00",
+      "C": "10:20",
+      "D": "11:06",
+      "E": "1:40"
+    },
+    "correct_answer": "A",
+    "hint": "What part of the road does each bus cover in an hour? Where is the first bus at 9:00?",
+    "solution": "The first bus covers the road in 6 hours, a sixth of it each hour, and the second in 3 hours, a third of it each hour. By 9:00 the first bus has covered a sixth, so five sixths of the road lie between them. Together they cover a sixth and a third, half the road, each hour, so they need 5/6 ÷ 1/2 = 5/3 hours, 1 hour 40 minutes, and meet at 10:40.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "10:00 starts both buses at 8:00, but the second leaves B an hour later, at 9:00."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "10:20 swaps the buses' speeds. The first bus takes 6 hours, so it is the slower one."
+      },
+      "D": {
+        "trap": "time_unit_mixup",
+        "text": "11:06 reads 1.66 hours as 1 hour 66 minutes. Two thirds of an hour is 40 minutes, so they meet 1 hour 40 minutes after 9:00."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "1:40 is how long after 9:00 the buses meet. The time on the clock is 9:00 plus 1 hour 40 minutes."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d5-2",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "At 10:40 a motor boat sets off up a river, and at that moment a ball falls from it into the water and floats away with the current. At 11:05 the boat turns round and goes back down the river. Through the water, it always goes at the same speed. At what time does it reach the ball?",
+    "options": {
+      "A": "Before 11:30, as the river speeds the boat up",
+      "B": "It depends on how fast the river flows",
+      "C": "At 12:10",
+      "D": "After 11:30, as the ball has floated on",
+      "E": "At 11:30"
+    },
+    "correct_answer": "E",
+    "hint": "Look at the boat and the ball from the water, which carries them both along.",
+    "solution": "The river carries the ball and the boat by the same amount, so seen from the water the ball stays still and the boat goes at its own speed both ways. It moves away from the ball from 10:40 to 11:05, for 25 minutes, and takes 25 minutes to come back. So it reaches the ball at 11:30, however fast the river flows.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "The river speeds the boat up on the way back, but it carries the ball away just as fast."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "It can be told: the river carries the ball and the boat by the same amount, so it changes nothing between them."
+      },
+      "C": {
+        "trap": "time_unit_mixup",
+        "text": "12:10 takes 11:05 − 10:40 as 65 minutes, as if an hour had 100 minutes. From 10:40 to 11:05 is 25 minutes."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "The ball has floated on, but the river carries the boat just as far: between the two, the current changes nothing."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d5-3",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Ann, Ben and Cal start packing boxes at 13:00, and each of them packs 1 box every 3 minutes. Some time later, Zoe joins them and packs 1 box every 2 minutes. At 14:00 they have packed 75 boxes in all. At what time did Zoe join them?",
+    "options": {
+      "A": "13:50",
+      "B": "13:45",
+      "C": "14:30",
+      "D": "13:30",
+      "E": "13:00"
+    },
+    "correct_answer": "D",
+    "hint": "How many boxes do Ann, Ben and Cal pack between 13:00 and 14:00? How many are left for Zoe?",
+    "solution": "In the hour from 13:00 to 14:00, each of the three packs 60 ÷ 3 = 20 boxes, so together they pack 60. The other 75 − 60 = 15 boxes are Zoe's, and at 1 box every 2 minutes they take her 30 minutes. So she joined at 13:30.",
+    "distractors": {
+      "A": {
+        "trap": "time_unit_mixup",
+        "text": "13:50 writes half past one, 13.5 hours, as 13:50. Half an hour is 30 minutes, so Zoe joined at 13:30."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "13:45 gives Zoe 15 minutes for her 15 boxes, but she packs a box every 2 minutes, so they take her 15 × 2 = 30 minutes."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "14:30 counts Zoe's 30 minutes on from 14:00, but she packed until 14:00, so she joined 30 minutes before it."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "13:00 has Zoe packing from the start, but then the four would have packed 60 + 30 = 90 boxes."
       }
     }
   }

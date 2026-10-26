@@ -1703,6 +1703,111 @@
     }
   },
   {
+    "id": "enum-56-d1-1",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Ann and Ben each have 6 stickers and 4 badges, and no two of these 20 things are alike. In a fair swap, each gives the other one thing of the same kind: a sticker for a sticker, or a badge for a badge. How many different fair swaps can they make?",
+    "options": {
+      "A": "36",
+      "B": "52",
+      "C": "100",
+      "D": "576",
+      "E": "20"
+    },
+    "correct_answer": "B",
+    "hint": "Count the sticker swaps and the badge swaps on their own, then put them together.",
+    "solution": "In a sticker swap, Ann gives one of her 6 stickers and Ben one of his 6, so there are 6 × 6 = 36 sticker swaps. In the same way there are 4 × 4 = 16 badge swaps. A swap is of one kind or the other, so there are 36 + 16 = 52 in all.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "36 counts only the sticker swaps. The 4 × 4 = 16 badge swaps are fair too."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "100 lets a sticker go for a badge as well, but in a fair swap both things are of the same kind."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "576 multiplies the two counts, 36 × 16, as if one swap moved a sticker and a badge at once. A swap is one or the other, so the counts are added."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "20 adds the things, 6 + 6 + 4 + 4. Each of Ann's stickers can go for each of Ben's, so the stickers give 6 × 6 swaps and the badges 4 × 4."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d1-2",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "An octagon is a shape with 8 straight sides and 8 corners. A diagonal joins two of its corners that are not next to each other. How many diagonals does an octagon have?",
+    "options": {
+      "A": "5",
+      "B": "40",
+      "C": "28",
+      "D": "20",
+      "E": "8"
+    },
+    "correct_answer": "D",
+    "hint": "How many diagonals start at one corner? Each diagonal has two ends.",
+    "solution": "From one corner a diagonal can go to any corner but itself and its two neighbours, so 8 − 3 = 5 diagonals start there. The 8 corners give 8 × 5 = 40 ends of diagonals, and each diagonal has two ends, so there are 40 ÷ 2 = 20 diagonals.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "5 diagonals start at one corner, and there are 8 corners."
+      },
+      "B": {
+        "trap": "double_count",
+        "text": "40 counts each diagonal twice, once from each of its two ends."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "28 joins every two corners, the 8 sides included. Corners next to each other are joined by a side, not by a diagonal."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "8 is the number of corners. It says nothing yet about the diagonals between them."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d1-3",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A football card lists 5 matches. For each match you tick one of three boxes: the home team wins, the away team wins, or a draw. In how many different ways can the card be filled in?",
+    "options": {
+      "A": "81",
+      "B": "32",
+      "C": "15",
+      "D": "125",
+      "E": "243"
+    },
+    "correct_answer": "E",
+    "hint": "In how many ways can one match be ticked? And two matches?",
+    "solution": "One match can be ticked in 3 ways, and each of them goes with every way of ticking the others. So two matches give 3 × 3 = 9 ways, and each new match triples the count: 3 × 3 × 3 × 3 × 3 = 243.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "81 is the count for four matches. The fifth match triples it again."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "32 = 2 × 2 × 2 × 2 × 2 leaves out the draw. Each match has three boxes, not two."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "15 = 3 × 5 adds 3 ways for each match. But every way for one match goes with every way for the others, so the 3s are multiplied: 3 × 3 × 3 × 3 × 3."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "125 = 5 × 5 × 5 swaps the two numbers. Five matches with 3 boxes each give 3 multiplied by itself five times."
+      }
+    }
+  },
+  {
     "id": "enum-56-d2-1",
     "topic": "combinatorics.enumeration",
     "grade_level": "5-6",
@@ -2017,6 +2122,111 @@
       "D": {
         "trap": "double_count",
         "text": "8 takes away the team with Ella and Finn twice, but it is one team."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d5-1",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A necklace has 8 beads on a closed loop of thread: 6 red beads and 2 blue ones. Beads of one colour look alike. Two necklaces count as the same if one can be turned round or turned over to look like the other. How many different necklaces can be made?",
+    "options": {
+      "A": "4",
+      "B": "28",
+      "C": "7",
+      "D": "3",
+      "E": "1"
+    },
+    "correct_answer": "A",
+    "hint": "Turn the necklace so that a blue bead is at the top. What can still be different?",
+    "solution": "Only the places of the 2 blue beads matter. Turning the necklace round or over changes nothing but where they sit, so a necklace is fixed by the number of red beads between the blue beads on the side that has fewer. That side has 0, 1, 2 or 3 of the 6 red beads, with 6, 5, 4 or 3 on the other side. So there are 4 different necklaces.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "28 counts every choice of 2 places out of 8, but turning the necklace round moves the blue beads to other places and gives the same necklace."
+      },
+      "C": {
+        "trap": "double_count",
+        "text": "7 counts 0 to 6 red beads on one side between the blue beads. But 1 red bead on one side means 5 on the other, the same necklace as 5 and 1, so most necklaces are counted twice."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "3 leaves out the necklace whose two blue beads sit side by side."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "Turning brings one blue bead to the top of every necklace, but the second blue bead can still be in different places."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d5-2",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Four points are marked on one straight line, and three points on another straight line parallel to it. How many triangles have all three corners at marked points?",
+    "options": {
+      "A": "18",
+      "B": "35",
+      "C": "30",
+      "D": "60",
+      "E": "31"
+    },
+    "correct_answer": "C",
+    "hint": "Three points on one line make no triangle. So how many corners can a triangle have on each line?",
+    "solution": "Three points on one line do not make a triangle, so every triangle has two corners on one line and one on the other. Two of the 4 points can be chosen in 6 ways, and the third corner is one of the 3 points: 6 × 3 = 18 triangles. Two of the 3 points can be chosen in 3 ways, with one of the 4 points: 3 × 4 = 12 triangles. That makes 18 + 12 = 30.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "18 counts only the triangles with two corners on the line of 4 points. The 12 with two corners on the line of 3 points are left out."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "35 counts every choice of 3 of the 7 points, but 3 points on one line make no triangle."
+      },
+      "D": {
+        "trap": "double_count",
+        "text": "60 counts each pair of corners on one line twice, as A then B and as B then A."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "31 takes away the 4 choices of 3 points on the first line, but the 3 points on the second line make no triangle either."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d5-3",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Mia has 9 balls: 4 red, 3 blue and 2 green. Balls of one colour are all alike. She puts them into three bags, 3 balls in each, and the bags are all alike too. In how many different ways can she do it?",
+    "options": {
+      "A": "280",
+      "B": "12",
+      "C": "4",
+      "D": "45",
+      "E": "9"
+    },
+    "correct_answer": "E",
+    "hint": "Do the two green balls go into one bag or into two bags? Count each case on its own.",
+    "solution": "If both green balls share a bag, its third ball is red or blue. With a red one, the other 3 red and 3 blue balls fill the other two bags in 2 ways: red-red-red with blue-blue-blue, or red-red-blue with red-blue-blue. With a blue one, the 4 red and 2 blue balls left fill them in 2 ways too. If the green balls are in two bags, the bag without green holds red-red-red, red-red-blue, red-blue-blue or blue-blue-blue, and the other balls go with the green ones in 1, 2, 1 and 1 ways. So there are 2 + 2 + 5 = 9 ways.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "280 counts the balls as all different, but balls of one colour are alike."
+      },
+      "B": {
+        "trap": "double_count",
+        "text": "12 counts the two bags with a green ball in both orders, though the bags are alike."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "4 counts only the ways with both green balls in one bag. The 5 ways with the green balls in two bags are left out."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "45 counts the bags as different, but the bags are alike, so swapping the contents of two bags gives the same way."
       }
     }
   }
