@@ -35,21 +35,21 @@ Under the price, the costliest reference solver is `pig-34-d4-2` at 2,413,617 st
 
 ## A lesson, and what it costs
 
-One child's lesson, run five times: a task asked for, handed in and answered.
+One child's lesson, run five times: a task asked for, handed in and answered. Measured on 2026-10-26:
 
 | | |
 |---|---|
-| Calls | 18, all answered. Median 4 ms, longest 10 ms. The development sign-in keeps profiles in memory, so no Drive is involved |
-| Billed | 0.36 vCPU-seconds and 0.36 GiB-seconds per task |
-| Spent, as the cgroup counted | 0.019 CPU-seconds per task |
-| Peak memory | 14 MiB |
-| The free tier a month | 500,000 tasks. vCPU-seconds run out first; GiB-seconds would last for 1,000,000 |
+| Calls | 38, all answered. Median 3 ms, longest 4.02 s: a card's question held to the end of its hold (below). The development sign-in keeps profiles in memory, so no Drive is involved |
+| Billed | 5.56 vCPU-seconds and 5.56 GiB-seconds per task. A held question keeps a request under way while the task is written, as a card's does |
+| Spent, as the cgroup counted | 0.022 CPU-seconds per task |
+| Peak memory | 20 MiB |
+| The free tier a month | 32,000 tasks. vCPU-seconds run out first; GiB-seconds would last for 64,000 |
 
 The tool counts only its own requests. A chat host sends more for every call it makes (SPEC remark 62), and T64 counts those.
 
-These numbers were measured before T62.8. Since then a lesson asks for each task's package with a call of its own, and the card a task comes to asks how it stands, once on either side of the hand-in in the tool's lesson: six calls a task where there were three, each of the new ones a read (R152). In a host the card asks every four seconds while the task is written, about fifteen times for a minute's wait.
+A lesson asks for each task's package with a call of its own, and the card a task comes to asks how it stands as a card asks it: once at once, and then, having heard the task is being written, with a question the service holds beside the hand-in and answers as the hand-in lands. While the task is still being written the card asks again at its pace, four seconds from the start of the question before, so a question whose hold of four seconds ended first is asked again at once (R152, R259). A held question counts its hold in its time and in the time billed. Measured before T62.8, when a lesson made three calls a task and its card asked nothing, the same five tasks came to 18 calls, 0.36 vCPU-seconds billed a task and 500,000 tasks a month in the free tier. In a host the card asks every four seconds while the task is written, about fifteen times for a minute's wait.
 
-Against the deployed service a task costs far more, because there every wait on Drive is billed time: an instance is billed for as long as any request it holds is under way. A lesson of the tool came to 10 vCPU-seconds a task, and a week of real lessons, with the cards' questions and the sign-ins, to about 15 — some twelve to eighteen thousand tasks a month in the free tier rather than half a million. That is a quiet service's price: requests that overlap on one instance share their billed time (`docs/live/09-load.md`).
+Against the deployed service a task costs more still, because there every wait on Drive is billed time: an instance is billed for as long as any request it holds is under way. A lesson of the tool, before its card's question was held, came to 10 vCPU-seconds a task, and a week of real lessons, with the cards' questions and the sign-ins, to about 15 — some twelve to eighteen thousand tasks a month in the free tier. That is a quiet service's price: requests that overlap on one instance share their billed time (`docs/live/09-load.md`).
 
 ## Slots and the clock
 

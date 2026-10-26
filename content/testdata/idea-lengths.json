@@ -1,0 +1,71 @@
+{
+	"algorithms.weighing_pouring": {
+		"3-4": 13,
+		"5-6": 17
+	},
+	"arithmetic.tricks": {
+		"1-2": 20,
+		"3-4": 20,
+		"5-6": 20
+	},
+	"combinatorics.enumeration": {
+		"1-2": 18,
+		"3-4": 15,
+		"5-6": 20
+	},
+	"counting.gaps": {
+		"1-2": 13,
+		"3-4": 12,
+		"5-6": 17
+	},
+	"fractions.parts": {
+		"5-6": 20
+	},
+	"games.strategy": {
+		"5-6": 15
+	},
+	"geometry.grid": {
+		"5-6": 16
+	},
+	"logic.knights_liars": {
+		"3-4": 16,
+		"5-6": 15
+	},
+	"logic.ordering": {
+		"1-2": 14,
+		"3-4": 15,
+		"5-6": 17
+	},
+	"logic.sets": {
+		"5-6": 15
+	},
+	"number.divisibility": {
+		"5-6": 20
+	},
+	"parity.alternation": {
+		"1-2": 14,
+		"3-4": 13,
+		"5-6": 18
+	},
+	"percent.basic": {
+		"5-6": 20
+	},
+	"pigeonhole.basic": {
+		"1-2": 11,
+		"3-4": 10,
+		"5-6": 18
+	},
+	"ratio.sharing": {
+		"5-6": 20
+	},
+	"time.calendar": {
+		"1-2": 12,
+		"3-4": 11,
+		"5-6": 20
+	},
+	"time.clocks": {
+		"1-2": 13,
+		"3-4": 10,
+		"5-6": 14
+	}
+}

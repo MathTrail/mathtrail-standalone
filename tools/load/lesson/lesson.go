@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/tools/load/session"
 )
@@ -109,41 +110,181 @@ func Ask(ctx context.Context, child *session.Child, choice Choice) (Request, []s
 // answer that says anything but that it is being written belongs to another
 // call, and is told as a mismatch.
 func AwaitWriting(ctx context.Context, child *session.Child, request Request) session.Answer {
-	return await(ctx, child, request, func(a *awaited) bool { return a.Screen == "coming" && a.Task == nil })
-}
-
-// AwaitCard asks, as the card next_task drew does, how the task of a request
-// stands once it was handed in, and is what the card was told. An answer that
-// shows anything but the task the hand-in put on the card belongs to another
-// call, and is told as a mismatch.
-func AwaitCard(ctx context.Context, child *session.Child, request Request, card Card) session.Answer {
-	return await(ctx, child, request, func(a *awaited) bool {
-		return a.Screen == "task" && a.Task != nil && a.Task.ID == card.TaskID && a.Task.Question == card.Question
-	})
-}
-
-// awaited is as much of what a card is told of the task it waits for as says
-// how it stands.
-type awaited struct {
-	Screen string `json:"screen"`
-	Task   *struct {
-		ID       string `json:"id"`
-		Question string `json:"question"`
-	} `json:"task"`
-}
-
-// await asks how the task of a request stands, and holds what the card is told
-// to what it should be.
-func await(ctx context.Context, child *session.Child, request Request, should func(*awaited) bool) session.Answer {
 	answer := child.Call(ctx, "read_task", map[string]any{"request_id": request.ID})
 	if answer.Kind != session.Answered {
 		return answer
 	}
 	var told awaited
-	if err := answer.Payload(&told); err != nil || !should(&told) {
+	if err := answer.Payload(&told); err != nil || !told.writing() {
 		answer.Kind = session.Mismatched
 	}
 	return answer
+}
+
+// awaited is as much of what a card is told of the task it waits for as says
+// how it stands.
+type awaited struct {
+	Screen  string `json:"screen"`
+	Refused int    `json:"refused"`
+	Task    *struct {
+		ID       string `json:"id"`
+		Question string `json:"question"`
+	} `json:"task"`
+}
+
+// writing says whether a card was told its task is still being written.
+func (a *awaited) writing() bool { return a.Screen == "coming" && a.Task == nil }
+
+// shows says whether a card was told it shows the task the hand-in put on it.
+func (a *awaited) shows(card Card) bool {
+	return a.Screen == "task" && a.Task != nil && a.Task.ID == card.TaskID && a.Task.Question == card.Question
+}
+
+// writingAfterLanding is how many answers that the task is still being
+// written, to questions asked once the hand-in has landed, the held question
+// takes before it settles: a read straight after a write may lag behind it
+// once, and no card waits past a second.
+const writingAfterLanding = 2
+
+// CardPace is how often a card asks how its task stands, from the start of
+// one question to the start of the next, a question held for news included.
+const CardPace = 4 * time.Second
+
+// HeldFor is how long the service holds a card's question that would only
+// hear what the card knows already: a call has to be given longer.
+const HeldFor = 4 * time.Second
+
+// TriesTurnedDown is how many tries the checks have turned down, as an answer
+// that the task is still being written tells them, and none as any other
+// answer does: what a card says it has heard of on its next question.
+func TriesTurnedDown(answer *session.Answer) int {
+	told, _ := stillWriting(answer)
+	return told.Refused
+}
+
+// stillWriting is what an answer that the task is still being written tells a
+// card, and whether the answer is one.
+func stillWriting(answer *session.Answer) (awaited, bool) {
+	var told awaited
+	if answer.Kind != session.Answered || answer.Payload(&told) != nil || !told.writing() {
+		return awaited{}, false
+	}
+	return told, true
+}
+
+// Held is the card's question once the card has heard its task is being
+// written, as the card asks it: saying the tries turned down it has heard of,
+// so that the service holds it while the task is still being written with as
+// many and answers as the hand-in lands, or as its hold ends, and asked again,
+// at the card's pace, while the answer is the task still being written. It
+// runs beside the hand-in.
+type Held struct {
+	stop     context.CancelFunc
+	landed   chan struct{}
+	landedAt time.Time
+	done     chan outcome
+}
+
+// outcome is what the held question was told, and whether it settled on its
+// last answer rather than being cut short.
+type outcome struct {
+	answers []session.Answer
+	settled bool
+}
+
+// Hold starts the card's held question for the task of a request, the card
+// having heard of heard tries turned down, asking no more often than once a
+// pace from the start of each question.
+func Hold(ctx context.Context, child *session.Child, request Request, heard int, pace time.Duration) *Held {
+	ours, stop := context.WithCancel(ctx)
+	h := &Held{stop: stop, landed: make(chan struct{}), done: make(chan outcome, 1)}
+	go func() { h.done <- h.ask(ctx, ours, child, request, heard, pace) }()
+	return h
+}
+
+// ask asks the held question until it settles: on an answer other than the
+// task still being written, or on writingAfterLanding of those to questions
+// asked once the hand-in has landed. A question it was let go of in the middle
+// of is not among the answers; one the run's end cut short is, as the run's
+// other calls are.
+func (h *Held) ask(run, ours context.Context, child *session.Child, request Request, heard int, pace time.Duration) outcome {
+	var answers []session.Answer
+	afterLanding := 0
+	for {
+		answer := child.Call(ours, "read_task", map[string]any{"request_id": request.ID, "refused": heard})
+		if answer.Kind.Class == session.Stopped {
+			if run.Err() != nil {
+				answers = append(answers, answer)
+			}
+			return outcome{answers: answers}
+		}
+		answers = append(answers, answer)
+		told, writing := stillWriting(&answer)
+		if !writing {
+			return outcome{answers: answers, settled: true}
+		}
+		heard = max(heard, told.Refused)
+		if h.landedBy(answer.Started) {
+			afterLanding++
+			if afterLanding == writingAfterLanding {
+				return outcome{answers: answers, settled: true}
+			}
+		}
+		// A card asks no more often than its pace, so a question answered at
+		// once waits the rest of it before the next.
+		if !waitUntil(ours, answer.Started.Add(pace)) {
+			return outcome{answers: answers}
+		}
+	}
+}
+
+// waitUntil waits for the moment given, and says whether it came before the
+// context was done.
+func waitUntil(ctx context.Context, moment time.Time) bool {
+	timer := time.NewTimer(time.Until(moment))
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return true
+	case <-ctx.Done():
+		return false
+	}
+}
+
+// landedBy says whether the hand-in had landed by the moment given.
+func (h *Held) landedBy(at time.Time) bool {
+	select {
+	case <-h.landed:
+		return !at.Before(h.landedAt)
+	default:
+		return false
+	}
+}
+
+// Card is every answer the held question was told once the hand-in has put
+// card on the child's card: the task still being written, until the answer it
+// settled on, which has to show card's task. Any other answer it settled on
+// belongs to another call, and is told as a mismatch; a question the run's end
+// cut short is left as it is.
+func (h *Held) Card(card Card) []session.Answer {
+	h.landedAt = time.Now()
+	close(h.landed)
+	told := <-h.done
+	h.stop()
+	if last := len(told.answers) - 1; told.settled && last >= 0 && told.answers[last].Kind == session.Answered {
+		var on awaited
+		if err := told.answers[last].Payload(&on); err != nil || !on.shows(card) {
+			told.answers[last].Kind = session.Mismatched
+		}
+	}
+	return told.answers
+}
+
+// Drop lets the held question go, the hand-in having put no task on the card,
+// and is the answers it was told before.
+func (h *Held) Drop() []session.Answer {
+	h.stop()
+	return (<-h.done).answers
 }
 
 // HandIn hands a task in for a request, and reads the card it went onto. A

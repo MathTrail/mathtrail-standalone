@@ -99,26 +99,32 @@ func (w *walk) record(answers ...session.Answer) {
 // card it will come to told it is being written, handed in, the card told it
 // is on it and, once the service accepted it, answered with the letter given,
 // which turns the card into how the answer went with nothing more to call.
-// The card asks once on either side of the hand-in, as few times as says
-// whether it turned into the task. The task counts as soon as the service
-// accepted it, whether or not the run goes on to the answer.
+// The card asks as the card asks: once at once, and then, having heard the
+// task is being written, a question the service holds beside the hand-in and
+// answers as the hand-in lands, asked again whenever its hold ends first. The
+// task counts as soon as the service accepted it, whether or not the run goes
+// on to the answer.
 func (w *walk) task(ctx context.Context, written *lesson.Task, letter string) {
 	request, asked, err := lesson.Ask(ctx, w.child, written.Choice)
 	w.record(asked...)
 	if err != nil {
 		return
 	}
-	w.record(lesson.AwaitWriting(ctx, w.child, request))
+	writing := lesson.AwaitWriting(ctx, w.child, request)
+	w.record(writing)
+	held := lesson.Hold(ctx, w.child, request, lesson.TriesTurnedDown(&writing), lesson.CardPace)
 	if !w.step(ctx) {
+		w.record(held.Drop()...)
 		return
 	}
 	card, handedIn := lesson.HandIn(ctx, w.child, request, written, student)
 	w.record(handedIn)
 	if handedIn.Kind != session.Answered {
+		w.record(held.Drop()...)
 		return
 	}
 	w.run.Units++
-	w.record(lesson.AwaitCard(ctx, w.child, request, card))
+	w.record(held.Card(card)...)
 	if !w.step(ctx) {
 		return
 	}
