@@ -9,6 +9,16 @@
     "A fraction of a fraction of a group: the part of the whole.",
     "A strip cut into equal parts, some of them shaded: the fraction shaded, in its simplest form.",
     "A fraction of an hour, a metre or a kilogram: the minutes, centimetres or grams it makes.",
-    "Two taps filling one tank, each alone in a known time: the part of it they fill together in an hour."
+    "Two taps filling one tank, each alone in a known time: the part of it they fill together in an hour.",
+    "Shares of a herd of n, each over a denominator that divides n + 1 and all adding up to n parts in n + 1, as a half, a third and a ninth of 17 camels: one camel lent makes every share whole.",
+    "Cups of one size of two drinks mixed, all drunk: one person's shares of all of each drink, such as a quarter and a sixth, put the number of people strictly between those denominators, two apart.",
+    "A number taken from the numerator of a fraction and added to its denominator keeps their sum: it becomes only a fraction whose two parts add up to a divisor of that sum, as 537/463 becomes 1/9.",
+    "Things shared out equally with no piece cut into more than a few parts: each share written as a sum of fractions with 1 on top, such as 7/12 as a third and a quarter.",
+    "A trip told in parts of parts, such as asleep from halfway until half of the stretch slept is left: the part spent awake, from a drawing of the whole way.",
+    "A sum such as 1/2 + 1/6 + 1/12 + 1/20, each term 1 over two neighbours multiplied: each term is a difference of two fractions, so nearly all of them cancel.",
+    "One amount poured equally into vessels it fills to different parts, such as a half, two thirds and three quarters: the smallest whole sizes the vessels and the amount can have.",
+    "One gives another a part of a share, and the other's share grows so many times: the part of the whole each had at first.",
+    "A string of a known fractional length, such as two thirds of a metre, folded in halves and quarters: a length measured off with no ruler.",
+    "Two fractions with given denominators, such as eighths and thirteenths, unequal but as close as can be: the smallest difference is 1 over the least common multiple of the denominators."
   ]
 }

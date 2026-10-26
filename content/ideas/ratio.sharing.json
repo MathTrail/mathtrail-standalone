@@ -9,6 +9,16 @@
     "Three kinds linked by two ratios: the share of each.",
     "A ratio that changes when some are added: the amounts at the start.",
     "A map scale: the real distance from the distance on the map.",
-    "Loaves eaten in equal shares by three, two of whom brought them: how the third one's coins are shared fairly."
+    "Loaves eaten in equal shares by three, two of whom brought them: how the third one's coins are shared fairly.",
+    "Fish marked, let go and caught again: the share of marked fish in the new catch is taken as their share in the whole pond, which gives its size.",
+    "Two candles of different lengths, each burning down at its own steady rate in a known time, are equally long after a while: how their lengths compared at first.",
+    "Two kinds at two prices mixed to sell at a price between them: the ratio to mix them in, from how far each price is from the price of the mix.",
+    "Two juices, a can of each enough for so many cans of a drink made of both: when the mix changes and a can of drink holds the same, how many cans one juice is now enough for.",
+    "Two herds that mix two kinds of cows give the same milk in different numbers of days: which kind gives more, from what each kind gives over all those days.",
+    "Workers, work and days that change together, such as 7 wolves eating 7 sheep in 7 days: how the time changes when the workers and the work change by the same factor.",
+    "Half the way at one speed and half at another: the time over the whole way is not that at the average speed, so a rival at a steady speed can win.",
+    "A total that stays the same while the ratio of its shares changes, as money in a game of cards: the shares from what one of them gained or lost.",
+    "Two kinds in a group with their shares of the number and of the weight given in per cent: how many times heavier one kind is than the other on average.",
+    "Two eaters, one so many times faster at both dishes, swap dishes once and finish both together, sharing one dish equally: the part of the other dish each ate."
   ]
 }

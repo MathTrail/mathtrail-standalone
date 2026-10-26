@@ -9,6 +9,16 @@
     "A percentage of a percentage: the part of the whole.",
     "One amount more than another by a percentage: by what percentage the other is less.",
     "A percentage that changes after some are taken away: the amount at the start.",
-    "A percentage of a group that must come out a whole number: how big the group can be."
+    "A percentage of a group that must come out a whole number: how big the group can be.",
+    "Water in fresh and in dried fruit or grass as percentages: the part that is not water stays the same, so the weight after drying comes from it.",
+    "One amount raised and another lowered by percentages come out equal, such as one up by 20 per cent and the other down by 20: how the two compared at first.",
+    "A share known only to lie strictly between two percentages: the smallest group in which a whole number of members gives such a share.",
+    "A total made of several people's parts, each share found from how much the total grows when that part alone doubles: the shares add up to the whole, so the last one is what is left.",
+    "Buses counted as crowded above some number of passengers: the share of passengers riding in crowded buses is at least the share of buses that are crowded.",
+    "Three amounts linked by percentages, the middle one so much more than the first and so much less than the last: by what percentage the last is more than the first.",
+    "Two sides of a rectangle, each changed by a percentage: by what percentage its area changes, which is not the sum of the two changes.",
+    "A tank so many per cent empty holds a known amount more than when it is so many per cent full: that amount is 100 per cent less both percentages of the tank, which gives its size.",
+    "A tank filled at a steady rate, how full it is given as a percentage at two times: how full it was at the start, by the same percentage gained every hour.",
+    "Offers such as one at half price for each one bought, or three for the price of two: compared by what one item costs on average, as a percentage off."
   ]
 }
