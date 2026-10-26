@@ -9,6 +9,12 @@
     "A bar of squares broken along its lines: the pieces and the breaks.",
     "Two rectangles of cells that overlap: the area they cover together.",
     "The largest square of cells that fits in a figure.",
-    "A figure of cells cut into equal parts along the lines of its cells."
+    "A figure of cells cut into equal parts along the lines of its cells.",
+    "A figure of cells with no axis of symmetry, and one cell added to it: how many axes of symmetry the new figure can have.",
+    "Small rectangles cut from a big one: the area gives the most there could be, and laying some one way and some the other shows whether that many fit.",
+    "Strips of 1, 2, 3 and so on laid into one rectangle, both sides longer than 1: strips paired to the same length make equal rows, the longest alone a row when the count is odd.",
+    "A square sawn into pieces of two shapes with a known total length of the cuts: how many of each, from the pieces' areas and their perimeters.",
+    "A rectangle drawn on a grid and the figure joining the midpoints of its sides: that figure has half the rectangle's area.",
+    "A straight line across a board of cells, or the diagonal of a rectangle of cells: each grid line it crosses starts a new cell, less the corners it passes through."
   ]
 }

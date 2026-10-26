@@ -9,6 +9,16 @@
     "Sharing as equally as possible: the most that can be left over.",
     "Scores of two kinds, such as 3 and 8 points: the largest total that cannot be made.",
     "The last digit of a power, from the cycle of last digits.",
-    "The number of divisors of a number."
+    "The number of divisors of a number.",
+    "A bill whose items all come in multiples of 3, such as one thing at 3 and six of another: a total that is not a multiple of 3 cannot be right.",
+    "Different whole numbers whose sum divides by each of them, such as 1, 2 and 3: each new number can be the sum of all before it.",
+    "Statements that a number divides by several numbers, all true but one: a statement that would make all the others true must be the false one.",
+    "A number told by the sum of its few smallest divisors, or of its two largest: 1 comes first, then its smallest prime, and the largest is the number itself.",
+    "Lockers opened and closed by everyone whose number divides theirs: those left open have an odd number of divisors, which only squares have.",
+    "Different digits split into two groups with equal products: a prime such as 5 or 7 found in one digit only would have to be on both sides, so it cannot be done.",
+    "Steps of two lengths with no common divisor but 1, such as 37 left and 47 right: the fewest moves ending one unit to a given side of the start, the side changing the answer.",
+    "A power of ten as a product of two numbers with no zero digit: all its twos go into one and all its fives into the other, so it works only if neither of those powers has a 0.",
+    "A long product of whole numbers: how many times it divides by 2, or how many zeros it ends with, from the twos and fives its factors hold.",
+    "Two numbers with a given sum and no common divisor but 1: the largest product comes from the closest such pair."
   ]
 }
