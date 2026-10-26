@@ -105,6 +105,7 @@ func TestWhatCannotRunIsNotRun(t *testing.T) {
 		{"a host for an instance of its own", []string{"-scenario", "lesson", "-image", "mathtrail:dev", "-host", "a.example"}, "-host"},
 		{"a ceiling the instance is killed before", []string{"-scenario", "lesson", "-image", "mathtrail:dev", "-memory-ceiling", "1g"}, "could never be passed"},
 		{"more tasks than written", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-tasks", "9"}, "tasks"},
+		{"a call shorter than a card's question is held", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-timeout", "4s"}, "-timeout 4s ends a call"},
 		{"a memory with no unit", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-memory", "512"}, "unit"},
 		{"a flag nobody declared", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-speed", "5"}, "speed"},
 		{"no processor", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-cpus", "0"}, "-cpus"},

@@ -160,6 +160,12 @@ func parse(args []string, stderr io.Writer) (invocation, error) {
 	if invalid := options.Check(); invalid != nil {
 		return invocation{}, invalid
 	}
+	if options.Timeout <= lesson.HeldFor {
+		// A lesson's card asks a question the service may hold this long, and
+		// one cut off before it ends would be counted as never answered.
+		return invocation{}, fmt.Errorf("-timeout %v ends a call before the %v the service may hold a card's question for",
+			options.Timeout, lesson.HeldFor)
+	}
 	launch, against, err := service.launch(&options, *cpus, *memory)
 	if err != nil {
 		return invocation{}, err
