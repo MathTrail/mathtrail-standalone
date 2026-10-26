@@ -1711,6 +1711,111 @@
     }
   },
   {
+    "id": "cal-56-d1-1",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Leo writes dates in numbers, such as 5.3.2024 for 5 March 2024. On that date the digits of the day and the month add up to 5 + 3 = 8. The digits of the year add up to 8 too: 2 + 0 + 2 + 4 = 8. On which date of 2024 does this happen for the last time?",
+    "options": {
+      "A": "31 December",
+      "B": "23 December",
+      "C": "5 December",
+      "D": "14 December",
+      "E": "26 December"
+    },
+    "correct_answer": "B",
+    "hint": "December's digits add up to 1 + 2 = 3. What must the digits of the day add up to?",
+    "solution": "The digits of 2024 add up to 8, and those of December to 1 + 2 = 3, so the digits of the day must add up to 5. Going back from 31 December, the first such day is the 23rd, since 2 + 3 = 5. So the last date is 23 December.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "31 December is the last day of the year, but its digits add up to 3 + 1 + 1 + 2 = 7, not 8."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "5 December is the first date of December whose digits add up to 8. The question asks for the last."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "The digits of 14 December do add up to 8, but a later date of December works too: 23 December."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "26 makes 2 + 6 = 8 from the day alone, but the digits of the month count too: 2 + 6 + 1 + 2 = 11."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d1-2",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "13 February 2026 is a Friday, and February 2026 has 28 days. On which day of the week is 13 March 2026?",
+    "options": {
+      "A": "Saturday",
+      "B": "Monday",
+      "C": "Sunday",
+      "D": "Friday",
+      "E": "Thursday"
+    },
+    "correct_answer": "D",
+    "hint": "How many days are there from 13 February to 13 March? How many weeks is that?",
+    "solution": "From 13 February to 13 March there are as many days as February has, 28, which is exactly 4 weeks. So 13 March falls on the same day of the week as 13 February: a Friday.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "Saturday counts 13 February as one of the days too, which makes 29. 13 March comes 28 days after 13 February."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "Monday counts 31 days from 13 February to 13 March, as if February were as long as January. It has 28 days."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "Sunday counts 30 days, but February 2026 has 28."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "Thursday counts only the 27 days from 14 February to 12 March, but 13 March comes 28 days after 13 February."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d1-3",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Ben was born on 20 November 2013 and Kim on 5 March 2014. How old is each of them, in whole years, on 1 June 2026?",
+    "options": {
+      "A": "Ben is 12 and Kim is 13",
+      "B": "Ben is 13 and Kim is 12",
+      "C": "Ben is 12 and Kim is 11",
+      "D": "Ben is 13 and Kim is 11",
+      "E": "Both are 12"
+    },
+    "correct_answer": "E",
+    "hint": "By 1 June 2026, has each of them had a birthday that year?",
+    "solution": "By 1 June 2026 Kim has had her birthday of 5 March, so she is 2026 − 2014 = 12. Ben's birthday on 20 November has not come yet, so he is still 2025 − 2013 = 12. Both are 12.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "Kim was born after Ben, so she cannot be older than him."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "Ben turns 13 only on 20 November 2026. On 1 June his birthday has not come yet, so he is 12."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "This puts Kim's birthday after 1 June, but 5 March comes before it, so she has already turned 2026 − 2014 = 12."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "This swaps the two birthdays: on 1 June, Ben's birthday of 20 November is still to come, and Kim's of 5 March has passed."
+      }
+    }
+  },
+  {
     "id": "cal-56-d2-1",
     "topic": "time.calendar",
     "grade_level": "5-6",
@@ -2024,6 +2129,111 @@
       "E": {
         "trap": "ignored_condition",
         "text": "Monday takes the ten years to be whole weeks, but 3652 days leave 5 days over."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d5-1",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "In Europe the date 3/5 means 3 May, with the day first, but in the USA it means 5 March, with the month first. Ann writes every date from 1 January to 30 June the European way. For how many of these dates would a reader from the USA get a different real date?",
+    "options": {
+      "A": "66",
+      "B": "72",
+      "C": "132",
+      "D": "11",
+      "E": "30"
+    },
+    "correct_answer": "A",
+    "hint": "Which days of a month can also be read as a month? And when does the other reading give the same date?",
+    "solution": "Read the other way, the day becomes the month, so the reading is a real date only when the day is at most 12, and a different date only when the day is not the month's own number. Each of the six months has 12 such days less one, so 11. So there are 6 × 11 = 66 dates.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "72 counts dates such as 5/5 as well, which read the same either way."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "132 is the count for the whole year, but Ann writes only the dates from January to June."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "11 is the count for one month, and Ann writes six months."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "30 counts only the dates whose other reading falls in January to June too, but any month up to December gives a real date."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d5-2",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A date written in numbers, such as 6.8.2026, is called even when all its digits are even, with 0 counting as even. February 2026 has 28 days. How many even dates does the year 2026 have?",
+    "options": {
+      "A": "45",
+      "B": "59",
+      "C": "36",
+      "D": "9",
+      "E": "35"
+    },
+    "correct_answer": "C",
+    "hint": "Which days, from 1 to 31, have only even digits? And which months?",
+    "solution": "The digits of 2026, 2, 0, 2 and 6, are all even. The month must be 2, 4, 6 or 8, since 10 and 12 have the digit 1. The day must be 2, 4, 6, 8, 20, 22, 24, 26 or 28, nine of them, and each of the four months has all nine, February's 28 days included. So there are 4 × 9 = 36 even dates.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "45 counts October as well, but 10 has the odd digit 1."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "59 counts every even day of the months 2, 4, 6 and 8, but days such as 12 and 30 have an odd digit."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "9 is the count for one month, and four months have even digits: 2, 4, 6 and 8."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "35 leaves out 28 February, but February 2026 has 28 days, so 28.2.2026 is an even date too."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d5-3",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "On a planet, a year has 366 days. It is split into months of 29, 30 and 31 days, with at least one month of each length. How many months does the year have?",
+    "options": {
+      "A": "12 or 13",
+      "B": "13",
+      "C": "11",
+      "D": "It cannot be told without the number of months of each length",
+      "E": "12"
+    },
+    "correct_answer": "E",
+    "hint": "If every month had 30 days, how many days would n months have? How much can the months of 29 and 31 days change that?",
+    "solution": "Give every month 30 days first: n months make 30n days. Each 29-day month takes a day away, each 31-day month adds one, and a 30-day month changes nothing, so the year is less than n days away from 30n. Only 12 months come that close to 366: 11 months make at most 341 days, and 13 at least 377. So the year has 12 months, for example one of 29 days, four of 30 and seven of 31.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "13 cannot be: even 13 months of 29 days are 377 days, more than 366."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "13 months make at least 13 × 29 = 377 days, even if all of them are short, more than 366."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "11 months make at most 11 × 31 = 341 days, even if all of them are long, fewer than 366."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "It can be told: whatever the months are, 12 is the only number of them that can make 366 days."
       }
     }
   }
