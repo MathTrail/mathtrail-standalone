@@ -48,6 +48,7 @@ import {
 	profileRefused,
 	progress,
 	refused,
+	setAside,
 	shown,
 	staleAnswer,
 	staleWait,
@@ -515,6 +516,22 @@ export function scenesIn(language: string): Scene[] {
 			refuseMessages: true,
 			play: button(0),
 		},
+		// A card drawn again higher up the chat, its task no longer the one on
+		// the child's card: asked for another task, it asks the service first,
+		// hears twice that another task waits there for its answer, and closes.
+		{
+			name: "result card, another task, its task no longer on the card",
+			payload: shown(
+				underItsRequest(handed),
+				{
+					trap: { id: "fence_gaps", text: words.gaps, repeated: false },
+					solution: words.solution,
+				},
+				{},
+			),
+			answers: () => Promise.resolve(setAside),
+			play: button(0),
+		},
 		{
 			name: "result card, a chat that opens no links",
 			payload: told(),
@@ -590,6 +607,12 @@ export function scenesIn(language: string): Scene[] {
 			name: "another task, the ask not sent",
 			payload: handed,
 			refuseMessages: true,
+			play: button(1),
+		},
+		{
+			name: "another task, its task no longer on the card",
+			payload: underItsRequest(handed),
+			answers: () => Promise.resolve(setAside),
 			play: button(1),
 		},
 		{ name: "a task being asked for", caught: "started" },
@@ -1367,6 +1390,13 @@ function pickedPeriod(period: "last_task" | "week") {
 			.querySelector<HTMLInputElement>(`.mt-switch-input[value="${period}"]`)
 			?.click();
 	};
+}
+
+// underItsRequest is the task handed under an id of the shape the service
+// gives a task, after the request it was written for, so that its card asks
+// how that request stands before it asks for another task.
+function underItsRequest(task: Handed): Handed {
+	return { ...task, task: { ...task.task, id: "tsk_preview" } };
 }
 
 // inTurn does each step in turn, each once the card has taken what came

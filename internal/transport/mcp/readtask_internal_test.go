@@ -140,3 +140,36 @@ func askedWithin(t *testing.T, s *Service, request string, bound time.Duration) 
 		return awaitedOut{}
 	}
 }
+
+// A card whose task has left the child's card hears whether another task waits
+// there for its answer, which an ask from it would set aside; a task answered,
+// or none at all, waits for nothing, and nothing the card asks for skips it.
+func TestACardWhoseTaskLeftHearsWhetherAnotherWaitsForItsAnswer(t *testing.T) {
+	t.Parallel()
+
+	s := &Service{window: time.Hour, now: func() time.Time { return lessonMoment }}
+	newer := &profile.CurrentTask{ID: "tsk_newer", Topic: "counting.gaps", Language: "en"}
+	for _, tc := range []struct {
+		name string
+		on   *profile.CurrentTask
+		want bool
+	}{
+		{"another task without an answer", newer, true},
+		{"another task answered", &profile.CurrentTask{ID: "tsk_newer", Answered: &profile.Given{Choice: "C"}}, false},
+		{"no task at all", nil, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := newOtter()
+			p.CurrentTask = tc.on
+			reply, err := s.taskStands(t.Context(), p, "req_left")
+			if err != nil {
+				t.Fatalf("taskStands() error = %v, want nil", err)
+			}
+			if told := reply.Payload; told.Screen != screenWaiting || told.Code != codeStaleRequest || told.AnotherWaits != tc.want {
+				t.Errorf("taskStands() = %+v, want not coming, with another waiting %t", told, tc.want)
+			}
+		})
+	}
+}

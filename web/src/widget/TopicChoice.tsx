@@ -56,11 +56,13 @@ export type Choosing = {
  * changes it. A choice is saved to the profile, the model is told of it in
  * the service's words through tell, and only then is the next task asked of
  * the chat in the adult's words, through ask, as another task is: a choice not
- * saved asks nothing, and says so. Nothing is chosen while busy says the card is in the
- * middle of something else, nor while a choice is on its way: a press of a
- * choice that looks locked is turned away here. The panel takes
- * the focus to the choice pressed in as it opens, and gives it back to the
- * button as it closes.
+ * saved asks nothing, and says so. A choice first asks stillOn whether the
+ * card may still ask, and one it turns down is neither saved nor asked for;
+ * the ask after a choice saved is one just checked, and ask asks nothing
+ * again. Nothing is chosen while busy says the card is in the middle of
+ * something else, nor while a choice is on its way: a press of a choice that
+ * looks locked is turned away here. The panel takes the focus to the choice
+ * pressed in as it opens, and gives it back to the button as it closes.
  */
 export function useTopicChoice(
 	offered: TopicChoice | undefined,
@@ -68,10 +70,12 @@ export function useTopicChoice(
 		busy,
 		tell,
 		ask,
+		stillOn,
 	}: {
 		busy: () => boolean;
 		tell: (line: string) => Promise<void>;
 		ask: (words: string) => void;
+		stillOn: () => Promise<boolean> | undefined;
 	},
 ): Choosing {
 	const words = useWords();
@@ -115,6 +119,15 @@ export function useTopicChoice(
 		}
 		saving.current = true;
 		setState((was) => ({ ...was, said: "saving" }));
+		// A card that may no longer ask saves nothing: the topic would hold
+		// the lessons of a newer card, and its task asked for would set that
+		// card's aside. A check that fails says nothing, and the choice goes
+		// on as it did before the card asked.
+		if ((await stillOn()?.catch(() => true)) === false) {
+			saving.current = false;
+			setState((was) => ({ ...was, open: false, said: undefined }));
+			return;
+		}
 		const outcome = await service.saveEdit({ lesson_topic: topic ?? "" });
 		if (outcome.kind !== "saved") {
 			saving.current = false;

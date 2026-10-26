@@ -30,10 +30,14 @@ import {
 	firstRun,
 	flagsTask,
 	type Handed,
+	liveFence,
+	notComing,
+	onTheCard,
 	progress,
 	progressMoving,
 	repeatedAnswer,
 	rightAnswer,
+	setAside,
 	staleAnswer,
 	toldAgain,
 	topicSaved,
@@ -859,6 +863,170 @@ describe("another task", () => {
 
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(2));
 		expect(heard.modelLines[1]).toBe(`${heard.modelLines[0]}\n\n${topicWords}`);
+	});
+});
+
+// closedWords are what a card says once its task is no longer the one on the
+// child's card.
+const closedWords =
+	"This task is closed. The newest task is further down the chat.";
+
+// confirmed is how long a case waits for the card to hear a second answer,
+// which it asks for only after a pause.
+const confirmed = { timeout: 5_000 };
+
+// standing answers how the request of the card's task stands with the answers
+// given, one a question and the last again after them, and every other call
+// as the service would for the fence.
+function standing(...answers: (CallToolResult | (() => CallToolResult))[]) {
+	let asked = 0;
+	return (call: ToolCall): CallToolResult => {
+		if (call.name !== "read_task") {
+			return call.name === "edit_profile"
+				? topicSaved("time.clocks")
+				: service(call);
+		}
+		const answer = answers[Math.min(asked, answers.length - 1)];
+		asked++;
+		return typeof answer === "function" ? answer() : (answer as CallToolResult);
+	};
+}
+
+// asksOf are the questions the card asked of how its task's request stands.
+const asksOf = (calls: ToolCall[]) =>
+	calls.filter(({ name }) => name === "read_task");
+
+describe("another task asked from a card that may have been drawn again", () => {
+	test("first asks whether the card's task is still on the child's card, by its request, and asks the chat once it is", async () => {
+		const heard = await drawCard(liveFence, standing(onTheCard));
+
+		press(button("Another task"));
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		expect(heard.calls).toEqual([
+			{ name: "read_task", arguments: { request_id: "req_fence" } },
+		]);
+	});
+
+	test("closes the card, and asks the chat for nothing, once the service says twice that another task waits on the child's card in its task's place", async () => {
+		const heard = await drawCard(liveFence, standing(setAside));
+
+		press(button("Another task"));
+
+		await vi.waitFor(() => expect(answerNote()).toBe(closedWords), confirmed);
+		expect(asksOf(heard.calls)).toHaveLength(2);
+		expect(heard.messages).toEqual([]);
+		// Another task asked for here would skip the one on the newer card.
+		expect(shownButtons()).toEqual([]);
+		expect(option("A").getAttribute("aria-disabled")).toBe("true");
+		await vi.waitFor(() =>
+			expect(document.activeElement).toBe(
+				root.querySelector(".mt-answer-note"),
+			),
+		);
+	});
+
+	test("locks the card the moment it is pressed, while the service is asked", async () => {
+		const asked = pending();
+		const heard = await drawCard(liveFence, (call) =>
+			call.name === "read_task" ? asked.result : service(call),
+		);
+
+		press(button("Another task"));
+		press(option("B"));
+
+		await vi.waitFor(() => expect(asksOf(heard.calls)).toHaveLength(1));
+		expect(button("Another task").getAttribute("aria-disabled")).toBe("true");
+		expect(option("B").getAttribute("aria-disabled")).toBe("true");
+		asked.arrive(onTheCard);
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		expect(heard.calls.filter(({ name }) => name === "submit_answer")).toEqual(
+			[],
+		);
+	});
+
+	test.each<[string, (CallToolResult | (() => CallToolResult))[]]>([
+		[
+			"says once that the task is set aside, a read too early, and then that it is on the card",
+			[setAside, onTheCard],
+		],
+		[
+			"says the task is not there, with no other waiting for its answer, which an ask skips nothing of",
+			[notComing],
+		],
+		[
+			"finds the profile gone, which the card it asks for meets",
+			[{ content: [], structuredContent: firstRun }],
+		],
+		["fails", [failure]],
+		[
+			"never gets the question",
+			[
+				() => {
+					throw new Error("the host went away");
+				},
+			],
+		],
+	])("asks the chat when the service %s", async (_, answers) => {
+		const heard = await drawCard(liveFence, standing(...answers));
+
+		press(button("Another task"));
+
+		await vi.waitFor(
+			() => expect(heard.messages).toEqual(["Another task"]),
+			confirmed,
+		);
+		expect(answerNote()).toBe("");
+	});
+
+	test("asks the chat at once from a card whose task's id names no request", async () => {
+		const heard = await drawCard(fence, standing(setAside));
+
+		press(button("Another task"));
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		expect(asksOf(heard.calls)).toEqual([]);
+	});
+
+	test("saves no topic chosen, and asks the chat for nothing, once the service says twice that another task waits in its task's place", async () => {
+		const heard = await drawCard(
+			withTopicChoice(liveFence),
+			standing(setAside),
+		);
+
+		press(root.querySelector<HTMLElement>(".mt-topic-button") as HTMLElement);
+		press(
+			root.querySelector<HTMLElement>(
+				'.mt-topic-rows .mt-topic-option[aria-pressed="false"]',
+			) as HTMLElement,
+		);
+
+		await vi.waitFor(() => expect(answerNote()).toBe(closedWords), confirmed);
+		expect(heard.calls.filter(({ name }) => name === "edit_profile")).toEqual(
+			[],
+		);
+		expect(heard.messages).toEqual([]);
+		expect(root.querySelector(".mt-topic-button")).toBeNull();
+	});
+
+	test("asks once for a topic chosen on a card whose task is still on it, saved and then asked for", async () => {
+		const heard = await drawCard(
+			withTopicChoice(liveFence),
+			standing(onTheCard),
+		);
+
+		press(root.querySelector<HTMLElement>(".mt-topic-button") as HTMLElement);
+		press(
+			root.querySelector<HTMLElement>(
+				'.mt-topic-rows .mt-topic-option[aria-pressed="false"]',
+			) as HTMLElement,
+		);
+
+		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
+		expect(heard.calls.map(({ name }) => name)).toEqual([
+			"read_task",
+			"edit_profile",
+		]);
 	});
 });
 

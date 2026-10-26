@@ -30,6 +30,7 @@ import type { HandedTask } from "./payload";
 import { ResultBody, ResultFoot, verdictText } from "./ResultCard";
 import { useService } from "./service";
 import { resultShownOf } from "./shown";
+import { useStillOn } from "./stillOn";
 import {
 	ChoosesTopic,
 	TopicButton,
@@ -112,7 +113,11 @@ export function TaskInCard({
 	const words = useWords();
 	const [lesson, dispatch] = useReducer(next, start);
 	const service = useService();
-	const another = useChatRequest(host);
+	// A card drawn again higher up the chat would set aside a newer card's
+	// task by asking for another or by saving a topic, so it asks first; a
+	// task no longer there closes the card, as an answer refused for it would.
+	const stillOn = useStillOn(task.id, () => dispatch({ type: "closed" }));
+	const another = useChatRequest(host, stillOn);
 	const tell = useModelLines(host);
 	const note = useRef<HTMLParagraphElement>(null);
 	const said = useRef<HTMLParagraphElement>(null);
@@ -127,7 +132,8 @@ export function TaskInCard({
 	const choosing = useTopicChoice(handed.topic_choice, {
 		busy: () => !choosesTopic || answering.current || another.busy(),
 		tell,
-		ask: another.send,
+		ask: another.sendChecked,
+		stillOn,
 	});
 	// A choice of the topic on its way locks the card as an answer does: the
 	// task it asks for would race the answer.

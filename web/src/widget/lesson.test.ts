@@ -102,6 +102,32 @@ describe("an answer", () => {
 	});
 });
 
+describe("a task no longer on the child's card", () => {
+	test("closes a card with no answer recorded, or one that failed, and takes no answer after", () => {
+		const failed = lessonAfter(
+			{ type: "picked", choice: "B" },
+			{ type: "told", outcome: { kind: "failed" } },
+		);
+		for (const lesson of [lessonAfter(), failed]) {
+			const closed = next(lesson, { type: "closed" });
+			expect(closed.answer).toEqual({ state: "closed" });
+			expect(isSettled(closed.answer)).toBe(true);
+			expect(next(closed, { type: "picked", choice: "C" })).toBe(closed);
+		}
+	});
+
+	test("leaves an answer on its way or recorded as it is", () => {
+		const checking = lessonAfter({ type: "picked", choice: "B" });
+		const recorded = lessonAfter(
+			{ type: "picked", choice: "B" },
+			{ type: "told", outcome: { kind: "answered", result: wrong } },
+		);
+
+		expect(next(checking, { type: "closed" })).toBe(checking);
+		expect(next(recorded, { type: "closed" })).toBe(recorded);
+	});
+});
+
 describe("the hint", () => {
 	test("opens and closes, and stays used once opened", () => {
 		const opened = lessonAfter({ type: "hint toggled" });

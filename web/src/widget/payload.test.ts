@@ -32,6 +32,7 @@ import {
 	profileRefused,
 	refused,
 	savedWords,
+	setAside,
 	staleAnswer,
 	staleWait,
 	standing,
@@ -757,6 +758,11 @@ describe("how the task a card waits for stands", () => {
 			},
 		],
 		["over", notComing, { kind: "over" }],
+		[
+			"over, another task waiting on the child's card for its answer",
+			setAside,
+			{ kind: "over", anotherWaits: true },
+		],
 		[
 			"gone with the profile",
 			{ content: [], structuredContent: firstRun },
