@@ -215,7 +215,7 @@ sources:
   collections:
     mathnet:
       name: MathNet
-      note: Una colección abierta de problemas de olimpiadas de muchos países. Cada tema tiene una lista de ideas sobre las que se construyen sus problemas, y para {first}.º–{last}.º de primaria algunas de ellas salen de esta colección. Algunos países conservan los derechos de sus problemas, así que también de aquí solo se toma una idea, nunca un texto.
+      note: Una colección abierta de problemas de olimpiadas de muchos países. Cada tema tiene una lista de ideas sobre las que se construyen sus problemas, y para {first}.º–{last}.º de primaria algunas de ellas salen de esta colección, igual que el tipo de problema de algunos problemas de referencia. Algunos países conservan los derechos de sus problemas, así que también de aquí solo se toma una idea, nunca un texto.
   total: En total, {count} {noun}
   each: cada uno con su solucionador y una trampa detrás de cada opción incorrecta
   level: "{count} · {first}.º–{last}.º de primaria"

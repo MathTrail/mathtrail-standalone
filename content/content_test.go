@@ -313,11 +313,10 @@ func TestEveryCellOfGradesOneToFourHasFiveTasks(t *testing.T) {
 	}
 }
 
-// Grades 5–6 carry nine reference tasks for a topic, three at each of the
-// middle difficulties: the rule aims at the middle of the corridor, and a
-// request for difficulty 1 or 5 is shown the nearest of them, labelled with its
-// own difficulty. The tasks arrive topic by topic, so a topic with none yet is
-// named rather than refused.
+// Grades 5–6 carry three reference tasks for a topic at each of the middle
+// difficulties: the rule aims at the middle of the corridor, and three of a
+// difficulty let a package turn through them. The tasks arrive topic by topic,
+// so a topic with none yet is named rather than refused.
 func TestEveryTopicOfGradesFiveAndSixHasThreeTasksAtEachMiddleDifficulty(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)
@@ -330,18 +329,42 @@ func TestEveryTopicOfGradesFiveAndSixHasThreeTasksAtEachMiddleDifficulty(t *test
 			waiting = append(waiting, topic.ID)
 			continue
 		}
-		for difficulty := 1; difficulty <= 5; difficulty++ {
-			want := 0
-			if difficulty >= 2 && difficulty <= 4 {
-				want = 3
-			}
-			if got := tasks[difficulty]; got != want {
-				t.Errorf("%s at %s, difficulty %d: got %d reference tasks, want %d",
-					topic.ID, rating.Grades56, difficulty, got, want)
+		for difficulty := 2; difficulty <= 4; difficulty++ {
+			if got := tasks[difficulty]; got != 3 {
+				t.Errorf("%s at %s, difficulty %d: got %d reference tasks, want 3",
+					topic.ID, rating.Grades56, difficulty, got)
 			}
 		}
 	}
 	t.Logf("no reference tasks at %s yet: %v", rating.Grades56, waiting)
+}
+
+// Grades 5–6 carry three reference tasks for a topic at each of difficulties 1
+// and 5 once the topic's batch of those has come: a request for an end is
+// otherwise shown the nearest middle tasks there are. A batch writes both ends
+// of a topic at once, so a topic has three at both or none at either, and one
+// with none yet is named rather than refused.
+func TestEveryTopicOfGradesFiveAndSixHasThreeTasksAtBothEndsOrNone(t *testing.T) {
+	t.Parallel()
+	c := loaded(t)
+
+	count := tasksByTopicAndDifficulty(c, rating.Grades56)
+	var withoutEnds []string
+	for _, topic := range c.Topics() {
+		tasks, written := count[topic.ID]
+		if !written {
+			continue
+		}
+		low, high := tasks[1], tasks[5]
+		if (low != 0 && low != 3) || high != low {
+			t.Errorf("%s at %s: got %d reference tasks at difficulty 1 and %d at 5, want 3 at both or none at either",
+				topic.ID, rating.Grades56, low, high)
+		}
+		if low == 0 {
+			withoutEnds = append(withoutEnds, topic.ID)
+		}
+	}
+	t.Logf("no reference tasks at difficulties 1 and 5 of %s yet: %v", rating.Grades56, withoutEnds)
 }
 
 // tasksByTopicAndDifficulty counts the reference tasks of one level, by topic

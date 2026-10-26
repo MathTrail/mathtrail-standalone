@@ -194,16 +194,16 @@ traps:
     say: « S’il y a deux fois plus de personnes, que deviennent les œufs ? »
     art:
       question: 3 œufs pour 2 personnes, et pour 8 ?
-  answered_other_question:
+  ignored_condition:
     shows: >-
-      L’enfant trouve une part, mais en donne une autre que celle demandée : les
-      champignons de Max au lieu de ceux de Léna, ou une part, 3 enfants, au lieu
-      de toute la chorale.
-    say: « La question porte sur la part de qui ? »
+      Une condition se perd : la pâte est faite avec les 1000 g de farine,
+      alors que 300 g de sucre ne suffisent pas, ou 56 coquillages à partager
+      dans le rapport 3 à 4 sont partagés 28 et 28.
+    say: « Y a-t-il assez de sucre pour toute cette farine ? »
     art:
-      question: Combien de champignons Léna cueille-t-elle ?
-      max: M
-      lena: L
+      question: Farine et sucre 5 à 2, 1000 g et 300 g
+      short: pas assez de sucre
+      one: dans une part
 
 home:
   - title: Cuisiner avec un rapport

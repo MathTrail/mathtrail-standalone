@@ -215,7 +215,7 @@ sources:
   collections:
     mathnet:
       name: MathNet
-      note: An open collection of olympiad problems from many countries. Each topic keeps a list of ideas its tasks are built on, and for grades {first}–{last} some of them come from this collection. Some countries keep the rights to their problems, so from it, too, only an idea is taken, never a text.
+      note: An open collection of olympiad problems from many countries. Each topic keeps a list of ideas its tasks are built on, and for grades {first}–{last} some of them come from this collection, as does the kind of problem behind some reference tasks. Some countries keep the rights to their problems, so from it, too, only an idea is taken, never a text.
   total: In all, {count} {noun}
   each: each with a solver and a trap behind every wrong option
   level: "{count} · grades {first}–{last}"

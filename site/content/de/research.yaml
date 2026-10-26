@@ -215,7 +215,7 @@ sources:
   collections:
     mathnet:
       name: MathNet
-      note: Eine offene Sammlung von Olympiadeaufgaben aus vielen Ländern. Jedes Thema hat eine Liste von Ideen, auf denen seine Aufgaben aufbauen, und für die Klassen {first}–{last} stammen einige davon aus dieser Sammlung. Manche Länder behalten die Rechte an ihren Aufgaben, deshalb wird auch von hier nur eine Idee übernommen, nie ein Text.
+      note: Eine offene Sammlung von Olympiadeaufgaben aus vielen Ländern. Jedes Thema hat eine Liste von Ideen, auf denen seine Aufgaben aufbauen, und für die Klassen {first}–{last} stammen einige davon aus dieser Sammlung, ebenso die Art der Aufgabe hinter manchen Referenzaufgaben. Manche Länder behalten die Rechte an ihren Aufgaben, deshalb wird auch von hier nur eine Idee übernommen, nie ein Text.
   total: Insgesamt {count} {noun}
   each: jede mit einem Lösungsprogramm und einer Falle hinter jeder falschen Antwort
   level: "{count} · Klassen {first}–{last}"
