@@ -6,17 +6,17 @@
     "difficulty": 1,
     "question": "Mia ate three quarters of a chocolate bar with 20 squares. Leo ate two thirds of a bar with 24 squares. Who ate more squares, and how many squares did that child eat?",
     "options": {
-      "A": "Mia, 15",
-      "B": "Leo, 16",
+      "A": "Leo, 16",
+      "B": "Mia, 15",
       "C": "Leo, 18",
       "D": "Mia, 20",
       "E": "Leo, 1"
     },
-    "correct_answer": "B",
+    "correct_answer": "A",
     "hint": "Find how many squares each child ate. How many squares make one quarter of Mia's bar?",
     "solution": "One quarter of 20 squares is 5, so Mia ate 3 × 5 = 15 squares. One third of 24 squares is 8, so Leo ate 2 × 8 = 16 squares. Leo ate more, 16 squares.",
     "distractors": {
-      "A": {
+      "B": {
         "trap": "ignored_condition",
         "text": "Three quarters is more than two thirds, but the two bars are not the same size. Mia ate 15 squares, one fewer than Leo."
       },
@@ -42,12 +42,12 @@
     "question": "A jug holds two and a half litres of juice. Each glass holds a quarter of a litre. How many glasses can be filled from the full jug?",
     "options": {
       "A": "8",
-      "B": "10",
-      "C": "5/8",
+      "B": "5/8",
+      "C": "10",
       "D": "2 1/2",
       "E": "12"
     },
-    "correct_answer": "B",
+    "correct_answer": "C",
     "hint": "How many glasses does one litre fill? And how many does half a litre fill?",
     "solution": "One litre fills 4 glasses of a quarter litre, so two litres fill 8 glasses, and half a litre fills 2 more. So the jug fills 8 + 2 = 10 glasses.",
     "distractors": {
@@ -55,7 +55,7 @@
         "trap": "stopped_early",
         "text": "8 glasses hold two litres. The jug holds half a litre more, which fills 2 more glasses."
       },
-      "C": {
+      "B": {
         "trap": "wrong_operation",
         "text": "5/8 multiplies two and a half by a quarter. To find how many quarters fit, divide by a quarter instead."
       },
@@ -77,18 +77,22 @@
     "question": "Max and his sister Lily walk to a concert at the same steady speed. After a fifth of the way, Max goes back home for his ticket, grabs it at once and walks to the concert. Lily gets there 50 minutes after they left home. How many minutes after Lily does Max get there?",
     "options": {
       "A": "10",
-      "B": "20",
+      "B": "16",
       "C": "70",
       "D": "50",
-      "E": "16"
+      "E": "20"
     },
-    "correct_answer": "B",
+    "correct_answer": "E",
     "hint": "How many minutes does a fifth of the way take?",
     "solution": "The whole way takes 50 minutes, so a fifth of it takes 10 minutes. Max walks that fifth back home and then walks it again, so he walks 2 × 10 = 20 minutes more than Lily. He gets there 20 minutes after her.",
     "distractors": {
       "A": {
         "trap": "stopped_early",
         "text": "10 minutes is the walk back home. Max then walks that fifth of the way again, 10 minutes more."
+      },
+      "B": {
+        "trap": "part_whole_swap",
+        "text": "16 takes the walk back and the walk again as two fifths of the 40 minutes Lily walks after they part. A fifth of the way is a fifth of the whole walk of 50 minutes."
       },
       "C": {
         "trap": "answered_other_question",
@@ -97,10 +101,6 @@
       "D": {
         "trap": "number_from_text",
         "text": "50 minutes is Lily's time, a number from the question, not how much later Max gets there."
-      },
-      "E": {
-        "trap": "part_whole_swap",
-        "text": "16 takes the walk back and the walk again as two fifths of the 40 minutes Lily walks after they part. A fifth of the way is a fifth of the whole walk of 50 minutes."
       }
     }
   },
@@ -466,11 +466,11 @@
     "options": {
       "A": "5/36",
       "B": "5/16",
-      "C": "5/12",
-      "D": "9/20",
+      "C": "9/20",
+      "D": "5/12",
       "E": "3/4"
     },
-    "correct_answer": "C",
+    "correct_answer": "D",
     "hint": "Add up what Ben and Cy ate: a third of what Al ate and a third of what he did not eat.",
     "solution": "Ben ate a third of Al's part, and Cy ate a third of the rest of the pot. Together they ate a third of the whole pot. Dan ate a quarter, so Al ate 1 − 1/3 − 1/4 = 5/12 of the pot.",
     "distractors": {
@@ -482,7 +482,7 @@
         "trap": "part_whole_swap",
         "text": "5/16 takes a third of what Al did not eat as a third of the whole pot. It is a third of the part Al left."
       },
-      "D": {
+      "C": {
         "trap": "part_whole_swap",
         "text": "9/20 takes a third of what Al did not eat as a third of what Al ate. Cy's part comes from the rest of the pot."
       },
@@ -499,23 +499,23 @@
     "difficulty": 5,
     "question": "Owen had a box of biscuits. He ate some of them, and then his friend Zoe came. They shared the biscuits that were left equally. In the end Owen had eaten 4 times as many biscuits as Zoe. What part of all the biscuits did Owen eat before Zoe came?",
     "options": {
-      "A": "2/5",
+      "A": "3/5",
       "B": "4/5",
-      "C": "3/5",
+      "C": "2/5",
       "D": "2/3",
       "E": "3/2"
     },
-    "correct_answer": "C",
+    "correct_answer": "A",
     "hint": "Call Zoe's share one part. How many such parts did Owen eat in all, and how many of them before Zoe came?",
     "solution": "Zoe's share is one part, and Owen's share of what was left is one part too. Owen ate 4 parts in all, so he ate 3 parts before Zoe came. All the biscuits make 3 + 1 + 1 = 5 parts, so Owen ate 3/5 of them before Zoe came.",
     "distractors": {
-      "A": {
-        "trap": "answered_other_question",
-        "text": "2/5 is the part of the biscuits that was left when Zoe came. The question asks about what Owen ate before."
-      },
       "B": {
         "trap": "part_whole_swap",
         "text": "4/5 is the part Owen ate in all, his share of what was left as well. The question asks only about what he ate before Zoe came."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "2/5 is the part of the biscuits that was left when Zoe came. The question asks about what Owen ate before."
       },
       "D": {
         "trap": "ignored_condition",

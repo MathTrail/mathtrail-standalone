@@ -1704,6 +1704,111 @@
     }
   },
   {
+    "id": "tri-56-d1-1",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Work out 1 + 2 + 3 + ... + 40 + 41, the sum of all the whole numbers from 1 to 41.",
+    "options": {
+      "A": "840",
+      "B": "861",
+      "C": "882",
+      "D": "1722",
+      "E": "820"
+    },
+    "correct_answer": "B",
+    "hint": "Pair 1 with 41, 2 with 40, and so on. Which number is left without a pair?",
+    "solution": "Pair 1 with 41, 2 with 40, and so on up to 20 with 22. Each of these 20 pairs adds up to 42, which makes 20 × 42 = 840. The number in the middle, 21, has no pair, so the sum is 840 + 21 = 861.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "840 adds up the 20 pairs of 42 but leaves out 21, the number in the middle, which has no pair."
+      },
+      "C": {
+        "trap": "double_count",
+        "text": "882 makes 21 pairs of 42, but the middle number 21 cannot pair with itself: it counts once, not twice."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "1722 is 41 × 42, the sum taken twice over, once from each end. It still has to be halved: 1722 ÷ 2 = 861."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "820 is the sum up to 40, one number short: it leaves out the 41."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d1-2",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "In a shooting contest, the first shooter scores 40 points and the second scores 70. Each later shooter scores the average of all the scores before theirs. So the third scores the average of the first two, and the fourth the average of the first three. How many points does the tenth shooter score?",
+    "options": {
+      "A": "550",
+      "B": "70",
+      "C": "110",
+      "D": "55",
+      "E": "30"
+    },
+    "correct_answer": "D",
+    "hint": "Work out what the third and the fourth shooter score. What do you notice?",
+    "solution": "The third scores (40 + 70) ÷ 2 = 55. Then the first three scores add up to 165, and 165 ÷ 3 = 55, so the fourth scores 55 as well. A score equal to the average leaves the average as it was, so every later shooter, the tenth among them, scores 55.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "550 is what all ten shooters score together, 10 × 55, not what the tenth one scores."
+      },
+      "B": {
+        "trap": "number_from_text",
+        "text": "70 is the second shooter's score, copied from the question."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "110 is 40 + 70, the two scores added up but not yet halved into their average, 55."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "30 takes 40 away from 70, but an average adds the scores up and shares the total out: (40 + 70) ÷ 2 = 55."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d1-3",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Tom adds the digits 1 to 6 in turn, again and again. He writes 1 + 2 + 3 + 4 + 5 + 6 + 1 + 2 and so on. He stops when the total is exactly 120. Which digit does he add last?",
+    "options": {
+      "A": "4",
+      "B": "6",
+      "C": "2",
+      "D": "3",
+      "E": "5"
+    },
+    "correct_answer": "E",
+    "hint": "How much does one round of the digits 1 to 6 add? How much is left after the last whole round?",
+    "solution": "One round, 1 + 2 + 3 + 4 + 5 + 6, adds 21. Five rounds make 105, and 120 − 105 = 15, which is 1 + 2 + 3 + 4 + 5. So the last digit Tom adds is 5.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "4 stops one digit short: 105 + 1 + 2 + 3 + 4 = 115, and the 5 makes 120."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "6 ends a round, and five rounds make 105, but 15 more must still be added: 1 + 2 + 3 + 4 + 5."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "2 divides 120 by 6 and takes 20 digits, three rounds and then 1 and 2. But 120 is what the digits add up to, not how many digits there are."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "3 counts 15 more digits after five rounds, two rounds and then 1, 2 and 3. But 15 is what the last digits add up to, not how many of them there are."
+      }
+    }
+  },
+  {
     "id": "tri-56-d2-1",
     "topic": "arithmetic.tricks",
     "grade_level": "5-6",
@@ -2017,6 +2122,111 @@
       "E": {
         "trap": "off_by_one",
         "text": "60 undoes one shop too many: there were three shops, not four."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d5-1",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Lily writes down every four-digit number that uses each of the digits 1, 3, 5 and 7 exactly once. What do all these numbers add up to?",
+    "options": {
+      "A": "106656",
+      "B": "24",
+      "C": "17776",
+      "D": "384",
+      "E": "71104"
+    },
+    "correct_answer": "A",
+    "hint": "In how many of the numbers does the digit 7 stand in the thousands place? And in each of the other places?",
+    "solution": "There are 4 × 3 × 2 × 1 = 24 numbers. Each digit stands in each place in 6 of them, since the other three digits fill the other places in 3 × 2 × 1 = 6 ways. So each place adds up to 6 × (1 + 3 + 5 + 7) = 96, and the total is 96 × 1000 + 96 × 100 + 96 × 10 + 96 = 96 × 1111 = 106656.",
+    "distractors": {
+      "B": {
+        "trap": "stopped_early",
+        "text": "24 counts the numbers, a first step: they still have to be added up."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "17776 is 16 × 1111, each digit counted once in each place, but each digit stands in each place in 6 of the 24 numbers."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "384 adds up all the digits of the 24 numbers, 24 × 16, but a digit in the thousands place counts as a thousand times itself."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "71104 counts each digit in each place only 4 times, but the other three digits can follow it in 3 × 2 × 1 = 6 ways."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d5-2",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "The number 96 is written as a sum of two or more whole numbers, and the same numbers multiplied together also make 96. What is the fewest numbers such a sum can have?",
+    "options": {
+      "A": "46",
+      "B": "2",
+      "C": "48",
+      "D": "63",
+      "E": "1"
+    },
+    "correct_answer": "C",
+    "hint": "Ones change the sum but not the product. Which numbers other than ones multiply to 96?",
+    "solution": "Ones add to the sum but leave the product as it is. So take numbers above 1 that multiply to 96, and fill the sum up to 96 with ones. 96 by itself is one number, and the sum needs two or more. Of the other ways, 2 × 48 has the fewest numbers and the biggest sum, 50, so it needs the fewest ones: 96 − 50 = 46. That makes 2 + 46 = 48 numbers.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "46 is how many ones are needed, 96 − 50, but the 2 and the 48 are in the sum too."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "2 takes just 2 and 48, which multiply to 96, but they add up to 50, not 96."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "63 uses 3 and 32 with 61 ones, but 2 and 48 add up to more and need only 46 ones."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "1 takes 96 alone, but the sum must have two or more numbers."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d5-3",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Mark makes every number he can from the digit cards 1, 3, 7 and 8, using all four cards each time. He lists the numbers from the smallest to the largest. What is the largest difference between two numbers next to each other in his list?",
+    "options": {
+      "A": "9",
+      "B": "7353",
+      "C": "3960",
+      "D": "1305",
+      "E": "3267"
+    },
+    "correct_answer": "E",
+    "hint": "Where in the list does the first digit change? Which two numbers stand on either side of each change?",
+    "solution": "While the first digit stays the same, the list goes up in small steps, and the big steps come where it changes. The last number starting with 3 is 3871, and the first starting with 7 is 7138, which is 3267 more. The other changes give 3178 − 1873 = 1305 and 8137 − 7831 = 306. So the largest difference is 3267.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "9 is the smallest difference, from 1378 to 1387, but the question asks for the largest."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "7353 is 8731 − 1378, the largest number less the smallest, not two numbers next to each other."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "3960 is 7138 − 3178, but 3178 and 7138 are not next to each other: 3871 stands just before 7138."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "1305 is the step from 1873 to 3178, but the step from 3871 to 7138 is bigger."
       }
     }
   }

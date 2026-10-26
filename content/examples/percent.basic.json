@@ -7,12 +7,12 @@
     "question": "A toy costs 50 coins. The shop meant to raise its price by 20%, but by mistake it lowered the price by 20%. How many coins less than the planned price does the toy cost now?",
     "options": {
       "A": "10",
-      "B": "20",
+      "B": "8",
       "C": "40",
-      "D": "8",
+      "D": "20",
       "E": "12"
     },
-    "correct_answer": "B",
+    "correct_answer": "D",
     "hint": "Find the planned price and the price now. What is 20% of 50 coins?",
     "solution": "20% of 50 coins is 10 coins. The planned price was 50 + 10 = 60 coins, and the price now is 50 − 10 = 40 coins. The toy costs 60 − 40 = 20 coins less than planned.",
     "distractors": {
@@ -20,13 +20,13 @@
         "trap": "stopped_early",
         "text": "10 coins is 20% of 50, the change one way. The planned price is 10 coins above 50 and the price now 10 coins below it."
       },
+      "B": {
+        "trap": "percent_wrong_base",
+        "text": "8 takes 20% of the lowered price, 40 coins. Both changes are 20% of the old price, 50 coins."
+      },
       "C": {
         "trap": "answered_other_question",
         "text": "40 coins is the price now. The question asks how much less than the planned price it is."
-      },
-      "D": {
-        "trap": "percent_wrong_base",
-        "text": "8 takes 20% of the lowered price, 40 coins. Both changes are 20% of the old price, 50 coins."
       },
       "E": {
         "trap": "percent_wrong_base",
@@ -41,17 +41,17 @@
     "difficulty": 1,
     "question": "A young tree was 40 cm tall. In five years its height grew by 150%. How tall is the tree now?",
     "options": {
-      "A": "60 cm",
-      "B": "100 cm",
+      "A": "100 cm",
+      "B": "60 cm",
       "C": "190 cm",
       "D": "150 cm",
       "E": "340 cm"
     },
-    "correct_answer": "B",
+    "correct_answer": "A",
     "hint": "What is 150% of 40 cm? Is that the height now, or how much the tree grew?",
     "solution": "150% of 40 cm is 1.5 × 40 = 60 cm, and that is how much the tree grew. Its height now is 40 + 60 = 100 cm, which is 250% of the height it had.",
     "distractors": {
-      "A": {
+      "B": {
         "trap": "part_whole_swap",
         "text": "60 cm is how much the tree grew. Its height now is the old 40 cm and that growth together."
       },
@@ -77,12 +77,12 @@
     "question": "Sam puts 500 coins in a bank. Every year the bank adds 20% of the 500 coins he first put in. How many coins does Sam have after 3 years?",
     "options": {
       "A": "600",
-      "B": "800",
-      "C": "300",
+      "B": "300",
+      "C": "800",
       "D": "864",
       "E": "560"
     },
-    "correct_answer": "B",
+    "correct_answer": "C",
     "hint": "How many coins does the bank add in one year? Does that number change from year to year?",
     "solution": "20% of 500 coins is 100 coins. The bank adds the same 100 coins every year, so in 3 years it adds 300 coins. Sam has 500 + 300 = 800 coins.",
     "distractors": {
@@ -90,7 +90,7 @@
         "trap": "stopped_early",
         "text": "600 is what Sam has after one year. The bank adds 100 coins in each of the three years."
       },
-      "C": {
+      "B": {
         "trap": "part_whole_swap",
         "text": "300 is what the bank added in the three years. Sam also still has his 500 coins."
       },
@@ -430,11 +430,11 @@
     "options": {
       "A": "460",
       "B": "458",
-      "C": "440",
+      "C": "430",
       "D": "368",
-      "E": "430"
+      "E": "440"
     },
-    "correct_answer": "C",
+    "correct_answer": "E",
     "hint": "Which thing would Tom most like to buy with the discount? How can he pay 320 coins before he buys it?",
     "solution": "The discount saves the most on a wheel, so Tom should buy the last wheel after paying 320 coins. Two wheels cost 300 coins, so he also buys 2 bolts, one of them spare, and pays 320. Then the third wheel costs 150 − 30 = 120 coins. In all he pays 320 + 120 = 440 coins, less than the 458 coins of buying the 3 wheels first.",
     "distractors": {
@@ -446,13 +446,13 @@
         "trap": "missed_case",
         "text": "458 buys the 3 wheels first and then the bolt with the discount. Buying 2 wheels and 2 bolts first makes a wheel, not a bolt, the thing that is cheaper."
       },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "430 counts 2 wheels and 1 bolt as enough for the discount, but they cost 310 coins, less than 320."
+      },
       "D": {
         "trap": "percent_wrong_base",
         "text": "368 takes 20% off the whole bill. The first 320 coins are paid in full, and only what comes after them is cheaper."
-      },
-      "E": {
-        "trap": "ignored_condition",
-        "text": "430 counts 2 wheels and 1 bolt as enough for the discount, but they cost 310 coins, less than 320."
       }
     }
   },
@@ -499,12 +499,12 @@
     "question": "One coin buys a loaf of bread and a bottle of milk. After prices rise by 25%, the same coin buys only half a loaf and a bottle of milk. What part of the coin will the milk alone cost after prices rise by another 20%?",
     "options": {
       "A": "75%",
-      "B": "90%",
+      "B": "105%",
       "C": "87%",
-      "D": "105%",
+      "D": "90%",
       "E": "60%"
     },
-    "correct_answer": "B",
+    "correct_answer": "D",
     "hint": "Before the rise, what part of the coin did half a loaf and a bottle of milk cost?",
     "solution": "After the rise, half a loaf and the milk cost the whole coin, so before it they cost 1 ÷ 1.25 = 0.8 of the coin. A whole loaf and the milk cost the whole coin, so the other half of the loaf cost 0.2 and the milk 0.8 − 0.2 = 0.6. After both rises the milk costs 0.6 × 1.25 × 1.2 = 0.9 of the coin, which is 90%.",
     "distractors": {
@@ -512,13 +512,13 @@
         "trap": "stopped_early",
         "text": "75% is what the milk costs after the first rise only. The question asks about the second."
       },
+      "B": {
+        "trap": "percent_wrong_base",
+        "text": "105% adds 25% and 20% of the whole coin. Each rise is a percentage of the price of the milk, not of the coin."
+      },
       "C": {
         "trap": "wrong_operation",
         "text": "87% adds the two rises as one rise of 45%. Each rise is a percentage of the price before it."
-      },
-      "D": {
-        "trap": "percent_wrong_base",
-        "text": "105% adds 25% and 20% of the whole coin. Each rise is a percentage of the price of the milk, not of the coin."
       },
       "E": {
         "trap": "answered_other_question",

@@ -862,6 +862,124 @@
     }
   },
   {
+    "id": "wp-56-d1-1",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A bag holds 10 coins, and one of them is a fake that weighs more than a real coin. All the real coins weigh the same. What is the smallest number of weighings on a balance with no weights that always finds the fake?",
+    "options": {
+      "A": "2",
+      "B": "1",
+      "C": "3",
+      "D": "4",
+      "E": "5"
+    },
+    "correct_answer": "C",
+    "hint": "A weighing ends in one of three ways: the left pan sinks, the right pan sinks, or they balance. How many coins can two weighings tell apart?",
+    "solution": "A weighing ends in one of three ways, so it can leave the fake among a third of the coins: as many on each pan, and the rest aside. Two weighings tell apart at most 3 × 3 = 9 coins, and there are 10, so 2 are not sure to be enough. Three are: weigh 3 against 3 with 4 aside, and the 4 coins or fewer that are left need two more weighings.",
+    "distractors": {
+      "A": {
+        "trap": "best_case_not_worst",
+        "text": "2 weighings find the fake only with luck: they tell apart at most 3 × 3 = 9 coins, and there are 10."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "1 weighing of 5 against 5 shows only which five coins hold the fake, not which coin it is."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "4 halves the coins at each weighing, from 10 to 5, 3, 2 and 1. But with some coins left aside, a weighing can leave only a third of them."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "5 weighs the coins in pairs, one against one, and only the fifth pair finds the fake in the worst case. With several coins on each pan, 3 weighings are enough."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d1-2",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Tim has a 4-litre jug and a 6-litre jug, both empty, and a tap. He may fill a jug from the tap, empty a jug, or pour from one jug into the other until one is empty or the other is full. Which of these amounts can he end up with in one of the jugs?",
+    "picture": {
+      "kind": "containers",
+      "items": [
+        {
+          "capacity": 4,
+          "amount": 0
+        },
+        {
+          "capacity": 6,
+          "amount": 0
+        }
+      ]
+    },
+    "options": {
+      "A": "2 litres",
+      "B": "1 litre",
+      "C": "3 litres",
+      "D": "5 litres",
+      "E": "10 litres"
+    },
+    "correct_answer": "A",
+    "hint": "What amounts can each step make, starting from two empty jugs? Are they even or odd?",
+    "solution": "Fill the 6-litre jug and pour from it into the 4-litre jug until that one is full: 2 litres are left. Both jugs hold an even number of litres, so every step keeps the amounts in them even, and 1, 3 and 5 litres can never be made. 10 litres fit in neither jug.",
+    "distractors": {
+      "B": {
+        "trap": "wrong_parity",
+        "text": "1 is odd, but both jugs hold an even number of litres, and filling, emptying and pouring keep every amount even."
+      },
+      "C": {
+        "trap": "wrong_parity",
+        "text": "3 is odd, and with jugs of 4 and 6 litres every amount that can be made is even."
+      },
+      "D": {
+        "trap": "wrong_parity",
+        "text": "5 is odd, and every step keeps the amounts even: the amounts that can be made are 0, 2, 4 and 6 litres."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "10 litres is 4 + 6, but the amount must be in one jug, and the bigger one holds only 6 litres."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d1-3",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Sam has a balance, one 1 kg weight and a bag of 11 kg of rice. He wants to split the rice into a part of 3 kg and a part of 8 kg. At least how many weighings does he need?",
+    "options": {
+      "A": "8",
+      "B": "1",
+      "C": "3",
+      "D": "2",
+      "E": "It cannot be done"
+    },
+    "correct_answer": "D",
+    "hint": "Put the weight on one pan and share the rice between the two pans until they balance. How much rice is on each pan?",
+    "solution": "With the weight on one pan, Sam shares all the rice between the pans until they balance: 6 kg against 5 kg and the weight. Then he does the same with the 5 kg: 3 kg against 2 kg and the weight. The 3 kg is one part, and the 6 kg and the 2 kg poured together make the 8 kg. One weighing is not enough: it gives 5.5 and 5.5 kg, 5 and 6 kg, or 1 and 10 kg, and none of these is 3 kg.",
+    "distractors": {
+      "A": {
+        "trap": "number_from_text",
+        "text": "8 is the weight of the bigger part in kilograms, not a number of weighings."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "1 weighing splits the rice into 5.5 and 5.5 kg, 5 and 6 kg, or 1 and 10 kg, and none of these parts is 3 kg."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "3 weighings work, weighing out 1 kg three times, but 2 are enough. 11 kg against the weight gives 5 and 6 kg, and 5 kg against it gives 2 and 3 kg."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "Halving alone gives 5.5 kg, 2.75 kg and so on, never 3 kg. But the weight lets a weighing split the rice into two parts 1 kg apart."
+      }
+    }
+  },
+  {
     "id": "wp-56-d2-1",
     "topic": "algorithms.weighing_pouring",
     "grade_level": "5-6",
@@ -1177,6 +1295,111 @@
       "E": {
         "trap": "ignored_condition",
         "text": "One bolt from each of nine machines only tells whether the tenth machine is the faulty one."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d5-1",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Nine coins lie in a circle, numbered 1 to 9 round it. Five of them, next to each other, are fakes, lighter than the real coins. The real coins all weigh the same, and so do the fakes. Which one weighing on a balance without weights is sure to show two of the fakes?",
+    "options": {
+      "A": "Coin 1 against coin 2",
+      "B": "Coin 1 against coin 5",
+      "C": "Coin 1 against coin 4",
+      "D": "Coins 1 and 2 against coins 3 and 4",
+      "E": "Coins 1 and 3 against coins 5 and 7"
+    },
+    "correct_answer": "B",
+    "hint": "Try each weighing when the pans balance. Which runs of five fakes are still possible then, and do they share two coins?",
+    "solution": "Weigh coin 1 against coin 5. If they balance, both are fakes or both are real, and both real is impossible: the coins left, 2 to 4 and 6 to 9, have no five next to each other. So the fakes are coins 1 to 5. If coin 1 is lighter, it is a fake and coin 5 is real, so the fakes start at coin 6, 7, 8 or 9 and run on past coin 1: coins 9 and 1 are fakes in every case. If coin 5 is lighter, the fakes start at coin 2, 3, 4 or 5, and coins 5 and 6 are fakes in every case.",
+    "distractors": {
+      "A": {
+        "trap": "best_case_not_worst",
+        "text": "This works when a pan sinks. But when the pans balance, the fakes may be coins 4 to 8, or coin 9 and coins 1 to 4, and these share only coin 4."
+      },
+      "C": {
+        "trap": "best_case_not_worst",
+        "text": "This works when a pan sinks. But when the pans balance, the fakes may be coins 5 to 9, or coin 9 and coins 1 to 4, and these share only coin 9."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "This misses a case. When the pans balance, the fakes may be coins 1 to 5 or coins 5 to 9, and these share only coin 5."
+      },
+      "E": {
+        "trap": "best_case_not_worst",
+        "text": "This works when a pan sinks. But when the pans balance, the fakes may be coins 2 to 6, or coins 6 to 9 and coin 1, and these share only coin 6."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d5-2",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Six balls that look alike lie at the corners A to F of a hexagon, in this order round it. The ball at A weighs 1 g, at B 5 g, at C 2 g, at D 6 g, at E 3 g and at F 4 g. A joker has swapped the balls at two opposite corners: A and D, B and E, or C and F. Which one weighing on a balance without weights is sure to show which two were swapped?",
+    "options": {
+      "A": "The balls at A and B against the balls at C and D",
+      "B": "The ball at A against the ball at D",
+      "C": "The ball at B against the ball at E",
+      "D": "The balls at A and E against the ball at D",
+      "E": "No one weighing can do it"
+    },
+    "correct_answer": "D",
+    "hint": "Work out what each pan holds after each of the three swaps. A weighing works when the three swaps tip it three different ways.",
+    "solution": "Weigh the balls at A and E against the ball at D. If A and D were swapped, the left pan holds 6 + 3 = 9 g against 1 g and sinks. If B and E were swapped, it holds 1 + 5 = 6 g against 6 g, and the pans balance. If C and F were swapped, it holds 1 + 3 = 4 g against 6 g and rises. The three swaps give three different results.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "This misses a case. If B and E were swapped, the pans hold 4 g against 8 g, and if C and F were, 6 g against 10 g, so the right pan sinks both times."
+      },
+      "B": {
+        "trap": "best_case_not_worst",
+        "text": "This shows the swap only if A and D were swapped. If B and E or C and F were, the pans hold 1 g against 6 g either way."
+      },
+      "C": {
+        "trap": "best_case_not_worst",
+        "text": "This shows the swap only if B and E were swapped. If A and D or C and F were, the pans hold 5 g against 3 g either way."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "That would be so if any two balls could have been swapped. But only balls at opposite corners were, so there are three cases, and one weighing has three results."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d5-3",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Eight weights of 10, 20, 30, 40, 50, 60, 70 and 80 g lie on the two pans of a balance, and one pan is heavier. Seven children take the weights away one at a time. Every time a child takes a weight, the other pan becomes the heavier one. Which weight can be left on the balance at the end?",
+    "options": {
+      "A": "Any of them",
+      "B": "80 g",
+      "C": "70 g",
+      "D": "Any of them but 80 g",
+      "E": "10 g"
+    },
+    "correct_answer": "E",
+    "hint": "The weights are all whole tens of grams, and the pans never balance. By how much at least does the heavier pan outweigh the other? How heavy must a weight be, for taking it to tip the balance the other way?",
+    "solution": "All the weights are whole tens of grams, and the pans never balance, so the heavier pan always outweighs the other by 10 g or more. Taking 10 g from the lighter pan makes it lighter still, and taking it from the heavier pan leaves that pan heavier, or the pans balance. So no child can ever take the 10 g weight, and it is the weight left at the end. This can happen: with 10, 30, 50 and 70 g on one pan and 20, 40, 60 and 80 g on the other, the children take 80, 70, 60, 50, 40, 30 and 20 g in turn.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "This leaves out the rule that every child makes the other pan heavier. Under that rule the 10 g weight can never be taken."
+      },
+      "B": {
+        "trap": "reversed_relation",
+        "text": "80 g can never be left: the last weight taken lay on the heavier pan, so it outweighed the one left, and nothing outweighs 80 g."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "70 g would be left if 80 g were taken last, but the steps before matter too: the 10 g weight can never be taken, so it is still on the balance."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "The last step alone rules out only 80 g. But every step rules out taking the 10 g weight, so 10 g is the only one that can be left."
       }
     }
   }
