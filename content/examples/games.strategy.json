@@ -1,5 +1,153 @@
 [
   {
+    "id": "game-56-d1-1",
+    "topic": "games.strategy",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Five cards numbered 1, 2, 3, 4 and 5 lie face up in a row. Ben and Ann take turns to pick up one card, Ben first, until one card is left. Ann wins if its number is odd, and Ben wins if it is even. Who can make sure to win, and how?",
+    "picture": {
+      "kind": "row",
+      "items": [
+        {
+          "label": "1"
+        },
+        {
+          "label": "2"
+        },
+        {
+          "label": "3"
+        },
+        {
+          "label": "4"
+        },
+        {
+          "label": "5"
+        }
+      ]
+    },
+    "options": {
+      "A": "Ben, since he goes first",
+      "B": "Ben, by picking up an odd card each time",
+      "C": "Ann, by picking up an even card each time she can",
+      "D": "Ann, by picking up an odd card each time",
+      "E": "Nobody can be sure: it is a matter of luck"
+    },
+    "correct_answer": "C",
+    "hint": "Four cards are picked up. Who picks up the last of them?",
+    "solution": "Four cards are picked up: Ben picks up the first and the third, and Ann the second and the fourth. If Ann picks up an even card each time there is one, both even cards are gone by the end, whatever Ben does, and an odd card is left. So Ann wins.",
+    "distractors": {
+      "A": {
+        "trap": "first_move_assumed",
+        "text": "Going first does not help Ben: Ann picks up the last card and so chooses which one is left."
+      },
+      "B": {
+        "trap": "best_case_not_worst",
+        "text": "Ben picks up two cards, but there are three odd ones, so one of them is left. Ann picks up the even cards, and the odd one stays."
+      },
+      "D": {
+        "trap": "wrong_parity",
+        "text": "Picking up odd cards helps Ben. Ann has to pick up the even ones, so that an odd card is left."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "Nothing is left to chance: the cards lie face up, and both players choose every move."
+      }
+    }
+  },
+  {
+    "id": "game-56-d1-2",
+    "topic": "games.strategy",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Ann cuts a strip of 12 squares into two pieces along a line between squares. Then Ben takes the piece he likes better, and Ann gets the other one. What is the largest number of squares Ann can be sure to get?",
+    "options": {
+      "A": "7",
+      "B": "11",
+      "C": "12",
+      "D": "5",
+      "E": "6"
+    },
+    "correct_answer": "E",
+    "hint": "Whichever way Ann cuts, which piece will Ben take?",
+    "solution": "Ben takes the longer piece, so Ann gets the shorter one. The shorter piece is longest when the two pieces are equal, 6 and 6. So Ann can be sure of 6 squares.",
+    "distractors": {
+      "A": {
+        "trap": "first_move_assumed",
+        "text": "7 is the longer piece of a cut into 7 and 5, but cutting first does not let Ann choose. Ben chooses, and he takes the 7."
+      },
+      "B": {
+        "trap": "best_case_not_worst",
+        "text": "11 is what Ann gets if Ben takes the piece of 1, but Ben takes the longer piece. Ann can be sure only of the shorter one."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "12 is the whole strip, but Ann has to cut it into two pieces, and Ben takes one of them."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "5 is what Ann is sure of after cutting the strip into 7 and 5. Cutting it in the middle gives her 6 for sure."
+      }
+    }
+  },
+  {
+    "id": "game-56-d1-3",
+    "topic": "games.strategy",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "The numbers 1, 2, 3, 4, 5 and 6 are written on a board. Ann and Ben take turns, Ann first. A move rubs out two of the numbers and writes their sum instead. When only one number is left, Ann wins if it is even, and Ben wins if it is odd. Who wins?",
+    "picture": {
+      "kind": "row",
+      "items": [
+        {
+          "label": "1"
+        },
+        {
+          "label": "2"
+        },
+        {
+          "label": "3"
+        },
+        {
+          "label": "4"
+        },
+        {
+          "label": "5"
+        },
+        {
+          "label": "6"
+        }
+      ]
+    },
+    "options": {
+      "A": "Ann, since she goes first",
+      "B": "Ben, whatever they do",
+      "C": "Ann, if Ben ever adds two even numbers",
+      "D": "Ann, since the six numbers add up to an even number",
+      "E": "Ann, since she makes the last move"
+    },
+    "correct_answer": "B",
+    "hint": "What happens to the sum of all the numbers on the board after a move?",
+    "solution": "A move rubs out two numbers and writes their sum, so the total of the numbers on the board stays the same. The one number left at the end is therefore 1 + 2 + 3 + 4 + 5 + 6 = 21, which is odd, whatever the players do. So Ben wins.",
+    "distractors": {
+      "A": {
+        "trap": "first_move_assumed",
+        "text": "Going first does not help Ann: the last number is 21 whatever anyone does."
+      },
+      "C": {
+        "trap": "best_case_not_worst",
+        "text": "No slip of Ben's helps Ann: whatever two numbers are added, the total on the board stays 21."
+      },
+      "D": {
+        "trap": "wrong_parity",
+        "text": "1 + 2 + 3 + 4 + 5 + 6 = 21, an odd number: three of the six numbers are odd."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "Ann does make the last of the five moves, but the winner is decided by the number left, not by who moves last."
+      }
+    }
+  },
+  {
     "id": "game-56-d2-1",
     "topic": "games.strategy",
     "grade_level": "5-6",
@@ -317,6 +465,111 @@
       "E": {
         "trap": "reversed_relation",
         "text": "12 is a winning number, not a losing one: Ivy can leave Paul an odd number."
+      }
+    }
+  },
+  {
+    "id": "game-56-d5-1",
+    "topic": "games.strategy",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Ann, Ben and 8 other children stand in a circle, with 3 children between Ann and Ben on one side and 5 on the other. Ann and Ben take turns, Ann first. On each turn a player sends home one of the two children next to them. Whoever sends the other player home wins. Who wins if both play as well as they can?",
+    "options": {
+      "A": "Nobody can be sure: it is a matter of luck",
+      "B": "Ann, since she goes first",
+      "C": "Ann, by sending home the children on the side of 3 first",
+      "D": "Ben",
+      "E": "Ann, since 8 is an even number"
+    },
+    "correct_answer": "D",
+    "hint": "Whoever sends home the last child between them on one side ends up next to the other player. When does a player have to do it?",
+    "solution": "A player who sends home the last child between them on one side stands next to the other player, who then sends them home. So both avoid it while they can, and the game goes on until there is one child on each side. From 3 and 5 down to 1 and 1, six children are sent home, by Ann, Ben, Ann, Ben, Ann and Ben. Then Ann has to send home a last child, so Ben wins.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Nothing is left to chance: both players see the circle and choose every move."
+      },
+      "B": {
+        "trap": "first_move_assumed",
+        "text": "Going first does not help: six children are sent home before someone has to give way, and then it is Ann's turn."
+      },
+      "C": {
+        "trap": "best_case_not_worst",
+        "text": "Which side Ann takes children from does not matter. Ben answers each move, and Ann still has to move when one child is left on each side."
+      },
+      "E": {
+        "trap": "wrong_parity",
+        "text": "An even number of children works against the first player: after six moves, it is Ann who has to give way."
+      }
+    }
+  },
+  {
+    "id": "game-56-d5-2",
+    "topic": "games.strategy",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Two dragons sit on the corner squares A1 and D4 of a 4 by 4 board, with rows A to D and columns 1 to 4. They move in turn, the dragon on A1 first. A move takes a dragon one square up, down, left or right, and a dragon must move when it is its turn. A dragon that moves onto the other one's square wins. Which dragon wins if both play as well as they can?",
+    "options": {
+      "A": "The dragon from D4",
+      "B": "The dragon from A1, since it moves first",
+      "C": "Neither: they can run round the board for ever",
+      "D": "The dragon from A1, if it heads straight for the other",
+      "E": "The dragon from A1, since the two are 6 squares apart, an even number"
+    },
+    "correct_answer": "A",
+    "hint": "Colour the board like a chessboard. What colours are the two dragons' squares each time the dragon from A1 has to move?",
+    "solution": "A1 and D4 are the same colour on a chessboard, and every move changes the colour of a dragon's square. So each time the dragon from A1 has to move, both dragons stand on squares of the same colour and are never side by side: it can never win. The dragon from D4 can: it keeps closing in, and the dragon from A1, which must move every turn on a board of only 16 squares, is driven into a corner and caught within 10 moves of the game.",
+    "distractors": {
+      "B": {
+        "trap": "first_move_assumed",
+        "text": "Moving first does not help here: each time the dragon from A1 moves, the two stand on squares of the same colour, never side by side."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "A dragon must move every turn, and the board has only 16 squares. The dragon from D4 can drive the other into a corner."
+      },
+      "D": {
+        "trap": "best_case_not_worst",
+        "text": "Heading for the other dragon only helps the dragon from D4. The dragon from A1 is never next to it on its own turn."
+      },
+      "E": {
+        "trap": "wrong_parity",
+        "text": "An even distance helps the second dragon: after every move of the first one, the distance is odd, and the second can close in."
+      }
+    }
+  },
+  {
+    "id": "game-56-d5-3",
+    "topic": "games.strategy",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Jack puts two dice on the table, each with any face he likes on top. Then Jill may turn either die, both or neither upside down. On a die, the top and bottom faces always add up to 7. Jill wins if the two top faces then add up to a number that divides by 4. Who wins if both play as well as they can?",
+    "options": {
+      "A": "Jack, if he puts a 1 and a 2 on top",
+      "B": "Jack, since he moves first",
+      "C": "Jill, whatever Jack does",
+      "D": "It depends on the faces Jack puts on top",
+      "E": "Jill, but only when the two faces add up to an even number"
+    },
+    "correct_answer": "C",
+    "hint": "What does turning both dice over do to the total? And turning just one?",
+    "solution": "If the total s divides by 4, Jill leaves the dice as they are. Turning both dice changes s into 14 − s, so if s is even and does not divide by 4, then 14 − s does. If s is odd, the two faces differ by an odd number d, and turning one die or the other gives 7 − d or 7 + d, and one of these divides by 4. So Jill always wins.",
+    "distractors": {
+      "A": {
+        "trap": "best_case_not_worst",
+        "text": "Jill turns the 1 over: 6 + 2 = 8, which divides by 4."
+      },
+      "B": {
+        "trap": "first_move_assumed",
+        "text": "Moving first does not decide it here: whatever faces Jack shows, Jill has a way to make the total divide by 4."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "Every pair of faces has an answer: Jill turns nothing, one die or both. No case is left for Jack."
+      },
+      "E": {
+        "trap": "wrong_parity",
+        "text": "Odd totals can be put right too: a 1 and a 2 become 6 and 2, which make 8."
       }
     }
   }
