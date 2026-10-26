@@ -284,6 +284,10 @@ var refusals = []struct {
 		russianLesson(s)
 		s.references = []string{s.draft.Task.QuestionInEnglish}
 	}, checks.CodeNearDuplicate, "task.question_en is a near-copy of one of the reference tasks"},
+	{"a question in English left in the lesson's language", func(s *scenario) {
+		russianLesson(s)
+		s.draft.Task.QuestionInEnglish = s.draft.Task.Question
+	}, checks.CodeWrongLanguage, "task.question_en is mostly not in Latin letters"},
 }
 
 // The refusals that judge another task than the one the others break: the task
@@ -291,6 +295,7 @@ var refusals = []struct {
 var inRussianLessons = []string{
 	"a task of a lesson in Russian without its question in English",
 	"a copy of a reference task told in the lesson's language",
+	"a question in English left in the lesson's language",
 }
 
 // russianLesson has a scenario judged in a lesson in Russian, with the task of

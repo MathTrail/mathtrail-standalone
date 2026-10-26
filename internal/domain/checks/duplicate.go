@@ -39,7 +39,8 @@ var repeatedMessages = map[Earlier]string{
 		"numbers, not only the wording",
 	EarlierReferenceInEnglish: "task.question_en is a near-copy of one of the reference tasks, so the task tells it " +
 		"again in the lesson's language; write a task of your own rather than a translation of an example, and " +
-		"keep task.question_en its question in English, with the same names, numbers and conditions",
+		"keep task.question_en its question in English, with the same names, numbers and conditions and the names " +
+		"in Latin letters",
 }
 
 // NearDuplicate checks that a question is new: that it copies none of the

@@ -89,8 +89,8 @@ func writtenInText(request *profile.OpenRequest) string {
 		"in English whatever the language; the task is not.", request.Language)
 	if checks.AsksQuestionInEnglish(request.Language) {
 		text += " Give its question in English as well, in task.question_en, with the same names, numbers and " +
-			"conditions, as the guide in the package says: the reference tasks are compared with it, and a task " +
-			"without it is refused."
+			"conditions and the names in Latin letters, as the guide in the package says: the reference tasks are " +
+			"compared with it, and a task without it is refused."
 	}
 	return text
 }

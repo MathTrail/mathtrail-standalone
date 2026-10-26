@@ -167,7 +167,7 @@ func TestThePackagesWordsAskForTheQuestionInEnglishWhereTheLessonIsNotInEnglish(
 	t.Parallel()
 
 	const asked = "Give its question in English as well, in task.question_en, with the same names, numbers and " +
-		"conditions, as the guide in the package says"
+		"conditions and the names in Latin letters, as the guide in the package says"
 	_, russian, _, inRussian := lessonInRussian(t)
 	english := racer(t)
 	_, inEnglish := lesson(t, english)
