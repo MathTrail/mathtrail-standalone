@@ -634,6 +634,8 @@ Gathered on 2026-10-12 from Google's suggestions for India in Hindi (`hl=hi`, `g
 
 **For the author.** India's parents type maths searches in English more than in Hindi; the Hindi pages compete for the Hindi queries alone. Ten of the card's seventeen names are typed by nobody, and «सच्चे और झूठे» is read as botany. The suggestions for «ओलंपियाड» are about exams; the title keeps «ओलंपियाड गणित» because the site's tasks are of that style, and names no contest.
 
+**Decided by the author (2026-10-26, T114.1).** The Hindi pages keep their words as they are, and the title keeps «ओलंपियाड गणित», the style of the site's tasks, naming no contest.
+
 ## Places for the author's reading
 
 - Claude's labels in Hindi, «**+ जोड़ें**», «**कस्टम कनेक्टर जोड़ें**», «**जारी रखें**», «**कनेक्ट करें**», «**कस्टमाइज़ → कनेक्टर**», as Claude's own Hindi interface writes them, read from the strings claude.ai loads for a browser set to Hindi: Claude's help has no Hindi. A parent whose Claude speaks English sees the English labels; the alternative is to keep the English, as the Russian and Arabic pages do, or to write both, «**+ जोड़ें** (+ Add)».

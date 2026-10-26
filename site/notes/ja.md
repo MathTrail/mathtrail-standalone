@@ -547,6 +547,8 @@ The cram schools' names, 「推理算」, 「日暦算」, 「年齢算」, 「�
 
 **For the author.** 「算数オリンピック」 is the name of a Japanese contest, and parents who type it look for that contest. The card and this glossary use it for the kind of problem, and the home page's title and description, "Techniques" and "Why" lead with it. The search words would keep it in the prose and lead titles and descriptions with 「思考力」, 「算数パズル」 or 「論理パズル」.
 
+**Decided by the author (2026-10-26, T114.1).** 「算数オリンピック」 stays in the titles and descriptions of the home page, "Topics", "Techniques" and "Why", used as the card uses it, for the kind of problem; no text names the contest of that name or promises preparation for it. "Topics" keeps opening with 「小学生の算数パズル」.
+
 ## Places for the author's reading
 
 - The people of the examples: Japanese names in katakana with no suffix, and the first katakana in place of an initial, so ordering's badges become 「タ」 and 「フ」 and Kate's bead 「エ」. The alternative is hiragana names with さん, the textbook style, which would have to drop the さん in every drawing.

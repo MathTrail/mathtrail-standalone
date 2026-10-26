@@ -57,3 +57,5 @@ The first line of ordering, knights and liars, enumeration, gaps, clocks, calend
 - "critical thinking": a benefit the page "Why" has no source for; "logical reasoning" is the one its sources back.
 
 **For the author.** "Non-standard problems" on "Why" reads as a calque; English teachers say "non-routine problems", which the suggestions were not asked about.
+
+**Decided by the author (2026-10-26, T114.1).** "Why" says "non-routine problems", the words English teachers use; T114.8 makes the change on the site.

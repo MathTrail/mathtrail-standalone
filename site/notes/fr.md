@@ -532,6 +532,8 @@ Gathered on 2026-10-12 from Google's suggestions for France, Belgium, Switzerlan
 
 **For the author.** The site's own words for its kind, «maths d’olympiade» and «problèmes d’olympiade», written 34 times, among them the titles of the home page and "Why", are never suggested. France searches by «CP» to «CM2» and «6e», which the glossary leaves out to stay alike in every country; a description can say «primaire», but «du CP à la 6e» writes grades a description cannot take.
 
+**Decided by the author (2026-10-26, T114.1).** «primaire» stays in the title of "Why" and in the two descriptions. It names the school stage in Belgium, Switzerland and Québec, where it spans the six grades, and in France, where it spans five of them; the pages write the grades as «niveaux», alike in every country, and a description has no room for «du CP à la 6e». The coach's ages, 7 to 12, are the coach's own, and the page says them as the English does.
+
 ## Places for the author's reading
 
 - The menu: «Étude» for «Recherche», in the menu, the page's title and the footer alike, keeps the French row under the Russian, and keeps a French reader from taking the entry for a search; the other way out is «Recherche» everywhere and a fold some 30 px wider for every language.

@@ -490,6 +490,8 @@ Several of these names come from Peru's school subject «razonamiento matemátic
 - «pdf», which the site does not give, and «altas capacidades», which sorts children.
 - «técnicas de resolución de problemas» alone, which search reads as psychology.
 
+**Decided by the author (2026-10-26, T114.1).** The title of "Topics", «Temas de olimpiada matemática para primaria», stays: «olimpiada» is written in lower case, as the name of no contest is. The coach's ages, 7 to 12, are the coach's own, and the page says them as the English does.
+
 ## Places for the author's reading
 
 - `topics.grades`, «{range} de primaria», against «Primaria {range}».

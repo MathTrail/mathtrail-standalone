@@ -537,6 +537,8 @@ Gathered on 2026-10-12 from Google's suggestions for Egypt, Saudi Arabia, Morocc
 
 **For the author.** Parents type «استراتيجيات حل المسائل», where the glossary calls a technique «أسلوب», which is never suggested; a description can say both. Parents type «فكر في رقم», and the glossary keeps «عدد» for a number.
 
+**Decided by the author (2026-10-26, T114.1).** Both stay as they are. The title and description of "Techniques" carry the parents' «استراتيجيات حل المسائل», and the pages keep the glossary's «أسلوب» for one technique. A number stays «عدد», since in school maths «رقم» is a digit.
+
 ## Places for the author's reading
 
 - The plural «أنتم» for the reader throughout, where the card mostly writes the impersonal «يمكن…» and in a few keys the singular «ـك» (`data.label`, `data.export_*`, `first_run.label`, `first_run.fill`); `topic.path` is «أنتم هنا» and `topic.ask` «اطلبوا مسألة في هذا الموضوع».
