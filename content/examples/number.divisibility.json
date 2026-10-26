@@ -1,5 +1,110 @@
 [
   {
+    "id": "div-56-d1-1",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Kim divides a number by 7 and gets 5 with 3 left over. Then she divides four times that number by four times 7. What does she get this time?",
+    "options": {
+      "A": "5 with 12 left over",
+      "B": "5 with 3 left over",
+      "C": "20 with 12 left over",
+      "D": "20 with 3 left over",
+      "E": "12 with 5 left over"
+    },
+    "correct_answer": "A",
+    "hint": "The number is 7 × 5 + 3. What is four times it?",
+    "solution": "The number is 7 × 5 + 3 = 38, so four times it is 152 = 28 × 5 + 12. Divided by 28, which is four times 7, it gives 5 with 12 left over: the answer stays 5, and the number left over is four times 3.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "5 with 3 left over keeps the number left over as it was. It grows four times too: 152 is 28 × 5 and 12 more."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "20 multiplies the answer by four as well. When the number and what it is divided by both grow four times, the answer stays the same."
+      },
+      "D": {
+        "trap": "remainder_vs_quotient",
+        "text": "20 with 3 left over multiplies the answer by four instead of the number left over. The answer stays 5, and what is left over grows to 12."
+      },
+      "E": {
+        "trap": "remainder_vs_quotient",
+        "text": "12 with 5 left over swaps the two. The answer is 5, and 12 is what is left over."
+      }
+    }
+  },
+  {
+    "id": "div-56-d1-2",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Five whole numbers in a row, such as 8, 9, 10, 11 and 12, always hold a number that divides by 2. They also hold one that divides by 3. What is the largest number sure to divide one of any five whole numbers in a row?",
+    "options": {
+      "A": "6",
+      "B": "4",
+      "C": "12",
+      "D": "5",
+      "E": "20"
+    },
+    "correct_answer": "D",
+    "hint": "Try five numbers in a row that start at 7. Which of them divides by 6?",
+    "solution": "Five numbers in a row leave five different remainders when divided by 5, so one of them leaves none: it divides by 5. But 7, 8, 9, 10 and 11 hold no multiple of 6, and 1, 2, 3, 4 and 5 hold no multiple of any number larger than 5. So the answer is 5.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "6 needs six numbers in a row to be sure. Five numbers such as 7, 8, 9, 10 and 11 hold no multiple of 6."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "4 is sure to divide one of them, but so is 5, which is larger."
+      },
+      "C": {
+        "trap": "number_from_text",
+        "text": "12 is one of the numbers in the example, not a number that divides one of any five in a row."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "20 multiplies 4 and 5, but five numbers in a row such as 1, 2, 3, 4 and 5 hold no multiple of 20."
+      }
+    }
+  },
+  {
+    "id": "div-56-d1-3",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "When Ann's number is divided by 9, the remainder is 5. When Ben's number is divided by 9, the remainder is 7. What is the remainder when the sum of their two numbers is divided by 9?",
+    "options": {
+      "A": "12",
+      "B": "1",
+      "C": "7",
+      "D": "5",
+      "E": "3"
+    },
+    "correct_answer": "E",
+    "hint": "Add the two remainders. Is what you get less than 9?",
+    "solution": "Each number is some nines and its remainder, so the sum is some nines and 5 + 7 = 12. But 12 is one more nine and 3, so the remainder of the sum is 3.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "12 is the sum of the two remainders, a step on the way. 12 holds one more nine, so what is left over is 3."
+      },
+      "B": {
+        "trap": "remainder_vs_quotient",
+        "text": "1 is the nine that the two remainders make together, part of the answer of the division. What is left over is 3."
+      },
+      "C": {
+        "trap": "number_from_text",
+        "text": "7 is the remainder of Ben's number alone, a number from the question."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "5 is the remainder of Ann's number alone, a number from the question."
+      }
+    }
+  },
+  {
     "id": "div-56-d2-1",
     "topic": "number.divisibility",
     "grade_level": "5-6",
@@ -315,6 +420,111 @@
       "D": {
         "trap": "answered_other_question",
         "text": "2 is how much the number is short of the next multiple of 24."
+      }
+    }
+  },
+  {
+    "id": "div-56-d5-1",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Some children ate sweets, each child the same number. Each child ate 5 fewer sweets than all the other children together, but more than one sweet. How many sweets did the children eat in all?",
+    "options": {
+      "A": "7",
+      "B": "15",
+      "C": "10",
+      "D": "5",
+      "E": "30"
+    },
+    "correct_answer": "B",
+    "hint": "Say each child ate k sweets and there were n children. How many did the others eat together?",
+    "solution": "Each child ate k sweets, and the other children ate k each, so for each child k + 5 = (n − 1) × k. That gives (n − 2) × k = 5, so either n − 2 = 5 and k = 1, or n − 2 = 1 and k = 5. Each ate more than one, so there were 3 children with 5 sweets each: 15 in all.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "7 is 7 children with one sweet each. Each child ate more than one sweet, so that cannot be it."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "10 counts each child among the others too: then each of 2 children would eat 5 fewer than both together. The others are all the children but that one."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "5 is what each child ate. The question asks how many sweets they ate in all."
+      },
+      "E": {
+        "trap": "double_count",
+        "text": "30 counts every sweet twice, once as a child's own and once among the sweets of the others. There were 15 sweets."
+      }
+    }
+  },
+  {
+    "id": "div-56-d5-2",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Multiply the two digits of a two-digit number. For how many two-digit numbers does the number itself divide by what you get?",
+    "options": {
+      "A": "4",
+      "B": "14",
+      "C": "5",
+      "D": "36",
+      "E": "23"
+    },
+    "correct_answer": "C",
+    "hint": "A number that divides by the product of its digits also divides by each digit. Which two-digit numbers do that?",
+    "solution": "A number with a 0 among its digits is out, since no number divides by 0. A number that divides by the product of its digits divides by each of them, and the two-digit numbers that do are 11, 12, 15, 22, 24, 33, 36, 44, 48, 55, 66, 77, 88 and 99. Of these, only 11, 12, 15, 24 and 36 divide by the product of their digits: 11 by 1, 12 by 2, 15 by 5, 24 by 8 and 36 by 18. So there are 5.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "4 leaves out 11. Its digits multiply to 1, and every number divides by 1."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "14 counts the numbers that divide by each of their digits, a step on the way. Most of them, such as 22, do not divide by the product of their digits."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "36 is the largest such number. The question asks how many there are."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "23 counts the numbers that divide by the sum of their digits, such as 10 and 18. The question asks about the product."
+      }
+    }
+  },
+  {
+    "id": "div-56-d5-3",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A number has four digits, all of them odd and no two the same. It divides by 11. What is the largest such number?",
+    "options": {
+      "A": "9735",
+      "B": "9713",
+      "C": "9753",
+      "D": "885",
+      "E": "9999"
+    },
+    "correct_answer": "A",
+    "hint": "Start from the largest number of four different odd digits and go down. Which is the first one that divides by 11?",
+    "solution": "The largest numbers of four different odd digits are 9753, 9751 and 9735. 9753 = 11 × 886 + 7 and 9751 = 11 × 886 + 5 leave something over, but 9735 = 11 × 885 divides. So the answer is 9735.",
+    "distractors": {
+      "B": {
+        "trap": "missed_case",
+        "text": "9713 divides by 11, but 9735 does too and is larger."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "9753 is the largest number of four different odd digits, but it leaves 7 over when divided by 11."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "885 is what 9735 gives when it is divided by 11. The question asks for the number itself."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "9999 divides by 11, but its digits are not all different."
       }
     }
   }
