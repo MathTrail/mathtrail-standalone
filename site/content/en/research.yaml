@@ -216,10 +216,13 @@ sources:
     mathnet:
       name: MathNet
       note: An open collection of olympiad problems from many countries. Each topic keeps a list of ideas its tasks are built on, and for grades {first}–{last} some of them come from this collection, as does the kind of problem behind some reference tasks. Some countries keep the rights to their problems, so from it, too, only an idea is taken, never a text.
+    gsm:
+      name: GSM8K
+      note: An open collection of grade-school word problems in English. For grades {first}–{last} the kind of problem behind some reference tasks comes from it, and the texts of those tasks are written anew.
   total: In all, {count} {noun}
   each: each with a solver and a trap behind every wrong option
   level: "{count} · grades {first}–{last}"
-  note: The style follows the Soviet collections. A reference task has no field for its source, so the author of a task's idea cannot be named.
+  note: The style follows the Soviet collections. Ideas, and the kind of problem behind many reference tasks, also come from Russian-language collections of maths circles and olympiads, read in the problem database problems.ru; their texts are protected, so from them, too, only an idea or a kind of problem is taken, never a text. A reference task has no field for its source, so the author of a task's idea cannot be named.
 
 paper:
   title: The whole paper

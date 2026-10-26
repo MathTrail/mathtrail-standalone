@@ -94,6 +94,7 @@ describe("the site's own data", () => {
 		}
 		expect(research?.collections.map(({ id, level }) => [id, level])).toEqual([
 			["mathnet", "5-6"],
+			["gsm", "5-6"],
 		]);
 	});
 });

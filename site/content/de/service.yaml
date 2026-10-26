@@ -118,7 +118,7 @@ map:
     rule:
       name: Die Regel
       sub: Thema, Ziel, Schwierigkeitskorridor
-      about: "Wählt den Auftrag deterministisch: nach einem Fehler dasselbe Thema, um es zu festigen; sonst das Thema, das am längsten nicht vorkam; die Schwierigkeit aus dem Korridor, in dem die Lösungswahrscheinlichkeit bei 70–85 % liegt."
+      about: "Wählt den Auftrag deterministisch: nach einem Fehler dasselbe Thema, um es zu festigen; sonst das Thema, das am längsten nicht vorkam; die Schwierigkeit aus dem Korridor, in dem die Lösungswahrscheinlichkeit bei 70–85 % liegt. Ein Thema, in dem das Kind zurückliegt, kommt doppelt so oft. Themen, die vorerst zu schwer sind, werden pausiert, und sobald das Gesamtniveau des Kindes eines davon erreicht, kann jede sechste Aufgabe es als Themencheck zurückbringen."
     rating:
       name: Wertungen
       sub: θ, δ, β · Elo auf IRT-Basis

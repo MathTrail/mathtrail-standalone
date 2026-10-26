@@ -721,6 +721,12 @@
 				"url": "https://mathnet.mit.edu",
 				"licence": "CC BY 4.0",
 				"level": "5-6"
+			},
+			{
+				"id": "gsm",
+				"url": "https://github.com/openai/grade-school-math",
+				"licence": "MIT",
+				"level": "5-6"
 			}
 		]
 	}

@@ -118,7 +118,7 @@ map:
     rule:
       name: La règle
       sub: Thème, objectif, couloir de difficulté
-      about: "Choisit la consigne de façon déterministe : après une erreur, le même thème, pour le consolider ; sinon, le thème absent depuis le plus longtemps ; la difficulté, dans le couloir où la probabilité de réussite est de 70–85 %."
+      about: "Choisit la consigne de façon déterministe : après une erreur, le même thème, pour le consolider ; sinon, le thème absent depuis le plus longtemps ; la difficulté, dans le couloir où la probabilité de réussite est de 70–85 %. Un thème où l’enfant est en retard revient deux fois plus souvent. Les thèmes trop difficiles pour l’instant restent en pause, et dès que le niveau général de l’enfant en atteint un, un problème sur six peut le ramener comme contrôle du thème."
     rating:
       name: Scores
       sub: θ, δ, β · Elo sur TRI

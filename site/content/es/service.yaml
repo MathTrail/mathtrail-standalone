@@ -118,7 +118,7 @@ map:
     rule:
       name: La regla
       sub: Tema, objetivo, corredor de dificultad
-      about: "Elige el encargo de forma determinista: tras un error, el mismo tema, para afianzarlo; si no, el tema que lleva más tiempo sin aparecer; la dificultad, del corredor donde la probabilidad de acertar es del 70–85 %."
+      about: "Elige el encargo de forma determinista: tras un error, el mismo tema, para afianzarlo; si no, el tema que lleva más tiempo sin aparecer; la dificultad, del corredor donde la probabilidad de acertar es del 70–85 %. Un tema en el que el niño o la niña va por detrás llega el doble de a menudo. Los temas demasiado difíciles por ahora quedan en pausa, y cuando el nivel general alcanza uno de ellos, cada sexto problema puede traerlo de vuelta como comprobación del tema."
     rating:
       name: Puntuaciones
       sub: θ, δ, β · Elo sobre TRI

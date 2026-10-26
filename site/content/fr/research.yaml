@@ -216,10 +216,13 @@ sources:
     mathnet:
       name: MathNet
       note: Un recueil ouvert de problèmes d’olympiades de nombreux pays. Chaque thème garde une liste d’idées sur lesquelles reposent ses problèmes, et pour les niveaux {first}–{last}, certaines viennent de ce recueil, tout comme le type de problème de certains problèmes de référence. Certains pays gardent les droits sur leurs problèmes, si bien que de ce recueil aussi on ne prend qu’une idée, jamais un texte.
+    gsm:
+      name: GSM8K
+      note: Un recueil ouvert de problèmes scolaires à énoncé, en anglais. Pour les niveaux {first}–{last}, le type de problème de certains problèmes de référence en vient, et leurs textes ont été écrits à nouveau.
   total: Au total, {count} {noun}
   each: chacun avec un solveur et un piège derrière chaque mauvaise réponse
   level: "{count} · niveaux {first}–{last}"
-  note: Le style suit celui des recueils soviétiques. Un problème de référence n’a pas de champ pour sa source, si bien que l’auteur de l’idée d’un problème ne peut pas être nommé.
+  note: Le style suit celui des recueils soviétiques. Des idées, et le type de problème de nombreux problèmes de référence, viennent aussi de recueils en russe de cercles mathématiques et d’olympiades, lus dans la base de problèmes problems.ru ; leurs textes sont protégés, si bien qu’on n’en prend, là aussi, qu’une idée ou un type de problème, jamais un texte. Un problème de référence n’a pas de champ pour sa source, si bien que l’auteur de l’idée d’un problème ne peut pas être nommé.
 
 paper:
   title: L’article complet

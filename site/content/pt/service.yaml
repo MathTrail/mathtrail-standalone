@@ -118,7 +118,7 @@ map:
     rule:
       name: A regra
       sub: Tema, meta, corredor de dificuldade
-      about: "Escolhe o briefing de forma determinística: depois de um erro, o mesmo tema, para consolidá-lo; senão, o tema que está há mais tempo sem aparecer; a dificuldade, do corredor em que a chance de acerto é de 70–85%."
+      about: "Escolhe o briefing de forma determinística: depois de um erro, o mesmo tema, para consolidá-lo; senão, o tema que está há mais tempo sem aparecer; a dificuldade, do corredor em que a chance de acerto é de 70–85%. Um tema em que a criança está atrasada vem com o dobro da frequência. Os temas difíceis demais por enquanto ficam em pausa, e quando o nível geral da criança alcança um deles, cada sexto problema pode trazê-lo de volta como verificação do tema."
     rating:
       name: Pontuações
       sub: θ, δ, β · Elo sobre TRI

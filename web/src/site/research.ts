@@ -226,9 +226,10 @@ export type AnswersCell = LiveShown["kept_up"][number];
  * page names them, each with the year the author died, from which most of the
  * world counts the term of the books' copyright, and the books by an id of the
  * site's own; and the collections of problems that give ideas to the topics'
- * lists at a level, each with its address, which is https, its licence and
- * that level. The names, the titles and what a collection gives are words of
- * the page, under the same ids.
+ * lists, or kinds of problem to the reference tasks, at a level, each with
+ * its address, which is https, its licence and that level. The names, the
+ * titles and what a collection gives are words of the page, under the same
+ * ids.
  */
 export const researchSources = z.object({
 	sources: z
@@ -260,7 +261,8 @@ export type Author = ResearchSources["sources"][number];
 
 /**
  * Collection is a collection of problems that gives ideas to the topics'
- * lists at a level, with the first and the last grade of that level.
+ * lists, or kinds of problem to the reference tasks, at a level, with the
+ * first and the last grade of that level.
  */
 export type Collection = ResearchSources["collections"][number] & {
 	readonly first: number;
@@ -337,8 +339,8 @@ export function readResearch(
 }
 
 // collectionAt is a collection with the grades of its level, which has to be
-// a level the catalog teaches a topic at: the collection gives ideas to the
-// lists of the topics there.
+// a level the catalog teaches a topic at: the collection gives to the topics
+// or the reference tasks there.
 function collectionAt(
 	catalog: Catalog,
 	collection: ResearchSources["collections"][number],
