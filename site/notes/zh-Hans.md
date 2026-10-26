@@ -516,6 +516,8 @@ Gathered on 2026-10-12 from Google's suggestions for Singapore and Malaysia and 
 
 **For the author.** «小学» is the strongest framing parents type, «小学奥数», and the glossary keeps 年级 alone.
 
+**Decided by the author (2026-10-26, T114.1).** No text writes «小学»: the glossary keeps 年级 alone, since many readers live in Singapore, Malaysia or further away, where no one country's school system is theirs.
+
 ## Places for the author's reading
 
 - Claude's labels, from its Chinese help: the Chinese interface came out unannounced in October 2026 and was not seen; a look at it settles the buttons. The other way is English labels with the Chinese help's beside them, at twice the length.

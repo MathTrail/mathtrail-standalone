@@ -503,6 +503,8 @@ Gathered on 2026-10-12 from Google's suggestions for Brazil, and briefly for Por
 - “BNCC” and its codes, which are teachers' words, and “verdades e mentiras” or “raciocínio lógico para concursos”, which are adults' exams.
 - “para imprimir”, which the site does not give.
 
+**Decided by the author (2026-10-26, T114.1).** The coach's ages, 7 to 12, are the coach's own, and the page says them as the English does.
+
 ## Places for the author's reading
 
 - `topics.grades`, “Anos {range}”, against “{range}º ano”.

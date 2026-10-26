@@ -15,7 +15,7 @@ As of 26 October 2026.
   - A wrong answer is explained from the trap behind the option chosen, the mistake of reasoning it stands for. A topic counts as mastered cautiously, and the mastery can be taken back.
 - **The child's data.** The child is known by a pseudonym alone. The profile is one file in the adult's own Google Drive, and the service keeps no database. The counts kept for grant applications hold no identifier ([privacy policy](https://mathtrail.app/en/privacy/), [data inventory](data-inventory.md)).
 - **Schools.** A pilot in a school means families using MathTrail at home on the school's recommendation: the school hands over no student data and receives none, and the free app has no school or class accounts.
-- **Content.** 705 reference tasks in 17 topics, each with a worked solution and every wrong option labelled with one of 20 catalogued traps; 33 solver programs in Starlark; 25 skills.
+- **Content.** 705 reference tasks in 17 topics, each with a worked solution, a solver program in Starlark that proves its answer, and every wrong option labelled with one of 20 catalogued traps; 33 solver templates, which the model follows when it writes the solver of a new task; 25 skills.
 - **Reach.** The card speaks 64 languages, the site ten of them: English, Spanish, Portuguese, German, French, Japanese, Russian, Simplified Chinese, Arabic and Hindi.
 - **Status.** Live since the first release, v0.1.0, on 22 September 2026; the release the service runs is v0.7.0, of 26 October 2026. The service answers at `mcp.mathtrail.app` and the site is [mathtrail.app](https://mathtrail.app). Use has been counted since 4 October 2026, and the first month with public numbers can be November 2026.
 - **Public goods.** The code, the reference tasks with their solvers and trap labels, and the SQL of the views that publish the counts, all under MIT; and the public report of the counts, once it is published.
@@ -48,7 +48,7 @@ The command prints a title, a line on what the public views show, a table with t
 
 ### Tools Competition 2027, first phase
 
-The abstract is due on 13 October 2026. Its form asks for the prize level and a description of the entrant, in about a thousand words, and the organizers assess fit with the competition, alignment with the track's objectives, novelty and quality ([how proposals are evaluated](https://tools-competition.org/how-are-proposals-evaluated/)).
+The abstract was due on 13 October 2026. Its form asked for the prize level and a description of the entrant, in about a thousand words, and the organizers assess fit with the competition, alignment with the track's objectives, novelty and quality ([how proposals are evaluated](https://tools-competition.org/how-are-proposals-evaluated/)).
 
 | What the abstract needs | Where in the package |
 |---|---|

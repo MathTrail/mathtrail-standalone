@@ -518,6 +518,8 @@ Gathered on 2026-10-12 from Google's suggestions for Germany, Austria and Switze
 
 **For the author.** «Mathe-Olympiade» is the everyday name of the national contest, and the card's lead, the glossary and the home page write «im Stil der Mathe-Olympiade»; «Olympiade-Mathematik» on the site draws readers who look for that contest. Parents type the singular «Klasse», which the glossary's other choice for `topics.grades`, «Klasse {range}», would match word for word.
 
+**Decided by the author (2026-10-26, T114.1).** «Olympiade-Mathematik», the name of the kind of problem rather than of the contest, stays in the titles of the home page and "Why", and «Mathe-Knobelaufgaben» in those of "Topics" and "Techniques". «Mathe-Olympiade» stays where the home page's lead says the tasks are «im Stil der Mathe-Olympiade»: the lead compares them with the national contest and promises no preparation for it, and "Why" names the Mathematik-Olympiade only where it tells of research. The coach's ages, 7 to 12, are the coach's own, and the page says them as the English does.
+
 ## Places for the author's reading
 
 - The menu: «Studie» for «Forschung» and «Team» for «Über uns», in the menu, the pages' titles and the footer alike. Without them the German row is the widest of all (about 1200 px against the Russian's 1163); with them it is the narrowest of the three. The other way out is the plain words everywhere and a fold some 40 px wider for every language.
