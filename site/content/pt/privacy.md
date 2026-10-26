@@ -5,7 +5,7 @@ description: O que o MathTrail sabe sobre a criança, onde isso fica guardado e 
 
 # Política de privacidade
 
-Última atualização: 10 de outubro de 2026.
+Última atualização: 26 de outubro de 2026.
 
 O MathTrail é um projeto gratuito e de código aberto, criado e mantido pela ALT EdTech. Envie perguntas sobre esta política ou sobre os dados da criança para [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). Como conectá-lo, e o que fazer quando algo parece errado, está na [página de ajuda](../help/).
 
@@ -76,7 +76,7 @@ Essas linhas são guardadas por no máximo 62 dias. O que fica guardado depois d
 
 Os registros nunca contêm o pseudônimo, o texto de um problema, a letra de uma resposta, um endereço de e-mail, um token, o identificador da criança nem o endereço de onde veio uma requisição.
 
-À parte, o Google Cloud Run mantém o registro padrão de cada requisição a qualquer serviço que roda nele: o horário, o endereço de onde ela veio, como o navegador se identifica, a página que a enviou, o endereço completo solicitado, o código de status e o tamanho e a duração da resposta. Durante um login, o endereço solicitado traz o que o chat e o Google colocam nele: o código de login de uso único do Google, que só o serviço pode trocar, o domínio de uma conta do Google Workspace e o endereço de e-mail com o qual o chat sugere fazer login, se ele sugerir algum. Esse registro não contém dados do perfil, nem texto de problemas, nem respostas, e é guardado por 30 dias.
+À parte, o Google Cloud Run mantém por padrão o registro de cada requisição a qualquer serviço que roda nele: o horário, o endereço de onde ela veio, como o navegador se identifica, a página que a enviou, o endereço completo solicitado, o código de status e o tamanho e a duração da resposta. Durante um login, o endereço solicitado traz, depois de um ponto de interrogação, o que o chat e o Google colocam nele: o código de login de uso único do Google, que só o serviço pode trocar, o domínio de uma conta do Google Workspace e o endereço de e-mail com o qual o chat sugere fazer login, se ele sugerir algum. O MathTrail faz o Google Cloud não guardar o registro de nenhuma requisição cujo endereço traga essa parte, então nada disso é mais guardado nesse registro. Os demais registros não contêm dados do perfil, nem texto de problemas, nem respostas, nem endereços de e-mail, e cada um é guardado por 30 dias. Os registros de logins feitos antes desta atualização ainda os contêm até completarem seus 30 dias.
 
 ### O país de onde você faz login
 

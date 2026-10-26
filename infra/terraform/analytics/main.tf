@@ -36,8 +36,9 @@ locals {
 }
 
 resource "google_project_service" "analytics" {
+  # The Logging API is not among them: every deployment needs it, so the root
+  # enables it, and this module waits for the root's APIs.
   for_each = toset([
-    "logging.googleapis.com",
     "bigquery.googleapis.com",
     # The service that runs the nightly query.
     "bigquerydatatransfer.googleapis.com",

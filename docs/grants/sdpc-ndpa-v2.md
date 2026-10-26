@@ -19,7 +19,7 @@ The agreement's text belongs to the Access 4 Learning Community, which lets only
 
 ## Exhibit B: schedule of data
 
-Under this model the school provides no Student Data. The table says what MathTrail itself handles for a family that uses it, in the agreement's categories: **R** is needed for the lessons, **O** is optional and the adult may leave it out, **Log** is never asked for but lands in Cloud Run's request log when a request carries it, and **No** is never collected. Where each item is kept and for how long is in the [data inventory](data-inventory.md).
+Under this model the school provides no Student Data. The table says what MathTrail itself handles for a family that uses it, in the agreement's categories: **R** is needed for the lessons, **O** is optional and the adult may leave it out, and **No** is never collected. Where each item is kept and for how long is in the [data inventory](data-inventory.md).
 
 | Category | Element | | What exactly |
 |---|---|---|---|
@@ -37,7 +37,7 @@ Under this model the school provides no Student Data. The table says what MathTr
 | Enrollment | Student grade level | R | The grade, 1 to 6 |
 | | School enrollment, homeroom, guidance counselor, curriculum programs, year of graduation | No | |
 | Parent/guardian contact information | Address, phone | No | |
-| | Email | Log | Never asked for. A chat may put an email address in the sign-in's address, which Cloud Run's request log then records for 30 days |
+| | Email | No | Never asked for. A chat may put an email address in the query of the sign-in's address, and the project has Cloud Logging keep no record of a request whose address carries a query; the records made before that took effect leave when their 30 days are up. For the maintainer: whether the traces Cloud Run makes of a request by itself keep that query |
 | Parent/guardian ID | Parent ID number | R | The opaque code for the adult's account, made with the service's key from the Google account; in the log it ties the lines of one account together, its children's included |
 | Parent/guardian name | First and/or last | No | |
 | Schedule | All | No | |

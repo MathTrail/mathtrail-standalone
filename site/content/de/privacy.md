@@ -5,7 +5,7 @@ description: Was MathTrail über Ihr Kind weiß, wo das gespeichert ist und wie 
 
 # Datenschutzerklärung
 
-Stand: 10. Oktober 2026.
+Stand: 26. Oktober 2026.
 
 MathTrail ist ein kostenloses Open-Source-Projekt, das von ALT EdTech entwickelt und betrieben wird. Fragen zu dieser Datenschutzerklärung oder zu den Daten Ihres Kindes richten Sie an [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). Wie Sie MathTrail verbinden und was zu tun ist, wenn etwas nicht zu stimmen scheint, steht auf der [Hilfeseite](../help/).
 
@@ -76,7 +76,7 @@ Diese Zeilen werden höchstens 62 Tage aufbewahrt. Was danach aufbewahrt wird, s
 
 Die Protokolle enthalten nie das Pseudonym, den Text einer Aufgabe, den Buchstaben einer Antwort, eine E-Mail-Adresse, ein Token, die Kennung des Kindes oder die Adresse, von der eine Anfrage kam.
 
-Unabhängig davon zeichnet Google Cloud Run standardmäßig jede Anfrage an jeden Dienst auf, der dort läuft: die Uhrzeit, die Adresse, von der sie kam, als was sich der Browser ausgibt, die Seite, von der sie geschickt wurde, die vollständige angefragte Adresse, den Status sowie Größe und Dauer der Antwort. Während einer Anmeldung enthält die angefragte Adresse, was der Chat und Google hineingeschrieben haben: den einmal gültigen Anmeldecode von Google, den nur der Dienst einlösen kann, die Domain eines Google Workspace-Kontos und die E-Mail-Adresse, die der Chat für die Anmeldung vorschlägt, falls er eine vorschlägt. Diese Aufzeichnung enthält keine Profildaten, keine Aufgabentexte und keine Antworten, und sie wird 30 Tage aufbewahrt.
+Unabhängig davon zeichnet Google Cloud Run standardmäßig jede Anfrage an jeden Dienst auf, der dort läuft: die Uhrzeit, die Adresse, von der sie kam, als was sich der Browser ausgibt, die Seite, von der sie geschickt wurde, die vollständige angefragte Adresse, den Status sowie Größe und Dauer der Antwort. Während einer Anmeldung enthält die angefragte Adresse nach einem Fragezeichen, was der Chat und Google hineingeschrieben haben: den einmal gültigen Anmeldecode von Google, den nur der Dienst einlösen kann, die Domain eines Google Workspace-Kontos und die E-Mail-Adresse, die der Chat für die Anmeldung vorschlägt, falls er eine vorschlägt. MathTrail lässt Google Cloud keine Aufzeichnung einer Anfrage aufbewahren, deren Adresse einen solchen Teil enthält, sodass nichts davon mehr in dieser Aufzeichnung aufbewahrt wird. Die übrigen Aufzeichnungen enthalten keine Profildaten, keine Aufgabentexte, keine Antworten und keine E-Mail-Adressen, und jede wird 30 Tage aufbewahrt. Aufzeichnungen von Anmeldungen aus der Zeit vor dieser Aktualisierung enthalten sie noch, bis ihre 30 Tage um sind.
 
 ### Das Land, aus dem Sie sich anmelden
 

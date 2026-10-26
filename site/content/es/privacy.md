@@ -5,7 +5,7 @@ description: Qué sabe MathTrail de su hijo o hija, dónde se guarda y cómo rec
 
 # Política de privacidad
 
-Última actualización: 10 de octubre de 2026.
+Última actualización: 26 de octubre de 2026.
 
 MathTrail es un proyecto gratuito y de código abierto, creado y gestionado por ALT EdTech. Las preguntas sobre esta política o sobre los datos de su hijo o hija se envían a [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). Cómo conectarlo, y qué hacer si algo parece ir mal, se explica en la [página de ayuda](../help/).
 
@@ -76,7 +76,7 @@ Estas líneas se conservan como máximo 62 días. Lo que se conserva después so
 
 Los registros nunca contienen el seudónimo, el texto de un problema, la letra de una respuesta, una dirección de correo electrónico, un token, el identificador del niño o la niña ni la dirección desde la que llegó una petición.
 
-Aparte, Google Cloud Run conserva el registro estándar de cada petición a cualquier servicio que se ejecute en él: la hora, la dirección de la que procede, cómo se identifica el navegador, la página que la envió, la dirección completa solicitada, el código de estado, y el tamaño y la duración de la respuesta. Durante un inicio de sesión, la dirección solicitada lleva lo que el chat y Google ponen en ella: el código de inicio de sesión de un solo uso de Google, que solo el servicio puede canjear, el dominio de una cuenta de Google Workspace y la dirección de correo electrónico con la que el chat sugiere iniciar sesión, si sugiere alguna. Ese registro no contiene datos del perfil, ni texto de problemas, ni respuestas, y se conserva durante 30 días.
+Aparte, Google Cloud Run conserva por defecto el registro estándar de cada petición a cualquier servicio que se ejecute en él: la hora, la dirección de la que procede, cómo se identifica el navegador, la página que la envió, la dirección completa solicitada, el código de estado, y el tamaño y la duración de la respuesta. Durante un inicio de sesión, la dirección solicitada lleva, tras un signo de interrogación, lo que el chat y Google ponen en ella: el código de inicio de sesión de un solo uso de Google, que solo el servicio puede canjear, el dominio de una cuenta de Google Workspace y la dirección de correo electrónico con la que el chat sugiere iniciar sesión, si sugiere alguna. MathTrail hace que Google Cloud no conserve el registro de ninguna petición cuya dirección lleve esa parte, así que ya no se conserva nada de eso en este registro. Los demás registros no contienen datos del perfil, ni texto de problemas, ni respuestas, ni direcciones de correo electrónico, y cada uno se conserva durante 30 días. Los registros de inicios de sesión hechos antes de esta actualización aún los contienen hasta que se cumplan sus 30 días.
 
 ### El país desde el que inicia sesión
 
