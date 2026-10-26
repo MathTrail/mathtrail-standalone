@@ -98,7 +98,7 @@ describe("the card's reading of a picture", () => {
 	});
 
 	test("reads every picture the reference tasks carry", () => {
-		expect(references).toHaveLength(101);
+		expect(references).toHaveLength(103);
 		for (const [id, picture] of references) {
 			expect(readPicture(picture), id).toEqual(picture);
 		}

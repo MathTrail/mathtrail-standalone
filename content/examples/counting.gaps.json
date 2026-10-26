@@ -1714,6 +1714,111 @@
     }
   },
   {
+    "id": "gaps-56-d1-1",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A frog is at the bottom of a well 12 metres deep. Each day it climbs 5 metres up, and each night it slips 3 metres back down. On which day does it get out of the well?",
+    "options": {
+      "A": "On day 3",
+      "B": "On day 6",
+      "C": "On day 5",
+      "D": "On day 2",
+      "E": "On day 4"
+    },
+    "correct_answer": "C",
+    "hint": "How high is the frog each morning? On its last day it gets out before night comes.",
+    "solution": "A day and a night together lift the frog 5 − 3 = 2 metres. After 4 days and 4 nights it is 8 metres up. On day 5 it climbs 5 metres more, to 13 metres, and is out of the 12-metre well before it can slip back.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Day 3 forgets the nights: after each day in the well, the frog slips back 3 metres."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "Day 6 comes from 12 ÷ 2, as if the frog gained only 2 metres a day all the way to the top. On day 5 it climbs 5 metres from 8 metres up and is out before night comes."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "Day 2 adds the climb and the slip, 5 + 3 = 8 metres a day, but the slip takes the frog down."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "4 is the number of nights the frog slips back. It gets out on the next day, day 5."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d1-2",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Trees grow on both sides of a straight road, one every 5 metres along each side, with a tree at each end of both rows. There are 22 trees in all. How long is the road?",
+    "options": {
+      "A": "50 m",
+      "B": "55 m",
+      "C": "105 m",
+      "D": "45 m",
+      "E": "10 m"
+    },
+    "correct_answer": "A",
+    "hint": "How many trees stand on one side? How many gaps lie between them?",
+    "solution": "The 22 trees stand in two rows of 11, one on each side. Between 11 trees in a row there are 10 gaps of 5 metres, so the road is 10 × 5 = 50 metres long.",
+    "distractors": {
+      "B": {
+        "trap": "off_by_one",
+        "text": "55 m counts a gap for each of the 11 trees on a side, but 11 trees in a row have only 10 gaps between them."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "105 m lines up all 22 trees in one row, but they stand on both sides of the road, 11 on each."
+      },
+      "D": {
+        "trap": "off_by_one",
+        "text": "45 m counts 9 gaps on a side, but 11 trees in a row have 10 gaps between them."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "10 is the number of gaps on each side. Each gap is 5 metres long, so the road is 10 × 5 metres."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d1-3",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Sam has a long liquorice lace. Again and again, he bites 3 cm out of a piece, never at its end, so that the piece splits in two. At the end he has five pieces, 2, 4, 6, 8 and 10 cm long. How long was the lace?",
+    "options": {
+      "A": "12 cm",
+      "B": "45 cm",
+      "C": "30 cm",
+      "D": "42 cm",
+      "E": "18 cm"
+    },
+    "correct_answer": "D",
+    "hint": "Each bite turns one piece into two. How many bites does it take to get 5 pieces from one?",
+    "solution": "The lace was one piece, and each bite adds one piece, so 5 pieces took 4 bites. The bites ate 4 × 3 = 12 cm, and the pieces left are 2 + 4 + 6 + 8 + 10 = 30 cm long. So the lace was 30 + 12 = 42 cm long.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "12 cm is how much Sam ate, not how long the lace was."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "45 cm counts a bite for each of the 5 pieces, but one lace becomes 5 pieces in 4 bites."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "30 cm is what is left. The 12 cm Sam ate were part of the lace too."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "18 cm takes the 12 cm Sam ate away from the pieces, but what he ate was part of the lace, so it is added to them."
+      }
+    }
+  },
+  {
     "id": "gaps-56-d2-1",
     "topic": "counting.gaps",
     "grade_level": "5-6",
@@ -2027,6 +2132,111 @@
       "E": {
         "trap": "answered_other_question",
         "text": "22 is the number of lamps on both long sides together, counting their corners."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d5-1",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Nine parallels and twelve meridians are drawn on a globe. A parallel is a circle that goes all the way round the globe from west to east. A meridian is a line from the North Pole to the South Pole. Into how many parts do these lines cut the surface of the globe?",
+    "options": {
+      "A": "130",
+      "B": "120",
+      "C": "108",
+      "D": "21",
+      "E": "240"
+    },
+    "correct_answer": "B",
+    "hint": "Into how many bands do the parallels cut the globe? Then think of each band as a ring cut across by the meridians.",
+    "solution": "The 9 parallels cut the globe into 10 bands, the caps round the two poles among them. The meridians cut every band, and a band goes all the way round, like a ring: 12 cuts across a ring make 12 pieces, not 13. The meridians meet at each pole, so they cut each cap into 12 pieces too. So there are 10 × 12 = 120 parts.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "130 cuts each band into 13 pieces, as if it were a strip with two ends. A band goes all the way round, so 12 meridians cut it into 12."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "108 counts 9 bands, one for each parallel, but 9 parallels cut the globe into 10 bands."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "21 adds the lines, 9 + 12, but every meridian cuts every band, so the counts are multiplied."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "240 takes each meridian as a whole circle through both poles, but a meridian runs only from one pole to the other, half a circle."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d5-2",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Two TV channels start showing the same film at the same moment. The first channel cuts the whole film into parts of exactly 30 minutes each, with a 6-minute advert between every two parts. The second cuts it into parts of exactly 15 minutes each, with a 3-minute advert between every two parts. Which channel ends the film first, and how much sooner?",
+    "options": {
+      "A": "The second, as its adverts are shorter",
+      "B": "Both end at the same moment",
+      "C": "The second, 3 minutes sooner",
+      "D": "It cannot be told without the length of the film",
+      "E": "The first, 3 minutes sooner"
+    },
+    "correct_answer": "E",
+    "hint": "Try a film of 60 minutes: how many parts and adverts does each channel show? Then try 90 minutes.",
+    "solution": "Take a film of 60 minutes. The first channel shows 2 parts with 1 advert between them, 6 minutes of adverts, and the second shows 4 parts with 3 adverts, 9 minutes. Each further 30 minutes of film adds 1 part and 1 advert, 6 minutes, on the first channel, and 2 parts and 2 adverts, 6 minutes, on the second. So whatever the length of the film, the second channel shows 3 minutes more of adverts, and the first ends 3 minutes sooner.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Its adverts are shorter, but it shows twice as many of them: one every 15 minutes of film instead of every 30."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "This counts an advert after every part, the last one too. The adverts come only between two parts, so each channel shows one advert fewer than it has parts."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "This turns the comparison round. The second channel shows 3 minutes more of adverts, so it ends later."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "It can be told: whatever the length of the film, so long as both channels cut it into whole parts, the second shows 3 minutes more of adverts."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d5-3",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Nine people stand in a queue in the rain, each under an open umbrella, so close that the umbrellas of neighbours touch. Take each person as a point and each umbrella as a circle of radius 40 cm round them. When the rain stops, they close their umbrellas and stand 60 cm apart. A queue's length runs from its very front to its very back. By how many metres is the queue now shorter?",
+    "options": {
+      "A": "2.4 m",
+      "B": "1.8 m",
+      "C": "1.6 m",
+      "D": "7.2 m",
+      "E": "1.5 m"
+    },
+    "correct_answer": "A",
+    "hint": "How long is the queue under the umbrellas, from the front of the first umbrella to the back of the last?",
+    "solution": "Touching umbrellas put neighbours 80 cm apart, and the first and last umbrellas reach 40 cm beyond the people holding them. So the queue was 9 umbrellas of 80 cm each, 720 cm long. Now it runs from the first person to the last, 8 gaps of 60 cm, 480 cm. It is 720 − 480 = 240 cm, or 2.4 metres, shorter.",
+    "distractors": {
+      "B": {
+        "trap": "off_by_one",
+        "text": "1.8 m counts 9 gaps of 60 cm, but between 9 people in a row there are 8 gaps."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "1.6 m measures the queue under the umbrellas from the first person to the last, 8 × 80 cm, but the umbrellas reach 40 cm further at each end."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "7.2 m is how long the queue was under the umbrellas. The question asks how much shorter it is now."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "1.5 divides the two lengths, 720 ÷ 480, which tells how many times as long the queue was. The question asks by how many metres it got shorter."
       }
     }
   }
