@@ -1,5 +1,110 @@
 [
   {
+    "id": "pct-56-d1-1",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A toy costs 50 coins. The shop meant to raise its price by 20%, but by mistake it lowered the price by 20%. How many coins less than the planned price does the toy cost now?",
+    "options": {
+      "A": "10",
+      "B": "20",
+      "C": "40",
+      "D": "8",
+      "E": "12"
+    },
+    "correct_answer": "B",
+    "hint": "Find the planned price and the price now. What is 20% of 50 coins?",
+    "solution": "20% of 50 coins is 10 coins. The planned price was 50 + 10 = 60 coins, and the price now is 50 − 10 = 40 coins. The toy costs 60 − 40 = 20 coins less than planned.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "10 coins is 20% of 50, the change one way. The planned price is 10 coins above 50 and the price now 10 coins below it."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "40 coins is the price now. The question asks how much less than the planned price it is."
+      },
+      "D": {
+        "trap": "percent_wrong_base",
+        "text": "8 takes 20% of the lowered price, 40 coins. Both changes are 20% of the old price, 50 coins."
+      },
+      "E": {
+        "trap": "percent_wrong_base",
+        "text": "12 takes 20% off the planned price of 60 coins. The shop lowered the old price of 50 coins."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d1-2",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A young tree was 40 cm tall. In five years its height grew by 150%. How tall is the tree now?",
+    "options": {
+      "A": "60 cm",
+      "B": "100 cm",
+      "C": "190 cm",
+      "D": "150 cm",
+      "E": "340 cm"
+    },
+    "correct_answer": "B",
+    "hint": "What is 150% of 40 cm? Is that the height now, or how much the tree grew?",
+    "solution": "150% of 40 cm is 1.5 × 40 = 60 cm, and that is how much the tree grew. Its height now is 40 + 60 = 100 cm, which is 250% of the height it had.",
+    "distractors": {
+      "A": {
+        "trap": "part_whole_swap",
+        "text": "60 cm is how much the tree grew. Its height now is the old 40 cm and that growth together."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "190 adds 150 cm, as if 150% of the height were 150 cm. 150% of 40 cm is 60 cm."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "150 is the percentage from the question, not a height."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "340 adds the growth once for each of the five years. The height grew by 150% over the five years together."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d1-3",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Sam puts 500 coins in a bank. Every year the bank adds 20% of the 500 coins he first put in. How many coins does Sam have after 3 years?",
+    "options": {
+      "A": "600",
+      "B": "800",
+      "C": "300",
+      "D": "864",
+      "E": "560"
+    },
+    "correct_answer": "B",
+    "hint": "How many coins does the bank add in one year? Does that number change from year to year?",
+    "solution": "20% of 500 coins is 100 coins. The bank adds the same 100 coins every year, so in 3 years it adds 300 coins. Sam has 500 + 300 = 800 coins.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "600 is what Sam has after one year. The bank adds 100 coins in each of the three years."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "300 is what the bank added in the three years. Sam also still has his 500 coins."
+      },
+      "D": {
+        "trap": "percent_wrong_base",
+        "text": "864 takes 20% of the new sum every year. The bank adds 20% of the first 500 coins only."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "560 adds 20 coins a year, as if 20% were 20 coins. But 20% of 500 is 100."
+      }
+    }
+  },
+  {
     "id": "pct-56-d2-1",
     "topic": "percent.basic",
     "grade_level": "5-6",
@@ -313,6 +418,111 @@
       "E": {
         "trap": "number_from_text",
         "text": "35 is the children's percentage, not a number of people."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d5-1",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A shop sells wheels for 150 coins each and bolts for 10 coins each. Once a customer has paid 320 coins or more in the shop, everything they buy after that is 20% cheaper. Tom needs 3 wheels and 1 bolt. He may pay in several goes and may buy more than he needs. What is the least he can pay to get what he needs?",
+    "options": {
+      "A": "460",
+      "B": "458",
+      "C": "440",
+      "D": "368",
+      "E": "430"
+    },
+    "correct_answer": "C",
+    "hint": "Which thing would Tom most like to buy with the discount? How can he pay 320 coins before he buys it?",
+    "solution": "The discount saves the most on a wheel, so Tom should buy the last wheel after paying 320 coins. Two wheels cost 300 coins, so he also buys 2 bolts, one of them spare, and pays 320. Then the third wheel costs 150 − 30 = 120 coins. In all he pays 320 + 120 = 440 coins, less than the 458 coins of buying the 3 wheels first.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "460 pays full price for everything. Paying in two goes lets the last wheel cost 20% less."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "458 buys the 3 wheels first and then the bolt with the discount. Buying 2 wheels and 2 bolts first makes a wheel, not a bolt, the thing that is cheaper."
+      },
+      "D": {
+        "trap": "percent_wrong_base",
+        "text": "368 takes 20% off the whole bill. The first 320 coins are paid in full, and only what comes after them is cheaper."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "430 counts 2 wheels and 1 bolt as enough for the discount, but they cost 310 coins, less than 320."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d5-2",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "All the members of a school's chess club like puzzles. Of the pupils who are not in the club, only 25% like puzzles. Of all the pupils in the school, 40% like puzzles. What percentage of the pupils are in the chess club?",
+    "options": {
+      "A": "15%",
+      "B": "20%",
+      "C": "40%",
+      "D": "80%",
+      "E": "50%"
+    },
+    "correct_answer": "B",
+    "hint": "Take a school of 100 pupils. If some of them are in the club, how many of the others like puzzles?",
+    "solution": "Take 100 pupils. If nobody were in the club, 25 of them would like puzzles. Every pupil in the club likes puzzles, where only one pupil in four does outside it, so each one in the club adds 3/4 of a pupil to that count. The count is 40, which is 15 more than 25, so 15 ÷ 3/4 = 20 pupils are in the club. That is 20%.",
+    "distractors": {
+      "A": {
+        "trap": "percent_wrong_base",
+        "text": "15% takes 25% of all the pupils away from 40%. The 25% is of the pupils outside the club only."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "40% is the share of all the pupils who like puzzles. The club is only a part of them."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "80% is the share of the pupils who are not in the club. The question asks about those in it."
+      },
+      "E": {
+        "trap": "percent_wrong_base",
+        "text": "50% measures the club against the pupils who like puzzles. The question asks for its share of all the pupils."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d5-3",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "One coin buys a loaf of bread and a bottle of milk. After prices rise by 25%, the same coin buys only half a loaf and a bottle of milk. What part of the coin will the milk alone cost after prices rise by another 20%?",
+    "options": {
+      "A": "75%",
+      "B": "90%",
+      "C": "87%",
+      "D": "105%",
+      "E": "60%"
+    },
+    "correct_answer": "B",
+    "hint": "Before the rise, what part of the coin did half a loaf and a bottle of milk cost?",
+    "solution": "After the rise, half a loaf and the milk cost the whole coin, so before it they cost 1 ÷ 1.25 = 0.8 of the coin. A whole loaf and the milk cost the whole coin, so the other half of the loaf cost 0.2 and the milk 0.8 − 0.2 = 0.6. After both rises the milk costs 0.6 × 1.25 × 1.2 = 0.9 of the coin, which is 90%.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "75% is what the milk costs after the first rise only. The question asks about the second."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "87% adds the two rises as one rise of 45%. Each rise is a percentage of the price before it."
+      },
+      "D": {
+        "trap": "percent_wrong_base",
+        "text": "105% adds 25% and 20% of the whole coin. Each rise is a percentage of the price of the milk, not of the coin."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "60% is the price of the milk before any rise. The question asks after both rises."
       }
     }
   }

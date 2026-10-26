@@ -188,15 +188,16 @@ traps:
     say: “If there are twice as many people, what happens to the eggs?”
     art:
       question: 3 eggs for 2 people, and for 8?
-  answered_other_question:
+  ignored_condition:
     shows: >-
-      A share is found and the wrong one is given: Max's mushrooms instead of
-      Lena's, or one part, 3 children, instead of the whole choir.
-    say: “Whose share does the question ask about?”
+      A condition is dropped: the dough is made from all 1000 g of flour,
+      though 300 g of sugar is too little for it, or 56 shells to be shared
+      3 to 4 are shared 28 and 28.
+    say: “Is there enough sugar for all that flour?”
     art:
-      question: How many mushrooms does Lena pick?
-      max: M
-      lena: L
+      question: Flour and sugar 5 to 2, 1000 g and 300 g
+      short: too little sugar
+      one: in one part
 
 home:
   - title: Cooking by a ratio

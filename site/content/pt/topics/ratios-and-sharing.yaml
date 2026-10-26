@@ -191,16 +191,16 @@ traps:
     say: “Se houver o dobro de pessoas, o que acontece com os ovos?”
     art:
       question: 3 ovos para 2 pessoas, e para 8?
-  answered_other_question:
+  ignored_condition:
     shows: >-
-      Uma das partes é encontrada, mas a resposta dá a parte errada: os
-      cogumelos de Miguel em vez dos de Laura, ou uma parte, 3 crianças, em vez
-      do coral inteiro.
-    say: “A pergunta pede a parte de quem?”
+      Uma condição se perde: a massa é feita com todos os 1000 g de farinha,
+      embora 300 g de açúcar não bastem para ela, ou 56 conchas que deveriam
+      ser divididas na razão 3 para 4 são divididas em 28 e 28.
+    say: “O açúcar dá para toda essa farinha?”
     art:
-      question: Quantos cogumelos Laura colhe?
-      max: M
-      lena: L
+      question: Farinha e açúcar 5 para 2, 1000 g e 300 g
+      short: falta açúcar
+      one: em uma parte
 
 home:
   - title: Cozinhar seguindo uma razão

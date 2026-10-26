@@ -193,15 +193,16 @@ traps:
     say: „Wenn es doppelt so viele Personen sind, was passiert dann mit den Eiern?“
     art:
       question: 3 Eier für 2 Personen, und für 8?
-  answered_other_question:
+  ignored_condition:
     shows: >-
-      Ein Anteil wird ausgerechnet, aber der falsche angegeben: statt der Pilze
-      von Lena die von Max, oder statt des ganzen Chors ein Teil, 3 Kinder.
-    say: „Nach wessen Anteil fragt die Aufgabe?“
+      Eine Bedingung geht verloren: Der Teig wird aus allen 1000 g Mehl
+      gemacht, obwohl 300 g Zucker dafür zu wenig sind, oder 56 Muscheln, die
+      im Verhältnis 3 zu 4 geteilt werden sollen, werden in 28 und 28 geteilt.
+    say: „Reicht der Zucker für das ganze Mehl?“
     art:
-      question: Wie viele Pilze sammelt Lena?
-      max: M
-      lena: L
+      question: Mehl und Zucker 5 zu 2, 1000 g und 300 g
+      short: zu wenig Zucker
+      one: in einem Teil
 
 home:
   - title: Nach Verhältnis kochen

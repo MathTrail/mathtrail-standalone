@@ -61,20 +61,23 @@ describe("the data of the page Research", () => {
 		expect(research.authors).toEqual(authors.sources);
 	});
 
+	// The counts are the fixture's own, which the reading holds to the catalog.
+	const counts = fixture.product.reference_tasks.by_level;
+
 	test("reads the levels of the reference tasks from the lowest, with the grades each spans", () => {
 		expect(read(fixture).levels).toEqual([
-			{ key: "1-2", first: 1, last: 2, count: 200 },
-			{ key: "3-4", first: 3, last: 4, count: 250 },
-			{ key: "5-6", first: 5, last: 6, count: 153 },
+			{ key: "1-2", first: 1, last: 2, count: counts["1-2"] },
+			{ key: "3-4", first: 3, last: 4, count: counts["3-4"] },
+			{ key: "5-6", first: 5, last: 6, count: counts["5-6"] },
 		]);
 	});
 
 	test("reads the levels from the lowest in whatever order the file gives them", () => {
 		const edited = changed((file) => {
 			file.product.reference_tasks.by_level = {
-				"5-6": 153,
-				"3-4": 250,
-				"1-2": 200,
+				"5-6": counts["5-6"],
+				"3-4": counts["3-4"],
+				"1-2": counts["1-2"],
 			};
 		});
 

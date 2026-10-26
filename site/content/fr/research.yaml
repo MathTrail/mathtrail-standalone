@@ -215,7 +215,7 @@ sources:
   collections:
     mathnet:
       name: MathNet
-      note: Un recueil ouvert de problèmes d’olympiades de nombreux pays. Chaque thème garde une liste d’idées sur lesquelles reposent ses problèmes, et pour les niveaux {first}–{last}, certaines viennent de ce recueil. Certains pays gardent les droits sur leurs problèmes, si bien que de ce recueil aussi on ne prend qu’une idée, jamais un texte.
+      note: Un recueil ouvert de problèmes d’olympiades de nombreux pays. Chaque thème garde une liste d’idées sur lesquelles reposent ses problèmes, et pour les niveaux {first}–{last}, certaines viennent de ce recueil, tout comme le type de problème de certains problèmes de référence. Certains pays gardent les droits sur leurs problèmes, si bien que de ce recueil aussi on ne prend qu’une idée, jamais un texte.
   total: Au total, {count} {noun}
   each: chacun avec un solveur et un piège derrière chaque mauvaise réponse
   level: "{count} · niveaux {first}–{last}"

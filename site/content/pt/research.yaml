@@ -215,7 +215,7 @@ sources:
   collections:
     mathnet:
       name: MathNet
-      note: Uma coleção aberta de problemas de olimpíadas de muitos países. Cada tema tem uma lista de ideias em que seus problemas se baseiam, e para o {first}º–{last}º ano algumas delas vêm desta coleção. Alguns países mantêm os direitos sobre seus problemas, por isso também daqui só se tira a ideia, nunca o texto.
+      note: Uma coleção aberta de problemas de olimpíadas de muitos países. Cada tema tem uma lista de ideias em que seus problemas se baseiam, e para o {first}º–{last}º ano algumas delas vêm desta coleção, assim como o tipo de problema de alguns problemas de referência. Alguns países mantêm os direitos sobre seus problemas, por isso também daqui só se tira a ideia, nunca o texto.
   total: No total, {count} {noun}
   each: cada um com um resolvedor e uma armadilha por trás de cada alternativa errada
   level: "{count} · {first}º–{last}º ano"

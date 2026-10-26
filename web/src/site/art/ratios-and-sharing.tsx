@@ -565,24 +565,32 @@ export const art: TopicArt = {
 				/>
 			</>
 		),
-		answered_other_question: ({ page, at }) => (
+		ignored_condition: ({ page, at }) => (
 			<>
 				<Say>{page.text(`${at}.question`)}</Say>
 				<Versus
 					child={
 						<>
-							<Person tone="cool">{page.text(`${at}.max`)}</Person>
-							<Box size="sm" ring="wrong">
-								20
+							<Box size="sm">
+								1000 <Divide /> 5
 							</Box>
+							<Op>=</Op>
+							<Box size="sm" ring="wrong">
+								200
+							</Box>
+							<Say way="wrong">{page.text(`${at}.short`)}</Say>
 						</>
 					}
 					right={
 						<>
-							<Person tone="warm">{page.text(`${at}.lena`)}</Person>
-							<Box size="sm" ring="right">
-								25
+							<Box size="sm">
+								300 <Divide /> 2
 							</Box>
+							<Op>=</Op>
+							<Box size="sm" ring="right">
+								150
+							</Box>
+							<Say>{page.text(`${at}.one`)}</Say>
 						</>
 					}
 				/>

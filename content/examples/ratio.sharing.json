@@ -1,5 +1,110 @@
 [
   {
+    "id": "ratio-56-d1-1",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "In a class, the ratio of boys to girls is 2 : 3. What fraction of the class are boys?",
+    "options": {
+      "A": "2/3",
+      "B": "3/5",
+      "C": "2/5",
+      "D": "3/2",
+      "E": "1/2"
+    },
+    "correct_answer": "C",
+    "hint": "For every 2 boys there are 3 girls. How many children make up one such group?",
+    "solution": "For every 2 boys there are 3 girls, so every group of 2 + 3 = 5 children holds 2 boys. The boys are 2/5 of the class.",
+    "distractors": {
+      "A": {
+        "trap": "ratio_total_confusion",
+        "text": "2/3 compares the boys with the girls, not with the whole class. The class has 2 + 3 = 5 parts."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "3/5 is the fraction of the class that are girls. The question asks about the boys."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "3/2 turns the ratio round, and it is more than a whole. A part of the class cannot be bigger than the class."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "1/2 makes the class half boys, as if there were as many boys as girls. For every 2 boys there are 3 girls."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d1-2",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Nina and Omar cycle the same road from the school to the park, each at a steady speed. Nina takes 30 minutes and Omar takes 20 minutes. Nina rides at 12 km an hour. How fast does Omar ride?",
+    "options": {
+      "A": "8 km an hour",
+      "B": "22 km an hour",
+      "C": "18 km an hour",
+      "D": "6 km an hour",
+      "E": "20 km an hour"
+    },
+    "correct_answer": "C",
+    "hint": "How long is the road? Nina rides at 12 km an hour for half an hour.",
+    "solution": "Nina rides for half an hour at 12 km an hour, so the road is 6 km long. Omar rides those 6 km in 20 minutes, a third of an hour, so in a whole hour he would ride 3 × 6 = 18 km. He rides at 18 km an hour.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "8 km an hour makes Omar slower than Nina. He takes less time on the same road, so he rides faster."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "22 adds the 10 minutes Omar saves to Nina's speed. On the same road, a shorter time makes the speed so many times as big, not so much bigger."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "6 km is the length of the road, found on the way. The question asks how fast Omar rides."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "20 is the number of minutes Omar takes, a number from the question, not his speed."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d1-3",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Tom and Ann walk at steady speeds. In the time Tom walks 3 km, Ann walks 2 km. How far has Ann walked when Tom has walked 12 km?",
+    "options": {
+      "A": "7.2 km",
+      "B": "18 km",
+      "C": "8 km",
+      "D": "4 km",
+      "E": "4.8 km"
+    },
+    "correct_answer": "C",
+    "hint": "How many times as far as 3 km is 12 km?",
+    "solution": "12 km is 4 times 3 km, so Tom has walked for 4 times as long. In that time Ann walks 4 × 2 = 8 km.",
+    "distractors": {
+      "A": {
+        "trap": "ratio_total_confusion",
+        "text": "7.2 km takes 3/5 of 12 km, as if Tom's 3 km were a share of 5. The 3 and the 2 are what each walks in the same time."
+      },
+      "B": {
+        "trap": "reversed_relation",
+        "text": "18 km gives Ann the longer walk. She walks 2 km while Tom walks 3, so she covers less than he does."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "4 is how many times Tom walked 3 km. Ann walks 2 km each of those times."
+      },
+      "E": {
+        "trap": "ratio_total_confusion",
+        "text": "4.8 km takes 2/5 of 12 km, as if 12 km were the two walks together. 12 km is Tom's walk alone."
+      }
+    }
+  },
+  {
     "id": "ratio-56-d2-1",
     "topic": "ratio.sharing",
     "grade_level": "5-6",
@@ -317,6 +422,111 @@
       "E": {
         "trap": "ignored_condition",
         "text": "3 : 1 is bag B alone, but the beads of bag A are in the box too."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d5-1",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "The grass in a meadow grows at the same rate every day. 24 cows would eat all of it in 10 days, and 14 cows in 20 days. How many cows would eat all of it in 40 days?",
+    "options": {
+      "A": "6",
+      "B": "28",
+      "C": "9",
+      "D": "14",
+      "E": "7"
+    },
+    "correct_answer": "C",
+    "hint": "14 cows in 20 days eat more grass than 24 cows in 10 days. Where does the extra grass come from?",
+    "solution": "Count the grass in cow-days, what one cow eats in a day. 24 cows in 10 days eat 240 cow-days, and 14 cows in 20 days eat 280. The extra 40 grew in the 10 days between, so 4 cow-days of grass grow every day. At the start the meadow holds 240 − 10 × 4 = 200 cow-days. In 40 days it gives 200 + 40 × 4 = 360 cow-days, which 360 ÷ 40 = 9 cows eat.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "6 shares out the grass of 24 cows in 10 days over 40 days and leaves out the grass that grows meanwhile."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "28 makes the cows grow with the days, 14 × 40 ÷ 20. More days need fewer cows, not more."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "14 is the smaller herd from the question. In 40 days even fewer cows are enough."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "7 shares out the grass of 14 cows in 20 days over 40 days and leaves out the grass that grows after day 20."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d5-2",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A jar holds peaches in juice, and all the peaches are under the juice. Kim eats a quarter of the peaches, and the level in the jar falls by a fifth. By what part of the new level will it fall if Kim then eats half of the peaches that are left?",
+    "options": {
+      "A": "1/5",
+      "B": "2/5",
+      "C": "3/8",
+      "D": "1/2",
+      "E": "4/5"
+    },
+    "correct_answer": "C",
+    "hint": "Taking out a quarter of the peaches lowered the level by a fifth. What part of the jar's contents were all the peaches?",
+    "solution": "A quarter of the peaches took up a fifth of the contents, so all the peaches took up four fifths, and the juice one fifth. After Kim eats a quarter, the jar holds a fifth of juice and three fifths of peaches, four fifths in all. Half of the peaches left is three tenths of the old contents, which is 3/10 ÷ 4/5 = 3/8 of the four fifths now in the jar. So the level falls by 3/8.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "1/5 repeats the first fall. But now a different number of peaches comes out, and the level is lower."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "2/5 doubles the first fall because half is twice a quarter. But half of the peaches left is not twice the first quarter, and the level is lower now."
+      },
+      "D": {
+        "trap": "part_whole_swap",
+        "text": "1/2 takes half of the peaches as half of the jar's contents. The peaches are only part of what is in the jar."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "4/5 is the part of the contents that all the peaches took up, found on the way."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d5-3",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Mia and Leo ate a jar of jam together. Leo ate 20% fewer spoonfuls than Mia, but his spoon held 100% more jam than hers. What part of the jar did Leo eat?",
+    "options": {
+      "A": "5/13",
+      "B": "8/5",
+      "C": "8/13",
+      "D": "9/14",
+      "E": "1/2"
+    },
+    "correct_answer": "C",
+    "hint": "Compare one of Leo's spoonfuls with one of Mia's, and the number of spoonfuls each ate.",
+    "solution": "Leo ate 80% as many spoonfuls as Mia, and each of his held twice as much as hers. So he ate 0.8 × 2 = 1.6 times as much jam as Mia. The jar splits 8 : 5 between Leo and Mia, so Leo ate 8/13 of it.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "5/13 is the part of the jar that Mia ate. The question asks about Leo."
+      },
+      "B": {
+        "trap": "ratio_total_confusion",
+        "text": "8/5 is Leo's jam against Mia's, not against the whole jar. As a part of the jar it is 8/13."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "9/14 adds the changes, 100% − 20%, as if Leo ate 180% of Mia's jam. The changes multiply: 80% of the spoonfuls times twice the spoon."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "1/2 would mean they ate the same. Leo's bigger spoon more than makes up for his fewer spoonfuls."
       }
     }
   }

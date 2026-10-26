@@ -192,16 +192,16 @@ traps:
     say: «Si hay el doble de personas, ¿qué pasa con los huevos?»
     art:
       question: 3 huevos para 2 personas, ¿y para 8?
-  answered_other_question:
+  ignored_condition:
     shows: >-
-      Se calcula una cantidad, pero se responde con la que no es: los hongos de
-      Mateo en vez de los de Lucía, o una parte, 3 cantantes, en vez del coro
-      entero.
-    say: «¿Por la parte de quién pregunta el problema?»
+      Se pierde una condición: la masa se hace con los 1000 g de harina,
+      aunque 300 g de azúcar no alcanzan para ella, o 56 conchas que hay que
+      repartir en la razón 3 a 4 se reparten 28 y 28.
+    say: «¿Alcanza el azúcar para toda esa harina?»
     art:
-      question: ¿Cuántos hongos recoge Lucía?
-      max: M
-      lena: L
+      question: Harina y azúcar 5 a 2, 1000 g y 300 g
+      short: falta azúcar
+      one: en una parte
 
 home:
   - title: Cocinar siguiendo una razón

@@ -1,5 +1,110 @@
 [
   {
+    "id": "frac-56-d1-1",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Mia ate three quarters of a chocolate bar with 20 squares. Leo ate two thirds of a bar with 24 squares. Who ate more squares, and how many squares did that child eat?",
+    "options": {
+      "A": "Mia, 15",
+      "B": "Leo, 16",
+      "C": "Leo, 18",
+      "D": "Mia, 20",
+      "E": "Leo, 1"
+    },
+    "correct_answer": "B",
+    "hint": "Find how many squares each child ate. How many squares make one quarter of Mia's bar?",
+    "solution": "One quarter of 20 squares is 5, so Mia ate 3 × 5 = 15 squares. One third of 24 squares is 8, so Leo ate 2 × 8 = 16 squares. Leo ate more, 16 squares.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Three quarters is more than two thirds, but the two bars are not the same size. Mia ate 15 squares, one fewer than Leo."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "18 is three quarters of Leo's bar, but Leo ate two thirds of it. Three quarters belongs to Mia's bar of 20 squares."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "20 is the number of squares in Mia's whole bar, not the number she ate."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "1 is how many more squares Leo ate than Mia. The question asks how many squares the one who ate more ate."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d1-2",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A jug holds two and a half litres of juice. Each glass holds a quarter of a litre. How many glasses can be filled from the full jug?",
+    "options": {
+      "A": "8",
+      "B": "10",
+      "C": "5/8",
+      "D": "2 1/2",
+      "E": "12"
+    },
+    "correct_answer": "B",
+    "hint": "How many glasses does one litre fill? And how many does half a litre fill?",
+    "solution": "One litre fills 4 glasses of a quarter litre, so two litres fill 8 glasses, and half a litre fills 2 more. So the jug fills 8 + 2 = 10 glasses.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "8 glasses hold two litres. The jug holds half a litre more, which fills 2 more glasses."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "5/8 multiplies two and a half by a quarter. To find how many quarters fit, divide by a quarter instead."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "Two and a half is the number of litres in the jug, not the number of glasses it fills."
+      },
+      "E": {
+        "trap": "part_whole_swap",
+        "text": "12 counts 4 glasses for the half litre too, as if it were a whole litre. Half a litre fills only 2 glasses."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d1-3",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Max and his sister Lily walk to a concert at the same steady speed. After a fifth of the way, Max goes back home for his ticket, grabs it at once and walks to the concert. Lily gets there 50 minutes after they left home. How many minutes after Lily does Max get there?",
+    "options": {
+      "A": "10",
+      "B": "20",
+      "C": "70",
+      "D": "50",
+      "E": "16"
+    },
+    "correct_answer": "B",
+    "hint": "How many minutes does a fifth of the way take?",
+    "solution": "The whole way takes 50 minutes, so a fifth of it takes 10 minutes. Max walks that fifth back home and then walks it again, so he walks 2 × 10 = 20 minutes more than Lily. He gets there 20 minutes after her.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "10 minutes is the walk back home. Max then walks that fifth of the way again, 10 minutes more."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "70 minutes is how long Max takes to get there in all. The question asks how much later than Lily he arrives."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "50 minutes is Lily's time, a number from the question, not how much later Max gets there."
+      },
+      "E": {
+        "trap": "part_whole_swap",
+        "text": "16 takes the walk back and the walk again as two fifths of the 40 minutes Lily walks after they part. A fifth of the way is a fifth of the whole walk of 50 minutes."
+      }
+    }
+  },
+  {
     "id": "frac-56-d2-1",
     "topic": "fractions.parts",
     "grade_level": "5-6",
@@ -314,6 +419,111 @@
       "E": {
         "trap": "answered_other_question",
         "text": "1/30 is how much of the pizza the fifth friend eats, not how much is left."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d5-1",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "There are 32 pupils in a class. The teacher asks them to close their eyes. All the boys and a quarter of the girls close their right eye. All the girls and a quarter of the boys close their left eye. How many pupils can still see with at least one eye?",
+    "options": {
+      "A": "8",
+      "B": "24",
+      "C": "0",
+      "D": "32",
+      "E": "16"
+    },
+    "correct_answer": "B",
+    "hint": "Think about the boys first. Which of the boys still have an eye open?",
+    "solution": "Every boy closes his right eye, and a quarter of the boys also close their left eye, so three quarters of the boys still see. In the same way three quarters of the girls still see. So three quarters of the whole class see: 3/4 of 32 is 24.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "8 is the number of pupils who closed both eyes, a quarter of the class. The question asks how many still see."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "0 forgets that each pupil closes one eye and only some close the other one too. A pupil with one eye open still sees."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "32 is the whole class. A quarter of the boys and a quarter of the girls closed both eyes and see nothing."
+      },
+      "E": {
+        "trap": "part_whole_swap",
+        "text": "16 takes a quarter of the boys and a quarter of the girls as a quarter of the whole class each. Together they make only a quarter of the class, 8 pupils."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d5-2",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Four friends ate a whole pot of honey. Ben ate a third as much as Al. Cy ate a third of what Al did not eat. Dan got only a quarter of the pot. What part of the pot did Al eat?",
+    "options": {
+      "A": "5/36",
+      "B": "5/16",
+      "C": "5/12",
+      "D": "9/20",
+      "E": "3/4"
+    },
+    "correct_answer": "C",
+    "hint": "Add up what Ben and Cy ate: a third of what Al ate and a third of what he did not eat.",
+    "solution": "Ben ate a third of Al's part, and Cy ate a third of the rest of the pot. Together they ate a third of the whole pot. Dan ate a quarter, so Al ate 1 − 1/3 − 1/4 = 5/12 of the pot.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "5/36 is what Ben ate, a third of Al's part. The question asks how much Al ate."
+      },
+      "B": {
+        "trap": "part_whole_swap",
+        "text": "5/16 takes a third of what Al did not eat as a third of the whole pot. It is a third of the part Al left."
+      },
+      "D": {
+        "trap": "part_whole_swap",
+        "text": "9/20 takes a third of what Al did not eat as a third of what Al ate. Cy's part comes from the rest of the pot."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "3/4 is what is left once Dan's quarter is taken away. Ben and Cy ate part of it too."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d5-3",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Owen had a box of biscuits. He ate some of them, and then his friend Zoe came. They shared the biscuits that were left equally. In the end Owen had eaten 4 times as many biscuits as Zoe. What part of all the biscuits did Owen eat before Zoe came?",
+    "options": {
+      "A": "2/5",
+      "B": "4/5",
+      "C": "3/5",
+      "D": "2/3",
+      "E": "3/2"
+    },
+    "correct_answer": "C",
+    "hint": "Call Zoe's share one part. How many such parts did Owen eat in all, and how many of them before Zoe came?",
+    "solution": "Zoe's share is one part, and Owen's share of what was left is one part too. Owen ate 4 parts in all, so he ate 3 parts before Zoe came. All the biscuits make 3 + 1 + 1 = 5 parts, so Owen ate 3/5 of them before Zoe came.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "2/5 is the part of the biscuits that was left when Zoe came. The question asks about what Owen ate before."
+      },
+      "B": {
+        "trap": "part_whole_swap",
+        "text": "4/5 is the part Owen ate in all, his share of what was left as well. The question asks only about what he ate before Zoe came."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "2/3 makes what Owen ate before Zoe came 4 times Zoe's share. The 4 times counts all Owen ate, his share of what was left too."
+      },
+      "E": {
+        "trap": "part_whole_swap",
+        "text": "3/2 measures what Owen ate first against what was left, not against all the biscuits."
       }
     }
   }
