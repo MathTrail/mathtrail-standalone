@@ -1,5 +1,58 @@
 [
   {
+    "id": "grid-56-d1-1",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A bishop stands on cell C3 of a 5 by 5 board. Rows are A to E from the top, columns 1 to 5 from the left. A bishop moves any number of cells along a diagonal. How many cells can it move to in one move?",
+    "picture": {"kind": "grid", "rows": ["A", "B", "C", "D", "E"], "cols": ["1", "2", "3", "4", "5"], "filled": ["C3"]},
+    "options": {"A": "10", "B": "4", "C": "16", "D": "9", "E": "8"},
+    "correct_answer": "E",
+    "hint": "Two diagonals cross at C3. How many other cells lie on each of them?",
+    "solution": "One diagonal through C3 holds A1, B2, D4 and E5, and the other holds A5, B4, D2 and E1. That makes 4 + 4 = 8 cells. C3 itself does not count, since a move goes to another cell.",
+    "distractors": {
+      "A": {"trap": "double_count", "text": "10 counts both diagonals whole, 5 cells each, so C3 is counted twice. The bishop can move to the 8 other cells."},
+      "B": {"trap": "missed_case", "text": "4 counts the cells of one diagonal only. A second diagonal crosses it at C3."},
+      "C": {"trap": "answered_other_question", "text": "16 is how many cells a queen on C3 could move to, along its row and its column as well. A bishop moves along diagonals only."},
+      "D": {"trap": "off_by_one", "text": "9 counts the cell C3 that the bishop stands on. A move takes it to another cell."}
+    }
+  },
+  {
+    "id": "grid-56-d1-2",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "A square sheet of 4 by 4 cells is folded in half along a line of its grid. Then it is folded in half again along a line at right angles to the first. Now it is a square of 2 by 2 cells, four sheets thick. One cell of this square is cut out through all four sheets. How many cells are missing when the sheet is opened out?",
+    "options": {"A": "1", "B": "4", "C": "2", "D": "8", "E": "16"},
+    "correct_answer": "B",
+    "hint": "How many layers of the sheet lie under each cell of the folded square?",
+    "solution": "Each fold doubles the layers: 2 after the first fold and 4 after the second. The cut goes through all four layers, so 4 cells of the open sheet are cut out.",
+    "distractors": {
+      "A": {"trap": "ignored_condition", "text": "1 forgets that the cut goes through all four layers of the folded sheet."},
+      "C": {"trap": "stopped_early", "text": "2 counts the layers after the first fold only. The second fold doubles them again."},
+      "D": {"trap": "double_count", "text": "8 counts every missing cell twice, once for each fold. The cut goes through four layers, one cell in each."},
+      "E": {"trap": "answered_other_question", "text": "16 is the number of cells of the whole sheet. Only the cells under the cut are missing."}
+    }
+  },
+  {
+    "id": "grid-56-d1-3",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Cell A1 of a 3 by 3 board is painted. Rows are A to C from the top, columns 1 to 3 from the left. At least how many cells, A1 among them, must be painted for the board to look the same after a quarter turn about its centre?",
+    "picture": {"kind": "grid", "rows": ["A", "B", "C"], "cols": ["1", "2", "3"], "filled": ["A1"]},
+    "options": {"A": "2", "B": "3", "C": "8", "D": "4", "E": "1"},
+    "correct_answer": "D",
+    "hint": "Where does a quarter turn take A1? Where does the next quarter turn take that cell?",
+    "solution": "A quarter turn takes A1 to A3, the next one to C3, the next to C1, and the fourth back to A1. Each of these four corners must be painted, and painting them is enough, so the answer is 4 cells.",
+    "distractors": {
+      "A": {"trap": "ignored_condition", "text": "2 paints A1 and C3, which looks the same after a half turn. A quarter turn takes A1 to A3, which would be empty."},
+      "B": {"trap": "missed_case", "text": "3 misses one corner. A quarter turn moves each painted corner to the next one, so all four must be painted."},
+      "C": {"trap": "ignored_condition", "text": "8 paints every cell a quarter turn moves, and the board does look the same, but the question asks for the fewest. The four corners are enough."},
+      "E": {"trap": "stopped_early", "text": "1 is A1 alone. After a quarter turn the paint would be in A3 instead."}
+    }
+  },
+  {
     "id": "grid-56-d2-1",
     "topic": "geometry.grid",
     "grade_level": "5-6",
@@ -159,6 +212,58 @@
       "B": {"trap": "reversed_relation", "text": "8 is the smallest perimeter, the 2 by 2 square."},
       "D": {"trap": "ignored_condition", "text": "12 is two pairs lying apart, not one shape."},
       "E": {"trap": "area_perimeter_swap", "text": "4 is the area in square centimetres."}
+    }
+  },
+  {
+    "id": "grid-56-d5-1",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A rectangle is drawn along the lines of squared paper, and it is not a square. The number of cells inside it equals the number of cell sides around its edge. How many cells long are its sides?",
+    "options": {"A": "3 and 6", "B": "4 and 4", "C": "2 and 5", "D": "2 and 2", "E": "4 and 5"},
+    "correct_answer": "A",
+    "hint": "Write the number of cells and the number of sides around the edge in terms of the two sides. Then try the shorter side as 1, 2, 3 and so on.",
+    "solution": "Say the shorter side is a cells and the longer b cells. The rectangle holds a × b cells and has 2 × (a + b) sides around it. With a = 3, 3b = 6 + 2b gives b = 6: 18 cells and 18 sides. With a = 4 the longer side is 4 as well, a square. With a = 1 or 2 the sides always outnumber the cells, and with a = 5 or more the cells outnumber the sides, since b is at least as long as a. So the sides are 3 and 6.",
+    "distractors": {
+      "B": {"trap": "ignored_condition", "text": "4 and 4 gives 16 cells and 16 sides, but it is a square, which the question rules out."},
+      "C": {"trap": "area_perimeter_swap", "text": "2 and 5 has 10 cells, all of them along its edge, but the edge has 14 cell sides. It counts cells where sides are asked for."},
+      "D": {"trap": "wrong_operation", "text": "2 and 2 has 4 cells and 8 sides around it: it adds one width and one length instead of all four sides. It is a square, too, which the question rules out."},
+      "E": {"trap": "stopped_early", "text": "4 and 5 has 20 cells and 18 sides, close but not equal. The search has to go on."}
+    }
+  },
+  {
+    "id": "grid-56-d5-2",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Cell A1 of a 4 by 4 square of cells is painted. Rows are A to D from the top, columns 1 to 4 from the left. You may fold the square along any line of its grid and open it again, and every cell that lands on a painted cell is painted too. What is the fewest folds that paint the whole square?",
+    "picture": {"kind": "grid", "rows": ["A", "B", "C", "D"], "cols": ["1", "2", "3", "4"], "filled": ["A1"]},
+    "options": {"A": "2", "B": "3", "C": "4", "D": "15", "E": "16"},
+    "correct_answer": "C",
+    "hint": "At most how many new cells can one fold paint?",
+    "solution": "A fold paints a cell only where it lands on a painted one, so each fold at most doubles the painted cells: 1, 2, 4, 8 and 16 take four folds. Four are enough: fold between columns 1 and 2, then between columns 2 and 3, which paints row A, then between rows A and B, and last between rows B and C.",
+    "distractors": {
+      "A": {"trap": "stopped_early", "text": "2 folds paint at most 4 cells, a corner of 2 by 2. The square has 16."},
+      "B": {"trap": "stopped_early", "text": "3 folds paint at most 8 cells, half the square, since a fold at most doubles the painted cells. One more fold is needed."},
+      "D": {"trap": "wrong_operation", "text": "15 paints one new cell with each fold. A fold can paint as many new cells as are painted already."},
+      "E": {"trap": "answered_other_question", "text": "16 is the number of cells of the square, not of folds."}
+    }
+  },
+  {
+    "id": "grid-56-d5-3",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A tile is made of 4 square cells, joined along whole sides into one piece. Two tiles have the same shape if one can be turned or flipped over to lie exactly on the other. How many different shapes can such a tile have?",
+    "options": {"A": "4", "B": "5", "C": "7", "D": "19", "E": "3"},
+    "correct_answer": "B",
+    "hint": "Start with four cells in a row and move one cell at a time. Which of the shapes you get are one shape turned or flipped?",
+    "solution": "There are five shapes: four cells in a line, a square of 2 by 2, an L, a T and a zigzag. A flipped L is still an L, and a flipped zigzag is still a zigzag, since flips are allowed. So there are 5.",
+    "distractors": {
+      "A": {"trap": "missed_case", "text": "4 misses one shape, often the zigzag or the T. There are five."},
+      "C": {"trap": "double_count", "text": "7 counts a shape and its flipped copy as two, the L twice and the zigzag twice. A flipped tile has the same shape."},
+      "D": {"trap": "double_count", "text": "19 counts every way a tile can lie as a new shape. Turned and flipped tiles have the same shape."},
+      "E": {"trap": "missed_case", "text": "3 counts only the line, the square and the L. The T and the zigzag are shapes too."}
     }
   }
 ]

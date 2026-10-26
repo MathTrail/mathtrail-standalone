@@ -1,5 +1,110 @@
 [
   {
+    "id": "sets-56-d1-1",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "In a yard there are cats and other animals, and some of the animals are called Vaska. Who are more: the cats, leaving out the cats that are not called Vaska, or the animals called Vaska, leaving out those that are not cats?",
+    "options": {
+      "A": "The cats",
+      "B": "The animals called Vaska",
+      "C": "It depends on how many cats there are",
+      "D": "They are as many",
+      "E": "The cats, by the cats not called Vaska"
+    },
+    "correct_answer": "D",
+    "hint": "Which animals are left in the first group once some are left out? And in the second?",
+    "solution": "Leaving out the cats that are not called Vaska leaves the cats called Vaska. Leaving out the animals called Vaska that are not cats leaves the same animals: the cats called Vaska. Both groups are the same animals, so they are as many.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_not",
+        "text": "The cats misses a 'not': leaving out every cat that is not called Vaska leaves only the cats called Vaska."
+      },
+      "B": {
+        "trap": "ignored_not",
+        "text": "The animals called Vaska misses a 'not': leaving out every one that is not a cat leaves only the cats called Vaska."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "It depends would be right for all the cats against all the animals called Vaska. The question leaves out the cats not called Vaska and the Vaskas that are not cats, and what is left of both groups is the cats called Vaska."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "The cats not called Vaska are how many more cats there are than cats called Vaska. Both groups in the question leave them out."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d1-2",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Two purses hold four coins in all, and one purse holds twice as many coins as the other. How many coins does the purse that holds more have inside it?",
+    "options": {
+      "A": "4",
+      "B": "It cannot be",
+      "C": "2",
+      "D": "8/3",
+      "E": "6"
+    },
+    "correct_answer": "A",
+    "hint": "Must the two purses lie side by side?",
+    "solution": "Side by side, the purses would hold three equal parts of the coins, and four coins do not make three equal parts. But one purse can lie inside the other. Put two coins in the small purse, then put the small purse and the other two coins in the big one. The small purse holds 2 coins, and the big purse holds 4: its own two and the two in the small purse.",
+    "distractors": {
+      "B": {
+        "trap": "missed_case",
+        "text": "It can be: one purse may lie inside the other, a case that purses side by side leave out."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "2 is what the small purse holds. The question asks about the purse that holds more."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "8/3 shares the four coins in the ratio 2 to 1, but a coin cannot be cut. The purses lie one inside the other."
+      },
+      "E": {
+        "trap": "double_count",
+        "text": "6 counts the coins in the small purse twice, once for each purse. There are only four coins, and the big purse holds all of them."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d1-3",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "In a music club, one in every 3 pupils who sing also plays the drum. One in every 5 pupils who play the drum also sings. 12 pupils of the club sing. How many pupils of the club play the drum?",
+    "options": {
+      "A": "4",
+      "B": "20",
+      "C": "36",
+      "D": "24",
+      "E": "60"
+    },
+    "correct_answer": "B",
+    "hint": "How many pupils both sing and play the drum?",
+    "solution": "One in every 3 of the 12 singers plays the drum, so 12 ÷ 3 = 4 pupils do both. These 4 are one in every 5 drummers, so there are 4 × 5 = 20 drummers.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "4 is the number of pupils who both sing and play the drum, found on the way. They are one in every 5 drummers."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "36 multiplies the 12 singers by 3, where they should be divided by 3."
+      },
+      "D": {
+        "trap": "ratio_total_confusion",
+        "text": "24 takes one in every 5 as one singer to every 5 drummers who do not sing. The 4 who sing are one in every 5 of all the drummers, so there are 20."
+      },
+      "E": {
+        "trap": "part_whole_swap",
+        "text": "60 takes all 12 singers as the drummers who sing, but only one in every 3 of them plays the drum."
+      }
+    }
+  },
+  {
     "id": "sets-56-d2-1",
     "topic": "logic.sets",
     "grade_level": "5-6",
@@ -319,6 +424,111 @@
       "E": {
         "trap": "double_count",
         "text": "57 adds the two groups, so the pupils who read both are counted twice."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d5-1",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Each of the 30 pupils of a class goes to exactly two of three clubs: chess, music and drama. 20 pupils go to chess and 18 go to music. How many pupils go to drama?",
+    "options": {
+      "A": "8",
+      "B": "38",
+      "C": "60",
+      "D": "It cannot be",
+      "E": "22"
+    },
+    "correct_answer": "E",
+    "hint": "Count the places in the clubs. How many places does each pupil take?",
+    "solution": "Each pupil takes two places, so the clubs hold 2 × 30 = 60 places. Chess and music take 20 + 18 = 38 of them, so drama takes 60 − 38 = 22.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "8 is the number of pupils who go to both chess and music. The question asks about drama."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "38 adds the chess and music counts. Drama holds what the 60 places leave after them."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "60 is the number of places in the three clubs together, found on the way. Drama holds 22 of them."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "It can be. 20 + 18 is more than 30 because every pupil is counted in two clubs."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d5-2",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Ann writes the numbers 5, 11, 17, 23 and so on, adding 6 each time, as long as they are at most 100. Ben writes 2, 7, 12, 17 and so on, adding 5 each time, also up to 100. How many numbers are on both lists?",
+    "options": {
+      "A": "2",
+      "B": "33",
+      "C": "36",
+      "D": "3",
+      "E": "30"
+    },
+    "correct_answer": "D",
+    "hint": "17 is on both lists. Which number after 17 is the next one on both?",
+    "solution": "A number on both lists lies after 17 by a number of sixes and also by a number of fives, so by a number of 30s. The numbers on both are 17, 47 and 77, and 107 is past 100. So there are 3.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "2 misses one of 17, 47 and 77, the numbers on both lists."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "33 is how many different numbers the two lists hold together. The question asks how many are on both."
+      },
+      "C": {
+        "trap": "double_count",
+        "text": "36 counts every number written, 16 of Ann's and 20 of Ben's, with the three on both lists counted twice."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "30 is the step between the numbers on both lists, found on the way."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d5-3",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A zoo may or may not keep lions, zebras and camels, so there are 8 kinds of zoo. Three rules hold. A zoo with lions keeps zebras too. A zoo with camels keeps zebras too. A zoo with zebras keeps lions too. How many of the 8 kinds of zoo do the rules allow?",
+    "options": {
+      "A": "5",
+      "B": "2",
+      "C": "3",
+      "D": "8",
+      "E": "1"
+    },
+    "correct_answer": "C",
+    "hint": "Write down the 8 kinds and cross out each one that a rule forbids.",
+    "solution": "The first rule forbids lions without zebras: lions alone, and lions with camels. The second forbids camels without zebras: camels alone, and lions with camels again. The third forbids zebras without lions: zebras alone, and zebras with camels. That crosses out 5 different kinds, so 8 − 5 = 3 are allowed: no animals at all, lions with zebras, and all three.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "5 crosses out one kind for each rule, but each rule forbids two kinds: the first forbids lions alone and lions with camels."
+      },
+      "B": {
+        "trap": "double_count",
+        "text": "2 crosses out lions with camels twice, once for each of the first two rules. It is one kind, so the rules forbid 5 kinds, not 6."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "8 forgets the rules. Each of them forbids two kinds of zoo."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "1 keeps only the zoo with all three animals. The zoo with lions and zebras and the zoo with no animals break no rule either."
       }
     }
   }
