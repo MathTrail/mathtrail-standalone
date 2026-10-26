@@ -1703,6 +1703,111 @@
     }
   },
   {
+    "id": "ord-56-d1-1",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Five friends ran a race: Kim, Leo, Max, Nina and Olga. Leo finished right after Nina. Olga finished before Kim, and Max finished after Kim but was not last. In which place did Max finish?",
+    "options": {
+      "A": "5",
+      "B": "3",
+      "C": "4",
+      "D": "1",
+      "E": "2"
+    },
+    "correct_answer": "B",
+    "hint": "Nina and Leo finished one right after the other. Where is there room for the two of them?",
+    "solution": "Olga and Kim finished before Max, so Max was at least third, and he was not last. If Max were fourth, only the last place would be left after him, and Nina and Leo, who need two places side by side, would not fit before him with Olga and Kim. So Max was third: Olga, Kim, Max, Nina, Leo.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "5 forgets that Max was not last."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "4 leaves a place between Nina and Leo, but Leo finished right after Nina. The two need two places side by side."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "1 puts Max before Kim, but Max finished after Kim."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "2 is how many friends finished ahead of Max, Olga and Kim. His place is one more: third."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d1-2",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Five children stand in a queue: Ali, Bea, Cal, Dina and Eli. Bea stands somewhere in front of Dina, and Dina somewhere in front of Ali. Cal stands right behind Ali. Eli is not last, and Eli does not stand next to Bea. Who stands third?",
+    "options": {
+      "A": "Cal",
+      "B": "Ali",
+      "C": "Dina",
+      "D": "Eli",
+      "E": "Bea"
+    },
+    "correct_answer": "D",
+    "hint": "Ali and Cal stand together, and both are behind Bea and Dina. Who can be last?",
+    "solution": "Bea stands in front of Dina, Dina in front of Ali, and Cal right behind Ali, so Cal stands behind all three of them. Eli is not last, so Cal is last and Ali fourth. Bea, Dina and Eli fill the first three places, Bea before Dina and Eli not next to Bea, so the order is Bea, Dina, Eli. Eli stands third.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "Cal stands third if Ali stands in front of Dina, but Dina stands somewhere in front of Ali."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "Ali stands third only if Eli is last, but Eli is not last."
+      },
+      "C": {
+        "trap": "ignored_not",
+        "text": "Dina stands third if Eli stands next to Bea, but Eli does not stand next to her."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "Bea stands third if she stands behind Dina, but she stands somewhere in front of Dina."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d1-3",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Four shapes lie in a row: a circle, a square, a star and a heart. Each is a different colour: red, blue, green or yellow. The circle is at the left end and the heart at the right end. The red shape lies right after the circle. The star is yellow, and the green shape lies next to the star. What colour is the circle?",
+    "options": {
+      "A": "Blue",
+      "B": "Green",
+      "C": "Red",
+      "D": "Yellow",
+      "E": "It cannot be told"
+    },
+    "correct_answer": "A",
+    "hint": "Which shape lies right after the circle, and so is red?",
+    "solution": "The circle is first and the heart last, so the square and the star are second and third. The second shape is red and the star is yellow, so the square is second and red, and the star is third. The green shape lies next to the star, so it is the heart, and blue is the colour left for the circle.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "Green fits the circle only if the green shape need not lie next to the star. The heart lies next to the star, and it is green."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "Red is the colour of the square, the shape right after the circle, not of the circle itself."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "Yellow is the colour of the star. The question asks about the circle."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "It can be told: once the heart turns out to be green, blue is the only colour left for the circle."
+      }
+    }
+  },
+  {
     "id": "ord-56-d2-1",
     "topic": "logic.ordering",
     "grade_level": "5-6",
@@ -2018,6 +2123,131 @@
       "E": {
         "trap": "ignored_condition",
         "text": "Dean performs second or last, never third."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d5-1",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Six runners finished a race: Ann, Ben, Cat, Dan, Eve and Fay. Dan finished after Cat but before Eve. Ann finished right after Dan, and Ben right after Eve. Eve did not finish next to Ann. Who finished fourth?",
+    "options": {
+      "A": "Cat",
+      "B": "Eve",
+      "C": "Ann",
+      "D": "Dan",
+      "E": "Fay"
+    },
+    "correct_answer": "E",
+    "hint": "Dan and Ann finished side by side, and so did Eve and Ben. Who can stand between Ann and Eve?",
+    "solution": "Cat finished before Dan, Ann right after Dan, and Eve, with Ben right after her, later than Dan. Eve did not finish next to Ann, so someone finished between Ann and Eve, and Fay is the only runner left for that place. Cat is then first: Cat, Dan, Ann, Fay, Eve, Ben. Fay finished fourth.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Cat is fourth only if she need not finish before Dan, but Dan finished after Cat."
+      },
+      "B": {
+        "trap": "ignored_not",
+        "text": "Eve is fourth only if she came right after Ann, but Eve did not finish next to Ann."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "Ann is fourth if Ben came right before Eve, but Ben finished right after Eve."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "Dan is fourth if Ann finished right before him, but Ann finished right after Dan."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d5-2",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Five houses stand in a row, numbered 1 to 5 from the left. They are painted red, blue, green, yellow and white, one colour each, and in each lives one pet: a cat, a dog, a fish, a bird or a horse. The blue house is house 3. The green house stands just to the left of the white one. The dog lives in the red house, and the cat next door to the dog. The fish lives in house 5, and the bird next door to the yellow house. Which pet lives in the green house?",
+    "picture": {
+      "kind": "row",
+      "items": [
+        {
+          "label": "1"
+        },
+        {
+          "label": "2"
+        },
+        {
+          "label": "3"
+        },
+        {
+          "label": "4"
+        },
+        {
+          "label": "5"
+        }
+      ]
+    },
+    "options": {
+      "A": "The fish",
+      "B": "The horse",
+      "C": "The cat",
+      "D": "The bird",
+      "E": "The dog"
+    },
+    "correct_answer": "B",
+    "hint": "The blue house is in the middle. Where can the green and white houses stand side by side?",
+    "solution": "The blue house is house 3, so the green and white houses are houses 1 and 2 or houses 4 and 5. If they were 1 and 2, the dog's red house would be 4, since the fish is in 5, and the yellow house 5; the bird, next door to it, would then share house 4 with the dog. So green and white are houses 4 and 5. The red house is not 2 either: the yellow house would be 1, and the bird next door to it would again be in the dog's house. So the colours are red, yellow, blue, green and white, the dog lives in 1, the cat in 2, the bird in 3, the fish in 5, and the horse in the green house 4.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "The fish would live in the green house if the green house stood just to the right of the white one, but it stands just to the left of it."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "The cat lives in house 2, next door to the dog, as the clue says, not in the green house 4."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "The bird lives next door to the yellow house 2, in the blue house 3, not in the green house."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "The dog lives in the red house, house 1. The question asks about the green house."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d5-3",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Six children compared their heights in pairs and wrote down what they found. Ann is taller than Dan. Dan is taller than Ben and taller than Eve. Kim is shorter than Ben and shorter than Eve. Fay is shorter than Kim. Which two children cannot be put in order of height from these results?",
+    "options": {
+      "A": "Dan and Kim",
+      "B": "Ann and Fay",
+      "C": "Eve and Fay",
+      "D": "None: all six can be put in order",
+      "E": "Ben and Eve"
+    },
+    "correct_answer": "E",
+    "hint": "Draw an arrow from each child to each child known to be shorter. Which two are joined by no chain of arrows?",
+    "solution": "Ann is taller than Dan, Dan taller than Ben and Eve, Ben and Eve taller than Kim, and Kim taller than Fay. So Ann is the tallest, then Dan, and Kim and Fay are the two shortest. Ben and Eve both stand between Dan and Kim, but no result compares the two of them, directly or through anyone else. So Ben and Eve cannot be put in order.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "Dan and Kim were never compared, but Dan is taller than Ben, and Ben is taller than Kim."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "Ann and Fay were never compared, but Ann is taller than Dan, Dan than Ben, Ben than Kim and Kim than Fay, so Ann is taller."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "Eve and Fay would be left unknown if Kim were taller than Eve, but Kim is shorter than Eve, so Eve is taller than Fay."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "Ben and Eve are both shorter than Dan and taller than Kim, and nothing compares the two of them."
       }
     }
   }

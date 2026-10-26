@@ -854,6 +854,111 @@
     }
   },
   {
+    "id": "kl-56-d1-1",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Four knights and two liars meet. Which of these sentences could each of the six say to the other five?",
+    "options": {
+      "A": "'All of you are liars.'",
+      "B": "'Exactly four of us are knights.'",
+      "C": "'Exactly four of you are knights.'",
+      "D": "'Exactly three of you are knights.'",
+      "E": "'At least one of you is a liar.'"
+    },
+    "correct_answer": "D",
+    "hint": "'You' are the other five. Which sentence is true when a knight says it and false when a liar says it?",
+    "solution": "A sentence each of the six could say has to be true when a knight says it and false when a liar says it. Among the other five, a knight sees 3 knights and 2 liars, and a liar sees 4 knights and 1 liar. So 'Exactly three of you are knights' is true for a knight and false for a liar, and it is the only one of the sentences that is.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "This sentence is false whoever says it. A liar could say it, but a knight could not, since a knight sees 3 knights among the other five."
+      },
+      "B": {
+        "trap": "trusted_statement",
+        "text": "This sentence is true whoever says it, so a liar could not say it."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "This counts the speaker among 'you'. A knight sees only 3 knights among the other five, so it would be false when a knight says it."
+      },
+      "E": {
+        "trap": "trusted_statement",
+        "text": "This is true for everyone: a knight sees 2 liars, and a liar sees 1. So a liar could not say it."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d1-2",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Ilya always tells the truth. One day he was asked the same question twice and gave two different answers. Which of these questions could it have been?",
+    "options": {
+      "A": "'Do you always tell the truth?'",
+      "B": "'How many times have I asked you this question?'",
+      "C": "'How much is 7 + 8?'",
+      "D": "'What is your name?'",
+      "E": "None: someone who always tells the truth never changes an answer"
+    },
+    "correct_answer": "B",
+    "hint": "Ilya told the truth both times. What could have changed between the first time he was asked and the second?",
+    "solution": "Ilya told the truth both times, so his two answers can differ only if the true answer changed in between. To 'How many times have I asked you this question?' the true answer is 'once' the first time and 'twice' the second. The true answers to the other questions stay the same, so Ilya would give each of them twice.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "'Yes' is the true answer to it both times, and Ilya tells the truth both times."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "15 is the true answer to it both times, so Ilya would say 15 twice."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "His name does not change, so his true answer is the same both times."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "An answer can change when the truth changes: 'once' is true the first time he is asked, and 'twice' the second time."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d1-3",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Five islanders stand in a row. The first says: 'At least one of us five is a knight.' The second says: 'At least two of us are knights,' the third 'At least three,' the fourth 'At least four,' and the fifth 'All five of us are knights.' How many knights can there be among the five?",
+    "options": {
+      "A": "None: the five sentences cannot all fit",
+      "B": "Exactly 5",
+      "C": "Exactly 0",
+      "D": "Exactly 3",
+      "E": "Any number from 0 to 5"
+    },
+    "correct_answer": "E",
+    "hint": "Try two knights. Who would they have to be, and would the other three then lie?",
+    "solution": "Say there are h knights. Then the sentences from 'at least one' up to 'at least h' are true and the others false. The first h islanders said true sentences, so they are knights, and the others said false ones, so they are liars: that makes h knights, as supposed. This works for every h from 0 to 5, so any number of knights from 0 to 5 fits.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "The sentences fit together for any number of knights: with h knights, the first h are true and the rest false."
+      },
+      "B": {
+        "trap": "trusted_statement",
+        "text": "5 takes all five at their word. That fits, but so does every other number: with 2 knights, the first two tell the truth and the other three lie."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "0 fits, since then every sentence is false, but so does every other number from 1 to 5."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "3 reads each 'at least' as 'at most'. With 'at least', every number from 0 to 5 fits."
+      }
+    }
+  },
+  {
     "id": "kl-56-d2-1",
     "topic": "logic.knights_liars",
     "grade_level": "5-6",
@@ -1168,6 +1273,111 @@
       "E": {
         "trap": "answered_other_question",
         "text": "3 is the number of liars at the best table, not the number of knights."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d5-1",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. 24 islanders sit on 24 chairs, some blue and some red. Each of them says: 'I sit on a blue chair.' Then they all change seats, and now 8 of them say 'I sit on a red chair', while the other 16 say 'I sit on a blue chair.' How many knights sit on red chairs now?",
+    "options": {
+      "A": "4",
+      "B": "8",
+      "C": "0",
+      "D": "It cannot be found without the number of knights",
+      "E": "16"
+    },
+    "correct_answer": "A",
+    "hint": "Before they changed seats, where did the knights sit, and where did the liars sit?",
+    "solution": "At first every knight sat on a blue chair, since knights tell the truth, and every liar on a red one, since a liar's 'blue' is false. So there are as many blue chairs as knights. After the change, say k knights sit on red chairs. Their blue chairs went to k liars, since the blue chairs are as many as the knights. Those who now say 'red' are the knights on red chairs and the liars on blue ones, k + k = 8, so k = 4.",
+    "distractors": {
+      "B": {
+        "trap": "trusted_statement",
+        "text": "8 takes everyone who says 'red' at their word. A liar on a blue chair says 'red' too."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "0 keeps the knights on blue chairs, as they sat at first, but they all changed seats."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "The number of knights is not needed: whatever it is, the knights on red chairs and the liars on blue ones are as many, and together they are 8."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "16 is how many islanders say they sit on blue chairs. The question asks how many knights sit on red chairs."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d5-2",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Four islanders talk about a cake. Ann says: 'Ben and Kim both ate some of it.' Ben says: 'Neither Ann nor Kim ate any of it.' Kim says: 'Ann and Ben are both liars.' Dan says: 'Exactly two of Ann, Ben and Kim are knights.' How many of the four are knights?",
+    "options": {
+      "A": "2",
+      "B": "3",
+      "C": "1",
+      "D": "It depends on who ate the cake",
+      "E": "0"
+    },
+    "correct_answer": "C",
+    "hint": "Can Ann and Ben both be knights? Try each of them as a knight, and then neither.",
+    "solution": "Ann says Kim ate some cake and Ben says Kim ate none, so they cannot both be knights. If Ann is a knight, Ben is a liar and Kim, who says both are liars, is a liar too. If Ben is a knight, Ann and Kim are liars in the same way. If both Ann and Ben are liars, Kim tells the truth and is a knight. So exactly one of Ann, Ben and Kim is a knight, Dan's 'exactly two' is false, and Dan is a liar: one of the four is a knight.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "2 makes Ann and Ben both knights, but Ann says Kim ate some cake and Ben says Kim ate none."
+      },
+      "B": {
+        "trap": "trusted_statement",
+        "text": "3 takes Dan at his word. Exactly one of Ann, Ben and Kim is a knight, so Dan's sentence is false and he is a liar."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "Who ate the cake decides which islander is the knight, but not how many knights there are: in every case there is exactly one."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "0 cannot be: if Ann and Ben are both liars, Kim's sentence is true, so Kim is a knight."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d5-3",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "In a football match, a team of 6 truth-tellers, who always tell the truth, played a team of 6 liars, who always lie. The truth-tellers won 12 to 9. Afterwards every player was asked: 'How many goals did you score?' Some said 'one', some 'three' and some 'seven', and Misha alone said 'four'. Is Misha a liar?",
+    "options": {
+      "A": "No: 12 is even, and so is 4",
+      "B": "No, he tells the truth",
+      "C": "It cannot be told without knowing his team",
+      "D": "Yes, he is a liar",
+      "E": "No: anyone may have scored four goals"
+    },
+    "correct_answer": "D",
+    "hint": "If Misha were a truth-teller, what kind of number would the six truth-tellers' answers add up to?",
+    "solution": "The truth-tellers' answers are their real goals, so they add up to 12. If Misha were one of them, the other five would have said one, three or seven, all odd numbers, and five odd numbers add up to an odd number. With Misha's four the sum would still be odd, never 12. So Misha played for the liars, and he lied.",
+    "distractors": {
+      "A": {
+        "trap": "wrong_parity",
+        "text": "Five odd answers add up to an odd number, and adding 4 keeps it odd, so the sum cannot be the even 12."
+      },
+      "B": {
+        "trap": "trusted_statement",
+        "text": "This takes Misha at his word. With him among the truth-tellers, their answers could not add up to 12."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "His team can be found: a truth-teller who said four would make the truth-tellers' answers add up to an odd number, not 12."
+      },
+      "E": {
+        "trap": "trusted_statement",
+        "text": "Four goals are possible in a game, but not for a truth-teller here: the truth-tellers' answers would then add up to an odd number."
       }
     }
   }
