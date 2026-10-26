@@ -216,10 +216,13 @@ sources:
     mathnet:
       name: MathNet
       note: Uma coleção aberta de problemas de olimpíadas de muitos países. Cada tema tem uma lista de ideias em que seus problemas se baseiam, e para o {first}º–{last}º ano algumas delas vêm desta coleção, assim como o tipo de problema de alguns problemas de referência. Alguns países mantêm os direitos sobre seus problemas, por isso também daqui só se tira a ideia, nunca o texto.
+    gsm:
+      name: GSM8K
+      note: Uma coleção aberta de problemas escolares com enunciado, em inglês. Para o {first}º–{last}º ano, dela vem o tipo de problema de alguns problemas de referência, cujos textos foram escritos de novo.
   total: No total, {count} {noun}
   each: cada um com um resolvedor e uma armadilha por trás de cada alternativa errada
   level: "{count} · {first}º–{last}º ano"
-  note: O estilo segue as coletâneas soviéticas. Um problema de referência não tem um campo para a fonte, então não é possível dizer de quem é a ideia de cada problema.
+  note: O estilo segue as coletâneas soviéticas. As ideias, e o tipo de problema de muitos problemas de referência, vêm também de coletâneas em russo de círculos de matemática e olimpíadas, lidas na base de problemas problems.ru; seus textos são protegidos, por isso também delas só se tira a ideia ou o tipo de problema, nunca o texto. Um problema de referência não tem um campo para a fonte, então não é possível dizer de quem é a ideia de cada problema.
 
 paper:
   title: O artigo completo

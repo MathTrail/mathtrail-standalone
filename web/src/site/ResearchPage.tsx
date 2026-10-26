@@ -60,8 +60,8 @@ export function ResearchPage({ page, data }: PageProps) {
 // Sources is where the ideas of the tasks came from: the rule that takes an
 // idea and not a text, the authors of the books with the year each died, that
 // the books belong to everyone, the collections of problems that give ideas to
-// the topics' lists, each with its licence and the grades it gives them for,
-// and the reference tasks by level.
+// the topics' lists or kinds of problem to the reference tasks, each with its
+// licence and the grades it gives them for, and the reference tasks by level.
 function Sources({ page, research }: { page: PageReader; research: Research }) {
 	const words = useSiteWords();
 	const total = research.product.reference_tasks.total;

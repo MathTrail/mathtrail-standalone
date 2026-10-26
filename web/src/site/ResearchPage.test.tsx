@@ -47,11 +47,12 @@ const wordsIn = (locale: string) =>
 const tex = textOf("research", "paper-a", "main.tex");
 const russianDraft = textOf("research", "paper-a", "draft.ru.md");
 
-// names are the names in the page's words that carry digits of their own, the
-// cipher that seals the answer; drawn are the names the drawn page shows with
-// digits, those and the licences of the collections of problems, which come
-// from the data rather than from the words.
-const names = ["XChaCha20-Poly1305"];
+// names are the names in the page's words that carry digits of their own: the
+// cipher that seals the answer, and a collection of problems; drawn are the
+// names the drawn page shows with digits, those and the licences of the
+// collections of problems, which come from the data rather than from the
+// words.
+const names = ["XChaCha20-Poly1305", "GSM8K"];
 const drawn = [
 	...names,
 	...file.research.collections.map(({ licence }) => licence),
@@ -767,18 +768,27 @@ describe("the page Research", () => {
 	});
 
 	test.each(languages)(
-		"names in %s the collection of problems the ideas come from, with its address, its licence and its grades",
+		"names in %s the collections of problems the ideas come from, each with its address, its licence and its grades",
 		(locale) => {
 			const shown = pages.get(locale) as Document;
-			const [collection] = file.research.collections;
-			const link = shown.querySelector(".s-research-collections a");
+			const links = [...shown.querySelectorAll(".s-research-collections a")];
 
-			expect(link?.getAttribute("href")).toBe(collection?.url);
-			expect(link?.textContent).toBe("MathNet");
-			expect(texts(shown, ".s-research-licence")).toEqual([
-				collection?.licence,
+			expect(links.map((link) => link.getAttribute("href"))).toEqual(
+				file.research.collections.map(({ url }) => url),
+			);
+			expect(links.map((link) => link.textContent)).toEqual([
+				"MathNet",
+				"GSM8K",
 			]);
-			expect(values(shown, ".s-research-collections data")).toEqual(["5", "6"]);
+			expect(texts(shown, ".s-research-licence")).toEqual(
+				file.research.collections.map(({ licence }) => licence),
+			);
+			expect(values(shown, ".s-research-collections data")).toEqual([
+				"5",
+				"6",
+				"5",
+				"6",
+			]);
 		},
 	);
 

@@ -118,7 +118,7 @@ map:
     rule:
       name: The rule
       sub: Topic, goal, difficulty corridor
-      about: "Picks the brief deterministically: after a mistake, the same topic, to consolidate it; otherwise the topic not seen for the longest; the difficulty from the corridor where the chance of success is 70–85 %."
+      about: "Picks the brief deterministically: after a mistake, the same topic, to consolidate it; otherwise the topic not seen for the longest; the difficulty from the corridor where the chance of success is 70–85 %. A topic the child is behind in comes twice as often. Topics too hard for now are paused, and once the child's overall level reaches one, every sixth task may bring it back as a topic check."
     rating:
       name: Ratings
       sub: θ, δ, β · Elo over IRT

@@ -216,10 +216,13 @@ sources:
     mathnet:
       name: MathNet
       note: Eine offene Sammlung von Olympiadeaufgaben aus vielen Ländern. Jedes Thema hat eine Liste von Ideen, auf denen seine Aufgaben aufbauen, und für die Klassen {first}–{last} stammen einige davon aus dieser Sammlung, ebenso die Art der Aufgabe hinter manchen Referenzaufgaben. Manche Länder behalten die Rechte an ihren Aufgaben, deshalb wird auch von hier nur eine Idee übernommen, nie ein Text.
+    gsm:
+      name: GSM8K
+      note: Eine offene Sammlung schulischer Textaufgaben auf Englisch. Für die Klassen {first}–{last} stammt von hier die Art der Aufgabe hinter manchen Referenzaufgaben, deren Texte neu geschrieben sind.
   total: Insgesamt {count} {noun}
   each: jede mit einem Lösungsprogramm und einer Falle hinter jeder falschen Antwort
   level: "{count} · Klassen {first}–{last}"
-  note: Der Stil folgt den sowjetischen Aufgabensammlungen. Eine Referenzaufgabe hat kein Feld für ihre Quelle, deshalb lässt sich nicht sagen, von wem die Idee einer Aufgabe stammt.
+  note: Der Stil folgt den sowjetischen Aufgabensammlungen. Ideen, und die Art der Aufgabe hinter vielen Referenzaufgaben, stammen auch aus russischsprachigen Sammlungen von Mathezirkeln und Olympiaden, gelesen in der Aufgabendatenbank problems.ru; ihre Texte sind geschützt, deshalb wird auch von dort nur eine Idee oder eine Art der Aufgabe übernommen, nie ein Text. Eine Referenzaufgabe hat kein Feld für ihre Quelle, deshalb lässt sich nicht sagen, von wem die Idee einer Aufgabe stammt.
 
 paper:
   title: Die ganze Studie

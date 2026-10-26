@@ -624,6 +624,10 @@ a:hover {
 	background: var(--s-tint);
 	font-family: var(--font-mono);
 	font-size: 0.9em;
+	/* An address in the text, the connector's among them, is longer than a
+	   phone's line, and breaks where it has to rather than push the page
+	   sideways. */
+	overflow-wrap: anywhere;
 }
 
 .s-lead {
@@ -14739,11 +14743,12 @@ a.s-related-card:hover {
 }
 
 /* Devanagari joins the letters of a word under one line along their tops,
-   which the tightening of the Latin letters would break and overlap: on a
-   page in Hindi every text keeps its letters' own spacing, the Latin mark and
+   and Arabic joins them along the line it is written on, which the
+   tightening of the Latin letters would break and overlap: on a page in Hindi
+   or Arabic every text keeps its letters' own spacing, the Latin mark and
    figures too, which lose a hair of their tightening there, but for the tag
    "Beta", which is spaced out as a tag. */
-:root:lang(hi) :not(.s-nav-tag) {
+:root:is(:lang(hi), :lang(ar)) :not(.s-nav-tag) {
 	letter-spacing: normal;
 }
 
