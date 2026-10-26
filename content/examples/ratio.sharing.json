@@ -7,12 +7,12 @@
     "question": "In a class, the ratio of boys to girls is 2 : 3. What fraction of the class are boys?",
     "options": {
       "A": "2/3",
-      "B": "3/5",
-      "C": "2/5",
+      "B": "2/5",
+      "C": "3/5",
       "D": "3/2",
       "E": "1/2"
     },
-    "correct_answer": "C",
+    "correct_answer": "B",
     "hint": "For every 2 boys there are 3 girls. How many children make up one such group?",
     "solution": "For every 2 boys there are 3 girls, so every group of 2 + 3 = 5 children holds 2 boys. The boys are 2/5 of the class.",
     "distractors": {
@@ -20,7 +20,7 @@
         "trap": "ratio_total_confusion",
         "text": "2/3 compares the boys with the girls, not with the whole class. The class has 2 + 3 = 5 parts."
       },
-      "B": {
+      "C": {
         "trap": "answered_other_question",
         "text": "3/5 is the fraction of the class that are girls. The question asks about the boys."
       },
@@ -43,11 +43,11 @@
     "options": {
       "A": "8 km an hour",
       "B": "22 km an hour",
-      "C": "18 km an hour",
+      "C": "20 km an hour",
       "D": "6 km an hour",
-      "E": "20 km an hour"
+      "E": "18 km an hour"
     },
-    "correct_answer": "C",
+    "correct_answer": "E",
     "hint": "How long is the road? Nina rides at 12 km an hour for half an hour.",
     "solution": "Nina rides for half an hour at 12 km an hour, so the road is 6 km long. Omar rides those 6 km in 20 minutes, a third of an hour, so in a whole hour he would ride 3 × 6 = 18 km. He rides at 18 km an hour.",
     "distractors": {
@@ -59,13 +59,13 @@
         "trap": "wrong_operation",
         "text": "22 adds the 10 minutes Omar saves to Nina's speed. On the same road, a shorter time makes the speed so many times as big, not so much bigger."
       },
+      "C": {
+        "trap": "number_from_text",
+        "text": "20 is the number of minutes Omar takes, a number from the question, not his speed."
+      },
       "D": {
         "trap": "stopped_early",
         "text": "6 km is the length of the road, found on the way. The question asks how fast Omar rides."
-      },
-      "E": {
-        "trap": "number_from_text",
-        "text": "20 is the number of minutes Omar takes, a number from the question, not his speed."
       }
     }
   },
@@ -76,23 +76,23 @@
     "difficulty": 1,
     "question": "Tom and Ann walk at steady speeds. In the time Tom walks 3 km, Ann walks 2 km. How far has Ann walked when Tom has walked 12 km?",
     "options": {
-      "A": "7.2 km",
+      "A": "8 km",
       "B": "18 km",
-      "C": "8 km",
+      "C": "7.2 km",
       "D": "4 km",
       "E": "4.8 km"
     },
-    "correct_answer": "C",
+    "correct_answer": "A",
     "hint": "How many times as far as 3 km is 12 km?",
     "solution": "12 km is 4 times 3 km, so Tom has walked for 4 times as long. In that time Ann walks 4 × 2 = 8 km.",
     "distractors": {
-      "A": {
-        "trap": "ratio_total_confusion",
-        "text": "7.2 km takes 3/5 of 12 km, as if Tom's 3 km were a share of 5. The 3 and the 2 are what each walks in the same time."
-      },
       "B": {
         "trap": "reversed_relation",
         "text": "18 km gives Ann the longer walk. She walks 2 km while Tom walks 3, so she covers less than he does."
+      },
+      "C": {
+        "trap": "ratio_total_confusion",
+        "text": "7.2 km takes 3/5 of 12 km, as if Tom's 3 km were a share of 5. The 3 and the 2 are what each walks in the same time."
       },
       "D": {
         "trap": "stopped_early",
@@ -468,12 +468,12 @@
     "question": "A jar holds peaches in juice, and all the peaches are under the juice. Kim eats a quarter of the peaches, and the level in the jar falls by a fifth. By what part of the new level will it fall if Kim then eats half of the peaches that are left?",
     "options": {
       "A": "1/5",
-      "B": "2/5",
-      "C": "3/8",
+      "B": "3/8",
+      "C": "2/5",
       "D": "1/2",
       "E": "4/5"
     },
-    "correct_answer": "C",
+    "correct_answer": "B",
     "hint": "Taking out a quarter of the peaches lowered the level by a fifth. What part of the jar's contents were all the peaches?",
     "solution": "A quarter of the peaches took up a fifth of the contents, so all the peaches took up four fifths, and the juice one fifth. After Kim eats a quarter, the jar holds a fifth of juice and three fifths of peaches, four fifths in all. Half of the peaches left is three tenths of the old contents, which is 3/10 ÷ 4/5 = 3/8 of the four fifths now in the jar. So the level falls by 3/8.",
     "distractors": {
@@ -481,7 +481,7 @@
         "trap": "ignored_condition",
         "text": "1/5 repeats the first fall. But now a different number of peaches comes out, and the level is lower."
       },
-      "B": {
+      "C": {
         "trap": "wrong_operation",
         "text": "2/5 doubles the first fall because half is twice a quarter. But half of the peaches left is not twice the first quarter, and the level is lower now."
       },
@@ -504,11 +504,11 @@
     "options": {
       "A": "5/13",
       "B": "8/5",
-      "C": "8/13",
-      "D": "9/14",
+      "C": "9/14",
+      "D": "8/13",
       "E": "1/2"
     },
-    "correct_answer": "C",
+    "correct_answer": "D",
     "hint": "Compare one of Leo's spoonfuls with one of Mia's, and the number of spoonfuls each ate.",
     "solution": "Leo ate 80% as many spoonfuls as Mia, and each of his held twice as much as hers. So he ate 0.8 × 2 = 1.6 times as much jam as Mia. The jar splits 8 : 5 between Leo and Mia, so Leo ate 8/13 of it.",
     "distractors": {
@@ -520,7 +520,7 @@
         "trap": "ratio_total_confusion",
         "text": "8/5 is Leo's jam against Mia's, not against the whole jar. As a part of the jar it is 8/13."
       },
-      "D": {
+      "C": {
         "trap": "wrong_operation",
         "text": "9/14 adds the changes, 100% − 20%, as if Leo ate 180% of Mia's jam. The changes multiply: 80% of the spoonfuls times twice the spoon."
       },
