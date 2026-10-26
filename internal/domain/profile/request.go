@@ -188,7 +188,9 @@ func (p *Profile) Issue(written *Written, secret *TaskSecret, sealer Sealer, now
 // tasks already given, the oldest leaving when there are too many; its topic
 // records the day and the idea the task was built on, which is given from now
 // on; and the day's count of accepted tasks — the unit of the daily limit —
-// goes up.
+// goes up. The day is the family's, the one the limits count: the rule orders
+// the topics of one day by the tasks behind the child, and a day that ended at
+// another midnight than the family's would cut a lesson in two.
 func (p *Profile) handOut(task *CurrentTask, idea Idea, now time.Time) {
 	if flying := p.InFlight(); flying != nil {
 		p.leave(flying, now)
@@ -198,11 +200,13 @@ func (p *Profile) handOut(task *CurrentTask, idea Idea, now time.Time) {
 	if extra := len(p.TaskFingerprints) - MaxFingerprints; extra > 0 {
 		p.TaskFingerprints = slices.Clone(p.TaskFingerprints[extra:])
 	}
+	// Counted first, so that the day the topic records is the day the count
+	// has just moved onto.
+	p.CountAccepted(now)
 	topic := p.Topics[task.Topic]
-	topic.LastIssued = DateOf(now)
+	topic.LastIssued = p.Daily.Date
 	topic.gave(task.GradeLevel, idea)
 	p.putTopic(task.Topic, &topic)
-	p.CountAccepted(now)
 }
 
 // Skip takes the task off the card: the child asked for another. A task left
@@ -225,12 +229,21 @@ func (p *Profile) Skip(now time.Time) (Answer, bool) {
 	return p.leave(task, now), true
 }
 
-// DiscardTask takes the task off the card and records nothing about it. It is
-// for a task whose seal can no longer be opened — the key that sealed it has
-// been retired — which cannot be checked, so it cannot be answered; and a skip
-// would tell the parent the child leafed past a task the service lost. The
-// task's fingerprint and the generation it cost stay, as they do for a skip.
+// DiscardTask takes the task off the card and records nothing about it but
+// that it is behind the child. It is for a task whose seal can no longer be
+// opened — the key that sealed it has been retired — which cannot be checked,
+// so it cannot be answered; and a skip would tell the parent the child leafed
+// past a task the service lost. A task that had no answer yet is counted among
+// its topic's discarded tasks, since the turns and the task written ahead
+// already counted it as one the child left behind; an answered one is counted
+// by its answer. The task's fingerprint and the generation it cost stay, as
+// they do for a skip.
 func (p *Profile) DiscardTask() {
+	if left := p.InFlight(); left != nil {
+		topic := p.Topics[left.Topic]
+		topic.Discarded++
+		p.putTopic(left.Topic, &topic)
+	}
 	p.CurrentTask = nil
 }
 

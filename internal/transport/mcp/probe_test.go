@@ -177,6 +177,8 @@ func TestTheProgressSaysWhatPauseAndBehindMean(t *testing.T) {
 	for _, said := range []string{
 		"a topic behind the overall rank waits half as long for its turn",
 		"once in 6 tasks a paused topic comes back as a probe",
+		"as soon as the child's overall level reaches that task",
+		"a topic of a level the child has not grown into yet waits for it",
 		"as a probe of a topic on pause",
 	} {
 		if !strings.Contains(text, said) {

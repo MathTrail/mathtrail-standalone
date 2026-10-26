@@ -183,7 +183,7 @@ func TestOutOfReachOnlyAProbeIsSet(t *testing.T) {
 	properties := gopter.NewProperties(nil)
 
 	properties.Property("a topic out of reach is set while another is within reach only as a probe: "+
-		"on a probe's turn, and a topic on pause", prop.ForAll(
+		"on a probe's turn, and a topic on pause whose easiest task the overall level reaches", prop.ForAll(
 		func(s *seed) bool {
 			p := s.build()
 			brief, _, err := tutor.Next(p, c, tutor.Choice{})
@@ -194,27 +194,56 @@ func TestOutOfReachOnlyAProbeIsSet(t *testing.T) {
 			if !anyInReach || inReach(p, c, brief.TargetConcept) {
 				return true
 			}
-			return tutor.ProbeDue(p) && slices.Contains(tutor.PausedTopics(p, c), brief.TargetConcept)
+			return tutor.ProbeDue(p) && slices.Contains(tutor.Probeable(p, c), brief.TargetConcept)
 		},
 		genSeed(),
 	))
 
-	properties.Property("on a probe's turn a topic on pause is set, unless a failure is being worked over", prop.ForAll(
+	properties.Property("on a probe's turn a topic on pause that the overall level reaches is set, unless a "+
+		"failure is being worked over", prop.ForAll(
 		func(s *seed) bool {
 			p := s.build()
-			paused := tutor.PausedTopics(p, c)
-			if !tutor.ProbeDue(p) || len(paused) == 0 {
+			probed := tutor.Probeable(p, c)
+			if !tutor.ProbeDue(p) || len(probed) == 0 {
 				return true
 			}
 			brief, _, err := tutor.Next(p, c, tutor.Choice{})
 			if err != nil {
 				return false
 			}
-			return brief.PedagogicalGoal == profile.GoalReinforce || slices.Contains(paused, brief.TargetConcept)
+			return brief.PedagogicalGoal == profile.GoalReinforce || slices.Contains(probed, brief.TargetConcept)
 		},
 		genSeed(),
 	))
 
+	properties.TestingRun(t)
+}
+
+// A topic on pause beyond the overall level is never set by the rule, as a
+// probe or otherwise: what the rule sets on pause is a probe, and a probe takes
+// only a topic whose easiest task the overall level reaches.
+func TestATopicOnPauseBeyondTheOverallLevelIsNeverSet(t *testing.T) {
+	t.Parallel()
+
+	c := stepped()
+	properties := gopter.NewProperties(nil)
+	properties.Property("a topic on pause beyond the overall level is never set: whatever the rule sets on "+
+		"pause has its easiest task within reach of the overall level", prop.ForAll(
+		func(s *seed) bool {
+			p := s.build()
+			brief, _, err := tutor.Next(p, c, tutor.Choice{})
+			if err != nil {
+				return false
+			}
+			topic := brief.TargetConcept
+			if !slices.Contains(tutor.PausedTopics(p, c), topic) {
+				return true
+			}
+			points := rating.Points(c.LevelsOf(topic)...)
+			return len(points) > 0 && rating.InReach(p.Ratings.Theta, points[0])
+		},
+		genSeed(),
+	))
 	properties.TestingRun(t)
 }
 
@@ -413,8 +442,8 @@ func TestTopicsTakeTurnsWithinADay(t *testing.T) {
 			case !s.anew:
 				return false
 			case s.probe():
-				return !s.probeDue || !slices.Contains(s.paused, s.topic)
-			case s.probeDue && len(s.paused) > 0:
+				return !s.probeDue || !slices.Contains(s.probeable, s.topic)
+			case s.probeDue && len(s.probeable) > 0:
 				return true // a probe's turn went to the turns
 			default:
 				return s.topic != s.waitedLongest
@@ -496,14 +525,15 @@ func genDay() gopter.Gen {
 // set it anew rather than to go over a failure; the topics it chose among, and
 // of them the one that has waited longest, worked out from the order the day
 // gave its tasks in; the topic of the task before; whether the task took a
-// probe's turn, and the topics on pause when it did; and how its answer went,
-// whether it was right and whether its topic was within reach after it.
+// probe's turn, and the topics on pause a probe could take when it did; and
+// how its answer went, whether it was right and whether its topic was within
+// reach after it.
 type step struct {
 	topic, waitedLongest, previous string
 	anew                           bool
 	waiting                        []string
 	probeDue                       bool
-	paused                         []string
+	probeable                      []string
 	right, reachedAfter            bool
 }
 
@@ -528,13 +558,13 @@ func playDay(t *testing.T, catalog tutor.Catalog, sealer profile.Sealer, d *dayS
 		for _, topic := range waiting {
 			behind[topic] = p.Behind(topic)
 		}
-		due, paused := tutor.ProbeDue(p), tutor.PausedTopics(p, catalog)
+		due, probeable := tutor.ProbeDue(p), tutor.Probeable(p, catalog)
 		next, mode, err := tutor.Next(p, catalog, tutor.Choice{})
 		if err != nil {
 			t.Fatalf("Next() error = %v, want nil", err)
 		}
 		set := step{topic: next.TargetConcept, waitedLongest: waitedLongestOf(waiting, given, place, behind),
-			anew: next.PedagogicalGoal == profile.GoalNewTopic, waiting: waiting, probeDue: due, paused: paused}
+			anew: next.PedagogicalGoal == profile.GoalNewTopic, waiting: waiting, probeDue: due, probeable: probeable}
 		if len(steps) > 0 {
 			set.previous = steps[len(steps)-1].topic
 		}

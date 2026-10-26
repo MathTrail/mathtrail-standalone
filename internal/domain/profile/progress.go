@@ -51,18 +51,25 @@ type Topic struct {
 	// Delta corrects the overall level for this topic — a child may count
 	// well and reason about parity badly.
 	Delta float64 `json:"delta"`
+	// Discarded is how many tasks of this topic were taken off the card
+	// without an answer because their seal could no longer be opened. They
+	// are behind the child as a task answered or skipped is, so the turns
+	// that count the tasks behind count them, and the reference tasks of the
+	// topic turn past them; no rating reads them, and the parent is not shown
+	// them, since the child did not leaf past them.
+	Discarded int `json:"discarded,omitzero"`
 	// Ideas is how far the child has come through the topic's list of ideas
 	// at each level: the ideas the tasks handed out were built on, by round.
 	// The next task is built on an idea not yet given in its round, so that
 	// the tasks of a topic go through its ideas before any comes back. A
 	// topic with no task built on an idea yet has none.
 	Ideas map[rating.GradeLevel]IdeaRound `json:"ideas,omitempty"`
-	// LastIssued is the day a task of this topic was last accepted, and is
-	// absent for a topic never issued, which the rule puts first. It moves
-	// when a task is accepted rather than when the topic is chosen: a
-	// generation that produced nothing must not push its topic away. A day
-	// cannot order the topics given on it, so the rule orders those by the
-	// history window.
+	// LastIssued is the day a task of this topic was last accepted, the
+	// family's day as the limits count it, and is absent for a topic never
+	// issued, which the rule puts first. It moves when a task is accepted
+	// rather than when the topic is chosen: a generation that produced
+	// nothing must not push its topic away. A day cannot order the topics
+	// given on it, so the rule orders those by the history window.
 	LastIssued Date `json:"last_issued,omitzero"`
 	// MasteredLevel is the level the topic is mastered at: the highest of its
 	// levels, at or below the task whose answer earned mastery, that the

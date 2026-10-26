@@ -43,12 +43,34 @@ func pausedAmong(p *profile.Profile, catalog Catalog, open []string) []string {
 	return paused
 }
 
+// probeable are the topics on pause a probe may take now, in catalog order:
+// those whose easiest task the child's overall level reaches without the
+// topic's own correction, so that it is that correction alone which keeps
+// them out of reach. A topic on pause beyond the overall level — one the child
+// met once at a level they have not grown into, because a person or the model
+// chose it — waits on pause until the overall level comes to it: probed every
+// sixth task, it would be failed again and again, and a right answer guessed
+// among five options would lift it into reach and set the child the tasks of a
+// level far above their own. The probe's own chance, at the level in the topic,
+// still has no floor.
+func probeable(p *profile.Profile, catalog Catalog) []string {
+	var probed []string
+	for _, topic := range PausedTopics(p, catalog) {
+		if points := pointsOf(catalog, topic); len(points) > 0 && rating.InReach(p.Ratings.Theta, points[0]) {
+			probed = append(probed, topic)
+		}
+	}
+	return probed
+}
+
 // Probes reports whether a task on this topic, chosen by mode, is a probe: set
-// by the rule in a topic on pause now. What the task is follows from where the
-// child stands rather than from anything kept with it, so the card that shows
-// it and the answer that lifts it read it the same way.
+// by the rule in a topic on pause that a probe may take now. What the task is
+// follows from where the child stands rather than from anything kept with it,
+// so the card that shows it and the answer that lifts it read it the same way;
+// a task written ahead whose topic has since fallen below the overall level is
+// answered as any task is, and its right answer lifts nothing.
 func Probes(p *profile.Profile, catalog Catalog, topic string, mode profile.TutorMode) bool {
-	return mode == profile.TutorRule && slices.Contains(PausedTopics(p, catalog), topic)
+	return mode == profile.TutorRule && slices.Contains(probeable(p, catalog), topic)
 }
 
 // JudgingOf is what the rule and the catalog know of the task on the card,

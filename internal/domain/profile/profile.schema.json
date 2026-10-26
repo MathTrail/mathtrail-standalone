@@ -196,6 +196,11 @@
           "description": "The correction to the overall level for this topic.",
           "type": "number"
         },
+        "discarded": {
+          "description": "Tasks of this topic taken off the card without an answer because their seal could no longer be opened. No rating reads it and no screen shows it: like a skipped task, it counts among the tasks behind the child, which pick the ones dressed in an interest and the probes, and it turns the reference tasks the topic's packages show. Absent means none.",
+          "type": "integer",
+          "minimum": 0
+        },
         "ideas": {
           "description": "How far the child has come through the topic's list of ideas at each level, keyed by the level: the round of the list and the ideas given in it. The next task is built on an idea not yet given in its round. Absent means no task of the topic was built on an idea yet.",
           "type": "object",
@@ -203,7 +208,7 @@
           "additionalProperties": { "$ref": "#/$defs/ideaRound" }
         },
         "last_issued": {
-          "description": "The day a task of this topic was last accepted. Absent means never issued, which the rule puts first.",
+          "description": "The day a task of this topic was last accepted, the family's day as the limits count it. Absent means never issued, which the rule puts first.",
           "type": "string",
           "format": "date"
         },

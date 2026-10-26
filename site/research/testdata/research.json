@@ -45,14 +45,14 @@
         "read_as": "size",
         "better": "lower",
         "bound": {
-          "value": 0.24944862003745744,
+          "value": 0.25618330849925247,
           "own": true
         },
         "values": {
           "service": {
-            "value": 0.5543302667499054,
-            "low": 0.37442066935473695,
-            "high": 0.7338536560667847,
+            "value": 0.5692962411094499,
+            "low": 0.38298774648215267,
+            "high": 0.758161561800759,
             "mark": "baseline"
           },
           "ceiling": {
@@ -73,14 +73,14 @@
         "read_as": "value",
         "better": "higher",
         "bound": {
-          "value": 0.445115,
+          "value": 0.44073499999999993,
           "own": true
         },
         "values": {
           "service": {
-            "value": 0.3845,
-            "low": 0.3215,
-            "high": 0.449,
+            "value": 0.37849999999999995,
+            "low": 0.30700000000000005,
+            "high": 0.44699999999999995,
             "mark": "baseline"
           },
           "ceiling": {
@@ -106,9 +106,9 @@
         },
         "values": {
           "service": {
-            "value": 0.4,
-            "low": 0.1,
-            "high": 0.7,
+            "value": 0.5,
+            "low": 0.2,
+            "high": 0.8,
             "mark": "on_the_edge"
           },
           "ceiling": {
@@ -134,9 +134,9 @@
         },
         "values": {
           "service": {
-            "value": 0.03260869565217391,
+            "value": 0.022222222222222223,
             "low": 0,
-            "high": 0.07142857142857142,
+            "high": 0.05172413793103448,
             "mark": "reached"
           },
           "ceiling": {
@@ -162,10 +162,10 @@
         },
         "values": {
           "service": {
-            "value": 0.08974358974358974,
+            "value": 0.1,
             "low": 0.00819672131147541,
-            "high": 0.2,
-            "mark": "reached"
+            "high": 0.22580645161290322,
+            "mark": "on_the_edge"
           },
           "ceiling": {
             "of": "perfect",
@@ -185,14 +185,14 @@
         "read_as": "value",
         "better": "lower",
         "bound": {
-          "value": 6.802816901408451,
+          "value": 6.964285714285715,
           "own": true
         },
         "values": {
           "service": {
-            "value": 4.535211267605634,
+            "value": 4.642857142857143,
             "low": 3.6206896551724137,
-            "high": 5.933333333333334,
+            "high": 6.148148148148148,
             "mark": "baseline"
           },
           "ceiling": {
@@ -213,14 +213,14 @@
         "read_as": "value",
         "better": "lower",
         "bound": {
-          "value": 5.4,
+          "value": 5.43,
           "own": true
         },
         "values": {
           "service": {
-            "value": 3.6,
-            "low": 2.3859649122807016,
-            "high": 4.527777777777778,
+            "value": 3.62,
+            "low": 2.4444444444444446,
+            "high": 4.53125,
             "mark": "baseline"
           },
           "ceiling": {
@@ -247,8 +247,8 @@
         "values": {
           "service": {
             "value": 42,
-            "low": 39,
-            "high": 43,
+            "low": 38,
+            "high": 44,
             "mark": "reached"
           },
           "ceiling": null
@@ -269,9 +269,9 @@
         },
         "values": {
           "service": {
-            "value": 4.509803921568627,
-            "low": 0.7843137254901961,
-            "high": 9.019607843137255,
+            "value": 3.725490196078431,
+            "low": 0,
+            "high": 8.823529411764707,
             "mark": "on_the_edge"
           },
           "ceiling": null
@@ -335,9 +335,9 @@
         "bound": null,
         "values": {
           "service": {
-            "value": 0.4740055904308697,
-            "low": 0.4197527752495282,
-            "high": 0.5235962721768526,
+            "value": 0.44084139166553227,
+            "low": 0.381636916823789,
+            "high": 0.49586594436253506,
             "mark": null
           },
           "ceiling": {
@@ -360,9 +360,9 @@
         "bound": null,
         "values": {
           "service": {
-            "value": 0.45949999999999996,
-            "low": 0.43000000000000005,
-            "high": 0.48550000000000004,
+            "value": 0.47750000000000015,
+            "low": 0.4615,
+            "high": 0.49450000000000005,
             "mark": null
           },
           "ceiling": {

@@ -25,7 +25,8 @@
 // child is behind in comes round twice as often as the rest. A topic on pause
 // — met, and out of reach now that even its easiest task is too hard — leaves
 // the turns and comes back once in ProbeEvery tasks as a probe at that task,
-// whose right answer takes it off the pause.
+// whose right answer takes it off the pause, as soon as the child's overall
+// level reaches that task.
 package tutor
 
 import (
@@ -298,16 +299,16 @@ func awaits(p *profile.Profile, ahead bool) bool {
 }
 
 // TopicTasksBehind is how many tasks of a topic the child has left behind,
-// answered or skipped, at every level of it, as a task of that topic written
-// now counts them: with the task on the card among them when the task is
-// written ahead of its answer and the two share the topic. The reference
-// tasks of a package turn with it, so that the tasks of other topics coming
-// between do not bring the topic's last ones back, and a task written ahead is
-// shown the same ones before the task on the card is answered or skipped as
-// after: either leaves that task behind.
+// answered, skipped or taken off the card unopened, at every level of it, as a
+// task of that topic written now counts them: with the task on the card among
+// them when the task is written ahead of its answer and the two share the
+// topic. The reference tasks of a package turn with it, so that the tasks of
+// other topics coming between do not bring the topic's last ones back, and a
+// task written ahead is shown the same ones before the task on the card is
+// answered, skipped or taken off as after: each leaves that task behind.
 func TopicTasksBehind(p *profile.Profile, topic string, ahead bool) int {
 	stats := p.Topics[topic]
-	tasks := stats.Answers + stats.Skipped
+	tasks := stats.Answers + stats.Skipped + stats.Discarded
 	if awaits(p, ahead) && p.InFlight().Topic == topic {
 		tasks++
 	}
@@ -413,14 +414,16 @@ func choose(p *profile.Profile, catalog Catalog, open []string, awaited bool) (t
 		}
 	}
 
-	// On a probe's turn, a topic on pause, the one that has waited longest:
-	// set at its easiest task, it finds out whether the topic is still out of
-	// reach, however unlikely the child is to solve it.
+	// On a probe's turn, a topic on pause that the overall level reaches, the
+	// one that has waited longest: set at its easiest task, it finds out
+	// whether the topic is still out of reach, however unlikely the child is
+	// to solve it.
 	if probeDue(p) {
-		if paused := PausedTopics(p, catalog); len(paused) > 0 {
-			topic = oldest(p, paused)
+		if probed := probeable(p, catalog); len(probed) > 0 {
+			topic = oldest(p, probed)
 			return topic, profile.GoalNewTopic, fmt.Sprintf(
-				"%s; one task in %d probes a topic on pause, met and out of reach now, and %s has waited longest",
+				"%s; one task in %d probes a topic on pause, met and out of reach now though the overall level "+
+					"reaches its easiest task, and %s has waited longest",
 				now, ProbeEvery, topic)
 		}
 	}
@@ -680,11 +683,12 @@ func setting(p *profile.Profile) string {
 	return interests[(tasks/InterestEvery)%len(interests)]
 }
 
-// tasksBehind is how many tasks the child has left behind, answered or
-// skipped, with the task on the card among them while it waits for its
-// answer: a brief built then is for a task after it, whether written ahead of
-// that answer or asked for in its place, which leaves it behind, skipped — and
-// a brief is built before that skip is recorded.
+// tasksBehind is how many tasks the child has left behind, answered, skipped
+// or taken off the card because their seal would not open, with the task on
+// the card among them while it waits for its answer: a brief built then is for
+// a task after it, whether written ahead of that answer or asked for in its
+// place, which leaves it behind, skipped — and a brief is built before that
+// skip is recorded.
 //
 // The counts come from a file a person can open and edit, so they can be
 // anything at all. A remainder of a negative number is negative in Go, and a
@@ -694,7 +698,7 @@ func setting(p *profile.Profile) string {
 func tasksBehind(p *profile.Profile) int {
 	tasks := p.Ratings.Answers
 	for _, topic := range p.Topics {
-		tasks += topic.Skipped
+		tasks += topic.Skipped + topic.Discarded
 	}
 	if p.InFlight() != nil {
 		tasks++
