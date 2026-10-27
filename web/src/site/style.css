@@ -14757,6 +14757,6 @@ a.s-related-card:hover {
    there, a title of a book being set apart by its own brackets or quotes,
    『…』, 《…》, «…» and “…”. */
 :root:is(:lang(ja), :lang(zh), :lang(ar), :lang(hi))
-:is(em, .s-technique-caption) {
+	:is(em, .s-technique-caption) {
 	font-style: normal;
 }

@@ -4,7 +4,7 @@
 # the one its tests run on, and moves with it.
 
 # The widget comes first: the Go build embeds the one page it leaves.
-FROM node:24.21.0-trixie-slim@sha256:8ec5d7557396cfe32d21c3f9c13072355ceab22b584578ca4bb28af31120cffe AS widget
+FROM node:24.21.0-trixie-slim@sha256:173f125896c3b47ddf056734c7ea789d04595a6a08769a8f78e0df642781fb66 AS widget
 
 WORKDIR /src/web
 
@@ -69,7 +69,7 @@ FROM ghcr.io/mathtrail/mathtrail-standalone/dbip-country-lite:2026-10@sha256:7b2
 # The runtime holds the binary, a certificate bundle and the database of
 # countries, and nothing else: no shell, no package manager, and a non-root
 # user by default (uid 65532).
-FROM gcr.io/distroless/static-debian13@sha256:58133991db06659feaabe0f4e97a35cebf15ef4ea08f8a4c6d2ee5f75e4aa6a0
+FROM gcr.io/distroless/static-debian13@sha256:15f8637509792e05b97d83451b0b6ccfa4abd548f997e406ac1e72c87fe1fa78
 
 COPY --from=build /server /server
 COPY --from=countries /dbip-country-lite.mmdb /usr/share/mathtrail/dbip-country-lite.mmdb
