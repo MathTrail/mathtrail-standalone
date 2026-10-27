@@ -49,9 +49,14 @@ export function sitemap(texts: Texts, base: string): string {
  * from the links to it. The photographs are the family's, children's faces
  * among them: the page that shows them is found by a search, and they are not
  * found apart from it.
+ *
+ * The file closes and never opens: whatever no line closes is open already,
+ * and a crawler that obeys the first line matching an address rather than the
+ * longest, as Python's urllib.robotparser does, reads an `Allow: /` above the
+ * closed paths as opening them too.
  */
 export function robots(base: string): string {
-	return `User-agent: *\nAllow: /\nDisallow: ${coachPrototypePath}\nDisallow: ${photoDirectory}\n\nSitemap: ${base}/sitemap.xml\n`;
+	return `User-agent: *\nDisallow: ${coachPrototypePath}\nDisallow: ${photoDirectory}\n\nSitemap: ${base}/sitemap.xml\n`;
 }
 
 /**
