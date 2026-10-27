@@ -31,7 +31,7 @@ MIT           github.com/mattn/go-isatty                     https://github.com/
 Apache-2.0    github.com/maxmind/mmdbwriter                  https://github.com/maxmind/mmdbwriter/blob/v1.2.0/LICENSE-APACHE
 Apache-2.0    github.com/modelcontextprotocol/go-sdk         https://github.com/modelcontextprotocol/go-sdk/blob/v1.8.0/LICENSE
 MIT           github.com/modelcontextprotocol/go-sdk         https://github.com/modelcontextprotocol/go-sdk/blob/v1.8.0/LICENSE
-ISC           github.com/oschwald/maxminddb-golang/v2        https://github.com/oschwald/maxminddb-golang/blob/v2.7.0/LICENSE
+ISC           github.com/oschwald/maxminddb-golang/v2        https://github.com/oschwald/maxminddb-golang/blob/v2.8.0/LICENSE
 MIT           github.com/pelletier/go-toml/v2                https://github.com/pelletier/go-toml/blob/v2.4.3/LICENSE
 MIT           github.com/quic-go/qpack                       https://github.com/quic-go/qpack/blob/v0.6.0/LICENSE.md
 MIT           github.com/quic-go/quic-go                     https://github.com/quic-go/quic-go/blob/v0.63.0/LICENSE
@@ -76,12 +76,12 @@ MIT           go.uber.org/multierr                           https://github.com/
 MIT           go.uber.org/zap                                https://github.com/uber-go/zap/blob/v1.28.0/LICENSE
 MIT           go.yaml.in/yaml/v3                             https://github.com/yaml/go-yaml/blob/v3.0.5/LICENSE
 BSD-3-Clause  go4.org/netipx                                 https://github.com/go4org/netipx/blob/fdeea329fbba/LICENSE
-BSD-3-Clause  golang.org/x/crypto                            https://cs.opensource.google/go/x/crypto/+/v0.57.0:LICENSE
-BSD-3-Clause  golang.org/x/net                               https://cs.opensource.google/go/x/net/+/v0.60.0:LICENSE
+BSD-3-Clause  golang.org/x/crypto                            https://cs.opensource.google/go/x/crypto/+/v0.58.0:LICENSE
+BSD-3-Clause  golang.org/x/net                               https://cs.opensource.google/go/x/net/+/v0.61.0:LICENSE
 BSD-3-Clause  golang.org/x/oauth2                            https://cs.opensource.google/go/x/oauth2/+/v0.37.0:LICENSE
-BSD-3-Clause  golang.org/x/sync/errgroup                     https://cs.opensource.google/go/x/sync/+/v0.23.0:LICENSE
-BSD-3-Clause  golang.org/x/sys                               https://cs.opensource.google/go/x/sys/+/v0.48.0:LICENSE
-BSD-3-Clause  golang.org/x/text                              https://cs.opensource.google/go/x/text/+/v0.42.0:LICENSE
+BSD-3-Clause  golang.org/x/sync/errgroup                     https://cs.opensource.google/go/x/sync/+/v0.24.0:LICENSE
+BSD-3-Clause  golang.org/x/sys                               https://cs.opensource.google/go/x/sys/+/v0.49.0:LICENSE
+BSD-3-Clause  golang.org/x/text                              https://cs.opensource.google/go/x/text/+/v0.43.0:LICENSE
 BSD-3-Clause  golang.org/x/time/rate                         https://cs.opensource.google/go/x/time/+/v0.15.0:LICENSE
 Apache-2.0    google.golang.org/genproto/googleapis/api/httpbody https://github.com/googleapis/go-genproto/blob/8a89bd6388cc/googleapis/api/LICENSE
 Apache-2.0    google.golang.org/genproto/googleapis/rpc/status https://github.com/googleapis/go-genproto/blob/8a89bd6388cc/googleapis/rpc/LICENSE
@@ -95,9 +95,9 @@ Each line is a license, the package at the exact version in
 web/package-lock.json, and the page of that version in the npm registry.
 
 OFL-1.1       @fontsource-variable/onest@5.3.1               https://www.npmjs.com/package/@fontsource-variable/onest/v/5.3.1
-Apache-2.0    @modelcontextprotocol/client@2.3.0             https://www.npmjs.com/package/@modelcontextprotocol/client/v/2.3.0
-Apache-2.0    @modelcontextprotocol/core@2.3.0               https://www.npmjs.com/package/@modelcontextprotocol/core/v/2.3.0
-MIT           @modelcontextprotocol/ext-apps@2.0.3           https://www.npmjs.com/package/@modelcontextprotocol/ext-apps/v/2.0.3
+Apache-2.0    @modelcontextprotocol/client@2.4.0             https://www.npmjs.com/package/@modelcontextprotocol/client/v/2.4.0
+Apache-2.0    @modelcontextprotocol/core@2.4.0               https://www.npmjs.com/package/@modelcontextprotocol/core/v/2.4.0
+MIT           @modelcontextprotocol/ext-apps@2.0.4           https://www.npmjs.com/package/@modelcontextprotocol/ext-apps/v/2.0.4
 MIT           @standard-schema/spec@1.1.0                    https://www.npmjs.com/package/@standard-schema/spec/v/1.1.0
 MIT           cross-spawn@7.0.6                              https://www.npmjs.com/package/cross-spawn/v/7.0.6
 MIT           eventsource-parser@3.1.1                       https://www.npmjs.com/package/eventsource-parser/v/3.1.1
@@ -106,8 +106,8 @@ ISC           isexe@2.0.0                                    https://www.npmjs.c
 MIT           jose@6.2.12                                    https://www.npmjs.com/package/jose/v/6.2.12
 MIT           path-key@3.1.1                                 https://www.npmjs.com/package/path-key/v/3.1.1
 MIT           pkce-challenge@5.0.1                           https://www.npmjs.com/package/pkce-challenge/v/5.0.1
-MIT           preact-render-to-string@6.8.0                  https://www.npmjs.com/package/preact-render-to-string/v/6.8.0
-MIT           preact@11.0.0                                  https://www.npmjs.com/package/preact/v/11.0.0
+MIT           preact-render-to-string@6.8.2                  https://www.npmjs.com/package/preact-render-to-string/v/6.8.2
+MIT           preact@11.1.0                                  https://www.npmjs.com/package/preact/v/11.1.0
 MIT           shebang-command@2.0.0                          https://www.npmjs.com/package/shebang-command/v/2.0.0
 MIT           shebang-regex@3.0.0                            https://www.npmjs.com/package/shebang-regex/v/3.0.0
 ISC           which@2.0.2                                    https://www.npmjs.com/package/which/v/2.0.2
