@@ -55,10 +55,18 @@ describe("the files a crawler and the host read", () => {
 		);
 	});
 
-	test("let every crawler in but to the coach's prototype and the photographs, and point it at the sitemap", () => {
+	test("let every crawler in but to the coach's prototype and the photographs, with no Allow line to open them again, and point it at the sitemap", () => {
 		expect(robots(base)).toBe(
-			"User-agent: *\nAllow: /\nDisallow: /assets/coach-prototype.html\nDisallow: /assets/photos/\n\nSitemap: https://example.test/sitemap.xml\n",
+			"User-agent: *\nDisallow: /assets/coach-prototype.html\nDisallow: /assets/photos/\n\nSitemap: https://example.test/sitemap.xml\n",
 		);
+	});
+
+	test("open nothing with an Allow line, which a crawler reading the first match would take over the closed paths", () => {
+		expect(
+			robots(base)
+				.split("\n")
+				.filter((line) => /^allow\s*:/i.test(line)),
+		).toEqual([]);
 	});
 
 	test("claim the domain the site is published on", () => {
