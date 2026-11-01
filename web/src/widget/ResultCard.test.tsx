@@ -102,9 +102,11 @@ describe("the card of how an answer went", () => {
 			"mt-rating-after mt-rating-loss",
 		);
 		expect(shownButtons()).toEqual(["Another task", "Topic: Coach"]);
-		// The task and its options are the task's card's, above.
-		expect(root.querySelector(".mt-task-text")).toBeNull();
+		// The task stays at the card's head; its options and its hint are the
+		// task's card's, above.
+		expect(text(".mt-statement .mt-task-text")).toBe(fence.task.question);
 		expect(root.querySelector(".mt-option")).toBeNull();
+		expect(root.querySelector(".mt-note-hint")).toBeNull();
 	});
 
 	test("says under the trap that the mistake has come up before", async () => {
@@ -226,6 +228,78 @@ describe("the card of how an answer went", () => {
 		await drawCard(shown(fence, { solution: fenceSolution }));
 
 		expect(steps()).toHaveLength(3);
+	});
+});
+
+describe("the task, at the head of the card of how an answer went", () => {
+	const statement = () => root.querySelector(".mt-statement");
+	const toggle = () =>
+		root.querySelector<HTMLButtonElement>(".mt-statement-toggle");
+	const wording = () => root.querySelector(".mt-statement-body");
+
+	test("comes before the verdict, with its question and its picture, under its label", async () => {
+		await drawCard(shown(fence));
+
+		const parts = [...(root.querySelector(".mt-body")?.children ?? [])];
+		expect(parts[0]?.className).toBe("mt-statement");
+		expect(parts[1]?.className).toBe("mt-verdict-line");
+		expect(text(".mt-statement-label")).toBe("Task");
+		expect(text(".mt-statement .mt-task-text")).toBe(fence.task.question);
+		const drawn = statement()?.querySelector("svg[role='img']");
+		expect(drawn?.getAttribute("aria-label")).toBe("Things in a row");
+		expect(toggle()?.textContent).toBe("Hide");
+		expect(toggle()?.getAttribute("aria-expanded")).toBe("true");
+		expect(wording()?.hasAttribute("hidden")).toBe(false);
+	});
+
+	test("of a task with no picture is its question alone", async () => {
+		await drawCard(
+			shown({ ...fence, task: { ...fence.task, picture: undefined } }),
+		);
+
+		expect(text(".mt-statement .mt-task-text")).toBe(fence.task.question);
+		expect(statement()?.querySelector("svg[role='img']")).toBeNull();
+	});
+
+	test("is in the language the task was written in, running its way, under the card's label", async () => {
+		await drawCard({ ...shown(fenceInArabic), language: "en" });
+
+		const question = root.querySelector(".mt-statement .mt-task-text");
+		expect(question?.textContent).toBe(fenceInArabic.task.question);
+		expect(question?.getAttribute("lang")).toBe("ar");
+		expect(question?.getAttribute("dir")).toBe("rtl");
+		expect(text(".mt-statement-label")).toBe("Task");
+	});
+
+	test("folds away when its button is pressed, the focus kept on the button, and opens again", async () => {
+		await drawCard(shown(fence));
+
+		press(button("Hide"));
+
+		expect(toggle()?.textContent).toBe("Show");
+		expect(toggle()?.getAttribute("aria-expanded")).toBe("false");
+		expect(wording()?.hasAttribute("hidden")).toBe(true);
+		expect(document.activeElement).toBe(toggle());
+		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
+
+		press(button("Show"));
+
+		expect(toggle()?.getAttribute("aria-expanded")).toBe("true");
+		expect(wording()?.hasAttribute("hidden")).toBe(false);
+	});
+
+	test("is left out where the service told how the answer went without the task's question", async () => {
+		const payload = shown(fence);
+		const {
+			question: _,
+			picture: __,
+			...task
+		} = payload.task as Record<string, unknown>;
+
+		await drawCard({ ...payload, task });
+
+		expect(statement()).toBeNull();
+		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
 	});
 });
 

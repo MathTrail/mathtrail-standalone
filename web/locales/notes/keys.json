@@ -432,6 +432,27 @@
 		"address": "none",
 		"mind": "{total} is the equality, drawn large and always left to right, such as '2 + 2 + 2 = 6'; {picked} is the text of the wrong option."
 	},
+	"result.statement": {
+		"reader": "both",
+		"where": "The label at the head of how the answer went, over the task's question and its picture, which stay there to read the solution against.",
+		"length": "label",
+		"address": "none",
+		"mind": "Names the task's wording, what the Russian calls the task's condition, the way a maths book heads it; where the language has no short word for that, the task itself."
+	},
+	"result.statement_fold": {
+		"reader": "both",
+		"where": "The button at the end of the task's label, on how the answer went, while the task is open: it folds the question and its picture away.",
+		"length": "label",
+		"address": "none",
+		"mind": "Names the action in the form task.hide_hint takes, not an order to the child; result.statement_unfold names the same button while the task is folded."
+	},
+	"result.statement_unfold": {
+		"reader": "both",
+		"where": "The button at the end of the task's label, on how the answer went, while the task is folded: it opens the question and its picture again.",
+		"length": "label",
+		"address": "none",
+		"mind": "The counterpart of result.statement_fold, in the same form."
+	},
 	"waiting.title": {
 		"reader": "both",
 		"where": "The title over the list of steps on the card that waits for a task being prepared.",

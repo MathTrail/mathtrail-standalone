@@ -8,6 +8,7 @@ import {
 	Note,
 	type NoteTone,
 	SolutionSteps,
+	Statement,
 	Verdict,
 } from "./blocks";
 import { Icon } from "./icons";
@@ -89,6 +90,64 @@ describe("a fold", () => {
 
 		expect(title()?.textContent).toBe("Topics");
 		expect(title()?.querySelector(".mt-fold-summary")).toBeNull();
+	});
+});
+
+// Stating is a task's wording under its label, folded and opened by its
+// button as whoever draws it does: remembering which it is, open at first.
+function Stating() {
+	const [open, setOpen] = useState(true);
+	return (
+		<Statement
+			label="Task"
+			fold="Collapse"
+			unfold="Expand"
+			open={open}
+			onToggle={() => setOpen(!open)}
+		>
+			<p>How many posts are there?</p>
+		</Statement>
+	);
+}
+
+// label, toggle and wording are the label, the button and the wording of the
+// statement drawn.
+const label = () => root.querySelector("h3.mt-statement-label");
+const toggle = () =>
+	root.querySelector<HTMLButtonElement>("button.mt-statement-toggle");
+const wording = () => root.querySelector(".mt-statement-body");
+
+describe("a statement", () => {
+	test("is the wording under its label, with a button that says it folds it away", () => {
+		draw(<Stating />);
+
+		expect(label()?.textContent).toBe("Task");
+		expect(label()?.querySelector("svg")).not.toBeNull();
+		expect(wording()?.textContent).toBe("How many posts are there?");
+		expect(wording()?.hasAttribute("hidden")).toBe(false);
+		expect(toggle()?.getAttribute("type")).toBe("button");
+		expect(toggle()?.textContent).toBe("Collapse");
+		expect(toggle()?.getAttribute("aria-expanded")).toBe("true");
+		expect(toggle()?.getAttribute("aria-controls")).toBe(wording()?.id);
+		expect(wording()?.id).not.toBe("");
+	});
+
+	test("folds the wording away when pressed, keeping it on the page, and opens it again", () => {
+		draw(<Stating />);
+
+		act(() => toggle()?.click());
+
+		expect(toggle()?.textContent).toBe("Expand");
+		expect(toggle()?.getAttribute("aria-expanded")).toBe("false");
+		expect(wording()?.hasAttribute("hidden")).toBe(true);
+		expect(wording()?.textContent).toBe("How many posts are there?");
+		expect(label()?.textContent).toBe("Task");
+
+		act(() => toggle()?.click());
+
+		expect(toggle()?.textContent).toBe("Collapse");
+		expect(toggle()?.getAttribute("aria-expanded")).toBe("true");
+		expect(wording()?.hasAttribute("hidden")).toBe(false);
 	});
 });
 

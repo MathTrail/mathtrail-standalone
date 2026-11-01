@@ -224,13 +224,19 @@ export function readAnswer(
 const shownResult = z.object({
 	screen: z.literal("result"),
 	child,
-	// The task as the card of its answer names it: its options, which the
-	// verdict names by their texts, and its topic's page on the site. A page
-	// that does not read is read as none, and the topic is named with no link.
+	// The task as the card of its answer names it: its question and picture,
+	// which the card keeps at its head, its options, which the verdict names
+	// by their texts, and its topic's page on the site. A result of a service
+	// before the question travelled with it has none, and the card shows how
+	// the answer went without the task; a picture that does not read is none,
+	// as on the task's card. A page that does not read is read as none, and
+	// the topic is named with no link.
 	task: z.object({
 		id: z.string(),
 		topic: z.string(),
 		language: z.string(),
+		question: z.string().optional().catch(undefined),
+		picture: z.optional(pictureFormat).catch(undefined),
 		options,
 		slug: z.string().optional().catch(undefined),
 		site_page: z.boolean().optional().catch(undefined),

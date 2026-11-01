@@ -1024,6 +1024,80 @@ button.mt-bar {
 .mt-wide .mt-fold-body {
 	padding: 4px 20px 20px;
 }
+
+/* The task's wording at the head of how its answer went: a box like the
+   band of the topic, its label at the start of its top line and the button
+   that folds the wording away at its end — under the label where the two do
+   not fit. The button is taller than its words, so that a finger finds it,
+   and the box's top is closer by as much, so that the label stands where a
+   note's does. Its arrow points down while the wording is folded and up while
+   it is open, whichever way the card reads: the turn outweighs the arrow
+   turned round for a right-to-left card. */
+.mt-statement {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 6px 12px 12px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-control);
+	background: var(--band);
+}
+.mt-statement-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	column-gap: 12px;
+	row-gap: 4px;
+}
+.mt-statement-label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	margin: 0;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+.mt-statement-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	min-width: 0;
+	margin-inline-start: auto;
+	padding-block: 4px;
+	padding-inline: 0;
+	border: 0;
+	background: transparent;
+	color: var(--text-muted);
+	font-size: 13px;
+	line-height: 18px;
+	text-align: end;
+	overflow-wrap: break-word;
+	cursor: pointer;
+}
+/* A word longer than the line it is on breaks rather than pushing the button
+   out of the box. */
+.mt-statement-label > span,
+.mt-statement-toggle > span {
+	min-width: 0;
+}
+@media (hover: hover) {
+	.mt-statement-toggle:hover {
+		color: var(--text);
+	}
+}
+.mt-statement-toggle[aria-expanded="true"] .mt-chevron {
+	transform: rotate(180deg);
+}
+.mt-statement-body {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
 .mt-rank {
 	display: flex;
 	flex-direction: column;

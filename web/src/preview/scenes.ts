@@ -455,6 +455,13 @@ export function scenesIn(language: string): Scene[] {
 				rating: { before: 1502, after: 1488 },
 			}),
 		},
+		// The task at the head of how its answer went, folded away by its
+		// button: its label and the button alone on their line.
+		{
+			name: "result card, the task folded",
+			payload: told(),
+			play: taskFolded,
+		},
 		// The picture of the solution, the equality it comes to under it: after
 		// a wrong option, which adds the option it was not, and after the right
 		// one.
@@ -900,6 +907,13 @@ function reviewAlone(card: Document) {
 			title?.click();
 		}
 	}
+}
+
+// taskFolded folds the task away at the head of how its answer went, by its
+// button, which is found by its class because its words change with the
+// language.
+function taskFolded(card: Document) {
+	card.querySelector<HTMLElement>(".mt-statement-toggle")?.click();
 }
 
 // button presses the card's button at place: 0 the hint, 1 another task; once

@@ -91,11 +91,13 @@ export function StaticTask({
  * StaticResult draws how an answer to the task handed went, as the widget's
  * card shows it once the service has recorded result — the card that took the
  * answer turned into it, or the card the model draws for an answer given in
- * the chat: the verdict, the trap, the solution step by step, the topic and
- * the rating, in the page's language as the widget's dictionaries say it.
- * Like the others, it is drawn at the narrow width and is inert: its next task
- * and its topic are shown rather than pressed, and its topic is named with no
- * link, since nothing on the page opens one.
+ * the chat: the task folded away at its head, the verdict, the trap, the
+ * solution step by step, the topic and the rating, in the page's language as
+ * the widget's dictionaries say it. The task is folded so that the verdict
+ * and the trap, which the page speaks of, come first in a frame shorter than
+ * the card. Like the others, it is drawn at the narrow width and is inert: its
+ * next task, its topic and the task's button are shown rather than pressed,
+ * and its topic is named with no link, since nothing on the page opens one.
  */
 export function StaticResult({
 	handed,
@@ -111,6 +113,7 @@ export function StaticResult({
 			<ResultCard
 				shown={{ kind: "shown", result: resultShownOf(handed, result) }}
 				host={stillHost}
+				taskStartsFolded
 			/>
 		</Still>
 	);

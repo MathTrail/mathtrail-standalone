@@ -28,6 +28,7 @@ const colours: Record<IconName, string> = {
 	hint: "currentColor",
 	trap: "currentColor",
 	menu: "currentColor",
+	page: "currentColor",
 	globe: "currentColor",
 	chat: "currentColor",
 	renew: "currentColor",

@@ -130,6 +130,54 @@ export function Fold({
 }
 
 /**
+ * Statement is a task's wording set at the head of what is said about it, in a
+ * box of its own under its label, with a button at the label's end that folds
+ * the wording away and opens it again, in the words given for each, and says
+ * which it is. Folded, the wording stays on the page, hidden. Whether it is
+ * open is not the box's to remember: whoever draws it says.
+ */
+export function Statement({
+	label,
+	fold,
+	unfold,
+	open,
+	onToggle,
+	children,
+}: {
+	label: string;
+	fold: string;
+	unfold: string;
+	open: boolean;
+	onToggle: () => void;
+	children: ComponentChildren;
+}) {
+	const body = useScopedId();
+	return (
+		<div class="mt-statement">
+			<div class="mt-statement-head">
+				<h3 class="mt-statement-label">
+					<Icon name="page" size={16} />
+					<span>{label}</span>
+				</h3>
+				<button
+					type="button"
+					class="mt-statement-toggle"
+					aria-expanded={open}
+					aria-controls={body}
+					onClick={onToggle}
+				>
+					<span>{open ? fold : unfold}</span>
+					<Icon name="chevron-down" size={16} className="mt-chevron" />
+				</button>
+			</div>
+			<div id={body} class="mt-statement-body" hidden={!open}>
+				{children}
+			</div>
+		</div>
+	);
+}
+
+/**
  * SolutionSteps is a solution told step by step, each step numbered: the
  * steps in the language said, the label in the card's.
  */

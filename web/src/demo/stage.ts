@@ -176,7 +176,7 @@ function alignAll(staged: Staged): void {
 // align shows the part of a layer's card its step speaks of, the frame of the
 // chat being shorter than the card: the question and the reply under a card,
 // and the top of any other — the card of how an answer went starts with its
-// verdict and its trap.
+// task folded away, then its verdict and its trap.
 function align(layer: HTMLElement): void {
 	const body = layer.querySelector<HTMLElement>(".s-frame-body");
 	if (body === null) {
