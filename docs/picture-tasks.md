@@ -1,6 +1,6 @@
 # Tasks solved from the picture (T105.1)
 
-**Parts 1 to 3 of 4: sections 1–3 on 2026-10-27 (T105.1.1), sections 4–5 (T105.1.2) and 6–8 and 12 (T105.1.3) on 2026-11-01, with the probe's findings and the decisions after each part.** Sections 9–11, 13 and 15–17 come with T105.1.4 (RUN.md, table 1a). Each part writes only for the genres kept after the part before it: by the author after part 1, and from part 2 on by the study's recommendation. From part 2 on, the parts run one after another without waiting for the author: where a part leaves a choice, the next follows the study's recommendation, marked so, until the author decides.
+**All four parts: sections 1–3 on 2026-10-27 (T105.1.1), and on 2026-11-01 sections 4–5 (T105.1.2), 6–8 and 12 (T105.1.3), and 9–11, 13 and 15–17 (T105.1.4), with the probe's findings and the decisions after each part.** Each part writes only for the genres kept after the part before it: by the author after part 1, and from part 2 on by the study's recommendation. From part 2 on, the parts run one after another without waiting for the author: where a part leaves a choice, the next follows the study's recommendation, marked so, until the author decides.
 
 A task solved from the picture has its facts on the picture alone: the walls of a maze, the lines of a figure, the numbers on tiles. Without the picture it cannot be solved. Today MathTrail's facts live in the words. The picture only shows what the words say, and every check, the solver among them, works from the words (R69, R228, SPEC 4.4). This study asks which such tasks the service can draw and prove by program, what that changes and what it costs.
 
@@ -40,6 +40,18 @@ A task solved from the picture has its facts on the picture alone: the walls of 
 - **The share of hosts that show the card is not measured.** The file of the author's command was not there when this part was written.
 
 **Decided by the study's recommendation, until the author decides** (end of this file): such tasks only where the chat is known to show the card; the card released alone and first; the new topics with the ideas of part 1, no counter; one reference task per genre and level outside the count, and 15 for each new topic; the guide's section only in their packages, shipped in one release.
+
+## What part 4 finds
+
+- **The four kinds draw on a phone.** Each fits the 286 px of the narrowest card, left to right in every language, its labels 12 px or more (section 9). A row of tiles has to hold six at most, and a tile's label two characters.
+- **They add 17,470 bytes to a card of 1,947,230**, and 3,294 to its 505,461 compressed: drawings, readers and names in 64 languages (section 10).
+- **Five genres of 17 can be solved by ear.** A switch for the parent, through a skill of the catalog left out, serves a child who uses a screen reader at almost no cost. Descriptions read aloud would take about 68 KB in the card for five genres (section 11).
+- **The mock-up** shows every genre on the real card, in both themes and in Arabic (section 13).
+- **Sixteen files of the repository say what these tasks would make untrue**, five of them in the site's 10 languages (section 15).
+- **The recommendation is to make all 17 genres**, in twelve tasks, T105.2 to T105.13 (section 16). The check in a live chat before release costs about $13 of the subscription.
+- **Four questions of the product** are left to the author, О-76 to О-79 (section 17).
+
+**Decided by the study's recommendation, until the author decides** (end of this file): all 17 genres, the two limits lowered, the switch for the screen reader, and the tasks T105.2 to T105.13.
 
 ## 1. The starting point, checked
 
@@ -349,7 +361,7 @@ The simulation of section 7 measures two of the paths. With the rule told the ch
 
 - **"Always"** in the server's instructions holds 2,047 of the 2,048 characters a host that cuts keeps (`content/content_test.go:478-492`). There is no room in it, and nothing about tasks solved from the picture needs to be there: the rules ride in the guide's section of the package and in the words of a reply.
 - **A reply in a chat of words** asks the model to read the task out, with its options (`internal/transport/mcp/payload.go:337-341`), and the picture is left out of those words (`submittask.go:574-587`). With the paths above closed, no task solved from the picture reaches that reply.
-- **The card's description** already names "a picture where it has one" (`content/instructions/widget_description.md:1`), and **the tools' descriptions** name the card and never a picture (`nexttask.go:105-121`, `submittask.go:223-230`). Neither changes, so ChatGPT has nothing to review again.
+- **The card's description** already names "a picture where it has one" (`content/instructions/widget_description.md:1`), and **the tools' descriptions** name the card and never a picture (`nexttask.go:105-121`, `submittask.go:223-230`). Neither changes for these tasks. The new topics change `next_task`'s list of topics (section 2), which ChatGPT reviews again.
 
 ### How many hosts show the card
 
@@ -415,6 +427,56 @@ The blind agents wrote every genre right at the first try with no reference task
 
 In the copy, the budget test's 875 packages are 31,224 bytes on average and 40,291 at most (the case of four-byte letters), against 65,536 (`content/package_test.go:553`). A package shows a reference task without its solver (`content/package.go:177-191`), and a probe task so shown is 1,335 bytes on average and 2,951 at most, over 68 tasks. A package of a new topic shows three reference tasks (`content/content_test.go:283`), all solved from the picture; even counted on top of the largest package, three of the largest add 8,853 bytes and keep it under 50 KB. The 17 packages the blind agents read were 31 to 35 KB written out with indentation.
 
+## 9. How the kinds are drawn, and how they look on a phone
+
+*Part 4. The drawings are drafts in the copy's `web/` (`web/src/design/picture/lattice.tsx`, `tiles.tsx`, `totals.tsx`, `stairs.tsx` there), read by the card's own reader and drawn by its own diagram. They are seen in the mock-up (section 13).*
+
+| Kind | How it is drawn | At its example | At its limits | Smallest label |
+|---|---|---|---|---|
+| `lattice` | The paper's grid faint, filled cells in the shading tone, lines strong, dashed lines dashed, a dot at each point with its label above it, a mark in its cell | 128 × 128 | 8 × 8 cells: 282 × 282, a cell of 31.75 px with 14 px round the paper for the labels at corners | 13 px |
+| `tiles` | Each tile a regular polygon cut into triangles from its middle, a label in each, its first triangle facing the tile before it | 282 × 94 | A ring of 10 pentagons: 228 × 240. A row of 6 squares: 282 × 47. A row of 12 squares: 282 × 23.5 | 12 px with labels of 2 characters |
+| `shapes` | Rows of outlined shapes, the same shape alike wherever it stands, and "= total" after each row | 106 × 106 | 5 rows of 6: 278 × 182 | 14 px |
+| `stairs` | A staircase climbing right from the floor, steps unnumbered, a label above a step, each jump an arc with an arrowhead | 282 × 178 | 16 steps: 282 × 299 | 14 px |
+
+- **Every kind fits the 286 px** a picture has on the narrowest card, and is laid out left to right in every language. The copy's tests draw each at its example and at its limits and hold it to that room (`drafts.test.tsx` there).
+- **Two limits have to come down.** A row of twelve tiles is 23.5 px tall in the drawing's 282 px of room, too low for four labels a tile, so a row holds six tiles at most, as section 2 found by arithmetic. A tile's label stays at or above the card's floor of 11 px only up to two characters, drawn at 12 px in a ring of ten, so a label of `tiles` is at most two characters.
+- **The card's height.** The tallest picture is a staircase of 16 steps, 299 px, about as tall as today's grid of eight rows. A task's card with a picture is 750 to 900 px tall today (О-74), and the new kinds do not make it taller.
+- **What the drafts do not meet yet.** The card's own tests refuse them in 6 of their 4,691 cases, and the 4,685 others pass. The drafts set fill and opacity as attributes where a drawing speaks only through the card's classes, and draw an empty path where a lattice has no dashed line. The reader's limits are not yet listed under the service's names, and the new names have no notes for whoever translates them. T105.4 meets all four.
+- **Scenes for `just web-layout`**, one a kind at its limits: the lattice of 8 × 8 with labels of two characters, the ring of ten pentagons, the row of six squares, five rows of six shapes and the staircase of 16 steps. In the task and in how its answer went, they are 10 scenes in every language the check measures.
+
+## 10. Size
+
+*Built in the copy with its own Vite configuration (`vite.config.widget.ts`), the page `internal/widget/widget.html` measured as it is and with `gzip -9`.*
+
+| Build | Bytes | Compressed | Added |
+|---|---:|---:|---:|
+| Today's card, `0727341` | 1,947,230 | 505,461 | |
+| With the readers of the four kinds | 1,950,353 | 506,313 | 3,123 (852) |
+| And their names in every dictionary, the draft's English | 1,960,017 | 507,303 | 9,664 (990) |
+| And their drawings | 1,964,700 | 508,755 | 4,683 (1,452) |
+| **All of it** | | | **17,470 (3,294)** |
+
+- **Today's card** has grown since section 1 measured it, from 1,937,396 bytes to 1,947,230, with T115's card of how an answer went.
+- **A kind's three parts.** Minified alone, the drawings are 1,453 bytes (`lattice`), 1,645 (`tiles`), 1,269 (`shapes`) and 1,082 (`stairs`), against 1,699 for today's grid. The readers are about 800 bytes a kind. The names are 71 bytes in English, and in the 64 languages, at the ratio today's 13 names have to their English (1.77), about 8,000 bytes of words, with the dictionaries' keys on top of that.
+- **Descriptions in a task** are 160 bytes on average for a task's picture and 227 for the picture of its solution, at most 557 and 777, over the probe's 68 tasks. They ride in the card's data and in the profile's current and kept tasks as today's do.
+- **The profile** gains a sketch of the picture for each task solved from the picture, 128 characters as the question's is (section 5). The profile keeps up to 200 sketches of questions today; kept for the last 50 such tasks, sketches of pictures add about 7 KB to a file whose target is 64 KB.
+
+## 11. The screen reader
+
+Today a screen reader hears the kind's name and nothing else (`picture.<kind>`, `web/src/design/picture/diagram.tsx:163`), and the task's words carry its facts. A task solved from the picture has no facts in its words, so a child who cannot see the picture cannot solve it by ear.
+
+| Genres | By ear, from the description | Why |
+|---|---|---|
+| Numbers under shapes, the staircase, the fence, the ice cream, the sticks | **Yes**, read as a list: "Row 1: triangle, triangle; sum 6", "A on the floor, B on step 10; a jump from the floor to step 2", the lengths of the sticks | The picture is a list of things and numbers |
+| The crown | Hardly | Which triangle touches which is the whole task |
+| The maze, the path on cells, the goat, the triangles, the pieces, the matches, the die, the nets, the folding, the cutting, the symmetry | **No** | The facts are a figure, and a figure read as a list of lines and cells is a puzzle of its own |
+
+- **Why R269 and R274 do not settle it.** R269 refused a text form of the picture for chats without cards and for old cards, because the words carried every fact anyway; R274 refused captions for a screen reader beside words that say the same. Neither holds here: the words do not say it.
+- **Descriptions read aloud** would serve five genres of 17. They need a sentence to each kind's reading in 64 languages, about 600 bytes of English, about 68 KB more in the card at the ratio of today's names.
+- **The other way is a switch for the parent.** The profile already lets a parent leave out skills of the catalog (`Student.ExcludedSkills`). A skill "reading a picture", which every task solved from the picture needs, would let a parent of a child who uses a screen reader leave all of them out, as a chat without cards does. It needs no field of its own and no words in 64 languages but the skill's name.
+
+**The study proposes** the switch, and the kind's name as the picture's label, as today. It is the author's choice (section 17).
+
 ## 12. The model and its tokens
 
 ### What changes for the model
@@ -444,9 +506,16 @@ The version is a hash of every instruction file, the solver templates, the kinds
 
 **The study proposes** that the guide's section, the new kinds' examples, the templates and the ideas of the new topics ship in one release, which changes the version once. The release of the card alone (section 6) changes none of them, and the reference tasks can come in any release, since they are outside the version.
 
+## 13. The mock-up
+
+- **The page.** https://claude.ai/artifact/BWopr8H1CSUj6Pt9rhR6Zv, private, as T70's was.
+- **What it shows.** The probe task of each of the 17 genres, and the crown, the maze and the shapes at their limits, on the card and in how its answer went: at 320 px in the light and the dark theme, at 640 px for the pictures at their limits, and the triangles and the maze on a card in Arabic, whose picture still runs left to right. Under each are what a screen reader hears today, the kind's name, and, for the five genres solvable by ear, what the card could read from the description.
+- **How it is drawn.** As the site draws its cards with no browser: the copy's `StaticTask` and `StaticResult`, rendered with `preact-render-to-string` through Vite's server-side loading, each task read first by the card's own `readHandedTask`. 22 cards, each with its task and how its answer went. The card of how an answer went folds the task at its head, as the site's do; in a chat it is open (section 4).
+- **What it does not show.** The draft's names of the kinds are English in every language, Arabic too, and the page shows no picture drawn on a real phone.
+
 ## 14. The probe
 
-*Parts 1 to 3. T105.1.4 adds to it.*
+*Parts 1 to 4.*
 
 - **The copy.** A clone of the repository at `99d8a65`, with the draft as one commit on it: the four kinds (`lattice`, `tiles`, `shapes`, `stairs`) read as strictly as the thirteen, with their limits, schema and examples; the solver's second input and the recording of reads; a section of the guide, "A task solved from the picture", that tells the model when a brief's `constraints` hold `facts_on_the_picture`; and 17 ideas, one a genre, added to five topics' lists. The guide grew from 17,204 to 19,553 bytes. `go build ./...`, `go test ./...` and the build of `tools/load` pass in the copy.
 - **The program**, `t1051`, a Go module that imports the copy as `tools/load` imports the service. It builds packages (`packages`), runs both runs of a solver with the picture and the whole review (`examine`), and each candidate on its own (`candidates`).
@@ -466,7 +535,78 @@ The version is a hash of every instruction file, the solver templates, the kinds
 - **Part 2: the program.** Three more commands: `derive2` writes the pictures that show the answer, `hidden` applies the draft rules of section 4 to every task and to the 104 reference tasks that draw, and `words` measures section 5. The draft rules live in the copy beside the checks they bend (`internal/domain/checks/draft_t1052.go` there), so that they read pictures exactly as the service does.
 - **Part 3: the rule.** Its rules were written and their SHA-256 recorded on 2026-11-01, before the simulation was coded: `e104ae6e…c4591`, and with an addendum after the review of this part found the first run's two faults (section 7), before the second: `7699cf56…73c773a899`. The program's command `rule` runs the copy's rule with a catalog that can add the two new topics, a view of it without them for a chat of words, and a draft draw of an idea that can skip some of a list's places (`tutor.NextIdeaSkipping` in the copy). The second run's 15 runs, five levers and three shares of days with cards, are 360,000 tasks each and took about ten minutes. A child answers right two times in three. A day is spent in one kind of chat, which makes the path of the task written ahead as common as the days that change from one kind to the other; how often families change is not known.
 - **Part 3: the code read.** Every path of section 6 was read on `0727341` and checked against the lines cited.
+- **Part 4: the drawings and the mock-up.** The copy's `web/` holds the four kinds' types, readers and drawings, their names in every dictionary in the draft's English, and two tests that draw each kind at its example and its limits (`drafts.test.tsx`, `drafts.sizes.test.tsx`); `tsc` and both tests pass. The card was built four times with the copy's Vite configuration for section 10. A script (`web/scripts/t1054-mockup.ts` there) renders the cards of section 13.
 - **Kept** in `~/.claude/keep/t105.1/`, which outlives the container: the program, the sets and their builders, the outputs, and the copy's draft as a patch with its base commit.
+
+## 15. Public texts
+
+*Read on `0727341`. The study changes none of these; T105.2 and T105.12 do (section 16).*
+
+| Text | Where | What it says today | What changes |
+|---|---|---|---|
+| SPEC | 1.2 (`SPEC.md:87-89`) | D05's exclusions stand | Lifted for the 17 genres, with the two new topics in its list of topics |
+| | 1.6 (`:185`, `:193-197`) | Seventeen topics at `5-6`, and the batches of reference tasks | The new topics and the 48 reference tasks |
+| | 3.7 (`:569-574`) | Why a task written ahead is let go | Also a task solved from the picture in a chat of words |
+| | 4.4 (`:667`, `:671`, `:680`, `:684`, `:687`, `:699-713`) | Thirteen kinds; "the picture adds nothing", the wording carries every fact | Seventeen kinds; a task whose facts stand on the picture; the hidden answer's exception and `?` |
+| | 4.5 (`:762`), 5.4 (`:833`, `:873-890`), 5.6 (`:924-941`), 5.7 (`:945-950`), 6.2 (`:1057-1059`) | The self-check, the picture's checks, the repeat by the question, a solver of the options alone | The new issue type, the exception, the repeat by the picture, the read rule, `solve(options, picture)` |
+| | 7.2, 7.3 (`:1344`, `:1388`), 8.5 (`:1545`), 8.11 (`:1605`) | Without cards the task is read out, and "that is the whole of what it loses" | A chat without cards gets no such task, and a client that declares nothing counts as one for them |
+| PRODUCT-V1 | `:20`, 2 (`:44`, `:58`), 4.2 (`:123`), 4.3 (`:142-144`), 4.6 (`:177-178`), the risk at `:367`, 11.2 (`:384`); О-10, О-11, О-30, О-70 | Only the textual part of the niche; thirteen kinds; the meaning of a picture cannot be programmed; no loss without cards | The new genres and kinds; the solver reads the picture; the loss without cards stated (О-76) |
+| The site, in 10 languages | `help.md:49`, `terms.md:32`, `index.yaml:79`, `service.yaml:90`, `:129`, `:191`, `topics.yaml` | Without cards the task comes in words; no answer is written on a picture; the topics | Such tasks only where cards show; the exception; two new topics, each a page of its own |
+| Directory listings | `plugin/plugin.json:20` and its Russian copy at `:103`; `docs/listing.md:40` | "has no answer written on it" | The exception, through a listing edit the reviewers approve |
+| The model's instructions | `content/instructions/task_writing.md:12`, `:68`, `:80`, `:82`, `:104`; `mcp_instructions.md:38` | Everything needed is in the text; without cards the task is read out | The section for such tasks; a task that cannot be read out is not read, and another is asked for |
+| Project documents | `docs/architecture/03-flows.md:183`, `:192`; R68, R228, R269, R305 in `docs/decisions.md` | The wording carries every fact; text mode loses nothing | Notes "since" on each decision, as the log keeps them |
+| For grants | `docs/grants/README.md:18`, `docs/grants/logic-model.md:39`, `docs/usage-evidence-for-grants.md:193` | 705 reference tasks in 17 topics, 33 templates | The new counts |
+
+- **Unchanged:** README, `docs/parents.md`, `docs/self-hosting.md`, the privacy policy, the site's pages "Why", "Techniques", "Research", "About" and "Coach", and the card's description. The tools' descriptions change only where `next_task` lists the topics (section 6). `docs/load.md` and `docs/research-page.md` are read again once the new reference tasks exist: the first holds the steps of the reference solvers, the second numbers the page computes. The paper is pinned to v0.1.53 and does not describe the picture's rules (`research/paper-a/sections/verification.tex:16-17`).
+- **In numbers:** 16 files of the repository, two more to read again. The site's five files are in 10 languages each, 50 edits, and the two new topics' pages are 20 new files.
+- The claims of this study about the product hold at `0727341`, and change with the commit it pins next.
+
+## 16. Recommendation, and the tasks it makes
+
+**Recommendation: make all 17 genres**, in the order below. Every genre is proved by a program that reads the picture (sections 2 and 3). The checks hold none back once the hidden answer has its exception (sections 4 and 5). Four kinds draw them on a phone, two of them general enough for twelve genres (section 9). The new topics give about one task in five in a chat with cards (section 7).
+
+**The service's own solver** (section 3) is kept back. It is the one check that catches a solver that reads the picture and answers another question, and it costs a member of the format naming the kind of question and a program in Go for each kind, about three of the probe's genres' worth to begin with. The check before release counts how often a model's solver answers another question; if it does, a task of its own adds the service's solver for those genres.
+
+What it costs, in one place:
+
+- **The service**: the solver's second input and the read rule, about 340 lines in the probe; four kinds of picture with their checks; the chat's kind in the rule; the sketch of a picture in the profile.
+- **The card**: 17,470 bytes, 3,294 compressed, with names in 64 languages.
+- **The content**: two new topics, 12 ideas in today's topics and 48 reference tasks.
+- **The model**: about 900 tokens in a package of a task solved from the picture, and about 50 more for its picture than a word task's.
+- **The chats without cards** get none of these tasks (О-76).
+
+**The tasks.** Each is one review (RUN.md rule 12). T105.2 makes the decisions and edits SPEC, as T70.1 did after T70's study. T105.5 to T105.9 merge together, in one branch with a commit each, so that the instructions' version changes once (section 12).
+
+| Task | What | Who | Plan | Depends on |
+|---|---|---|---|---|
+| T105.2 | Decisions and SPEC: D05 lifted for the 17 genres, the solver reads the picture, the read rule, the hidden answer's exception and `?`, repeats by the picture, the chat's kind for these tasks, the new topics, reference tasks outside the count, the switch for the parent; every section of SPEC section 15 names; PRODUCT-V1 12.2 answered | the author and Claude | yes | T105.1 |
+| T105.3 | The solver reads the picture: the second input of `solve`, the picture as Starlark reads it with its reads recorded, the read rule as a check, two templates (a bounded search, placing pieces) | Claude | yes | T105.2 |
+| T105.4 | The card draws the four kinds: reader, drawings, names in 64 languages, scenes for `just web-layout`, tiles in a row at most 6 and their labels at most 2 characters. Released alone, before the service knows the kinds | Claude, the author proofreads | yes | T105.2 |
+| T105.5 | The service reads the four kinds: format, limits, schema and examples | Claude | — | T105.3, T105.4 released an hour before |
+| T105.6 | The checks of a task solved from the picture: the hidden answer's exception and `?`, the repeat by the picture with its sketch in the profile, `facts_in_words` in the self-check | Claude | yes | T105.5 |
+| T105.7 | The rule knows the chat: the chat's kind into the rule and the draw of an idea; a task written ahead and a request still open record such a task and are let go in a chat of words; a client that declares nothing counts as one; the skill "reading a picture" for the parent's switch | Claude | yes | T105.5 |
+| T105.8 | The two new topics in the catalog, at every level: names in 64 languages, ideas, the count tests for a topic all of whose tasks are solved from the picture, the site's data; `next_task`'s description, which ChatGPT reviews again | the author and Claude | yes | T105.5 |
+| T105.9 | The guide's section, only in the packages of such tasks, and the guide's sentences section 15 names; the server's instructions on a task that cannot be read out; the kinds' examples, the templates, the 12 ideas in today's topics. The release of T105.5 to T105.9 | Claude | — | T105.6, T105.7, T105.8 |
+| T105.10 | Reference tasks, first batch: 18, one for each genre and level in today's topics, outside the count | Claude, the author proofreads | — | T105.9 |
+| T105.11 | Reference tasks, second batch: 30 for the new topics, one at each difficulty of each level, with the genres' simpler forms at `1-2` and `3-4` | Claude, the author proofreads | yes | T105.10 |
+| T105.12 | Public texts and the site (section 15) | the author and Claude | yes | T105.11 |
+| T105.13 | The check in a live chat, and the release | the author and Claude | yes | T105.12 |
+
+**The check before release** (T105.13) measures what no probe can: how often a model's hand-in of such a task is refused, how many seconds its writing adds, and how many of the pictures accepted write the answer beside three wrong values, which the hidden answer's exception lets through (section 4). Two tasks of each of the 17 genres in Claude, 34 hand-ins, cost about $13 of the author's subscription at run 22's $0.39 a turn, and more if the model thinks longer over a picture. A lesson of each new topic on a phone in ChatGPT is the author's own.
+
+## 17. Open questions
+
+Questions of the product, written in PRODUCT-V1 12.2 from О-76 on. The file is in `.gitignore`, so they are written there locally.
+
+- **О-76. Chats without cards.** PRODUCT-V1 11.2 and О-10 promise that a lesson without cards loses no function. A task solved from the picture goes only where the card is seen (section 6), so such a chat gets word tasks only. The study proposes that 11.2 say so.
+- **О-77. A client that declares nothing.** Today it is taken to draw cards (R305). For a task solved from the picture the study proposes the reverse: such a client gets word tasks.
+- **О-78. The screen reader.** A switch for the parent, through a skill of the catalog left out, or descriptions read aloud for the five genres solvable by ear (section 11). The study proposes the switch.
+- **О-79. One picture, another question.** Is a task that keeps a picture the child was given and asks another question a new task? The study counts it a repeat (section 5).
+
+Questions of the study, for the author in RUN.md's table 3:
+
+- The share of hosts that show the card, from the author's command (section 6).
+- The count with the tokenizer, about $0.2, of what section 12 estimates by bytes.
 
 ## What the author decides after part 1
 
@@ -521,3 +661,13 @@ Decided by the study's recommendation on 2026-11-01, until the author decides ot
 - **How often.** The two new topics, with the ideas of part 1 in today's topics; no counter in the rule for now.
 - **Reference tasks.** One for each genre at each level it is taught, outside the count of today's topics, and one at each difficulty of each level for a new topic: 48 in all.
 - **The model.** The guide's section rides only in a package whose brief holds `facts_on_the_picture`. The section, the new kinds' examples, the templates and the new topics' ideas ship in one release.
+
+## What the author decides after part 4
+
+Decided by the study's recommendation on 2026-11-01, until the author decides otherwise:
+
+- **The genres.** All 17 are made.
+- **The limits.** A row of tiles holds six at most, and a tile's label two characters.
+- **The screen reader.** A switch for the parent, a skill of the catalog left out; the picture's label stays the kind's name.
+- **The tasks.** T105.2 to T105.13 stand in RUN.md's table 1a, and T105.1 is marked done with them. T105.5 to T105.9 merge together, so that the instructions' version changes once.
+- **The service's own solver.** Kept back, until the check before release shows models' solvers answering another question.
