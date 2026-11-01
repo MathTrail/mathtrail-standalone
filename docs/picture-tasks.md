@@ -1,6 +1,6 @@
 # Tasks solved from the picture (T105.1)
 
-**Part 1 of 4, 2026-10-27 (T105.1.1): sections 1–3, the probe's first findings, and the author's choice after them.** Sections 4–13 and 15–17 come with T105.1.2–T105.1.4 (RUN.md, table 1a). Each part writes only for the genres the author keeps after the part before it.
+**Parts 1 and 2 of 4: sections 1–3 on 2026-10-27 (T105.1.1) and sections 4–5 on 2026-11-01 (T105.1.2), with the probe's findings and the decisions after each part.** Sections 6–13 and 15–17 come with T105.1.3–T105.1.4 (RUN.md, table 1a). Each part writes only for the genres kept after the part before it: by the author after part 1, and from part 2 on by the study's recommendation. From part 2 on, the parts run one after another without waiting for the author: where a part leaves a choice, the next follows the study's recommendation, marked so, until the author decides.
 
 A task solved from the picture has its facts on the picture alone: the walls of a maze, the lines of a figure, the numbers on tiles. Without the picture it cannot be solved. Today MathTrail's facts live in the words. The picture only shows what the words say, and every check, the solver among them, works from the words (R69, R228, SPEC 4.4). This study asks which such tasks the service can draw and prove by program, what that changes and what it costs.
 
@@ -16,6 +16,18 @@ A task solved from the picture has its facts on the picture alone: the walls of 
 - **A model writing from the draft package alone wrote tasks that pass.** Blind agents, which saw only what a chat's model would, wrote one task for each of the 17 genres, each at its first try. All 17 were proved, and an independent check found every answer right. Today's review accepted 16, refusing the crown only because its picture shows the answer, and the read rule refused none. They cost far more than planned (section 14).
 
 **What the author decided** (end of this file): all 17 genres go on to T105.1.2, with two new topics and the rest in today's topics.
+
+## What part 2 finds
+
+- **The check that the picture shows the answer can keep its rule and let candidates through.** A picture that draws the right value among at least three wrong ones draws candidates the child must choose among, as a crown's numbers or a net's faces do. That one exception, with a rule that `tiles` and `shapes` mark the asked place with `?`, refuses 1 of the 57 honest and edge tasks, where today's check refuses 6. It refuses none of the blind agents' tasks and changes nothing for the reference tasks. It catches all 12 pictures whose `?` was filled with the answer and 57 of 59 with the answer written in, against 12 and 58 today (section 4).
+- **A drawn solution is caught, but not by its values.** A route drawn as dashed lines was refused by the read rule, since the solver never reads it. A mirror drawn finished was refused by the solver's own second run, which then found a different answer.
+- **Since T115 the card of how an answer went keeps the task's picture** in a box at its head, open in a chat, where the lesson is, so the child sees it above the picture of the solution. Every probe task drew its solution in the task's own kind but one.
+- **No program can hold "no facts in the words".** The numbers a question writes are a genre's rules (the 7 of a die), or names of what is drawn (face 3 of a net), as often as facts. The read rule and a new self-check issue type hold it instead (section 5).
+- **Repeats have to be judged by the picture.** By the question alone, more than a third of the pairs of new tasks of one genre with different pictures count as repeats, and most repeats pass. The picture's own elements catch every shared picture and refuse 1 of 139 other pairs.
+- **Readability and language need nothing new.** No task of the 79 was refused for either as it stands, and the blind agents' 17 passed at their first try.
+- **No genre is held back by the checks.**
+
+**Decided by the study's recommendation, until the author decides** (end of this file): the hidden answer's exception and its `?` rule, no program rule for facts in the words, and repeats judged by the picture, the same picture asked another question counted as one.
 
 ## 1. The starting point, checked
 
@@ -198,9 +210,104 @@ Each candidate was run on its own, on 54 honest tasks (the 51, the member left u
 - A picture adds its description to the program's input: the probe's largest, a sheet with three folds, is 307 bytes, and the 8 KB limit is on the source alone.
 - `just ci-load` hands in no task with a picture solved from it, so none of this reaches it until a scenario does; the hand-in it would add costs one solver's run, as now.
 
+## 4. The hidden answer
+
+*Part 2, measured on `0727341`, where the probe gives every result of part 1 again (section 14).*
+
+### What today's check refuses, and why
+
+Today a picture shows the answer when it draws the right option's value where the question does not give it (`internal/domain/checks/showsanswer.go:28`). A task solved from the picture gives no values in its question, so the check refuses every task whose answer is a value drawn on the picture. It refused 6 of the 57 honest and edge tasks, all for this alone: the three crowns and the crown with its sides in the code, the die whose top face comes back after four rolls, and the net asked which number is opposite 3. It refused the blind agent's crown, and the net asked again in other words.
+
+In each of them the answer is one of several values drawn, and the skill is to find which: the number a crown's joints carry round, the face a net folds opposite, the face a die shows after its rolls. What R228 forbids is a picture from which the answer is simply read, such as a calendar page that shows the day asked for. Here reading the picture is the task, but reading alone does not give the answer.
+
+### What each kind shows
+
+What the check holds to the answer is what a kind's reading calls shown (`internal/domain/picture/*.go`, `Shown`):
+
+- `lattice`: the labels of its points and of its cells. Its cells, lines and dashed lines are drawn, not written: a count of them is the child's to make.
+- `tiles`: the label in each triangle. `shapes`: the totals. `stairs`: the labels on the steps, since the steps are not numbered and a jump is drawn, not written.
+- Of today's kinds the probe uses, `row` shows its labels (of labels that count the items only the last), the labels under the items, the gaps and the span; `piles` shows each pile's label, its value and how many counters it has.
+
+### Pictures that show the answer on purpose
+
+From every honest, edge and blind task whose right option fits on a label, a script wrote pictures that show the answer, by rules written and hashed before any draft rule was coded (section 14):
+
+- **The unknown answered**, 12: every `?` of the picture replaced by the right option, the crowns, the shapes, a die and a fence.
+- **The answer written in**, 59: the right option added where the kind writes a value of its own, a mark in the first free cell of a lattice, a row's span, a pile's value, a mark on a free step.
+- **The solution drawn**, 3, by hand: a maze with its shortest way drawn dashed, the robot's grid with one route drawn dashed, and the figure of the symmetry task with the cells it needed filled in.
+
+### Draft rules
+
+Each draft rule was applied to every task, together with the 104 reference tasks that draw today:
+
+| Rule | Honest and edge refused (57) | Blind refused (17) | Reworded refused (5) | Reference tasks refused (104) | Unknown answered caught (12) | Answer written caught (59) | Solution drawn caught (3) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Today's | 6 | 1 | 1 | 0 | 12 | 58 | 0 |
+| The right value drawn, and no wrong one | 1 | 0 | 0 | 0 | 0 | 45 | 0 |
+| A picture of `tiles` or `shapes` with no `?` | 0 | 0 | 0 | 0 | 10 | 0 | 0 |
+| Either of the two above | 1 | 0 | 0 | 0 | 10 | 45 | 0 |
+| Today's, unless two or more wrong values are drawn; or no `?` | 1 | 0 | 0 | 0 | 11 | 53 | 0 |
+| **Today's, unless three or more wrong values are drawn; or no `?`** | **1** | **0** | **0** | **0** | **12** | **57** | **0** |
+| Today's, unless four or more wrong values are drawn; or no `?` | 5 | 0 | 0 | 0 | 12 | 57 | 0 |
+
+- **The rule the study proposes** keeps today's check and lets it pass a picture that draws the right value among at least three wrong ones, the five options' values standing as candidates the child must choose among. It refuses one honest task, the die whose answer is the face drawn in its first cell, which a child could guess by sight; the model writes another path. Its two misses add a label the honest picture already drew: a second `E` in a maze whose question names E, a second 6 on a net that has one. With two wrong values instead of three, five more pictures that show their answer slip through, those of two dice, two ice creams and a fold; with four, the probe's crowns, which draw three wrong values, are refused again.
+- **What the exception lets through.** A picture that writes the answer in beside three wrong values passes it by construction, and the probe wrote no such picture, so nothing here says how often a model would. The guide forbids writing the answer on the picture, as it does today, and the check before release (part 4) counts such pictures among its refusals.
+- **The `?` rule** catches 10 of the 12 pictures whose asked value was filled in: the crowns and the shapes, and not the die and the fence, whose kinds it does not cover. Their purposes already say "mark the triangle asked about with ?" and "mark the total asked about with ?". A `lattice`, `row` or `stairs` asks other things, so the rule stays with the two kinds.
+- **No rule on values catches a drawn solution**, but other checks do. The maze and the grid drew their routes as dashed lines that their solvers never read, and the read rule of section 3 refused both. The symmetry task with its cells filled in was refused because its solver, which reads the picture, then found nothing to add and disagreed with the answer. A drawn solution is either a member the solver does not need or a picture that answers another question.
+- **Word tasks keep today's check**, which is what R228's calendar rule needs. On the reference tasks the two rules agree, so this only says which tasks the relaxed rule applies to: those whose brief holds `facts_on_the_picture`.
+
+### The picture of the solution, and the card after the answer
+
+Every one of the 74 tasks of the probe and the blind sample drew its solution (R289), 73 in the task's own kind and one in a table, and the review accepted every such picture it reached. In a lattice the solution draws a path dashed or numbers it with marks, cells filled for a mirror or a cut, and the folded sheet's holes. A crown fills its `?`, the shapes write their total, and the stairs mark the meeting step. The solution's picture may show the answer, since it is sealed until the child answers (R276).
+
+Since R315 (T115), the card of how an answer went keeps the task's question and picture at its head, in a box that folds them away, open in a chat (`web/src/widget/ResultCard.tsx:334`, `TaskWording.tsx:28`). In a chat, where the lesson is, the box is open and the child sees the task's picture above the solution's, so the loss that section 1 found on `99d8a65` (R286) no longer holds there; the site's own cards show the box folded.
+
+### What a refusal says
+
+New refusals name the member and what to do, never an option or its letter (R62):
+
+- "task.picture marks no place with ?: mark the triangle or the total the question asks about with ?";
+- the read rule's, from section 3, naming the member left unread;
+- the repeat of a picture, from section 5.
+
+## 5. The words on a short question
+
+### Facts in the words
+
+A task solved from the picture keeps every fact on the picture. A program could hold that only by the numbers the question writes, and those are not facts often enough:
+
+| Question writes | Honest and edge (57) | Blind (17) | Reference tasks that draw (104) |
+|---|---:|---:|---:|
+| Any number | 13 | 2 | 103 |
+| A number its picture shows | 5 | 0 | 54 |
+
+The 13 honest questions write a die's 7 (opposite faces add up to it), the floor's 0, a cell's side of 1, and the labels a question points at: the faces 1, 2 and 3 of a net, the cells marked 1 of a piece. They are rules of the genre or names of what is drawn, not facts of the task. A ban on numbers shown would refuse 5 honest tasks and catch nothing the probe wrote. Applied to the word tasks it would refuse half of them, which is expected, since their facts are in their words.
+
+**What the study proposes:** no program rule. Two checks already hold the facts to the picture: the read rule requires the solver to read every member that carries facts, and an honest solver that read a fact from the words would leave its member unread. The self-check gets a new issue type, `facts_in_words`: a fact the solution uses stands in the question, or the picture does not hold it. The guide's section on tasks solved from the picture names the rule.
+
+### Near-duplicates
+
+A task solved from the picture keeps its words and changes its picture, which turns the near-duplicate check around. Of the 149 pairs of tasks of one genre (honest, edge, blind and reworded, within each genre), 10 share one picture exactly. Five are the reworded tasks with the tasks they reword. The other five are the pairs a shared picture makes beside them: the crown with its sides written into the code and the crown it copies; the fence drawn unlike its answer with that fence and with its rewording; and the net asked two questions with the other question and with its rewording. The other 139 pairs differ in their pictures.
+
+| Fingerprint | Same picture caught (10) | Different pictures refused (139) |
+|---|---:|---:|
+| The question alone, at 0.7 (today's) | 4 | 51 |
+| The question with the picture's elements in one set, at 0.7 | 4 | 40 |
+| The picture's elements alone, at 0.7 | 10 | 7 |
+| The picture's elements alone, at 0.8 | 10 | 3 |
+| **The picture's elements alone, at 0.9** | **10** | **1** |
+
+An element is a member of the description, each item of a list one: a line, a cell, a mark. Today's fingerprint refuses more than a third of the new tasks as repeats and lets most repeats through. Joining the picture to the question's trigrams does not help, because a question has a hundred trigrams and a picture a dozen elements. The picture alone separates them: at 0.9 it catches every shared picture and refuses one other pair, two sheets drawn 0.92 alike. The question is still compared with the reference questions of its level, and none of the 79 tasks copied one.
+
+**What the study proposes:** for a task solved from the picture, a repeat of a task the child was given is judged by its picture: elements 0.9 alike or more. The profile keeps a second sketch for such a task, of its picture, as it keeps one of the question now. Part 4 counts its bytes. Whether one picture asked another question is a new task is the author's question. The study counts it a repeat, since the child solves the same figure.
+
+### Readability and language
+
+None of the 79 tasks was refused for readability, and none for its language. In part 1 three of the probe's questions were reworded after a first run to pass readability, while the blind agents' 17 passed at their first try. Their questions are not short, since they state the genre's rules: 29 words on average at `1-2` (34 at most), 36 at `3-4` and 37 at `5-6` for the executor's set, and 38 to 59 for the blind agents'. Their Flesch-Kincaid grades stayed within the limits, at most 3.7 against 4 at `1-2`, 5.8 against 6 at `3-4` and 6.8 against 8 at `5-6`. The rules need no change. A short question that left the genre's rules to the picture would pass them more easily still.
+
 ## 14. The probe
 
-*Part 1. T105.1.2–T105.1.4 add to it.*
+*Parts 1 and 2. T105.1.3–T105.1.4 add to it.*
 
 - **The copy.** A clone of the repository at `99d8a65`, with the draft as one commit on it: the four kinds (`lattice`, `tiles`, `shapes`, `stairs`) read as strictly as the thirteen, with their limits, schema and examples; the solver's second input and the recording of reads; a section of the guide, "A task solved from the picture", that tells the model when a brief's `constraints` hold `facts_on_the_picture`; and 17 ideas, one a genre, added to five topics' lists. The guide grew from 17,204 to 19,553 bytes. `go build ./...`, `go test ./...` and the build of `tools/load` pass in the copy.
 - **The program**, `t1051`, a Go module that imports the copy as `tools/load` imports the service. It builds packages (`packages`), runs both runs of a solver with the picture and the whole review (`examine`), and each candidate on its own (`candidates`).
@@ -215,7 +322,10 @@ Each candidate was run on its own, on 54 honest tasks (the 51, the member left u
   - **What they found that the probe had not.** The die's side faces drawn as marks beside its first cell, which let a die turn. A rope counted in steps from cell to cell, with no lengths at all. Pieces named by letters other than A to E, which keeps them apart from the options' letters. And a gap in the draft: the package never named `lattice`'s member for dashed lines. The agent that needed it guessed `dashed`, rightly; the example of a kind has to show every member the kind has.
   - **What they cost.** 1,989,181 tokens written in all: 176,791 by the first agent and 1,812,390 by the thirteen, whose tasks took from 38,349 tokens (the ice cream) to 492,223 (the sticks), 100,895 in the middle. The plan said 150 to 200 thousand for all 17, and, after the first agent, 600 thousand for the other 13. The genres the first agent wrote were the easy ones, and the estimate drawn from them was three times too low.
   - **What 17 tasks show.** That every genre can be written right at the first try by Claude from the draft package, and the kinds of slip a check must meet. They do not show how often a model fails over many tasks, nor how other models do; that is the check before release.
-- **Kept** in `~/.claude/keep/t105.1/`, which outlives the container: the program, the set and its builders, the outputs, and the copy's draft as a patch with its base commit.
+- **Part 2: the copy on a new base.** The copy was rebuilt on `0727341`, which holds T115's card of how an answer went, with part 1's draft laid on it unchanged. `go build ./...`, `go test ./...` and the build of `tools/load` pass, and the probe gives every result of part 1 again, task by task, on all 114 tasks.
+- **Part 2: the set.** Its rules were written and their SHA-256 recorded on 2026-11-01, before any draft rule of part 2 was coded: `6eb67052…dac6c13`. A script derived 71 pictures that show the answer from the honest, edge and blind tasks. By hand came three pictures with the solution drawn and five tasks with their question said another way over the same picture.
+- **Part 2: the program.** Three more commands: `derive2` writes the pictures that show the answer, `hidden` applies the draft rules of section 4 to every task and to the 104 reference tasks that draw, and `words` measures section 5. The draft rules live in the copy beside the checks they bend (`internal/domain/checks/draft_t1052.go` there), so that they read pictures exactly as the service does.
+- **Kept** in `~/.claude/keep/t105.1/`, which outlives the container: the program, the sets and their builders, the outputs, and the copy's draft as a patch with its base commit.
 
 ## What the author decides after part 1
 
@@ -251,3 +361,12 @@ New topics in this proposal: two at most, counting figures and cubes and paper, 
 - the goat, the pieces, the cutting and the symmetry join geometry.grid.
 
 The blind agent's other 13 tasks were written by an agent a package (section 14).
+
+## What the author decides after part 2
+
+The parts now run one after another, so what follows was decided by the study's recommendation on 2026-11-01, and stands until the author decides otherwise:
+
+- **The hidden answer.** A task whose brief holds `facts_on_the_picture` keeps today's check, except that a picture drawing the right value among at least three wrong ones does not show the answer; a picture of `tiles` or `shapes` marks the asked place with `?`. Word tasks keep today's check as it is.
+- **Facts in the words.** No program rule; the read rule and a new self-check issue type, `facts_in_words`, hold it.
+- **Repeats.** A task solved from the picture repeats a task the child was given when its picture's elements are 0.9 alike or more, whatever its words; the profile keeps a sketch of its picture. The same picture asked another question counts as a repeat.
+- **Genres.** All 17 go on to T105.1.3: the checks hold none back.
