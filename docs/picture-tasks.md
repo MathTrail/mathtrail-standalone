@@ -2,6 +2,8 @@
 
 **All four parts: sections 1–3 on 2026-10-27 (T105.1.1), and on 2026-11-01 sections 4–5 (T105.1.2), 6–8 and 12 (T105.1.3), and 9–11, 13 and 15–17 (T105.1.4), with the probe's findings and the decisions after each part.** Each part writes only for the genres kept after the part before it: by the author after part 1, and from part 2 on by the study's recommendation. From part 2 on, the parts run one after another without waiting for the author: where a part leaves a choice, the next follows the study's recommendation, marked so, until the author decides.
 
+**Decided on 2026-11-01**, after the whole report: the author kept every decision taken by the study's recommendation but the screen reader's, added one on the trial series, and the implementation's decisions are R316 to R322 of `docs/decisions.md` (T105.2). What the author decided is at the end of this file.
+
 A task solved from the picture has its facts on the picture alone: the walls of a maze, the lines of a figure, the numbers on tiles. Without the picture it cannot be solved. Today MathTrail's facts live in the words. The picture only shows what the words say, and every check, the solver among them, works from the words (R69, R228, SPEC 4.4). This study asks which such tasks the service can draw and prove by program, what that changes and what it costs.
 
 ## What part 1 finds
@@ -671,3 +673,13 @@ Decided by the study's recommendation on 2026-11-01, until the author decides ot
 - **The screen reader.** A switch for the parent, a skill of the catalog left out; the picture's label stays the kind's name.
 - **The tasks.** T105.2 to T105.13 stand in RUN.md's table 1a, and T105.1 is marked done with them. T105.5 to T105.9 merge together, so that the instructions' version changes once.
 - **The service's own solver.** Kept back, until the check before release shows models' solvers answering another question.
+
+## What the author decided on the whole report
+
+Decided by the author on 2026-11-01, in the planning of T105.2, which wrote the decisions down as R316 to R322 and changed SPEC and the profile's diagram to match:
+
+- **Kept as the study recommended:** the hidden answer's exception and its `?` rule; no program rule for facts in the words, and `facts_in_words`; repeats judged by the picture at 0.9, the same picture asked another question counted as one (О-79); such tasks only where the chat is known to draw the card, a client that declares nothing getting word tasks (О-76, О-77); the card released alone and first; the two new topics with no counter in the rule; 48 reference tasks, 18 outside the count of today's topics and 30 held to a count of their own in the new topics; the guide's section only in the packages of such tasks; a row of six tiles at most, a tile's label of two characters; the service's own solver kept back until the check in a live chat. The count with the tokenizer is not needed.
+- **The screen reader (О-78): nothing for now.** Neither the switch for the parent the study proposed nor descriptions read aloud: the picture is still named by its kind, and both wait until a family asks.
+- **The trial series gives no task solved from the picture**, which the study did not ask: its answers move the rating most, and how hard such a task is at its level has not been measured.
+- **Settled while writing the decisions:** the new topics are `counting.figures` and `geometry.cubes_paper`, with the trap catalog as it is; the solver's refusal has a code of its own, `solver_unread`; a reference task solved from the picture names the idea it is built on, so that each genre needs an idea at each level it is taught at, 18 in today's topics rather than the 12 of section 7; a topic of such tasks asked for from a chat of words is refused under `needs_card`; and the log counts such tasks by `from_picture`.
+- **The share of hosts that show the card** stays unmeasured: the author's command was not run. Whether Claude declares MCP Apps with each call is read in the check in a live chat (T105.13).

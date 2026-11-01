@@ -28,7 +28,7 @@ flowchart LR
         top["per-topic summary<br/>δ, counters, last issued, traps, mastery and its level,<br/>the ideas given at each level"]
         rec["recent<br/>the last 20 answers and skips,<br/>each answer with the levels before it"]
         days["rating days<br/>the levels each of the last 7 days began at"]
-        fpr["fingerprints<br/>up to 200 sketches, no texts"]
+        fpr["fingerprints<br/>up to 200 sketches of questions<br/>and 50 of pictures, no texts"]
         req["open request<br/>id, brief, idea, attempts, tutor mode"]
         cur["current task<br/>open part, the answer once given,<br/>and one sealed block"]
         rdy["ready task<br/>the next one, written ahead and kept,<br/>open part and one sealed block"]
@@ -173,6 +173,8 @@ Only recording an answer writes it, before the answer moves the levels: the firs
 
 Two hundred is four days at the most a day gives, fifty tasks, and two weeks of a long session every day (R291). Beyond that a child does not recognise a task anyway, and criterion 11.9 — twenty tasks in a row on one topic with no duplicate refusal — lives comfortably inside the window.
 
+`picture_fingerprints` — an array of up to **50** opaque strings, oldest first, one per task solved from the picture that the child was given: a sketch of the elements of its picture, made as a question's is, 128 characters long (SPEC 5.6, R321). Such a task adds its picture's sketch here, when it is handed out, and none of its question to `task_fingerprints`; a task solved from the picture is held to the pictures of these fifty, at 0.9, and to no past question. Fifty is about 7 KB, and absent when the child has had no such task, so a file without it reads as before.
+
 ### The open request
 
 `open_request`, or null when no task is being written. Its fields are what makes "three attempts" and "one generation per request" survive a restart and a second instance (03-flows).
@@ -219,9 +221,10 @@ The solver program is kept although it is never run again: it is the record that
 |---|---|---|
 | `id` | open | The id it will have on the card, its request's, and the one its seal is tied to, so that handing it out moves it there as it is |
 | `topic`, `grade_level`, `difficulty`, `language`, `tutor_mode` | open | Where it stands, as its request asked, and who chose it |
-| `wording`, `picture`, `options`, `hint`, `fingerprint`, `instructions_version` | open | What the card will show, the sketch that joins the past tasks once it is handed out, and the guide it was written to |
+| `wording`, `picture`, `options`, `hint`, `fingerprint`, `instructions_version` | open | What the card will show, the sketch that joins the past tasks once it is handed out — of its picture, for a task solved from the picture —, and the guide it was written to |
 | `idea` | open, absent when its request named none | The idea it was built on, which joins the ideas given in its round once it is handed out (R296) |
 | `lesson_topic`, `excluded_skills` | open | What it was written for: it is let go once the lessons are kept to another topic, or a skill is kept out that it was not asked to keep out (SPEC 3.7) |
+| `from_picture` | open, absent when false | Whether it is solved from the picture, as its brief said: it is let go in a chat that does not draw the card (SPEC 3.7, R322) |
 | `attempts`, `opened_at`, `written_at` | open | How its writing went, for the line about it when it is handed out |
 | `sealed` | sealed | As the current task's, sealed as an unanswered task on the card is |
 
@@ -286,14 +289,15 @@ Pretty-printed JSON with sorted keys, not a compact line: the parent can open th
 | Ratings and the per-topic summary, 30 topics | 8 KB | 14 KB |
 | `recent`, 20 entries | 4 KB | 5 KB |
 | `task_fingerprints`, 200 entries | 27 KB | 29 KB |
+| `picture_fingerprints`, 50 entries | 0–7 KB | 7 KB |
 | The open request | 0 or 1.5 KB | 2 KB |
 | The current task, open part | 2 KB | 4 KB |
 | The current task, sealed block | 4 KB | 8 KB |
 | The history of the ratings: the levels before each of 20 entries, and 7 days of 30 topics' corrections | 14 KB | 15 KB |
 | The ideas given: a round of each list met, up to 35 lists of ten ideas, or of twenty, or of forty | 1–2 KB | 9 KB, 14 KB or 25 KB |
-| **Total** | **≈ 62 KB** | **≈ 88 KB, 94 KB or 105 KB** |
+| **Total** | **≈ 62–69 KB** | **≈ 95 KB, 101 KB or 112 KB** |
 
-The target was 64 KB, and the history of the ratings takes a file near the caps past it, to about 80 KB, and the ideas given to about 88 KB, while a typical one stays within it (R165, R296). A list grows to twenty ideas as a rule and to forty at most (R309), and even a round of forty in every list keeps a file near the caps at a tenth of the ceiling below. The caps that keep it there are the ones above — 500 characters of notes, 20 recent answers, 200 fingerprints, 30-odd topics, 7 days of the ratings — and the texts of a task, which the structure check holds to what a card shows (SPEC 5.2); they are enforced on every write, not checked afterwards, and past a list's cap its oldest entry goes. Nothing else grows, so nothing is pruned for size. What the service does hold is a ceiling: no file is written past 1 MiB, the most a store reads back, since a file the store could not read again would be taken for damage and rolled back. And every count in the file — the revision, the answers, the streaks, the day's tasks — is held below 2^30, about a billion, with a file read only when each has room for one more: whatever reads can take the next write (R126).
+The target was 64 KB, and the history of the ratings takes a file near the caps past it, to about 80 KB, and the ideas given to about 88 KB, while a typical one stays within it (R165, R296). The sketches of pictures add up to 7 KB for a child who is given tasks solved from the picture, which takes a typical file to the target and a little past it (R321). A list grows to twenty ideas as a rule and to forty at most (R309), and even a round of forty in every list keeps a file near the caps at a tenth of the ceiling below. The caps that keep it there are the ones above — 500 characters of notes, 20 recent answers, 200 fingerprints and 50 sketches of pictures, 30-odd topics, 7 days of the ratings — and the texts of a task, which the structure check holds to what a card shows (SPEC 5.2); they are enforced on every write, not checked afterwards, and past a list's cap its oldest entry goes. Nothing else grows, so nothing is pruned for size. What the service does hold is a ceiling: no file is written past 1 MiB, the most a store reads back, since a file the store could not read again would be taken for damage and rolled back. And every count in the file — the revision, the answers, the streaks, the day's tasks — is held below 2^30, about a billion, with a file read only when each has room for one more: whatever reads can take the next write (R126).
 
 **Pruning has a floor, because the rule reads the window.** After a failure the rule needs the topic of the last answer, which it takes from the end of `recent` (SPEC section 3), so an empty window would leave it with nothing to consolidate. `recent` therefore never goes below **5** answers. Skips share the window with answers under one rule: when an entry has to go, the oldest goes — unless it is one of the five most recent answers, and then the oldest skip goes instead. A new skip therefore stays and shows, and a run of skips cannot push out the answers the rule and the trial series read (R98). And the rule does not trust even that: a window that is empty anyway, in a profile restored from an older revision or edited by hand, is read as "nothing to consolidate" and the rule falls through to a new topic. A pure function that panics on its own input is a bug, not a guarantee.
 
