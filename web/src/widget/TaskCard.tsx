@@ -7,7 +7,6 @@ import {
 	type OptionState,
 	type Said,
 } from "../design/controls";
-import { Diagram } from "../design/picture/diagram";
 import { directionOf } from "../i18n/lookup";
 import type { Host } from "./bridge";
 import { CardFrame } from "./CardFrame";
@@ -29,8 +28,9 @@ import {
 import type { HandedTask } from "./payload";
 import { ResultBody, ResultFoot, verdictText } from "./ResultCard";
 import { useService } from "./service";
-import { resultShownOf } from "./shown";
+import { resultShownOf, withTheTaskOf } from "./shown";
 import { useStillOn } from "./stillOn";
+import { TaskWording } from "./TaskWording";
 import {
 	ChoosesTopic,
 	TopicButton,
@@ -190,11 +190,14 @@ export function TaskInCard({
 	// where a choice cannot be acted on, its button is shown and stays locked.
 	const topicLocked =
 		!choosesTopic || lesson.answer.state === "checking" || asking || saving;
-	// How the answer went, as the service told it — or, from a service that
-	// told the result alone, as the task on the card names it.
+	// How the answer went, as the service told it, the task as the card holds
+	// it where the service did not tell it — or, from a service that told the
+	// result alone, as the task on the card names it.
 	const went =
 		lesson.answer.state === "answered"
-			? (lesson.answer.shown ?? resultShownOf(handed, lesson.answer.result))
+			? lesson.answer.shown === undefined
+				? resultShownOf(handed, lesson.answer.result)
+				: withTheTaskOf(lesson.answer.shown, handed)
 			: undefined;
 	const saysOfTheAnswer = saidOf(lesson.answer);
 
@@ -369,18 +372,12 @@ function TaskBody({
 	return (
 		<div class="mt-body">
 			{chip}
-			<p class="mt-task-text" lang={inTask.lang} dir={inTask.dir}>
-				{task.question}
-			</p>
-			{task.picture !== undefined && (
-				<Diagram
-					picture={task.picture}
-					label={words.text(`picture.${task.picture.kind}`)}
-					locale={task.language}
-					keyLabel={words.text("picture.colors")}
-					said={inTask}
-				/>
-			)}
+			<TaskWording
+				question={task.question}
+				picture={task.picture}
+				locale={task.language}
+				said={inTask}
+			/>
 			{lesson.hint.open && !isSettled(lesson.answer) && (
 				<Note tone="hint" label={words.text("task.hint")} said={inTask}>
 					{task.hint}

@@ -50,13 +50,19 @@ type shownOut struct {
 }
 
 // answeredTaskOut is the task as the card of its answer names it: its id and
-// topic, the language it was written in, its five options, which the verdict
-// names by their texts and which give nothing away once the answer is in, and
-// its topic's page on the site, by the slug, with whether it is published.
+// topic, the language it was written in, its question and its picture, which
+// the card keeps at its head for the solution to be read against, its five
+// options, which the verdict names by their texts and which give nothing away
+// once the answer is in, and its topic's page on the site, by the slug, with
+// whether it is published.
 type answeredTaskOut struct {
-	ID       string            `json:"id"`
-	Topic    string            `json:"topic"`
-	Language string            `json:"language"`
+	ID       string `json:"id"`
+	Topic    string `json:"topic"`
+	Language string `json:"language"`
+	Question string `json:"question"`
+	// Picture is the description of the task's picture, or null, held as any
+	// value for the reason the task's own card holds it so.
+	Picture  any               `json:"picture"`
 	Options  map[string]string `json:"options"`
 	Slug     string            `json:"slug"`
 	SitePage bool              `json:"site_page"`
@@ -141,7 +147,10 @@ func (s *Service) shown(p *profile.Profile, recorded *profile.Recorded, chat cha
 
 // answeredTaskOf is the task on the card as the card of its answer names it.
 func (s *Service) answeredTaskOf(task *profile.CurrentTask) *answeredTaskOut {
-	out := &answeredTaskOut{ID: task.ID, Topic: task.Topic, Language: task.Language, Options: task.Options}
+	out := &answeredTaskOut{
+		ID: task.ID, Topic: task.Topic, Language: task.Language, Question: task.Wording,
+		Picture: pictureOf(task.Picture, task.Language), Options: task.Options,
+	}
 	if topic, found := s.content.Topic(task.Topic); found {
 		out.Slug, out.SitePage = topic.Slug, topic.SitePage
 	}

@@ -22,6 +22,11 @@ const drawings = {
 	hint: { d: "M9.5 17v-2.5a5.5 5.5 0 1 1 5 0V17ZM10.5 20h3", tone: text },
 	trap: { d: "M12 3.5 21.5 20h-19ZM12 9.5V14M12 17v.01", tone: text },
 	menu: { d: "M4 7h16M4 12h16M4 17h16", tone: text },
+	// The page is a sheet with its corner turned down and two lines of words.
+	page: {
+		d: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8ZM14 3v5h5M9 13h6M9 17h4",
+		tone: text,
+	},
 	// The globe is a ring with its equator and two meridians.
 	globe: {
 		d: "M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",

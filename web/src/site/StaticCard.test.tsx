@@ -164,13 +164,30 @@ function answeredStill() {
 }
 
 describe("a card of how a wrong answer went, drawn on a page", () => {
-	test("is the card the widget draws in a chat for the same answer", async () => {
+	test("is the card the widget draws in a chat for the same answer, its task folded", async () => {
 		drawn = await drawCard(shown(russianFence, wrongTold));
 		const root = drawn.root;
 		await vi.waitFor(() =>
 			expect(root.querySelector(".mt-verdict-line")).not.toBeNull(),
 		);
+		press(buttonIn(root, "Свернуть"));
 		sameCard(answeredStill(), root);
+	});
+
+	test("keeps the task at its head folded away, the verdict and the trap first", () => {
+		const page = answeredStill();
+		const toggle = page.querySelector(".mt-statement-toggle");
+		const body = page.querySelector(".mt-statement-body");
+
+		expect(page.querySelector(".mt-statement-label")?.textContent).toBe(
+			"Условие",
+		);
+		expect(toggle?.textContent).toBe("Развернуть");
+		expect(toggle?.getAttribute("aria-expanded")).toBe("false");
+		expect(body?.hasAttribute("hidden")).toBe(true);
+		expect(body?.querySelector(".mt-task-text")?.textContent).toBe(
+			russianFence.task.question,
+		);
 	});
 
 	test("names the release the site was built from, as a chat names it", () => {

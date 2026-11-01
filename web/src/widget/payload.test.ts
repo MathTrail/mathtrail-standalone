@@ -33,6 +33,7 @@ import {
 	refused,
 	savedWords,
 	setAside,
+	shown,
 	staleAnswer,
 	staleWait,
 	standing,
@@ -235,6 +236,50 @@ describe("an answer sent from the card", () => {
 		["there is no payload", { content: [] }],
 	])("is not recorded when %s", (_, result) => {
 		expect(readAnswer(result, fence.task.id)).toEqual({ kind: "failed" });
+	});
+});
+
+describe("how an answer went", () => {
+	// shownTask is the task a card of how an answer went names, read from
+	// payload.
+	function shownTask(payload: unknown) {
+		const screen = readScreen(payload);
+		return screen?.screen === "result" && screen.shown.kind === "shown"
+			? screen.shown.result.task
+			: undefined;
+	}
+
+	test("is read with the task's question and picture, for the card to keep at its head", () => {
+		const task = shownTask(shown(fence));
+
+		expect(task?.question).toBe(fence.task.question);
+		expect(task?.picture).toEqual(fenceRow);
+	});
+
+	test.each([
+		["a task with no picture, which the service says as null", null],
+		["a picture the card cannot draw", { kind: "spiral" }],
+	])("is read with no picture after %s", (_, picture) => {
+		const payload = shown(fence);
+		const task = { ...(payload.task as object), picture };
+
+		expect(shownTask({ ...payload, task })?.picture).toBeUndefined();
+		expect(shownTask({ ...payload, task })?.question).toBe(fence.task.question);
+	});
+
+	test("from a service before the task travelled with it is read without them", () => {
+		const payload = shown(fence);
+		const {
+			question: _,
+			picture: __,
+			...task
+		} = payload.task as Record<string, unknown>;
+
+		const read = shownTask({ ...payload, task });
+
+		expect(read?.id).toBe(fence.task.id);
+		expect(read?.question).toBeUndefined();
+		expect(read?.picture).toBeUndefined();
 	});
 });
 

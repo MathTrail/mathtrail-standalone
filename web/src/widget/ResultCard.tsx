@@ -2,6 +2,7 @@ import { useContext, useMemo, useRef, useState } from "preact/hooks";
 import {
 	Note,
 	SolutionSteps,
+	Statement,
 	Verdict,
 	type VerdictTone,
 } from "../design/blocks";
@@ -23,6 +24,7 @@ import { topicName } from "./names";
 import type { AnswerResult, ResultShown, Shown } from "./payload";
 import { stepsOf } from "./steps";
 import { useStillOn } from "./stillOn";
+import { TaskWording } from "./TaskWording";
 import {
 	ChoosesTopic,
 	TopicButton,
@@ -34,16 +36,26 @@ import { type Key, ratingText, useWords } from "./words";
 
 /**
  * ResultCard is the card of how an answer went, drawn below the task's card
- * when the model shows how an answer given in the chat went: whether it was
- * right, the trap behind a wrong option, the solution step by step, the topic
- * the task was on, linked to its page where the chat opens links, and how the
- * rating in the topic moved — or how far the trial series has got. Under it
- * are the next task to ask for and the topic to choose, as the task's card
- * had them before the answer; once the chat has the ask, this card is done
- * with, as a task's card is. A card with nothing to show says why: the task
- * has no answer yet, or is no longer on the card.
+ * when the model shows how an answer given in the chat went: the task at its
+ * head, whether the answer was right, the trap behind a wrong option, the
+ * solution step by step, the topic the task was on, linked to its page where
+ * the chat opens links, and how the rating in the topic moved — or how far
+ * the trial series has got. The task starts open, unless taskStartsFolded
+ * says to start it folded. Under it all are the next task to ask for and the
+ * topic to choose, as the task's card had them before the answer; once the
+ * chat has the ask, this card is done with, as a task's card is. A card with
+ * nothing to show says why: the task has no answer yet, or is no longer on
+ * the card.
  */
-export function ResultCard({ shown, host }: { shown: Shown; host: Host }) {
+export function ResultCard({
+	shown,
+	host,
+	taskStartsFolded = false,
+}: {
+	shown: Shown;
+	host: Host;
+	taskStartsFolded?: boolean;
+}) {
 	const words = useWords();
 	const child = shown.kind === "shown" ? shown.result.child : shown.child;
 	return (
@@ -59,6 +71,7 @@ export function ResultCard({ shown, host }: { shown: Shown; host: Host }) {
 						host={host}
 						wide={wide}
 						grade={whose.grade}
+						taskStartsFolded={taskStartsFolded}
 					/>
 				) : (
 					<article aria-label={words.text("result.label")}>
@@ -74,17 +87,20 @@ export function ResultCard({ shown, host }: { shown: Shown; host: Host }) {
 }
 
 // ResultInCard is how the answer went, inside the frame of its card, under the
-// card's header with the grade given, and what the card offers next.
+// card's header with the grade given, the task at its head folded at first
+// where taskStartsFolded says so, and what the card offers next.
 function ResultInCard({
 	shown,
 	host,
 	wide,
 	grade,
+	taskStartsFolded,
 }: {
 	shown: ResultShown;
 	host: Host;
 	wide: boolean;
 	grade: number;
+	taskStartsFolded: boolean;
 }) {
 	const words = useWords();
 	const tell = useModelLines(host);
@@ -92,7 +108,11 @@ function ResultInCard({
 		<>
 			<article aria-label={words.text("result.label")}>
 				<CardHeader grade={grade} wide={wide} />
-				<ResultBody shown={shown} host={host} />
+				<ResultBody
+					shown={shown}
+					host={host}
+					taskStartsFolded={taskStartsFolded}
+				/>
 			</article>
 			<div class="mt-foot">
 				<ResultFoot
@@ -110,16 +130,20 @@ function ResultInCard({
 
 /**
  * ResultBody is how an answer went, as a card shows it under its header: the
- * verdict, the trap behind a wrong option, the picture of the solution with
- * its total, the solution step by step, and the topic the task was on with how
- * the rating in it moved — or how far the trial series has got.
+ * task, its question and its picture, for the solution to be read against —
+ * open, unless taskStartsFolded says to start it folded —, the verdict, the
+ * trap behind a wrong option, the picture of the solution with its total, the
+ * solution step by step, and the topic the task was on with how the rating in
+ * it moved — or how far the trial series has got.
  */
 export function ResultBody({
 	shown,
 	host,
+	taskStartsFolded = false,
 }: {
 	shown: ResultShown;
 	host: Host;
+	taskStartsFolded?: boolean;
 }) {
 	const words = useWords();
 	const { task, result } = shown;
@@ -136,6 +160,11 @@ export function ResultBody({
 	);
 	return (
 		<div class="mt-body">
+			<TaskStatement
+				task={task}
+				said={inTask}
+				startsFolded={taskStartsFolded}
+			/>
 			<Verdict tone={tone}>{words.text(verdict.key, verdict.slots)}</Verdict>
 			{result.trap !== null && (
 				<Note
@@ -275,6 +304,44 @@ export function verdictText(
 ): string {
 	const [, verdict] = verdictOf(result, (letter) => options[letter]);
 	return words.text(verdict.key, verdict.slots);
+}
+
+// TaskStatement is the task the answer was to, at the head of how it went:
+// its question and its picture, as its own card showed them, in the language
+// said, in a box that folds them away and opens them again — open at first,
+// unless startsFolded says to start it folded. A task told without its
+// question, by a service before the question travelled with the result, has
+// none.
+function TaskStatement({
+	task,
+	said,
+	startsFolded,
+}: {
+	task: ResultShown["task"];
+	said: Said;
+	startsFolded: boolean;
+}) {
+	const words = useWords();
+	const [open, setOpen] = useState(!startsFolded);
+	if (task.question === undefined) {
+		return null;
+	}
+	return (
+		<Statement
+			label={words.text("result.statement")}
+			fold={words.text("result.statement_fold")}
+			unfold={words.text("result.statement_unfold")}
+			open={open}
+			onToggle={() => setOpen((wasOpen) => !wasOpen)}
+		>
+			<TaskWording
+				question={task.question}
+				picture={task.picture}
+				locale={task.language}
+				said={said}
+			/>
+		</Statement>
+	);
 }
 
 // SolutionPicture is the picture of the solution, laid out as the task's own

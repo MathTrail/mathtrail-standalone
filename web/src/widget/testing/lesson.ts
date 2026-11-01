@@ -260,10 +260,11 @@ export function answeredByAnEarlierService(
 /**
  * shown is how an answer to the task handed went, as show_result draws it and
  * as the card that took the answer is told it: whose card it is, the task as
- * it names it in its language, with its topic's page on the site published,
- * how the answer went — resultOf the fields given — and, given offered, the
- * choice of the topic the trial series over offers, with offered replacing
- * its own fields.
+ * it names it in its language — its question, its picture or null, as the
+ * service says it has none, and its options —, with its topic's page on the
+ * site published, how the answer went — resultOf the fields given — and,
+ * given offered, the choice of the topic the trial series over offers, with
+ * offered replacing its own fields.
  */
 export function shown(
 	handed: Handed,
@@ -285,6 +286,8 @@ export function shown(
 			id: task.id,
 			topic: task.topic,
 			language: task.language,
+			question: task.question,
+			picture: task.picture ?? null,
 			options: task.options,
 			slug: "gaps-and-boundaries",
 			site_page: true,

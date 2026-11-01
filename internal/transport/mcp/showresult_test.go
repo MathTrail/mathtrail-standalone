@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -47,6 +48,8 @@ type shownPayload struct {
 		ID       string            `json:"id"`
 		Topic    string            `json:"topic"`
 		Language string            `json:"language"`
+		Question string            `json:"question"`
+		Picture  json.RawMessage   `json:"picture"`
 		Options  map[string]string `json:"options"`
 		Slug     string            `json:"slug"`
 		SitePage bool              `json:"site_page"`
@@ -169,8 +172,9 @@ func TestShowResultTellsTheAnswerInWordsWhereNoCardIsDrawn(t *testing.T) {
 }
 
 // wantTheTaskNamed holds a card of how an answer went to naming its task: the
-// race's id, topic and options in its language, the page of its topic on the
-// site, and whose card it is.
+// race's id, topic, question and options in its language, with no picture,
+// which the race has none of, the page of its topic on the site, and whose
+// card it is.
 func wantTheTaskNamed(t *testing.T, payload *shownPayload, id string) {
 	t.Helper()
 
@@ -179,6 +183,10 @@ func wantTheTaskNamed(t *testing.T, payload *shownPayload, id string) {
 	if task == nil || task.ID != id || task.Topic != "logic.ordering" || task.Language != payload.Language ||
 		task.Language == "" || len(task.Options) != len(options) || task.Options["C"] != options["C"] {
 		t.Errorf("task = %+v in %q, want the race in its language with its options", task, payload.Language)
+	}
+	if task != nil && (task.Question != raceQuestion || string(task.Picture) != "null") {
+		t.Errorf("the task's question = %q and picture = %s, want the race's question and no picture",
+			task.Question, task.Picture)
 	}
 	if task != nil && (task.Slug == "" || !task.SitePage) {
 		t.Errorf("the topic's page = %q, published %v, want the page of Ordering", task.Slug, task.SitePage)
@@ -437,6 +445,35 @@ func TestThePictureOfTheSolutionIsSealedUntilTheAnswer(t *testing.T) {
 	if fields := submitted[len(submitted)-1].ContextMap(); fields["solution_picture"] != "row" ||
 		fields["solution_picture_bytes"] == int64(0) {
 		t.Errorf("task_submitted = %v, want the picture's kind and its size", fields)
+	}
+}
+
+// The card of how an answer went keeps the task at its head as it was handed
+// in, its question and its picture, so that the solution is read against it:
+// the reply to the answer carries them for the card that took it, and so does
+// the card of how it went.
+func TestTheCardOfHowAnAnswerWentHoldsTheTaskAsItWasHandedIn(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lessonShowing(t, kept)
+	request := askForTheRace(t, session, kept)
+	race := picturedRaceOn(request)
+	written, _ := race["task"].(map[string]any)
+	card := payloadOf[handedInPayload](t, call(t, session, "submit_task", race))
+	if card.Screen != "task" || card.Task == nil {
+		t.Fatalf("submit_task = %+v, want the pictured race on the card", card)
+	}
+
+	answered := answerIt(t, session, card.Task.ID, "A", false)
+	shown := showIt(t, session, card.Task.ID)
+	const picture = `{"items":[{"label":"A"},{"label":"B"},{"label":"K"}],"kind":"row"}`
+	for tool, after := range map[string]*mcp.CallToolResult{"submit_answer": answered, "show_result": shown} {
+		task := payloadOf[shownPayload](t, after).Task
+		if task == nil || task.Question != written["question"] || string(task.Picture) != picture {
+			t.Errorf("%s names the task %+v, want its question %q and its picture %s",
+				tool, task, written["question"], picture)
+		}
 	}
 }
 

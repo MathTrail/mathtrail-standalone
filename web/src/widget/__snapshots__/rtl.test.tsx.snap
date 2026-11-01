@@ -214,6 +214,68 @@ exports[`the screens in Arabic > the card of how a wrong answer went 1`] = `
       <div
         class="mt-body"
       >
+        <div
+          class="mt-statement"
+        >
+          <div
+            class="mt-statement-head"
+          >
+            <h3
+              class="mt-statement-label"
+            >
+              <svg
+                aria-hidden="true"
+                class="mt-icon"
+                fill="none"
+                height="16"
+                viewBox="0 0 24 24"
+                width="16"
+              />
+              <span>
+                نص المسألة
+              </span>
+            </h3>
+            <button
+              aria-controls="P0-2"
+              aria-expanded="true"
+              class="mt-statement-toggle"
+              type="button"
+            >
+              <span>
+                إخفاء
+              </span>
+              <svg
+                aria-hidden="true"
+                class="mt-icon mt-chevron"
+                fill="none"
+                height="16"
+                viewBox="0 0 24 24"
+                width="16"
+              />
+            </button>
+          </div>
+          <div
+            class="mt-statement-body"
+            id="P0-2"
+          >
+            <p
+              class="mt-task-text"
+              dir="rtl"
+              lang="ar"
+            >
+              طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟
+            </p>
+            <svg
+              aria-label="أشياء في صف"
+              class="mt-picture"
+              direction="ltr"
+              height="73.2"
+              role="img"
+              viewBox="-2 -2 160 73.2"
+              width="160"
+            />
+          </div>
+        </div>
         <p
           class="mt-verdict-line"
         >
@@ -354,7 +416,7 @@ exports[`the screens in Arabic > the card of how a wrong answer went 1`] = `
           مسألة أخرى
         </button>
         <button
-          aria-controls="P0-2"
+          aria-controls="P0-3"
           aria-expanded="false"
           class="mt-btn mt-topic-button"
           type="button"
@@ -393,10 +455,10 @@ exports[`the screens in Arabic > the card of how a wrong answer went 1`] = `
         </button>
       </div>
       <section
-        aria-labelledby="P0-3"
+        aria-labelledby="P0-4"
         class="mt-topic-panel"
         hidden=""
-        id="P0-2"
+        id="P0-3"
       />
       <p
         aria-live="polite"
@@ -5315,6 +5377,68 @@ exports[`the screens in Arabic > the task answered wrong, the card turned into h
       <div
         class="mt-body"
       >
+        <div
+          class="mt-statement"
+        >
+          <div
+            class="mt-statement-head"
+          >
+            <h3
+              class="mt-statement-label"
+            >
+              <svg
+                aria-hidden="true"
+                class="mt-icon"
+                fill="none"
+                height="16"
+                viewBox="0 0 24 24"
+                width="16"
+              />
+              <span>
+                نص المسألة
+              </span>
+            </h3>
+            <button
+              aria-controls="P0-3"
+              aria-expanded="true"
+              class="mt-statement-toggle"
+              type="button"
+            >
+              <span>
+                إخفاء
+              </span>
+              <svg
+                aria-hidden="true"
+                class="mt-icon mt-chevron"
+                fill="none"
+                height="16"
+                viewBox="0 0 24 24"
+                width="16"
+              />
+            </button>
+          </div>
+          <div
+            class="mt-statement-body"
+            id="P0-3"
+          >
+            <p
+              class="mt-task-text"
+              dir="rtl"
+              lang="ar"
+            >
+              طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟
+            </p>
+            <svg
+              aria-label="أشياء في صف"
+              class="mt-picture"
+              direction="ltr"
+              height="73.2"
+              role="img"
+              viewBox="-2 -2 160 73.2"
+              width="160"
+            />
+          </div>
+        </div>
         <p
           class="mt-verdict-line"
         >

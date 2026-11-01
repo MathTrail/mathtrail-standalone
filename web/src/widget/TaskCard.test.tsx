@@ -409,8 +409,17 @@ describe("an answer", () => {
 
 		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
 		// How the answer went takes the task's place under the same header:
-		// the task and its options are gone, and the card is one card.
-		expect(root.querySelector(".mt-task-text")).toBeNull();
+		// the task's question and picture stay at its head, its options and its
+		// hint are gone, and the card is one card.
+		const parts = [...(root.querySelector(".mt-body")?.children ?? [])];
+		expect(parts[0]?.className).toBe("mt-statement");
+		expect(text(".mt-statement .mt-task-text")).toBe(fence.task.question);
+		expect(
+			root
+				.querySelector(".mt-statement svg[role='img']")
+				?.getAttribute("aria-label"),
+		).toBe("Things in a row");
+		expect(root.querySelectorAll(".mt-task-text")).toHaveLength(1);
 		expect(root.querySelector(".mt-option")).toBeNull();
 		expect(root.querySelectorAll(".mt-head")).toHaveLength(1);
 		expect(root.querySelector("article")?.getAttribute("aria-label")).toBe(
@@ -473,6 +482,48 @@ describe("an answer", () => {
 		expect(root.querySelectorAll(".mt-steps li")).toHaveLength(3);
 		expect(root.querySelector(".mt-solution-picture")).toBeNull();
 		expect(root.querySelector(".mt-facts a")).toBeNull();
+		// The task at its head is the one on the card.
+		expect(text(".mt-statement .mt-task-text")).toBe(fence.task.question);
+		expect(root.querySelector(".mt-statement svg[role='img']")).not.toBeNull();
+	});
+
+	test("told whole by a service before the task travelled with it keeps the task on the card at its head", async () => {
+		const told = answered();
+		const payload = told.structuredContent as Record<string, unknown>;
+		const {
+			question: _,
+			picture: __,
+			...task
+		} = payload.task as Record<string, unknown>;
+		await drawCard(fence, ({ name }) =>
+			name === "read_progress"
+				? progress
+				: { ...told, structuredContent: { ...payload, task } },
+		);
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
+		expect(text(".mt-statement .mt-task-text")).toBe(fence.task.question);
+		expect(root.querySelector(".mt-statement svg[role='img']")).not.toBeNull();
+	});
+
+	test("keeps the task at its head folded once folded, across the progress opened and closed", async () => {
+		await drawCard();
+		press(option("B"));
+		await vi.waitFor(() => expect(verdict()).toBe(wrongVerdict));
+		press(button("Hide"));
+
+		press(topLine());
+		await vi.waitFor(() => expect(text(".mt-rank-name")).toBe("Rank 3"));
+		press(button("Back to task"));
+
+		const toggle = root.querySelector(".mt-statement-toggle");
+		expect(toggle?.textContent).toBe("Show");
+		expect(toggle?.getAttribute("aria-expanded")).toBe("false");
+		expect(
+			root.querySelector(".mt-statement-body")?.hasAttribute("hidden"),
+		).toBe(true);
 	});
 
 	test("is told to a screen reader, which hears the verdict once the card turns into how it went", async () => {
