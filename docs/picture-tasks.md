@@ -1,6 +1,6 @@
 # Tasks solved from the picture (T105.1)
 
-**Parts 1 and 2 of 4: sections 1–3 on 2026-10-27 (T105.1.1) and sections 4–5 on 2026-11-01 (T105.1.2), with the probe's findings and the decisions after each part.** Sections 6–13 and 15–17 come with T105.1.3–T105.1.4 (RUN.md, table 1a). Each part writes only for the genres kept after the part before it: by the author after part 1, and from part 2 on by the study's recommendation. From part 2 on, the parts run one after another without waiting for the author: where a part leaves a choice, the next follows the study's recommendation, marked so, until the author decides.
+**Parts 1 to 3 of 4: sections 1–3 on 2026-10-27 (T105.1.1), sections 4–5 (T105.1.2) and 6–8 and 12 (T105.1.3) on 2026-11-01, with the probe's findings and the decisions after each part.** Sections 9–11, 13 and 15–17 come with T105.1.4 (RUN.md, table 1a). Each part writes only for the genres kept after the part before it: by the author after part 1, and from part 2 on by the study's recommendation. From part 2 on, the parts run one after another without waiting for the author: where a part leaves a choice, the next follows the study's recommendation, marked so, until the author decides.
 
 A task solved from the picture has its facts on the picture alone: the walls of a maze, the lines of a figure, the numbers on tiles. Without the picture it cannot be solved. Today MathTrail's facts live in the words. The picture only shows what the words say, and every check, the solver among them, works from the words (R69, R228, SPEC 4.4). This study asks which such tasks the service can draw and prove by program, what that changes and what it costs.
 
@@ -28,6 +28,18 @@ A task solved from the picture has its facts on the picture alone: the walls of 
 - **No genre is held back by the checks.**
 
 **Decided by the study's recommendation, until the author decides** (end of this file): the hidden answer's exception and its `?` rule, no program rule for facts in the words, and repeats judged by the picture, the same picture asked another question counted as one.
+
+## What part 3 finds
+
+- **Nothing that chooses, writes, checks or hands out a task knows whether the chat shows the card.** Only the words of a reply do (section 6). Today's rule would give the new topics' tasks to chats without cards as to any, 16.8 % of their tasks in the simulation. Told the chat's kind, it gives none there but a task written ahead in a chat with cards, up to 0.9 % of that chat's tasks, which the task written ahead and the request still open have to record to let go.
+- **A client that declares nothing would have to count as a chat of words for such tasks**, the reverse of today's default for word tasks.
+- **The card has to ship alone, before the rest**, at least an hour apart, since ChatGPT may serve the page it keeps for up to an hour, and a card that does not know a kind shows the task with no picture. Everything else ships in one later release, which changes the instructions' version once.
+- **The new topics set the frequency.** With them, about one task in five is solved from the picture in a chat with cards, against 2 % from the ideas left in today's topics. Every child meets both new topics within four days, and they take 8 to 9 % of all tasks each.
+- **Reference tasks: 48 rather than 130.** One for each genre and level outside the count, and one at each difficulty and level for the new topics. The tests now ask 65 for each new topic. A package of a new topic, with three, stays under 50 KB of its 64.
+- **About 900 more tokens a package**, only in a package for a task solved from the picture, if the guide's section rides there alone. A task's picture costs about twice today's, some 100 tokens, by a ratio of bytes to tokens read from T70's own counts.
+- **The share of hosts that show the card is not measured.** The file of the author's command was not there when this part was written.
+
+**Decided by the study's recommendation, until the author decides** (end of this file): such tasks only where the chat is known to show the card; the card released alone and first; the new topics with the ideas of part 1, no counter; one reference task per genre and level outside the count, and 15 for each new topic; the guide's section only in their packages, shipped in one release.
 
 ## 1. The starting point, checked
 
@@ -305,9 +317,136 @@ An element is a member of the description, each item of a list one: a line, a ce
 
 None of the 79 tasks was refused for readability, and none for its language. In part 1 three of the probe's questions were reworded after a first run to pass readability, while the blind agents' 17 passed at their first try. Their questions are not short, since they state the genre's rules: 29 words on average at `1-2` (34 at most), 36 at `3-4` and 37 at `5-6` for the executor's set, and 38 to 59 for the blind agents'. Their Flesch-Kincaid grades stayed within the limits, at most 3.7 against 4 at `1-2`, 5.8 against 6 at `3-4` and 6.8 against 8 at `5-6`. The rules need no change. A short question that left the genre's rules to the picture would pass them more easily still.
 
+## 6. Where the card is seen
+
+*Part 3, read on `0727341`.*
+
+### Which chats count as showing it
+
+`chatOf` takes a call for one from a chat that draws cards when it comes from ChatGPT, or from a client that declares MCP Apps, or from one that declares nothing the server can read, as a client on an earlier version of the protocol does (`internal/transport/mcp/chat.go:43-46`, `:61-66`). Only a client that declares its capabilities without MCP Apps is taken for a chat of words. The kind of chat changes only the words of a reply (`chat.go:72-75`; `internal/transport/mcp/payload.go:303-308`). The payload is the same in both (`tool.go:235-238`), and no function of the rule, the checks or the package takes the kind.
+
+For a word task, R305 chose the cheap mistake: a chat taken wrongly for one with cards costs the adult a message. For a task solved from the picture the same mistake gives a child a task that cannot be solved. **The study proposes** that such a task goes only where the chat is known to draw: ChatGPT, or a client that declared MCP Apps with the call. A client that declared nothing gets word tasks.
+
+### How a task solved from the picture could reach a chat without the card
+
+| Path | What the code does today | What keeping it out would take |
+|---|---|---|
+| A task written ahead | It is kept in the profile (`ReadyTask`, `internal/domain/profile/profile.go:65`). Before it is handed out, `letGo` holds it to the lesson's language and topic, the skills left out, the place asked for and the instructions' version (`internal/transport/mcp/ahead.go:63-82`, `profile/ready.go:252-286`), not to the chat | The task records that it is solved from the picture, and `letGo` drops it in a chat of words, a misfit of its own |
+| A request still open | It is kept in the profile (`OpenRequest`, `profile/task.go:80-110`) and fulfilled by any call that brings its id, within 15 minutes and three attempts (`internal/transport/mcp/submittask.go:280`, `profile/request.go:77-80`). No chat is recorded | The request records it too, and a chat of words that finds such a request open asks for another task |
+| A family on two hosts | One profile file per Google account (`internal/store/drive/drivestore.go:50-51`); nothing in it is kept per host | Covered by the two rows above, since both live in that file |
+| A card that did not draw | A card that waits for its task asks the server, on its own, whether the task is ready (`read_task`, `web/src/widget/ComingCard.tsx:141-174`), so a request whose card asked was drawn. A task written ahead goes straight onto the card, which calls the server only when the child acts (`web/src/widget/hostedService.ts:43-108`). Nothing handles the card's start | For a request, the card's own asking: a request no card asked about may have no card, and its task waits for one. For the rest, the adult's word. The instructions already tell the model to read the task out when the adult says no card shows it (`content/instructions/mcp_instructions.md:38`); a task solved from the picture cannot be read out, so the model asks for another |
+| A card of an earlier release | The card's address is fixed (`ui://mathtrail/app.html`, `widget.go:11`), ChatGPT may serve a page it keeps for up to an hour (GPT-49, `docs/catalogs.md:308`), and a card that does not know a kind shows the task with no picture (`web/src/widget/payload.ts:78`) | The order of releases below |
+| The topic chosen, the trial series, a probe | Each is a brief of the rule, whose inputs are the profile, the catalog and the model's choice (`internal/domain/tutor/tutor.go:237-292`). A brief's constraints are always empty (`tutor.go:278`). The trial is the first five answers (`profile/progress.go:39`). While a topic is on pause, a probe comes on every sixth task the child has been given, counted over every topic (`tutor/pause.go:15`, `:98-101`, `tutor.go:698-706`). The rule has no checks of a topic of its own | The rule takes the chat's kind as an input. In a chat of words no brief asks for a picture, and the draw of an idea skips the ideas solved from the picture, as `NextIdeaSkipping` does in the copy |
+
+The simulation of section 7 measures two of the paths. With the rule told the chat's kind and half the days in a chat of cards, a task written ahead at the end of such a day and solved from the picture was handed out the next morning in a chat of words: 249, 933 or 1,631 times in 360,000 tasks by the lever, 0.14 % to 0.91 % of the tasks of chats without cards. With the rule as it is today, which does not know the chat, the new topics went to chats without cards as often as to any: 16.8 % of their tasks.
+
+### The order of releases
+
+1. The card that draws the new kinds ships first, alone. The service does not know the kinds yet: a kind the service reads must have its example, and the examples are part of the instructions' version (section 12), which a release of the card alone leaves as it is.
+2. The kinds' format and checks, their examples, the guide's section, the rule and the ideas ship together in a later release, at least an hour after the first, so that no page ChatGPT keeps is older than the kinds. The card's address stays as it is; whether to version it is О-66.
+
+### The words the model reads
+
+- **"Always"** in the server's instructions holds 2,047 of the 2,048 characters a host that cuts keeps (`content/content_test.go:478-492`). There is no room in it, and nothing about tasks solved from the picture needs to be there: the rules ride in the guide's section of the package and in the words of a reply.
+- **A reply in a chat of words** asks the model to read the task out, with its options (`internal/transport/mcp/payload.go:337-341`), and the picture is left out of those words (`submittask.go:574-587`). With the paths above closed, no task solved from the picture reaches that reply.
+- **The card's description** already names "a picture where it has one" (`content/instructions/widget_description.md:1`), and **the tools' descriptions** name the card and never a picture (`nexttask.go:105-121`, `submittask.go:223-230`). Neither changes, so ChatGPT has nothing to review again.
+
+### How many hosts show the card
+
+The author's command counts 30 days of calls by the host and by what it declared. Its file was not there when this part was written, so the share is not measured here. The command is in RUN.md, T105.1, and part 4 reads the file if it comes.
+
+## 7. The rule and how often
+
+### What sets the frequency
+
+The idea a task is built on is drawn from its topic's list, among the ideas not yet given in the round. The draw is a hash, so every idea of a round comes once and none is weighted (`internal/domain/tutor/idea.go:30-48`). It is made where a request is opened (`internal/transport/mcp/getpackage.go:163`, `:170`). So the share of ideas solved from the picture in a list is the share of such tasks in its topic. Three levers were measured against a baseline, L0, with no such idea, by rules written and hashed before the simulation was coded (section 14):
+
+- **L1**, today's topics with the ideas of part 1 whose genres the author left there: 12 ideas in five topics;
+- **L2**, L1 with a counter: in a chat with cards, every third task of a topic that has such ideas is built on one;
+- **L3**, L1 with the two new topics the author chose, taught at every level, every idea of theirs solved from the picture.
+
+The simulation runs the product's own rule on the copy (`tutor.Next`, `tutor.Ahead`, the task written ahead, the answer recorded), as T104.4's did. 200 children a grade, grades 1 to 6, ten tasks a day for 30 days, make 360,000 tasks a run. A child answers right two times in three, and spends a whole day in one kind of chat. The rule is told the chat's kind, as section 6 proposes: in a chat of words it does not see the new topics, and the draw of an idea skips those solved from the picture. A last run keeps the rule as it is today.
+
+| Lever | All days with cards | Half the days with cards: of all tasks | of the tasks with cards | Handed out without cards | Children given one by day 1, 7, 30 (all days with cards) |
+|---|---:|---:|---:|---:|---|
+| L0 | 0 | 0 | 0 | 0 | none |
+| L1 | 2.1 % | 1.5 % | 2.9 % | 249 | 14 %, 82 %, 100 % |
+| L2 | 10.1 % | 5.2 % | 9.9 % | 933 | 14 %, 100 %, 100 % |
+| L3 | 18.7 % | 12.0 % | 23.1 % | 1,631 | 29 %, 100 %, 100 % |
+| L3, the rule as today | 18.0 % | 17.4 % | 18.5 % | 29,278 | 27 %, 100 %, 100 % |
+
+- **Told the chat's kind, the rule gives none without cards**, by any lever, but for the task written ahead the day before (section 6). Not told, it gives the new topics' tasks to a chat without cards as to any other: with no days with cards at all, 16.8 % of the tasks were solved from the picture.
+- **Skipped ideas and topics come back.** With half the days in a chat of words, what is skipped there comes on the days with cards: L1's share there rises from 2.1 % to 2.9 %, and L3's from 18.7 % to 23.1 %.
+- **The new topics come early and take a large share.** Every child met both within four days, two in the middle, because the rule gives a topic never given before the others (`tutor.go:522`). They took 8.3 % and 8.6 % of all tasks, more than the 5.9 % an average topic of the 17 takes. They took it mostly from the pigeonhole principle, the calendar, gaps, parity and clocks, about two points each.
+- **Every move of the rule can bring one**: its own choice, the trial series, a probe, the topic the adult chose, the model's own choice and "one more like it". Each is a brief, and each draws an idea the same way.
+- **A first run counted wrong**, and is kept beside the second for the record. It left all 17 ideas of part 1 in today's topics, five of them twice over once the new topics came, and counted a new topic's task in a chat without cards as a word task. The review of this part found both.
+
+**The rating.** The rating reads a task by its level and difficulty alone (`rating.Point`), so a task solved from the picture has to be as hard as a word task of the same level and difficulty. Whether the model writes them so is for the live numbers (T72.14) to show. Probes and the trial series, where the rating learns most from an answer, are where a miss would cost most.
+
+**What moves elsewhere.** The learners' bench reads the catalog's topics and the reference tasks' traps and calls the rule (`tools/learners/main.go:209`, `:235`; `loop.go:167`), but draws no idea. The ideas alone move none of its numbers. The new topics and new reference tasks move them, and its guard is recorded again with the change that brings them.
+
+**What the study proposes:** the new topics the author chose (L3), with the ideas of part 1 in today's topics, about one task in five in a chat with cards. The counter of L2 needs code in the rule and is kept back, to be added if the live numbers show too few such tasks in today's topics.
+
+## 8. Reference tasks
+
+### What the tests ask of a topic
+
+- At `1-2` and `3-4`, a topic taught there has exactly five reference tasks at each difficulty, 25 a level (`content/content_test.go:286`). At `5-6` it has exactly three at each, 15 (`:321`). A topic taught at every level needs 65.
+- Every package of a topic at a level shows a reference task that draws its solution, and one that draws where the level has one (`content/package_test.go:368`).
+- A topic's reference tasks give its traps, the most frequent first (`ExampleTraps`). The rule hands them to a new child, and two tests fix them for `5-6` and for the calendar of `1-2` (`content/rule_test.go:104`, `:147`). The learners' bench reads the same traps.
+- R309 gave `1-2` and `3-4` no new reference tasks, and R310 replaced eight of the calendar's, which kept 450. Debt Д21 waits to make the comparison with those levels' reference tasks more tolerant, should its refusals grow.
+
+### Four ways
+
+| Way | What it adds | What it touches |
+|---|---|---|
+| **A set of its own, outside the count** | One reference task solved from the picture for each genre at each level it is taught, shown only in a package whose brief holds `facts_on_the_picture` | The two count tests leave it out. R309 gets an exception. `ExampleTraps` leaves it out too, or the fixed traps and the bench move |
+| Replacing tasks of the prototype, as R310 did | The same count, with 18 word tasks of today's topics giving way | The traps of the tasks replaced have to be kept for the fixed traps to hold. The check against the prototype's numbers reads its tasks by number and is unaffected. The site's pages of the topics read the reference tasks |
+| New topics only | The two new topics at every level: 65 each under today's tests, 130 | Five tasks a cell from two or three genres would repeat one another, and the genres of today's topics would have none |
+| The grid lowered to `1-2` and `3-4` | 50 reference tasks, word tasks as well | Every package, the bench and the site's pages of the grid |
+
+### How many
+
+The blind agents wrote every genre right at the first try with no reference task of its genre in their packages, only the kind's example and the guide's section (section 14). A reference task of the genre is therefore not what makes a model right. What it shows is the form: a question that says only what to find, a solver that reads the picture, a picture of the solution.
+
+**The study proposes** the first way: one reference task per genre and level outside the count. That is 18 for the genres in today's topics: 4 at `1-2`, 7 at `3-4` and 7 at `5-6`. For the two new topics, the count tests would hold a topic all of whose tasks are solved from the picture to one reference task at each difficulty of each level, 15 a topic and 30 for both, rather than 65 each. That makes 48 in all. The genres of the new topics are written at `5-6` in section 2. At `1-2` and `3-4` they need simpler forms, such as a net with the faces numbered and one asked for, or the squares of four matches, which the tasks that write them settle.
+
+### The package
+
+In the copy, the budget test's 875 packages are 31,224 bytes on average and 40,291 at most (the case of four-byte letters), against 65,536 (`content/package_test.go:553`). A package shows a reference task without its solver (`content/package.go:177-191`), and a probe task so shown is 1,335 bytes on average and 2,951 at most, over 68 tasks. A package of a new topic shows three reference tasks (`content/content_test.go:283`), all solved from the picture; even counted on top of the largest package, three of the largest add 8,853 bytes and keep it under 50 KB. The 17 packages the blind agents read were 31 to 35 KB written out with indentation.
+
+## 12. The model and its tokens
+
+### What changes for the model
+
+- **The guide.** Part 1's section "A task solved from the picture" is 2,214 bytes. With 135 bytes of edits elsewhere in the guide, which every package carries, it took the guide from 17,204 to 19,553 bytes. Part 2 adds about 600 bytes: `?` in `tiles` and `shapes`, no answer written on the picture, a picture that draws only what the task uses, `facts_in_words`, and the repeat judged by the picture. If the section rides only in a package whose brief holds `facts_on_the_picture`, a word task pays only for the 135 bytes outside it, some 45 tokens.
+- **A kind's example** rides in a package of its topic. The four new ones are 718 (`lattice`), 568 (`tiles`), 391 (`shapes`) and 434 bytes (`stairs`), against 478 on average for the 17 kinds.
+- **The server's instructions, the card's description and the tools' descriptions** do not change (section 6).
+
+### Tokens by bytes
+
+T70 counted tokens exactly, and named no ratio of bytes to tokens. Two can be read from its numbers and the files of its commits:
+
+- **Prose: 3.1 bytes a token.** The guide's section on the picture of the solution is 1,442 bytes at `70ea9ed`, and run 22 counted it at 468 tokens.
+- **A description in compact JSON: 1.6 bytes a token.** The 95 reference pictures at `efeed8e` average 74.1 bytes, and T70 counted a reference task's picture at 47 tokens.
+
+| Per task | Bytes | Tokens, by the ratio | Today |
+|---|---:|---:|---:|
+| The guide's section, parts 1 and 2 | about 2,800 | about 900 | 0 |
+| A task's picture, as the model writes it (the probe's 68) | 160 | about 100 | 53, run 22 |
+| The picture of the solution (the probe's 68, with no total) | 227 | about 140 | 90 with its total, run 22 |
+
+A solver that reads the picture is 1,055 bytes on average, longer than a word task's by the reading. Code has no ratio of its own here; at the prose ratio it is some 340 tokens. All of these are estimates within the two ratios. The count with the tokenizer, about $0.2, is the author's to allow.
+
+### The instructions' version
+
+The version is a hash of every instruction file, the solver templates, the kinds' examples and the lists of ideas (`content/instructions.go:86-95`, `template.go:171-182`, `picture.go:89`, `idea.go:79`). The reference tasks, the catalogs and the schemas are not in it. A task written ahead to an older version is dropped when it would be handed out (`profile/ready.go:256-258`, `ahead.go:65-71`), and the model has written it for nothing.
+
+**The study proposes** that the guide's section, the new kinds' examples, the templates and the ideas of the new topics ship in one release, which changes the version once. The release of the card alone (section 6) changes none of them, and the reference tasks can come in any release, since they are outside the version.
+
 ## 14. The probe
 
-*Parts 1 and 2. T105.1.3–T105.1.4 add to it.*
+*Parts 1 to 3. T105.1.4 adds to it.*
 
 - **The copy.** A clone of the repository at `99d8a65`, with the draft as one commit on it: the four kinds (`lattice`, `tiles`, `shapes`, `stairs`) read as strictly as the thirteen, with their limits, schema and examples; the solver's second input and the recording of reads; a section of the guide, "A task solved from the picture", that tells the model when a brief's `constraints` hold `facts_on_the_picture`; and 17 ideas, one a genre, added to five topics' lists. The guide grew from 17,204 to 19,553 bytes. `go build ./...`, `go test ./...` and the build of `tools/load` pass in the copy.
 - **The program**, `t1051`, a Go module that imports the copy as `tools/load` imports the service. It builds packages (`packages`), runs both runs of a solver with the picture and the whole review (`examine`), and each candidate on its own (`candidates`).
@@ -325,6 +464,8 @@ None of the 79 tasks was refused for readability, and none for its language. In 
 - **Part 2: the copy on a new base.** The copy was rebuilt on `0727341`, which holds T115's card of how an answer went, with part 1's draft laid on it unchanged. `go build ./...`, `go test ./...` and the build of `tools/load` pass, and the probe gives every result of part 1 again, task by task, on all 114 tasks.
 - **Part 2: the set.** Its rules were written and their SHA-256 recorded on 2026-11-01, before any draft rule of part 2 was coded: `6eb67052…dac6c13`. A script derived 71 pictures that show the answer from the honest, edge and blind tasks. By hand came three pictures with the solution drawn and five tasks with their question said another way over the same picture.
 - **Part 2: the program.** Three more commands: `derive2` writes the pictures that show the answer, `hidden` applies the draft rules of section 4 to every task and to the 104 reference tasks that draw, and `words` measures section 5. The draft rules live in the copy beside the checks they bend (`internal/domain/checks/draft_t1052.go` there), so that they read pictures exactly as the service does.
+- **Part 3: the rule.** Its rules were written and their SHA-256 recorded on 2026-11-01, before the simulation was coded: `e104ae6e…c4591`, and with an addendum after the review of this part found the first run's two faults (section 7), before the second: `7699cf56…73c773a899`. The program's command `rule` runs the copy's rule with a catalog that can add the two new topics, a view of it without them for a chat of words, and a draft draw of an idea that can skip some of a list's places (`tutor.NextIdeaSkipping` in the copy). The second run's 15 runs, five levers and three shares of days with cards, are 360,000 tasks each and took about ten minutes. A child answers right two times in three. A day is spent in one kind of chat, which makes the path of the task written ahead as common as the days that change from one kind to the other; how often families change is not known.
+- **Part 3: the code read.** Every path of section 6 was read on `0727341` and checked against the lines cited.
 - **Kept** in `~/.claude/keep/t105.1/`, which outlives the container: the program, the sets and their builders, the outputs, and the copy's draft as a patch with its base commit.
 
 ## What the author decides after part 1
@@ -370,3 +511,13 @@ The parts now run one after another, so what follows was decided by the study's 
 - **Facts in the words.** No program rule; the read rule and a new self-check issue type, `facts_in_words`, hold it.
 - **Repeats.** A task solved from the picture repeats a task the child was given when its picture's elements are 0.9 alike or more, whatever its words; the profile keeps a sketch of its picture. The same picture asked another question counts as a repeat.
 - **Genres.** All 17 go on to T105.1.3: the checks hold none back.
+
+## What the author decides after part 3
+
+Decided by the study's recommendation on 2026-11-01, until the author decides otherwise:
+
+- **Where the card is seen.** A task solved from the picture goes only to ChatGPT, or to a client that declared MCP Apps with the call. The rule takes the chat's kind, and a task written ahead or a request still open that holds such a task is let go in a chat of words.
+- **The order of releases.** The card that draws the new kinds ships alone and first. The kinds' format and checks, their examples, the guide's section, the rule and the ideas ship together at least an hour and one release later.
+- **How often.** The two new topics, with the ideas of part 1 in today's topics; no counter in the rule for now.
+- **Reference tasks.** One for each genre at each level it is taught, outside the count of today's topics, and one at each difficulty of each level for a new topic: 48 in all.
+- **The model.** The guide's section rides only in a package whose brief holds `facts_on_the_picture`. The section, the new kinds' examples, the templates and the new topics' ideas ship in one release.
