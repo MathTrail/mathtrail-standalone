@@ -25,7 +25,7 @@ import {
 	next,
 	optionStateOf,
 } from "./lesson";
-import type { HandedTask } from "./payload";
+import type { HandedTask, ResultShown } from "./payload";
 import { ResultBody, ResultFoot, verdictText } from "./ResultCard";
 import { useService } from "./service";
 import { resultShownOf, withTheTaskOf } from "./shown";
@@ -190,15 +190,7 @@ export function TaskInCard({
 	// where a choice cannot be acted on, its button is shown and stays locked.
 	const topicLocked =
 		!choosesTopic || lesson.answer.state === "checking" || asking || saving;
-	// How the answer went, as the service told it, the task as the card holds
-	// it where the service did not tell it — or, from a service that told the
-	// result alone, as the task on the card names it.
-	const went =
-		lesson.answer.state === "answered"
-			? lesson.answer.shown === undefined
-				? resultShownOf(handed, lesson.answer.result)
-				: withTheTaskOf(lesson.answer.shown, handed)
-			: undefined;
+	const went = wentOf(lesson.answer, handed);
 	const saysOfTheAnswer = saidOf(lesson.answer);
 
 	return (
@@ -301,6 +293,19 @@ export function TaskInCard({
 			</div>
 		</>
 	);
+}
+
+// wentOf is how the answer went, once it is recorded: as the service told it,
+// with the task as the card holds it where the service did not tell it — or,
+// from a service that told the result alone, as the task on the card names it.
+function wentOf(answer: Answer, handed: HandedTask): ResultShown | undefined {
+	if (answer.state !== "answered") {
+		return undefined;
+	}
+	if (answer.shown === undefined) {
+		return resultShownOf(handed, answer.result);
+	}
+	return withTheTaskOf(answer.shown, handed);
 }
 
 // saidOf is what the card says of the answer, or nothing while it has nothing
