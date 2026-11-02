@@ -69,7 +69,7 @@ FROM ghcr.io/mathtrail/mathtrail-standalone/dbip-country-lite:2026-10@sha256:7b2
 # The runtime holds the binary, a certificate bundle and the database of
 # countries, and nothing else: no shell, no package manager, and a non-root
 # user by default (uid 65532).
-FROM gcr.io/distroless/static-debian13@sha256:15f8637509792e05b97d83451b0b6ccfa4abd548f997e406ac1e72c87fe1fa78
+FROM gcr.io/distroless/static-debian13@sha256:448810357cc8e67b7208988abdba0f5ec3d3aebee0a5b13eb624979792cffc0f
 
 COPY --from=build /server /server
 COPY --from=countries /dbip-country-lite.mmdb /usr/share/mathtrail/dbip-country-lite.mmdb
