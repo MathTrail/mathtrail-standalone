@@ -122,7 +122,8 @@ func TestARunThatStopsAtAFormatStarlarkCannotFillSaysSo(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			test.check(t, run(t, test.source))
+			result := run(t, test.source)
+			test.check(t, &result)
 		})
 	}
 }

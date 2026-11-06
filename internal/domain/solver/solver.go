@@ -31,7 +31,8 @@ const (
 	// the run never reaches stops nothing, and is no reason to refuse.
 	StatusBadFormat Status = "bad_format"
 	// StatusNoEntryPoint means there is no solve to call, or what is called
-	// solve cannot be called with the options.
+	// solve cannot be called with the options, or with the options and the
+	// picture.
 	StatusNoEntryPoint Status = "no_entry_point"
 	// StatusError means the program failed while running.
 	StatusError Status = "error"
@@ -60,8 +61,14 @@ type Result struct {
 	Steps uint64
 	// Duration is how long it took.
 	Duration time.Duration
+	// Read are the members of the task's picture the program read, by their
+	// names, sorted: what tells a program that works its answer out from the
+	// picture from one that carries the picture's facts in its own code. Only
+	// a run that ended ok has them, since a run that failed may have stopped
+	// before it read what it would have.
+	Read []string
 }
 
 // One reports whether the run pointed at exactly one option, which is what a
 // verdict needs of it.
-func (r Result) One() bool { return r.Status == StatusOK && len(r.Letters) == 1 }
+func (r *Result) One() bool { return r.Status == StatusOK && len(r.Letters) == 1 }

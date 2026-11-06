@@ -1,7 +1,9 @@
 package solver_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"strconv"
 	"strings"
 	"testing"
@@ -23,15 +25,27 @@ import (
 // letter that is. Shifting the labels moves its answer with them.
 type follower struct{ text string }
 
-func (f follower) Run(_ context.Context, _ string, options solver.Options) (solver.Result, error) {
+func (f follower) Run(_ context.Context, _ string, options solver.Options, _ json.RawMessage) (solver.Result, error) {
 	return solver.Result{Status: solver.StatusOK, Letters: options.Match(f.text)}, nil
+}
+
+// keeper is a program that works its answer out, as follower does, and keeps
+// every picture it was handed.
+type keeper struct {
+	follower
+	handed []json.RawMessage
+}
+
+func (k *keeper) Run(ctx context.Context, source string, options solver.Options, picture json.RawMessage) (solver.Result, error) {
+	k.handed = append(k.handed, picture)
+	return k.follower.Run(ctx, source, options, picture)
 }
 
 // hardCoded is the laziest failure there is: the letter written into the
 // program. Shifting the labels leaves it exactly where it was.
 type hardCoded struct{ letter string }
 
-func (h hardCoded) Run(_ context.Context, _ string, _ solver.Options) (solver.Result, error) {
+func (h hardCoded) Run(_ context.Context, _ string, _ solver.Options, _ json.RawMessage) (solver.Result, error) {
 	return solver.Result{Status: solver.StatusOK, Letters: []string{h.letter}}, nil
 }
 
@@ -86,16 +100,26 @@ func TestTheTwoRunsHoldTheirProperties(t *testing.T) {
 	properties.Property("a program that follows the option is agreed with", prop.ForAll(
 		func(options solver.Options, place int) bool {
 			agreement, err := solver.Verdict(
-				context.Background(), follower{text: options[place]}, "irrelevant", options)
+				context.Background(), follower{text: options[place]}, "irrelevant", options, nil)
 			return err == nil && agreement.Letter == solver.Letter(place)
 		},
 		genOptions(), genPlace(),
 	))
 
+	properties.Property("both runs are handed the same picture, whatever it is", prop.ForAll(
+		func(options solver.Options, place int, picture []byte) bool {
+			program := &keeper{follower: follower{text: options[place]}}
+			_, err := solver.Verdict(context.Background(), program, "irrelevant", options, picture)
+			return err == nil && len(program.handed) == 2 &&
+				bytes.Equal(program.handed[0], picture) && bytes.Equal(program.handed[1], picture)
+		},
+		genOptions(), genPlace(), gen.SliceOf(gen.UInt8()),
+	))
+
 	properties.Property("a program that writes the letter out is never agreed with", prop.ForAll(
 		func(options solver.Options, place int) bool {
 			agreement, err := solver.Verdict(
-				context.Background(), hardCoded{letter: solver.Letter(place)}, "irrelevant", options)
+				context.Background(), hardCoded{letter: solver.Letter(place)}, "irrelevant", options, nil)
 			return err == nil && !agreement.Agreed() && agreement.Explain() != ""
 		},
 		genOptions(), genPlace(),

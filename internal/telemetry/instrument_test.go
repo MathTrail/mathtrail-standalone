@@ -1,7 +1,9 @@
 package telemetry_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -34,7 +36,7 @@ func TestARunLeavesItsCostAndNotItsAnswer(t *testing.T) {
 		Duration: 7 * time.Millisecond,
 	}})
 
-	if _, err := watched.Run(t.Context(), "def solve(options): pass", solver.Options{}); err != nil {
+	if _, err := watched.Run(t.Context(), "def solve(options): pass", solver.Options{}, nil); err != nil {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 
@@ -78,7 +80,7 @@ func TestAFailedProgramIsNotAFailedSpan(t *testing.T) {
 		Steps:  25_000_000,
 	}})
 
-	if _, err := watched.Run(t.Context(), "while True: pass", solver.Options{}); err != nil {
+	if _, err := watched.Run(t.Context(), "while True: pass", solver.Options{}, nil); err != nil {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 
@@ -97,7 +99,7 @@ func TestARunThatNeverHappenedIsRecordedAsAnError(t *testing.T) {
 
 	watched, spans, _ := observedRunner(t, &fakeRunner{err: errors.New("no slot came free")})
 
-	if _, err := watched.Run(t.Context(), "", solver.Options{}); err == nil {
+	if _, err := watched.Run(t.Context(), "", solver.Options{}, nil); err == nil {
 		t.Fatal("Run() error = nil, want the refusal passed through")
 	}
 
@@ -187,14 +189,42 @@ func histogramSum(t *testing.T, reader *sdkmetric.ManualReader, name string) int
 }
 
 // fakeRunner is a sandbox that returns what a case needs it to, so that the
-// case is about what was recorded rather than about an interpreter.
+// case is about what was recorded rather than about an interpreter. It keeps
+// the picture it was handed.
 type fakeRunner struct {
 	result solver.Result
 	err    error
+	handed json.RawMessage
 }
 
-func (f *fakeRunner) Run(context.Context, string, solver.Options) (solver.Result, error) {
+func (f *fakeRunner) Run(_ context.Context, _ string, _ solver.Options, picture json.RawMessage) (solver.Result, error) {
+	f.handed = picture
 	return f.result, f.err
+}
+
+// The runner beneath is handed the picture as it came, and the span carries
+// nothing of what the program read of it: a member's name is the model's to
+// choose.
+func TestARunIsHandedThePictureAndLeavesNothingOfIt(t *testing.T) {
+	t.Parallel()
+
+	beneath := &fakeRunner{result: solver.Result{Status: solver.StatusOK, Letters: []string{"B"}, Read: []string{"walls"}}}
+	watched, spans, _ := observedRunner(t, beneath)
+	picture := json.RawMessage(`{"kind":"row","walls":[1,2]}`)
+
+	if _, err := watched.Run(t.Context(), "def solve(options, picture): pass", solver.Options{}, picture); err != nil {
+		t.Fatalf("Run() error = %v, want nil", err)
+	}
+	if !bytes.Equal(beneath.handed, picture) {
+		t.Errorf("the runner beneath was handed %s, want %s", beneath.handed, picture)
+	}
+	for _, span := range spans.Ended() {
+		for _, attr := range span.Attributes() {
+			if strings.Contains(attr.Value.String(), "walls") {
+				t.Errorf("span attribute %s = %q, want nothing the program read", attr.Key, attr.Value.String())
+			}
+		}
+	}
 }
 
 // A run that never happened is this service's problem, and the span has to
@@ -204,7 +234,7 @@ func TestARefusedRunMarksItsSpanFailed(t *testing.T) {
 
 	watched, spans, _ := observedRunner(t, &fakeRunner{err: errors.New("no slot came free")})
 
-	if _, err := watched.Run(t.Context(), "", solver.Options{}); err == nil {
+	if _, err := watched.Run(t.Context(), "", solver.Options{}, nil); err == nil {
 		t.Fatal("Run() error = nil, want the refusal passed through")
 	}
 

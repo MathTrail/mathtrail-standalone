@@ -32,7 +32,7 @@ func sandbox(t *testing.T, limits starlark.Limits) solver.Runner {
 // run executes one source against the five options above.
 func run(t *testing.T, source string) solver.Result {
 	t.Helper()
-	result, err := sandbox(t, limits()).Run(context.Background(), source, options)
+	result, err := sandbox(t, limits()).Run(context.Background(), source, options, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
 	}
@@ -126,25 +126,30 @@ func TestRun(t *testing.T) {
 			name:     "solve takes nothing",
 			source:   "def solve():\n    return []\n",
 			status:   solver.StatusNoEntryPoint,
-			contains: "exactly one argument",
+			contains: "one argument, the options, or two, the options and the picture",
 		},
 		{
-			name:     "solve takes two",
-			source:   "def solve(options, extra):\n    return []\n",
+			name:   "solve takes the options and the picture",
+			source: "def solve(options, picture):\n    return match(options, 5)\n",
+			status: solver.StatusOK, letters: []string{"B"},
+		},
+		{
+			name:     "solve takes three",
+			source:   "def solve(options, picture, extra):\n    return []\n",
 			status:   solver.StatusNoEntryPoint,
-			contains: "exactly one argument",
+			contains: "one argument, the options, or two, the options and the picture",
 		},
 		{
 			name:     "solve takes anything",
 			source:   "def solve(*args):\n    return []\n",
 			status:   solver.StatusNoEntryPoint,
-			contains: "exactly one argument",
+			contains: "one argument, the options, or two, the options and the picture",
 		},
 		{
 			name:     "solve takes keywords",
 			source:   "def solve(**kwargs):\n    return []\n",
 			status:   solver.StatusNoEntryPoint,
-			contains: "exactly one argument",
+			contains: "one argument, the options, or two, the options and the picture",
 		},
 		{
 			name:     "the program gives up",
@@ -254,7 +259,8 @@ func TestRun(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			test.check(t, run(t, test.source))
+			result := run(t, test.source)
+			test.check(t, &result)
 		})
 	}
 }
@@ -270,7 +276,7 @@ type runCase struct {
 	contains string
 }
 
-func (c *runCase) check(t *testing.T, result solver.Result) {
+func (c *runCase) check(t *testing.T, result *solver.Result) {
 	t.Helper()
 	if result.Status != c.status {
 		t.Errorf("status: got %q (%s), want %q", result.Status, result.Message, c.status)

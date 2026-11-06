@@ -29,7 +29,9 @@ func argumentsOf(options solver.Options) (*starlark.Dict, error) {
 }
 
 // solveOf is the entry point out of what the program defined, or a sentence
-// about why there is none to call.
+// about why there is none to call. It takes the options, or the options and
+// the task's picture: a task whose facts stand on its picture alone is proved
+// by a program that reads them there.
 func solveOf(globals starlark.StringDict) (solve *starlark.Function, problem string) {
 	defined, found := globals[entryPoint]
 	if !found {
@@ -39,8 +41,8 @@ func solveOf(globals starlark.StringDict) (solve *starlark.Function, problem str
 	if !isFunction {
 		return nil, fmt.Sprintf("%s is a %s rather than a function", entryPoint, defined.Type())
 	}
-	if solve.NumParams() != 1 || solve.NumKwonlyParams() != 0 || solve.HasVarargs() || solve.HasKwargs() {
-		return nil, fmt.Sprintf("%s must take exactly one argument, the options", entryPoint)
+	if (solve.NumParams() != 1 && solve.NumParams() != 2) || solve.NumKwonlyParams() != 0 || solve.HasVarargs() || solve.HasKwargs() {
+		return nil, fmt.Sprintf("%s must take one argument, the options, or two, the options and the picture", entryPoint)
 	}
 	return solve, ""
 }

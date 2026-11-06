@@ -91,27 +91,29 @@ type Problem struct {
 	Rule string
 }
 
-// kinds are the kinds a description may name, each with how it is read and
-// how its limits are told to the model, in the order the format lists them.
-// A kind is added with a reader of its own and a line here.
+// kinds are the kinds a description may name, each with how it is read, how
+// its limits are told to the model, and the members that only lay it out, in
+// the order the format lists them. A kind is added with a reader of its own
+// and a line here.
 var kinds = []struct {
 	kind   Kind
 	read   func(*object) Picture
 	limits func() string
+	layout []string
 }{
-	{Clock, readClock, clockLimits},
-	{Table, readTable, tableLimits},
-	{NumberLine, readNumberLine, numberLineLimits},
-	{Row, readRow, rowLimits},
-	{Ring, readRing, ringLimits},
-	{Grid, readGrid, gridLimits},
-	{Bars, readBars, barsLimits},
-	{Venn, readVenn, vennLimits},
-	{Balance, readBalance, balanceLimits},
-	{Containers, readContainers, containersLimits},
-	{Piles, readPiles, pilesLimits},
-	{Calendar, readCalendar, calendarLimits},
-	{Flags, readFlags, flagsLimits},
+	{Clock, readClock, clockLimits, nil},
+	{Table, readTable, tableLimits, nil},
+	{NumberLine, readNumberLine, numberLineLimits, nil},
+	{Row, readRow, rowLimits, []string{"copies", "line"}},
+	{Ring, readRing, ringLimits, nil},
+	{Grid, readGrid, gridLimits, nil},
+	{Bars, readBars, barsLimits, nil},
+	{Venn, readVenn, vennLimits, nil},
+	{Balance, readBalance, balanceLimits, nil},
+	{Containers, readContainers, containersLimits, nil},
+	{Piles, readPiles, pilesLimits, []string{"box", "across"}},
+	{Calendar, readCalendar, calendarLimits, nil},
+	{Flags, readFlags, flagsLimits, nil},
 }
 
 // Kinds are every kind of picture, in the order the format lists them.
@@ -145,7 +147,7 @@ func LimitsOf(kind Kind) string {
 // still be held to the wording in the same pass.
 func Parse(raw json.RawMessage, decimals Decimals) (Picture, []Problem) {
 	reading := &reading{decimals: decimals}
-	whole, isObject := decoded(raw)
+	whole, isObject := Members(raw)
 	if !isObject {
 		reading.fault("picture", "must be an object: a description of one of the kinds of picture")
 		return nil, reading.problems
@@ -207,9 +209,10 @@ func KindOf(raw json.RawMessage) string {
 	return Other
 }
 
-// decoded is a description as JSON values, numbers kept as they were written,
-// and whether it is an object at all.
-func decoded(raw json.RawMessage) (map[string]any, bool) {
+// Members are a description's members as JSON values, numbers kept as they
+// were written, and whether it is an object at all: the one reading of a
+// description that the format, its facts and a program handed it all share.
+func Members(raw json.RawMessage) (map[string]any, bool) {
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.UseNumber()
 	var value any

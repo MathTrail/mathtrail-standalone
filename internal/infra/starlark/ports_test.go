@@ -54,7 +54,7 @@ func TestThePorts(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			agreement, err := solver.Verdict(context.Background(), sandbox(t, limits()), test.source, test.options)
+			agreement, err := solver.Verdict(context.Background(), sandbox(t, limits()), test.source, test.options, nil)
 			if err != nil {
 				t.Fatalf("Verdict: got error %v, want none", err)
 			}

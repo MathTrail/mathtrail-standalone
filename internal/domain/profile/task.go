@@ -2,6 +2,7 @@ package profile
 
 import (
 	"encoding/json"
+	"slices"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -44,7 +45,7 @@ func (m TutorMode) Known() bool { return m == TutorRule || m == TutorLLM || m ==
 // with the request so that a task can be read against the instructions it was
 // written to.
 type Brief struct {
-	// Constraints are the limits on the wording.
+	// Constraints are the limits on the wording: FactsOnThePicture, or none.
 	Constraints []string `json:"constraints"`
 	// Difficulty is the difficulty asked for inside the level, from
 	// MinDifficulty to MaxDifficulty.
@@ -67,6 +68,15 @@ type Brief struct {
 	// TrapsToUse are the mistakes the wrong options should lead to.
 	TrapsToUse []string `json:"traps_to_use"`
 }
+
+// FactsOnThePicture is the constraint of a brief that asks for a task solved
+// from its picture: its facts stand on the picture alone, and its solver is
+// held to reading every one of them there.
+const FactsOnThePicture = "facts_on_the_picture"
+
+// FromPicture reports whether the brief asks for a task solved from its
+// picture.
+func (b *Brief) FromPicture() bool { return slices.Contains(b.Constraints, FactsOnThePicture) }
 
 // OpenRequest is a task being written right now. It lives in the file rather
 // than in an instance's memory because it is what makes "three attempts and no

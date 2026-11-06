@@ -33,7 +33,7 @@ func EverySlotTaken(t testing.TB, runner solver.Runner) {
 	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
-		_, err := runner.Run(ctx, probe, probeOptions)
+		_, err := runner.Run(ctx, probe, probeOptions, nil)
 		cancel()
 		if err != nil {
 			return
@@ -58,7 +58,7 @@ func WantEverySlotFree(t testing.TB, runner solver.Runner, slots int) {
 	refused := make([]error, slots)
 	var together sync.WaitGroup
 	for i := range slots {
-		together.Go(func() { _, refused[i] = runner.Run(context.Background(), holder, probeOptions) })
+		together.Go(func() { _, refused[i] = runner.Run(context.Background(), holder, probeOptions, nil) })
 	}
 	together.Wait()
 	for i, err := range refused {

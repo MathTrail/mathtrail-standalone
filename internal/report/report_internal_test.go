@@ -322,6 +322,26 @@ func TestARefusedAttemptIsCountedByOneCheckAndFailsEach(t *testing.T) {
 	}
 }
 
+// Every check a review can refuse for is counted in the table of refusals,
+// the one a new check adds as surely as the ones before it: a report that
+// knew its checks by name would leave a new one out without a word.
+func TestEveryCheckARefusalNamesIsCounted(t *testing.T) {
+	t.Parallel()
+
+	lines := make([]string, 0, len(checks.Codes()))
+	for _, code := range checks.Codes() {
+		lines = append(lines, fmt.Sprintf(`{"message":"task_submitted","attempt":1,"outcome":"rejected",`+
+			`"primary":%q,"failed":[%q],"instructions_version":"v1"}`, code, code))
+	}
+	c := tallied(t, lines...)
+	for _, code := range checks.Codes() {
+		want := refusals{counted: 1, failed: 1}
+		if got := c.refusals[refusedBy{version: "v1", check: string(code)}]; got == nil || *got != want {
+			t.Errorf("refusals by %s = %+v, want %+v", code, got, want)
+		}
+	}
+}
+
 // An attempt that failed as a near-duplicate is counted by the level it was
 // asked at and by what its question repeated, as its line names them, however
 // many other checks it failed; an attempt that failed none of it is not

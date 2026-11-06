@@ -303,7 +303,7 @@ func (o *object) alone(rule string) {
 func (o *object) close(what string) {
 	for _, name := range slices.Sorted(maps.Keys(o.members)) {
 		if !o.read[name] {
-			o.fault(o.at(namedSafely(name)), "is no member of %s; leave it out", what)
+			o.fault(o.at(NamedSafely(name)), "is no member of %s; leave it out", what)
 		}
 	}
 }
@@ -312,8 +312,10 @@ func (o *object) close(what string) {
 // only when it is one, since anything else the model wrote may be a value.
 var memberName = regexp.MustCompile(`^[a-z][a-z0-9_]{0,31}$`)
 
-// namedSafely is a member's name as a refusal may write it.
-func namedSafely(name string) string {
+// NamedSafely is a member's name as a refusal may write it: the name itself
+// when it is one a member could have, and "*" for anything else the model
+// wrote there, which may be a value.
+func NamedSafely(name string) string {
 	if memberName.MatchString(name) {
 		return name
 	}

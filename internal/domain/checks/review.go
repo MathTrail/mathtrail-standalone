@@ -62,7 +62,8 @@ type Examined struct {
 
 // Run is one run of the solver as a log line may keep it: how it ended, what
 // it spent of its budget and how long it took. What it arrived at is not here,
-// because that is the answer.
+// because that is the answer, and nor is what it read of the picture, whose
+// members the model names.
 type Run struct {
 	Status   solver.Status
 	Steps    uint64
@@ -123,7 +124,7 @@ func (r *reviewer) Examine(ctx context.Context, submission *Submission) (Examine
 	if !complete {
 		return examined, nil
 	}
-	agreement, err := solver.Verdict(ctx, r.runner, submission.Solver, options)
+	agreement, err := solver.Verdict(ctx, r.runner, submission.Solver, options, draft.Task.Picture)
 	if err != nil {
 		return Examined{}, fmt.Errorf("checks: run the solver: %w", err)
 	}
@@ -157,6 +158,7 @@ func (r *reviewer) Judge(examined Examined, against Against) (Outcome, error) {
 	found.add(r.readability(task, against))
 	found.add(r.solverRuns(examined.answer))
 	found.add(r.answers(examined.answer, draft))
+	found.add(r.unread(examined.answer, task, against.Asked))
 	found.add(r.blockingIssues(draft.SelfCheck))
 	found.add(r.nearDuplicates(task, against))
 	found.add(r.copiesInEnglish(task, against))

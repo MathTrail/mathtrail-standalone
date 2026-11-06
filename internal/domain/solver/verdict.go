@@ -2,12 +2,14 @@ package solver
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 )
 
-// Runner executes one program once, against one set of options.
+// Runner executes one program once, against one set of options and the
+// task's picture, which is nil for a task that has none.
 //
 // It is declared here, by the side that needs it: the rule below is about what
 // two runs mean together, and it has no business knowing what an interpreter
@@ -16,7 +18,7 @@ import (
 // whoever asked stopped waiting — while everything the program itself did
 // comes back as a status.
 type Runner interface {
-	Run(ctx context.Context, source string, options Options) (Result, error)
+	Run(ctx context.Context, source string, options Options, picture json.RawMessage) (Result, error)
 }
 
 // ErrBusy is a run that never started: every place a program runs in stayed
@@ -49,19 +51,19 @@ func (a Agreement) Failed() *Result {
 
 // Verdict runs one program twice and reports what the two runs agreed on.
 //
-// The second run sees the same five texts under shifted labels. A program that
-// works the answer out and looks it up among the options follows the text and
-// returns the new label; a program that writes the letter out by hand returns
-// the old one and is caught. This does not make cheating impossible — a
-// program that hard-codes the value rather than the letter still passes — and
-// it is not meant to. It removes the laziest failure, which is also the most
-// likely one.
+// The second run sees the same five texts under shifted labels, and the same
+// picture. A program that works the answer out and looks it up among the
+// options follows the text and returns the new label; a program that writes
+// the letter out by hand returns the old one and is caught. This does not make
+// cheating impossible — a program that hard-codes the value rather than the
+// letter still passes — and it is not meant to. It removes the laziest
+// failure, which is also the most likely one.
 //
 // The second run happens only when the first reached exactly one option: there
 // is otherwise nothing for it to agree with, and a program that spends the
 // whole clock would spend it twice.
-func Verdict(ctx context.Context, runner Runner, source string, options Options) (Agreement, error) {
-	first, err := runner.Run(ctx, source, options)
+func Verdict(ctx context.Context, runner Runner, source string, options Options, picture json.RawMessage) (Agreement, error) {
+	first, err := runner.Run(ctx, source, options, picture)
 	if err != nil {
 		return Agreement{}, fmt.Errorf("solver: run as handed in: %w", err)
 	}
@@ -69,7 +71,7 @@ func Verdict(ctx context.Context, runner Runner, source string, options Options)
 		return Agreement{Runs: []Result{first}}, nil
 	}
 
-	second, err := runner.Run(ctx, source, options.Rotated())
+	second, err := runner.Run(ctx, source, options.Rotated(), picture)
 	if err != nil {
 		return Agreement{}, fmt.Errorf("solver: run with the labels shifted: %w", err)
 	}
@@ -96,15 +98,15 @@ func (a Agreement) Explain() string {
 		return failed.Message
 	}
 	if len(a.Runs) == 1 {
-		return found(a.Runs[0])
+		return found(&a.Runs[0])
 	}
 	return fmt.Sprintf(
 		"the solver pointed at %s, and %s once the options were relabelled: it is reading the letters rather than working the answer out",
-		a.Runs[0].Letters[0], pointed(a.Runs[1]))
+		a.Runs[0].Letters[0], pointed(&a.Runs[1]))
 }
 
 // found says what one run came to when it did not come to a single option.
-func found(run Result) string {
+func found(run *Result) string {
 	if len(run.Letters) == 0 {
 		return "the solver found no option that fits what it computed"
 	}
@@ -112,7 +114,7 @@ func found(run Result) string {
 }
 
 // pointed is the same for the second run, in a form that continues a sentence.
-func pointed(run Result) string {
+func pointed(run *Result) string {
 	switch len(run.Letters) {
 	case 0:
 		return "at nothing"
