@@ -2,6 +2,7 @@ package checks
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
@@ -82,7 +83,15 @@ func PictureFormat(task *Task, lesson string) []Problem {
 // against its wording: the labels the wording names, the labels the picture
 // shows, and the right answer.
 func PictureMatch(task *Task, lesson string) []Problem {
-	problems, _ := readPicture(task, lesson).match(task)
+	problems, _ := readPicture(task, lesson).match(task, false)
+	return problems
+}
+
+// PictureMatchFromPicture checks the picture of a task solved from the
+// picture against its wording, as PictureMatch does a word task's, by the
+// rules such a task is held to.
+func PictureMatchFromPicture(task *Task, lesson string) []Problem {
+	problems, _ := readPicture(task, lesson).match(task, true)
 	return problems
 }
 
@@ -115,7 +124,13 @@ func (p *pictured) format() []Problem {
 // since a label left out for breaking a rule would be reported missing. The
 // labels the picture shows, and the answer, are held to the wording in any
 // picture that names its kind, so that one more attempt mends all of it.
-func (p *pictured) match(task *Task) (problems []Problem, unchecked string) {
+//
+// The picture of a task solved from the picture holds the task's facts, and
+// draws among them the candidates the child chooses from: it shows the answer
+// only where it draws the right value without the values of at least three
+// wrong options beside it, and a picture of tiles or of shapes marks the place
+// it asks about with ?.
+func (p *pictured) match(task *Task, fromPicture bool) (problems []Problem, unchecked string) {
 	switch {
 	case p == nil:
 		return nil, ""
@@ -142,11 +157,51 @@ func (p *pictured) match(task *Task) (problems []Problem, unchecked string) {
 			"a word in its colors; give each the word the question writes, in its form there, or leave the colour "+
 			"out of the picture", unnamed))
 	}
-	if right, named := rightOption(task); named && showsTheAnswer(p.read, task.Question, p.by.asLatin(right), p.decimals, p.by) {
+	if p.showsTheAnswer(task, fromPicture) {
 		problems = append(problems, mismatch("task.picture shows the right answer, which the question does not "+
 			"give: show what the question gives and nothing it asks for, and mark the unknown with ?"))
 	}
+	if fromPicture && len(p.broken) == 0 && marksTheAsked(p.read.Kind()) && !slices.Contains(labels, "?") {
+		problems = append(problems, mismatch("task.picture marks no place with ?: mark the triangle or the "+
+			"total the question asks about with ?"))
+	}
 	return problems, unchecked
+}
+
+// showsTheAnswer says whether the picture shows the right option the question
+// does not give. A picture of a task solved from the picture that draws, beside
+// it, the values of at least three of the wrong options draws candidates the
+// child chooses among, and shows no answer by drawing them.
+func (p *pictured) showsTheAnswer(task *Task, fromPicture bool) bool {
+	right, named := rightOption(task)
+	if !named || !showsTheAnswer(p.read, task.Question, p.by.asLatin(right), p.decimals, p.by) {
+		return false
+	}
+	if !fromPicture {
+		return true
+	}
+	drawn := 0
+	for letter, wrong := range task.Options {
+		if letter != task.CorrectAnswer && !solver.Blank(wrong) &&
+			showsTheAnswer(p.read, task.Question, p.by.asLatin(wrong), p.decimals, p.by) {
+			drawn++
+		}
+	}
+	return drawn < candidatesDrawn
+}
+
+// candidatesDrawn is how many of the four wrong options' values a picture of a
+// task solved from the picture draws beside the right one for the five to be
+// candidates rather than the answer shown: two let pictures of two dice, two
+// ice creams and a fold that show their answer through, and four refuse the
+// crowns, which draw three.
+const candidatesDrawn = 3
+
+// marksTheAsked says whether a picture of a kind marks the place its task asks
+// about with ?: a tile's triangle or a row's total, which the picture would
+// otherwise leave the child to guess.
+func marksTheAsked(kind picture.Kind) bool {
+	return kind == picture.Tiles || kind == picture.Shapes
 }
 
 // matchSolution holds the picture of the solution to the wording and the

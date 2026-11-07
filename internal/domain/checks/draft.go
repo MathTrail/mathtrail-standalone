@@ -89,7 +89,7 @@ const unsolvable = "UNSOLVABLE"
 // issueTypes are the defects a self-check can name.
 var issueTypes = []string{
 	"ambiguous", "missing_data", "multiple_correct", "no_correct",
-	"too_hard_for_grade", "needs_picture", "factual_error",
+	"too_hard_for_grade", "needs_picture", "factual_error", "facts_in_words",
 }
 
 // How much an issue matters: a blocking one refuses the task, and a minor one

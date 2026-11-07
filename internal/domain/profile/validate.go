@@ -58,6 +58,10 @@ const (
 	MinRecent = 5
 	// MaxFingerprints is how many past tasks are remembered as sketches.
 	MaxFingerprints = 200
+	// MaxPictureFingerprints is how many pictures of past tasks solved from
+	// the picture are remembered as sketches: fifty are about 7 KB of the
+	// file.
+	MaxPictureFingerprints = 50
 	// MaxAttempts is how many times the model may hand back a task that does
 	// not pass the checks.
 	MaxAttempts = 3
@@ -120,6 +124,10 @@ func (p *Profile) validate(most int) error {
 	if len(p.TaskFingerprints) > MaxFingerprints {
 		return fmt.Errorf("%w: task_fingerprints holds %d, the limit is %d",
 			ErrInvalid, len(p.TaskFingerprints), MaxFingerprints)
+	}
+	if len(p.PictureFingerprints) > MaxPictureFingerprints {
+		return fmt.Errorf("%w: picture_fingerprints holds %d, the limit is %d",
+			ErrInvalid, len(p.PictureFingerprints), MaxPictureFingerprints)
 	}
 	if err := p.validateTasks(); err != nil {
 		return err

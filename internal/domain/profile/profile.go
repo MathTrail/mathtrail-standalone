@@ -80,6 +80,11 @@ type Profile struct {
 	// and never their texts: enough to notice a repeat, not enough to read
 	// back what the child was asked.
 	TaskFingerprints []string `json:"task_fingerprints"`
+	// PictureFingerprints are sketches of the pictures of the tasks solved
+	// from the picture already given, oldest first: such a task is judged new
+	// by its picture rather than its words, and keeps no sketch among the
+	// tasks'. Absent until the child is given one.
+	PictureFingerprints []string `json:"picture_fingerprints,omitempty"`
 	// Topics is the summary the rule runs on, keyed by the catalog's topic id.
 	// It is the part that is never pruned.
 	Topics map[string]Topic `json:"topics"`

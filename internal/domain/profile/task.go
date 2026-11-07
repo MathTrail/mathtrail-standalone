@@ -140,8 +140,12 @@ type CurrentTask struct {
 	// MinDifficulty to MaxDifficulty.
 	Difficulty int `json:"difficulty"`
 	// Fingerprint is the sketch that joins the list of past tasks once this
-	// one is accepted.
+	// one is accepted: of its picture, for a task solved from the picture.
 	Fingerprint string `json:"fingerprint"`
+	// FromPicture says the task is solved from the picture, as its brief
+	// asked: its fingerprint joins the sketches of pictures rather than those
+	// of questions.
+	FromPicture bool `json:"from_picture,omitempty"`
 	// GradeLevel is the level the task was written for. With the difficulty it
 	// is where the task stands on the ladder, which the answer is measured
 	// against.

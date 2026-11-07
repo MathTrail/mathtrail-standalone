@@ -81,8 +81,9 @@ func write(out io.Writer, c *counts) error {
 			"fails that check and any others beside it.", c.refusalsTable()},
 		{"What near-duplicates repeated", "The attempts that failed near_duplicate, by the level they were asked " +
 			"at and the kinds of earlier task their question repeats: reference, a reference task of that level, " +
-			"past, a task the child had been given, and reference_en, a reference task of that level that the " +
-			"question in English of a lesson in another language copies. A line written before the service named " +
+			"past, a task the child had been given, reference_en, a reference task of that level that the " +
+			"question in English of a lesson in another language copies, and past_picture, a task solved from the " +
+			"picture whose picture repeats one the child had been given. A line written before the service named " +
 			"them is not logged, and the release that began to name them kept its version of the instructions, so " +
 			"one version may hold both. A version's attempts add up to those that failed near_duplicate above.",
 			c.repeatedTable()},

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -349,6 +350,61 @@ func TestTheFingerprintsKeepTheLatestTasks(t *testing.T) {
 	if len(kept) != profile.MaxFingerprints || kept[0] != "old-001" || kept[len(kept)-1] != "sketch-of-the-gaps" {
 		t.Errorf("the fingerprints are %d, from %q to %q; want %d, from old-001 to the new one",
 			len(kept), kept[0], kept[len(kept)-1], profile.MaxFingerprints)
+	}
+}
+
+// A task solved from the picture is new by its picture: its sketch joins the
+// sketches of pictures, the oldest leaving past their limit, and none joins
+// the sketches of questions, whether it is handed out at once or kept and
+// handed out later.
+func TestATaskSolvedFromThePictureKeepsTheSketchOfItsPicture(t *testing.T) {
+	t.Parallel()
+
+	for _, ahead := range []bool{false, true} {
+		t.Run(fmt.Sprintf("written ahead: %v", ahead), func(t *testing.T) {
+			t.Parallel()
+			p := parseFixture(t, "dima")
+			p.PictureFingerprints = make([]string, profile.MaxPictureFingerprints)
+			for i := range p.PictureFingerprints {
+				p.PictureFingerprints[i] = fmt.Sprintf("picture-%02d", i)
+			}
+			questions := slices.Clone(p.TaskFingerprints)
+			brief := briefOn("counting.gaps")
+			brief.Constraints = []string{profile.FactsOnThePicture}
+			p.Ask(&brief, profile.TutorRule, "en", asked)
+
+			handOutWritten(t, p, ahead)
+
+			kept := p.PictureFingerprints
+			if len(kept) != profile.MaxPictureFingerprints || kept[0] != "picture-01" || kept[len(kept)-1] != "sketch-of-the-gaps" {
+				t.Errorf("the sketches of pictures are %d, from %q to %q; want %d, from picture-01 to the new one",
+					len(kept), kept[0], kept[len(kept)-1], profile.MaxPictureFingerprints)
+			}
+			if !slices.Equal(p.TaskFingerprints, questions) {
+				t.Errorf("the sketches of questions grew to %d from %d, want none added", len(p.TaskFingerprints), len(questions))
+			}
+			if !p.CurrentTask.FromPicture {
+				t.Error("the task on the card does not say it is solved from the picture")
+			}
+		})
+	}
+}
+
+// handOutWritten hands the task written for the open request to the child, at
+// once or kept first and handed out after.
+func handOutWritten(t *testing.T, p *profile.Profile, ahead bool) {
+	t.Helper()
+	if !ahead {
+		if _, err := p.Issue(written(), secret(), newSealer(t), asked); err != nil {
+			t.Fatalf("Issue() error = %v, want nil", err)
+		}
+		return
+	}
+	if _, err := p.Keep(written(), secret(), newSealer(t), asked); err != nil {
+		t.Fatalf("Keep() error = %v, want nil", err)
+	}
+	if _, err := p.HandOutReady(asked); err != nil {
+		t.Fatalf("HandOutReady() error = %v, want nil", err)
 	}
 }
 

@@ -45,6 +45,9 @@ type Against struct {
 	Language string
 	// Fingerprints are the sketches of the tasks the child has had.
 	Fingerprints []string
+	// PictureFingerprints are the sketches of the pictures of the tasks
+	// solved from the picture the child has had.
+	PictureFingerprints []string
 }
 
 // Examined is a submission read and its solver run: the half of a review that
@@ -146,12 +149,13 @@ func (r *reviewer) Judge(examined Examined, against Against) (Outcome, error) {
 	draft, task := *examined.draft, examined.draft.Task
 
 	var found findings
-	found.add(slices.Concat(examined.read, Structure(draft, against.Language, r.content)), "")
+	found.add(slices.Concat(examined.read, Structure(draft, against.Language, r.content),
+		PictureRequired(task, against.Asked)), "")
 	found.add(r.language(task, against))
 	found.add(r.explanations(draft, against))
 	pictured := readPicture(task, against.Language)
 	found.add(pictured.format(), "")
-	found.add(pictured.match(task))
+	found.add(pictured.match(task, against.Asked.FromPicture()))
 	solution := readSolutionPicture(task, against.Language)
 	found.add(solution.format(), "")
 	found.add(solution.matchSolution(task))
@@ -162,6 +166,7 @@ func (r *reviewer) Judge(examined Examined, against Against) (Outcome, error) {
 	found.add(r.blockingIssues(draft.SelfCheck))
 	found.add(r.nearDuplicates(task, against))
 	found.add(r.copiesInEnglish(task, against))
+	found.add(r.pastPictures(task, against), "")
 
 	outcome := Outcome{
 		Draft:        draft,
@@ -217,13 +222,29 @@ func (r *reviewer) readability(task *Task, against Against) (problems []Problem,
 }
 
 // nearDuplicates checks that the question copies no reference task of the
-// level asked for and repeats none of the child's own.
+// level asked for and repeats none of the child's own. A task solved from the
+// picture keeps its words and changes its picture, so its question is held to
+// the reference tasks alone, and pastPictures holds its picture.
 func (r *reviewer) nearDuplicates(task *Task, against Against) (problems []Problem, unchecked string) {
 	if task == nil || solver.Blank(task.Question) {
 		return nil, "the question was not compared with earlier tasks: that needs task.question"
 	}
 	references := r.content.ReferenceQuestions(against.Asked.GradeLevel)
-	return NearDuplicate(task.Question, against.Language, references, against.Fingerprints), ""
+	if !against.Asked.FromPicture() {
+		return NearDuplicate(task.Question, against.Language, references, against.Fingerprints), ""
+	}
+	return NearDuplicate(task.Question, against.Language, references, nil), ""
+}
+
+// pastPictures checks that the picture of a task solved from the picture
+// repeats none of the pictures of the child's past such tasks. It runs after
+// the comparisons of the question, so that the log names the kinds of earlier
+// task in the order they are listed.
+func (r *reviewer) pastPictures(task *Task, against Against) []Problem {
+	if task == nil || !against.Asked.FromPicture() {
+		return nil
+	}
+	return RepeatsPicture(task.Picture, against.PictureFingerprints)
 }
 
 // copiesInEnglish checks that the question in English of a task of a lesson in
