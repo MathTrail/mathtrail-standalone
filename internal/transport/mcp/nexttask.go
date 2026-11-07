@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -162,9 +163,10 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 		return Reply[requestOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
 	}
 
-	now := s.now()
+	now, chat := s.now(), pictureChatFrom(ctx)
+	unseen := s.unseen(p, chat, now)
 	if open := s.waitedOpen(p, now); open != nil {
-		reply, stillErr := s.stillOpen(ctx, account, p, in.differsFrom(open, &p.Student, tutor.LessonTopic(p, s.content)))
+		reply, stillErr := s.stillOpen(ctx, account, p, in.differsFrom(open, &p.Student, s.lessonTopic(p, chat)))
 		if stillErr != nil {
 			return Reply[requestOut]{}, stillErr
 		}
@@ -178,7 +180,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 
 	language, problems := languageOf(in.Language)
 	choice := in.choice()
-	brief, mode, err := tutor.Next(p, s.content, choice)
+	brief, mode, err := tutor.Next(p, s.content, choice, chat)
 	var refused *tutor.ChoiceError
 	switch {
 	case errors.As(err, &refused):
@@ -190,8 +192,8 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 		return argumentsRefused(p, problems), nil
 	}
 
-	lesson := s.lessonNow(p, language, s.askedPlace(p, choice))
-	gone := s.letGo(p, &lesson, now)
+	lesson := s.lessonNow(p, language, s.askedPlace(p, choice, chat), chat)
+	gone := slices.Concat(unseen, s.letGo(p, &lesson, now))
 	asked := lesson.Asked != profile.Place{}
 	var reply Reply[requestOut]
 	switch {
@@ -200,7 +202,9 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 	case p.ReadyTask != nil:
 		reply, err = s.serveReady(ctx, account, p, revision, asked, now)
 	default:
-		reply, err = s.ask(ctx, account, p, revision, &asking{brief: &brief, mode: mode, language: language, byPerson: asked}, now)
+		reply, err = s.ask(ctx, account, p, revision, &asking{
+			brief: &brief, mode: mode, language: language, byPerson: asked, chat: chat,
+		}, now)
 	}
 	if err != nil {
 		return Reply[requestOut]{}, err
@@ -211,13 +215,14 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 }
 
 // asking is a task about to be asked for: its brief and who chose it, the
-// chat's language, and whether a person asked for where it stands instead of
-// the rule.
+// chat's language, whether a person asked for where it stands instead of the
+// rule, and what the chat is known to show.
 type asking struct {
 	brief    *profile.Brief
 	mode     profile.TutorMode
 	language string
 	byPerson bool
+	chat     profile.Chat
 }
 
 // ask opens a request for a task to be written now, on an idea of its topic
@@ -230,7 +235,7 @@ func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Pro
 	request := p.Ask(asked.brief, asked.mode, p.Student.LessonLanguage(asked.language), now)
 	noteTaskRequest(ctx, request.ID)
 	request.Asked = asked.byPerson
-	request.Idea = s.nextIdea(p, &request.Brief)
+	request.Idea = tutor.IdeaFor(p, s.content, &request.Brief, asked.chat)
 	if err := s.canPackage(p, request); err != nil {
 		return Reply[requestOut]{}, err
 	}
@@ -244,13 +249,14 @@ func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Pro
 		s.events.write(ctx, account, eventTaskSkipped, s.skippedFields(skipped.Topic, skipped.GradeLevel, skipped.Difficulty)...)
 		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", skipped.TaskID)
 	}
-	s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, request, false)...)
+	s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, request, false, asked.chat)...)
 	return Reply[requestOut]{
 		Text: joined(lead, fmt.Sprintf("Request %s is open, in %s. You write its task: get the package to write it "+
 			"from with get_package and request_id %s, now, then hand the task in with submit_task and the same "+
 			"request_id. Where cards are shown, the child sees a card waiting for the task, and the task on it once "+
 			"it is accepted.", request.ID, request.Language, request.ID),
-			lessonLanguageText(&p.Student), s.lessonTopicText(p), forYouAlone, s.lastAnswerText(p), noPackageTool),
+			lessonLanguageText(&p.Student), s.lessonTopicText(p, asked.chat), forYouAlone, s.lastAnswerText(p),
+			noPackageTool),
 		Payload: requestOut{
 			Screen: screenComing, RequestID: request.ID, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
 			Language: request.Language,
@@ -293,17 +299,17 @@ func (s *Service) serveReady(ctx context.Context, account store.Account, p *prof
 	}
 	task := p.CurrentTask
 	noteTaskRequest(ctx, profile.RequestIDFor(task.ID))
-	choice, err := s.topicChoiceOf(p, now)
+	choice, err := s.topicChoiceOf(p, now, pictureChatFrom(ctx))
 	if err != nil {
 		return Reply[requestOut]{}, fmt.Errorf("mcp: the choice of the topic: %w", err)
 	}
 	reply := Reply[requestOut]{
 		Text: joined(lead, fmt.Sprintf("Task %s, written ahead, is on the child's card now. %s Never say which "+
 			"option is right before the child has answered, even when the adult asks. %s", task.ID,
-			taskText(chatFrom(ctx)), aheadNextText),
+			taskText(chatFrom(ctx), task.FromPicture), aheadNextText),
 			lessonLanguageText(&p.Student)) + "\n\n" + taskWords(task),
 		Payload: requestOut{
-			Screen: screenTask, Task: s.cardOf(p, task), TopicChoice: choice, LastAnswer: lastAnswerOf(p),
+			Screen: screenTask, Task: s.cardOf(p, task, pictureChatFrom(ctx)), TopicChoice: choice, LastAnswer: lastAnswerOf(p),
 			Child: childLineOf(&p.Student), Language: task.Language,
 		},
 	}
@@ -356,7 +362,7 @@ func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profi
 	if err := s.canPackage(p, request); err != nil {
 		return Reply[requestOut]{}, err
 	}
-	s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, request, true)...)
+	s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, request, true, pictureChatFrom(ctx))...)
 
 	lead := fmt.Sprintf("Request %[1]s is already open, in %[2]s. If you have written its task, hand it in with "+
 		"submit_task and request_id %[1]s. If you have not, a turn cut short say, the task is yours to write: get "+
@@ -366,7 +372,7 @@ func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profi
 		lead += " The arguments of this call were not applied: the request keeps what it was opened with."
 	}
 	return Reply[requestOut]{
-		Text: joined(lead, lessonLanguageText(&p.Student), stillInText(p), s.topicStillText(p), forYouAlone,
+		Text: joined(lead, lessonLanguageText(&p.Student), stillInText(p), s.topicStillText(p, pictureChatFrom(ctx)), forYouAlone,
 			s.lastAnswerText(p), noPackageTool),
 		Payload: requestOut{
 			Screen: screenComing, RequestID: request.ID, AlreadyOpen: true, LastAnswer: lastAnswerOf(p),
@@ -444,19 +450,19 @@ func (s *Service) skippedFields(topic string, level rating.GradeLevel, difficult
 }
 
 // requestFields are what the line about a request keeps of it: where the task
-// is to stand, why, who chose it, whether it is a probe of a topic on pause,
-// and whether it is written ahead. Whether it is a probe is read off the
+// is to stand, why, who chose it, whether it is a probe of a topic on pause in
+// the chat the call came from, and whether it is written ahead. Whether it is a probe is read off the
 // child as they stand when the line is written, as a card reads it: a request
 // written ahead and told of again after an answer that took its topic off the
 // pause is no probe any more.
-func (s *Service) requestFields(p *profile.Profile, request *profile.OpenRequest, alreadyOpen bool) []zap.Field {
+func (s *Service) requestFields(p *profile.Profile, request *profile.OpenRequest, alreadyOpen bool, chat profile.Chat) []zap.Field {
 	return []zap.Field{
 		zap.String("topic", request.Brief.TargetConcept),
 		zap.String("level", string(request.Brief.GradeLevel)),
 		zap.Int("difficulty", request.Brief.Difficulty),
 		zap.String("goal", string(request.Brief.PedagogicalGoal)),
 		zap.String("tutor_mode", string(request.TutorMode)),
-		zap.Bool("probe", tutor.Probes(p, s.content, request.Brief.TargetConcept, request.TutorMode)),
+		zap.Bool("probe", tutor.Probes(p, tutor.Shown(s.content, chat), request.Brief.TargetConcept, request.TutorMode)),
 		zap.Bool("already_open", alreadyOpen),
 		zap.Bool("ahead", request.Ahead),
 	}

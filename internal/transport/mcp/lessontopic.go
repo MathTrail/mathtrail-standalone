@@ -24,16 +24,16 @@ type topicChoiceOut struct {
 // nil during the trial series: the series moves to a new topic each time, and
 // a choice made then waits for its end, so the card offers none. What the
 // review suggests is worked out as the progress works it out.
-func (s *Service) topicChoiceOf(p *profile.Profile, now time.Time) (*topicChoiceOut, error) {
+func (s *Service) topicChoiceOf(p *profile.Profile, now time.Time, chat profile.Chat) (*topicChoiceOut, error) {
 	if p.Ratings.InTrial() {
 		return nil, nil
 	}
-	_, _, review, err := s.reviewed(p, profile.DateOf(now))
+	_, _, review, err := s.reviewed(p, profile.DateOf(now), chat)
 	if err != nil {
 		return nil, err
 	}
 	return &topicChoiceOut{
-		Chosen:      given(tutor.LessonTopic(p, s.content)),
+		Chosen:      given(s.lessonTopic(p, chat)),
 		Recommended: review.Suggested(),
 		Site:        s.siteOut(),
 	}, nil
@@ -45,14 +45,20 @@ func (s *Service) siteOut() *siteOut {
 }
 
 // lessonTopicText says what the model needs to know of the topic of the
-// lessons: which one the child or the adult chose, and whether the tasks keep
-// to it yet. While the rule chooses — or the file names a topic the catalog
-// does not have — there is nothing to say.
-func (s *Service) lessonTopicText(p *profile.Profile) string {
+// lessons in the chat the call came from: which one the child or the adult
+// chose, and whether the tasks keep to it yet. While the rule chooses — or the
+// file names a topic the catalog does not have — there is nothing to say. A
+// topic all of whose tasks are solved from the picture is kept to only where
+// the card is known to be drawn, and the rule chooses in any other chat.
+func (s *Service) lessonTopicText(p *profile.Profile, chat profile.Chat) string {
 	topic := tutor.ChosenTopic(p, s.content)
 	switch {
 	case topic == "":
 		return ""
+	case !chat.ShowsPictures() && s.content.SolvedFromPicture(topic):
+		return fmt.Sprintf("The child or the adult chose to keep the lessons to %s, whose tasks are solved from a "+
+			"picture on the card, and this chat is not known to draw the card: here the rule chooses the topic of "+
+			"every task.", s.topicName(topic))
 	case p.Ratings.InTrial():
 		return fmt.Sprintf("The child or the adult chose to keep the lessons to %s once the trial series is over: "+
 			"until then each task is on a new topic.", s.topicName(topic))
@@ -69,13 +75,13 @@ func (s *Service) lessonTopicText(p *profile.Profile) string {
 // for the task when it is asked for in the chat, so that these words, read
 // with whatever comes next instead, skip no task the child is still working
 // on.
-func (s *Service) topicChangedText(p *profile.Profile) string {
+func (s *Service) topicChangedText(p *profile.Profile, chat profile.Chat) string {
 	lead := "On the card, the choice of the topic of the lessons was given back to the rule: it chooses the " +
 		"topic of every task again."
 	if p.Student.LessonTopic != "" {
 		lead = "On the card, the child or the adult chose the topic of the lessons."
 	}
-	return joined(lead, s.lessonTopicText(p), s.topicStillText(p),
+	return joined(lead, s.lessonTopicText(p, chat), s.topicStillText(p, chat),
 		"Do not explain the choice or say why the next task comes; call next_task when the next task is asked for.")
 }
 
@@ -84,8 +90,8 @@ func (s *Service) topicChangedText(p *profile.Profile) string {
 // back as it was, and the topic chosen starts with the task after it. A task
 // being written ahead keeps nothing: it is let go once the next task is asked
 // for.
-func (s *Service) topicStillText(p *profile.Profile) string {
-	lesson, request := tutor.LessonTopic(p, s.content), s.waitedOpen(p, s.now())
+func (s *Service) topicStillText(p *profile.Profile, chat profile.Chat) string {
+	lesson, request := s.lessonTopic(p, chat), s.waitedOpen(p, s.now())
 	if lesson == "" || request == nil || request.Brief.TargetConcept == lesson {
 		return ""
 	}

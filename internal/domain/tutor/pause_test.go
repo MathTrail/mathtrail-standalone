@@ -81,7 +81,7 @@ func TestATopicOnPauseBeyondTheOverallLevelWaitsForIt(t *testing.T) {
 		t.Errorf("Probeable() = %v at an overall level of %.1f, want no percent.basic: its easiest task, of grades "+
 			"5–6, is beyond that level", got, p.Ratings.Theta)
 	}
-	brief, _, err := tutor.Next(p, c, tutor.Choice{})
+	brief, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -94,7 +94,7 @@ func TestATopicOnPauseBeyondTheOverallLevelWaitsForIt(t *testing.T) {
 	if got := tutor.PausedTopics(p, c); !slices.Equal(got, []string{"percent.basic"}) {
 		t.Fatalf("PausedTopics() = %v at an overall level of 3.6, want [percent.basic]", got)
 	}
-	brief, _, err = tutor.Next(p, c, tutor.Choice{})
+	brief, _, err = tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -124,7 +124,7 @@ func TestATaskOnATopicBeyondTheOverallLevelIsNoProbe(t *testing.T) {
 		t.Error("Probes(logic.ordering) = false, want true: the overall level reaches its easiest task")
 	}
 	p.CurrentTask = &profile.CurrentTask{ID: "tsk_older", Topic: "percent.basic", TutorMode: profile.TutorRule}
-	if judging := tutor.JudgingOf(p, c); judging.Probe {
+	if judging := tutor.JudgingOf(p, c, profile.ChatWithCards); judging.Probe {
 		t.Error("JudgingOf() of a task on percent.basic is a probe, want none: no lift may follow its answer")
 	}
 }
@@ -154,7 +154,7 @@ func TestNothingIsOnPauseAtTheBottomOfTheLadder(t *testing.T) {
 		t.Errorf("PausedTopics() below every topic = %v, want none", got)
 	}
 	if tutor.ProbeDue(p) {
-		brief, _, err := tutor.Next(p, c, tutor.Choice{})
+		brief, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 		if err != nil {
 			t.Fatalf("Next() error = %v, want nil", err)
 		}
@@ -171,7 +171,7 @@ func TestAProbeTakesTheLastOfEverySixTasks(t *testing.T) {
 	t.Parallel()
 	c := threeTopics()
 	for tasks := rating.TrialAnswers; tasks <= 24; tasks++ {
-		brief, _, err := tutor.Next(pausing(t, tasks), c, tutor.Choice{})
+		brief, _, err := tutor.Next(pausing(t, tasks), c, tutor.Choice{}, profile.ChatWithCards)
 		if err != nil {
 			t.Fatalf("Next() at %d tasks error = %v, want nil", tasks, err)
 		}
@@ -185,7 +185,7 @@ func TestAProbeTakesTheLastOfEverySixTasks(t *testing.T) {
 
 func TestAProbeIsTheEasiestTaskOfItsTopic(t *testing.T) {
 	t.Parallel()
-	brief, mode, err := tutor.Next(pausing(t, 11), threeTopics(), tutor.Choice{})
+	brief, mode, err := tutor.Next(pausing(t, 11), threeTopics(), tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -209,7 +209,7 @@ func TestAFailureBeingWorkedOverComesBeforeAProbe(t *testing.T) {
 	p := pausing(t, 11)
 	failedAt(p, "counting.gaps", 1)
 
-	brief, _, err := tutor.Next(p, threeTopics(), tutor.Choice{})
+	brief, _, err := tutor.Next(p, threeTopics(), tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -225,7 +225,7 @@ func TestAFailureInATopicOnPauseFallsToItsProbe(t *testing.T) {
 	p := pausing(t, 11)
 	failedAt(p, "logic.ordering", 1)
 
-	brief, _, err := tutor.Next(p, threeTopics(), tutor.Choice{})
+	brief, _, err := tutor.Next(p, threeTopics(), tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -240,7 +240,7 @@ func TestAPersonsTopicAndTheModelsChoiceComeBeforeAProbe(t *testing.T) {
 
 	kept := pausing(t, 11)
 	kept.Student.LessonTopic = "time.clocks"
-	brief, mode, err := tutor.Next(kept, c, tutor.Choice{})
+	brief, mode, err := tutor.Next(kept, c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -250,7 +250,7 @@ func TestAPersonsTopicAndTheModelsChoiceComeBeforeAProbe(t *testing.T) {
 	}
 
 	brief, mode, err = tutor.Next(pausing(t, 11), c,
-		tutor.Choice{Topic: "counting.gaps", Reason: "The adult asked for gaps."})
+		tutor.Choice{Topic: "counting.gaps", Reason: "The adult asked for gaps."}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -268,7 +268,7 @@ func TestOfTopicsOnPauseTheOneThatWaitedLongestIsProbed(t *testing.T) {
 	summary.LastIssued = profile.DateOf(day.AddDate(0, 0, -2))
 	p.Topics["time.clocks"] = summary
 
-	brief, _, err := tutor.Next(p, threeTopics(), tutor.Choice{})
+	brief, _, err := tutor.Next(p, threeTopics(), tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -301,7 +301,7 @@ func TestJudgingOfMarksOnlyARulesTaskOnATopicOnPause(t *testing.T) {
 			if tc.answered {
 				p.CurrentTask.Answered = &profile.Given{Choice: "C"}
 			}
-			judging := tutor.JudgingOf(p, c)
+			judging := tutor.JudgingOf(p, c, profile.ChatWithCards)
 			if judging.Probe != tc.want {
 				t.Errorf("JudgingOf().Probe = %t, want %t", judging.Probe, tc.want)
 			}
@@ -310,7 +310,7 @@ func TestJudgingOfMarksOnlyARulesTaskOnATopicOnPause(t *testing.T) {
 			}
 		})
 	}
-	if judging := tutor.JudgingOf(pausing(t, 11), c); judging.Probe || judging.Taught != nil {
+	if judging := tutor.JudgingOf(pausing(t, 11), c, profile.ChatWithCards); judging.Probe || judging.Taught != nil {
 		t.Errorf("JudgingOf() with no task on the card = %+v, want nothing", judging)
 	}
 }
@@ -327,14 +327,14 @@ func probed(t *testing.T, choice string) (*profile.Profile, profile.Recorded, fl
 	}
 	c := threeTopics()
 	p := pausing(t, 11)
-	brief, mode, err := tutor.Next(p, c, tutor.Choice{})
+	brief, mode, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
 	task := handedOut(t, p, tenIdeas, &brief, mode, sealer, day)
 	before := p.LevelIn(task.Topic)
 	recorded, err := p.Record(profile.Answered{TaskID: task.ID, Choice: choice, At: day.Add(time.Minute)},
-		sealer, tutor.JudgingOf(p, c))
+		sealer, tutor.JudgingOf(p, c, profile.ChatWithCards))
 	if err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
@@ -411,7 +411,7 @@ func TestATopicBehindComesRoundTwiceAsOften(t *testing.T) {
 	counts := map[string]int{}
 	now := day
 	for range 30 {
-		brief, mode, err := tutor.Next(p, c, tutor.Choice{})
+		brief, mode, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 		if err != nil {
 			t.Fatalf("Next() error = %v, want nil", err)
 		}

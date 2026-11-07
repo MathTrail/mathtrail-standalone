@@ -655,7 +655,7 @@ func longestRationale(t *testing.T, shipped *content.Content, topic string, at r
 	reason := "a" + strings.Repeat(letter, tutor.MaxReason-2) + "a"
 	chosen, _, err := tutor.Next(child, shipped, tutor.Choice{
 		Topic: topic, GradeLevel: at.GradeLevel, Difficulty: at.Difficulty, Reason: reason,
-	})
+	}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want the model's choice of %s at difficulty %d of %s built",
 			err, topic, at.Difficulty, at.GradeLevel)

@@ -164,7 +164,7 @@ func (s *session) next() (profile.Brief, profile.TutorMode, error) {
 		s.ahead = nil
 		return ahead.brief, ahead.mode, nil
 	}
-	return tutor.Next(s.p, s.w.catalog, tutor.Choice{})
+	return tutor.Next(s.p, s.w.catalog, tutor.Choice{}, profile.ChatWithCards)
 }
 
 // writeLevels puts the rule's estimate into the profile, where the service's
@@ -219,7 +219,7 @@ func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *an
 		return profile.Recorded{}, err
 	}
 	if s.r.ahead {
-		next, nextMode, err := tutor.Ahead(s.p, s.w.catalog, tutor.Choice{})
+		next, nextMode, err := tutor.Ahead(s.p, s.w.catalog, tutor.Choice{}, profile.ChatWithCards)
 		if err != nil {
 			return profile.Recorded{}, err
 		}
@@ -227,7 +227,7 @@ func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *an
 	}
 	s.now = s.now.Add(answerTime)
 	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: hint, At: s.now}, s.w.sealer,
-		tutor.JudgingOf(s.p, s.w.catalog))
+		tutor.JudgingOf(s.p, s.w.catalog, profile.ChatWithCards))
 }
 
 // issue puts the task on the child's card as the service does, and is the

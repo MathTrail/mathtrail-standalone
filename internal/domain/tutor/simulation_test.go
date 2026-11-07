@@ -189,7 +189,7 @@ func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, truth fl
 	now time.Time, random *rand.Rand) bool {
 	t.Helper()
 
-	brief, mode, err := tutor.Next(p, catalog, tutor.Choice{})
+	brief, mode, err := tutor.Next(p, catalog, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -240,7 +240,7 @@ func answeredByChance(t *testing.T, catalog tutor.Catalog, p *profile.Profile, t
 		choice = "B"
 	}
 	answered := profile.Answered{TaskID: task.ID, Choice: choice, At: task.IssuedAt.Add(2 * time.Minute)}
-	if _, err := p.Record(answered, sealer, tutor.JudgingOf(p, catalog)); err != nil {
+	if _, err := p.Record(answered, sealer, tutor.JudgingOf(p, catalog, profile.ChatWithCards)); err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
 	return correct

@@ -39,7 +39,7 @@ func TestAChosenTopicIsSetOnceTheSeriesIsOver(t *testing.T) {
 	}
 
 	p := keptTo(t, "time.clocks")
-	got, mode, err := tutor.Next(p, c, tutor.Choice{})
+	got, mode, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -73,7 +73,7 @@ func TestTheTrialSeriesSetsItsOwnTopicsBesideAChoice(t *testing.T) {
 		t.Fatal("the rule sets clocks itself, so this case proves nothing")
 	}
 
-	got, mode, err := tutor.Next(p, c, tutor.Choice{})
+	got, mode, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil || mode != profile.TutorRule || !reflect.DeepEqual(got, want) {
 		t.Errorf("Next() in the trial series = %+v by %q, %v; want the rule's own brief %+v", got, mode, err, want)
 	}
@@ -86,7 +86,7 @@ func TestAChosenTopicTheCatalogLostIsNoChoice(t *testing.T) {
 
 	c := threeTopics()
 	want := brief(t, settled(t), c)
-	got, mode, err := tutor.Next(keptTo(t, "astronomy.stars"), c, tutor.Choice{})
+	got, mode, err := tutor.Next(keptTo(t, "astronomy.stars"), c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil || mode != profile.TutorRule || !reflect.DeepEqual(got, want) {
 		t.Errorf("Next() = %+v by %q, %v; want the rule's own brief %+v", got, mode, err, want)
 	}
@@ -97,7 +97,7 @@ func TestAChosenTopicTheCatalogLostIsNoChoice(t *testing.T) {
 func TestAChosenTopicOutOfReachIsSetAtItsRecommendedPoint(t *testing.T) {
 	t.Parallel()
 
-	got, mode, err := tutor.Next(keptTo(t, "percent.basic"), withAnOlderTopic(), tutor.Choice{})
+	got, mode, err := tutor.Next(keptTo(t, "percent.basic"), withAnOlderTopic(), tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -112,7 +112,7 @@ func TestAChosenTopicOutOfReachIsSetAtItsRecommendedPoint(t *testing.T) {
 func TestTheModelMayNameTheChosenTopicWithoutAReason(t *testing.T) {
 	t.Parallel()
 
-	got, mode, err := tutor.Next(keptTo(t, "time.clocks"), threeTopics(), tutor.Choice{Topic: "time.clocks"})
+	got, mode, err := tutor.Next(keptTo(t, "time.clocks"), threeTopics(), tutor.Choice{Topic: "time.clocks"}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want the topic chosen for the lessons taken without a reason", err)
 	}
@@ -127,7 +127,7 @@ func TestAnotherTopicOfTheModelsIsRefusedWhileOneIsChosen(t *testing.T) {
 	t.Parallel()
 
 	_, _, err := tutor.Next(keptTo(t, "time.clocks"), threeTopics(),
-		tutor.Choice{Topic: "logic.ordering", Reason: "the child likes ordering"})
+		tutor.Choice{Topic: "logic.ordering", Reason: "the child likes ordering"}, profile.ChatWithCards)
 	refused := refusal(t, err)
 	if got := fieldsOf(refused); len(got) != 1 || got[0] != "topic" {
 		t.Fatalf("refused %v, want the topic alone", got)
@@ -145,14 +145,14 @@ func TestALevelOfTheModelsIsHeldToTheChosenTopic(t *testing.T) {
 	t.Parallel()
 
 	c := withAnOlderTopic()
-	_, _, err := tutor.Next(keptTo(t, "percent.basic"), c, tutor.Choice{GradeLevel: rating.Grades12, Reason: "easier"})
+	_, _, err := tutor.Next(keptTo(t, "percent.basic"), c, tutor.Choice{GradeLevel: rating.Grades12, Reason: "easier"}, profile.ChatWithCards)
 	refused := refusal(t, err)
 	if len(refused.Problems) != 1 || refused.Problems[0].Field != "grade_level" ||
 		refused.Problems[0].Code != profile.CodeNotTaught || !strings.Contains(refused.Problems[0].Rule, "percent.basic") {
 		t.Errorf("refused %+v, want grade_level not_taught naming percent.basic", refused.Problems)
 	}
 
-	got, mode, err := tutor.Next(keptTo(t, "percent.basic"), c, tutor.Choice{GradeLevel: rating.Grades56, Reason: "a stretch"})
+	got, mode, err := tutor.Next(keptTo(t, "percent.basic"), c, tutor.Choice{GradeLevel: rating.Grades56, Reason: "a stretch"}, profile.ChatWithCards)
 	if err != nil || got.TargetConcept != "percent.basic" || mode != profile.TutorLLM {
 		t.Errorf("Next() = %q by %q, %v; want percent.basic, the level the model's", got.TargetConcept, mode, err)
 	}
@@ -165,7 +165,7 @@ func TestTheRationaleKeepsTheChoiceBesideTheRule(t *testing.T) {
 	t.Parallel()
 
 	c := threeTopics()
-	alone, _, err := tutor.Next(keptTo(t, "time.clocks"), c, tutor.Choice{})
+	alone, _, err := tutor.Next(keptTo(t, "time.clocks"), c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -175,7 +175,7 @@ func TestTheRationaleKeepsTheChoiceBesideTheRule(t *testing.T) {
 		}
 	}
 
-	harder, mode, err := tutor.Next(keptTo(t, "time.clocks"), c, tutor.Choice{Difficulty: 5, Reason: "a stretch on purpose"})
+	harder, mode, err := tutor.Next(keptTo(t, "time.clocks"), c, tutor.Choice{Difficulty: 5, Reason: "a stretch on purpose"}, profile.ChatWithCards)
 	if err != nil || harder.Difficulty != 5 || harder.TargetConcept != "time.clocks" || mode != profile.TutorLLM {
 		t.Fatalf("Next() = difficulty %d in %q by %q, %v; want the model's 5 on time.clocks", harder.Difficulty,
 			harder.TargetConcept, mode, err)
@@ -223,7 +223,7 @@ func TestALevelBesideARefusedTopicIsHeldToTheChosenOne(t *testing.T) {
 	t.Parallel()
 
 	_, _, err := tutor.Next(keptTo(t, "percent.basic"), withAnOlderTopic(),
-		tutor.Choice{Topic: "time.clocks", GradeLevel: rating.Grades12, Reason: "easier"})
+		tutor.Choice{Topic: "time.clocks", GradeLevel: rating.Grades12, Reason: "easier"}, profile.ChatWithCards)
 	refused := refusal(t, err)
 	if got := fieldsOf(refused); len(got) != 2 || got[0] != "topic" || got[1] != "grade_level" ||
 		!strings.Contains(refused.Problems[1].Rule, "percent.basic") {
@@ -236,7 +236,7 @@ func TestTheRationaleSaysThePointOnce(t *testing.T) {
 	t.Parallel()
 
 	got, _, err := tutor.Next(keptTo(t, "time.clocks"), threeTopics(),
-		tutor.Choice{GradeLevel: rating.Grades34, Reason: "a step up"})
+		tutor.Choice{GradeLevel: rating.Grades34, Reason: "a step up"}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -259,12 +259,12 @@ func TestTheRuleKeepsToAChosenTopic(t *testing.T) {
 		func(s *seed, which int) bool {
 			lesson := c.topics[which]
 			p := s.build()
-			ruled, ruledMode, err := tutor.Next(p, c, tutor.Choice{})
+			ruled, ruledMode, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}
 			p.Student.LessonTopic = lesson
-			got, mode, err := tutor.Next(p, c, tutor.Choice{})
+			got, mode, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}

@@ -37,7 +37,7 @@ func onTheCard(card int) *profile.CurrentTask {
 func aheadBrief(t *testing.T, p *profile.Profile, c tutor.Catalog) profile.Brief {
 	t.Helper()
 
-	built, _, err := tutor.Ahead(p, c, tutor.Choice{})
+	built, _, err := tutor.Ahead(p, c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Ahead() error = %v, want nil", err)
 	}
@@ -124,8 +124,8 @@ func TestATaskWrittenAheadIsChosenAsTheNextOneNow(t *testing.T) {
 		func(s *seed, card int) bool {
 			p := s.build()
 			p.CurrentTask = onTheCard(card)
-			next, nextMode, err := tutor.Next(p, c, tutor.Choice{})
-			ahead, aheadMode, err2 := tutor.Ahead(p, c, tutor.Choice{})
+			next, nextMode, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
+			ahead, aheadMode, err2 := tutor.Ahead(p, c, tutor.Choice{}, profile.ChatWithCards)
 			after, err3 := dressedOnceBehind(s, c, card == cardAwaited)
 			if err != nil || err2 != nil || err3 != nil || nextMode != aheadMode {
 				return false
@@ -152,7 +152,7 @@ func dressedOnceBehind(s *seed, c tutor.Catalog, awaited bool) (string, error) {
 	if awaited {
 		p.Ratings.Answers++
 	}
-	next, _, err := tutor.Next(p, c, tutor.Choice{})
+	next, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 	return next.Setting, err
 }
 
@@ -217,7 +217,7 @@ func TestATaskWrittenAheadCountsTheSameBeforeTheAnswerToTheCardAsAfter(t *testin
 			task := onTheCardFromTheRule(t, p, c, sealer)
 			tasks, ideas := topicTasksCounted(p, c, true), ideasNamed(p, c)
 			answer := profile.Answered{TaskID: task.ID, Choice: choice, At: day.Add(2 * time.Minute)}
-			if _, err := p.Record(answer, sealer, tutor.JudgingOf(p, c)); err != nil {
+			if _, err := p.Record(answer, sealer, tutor.JudgingOf(p, c, profile.ChatWithCards)); err != nil {
 				t.Errorf("Record() error = %v, want nil", err)
 				return false
 			}
@@ -253,14 +253,14 @@ func TestATaskWrittenAheadCountsTheSameBeforeTheAnswerToTheCardAsAfter(t *testin
 		func(s *seed) bool {
 			p := s.build()
 			onTheCardFromTheRule(t, p, c, sealer)
-			ahead, _, err := tutor.Ahead(p, c, tutor.Choice{})
+			ahead, _, err := tutor.Ahead(p, c, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				t.Errorf("Ahead() error = %v, want nil", err)
 				return false
 			}
 			probeAhead := tutor.ProbeDue(p)
 			p.DiscardTask()
-			next, _, err := tutor.Next(p, c, tutor.Choice{})
+			next, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				t.Errorf("Next() error = %v, want nil", err)
 				return false
@@ -300,7 +300,7 @@ func ideasNamed(p *profile.Profile, c tutor.Catalog) map[string]profile.Idea {
 func onTheCardFromTheRule(t *testing.T, p *profile.Profile, c tutor.Catalog, sealer profile.Sealer) *profile.CurrentTask {
 	t.Helper()
 
-	next, mode, err := tutor.Next(p, c, tutor.Choice{})
+	next, mode, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}

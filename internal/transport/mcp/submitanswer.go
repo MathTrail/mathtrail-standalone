@@ -182,7 +182,7 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 	reply := s.told(ctx, p, &recorded, now)
 	err = s.writeAfterAnswer(ctx, &lateWrite{
 		tool: "submit_answer", account: account, profile: p, revision: revision,
-		again:  s.recordAgain(account, given, in.UTCOffset, now),
+		again:  s.recordAgain(account, given, in.UTCOffset, pictureChatFrom(ctx), now),
 		landed: s.answerLines(account, p, &recorded, masteredBefore, now),
 	})
 	if err != nil {
@@ -195,11 +195,14 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 // profile, as a change, with the clock the card told beside it: unless the
 // task on the card has this answer already, which then stands, or has another,
 // or is no longer the task answered — the answer the call told is then not the
-// one the file keeps.
-func (s *Service) recordAgain(account store.Account, given profile.Answered, clock *int, now time.Time) change {
+// one the file keeps. A probe is read as it is in the chat the answer came
+// from.
+func (s *Service) recordAgain(account store.Account, given profile.Answered, clock *int, chat profile.Chat,
+	now time.Time,
+) change {
 	return func(p *profile.Profile) (made, error) {
 		masteredBefore := p.CurrentTask != nil && tutor.Mastered(p, s.content, p.CurrentTask.Topic)
-		recorded, err := p.Record(given, s.sealer, tutor.JudgingOf(p, s.content))
+		recorded, err := p.Record(given, s.sealer, tutor.JudgingOf(p, s.content, chat))
 		switch {
 		case errors.Is(err, profile.ErrNoTask), errors.Is(err, profile.ErrOtherTask):
 			return made{state: gone}, nil
@@ -265,7 +268,7 @@ func (s *Service) recordAnswer(ctx context.Context, p *profile.Profile, answer p
 	_, span := s.tracer.Start(ctx, "record_answer")
 	defer span.End()
 
-	recorded, err := p.Record(answer, s.sealer, tutor.JudgingOf(p, s.content))
+	recorded, err := p.Record(answer, s.sealer, tutor.JudgingOf(p, s.content, pictureChatFrom(ctx)))
 	switch {
 	case errors.Is(err, profile.ErrSealed):
 		span.SetStatus(codes.Error, "the task could not be opened")
@@ -305,7 +308,7 @@ func (s *Service) discard(ctx context.Context, account store.Account, p *profile
 // offers none, and the call's span says so in words of its own, since a span
 // never carries an error's text.
 func (s *Service) told(ctx context.Context, p *profile.Profile, recorded *profile.Recorded, now time.Time) Reply[answeredOut] {
-	choice, err := s.topicChoiceOf(p, now)
+	choice, err := s.topicChoiceOf(p, now, pictureChatFrom(ctx))
 	if err != nil {
 		trace.SpanFromContext(ctx).AddEvent(choiceUnworkedEvent)
 	}

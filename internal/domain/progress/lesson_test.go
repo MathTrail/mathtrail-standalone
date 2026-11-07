@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 )
 
@@ -25,7 +26,7 @@ func TestTheRecommendationFollowsAChosenTopic(t *testing.T) {
 			t.Parallel()
 
 			p := fixture(t, tc.student)
-			ruled, err := progress.Recommend(p, catalog)
+			ruled, err := progress.Recommend(p, catalog, profile.ChatWithCards)
 			if err != nil {
 				t.Fatalf("Recommend() error = %v", err)
 			}
@@ -34,7 +35,7 @@ func TestTheRecommendationFollowsAChosenTopic(t *testing.T) {
 			}
 			p.Student.LessonTopic = "arithmetic.tricks"
 
-			got, err := progress.Recommend(p, catalog)
+			got, err := progress.Recommend(p, catalog, profile.ChatWithCards)
 			switch {
 			case err != nil:
 				t.Fatalf("Recommend() error = %v", err)

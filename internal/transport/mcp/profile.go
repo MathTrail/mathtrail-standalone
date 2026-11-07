@@ -148,7 +148,7 @@ func (s *Service) readProfile(ctx context.Context, account store.Account) (Reply
 	if err != nil {
 		return Reply[profileOut]{}, err
 	}
-	reply, err := s.profileReply(p, "")
+	reply, err := s.profileReply(p, "", pictureChatFrom(ctx))
 	if err != nil {
 		return Reply[profileOut]{}, err
 	}
@@ -185,7 +185,7 @@ func (s *Service) writeProfile(ctx context.Context, account store.Account, in *s
 	case in.StartOver:
 		// What the adult was told no longer holds — the file was mended, or put
 		// back from the bin — and a profile that reads is never replaced.
-		return s.profileReply(p, "The profile can be read, so it was not started over, and nothing was saved.")
+		return s.profileReply(p, "The profile can be read, so it was not started over, and nothing was saved.", pictureChatFrom(ctx))
 	}
 
 	changed, problems, err := s.saveChange(ctx, account, p, revision, &edit)
@@ -193,11 +193,11 @@ func (s *Service) writeProfile(ctx context.Context, account store.Account, in *s
 	case err != nil:
 		return Reply[profileOut]{}, err
 	case len(problems) > 0:
-		return s.refusal(p, problems)
+		return s.refusal(p, problems, pictureChatFrom(ctx))
 	case !changed:
-		return s.profileReply(p, "Nothing changed: the profile already says so.")
+		return s.profileReply(p, "Nothing changed: the profile already says so.", pictureChatFrom(ctx))
 	}
-	return s.profileReply(p, joined("Saved.", sayWhatWasSaved))
+	return s.profileReply(p, joined("Saved.", sayWhatWasSaved), pictureChatFrom(ctx))
 }
 
 // saveChange makes an edit to the profile read at revision, and writes it.
@@ -226,13 +226,13 @@ const sayWhatWasSaved = "No card shows the profile: tell the adult in a sentence
 func (s *Service) createProfile(ctx context.Context, account store.Account, edit *profile.Edit) (Reply[profileOut], error) {
 	student, problems := profile.NewStudent(edit, s.content)
 	if len(problems) > 0 {
-		return s.refusal(nil, problems)
+		return s.refusal(nil, problems, pictureChatFrom(ctx))
 	}
 	p := profile.New(student, s.version, s.now())
 	if _, err := s.store.Create(ctx, account, p); err != nil {
 		return Reply[profileOut]{}, fmt.Errorf("mcp: create the profile: %w", err)
 	}
-	return s.profileReply(p, joined("The profile is created.", sayWhatWasSaved))
+	return s.profileReply(p, joined("The profile is created.", sayWhatWasSaved), pictureChatFrom(ctx))
 }
 
 // startOver makes a new profile in place of one nothing can read, one of a
@@ -242,14 +242,14 @@ func (s *Service) createProfile(ctx context.Context, account store.Account, edit
 func (s *Service) startOver(ctx context.Context, account store.Account, edit *profile.Edit) (Reply[profileOut], error) {
 	student, problems := profile.NewStudent(edit, s.content)
 	if len(problems) > 0 {
-		return s.refusal(nil, problems)
+		return s.refusal(nil, problems, pictureChatFrom(ctx))
 	}
 	p := profile.New(student, s.version, s.now())
 	if _, err := s.store.StartOver(ctx, account, p); err != nil {
 		return Reply[profileOut]{}, fmt.Errorf("mcp: start the profile over: %w", err)
 	}
 	return s.profileReply(p, joined("A new profile is started. The old file was not deleted: it stays in Google "+
-		"Drive, renamed as set aside.", sayWhatWasSaved))
+		"Drive, renamed as set aside.", sayWhatWasSaved), pictureChatFrom(ctx))
 }
 
 // codeRestoreAlone is the refusal of putting the file back beside anything
@@ -278,27 +278,27 @@ func (s *Service) restoreProfile(ctx context.Context, account store.Account, in 
 		// its history was read: a file that reads is told as that, and one
 		// that does not is put back again, from a fresh read (afresh).
 		if read, _, loadErr := s.store.Load(ctx, account); loadErr == nil {
-			return s.profileReply(read, "The profile can be read, so nothing was put back.")
+			return s.profileReply(read, "The profile can be read, so nothing was put back.", pictureChatFrom(ctx))
 		}
 		return Reply[profileOut]{}, fmt.Errorf("mcp: put the profile back: %w", err)
 	case err != nil:
 		return Reply[profileOut]{}, fmt.Errorf("mcp: put the profile back: %w", err)
 	}
 	return s.profileReply(p, "The damaged profile file was put back to its latest earlier version that can be read; "+
-		"anything saved after that version is lost. No card shows the profile: tell the adult in a sentence what happened.")
+		"anything saved after that version is lost. No card shows the profile: tell the adult in a sentence what happened.", pictureChatFrom(ctx))
 }
 
 // profileReply is a profile as the two tools of the profile hand it back: the
 // details, with the parent's notes, which only the model is told.
-func (s *Service) profileReply(p *profile.Profile, lead string) (Reply[profileOut], error) {
-	next, err := progress.Recommend(p, s.content)
+func (s *Service) profileReply(p *profile.Profile, lead string, chat profile.Chat) (Reply[profileOut], error) {
+	next, err := progress.Recommend(p, s.content, chat)
 	if err != nil {
 		return Reply[profileOut]{}, err
 	}
 	trial := progress.TrialOf(p)
 	return Reply[profileOut]{
-		Text: joined(lead, s.detailsText(&p.Student), notesText(p.Student.Notes), s.lessonTopicText(p), stillInText(p),
-			s.topicStillText(p), trialLine(trial), s.lastAnswerText(p), s.nextText(&next)),
+		Text: joined(lead, s.detailsText(&p.Student), notesText(p.Student.Notes), s.lessonTopicText(p, chat),
+			stillInText(p), s.topicStillText(p, chat), trialLine(trial), s.lastAnswerText(p), s.nextText(&next)),
 		Payload: profileOut{
 			Screen:         screenProfile,
 			LastAnswer:     lastAnswerOf(p),
@@ -312,11 +312,11 @@ func (s *Service) profileReply(p *profile.Profile, lead string) (Reply[profileOu
 // refusal is details that could not be kept, told field by field, beside the
 // profile kept — shown whole and unchanged, as any other answer about it is —
 // or beside the first sign-in when there is none yet.
-func (s *Service) refusal(p *profile.Profile, problems []profile.Problem) (Reply[profileOut], error) {
+func (s *Service) refusal(p *profile.Profile, problems []profile.Problem, chat profile.Chat) (Reply[profileOut], error) {
 	reply := Reply[profileOut]{Payload: profileOut{Screen: screenFirstRun}}
 	if p != nil {
 		var err error
-		if reply, err = s.profileReply(p, ""); err != nil {
+		if reply, err = s.profileReply(p, "", chat); err != nil {
 			return Reply[profileOut]{}, err
 		}
 	}

@@ -123,10 +123,10 @@ func (s *Service) writeEdit(ctx context.Context, account store.Account, in *edit
 		reply.Payload.Status, reply.Payload.Code = statusRejected, codeInvalidProfile
 		reply.Text = "Nothing was saved: " + lines + "."
 	case changed && in.topicAlone():
-		reply.Text = s.topicChangedText(p)
+		reply.Text = s.topicChangedText(p, pictureChatFrom(ctx))
 	case changed:
 		reply.Text = joined("The adult changed the child's profile with the form on a card.",
-			s.detailsText(&p.Student), s.lessonTopicText(p), stillInText(p))
+			s.detailsText(&p.Student), s.lessonTopicText(p, pictureChatFrom(ctx)), stillInText(p))
 	default:
 		reply.Text = "Nothing changed: the profile already says so."
 	}

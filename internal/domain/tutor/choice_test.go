@@ -22,7 +22,7 @@ func TestTheModelMayChooseTheTopic(t *testing.T) {
 	p := child(t)
 	asked := tutor.Choice{Topic: "time.clocks", Reason: "the child asked for clocks"}
 
-	got, mode, err := tutor.Next(p, threeTopics(), asked)
+	got, mode, err := tutor.Next(p, threeTopics(), asked, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -53,7 +53,7 @@ func TestTheGoalStaysTheRules(t *testing.T) {
 	p := settled(t)
 	failedAt(p, "counting.gaps", 1)
 
-	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: "something lighter"})
+	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: "something lighter"}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -75,7 +75,7 @@ func TestTheModelMayStepOutsideTheCorridor(t *testing.T) {
 	p := child(t)
 	recommended := brief(t, p, threeTopics())
 
-	got, mode, err := tutor.Next(p, threeTopics(), tutor.Choice{Difficulty: 5, Reason: "a stretch on purpose"})
+	got, mode, err := tutor.Next(p, threeTopics(), tutor.Choice{Difficulty: 5, Reason: "a stretch on purpose"}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -102,7 +102,7 @@ func TestTheModelMayChooseTheLevel(t *testing.T) {
 	t.Parallel()
 
 	got, mode, err := tutor.Next(child(t), threeTopics(),
-		tutor.Choice{GradeLevel: rating.Grades34, Reason: "the child is bored"})
+		tutor.Choice{GradeLevel: rating.Grades34, Reason: "the child is bored"}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -122,7 +122,7 @@ func TestTheModelMayChooseATopicOutOfReach(t *testing.T) {
 	t.Parallel()
 
 	got, mode, err := tutor.Next(child(t), withAnOlderTopic(),
-		tutor.Choice{Topic: "percent.basic", Reason: "the child asked for percentages"})
+		tutor.Choice{Topic: "percent.basic", Reason: "the child asked for percentages"}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -191,7 +191,7 @@ func TestAChoiceNoBriefCanBeBuiltFromIsRefused(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, mode, err := tutor.Next(child(t), tc.catalog, tc.choice)
+			got, mode, err := tutor.Next(child(t), tc.catalog, tc.choice, profile.ChatWithCards)
 			refused := refusal(t, err)
 			if mode != "" || got.TargetConcept != "" {
 				t.Errorf("Next() = %+v by %q, want nothing alongside a refusal", got, mode)
@@ -224,7 +224,7 @@ func TestAChoiceNeedsAReason(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, _, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: tc.reason})
+			_, _, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: tc.reason}, profile.ChatWithCards)
 			refused := refusal(t, err)
 			if fields := fieldsOf(refused); !slices.Equal(fields, []string{"reason"}) || !strings.Contains(refused.Error(), tc.says) {
 				t.Errorf("the refusal is %q, want the reason refused: %s", refused.Error(), tc.says)
@@ -233,7 +233,7 @@ func TestAChoiceNeedsAReason(t *testing.T) {
 	}
 
 	longest, _, err := tutor.Next(child(t), threeTopics(),
-		tutor.Choice{Topic: "time.clocks", Reason: strings.Repeat("я", tutor.MaxReason)})
+		tutor.Choice{Topic: "time.clocks", Reason: strings.Repeat("я", tutor.MaxReason)}, profile.ChatWithCards)
 	if err != nil || !strings.Contains(longest.Rationale, strings.Repeat("я", tutor.MaxReason)) {
 		t.Errorf("Next() with the longest reason = %q, %v, want the reason kept whole", longest.Rationale, err)
 	}
@@ -241,7 +241,7 @@ func TestAChoiceNeedsAReason(t *testing.T) {
 	// A reason alone, of any length, is dropped rather than held to a limit it
 	// never reaches the brief to need.
 	for _, reason := range []string{"the child is tired", strings.Repeat("tired ", tutor.MaxReason)} {
-		alone, mode, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Reason: reason})
+		alone, mode, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Reason: reason}, profile.ChatWithCards)
 		if err != nil || mode != profile.TutorRule || strings.Contains(alone.Rationale, "tired") {
 			t.Errorf("a reason alone gives %q by %q, %v, want the rule's own brief", alone.Rationale, mode, err)
 		}
@@ -254,7 +254,7 @@ func TestARefusalNeverRepeatsTheChoice(t *testing.T) {
 	t.Parallel()
 
 	topic, reason := "planets.rings-of-saturn", strings.Repeat("Saturn has rings. ", 20)
-	_, _, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Topic: topic, Reason: reason})
+	_, _, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Topic: topic, Reason: reason}, profile.ChatWithCards)
 	refused := refusal(t, err)
 	for _, said := range []string{topic, "Saturn"} {
 		if strings.Contains(refused.Error(), said) {
@@ -291,7 +291,7 @@ func TestAskingForWhatTheRuleSaidIsStillTheModelChoosing(t *testing.T) {
 	p := child(t)
 	rule := brief(t, p, threeTopics())
 
-	_, mode, err := tutor.Next(p, threeTopics(), tutor.Choice{Topic: rule.TargetConcept, Reason: "agreed"})
+	_, mode, err := tutor.Next(p, threeTopics(), tutor.Choice{Topic: rule.TargetConcept, Reason: "agreed"}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -311,7 +311,7 @@ func TestTheRulesAccountIsOfItsOwnTopic(t *testing.T) {
 	p.Topics["counting.gaps"] = profile.Topic{Delta: -1}
 	p.Topics["time.clocks"] = profile.Topic{Delta: 2}
 
-	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: "clocks today"})
+	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: "clocks today"}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -332,7 +332,7 @@ func TestTheModelsReasonIsEndedOnce(t *testing.T) {
 	for _, reason := range []string{
 		"clocks today", "The child asked for clocks.", "Clocks again?", "他需要复习时钟。",
 	} {
-		got, _, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: reason})
+		got, _, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: reason}, profile.ChatWithCards)
 		if err != nil {
 			t.Fatalf("Next() error = %v, want nil", err)
 		}
@@ -357,7 +357,7 @@ func FuzzChoice(f *testing.F) {
 		c := withAnOlderTopic()
 		choice := tutor.Choice{Topic: topic, GradeLevel: rating.GradeLevel(level), Difficulty: difficulty, Reason: reason}
 
-		got, mode, err := tutor.Next(child(t), c, choice)
+		got, mode, err := tutor.Next(child(t), c, choice, profile.ChatWithCards)
 		if err != nil {
 			var refused *tutor.ChoiceError
 			if !errors.As(err, &refused) || len(refused.Problems) == 0 {
@@ -383,7 +383,7 @@ func TestTheModelsReasonIsKeptAsTyped(t *testing.T) {
 	t.Parallel()
 
 	reason := strings.Repeat("\u202e", 50) + "Clocks,\nagain." + strings.Repeat("\u200b", tutor.MaxReason)
-	got, _, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: reason})
+	got, _, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: reason}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want the reason taken by what it says", err)
 	}

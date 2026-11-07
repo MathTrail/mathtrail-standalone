@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -84,7 +85,8 @@ func (s *Service) prepare(ctx context.Context, account store.Account, in *prepar
 		return Reply[any]{}, fmt.Errorf("mcp: read the profile: %w", err)
 	}
 
-	now := s.now()
+	now, chat := s.now(), pictureChatFrom(ctx)
+	unseen := s.unseen(p, chat, now)
 	if open := s.waitedOpen(p, now); open != nil {
 		noteTaskRequest(ctx, open.ID)
 		return s.packageWords(p, open, fmt.Sprintf("Request %[1]s is open, and the child waits for its task on the "+
@@ -95,9 +97,9 @@ func (s *Service) prepare(ctx context.Context, account store.Account, in *prepar
 		return prepareRefused(p, problems), nil
 	}
 
-	lesson := s.lessonNow(p, language, profile.Place{})
-	gone := s.letGo(p, &lesson, now)
-	reply, opened, err := s.prepared(p, in, language, now)
+	lesson := s.lessonNow(p, language, profile.Place{}, chat)
+	gone := slices.Concat(unseen, s.letGo(p, &lesson, now))
+	reply, opened, err := s.prepared(p, in, language, chat, now)
 	if err != nil || reply.Payload != nil {
 		return reply, err
 	}
@@ -112,7 +114,7 @@ func (s *Service) prepare(ctx context.Context, account store.Account, in *prepar
 	}
 	s.sayLetGo(ctx, account, gone)
 	if opened != nil {
-		s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, opened, false)...)
+		s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, opened, false, chat)...)
 	}
 	return reply, nil
 }
@@ -122,7 +124,7 @@ func (s *Service) prepare(ctx context.Context, account store.Account, in *prepar
 // the next task is kept already or the day has no room for another; or the
 // next task, its request opened here — and then returned, for the caller to
 // write. A choice no request can be opened from is refused, with a payload.
-func (s *Service) prepared(p *profile.Profile, in *prepareTaskIn, language string, now time.Time) (
+func (s *Service) prepared(p *profile.Profile, in *prepareTaskIn, language string, chat profile.Chat, now time.Time) (
 	reply Reply[any], opened *profile.OpenRequest, err error,
 ) {
 	if open := s.aheadOpen(p, now); open != nil {
@@ -143,7 +145,7 @@ func (s *Service) prepared(p *profile.Profile, in *prepareTaskIn, language strin
 			"nothing to say about it.", s.lastAnswerText(p))}, nil, nil
 	}
 
-	brief, mode, err := s.aheadBrief(p, in.choice())
+	brief, mode, err := s.aheadBrief(p, in.choice(), chat)
 	var refused *tutor.ChoiceError
 	switch {
 	case errors.As(err, &refused):
@@ -151,13 +153,13 @@ func (s *Service) prepared(p *profile.Profile, in *prepareTaskIn, language strin
 	case err != nil:
 		return Reply[any]{}, nil, fmt.Errorf("mcp: choose the task: %w", err)
 	}
-	opened, err = p.AskAhead(&brief, mode, p.Student.LessonLanguage(language), tutor.LessonTopic(p, s.content), now)
+	opened, err = p.AskAhead(&brief, mode, p.Student.LessonLanguage(language), s.lessonTopic(p, chat), now)
 	if err != nil {
 		return Reply[any]{}, nil, fmt.Errorf("mcp: ask for the task ahead: %w", err)
 	}
 	// The task on the card gave its idea when it was handed out, so the task
 	// after it is built on another, even in the same round of the same list.
-	opened.Idea = s.nextIdea(p, &opened.Brief)
+	opened.Idea = tutor.IdeaFor(p, s.content, &opened.Brief, chat)
 	reply, err = s.packageWords(p, opened, aheadLead(opened))
 	return reply, opened, err
 }
@@ -167,14 +169,16 @@ func (s *Service) prepared(p *profile.Profile, in *prepareTaskIn, language strin
 // person asked for that one, in case the child wants another like it; and
 // where the rule sets it otherwise. One more like it that no brief can be
 // built on any more — its topic since left out of the lessons or the catalog —
-// is the rule's: the model passed nothing it could fix.
-func (s *Service) aheadBrief(p *profile.Profile, own tutor.Choice) (profile.Brief, profile.TutorMode, error) {
+// is the rule's: the model passed nothing it could fix. So is one more like a
+// task on a topic solved from the picture, in a chat not known to draw the
+// card.
+func (s *Service) aheadBrief(p *profile.Profile, own tutor.Choice, chat profile.Chat) (profile.Brief, profile.TutorMode, error) {
 	if again, asked := oneMoreLikeIt(p); asked && !own.Made() {
-		if brief, mode, err := tutor.Ahead(p, s.content, again); err == nil {
+		if brief, mode, err := tutor.Ahead(p, s.content, again, chat); err == nil {
 			return brief, mode, nil
 		}
 	}
-	return tutor.Ahead(p, s.content, own)
+	return tutor.Ahead(p, s.content, own, chat)
 }
 
 // oneMoreLikeIt is the choice of one more task like the one on the card, when

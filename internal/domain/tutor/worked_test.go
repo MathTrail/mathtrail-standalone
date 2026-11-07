@@ -52,7 +52,7 @@ func TestTheWorkedExampleOfTheSpecification(t *testing.T) {
 		Trap:       "missed_case",
 	}}
 
-	got, mode, err := tutor.Next(p, embedded(t), tutor.Choice{})
+	got, mode, err := tutor.Next(p, embedded(t), tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}

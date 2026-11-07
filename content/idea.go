@@ -1,6 +1,8 @@
 package content
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -39,7 +41,49 @@ const (
 
 // ideaFile is a topic's ideas as its file holds them: the list of each level
 // the topic is taught at.
-type ideaFile map[rating.GradeLevel][]string
+type ideaFile map[rating.GradeLevel][]listedIdea
+
+// listedIdea is one idea of a list: its words, and whether the task built on
+// it is solved from the picture. Its file writes an idea in words as a text,
+// and one solved from the picture as an object that says so beside its words,
+// {"idea": "...", "solved_from_picture": true}, so that the mark stands on the
+// line of the idea it marks.
+type listedIdea struct {
+	text        string
+	fromPicture bool
+}
+
+// UnmarshalJSON reads an idea written as a text, or as an object that marks it
+// solved from the picture. An object that marks nothing, or holds anything
+// else, is refused, so that every idea in words is written the one way.
+func (i *listedIdea) UnmarshalJSON(raw []byte) error {
+	if json.Unmarshal(raw, &i.text) == nil {
+		return nil
+	}
+	var marked struct {
+		Idea              string `json:"idea"`
+		SolvedFromPicture bool   `json:"solved_from_picture"`
+	}
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&marked); err != nil {
+		return fmt.Errorf("an idea is a text, or an object of idea and solved_from_picture: %w", err)
+	}
+	if !marked.SolvedFromPicture {
+		return errors.New("an idea in words is a text, and an object is an idea marked solved_from_picture: true")
+	}
+	*i = listedIdea{text: marked.Idea, fromPicture: true}
+	return nil
+}
+
+// textsOf are the words of the ideas of a list, in its order.
+func textsOf(list []listedIdea) []string {
+	texts := make([]string, len(list))
+	for i, idea := range list {
+		texts[i] = idea.text
+	}
+	return texts
+}
 
 // loadIdeas reads the ideas of every topic, a file each, and refuses a list a
 // package could not name an idea from: a topic of the catalog without a file,
@@ -48,14 +92,14 @@ type ideaFile map[rating.GradeLevel][]string
 // empty, runs over a line or past its length, or one said twice. Beside the
 // ideas come their files, as the version of the instructions counts them: an
 // idea is part of what the model is told.
-func loadIdeas(src fs.FS, topics []Topic) (map[string]map[rating.GradeLevel][]string, []instructionFile, error) {
+func loadIdeas(src fs.FS, topics []Topic) (map[string]ideaFile, []instructionFile, error) {
 	entries, err := fs.ReadDir(src, ideasDir)
 	if err != nil {
 		return nil, nil, fmt.Errorf("content: read %s: %w", ideasDir, err)
 	}
 	byID := index(topics, func(t Topic) string { return t.ID })
 
-	ideas := make(map[string]map[rating.GradeLevel][]string, len(topics))
+	ideas := make(map[string]ideaFile, len(topics))
 	present := make(map[string]bool, len(entries))
 	var (
 		files  []instructionFile
@@ -111,12 +155,32 @@ func loadIdeaFile(src fs.FS, topic *Topic) (ideaFile, []byte, error) {
 			p.addf("level %q: %s is taught at it, and it has no ideas", level, topic.ID)
 			continue
 		}
-		checkIdeas(p, level, list)
+		checkIdeas(p, level, textsOf(list))
+		if !topic.SolvedFromPicture {
+			checkWordIdeas(p, level, list)
+		}
 	}
 	if err := p.err(); err != nil {
 		return nil, nil, err
 	}
 	return read, raw, nil
+}
+
+// checkWordIdeas checks that a list of a topic whose tasks are not all solved
+// from the picture holds as many ideas in words as a list may hold ideas at
+// fewest: a chat not known to draw the card, and the trial series, are given
+// those alone, and draw them in rounds of their own.
+func checkWordIdeas(p *problems, level rating.GradeLevel, list []listedIdea) {
+	words := 0
+	for _, idea := range list {
+		if !idea.fromPicture {
+			words++
+		}
+	}
+	if words < fewestIdeas {
+		p.addf("level %q: %d ideas in words, and a list of a topic not all of whose tasks are solved from the "+
+			"picture holds at least %d", level, words, fewestIdeas)
+	}
 }
 
 // checkIdeas checks one level's list: from fewestIdeas to

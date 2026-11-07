@@ -53,7 +53,10 @@ func (s *Service) getPackage(ctx context.Context, account store.Account, in getP
 }
 
 // packageOfRequest is one read of the profile, and the package of the request
-// asked about while it is the one open and still awaited. Nothing is written.
+// asked about while it is the one open and still awaited, and its task one the
+// chat may be given: a request for a task solved from the picture is gone for
+// a chat not known to draw the card, as a request past its window is. Nothing
+// is written.
 func (s *Service) packageOfRequest(ctx context.Context, account store.Account, requestID string) (Reply[any], error) {
 	p, _, err := s.store.Load(ctx, account)
 	switch {
@@ -64,7 +67,8 @@ func (s *Service) packageOfRequest(ctx context.Context, account store.Account, r
 	}
 
 	request, now := p.OpenRequest, s.now()
-	if request == nil || request.ID != requestID || !request.Awaited(s.window, now) {
+	if request == nil || request.ID != requestID || !request.Awaited(s.window, now) ||
+		!shownIn(request, pictureChatFrom(ctx)) {
 		return s.noPackage(p, now), nil
 	}
 	noteTaskRequest(ctx, request.ID)
@@ -140,34 +144,12 @@ func (s *Service) packageFor(p *profile.Profile, request *profile.OpenRequest) (
 		Grade:      p.Student.Grade,
 		Notes:      p.Student.Notes,
 		TopicTasks: tutor.TopicTasksBehind(p, topic, request.Ahead),
-		Idea:       s.requestIdea(p, request),
+		Idea:       tutor.RequestIdea(p, s.content, request),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("mcp: build the package: %w", err)
 	}
 	return pack, nil
-}
-
-// requestIdea is the idea a request's task is built on: the one the request
-// named when it was opened, or the one a request opened now would name when
-// the request names none of its list — opened by an earlier build, which named
-// none, or by a build whose list was longer, on a place the list has no more.
-// Nothing given changes while a request is open, so its package and its task
-// are built on one idea whenever either is asked for.
-func (s *Service) requestIdea(p *profile.Profile, request *profile.OpenRequest) profile.Idea {
-	topic, level := request.Brief.TargetConcept, request.Brief.GradeLevel
-	named, length := request.Idea, s.content.IdeaCount(topic, level)
-	if named != (profile.Idea{}) && named.Number <= length {
-		return named
-	}
-	return tutor.NextIdea(p, topic, level, length)
-}
-
-// nextIdea is the idea of its topic's list the task of a brief is to be built
-// on, drawn from the list as long as the content has it now.
-func (s *Service) nextIdea(p *profile.Profile, brief *profile.Brief) profile.Idea {
-	topic, level := brief.TargetConcept, brief.GradeLevel
-	return tutor.NextIdea(p, topic, level, s.content.IdeaCount(topic, level))
 }
 
 // packageText puts the package after the words about it, where the model reads

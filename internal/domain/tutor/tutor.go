@@ -53,8 +53,9 @@ const InterestEvery = 3
 // Catalog is what the rule has to know about the content the service ships.
 // It is declared here, by the side that needs it, and it speaks in
 // identifiers and levels: which topics exist, at which levels each is taught,
-// how two traps are told apart when nothing else separates them, and what
-// usually goes wrong in a topic at a level.
+// how two traps are told apart when nothing else separates them, what usually
+// goes wrong in a topic at a level, and which topics are solved from the
+// picture alone.
 type Catalog interface {
 	// TopicIDs lists every topic in catalog order.
 	TopicIDs() []string
@@ -66,6 +67,9 @@ type Catalog interface {
 	// ExampleTraps lists the traps of the reference tasks of this topic at
 	// this level, the most frequent first.
 	ExampleTraps(topic string, level rating.GradeLevel) []string
+	// SolvedFromPicture reports whether every task of a topic is solved from
+	// the picture, and false for a topic the catalog does not have.
+	SolvedFromPicture(topic string) bool
 }
 
 // MaxReason is how long the model's reason for a choice of its own may be, in
@@ -123,14 +127,15 @@ func (e *ChoiceError) Error() string {
 	return "tutor: the model's choice breaks a rule: " + strings.Join(broken, "; ")
 }
 
-// problems are the rules a choice breaks. A level named alone is set on the
-// topic the lessons are kept to, when the child or the adult chose one, and on
-// the topic the rule suggested otherwise. A topic has to be one of the
-// catalog, and none other than the one chosen for the lessons, and a level one
-// it is taught at — the examples, the traps and the limits of a brief stand on
-// both — and a difficulty one of a level. And a choice of any of them says
-// why.
-func (c *Choice) problems(catalog Catalog, suggested, chosen string) []profile.Problem {
+// problems are the rules a choice breaks, for a task asked for in chat. A
+// level named alone is set on the topic the lessons are kept to, when the
+// child or the adult chose one, and on the topic the rule suggested otherwise.
+// A topic has to be one of the catalog, one the chat is known to show the
+// tasks of, and none other than the one chosen for the lessons, and a level
+// one it is taught at — the examples, the traps and the limits of a brief
+// stand on both — and a difficulty one of a level. And a choice of any of them
+// says why.
+func (c *Choice) problems(catalog Catalog, chat profile.Chat, suggested, chosen string) []profile.Problem {
 	var found []profile.Problem
 	topic := suggested
 	if chosen != "" {
@@ -138,6 +143,11 @@ func (c *Choice) problems(catalog Catalog, suggested, chosen string) []profile.P
 	}
 	if c.Topic != "" {
 		switch {
+		case catalog.SolvedFromPicture(c.Topic) && !chat.ShowsPictures():
+			topic = c.Topic
+			found = append(found, profile.Problem{Field: "topic", Broken: profile.Broken{
+				Code: profile.CodeNeedsCard, Rule: "must be a topic this chat shows the tasks of: every task of this " +
+					"one is solved from a picture on the card, and this chat is not known to draw the card"}})
 		case len(catalog.LevelsOf(c.Topic)) == 0:
 			topic = c.Topic
 			found = append(found, profile.Problem{Field: "topic", Broken: profile.Broken{
@@ -234,8 +244,14 @@ func joined(levels []rating.GradeLevel) string {
 // While a task on the card still waits for its answer, the brief is for the
 // task asked for in its place, which leaves that one behind: it is dressed as
 // the task after it.
-func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, profile.TutorMode, error) {
-	return brief(p, catalog, choice, false)
+//
+// The chat is the one the task would go to. A task solved from the picture
+// goes only to a chat known to draw the card, so in any other the topics all
+// of whose tasks are solved from it are not the catalog's, and naming one is
+// refused; and the rule's own choice gives none during the trial series, in
+// any chat, since the answers there move the rating most.
+func Next(p *profile.Profile, catalog Catalog, choice Choice, chat profile.Chat) (profile.Brief, profile.TutorMode, error) {
+	return brief(p, catalog, choice, chat, false)
 }
 
 // Ahead builds the brief for the task after the one on the card, which the
@@ -245,23 +261,31 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 // task after that one: which task an interest dresses is counted by the tasks
 // behind the child, and the task on the card is not behind them yet, so two
 // tasks in a row would otherwise be dressed alike. Once that task has its
-// answer, the task written ahead is simply the next one.
-func Ahead(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, profile.TutorMode, error) {
-	return brief(p, catalog, choice, true)
+// answer, the task written ahead is simply the next one. The chat is read as
+// Next reads it.
+func Ahead(p *profile.Profile, catalog Catalog, choice Choice, chat profile.Chat) (profile.Brief, profile.TutorMode, error) {
+	return brief(p, catalog, choice, chat, true)
 }
 
 // brief is the brief of Next, or of Ahead when ahead is set.
-func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (profile.Brief, profile.TutorMode, error) {
-	open := WithinReach(p, catalog)
+func brief(p *profile.Profile, catalog Catalog, choice Choice, chat profile.Chat, ahead bool) (profile.Brief, profile.TutorMode, error) {
+	// The rule chooses among the topics the chat is shown, and during the
+	// trial series as in a chat of words: a choice of the model's or of a
+	// person's is held to the chat alone.
+	own := Shown(catalog, chat)
+	if p.Ratings.InTrial() {
+		own = Shown(catalog, profile.ChatOfWords)
+	}
+	open := WithinReach(p, own)
 	if len(open) == 0 {
 		return profile.Brief{}, "", errors.New("tutor: the catalog has no topic taught at any level")
 	}
 
 	awaited := awaits(p, ahead)
-	suggested, goal, because := choose(p, catalog, open, awaited)
-	chosen := LessonTopic(p, catalog)
+	suggested, goal, because := choose(p, own, open, awaited)
+	chosen := LessonTopic(p, Shown(catalog, chat))
 	choice = choice.Beside(chosen)
-	if problems := choice.problems(catalog, suggested, chosen); len(problems) > 0 {
+	if problems := choice.problems(catalog, chat, suggested, chosen); len(problems) > 0 {
 		return profile.Brief{}, "", &ChoiceError{Problems: problems}
 	}
 	// The rule's own corridor, of the topic it suggested: what is set unless
@@ -275,7 +299,7 @@ func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (prof
 		said = writtenAhead(awaited) + said
 	}
 	return profile.Brief{
-		Constraints: []string{},
+		Constraints: constraintsOf(catalog, topic),
 		Difficulty:  point.Difficulty,
 		// An empty list rather than none, so that the brief in the package says
 		// there are no skills to keep out rather than leaving a null to guess at.
@@ -287,6 +311,18 @@ func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (prof
 		TargetConcept:   topic,
 		TrapsToUse:      traps(p, topic, point.GradeLevel, catalog),
 	}, mode, nil
+}
+
+// constraintsOf are the requirements a brief on a topic makes of how its task
+// is written: facts_on_the_picture for a topic all of whose tasks are solved
+// from the picture, and none otherwise, where the idea the task is built on
+// may still ask for it (IdeaFor). An empty list rather than none, so that the
+// brief in the package says there are none rather than leaving a null.
+func constraintsOf(catalog Catalog, topic string) []string {
+	if catalog.SolvedFromPicture(topic) {
+		return []string{profile.FactsOnThePicture}
+	}
+	return []string{}
 }
 
 // awaits says a task is written ahead of the answer to the task on the card.

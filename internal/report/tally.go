@@ -151,15 +151,19 @@ type counts struct {
 	// appear: a newer version comes after an older one.
 	versions []string
 	tasks    map[group]*tasks
-	handIns  map[handInOf]*handIns
-	mends    map[mendOf]int
-	pictures map[topicOf]*pictures
-	kinds    map[kindOf]int
-	refusals map[refusedBy]*refusals
-	repeated map[repeatedBy]int
-	letGo    map[letGoFor]int
-	limits   map[string]int
-	tools    map[toolOf]*calls
+	// fromPicture are the tasks solved from the picture, counted apart as
+	// well, and pictureRefusals the checks that refused their attempts.
+	fromPicture     map[group]*tasks
+	pictureRefusals map[refusedBy]*refusals
+	handIns         map[handInOf]*handIns
+	mends           map[mendOf]int
+	pictures        map[topicOf]*pictures
+	kinds           map[kindOf]int
+	refusals        map[refusedBy]*refusals
+	repeated        map[repeatedBy]int
+	letGo           map[letGoFor]int
+	limits          map[string]int
+	tools           map[toolOf]*calls
 	// handOuts are how long next_task took to hand out a task written ahead,
 	// shown how long after its hand-in a task written while the child waited
 	// came to the card, and late how the writes made after an answer went.
@@ -196,7 +200,8 @@ func tally(in *input) *counts {
 	lines := in.lines
 	c := &counts{
 		lines: len(lines), others: in.others, unreadable: in.unreadable,
-		tasks: map[group]*tasks{}, handIns: map[handInOf]*handIns{}, mends: map[mendOf]int{},
+		tasks: map[group]*tasks{}, fromPicture: map[group]*tasks{}, pictureRefusals: map[refusedBy]*refusals{},
+		handIns: map[handInOf]*handIns{}, mends: map[mendOf]int{},
 		pictures: map[topicOf]*pictures{}, kinds: map[kindOf]int{}, refusals: map[refusedBy]*refusals{},
 		repeated: map[repeatedBy]int{}, letGo: map[letGoFor]int{},
 		limits: map[string]int{}, tools: map[toolOf]*calls{}, handOuts: map[group]*handOuts{},
@@ -221,6 +226,9 @@ func tally(in *input) *counts {
 			seenAt(firstSeen, l.InstructionsVersion, l.Time)
 			g := group{version: l.InstructionsVersion, host: hostOf(hosts, l.call())}
 			c.task(l, c.tasksOf(g))
+			if l.FromPicture {
+				c.pictureTask(l, g)
+			}
 			if l.Message == eventTaskSubmitted {
 				c.handIn(l, g)
 			}
@@ -318,43 +326,57 @@ func (c *counts) toolCall(l *line, drive map[string]int64) {
 	called.own = append(called.own, max(int64(l.DurationMS)-drive[l.request()], 0))
 }
 
-// task counts a line about a task into the tasks of its group.
+// task counts a line about a task into the tasks of its group, and into what
+// is counted over every group: the checks that refused it, its picture, and
+// why a task written ahead was let go.
 func (c *counts) task(l *line, counted *tasks) {
+	counted.count(l)
+	switch {
+	case l.Message == eventTaskSubmitted && l.Outcome == outcomeRejected:
+		c.refusedAttempt(l)
+	case l.Message == eventTaskAccepted:
+		c.picture(l, counted)
+	case l.Message == eventTaskDropped:
+		c.letGo[letGoFor{version: l.InstructionsVersion, reason: l.Reason, written: l.Written}]++
+	}
+}
+
+// count counts a line about a task into these tasks: a request opened, an
+// attempt judged and whether it was refused, a task accepted with its attempts
+// and its seconds, a task kept and one let go.
+func (t *tasks) count(l *line) {
 	switch l.Message {
 	case eventTaskRequested:
 		if l.AlreadyOpen {
 			return
 		}
-		counted.asked++
+		t.asked++
 		if l.Ahead {
-			counted.ahead++
+			t.ahead++
 		}
 	case eventTaskSubmitted:
-		counted.handedIn++
-		countQuestionInEnglish(l, counted)
+		t.handedIn++
+		countQuestionInEnglish(l, t)
 		if l.Outcome != outcomeRejected {
 			return
 		}
-		counted.refused++
+		t.refused++
 		if l.Attempt >= whole(profile.MaxAttempts) {
-			counted.outOfAttempts++
+			t.outOfAttempts++
 		}
-		c.refusedAttempt(l)
 	case eventTaskAccepted:
-		counted.attempts = append(counted.attempts, int(l.Attempts))
-		counted.seconds = append(counted.seconds, int64(l.SecondsSinceRequest))
-		c.picture(l, counted)
+		t.attempts = append(t.attempts, int(l.Attempts))
+		t.seconds = append(t.seconds, int64(l.SecondsSinceRequest))
 		if l.Ready {
-			counted.ready++
+			t.ready++
 		}
 		if l.ByCard {
-			counted.byCard++
+			t.byCard++
 		}
 	case eventTaskKept:
-		counted.kept++
+		t.kept++
 	case eventTaskDropped:
-		counted.letGo++
-		c.letGo[letGoFor{version: l.InstructionsVersion, reason: l.Reason, written: l.Written}]++
+		t.letGo++
 	}
 }
 
@@ -420,6 +442,26 @@ func (c *counts) refusedAttempt(l *line) {
 	if slices.Contains(l.Failed, string(checks.CodeNearDuplicate)) {
 		c.repeated[repeatedOf(l)]++
 	}
+	countRefusal(c.refusals, l)
+}
+
+// pictureTask counts a line of a task solved from the picture apart, for its
+// group, as task counts every line, and the checks that refused its attempt.
+func (c *counts) pictureTask(l *line, g group) {
+	counted, found := c.fromPicture[g]
+	if !found {
+		counted = &tasks{}
+		c.fromPicture[g] = counted
+	}
+	counted.count(l)
+	if l.Message == eventTaskSubmitted && l.Outcome == outcomeRejected {
+		countRefusal(c.pictureRefusals, l)
+	}
+}
+
+// countRefusal counts a refused attempt into counted by every check it names:
+// counted by the first, and failed by each that failed.
+func countRefusal(counted map[refusedBy]*refusals, l *line) {
 	named := append([]string{l.Primary}, l.Failed...)
 	slices.Sort(named)
 	for _, check := range slices.Compact(named) {
@@ -427,10 +469,10 @@ func (c *counts) refusedAttempt(l *line) {
 			continue
 		}
 		key := refusedBy{version: l.InstructionsVersion, check: check}
-		refused, found := c.refusals[key]
+		refused, found := counted[key]
 		if !found {
 			refused = &refusals{}
-			c.refusals[key] = refused
+			counted[key] = refused
 		}
 		if check == l.Primary {
 			refused.counted++

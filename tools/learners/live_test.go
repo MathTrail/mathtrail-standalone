@@ -24,6 +24,7 @@ func (oneTopic) LevelsOf(string) []rating.GradeLevel {
 }
 func (oneTopic) TrapIDs() []string                               { return nil }
 func (oneTopic) ExampleTraps(string, rating.GradeLevel) []string { return nil }
+func (oneTopic) SolvedFromPicture(string) bool                   { return false }
 
 // An answer is weighed as the report weighs its line: after the trial series
 // and without the hint, in the range of the child's answers it fell in — the

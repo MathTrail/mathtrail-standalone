@@ -217,7 +217,7 @@ func fuzzProfile(t testing.TB) *profile.Profile {
 	}
 	brief, mode, err := tutor.Next(p, loaded, tutor.Choice{
 		Topic: "logic.ordering", GradeLevel: rating.Grades12, Difficulty: 2, Reason: "The child asked for a race.",
-	})
+	}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v", err)
 	}

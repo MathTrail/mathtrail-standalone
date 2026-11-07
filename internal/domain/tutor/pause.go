@@ -74,17 +74,18 @@ func Probes(p *profile.Profile, catalog Catalog, topic string, mode profile.Tuto
 }
 
 // JudgingOf is what the rule and the catalog know of the task on the card,
-// which the profile records its answer by: the levels its topic is taught at,
-// and whether it is a probe. With no task on the card there is nothing to
+// which the profile records its answer by, in the chat the answer came from:
+// the levels its topic is taught at, and whether it is a probe there, as the
+// rule set it for that chat. With no task on the card there is nothing to
 // judge, and an answer the task has had already is only told again.
-func JudgingOf(p *profile.Profile, catalog Catalog) profile.Judging {
+func JudgingOf(p *profile.Profile, catalog Catalog, chat profile.Chat) profile.Judging {
 	task := p.CurrentTask
 	if task == nil {
 		return profile.Judging{}
 	}
 	return profile.Judging{
 		Taught: catalog.LevelsOf(task.Topic),
-		Probe:  task.Answered == nil && Probes(p, catalog, task.Topic, task.TutorMode),
+		Probe:  task.Answered == nil && Probes(p, Shown(catalog, chat), task.Topic, task.TutorMode),
 	}
 }
 

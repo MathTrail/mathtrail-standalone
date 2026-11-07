@@ -211,6 +211,9 @@ const (
 	MisfitExcludedSkills Misfit = "excluded_skills"
 	// MisfitAsked is a task that stands elsewhere than a person asked for.
 	MisfitAsked Misfit = "asked"
+	// MisfitChat is a task solved from the picture, in a chat not known to
+	// draw the card it would be shown on.
+	MisfitChat Misfit = "chat"
 	// MisfitInstructions is a task written to another version of the
 	// instructions than tasks are written to now.
 	MisfitInstructions Misfit = "instructions"
@@ -231,6 +234,8 @@ type Lesson struct {
 	// Asked is where a person asked the task to stand this time; its zero
 	// value asks for nothing.
 	Asked Place
+	// Chat is what the chat the task would be handed out in is known to show.
+	Chat Chat
 }
 
 // Place is where on the ladder a task stands, or is asked to stand: its
@@ -255,7 +260,8 @@ func (p Place) holds(place Place) bool {
 // written to a guide the model no longer reads, and checked by the checks
 // that went with it.
 func (r *ReadyTask) Misfit(now *Lesson) Misfit {
-	if found := misfit(r.Language, r.LessonTopic, r.ExcludedSkills, Place{r.Topic, r.GradeLevel, r.Difficulty}, now); found != MisfitNone {
+	place := Place{r.Topic, r.GradeLevel, r.Difficulty}
+	if found := misfit(r.Language, r.LessonTopic, r.ExcludedSkills, place, r.FromPicture, now); found != MisfitNone {
 		return found
 	}
 	if r.InstructionsVersion != now.InstructionsVersion {
@@ -269,17 +275,22 @@ func (r *ReadyTask) Misfit(now *Lesson) Misfit {
 // asked: nothing has been written to it yet that a newer one would not.
 func (r *OpenRequest) Misfit(now *Lesson) Misfit {
 	return misfit(r.Language, r.LessonTopic, r.Brief.ExcludedSkills,
-		Place{r.Brief.TargetConcept, r.Brief.GradeLevel, r.Brief.Difficulty}, now)
+		Place{r.Brief.TargetConcept, r.Brief.GradeLevel, r.Brief.Difficulty}, r.Brief.FromPicture(), now)
 }
 
 // misfit is why a task written ahead, in language, while the lessons were
-// kept to lesson, keeping out excluded and standing at place, no longer fits
-// the lesson now. A skill kept out since is a misfit, and one let back in is
-// not: the task keeps out more than it now has to.
-func misfit(language, lesson string, excluded []string, place Place, now *Lesson) Misfit {
+// kept to lesson, keeping out excluded, standing at place and solved from the
+// picture or not, no longer fits the lesson now. A skill kept out since is a
+// misfit, and one let back in is not: the task keeps out more than it now has
+// to. A task solved from the picture in a chat not known to draw the card is
+// let go for that before whatever else the lesson changed in such a chat, the
+// topic it is kept to among them, so that its line says why.
+func misfit(language, lesson string, excluded []string, place Place, fromPicture bool, now *Lesson) Misfit {
 	switch {
 	case language != now.Language:
 		return MisfitLanguage
+	case fromPicture && !now.Chat.ShowsPictures():
+		return MisfitChat
 	case lesson != now.Topic:
 		return MisfitLessonTopic
 	case slices.ContainsFunc(now.ExcludedSkills, func(skill string) bool { return !slices.Contains(excluded, skill) }):
