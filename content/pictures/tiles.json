@@ -1,0 +1,5 @@
+{
+  "purpose": "Identical tiles in a row or a ring: regular polygons of sides sides, each cut into triangles from its middle to its sides, with a number, ? or nothing in each triangle, listed clockwise from the side the tile shares with the tile before it; joint is the side it shares with the tile after it, counted the same way. Mark the triangle asked about with ?.",
+  "topics": ["parity.alternation"],
+  "picture": {"kind": "tiles", "sides": 4, "layout": "row", "tiles": [["", "1", "2", "3"], ["2", "", "", ""], ["", "", "?", ""]]}
+}

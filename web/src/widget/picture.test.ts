@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import type { Picture } from "../design/picture/model";
 import { kinds, paints } from "../design/picture/model";
-import { ahead } from "../design/picture/testing/ahead";
 import { extremes } from "../design/picture/testing/extremes";
 import { pictureFormat, pictureLimits } from "./picture";
 import { seeded } from "./testing/seeded";
@@ -25,17 +24,13 @@ function goSource(name: string): string {
 }
 
 // examples are the example of each kind the content shows the model, by the
-// file it is in, and of each kind the card draws ahead of the service, by its
-// kind.
-const examples = [
-	...Object.entries(
-		import.meta.glob<{ picture: unknown }>("../../../content/pictures/*.json", {
-			eager: true,
-			import: "default",
-		}),
-	).map(([file, example]) => [file, example.picture] as const),
-	...ahead.map((one) => [one.kind, one.example.picture] as const),
-];
+// file it is in.
+const examples = Object.entries(
+	import.meta.glob<{ picture: unknown }>("../../../content/pictures/*.json", {
+		eager: true,
+		import: "default",
+	}),
+).map(([file, example]) => [file, example.picture] as const);
 
 // referenceTasks are the reference tasks the content holds, with their
 // pictures.
@@ -64,7 +59,7 @@ describe("the card's reading of a picture", () => {
 			...goSource("picture.go").matchAll(/^\t\w+\s+Kind = "(\w+)"$/gm),
 		].map((match) => match[1]);
 
-		expect(kinds).toEqual([...listed, ...ahead.map((one) => one.kind)]);
+		expect(kinds).toEqual(listed);
 	});
 
 	test("knows the colours of the service's palette, in its order, and reads a word for each", () => {
@@ -95,15 +90,7 @@ describe("the card's reading of a picture", () => {
 			});
 		}
 
-		const drawnAhead = new Set(ahead.flatMap((one) => one.limits));
-		const held = Object.fromEntries(
-			Object.entries(pictureLimits).filter(([name]) => !drawnAhead.has(name)),
-		);
-
-		expect(named).toEqual(held);
-		for (const name of drawnAhead) {
-			expect(pictureLimits, name).toHaveProperty(name);
-		}
+		expect(named).toEqual(pictureLimits);
 	});
 
 	test.each(examples)("reads the example %s", (_, picture) => {

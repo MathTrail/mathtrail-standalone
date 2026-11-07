@@ -168,6 +168,13 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			wantSay: "task_fingerprints",
 		},
 		{
+			name: "more sketches of pictures than are kept",
+			breakIt: func(p *profile.Profile) {
+				p.PictureFingerprints = make([]string, profile.MaxPictureFingerprints+1)
+			},
+			wantSay: "picture_fingerprints",
+		},
+		{
 			name:    "a day the counters do not belong to",
 			breakIt: func(p *profile.Profile) { p.Daily.Date = profile.Date{} },
 			wantSay: "daily",

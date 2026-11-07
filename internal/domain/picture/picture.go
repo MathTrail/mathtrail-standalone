@@ -1,5 +1,5 @@
 // Package picture is the format of a task's picture: a description the card
-// draws, of one of thirteen kinds, and what can be read from it.
+// draws, of one of seventeen kinds, and what can be read from it.
 //
 // The chat's model writes the description and the card draws it, so the
 // picture comes out the same on every device: there is nothing in it for a
@@ -21,7 +21,7 @@ import (
 // Kind is what a picture draws: a clock, a row, a balance and so on.
 type Kind string
 
-// The thirteen kinds of picture, in the order the format lists them.
+// The seventeen kinds of picture, in the order the format lists them.
 const (
 	Clock      Kind = "clock"
 	Table      Kind = "table"
@@ -36,6 +36,10 @@ const (
 	Piles      Kind = "piles"
 	Calendar   Kind = "calendar"
 	Flags      Kind = "flags"
+	Lattice    Kind = "lattice"
+	Tiles      Kind = "tiles"
+	Shapes     Kind = "shapes"
+	Stairs     Kind = "stairs"
 )
 
 // What KindOf says of a task with no picture, and of a picture of no kind the
@@ -114,6 +118,10 @@ var kinds = []struct {
 	{Piles, readPiles, pilesLimits, []string{"box", "across"}},
 	{Calendar, readCalendar, calendarLimits, nil},
 	{Flags, readFlags, flagsLimits, nil},
+	{Lattice, readLattice, latticeLimits, []string{"width", "height"}},
+	{Tiles, readTiles, tilesLimits, []string{"layout"}},
+	{Shapes, readShapes, shapesLimits, nil},
+	{Stairs, readStairs, stairsLimits, nil},
 }
 
 // Kinds are every kind of picture, in the order the format lists them.

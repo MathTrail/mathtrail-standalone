@@ -204,7 +204,8 @@ Two hundred is four days at the most a day gives, fifty tasks, and two weeks of 
 | `topic`, `grade_level`, `difficulty`, `language` | open | The history entry and the rating update are built from them |
 | `instructions_version` | open | Which version of the instructions produced this task, so the result's log line can carry it (О-21) |
 | `tutor_mode` | open, absent on a task handed out before it was kept | Who chose the task — `rule`, `llm` or `person` — as its request had it, so that the line about its answer can say whether the chance being weighed is the rule's (R153) |
-| `fingerprint` | open | Added to `task_fingerprints` when the task is handed out |
+| `fingerprint` | open | Added to `task_fingerprints` when the task is handed out, or, for a task solved from the picture, the sketch of its picture, added to `picture_fingerprints` |
+| `from_picture` | open, absent when false | Whether it is solved from the picture, as its brief said: which list its fingerprint joins (R321) |
 | `asked` | open, absent when false | As the request had it: a person asked for the task (R237). A task kept takes `asked` from the ask it is handed out to |
 | `wording`, `picture`, `options`, `hint` | open | Exactly what the card shows and what the model was given back. `picture`, the description the card draws, is left out for a task with none (R269) |
 | `sealed` | sealed | `mt1.t.<kid>.<ciphertext>` — the answer, the trap id and the explanation behind each wrong option, the solution with its picture, which every task draws, and its total where the task has one (R276, R289), and the solver program |

@@ -64,7 +64,10 @@ type scenario struct {
 	runner       solver.Runner
 	references   []string
 	fingerprints []string
-	language     string
+	// pictures are the sketches of the pictures of the tasks solved from the
+	// picture the child has had.
+	pictures []string
+	language string
 	// level is the level the request was opened at; the zero value is the
 	// level of the brief the structure tests ask with.
 	level rating.GradeLevel
@@ -102,7 +105,7 @@ func (s *scenario) review(t *testing.T) checks.Outcome {
 		request.Constraints = []string{profile.FactsOnThePicture}
 	}
 	outcome, err := reviewer.Judge(examined, checks.Against{
-		Asked: request, Language: s.language, Fingerprints: s.fingerprints,
+		Asked: request, Language: s.language, Fingerprints: s.fingerprints, PictureFingerprints: s.pictures,
 	})
 	if err != nil {
 		t.Fatalf("Judge() error = %v", err)

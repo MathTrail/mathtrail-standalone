@@ -1,9 +1,14 @@
 package checks
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"hash/fnv"
+	"maps"
 	"math"
+	"slices"
 )
 
 // sketchSize is how many positions a fingerprint has, of which four bits each
@@ -49,11 +54,73 @@ var sketchSeeds = func() [sketchSize]uint64 {
 // cut as the duplicate check cuts the question, by the language of the task.
 func Fingerprint(question, language string) string {
 	sketch := sketchOf(shinglesOf(question, unitFor(question, language)))
-	var packed [sketchBytes]byte
-	for i := range packed {
-		packed[i] = sketch[2*i]<<4 | sketch[2*i+1]
+	return packed(&sketch)
+}
+
+// PictureFingerprint is what the profile keeps of the picture of a task solved
+// from the picture instead of the picture: a sketch of its elements, made as
+// a question's is of its shingles, and nothing for a task with no picture
+// that can be read.
+func PictureFingerprint(described json.RawMessage) string {
+	elements := pictureElements(described)
+	if len(elements) == 0 {
+		return ""
 	}
-	return base64.StdEncoding.EncodeToString(packed[:])
+	sketch := sketchOf(elements)
+	return packed(&sketch)
+}
+
+// pictureElements are what two pictures are compared by: each member of the
+// description under its path, nested objects member by member, and each item
+// of a list one element under the list's path, whatever its place in it, so
+// that a line, a cell, a mark or a pile is one thing the two pictures share or
+// do not. Nothing is read from a description that is no object.
+func pictureElements(described json.RawMessage) shingles {
+	decoder := json.NewDecoder(bytes.NewReader(described))
+	decoder.UseNumber()
+	var members map[string]any
+	if decoder.Decode(&members) != nil || members == nil {
+		return nil
+	}
+	set := elementsOf("", members)
+	slices.Sort(set)
+	return slices.Compact(set)
+}
+
+// elementsOf are the elements of a value under a path: an object's members
+// each under its own, a list's items one each, written as JSON writes them
+// and the same item again counted apart from the first, so that a row of
+// twelve posts is not the row of seven, and anything else one element of its
+// own.
+func elementsOf(path string, value any) []string {
+	switch held := value.(type) {
+	case map[string]any:
+		var found []string
+		for _, name := range slices.Sorted(maps.Keys(held)) {
+			found = append(found, elementsOf(path+"."+name, held[name])...)
+		}
+		return found
+	case []any:
+		found := make([]string, 0, len(held))
+		seen := map[string]int{}
+		for _, item := range held {
+			written, _ := json.Marshal(item) // a value decoded from JSON is always written back
+			seen[string(written)]++
+			found = append(found, fmt.Sprintf("%s:%s#%d", path, written, seen[string(written)]))
+		}
+		return found
+	default:
+		return []string{fmt.Sprintf("%s=%v", path, held)}
+	}
+}
+
+// packed is a sketch as the profile keeps it, in base64.
+func packed(sketch *[sketchSize]byte) string {
+	var kept [sketchBytes]byte
+	for i := range kept {
+		kept[i] = sketch[2*i]<<4 | sketch[2*i+1]
+	}
+	return base64.StdEncoding.EncodeToString(kept[:])
 }
 
 // sketchOf keeps, for each hash function, the lowest four bits of the smallest

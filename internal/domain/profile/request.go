@@ -160,6 +160,7 @@ func (p *Profile) Issue(written *Written, secret *TaskSecret, sealer Sealer, now
 		Asked:               request.Asked,
 		Difficulty:          request.Brief.Difficulty,
 		Fingerprint:         written.Fingerprint,
+		FromPicture:         request.Brief.FromPicture(),
 		GradeLevel:          request.Brief.GradeLevel,
 		Hint:                written.Hint,
 		ID:                  TaskIDFor(request.ID),
@@ -185,7 +186,8 @@ func (p *Profile) Issue(written *Written, secret *TaskSecret, sealer Sealer, now
 
 // handOut puts a task on the child's card. The task left there without an
 // answer is recorded as skipped. The new task's fingerprint joins those of the
-// tasks already given, the oldest leaving when there are too many; its topic
+// tasks already given, or of the pictures of those solved from the picture,
+// the oldest leaving when there are too many; its topic
 // records the day and the idea the task was built on, which is given from now
 // on; and the day's count of accepted tasks — the unit of the daily limit —
 // goes up. The day is the family's, the one the limits count: the rule orders
@@ -196,9 +198,10 @@ func (p *Profile) handOut(task *CurrentTask, idea Idea, now time.Time) {
 		p.leave(flying, now)
 	}
 	p.CurrentTask = task
-	p.TaskFingerprints = append(p.TaskFingerprints, task.Fingerprint)
-	if extra := len(p.TaskFingerprints) - MaxFingerprints; extra > 0 {
-		p.TaskFingerprints = slices.Clone(p.TaskFingerprints[extra:])
+	if task.FromPicture {
+		p.PictureFingerprints = kept(p.PictureFingerprints, task.Fingerprint, MaxPictureFingerprints)
+	} else {
+		p.TaskFingerprints = kept(p.TaskFingerprints, task.Fingerprint, MaxFingerprints)
 	}
 	// Counted first, so that the day the topic records is the day the count
 	// has just moved onto.
@@ -207,6 +210,16 @@ func (p *Profile) handOut(task *CurrentTask, idea Idea, now time.Time) {
 	topic.LastIssued = p.Daily.Date
 	topic.gave(task.GradeLevel, idea)
 	p.putTopic(task.Topic, &topic)
+}
+
+// kept is a list of sketches with one more at its end, the oldest leaving
+// when there would be more than most.
+func kept(sketches []string, added string, most int) []string {
+	sketches = append(sketches, added)
+	if extra := len(sketches) - most; extra > 0 {
+		return slices.Clone(sketches[extra:])
+	}
+	return sketches
 }
 
 // Skip takes the task off the card: the child asked for another. A task left

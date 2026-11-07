@@ -1,0 +1,5 @@
+{
+  "purpose": "A staircase of steps from the floor, 0, to the top, which the card does not number: a label on a step where someone stands, and a jump drawn from one step to another for a move of whoever walks it.",
+  "topics": ["counting.gaps"],
+  "picture": {"kind": "stairs", "steps": 8, "marks": [{"step": 0, "label": "A"}, {"step": 8, "label": "B"}], "jumps": [{"from": 0, "to": 2}, {"from": 8, "to": 5}]}
+}

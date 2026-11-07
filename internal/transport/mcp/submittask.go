@@ -283,6 +283,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	noteTaskRequest(ctx, request.ID)
 	outcome, err := s.judge(ctx, examined, checks.Against{
 		Asked: &request.Brief, Language: request.Language, Fingerprints: p.TaskFingerprints,
+		PictureFingerprints: p.PictureFingerprints,
 	})
 	if err != nil {
 		return Reply[handedInOut]{}, err
@@ -458,7 +459,7 @@ func (s *Service) refuse(ctx context.Context, done *reviewed) (Reply[handedInOut
 func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Reply[handedInOut], error) {
 	p, task := done.profile, done.outcome.Draft.Task
 	request, left := *p.OpenRequest, p.InFlight()
-	issued, err := p.Issue(s.writtenOf(task, request.Language), secretOf(task, program), s.sealer, done.now)
+	issued, err := p.Issue(s.writtenOf(task, &request), secretOf(task, program), s.sealer, done.now)
 	if err != nil {
 		return Reply[handedInOut]{}, fmt.Errorf("mcp: hand the task out: %w", err)
 	}
@@ -485,7 +486,7 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 func (s *Service) keep(ctx context.Context, done *reviewed, program string) (Reply[handedInOut], error) {
 	p, task := done.profile, done.outcome.Draft.Task
 	request := *p.OpenRequest
-	kept, err := p.Keep(s.writtenOf(task, request.Language), secretOf(task, program), s.sealer, done.now)
+	kept, err := p.Keep(s.writtenOf(task, &request), secretOf(task, program), s.sealer, done.now)
 	if err != nil {
 		return Reply[handedInOut]{}, fmt.Errorf("mcp: keep the task: %w", err)
 	}
@@ -527,16 +528,21 @@ func (s *Service) keptReply(p *profile.Profile, lead string) Reply[handedInOut] 
 	return Reply[handedInOut]{Text: text, Payload: payload}
 }
 
-// writtenOf is a task the checks accepted, as the profile keeps it: what the
-// child is shown, its fingerprint in the language it is written in, and the
-// version of the instructions it was written to.
-func (s *Service) writtenOf(task *checks.Task, language string) *profile.Written {
+// writtenOf is a task the checks accepted for a request, as the profile keeps
+// it: what the child is shown, its fingerprint — of its question in the
+// language it is written in, or of its picture for a task solved from the
+// picture —, and the version of the instructions it was written to.
+func (s *Service) writtenOf(task *checks.Task, request *profile.OpenRequest) *profile.Written {
+	fingerprint := checks.Fingerprint(task.Question, request.Language)
+	if request.Brief.FromPicture() {
+		fingerprint = checks.PictureFingerprint(task.Picture)
+	}
 	return &profile.Written{
 		Wording:             task.Question,
 		Picture:             task.Picture,
 		Options:             task.Options,
 		Hint:                task.Hint,
-		Fingerprint:         checks.Fingerprint(task.Question, language),
+		Fingerprint:         fingerprint,
 		InstructionsVersion: s.content.InstructionsVersion(),
 	}
 }

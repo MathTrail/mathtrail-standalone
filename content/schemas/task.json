@@ -102,7 +102,7 @@
       }
     },
     "picture": {
-      "description": "A description of one of thirteen kinds of picture: its kind and the members of that kind, and no other member. The service also checks what this schema cannot say: a number in a label is written with the lesson's decimal mark, a cell lies in its grid and no two cells share a name, a mark stands on a tick of its line, a brace lies within its bar, a bar shades no more parts than it has, a container holds no more than its capacity, a skip stands between two items and never beside another, every row of a table is as long as the header, or as the first row where there is none, a picture paints with no colour its colors do not name, names no colour it does not paint with and calls no two colours by one word, and there are at most 12 flags in all.",
+      "description": "A description of one of seventeen kinds of picture: its kind and the members of that kind, and no other member. The service also checks what this schema cannot say: a number in a label is written with the lesson's decimal mark, a cell lies in its grid and no two cells share a name, a mark stands on a tick of its line, a brace lies within its bar, a bar shades no more parts than it has, a container holds no more than its capacity, a skip stands between two items and never beside another, every row of a table is as long as the header, or as the first row where there is none, a picture paints with no colour its colors do not name, names no colour it does not paint with and calls no two colours by one word, there are at most 12 flags in all, a lattice's cells, marks, points and lines lie in it, each once, two of its lines meet only at a corner, and each point's label has a cell of its own round its corner that no mark holds, a row of tiles runs straight and holds at most 4 hexagons, a ring of tiles closes once round, and a staircase's marks and jumps stand on its steps, a mark alone on its step and each jump drawn once.",
       "type": "object",
       "required": ["kind"],
       "properties": {
@@ -121,7 +121,11 @@
             "containers",
             "piles",
             "calendar",
-            "flags"
+            "flags",
+            "lattice",
+            "tiles",
+            "shapes",
+            "stairs"
           ]
         }
       },
@@ -138,7 +142,11 @@
         { "$ref": "#/$defs/containers" },
         { "$ref": "#/$defs/piles" },
         { "$ref": "#/$defs/calendar" },
-        { "$ref": "#/$defs/flags" }
+        { "$ref": "#/$defs/flags" },
+        { "$ref": "#/$defs/lattice" },
+        { "$ref": "#/$defs/tiles" },
+        { "$ref": "#/$defs/shapes" },
+        { "$ref": "#/$defs/stairs" }
       ]
     },
     "label": {
@@ -704,6 +712,182 @@
         }
       },
       "not": { "required": ["label", "color"] }
+    },
+    "lattice": {
+      "description": "A figure on squared paper, width cells across and height down, a cell [x, y] from [0, 0] at the top left: cells filled, lines from corner to corner, dashed lines, points at corners and labels in cells.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "width", "height"],
+      "properties": {
+        "kind": { "const": "lattice" },
+        "width": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "height": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "cells": {
+          "description": "The cells filled, each once.",
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/lattice_pair" }
+        },
+        "lines": {
+          "description": "Lines from corner to corner, [x1, y1, x2, y2]: walls, sides, matches, sticks.",
+          "type": "array",
+          "maxItems": 48,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/lattice_line" }
+        },
+        "dashed": {
+          "description": "Lines drawn dashed, [x1, y1, x2, y2]: a fold, a cut, an axis.",
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/lattice_line" }
+        },
+        "points": {
+          "description": "Points at corners, each with a label or none.",
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["at"],
+            "properties": {
+              "at": { "$ref": "#/$defs/lattice_pair" },
+              "label": { "$ref": "#/$defs/short_label" }
+            }
+          }
+        },
+        "marks": {
+          "description": "Labels in cells.",
+          "type": "array",
+          "maxItems": 36,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["at", "label"],
+            "properties": {
+              "at": { "$ref": "#/$defs/lattice_pair" },
+              "label": { "$ref": "#/$defs/short_label" }
+            }
+          }
+        }
+      }
+    },
+    "lattice_pair": {
+      "description": "[x, y]: a cell, or a corner, of a lattice.",
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "integer", "minimum": 0, "maximum": 8 }
+    },
+    "lattice_line": {
+      "description": "[x1, y1, x2, y2]: two different corners of a lattice, joined straight.",
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": { "type": "integer", "minimum": 0, "maximum": 8 }
+    },
+    "short_label": {
+      "description": "A label of at most 2 characters.",
+      "allOf": [{ "$ref": "#/$defs/label" }, { "maxLength": 2 }]
+    },
+    "tiles": {
+      "description": "Identical tiles in a row or a ring, each a regular polygon of sides sides cut into triangles from its middle.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "sides", "layout", "tiles"],
+      "properties": {
+        "kind": { "const": "tiles" },
+        "sides": { "type": "integer", "minimum": 3, "maximum": 6 },
+        "layout": { "enum": ["row", "ring"] },
+        "joint": {
+          "description": "The side a tile shares with the tile after it, counted clockwise from the side it shares with the tile before it; half its sides unless given.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "tiles": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "items": {
+            "description": "A tile's triangles, clockwise from the side it shares with the tile before it.",
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 6,
+            "items": {
+              "description": "A whole number of at most 2 digits, ? for the place asked about, or the empty text.",
+              "type": "string",
+              "pattern": "^(|\\?|[0-9]{1,2})$"
+            }
+          }
+        }
+      }
+    },
+    "shapes": {
+      "description": "Rows of shapes with a total beside each: the same shape stands for the same number wherever it is drawn.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "rows"],
+      "properties": {
+        "kind": { "const": "shapes" },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["shapes", "total"],
+            "properties": {
+              "shapes": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 6,
+                "items": { "enum": ["triangle", "square", "circle", "diamond"] }
+              },
+              "total": { "$ref": "#/$defs/label" }
+            }
+          }
+        }
+      }
+    },
+    "stairs": {
+      "description": "A staircase of steps up from the floor, step 0, unnumbered: labels on steps and jumps from one step to another.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "steps"],
+      "properties": {
+        "kind": { "const": "stairs" },
+        "steps": { "type": "integer", "minimum": 3, "maximum": 16 },
+        "marks": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["step", "label"],
+            "properties": {
+              "step": { "type": "integer", "minimum": 0, "maximum": 16 },
+              "label": { "$ref": "#/$defs/label" }
+            }
+          }
+        },
+        "jumps": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to"],
+            "properties": {
+              "from": { "type": "integer", "minimum": 0, "maximum": 16 },
+              "to": { "type": "integer", "minimum": 0, "maximum": 16 }
+            }
+          }
+        }
+      }
     }
   }
 }

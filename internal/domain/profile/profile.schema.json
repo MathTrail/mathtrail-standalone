@@ -82,6 +82,12 @@
       "maxItems": 200,
       "items": { "type": "string" }
     },
+    "picture_fingerprints": {
+      "description": "Sketches of the pictures of the tasks solved from the picture already given, oldest first; absent until the child is given one.",
+      "type": "array",
+      "maxItems": 50,
+      "items": { "type": "string" }
+    },
     "topics": {
       "description": "The summary the rule runs on, keyed by the catalog's topic id. Never pruned.",
       "type": "object",
@@ -459,6 +465,7 @@
         },
         "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
         "fingerprint": { "type": "string" },
+        "from_picture": { "type": "boolean" },
         "grade_level": { "$ref": "#/$defs/gradeLevel" },
         "hint": { "type": "string" },
         "id": { "type": "string", "minLength": 1 },
@@ -524,6 +531,7 @@
           "items": { "type": "string" }
         },
         "fingerprint": { "type": "string" },
+        "from_picture": { "type": "boolean" },
         "grade_level": { "$ref": "#/$defs/gradeLevel" },
         "hint": { "type": "string" },
         "id": {

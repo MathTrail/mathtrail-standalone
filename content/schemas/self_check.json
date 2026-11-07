@@ -15,7 +15,7 @@
         "required": ["type", "severity", "comment"],
         "properties": {
           "type": {
-            "description": "What kind of defect. too_hard_for_grade means harder than the level of the brief, not than the child's grade; the id keeps its name.",
+            "description": "What kind of defect. too_hard_for_grade means harder than the level of the brief, not than the child's grade; the id keeps its name. facts_in_words, for a task solved from the picture: a fact the solution uses stands in the question, or the picture does not hold it.",
             "enum": [
               "ambiguous",
               "missing_data",
@@ -23,7 +23,8 @@
               "no_correct",
               "too_hard_for_grade",
               "needs_picture",
-              "factual_error"
+              "factual_error",
+              "facts_in_words"
             ]
           },
           "severity": {

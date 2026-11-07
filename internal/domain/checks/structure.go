@@ -207,6 +207,18 @@ func checkPicture(task *Task) []Problem {
 		"or left out")}
 }
 
+// PictureRequired checks that a task asked for as one solved from the picture
+// has a picture: its facts stand on the picture alone, and without one the
+// child has nothing to work from. A word task needs none.
+func PictureRequired(task *Task, asked *profile.Brief) []Problem {
+	if task == nil || !asked.FromPicture() || task.Picture != nil {
+		return nil
+	}
+	return []Problem{structural("task.picture is missing: the brief asks for a task solved from the picture, " +
+		"whose every fact stands on its picture and none in its question. The guide's section on such tasks says " +
+		"how; get_package with the same request_id hands it back")}
+}
+
 // checkSolutionPicture checks that the task draws its solution, in an object:
 // the card of how an answer went shows every solution with its picture, so a
 // task without one is refused for it. The total under the picture needs no

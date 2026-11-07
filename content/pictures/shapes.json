@@ -1,0 +1,5 @@
+{
+  "purpose": "Rows of shapes with a total beside each row: the same shape stands for the same number wherever it is drawn. Mark the total asked about with ?.",
+  "topics": ["arithmetic.tricks"],
+  "picture": {"kind": "shapes", "rows": [{"shapes": ["triangle", "triangle"], "total": "6"}, {"shapes": ["triangle", "square"], "total": "7"}, {"shapes": ["square", "circle"], "total": "?"}]}
+}

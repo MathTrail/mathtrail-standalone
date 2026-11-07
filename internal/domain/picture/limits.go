@@ -56,6 +56,32 @@ const (
 	maxFlags                     = 12
 	minStripes, maxStripes       = 2, 3
 
+	minLatticeSide, maxLatticeSide = 1, 8
+	maxLatticeCells                = 64
+	maxLatticeLines                = 48
+	maxLatticeDashed               = 8
+	maxLatticePoints               = 16
+	maxLatticeMarks                = 36
+	// A label of a lattice stands in a cell or beside a corner, and two
+	// characters are the most a cell of a lattice 8 cells across holds at the
+	// card's size; a tile's triangle holds a number of as many digits.
+	maxShortLabelCharacters = 2
+
+	minTileSides, maxTileSides = 3, 6
+	minTiles, maxTiles         = 2, 12
+	// A row runs straight, and its tiles' triangles narrow as it grows longer:
+	// a row of hexagons, whose triangles are the narrowest, is held shorter.
+	maxTilesInRow    = 6
+	maxHexagonsInRow = 4
+	maxTileDigits    = 2
+
+	minShapeRows, maxShapeRows = 1, 5
+	maxShapesInRow             = 6
+
+	minSteps, maxSteps = 3, 16
+	maxStairMarks      = 4
+	maxStairJumps      = 4
+
 	// A colour is called by a word or two of the lesson's language, written
 	// beside its paint in the key under the picture.
 	maxColorWords      = 2
@@ -128,4 +154,34 @@ func flagsLimits() string {
 func calendarLimits() string {
 	return fmt.Sprintf("first from %d for Monday to %d for Sunday; %d to %d days; a mark stands on a day of the month",
 		firstWeekday, lastWeekday, fewestDays, mostDays)
+}
+
+func latticeLimits() string {
+	return fmt.Sprintf("%d to %d cells across and down; a cell is [x, y], from [0, 0] at the top left; a line, plain "+
+		"or dashed, is [x1, y1, x2, y2], two corners from [0, 0] to [width, height] joined straight, drawn once; two "+
+		"lines meet only at a corner; at most %d cells filled, %d lines, %d dashed lines, %d points at corners and %d "+
+		"marks in cells; a label of at most %d characters; each point's label needs a cell of its own among the four "+
+		"round its corner, held by no mark and by no other point's label", minLatticeSide, maxLatticeSide, maxLatticeCells, maxLatticeLines, maxLatticeDashed,
+		maxLatticePoints, maxLatticeMarks, maxShortLabelCharacters)
+}
+
+func tilesLimits() string {
+	return fmt.Sprintf("%d to %d tiles of %d to %d sides each; each tile lists, for each of its triangles, a whole "+
+		"number of at most %d digits, ? or an empty text, clockwise from the side it shares with the tile before it; "+
+		"joint, the side it shares with the tile after it, counted the same way, half its sides unless given; a row "+
+		"runs straight, of tiles of 4 or 6 sides joined at the side opposite the first, at most %d tiles and %d "+
+		"hexagons; a ring goes round once and closes: 4 squares joint 1 or 3, 3 hexagons joint 1 or 5, 6 hexagons "+
+		"joint 2 or 4, 6 triangles, or 10 pentagons joint 2 or 3",
+		minTiles, maxTiles, minTileSides, maxTileSides, maxTileDigits, maxTilesInRow, maxHexagonsInRow)
+}
+
+func shapesLimits() string {
+	return fmt.Sprintf("%d to %d rows of 1 to %d shapes, each %s, with a total, a label, beside each row",
+		minShapeRows, maxShapeRows, maxShapesInRow, oneOf(shapeNames))
+}
+
+func stairsLimits() string {
+	return fmt.Sprintf("%d to %d steps from the floor, 0, to the top; at most %d marks, each a label on a step of "+
+		"its own, and %d jumps, each from one step to another, drawn once", minSteps, maxSteps, maxStairMarks,
+		maxStairJumps)
 }

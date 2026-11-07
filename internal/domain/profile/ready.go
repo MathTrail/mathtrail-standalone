@@ -39,8 +39,11 @@ type ReadyTask struct {
 	// ExcludedSkills are the skills the task was asked to keep out.
 	ExcludedSkills []string `json:"excluded_skills"`
 	// Fingerprint is the sketch that joins the list of past tasks once the
-	// task is handed out.
+	// task is handed out: of its picture, for a task solved from the picture.
 	Fingerprint string `json:"fingerprint"`
+	// FromPicture says the task is solved from the picture, as its brief
+	// asked.
+	FromPicture bool `json:"from_picture,omitempty"`
 	// GradeLevel is the level the task was written for.
 	GradeLevel rating.GradeLevel `json:"grade_level"`
 	// Hint is the nudge the child may ask for.
@@ -128,6 +131,7 @@ func (p *Profile) Keep(written *Written, secret *TaskSecret, sealer Sealer, now 
 		Difficulty:          request.Brief.Difficulty,
 		ExcludedSkills:      append([]string{}, request.Brief.ExcludedSkills...),
 		Fingerprint:         written.Fingerprint,
+		FromPicture:         request.Brief.FromPicture(),
 		GradeLevel:          request.Brief.GradeLevel,
 		Hint:                written.Hint,
 		ID:                  id,
@@ -162,6 +166,7 @@ func (p *Profile) HandOutReady(now time.Time) (*CurrentTask, error) {
 	p.handOut(&CurrentTask{
 		Difficulty:          ready.Difficulty,
 		Fingerprint:         ready.Fingerprint,
+		FromPicture:         ready.FromPicture,
 		GradeLevel:          ready.GradeLevel,
 		Hint:                ready.Hint,
 		ID:                  ready.ID,

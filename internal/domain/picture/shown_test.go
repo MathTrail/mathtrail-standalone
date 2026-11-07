@@ -48,6 +48,20 @@ func TestEachKindSaysWhatItLabelsAndWhatItShows(t *testing.T) {
 		{"a clock shows its time as its face does", `{"kind":"clock","time":"16:30","hour_label":"H"}`,
 			[]string{"H"}, []string{"H", "face 4:30"}},
 		{"a clock at midnight", `{"kind":"clock","time":"0:05"}`, nil, []string{"face 12:05"}},
+		{"a lattice shows its labels, and none of its size, cells or lines",
+			`{"kind":"lattice","width":5,"height":4,"cells":[[3,3]],"lines":[[0,0,5,0]],` +
+				`"points":[{"at":[5,4],"label":"P"},{"at":[1,1]}],"marks":[{"at":[0,0],"label":"7"},{"at":[2,2],"label":"7"}]}`,
+			[]string{"P", "7"}, []string{"P", "7"}},
+		{"tiles show each number of their triangles once, and ?",
+			`{"kind":"tiles","sides":4,"layout":"row","tiles":[["3","","1",""],["1","?","",""]]}`,
+			[]string{"3", "1", "?"}, []string{"3", "1", "?"}},
+		{"rows of shapes show their totals, each as often as it is written",
+			`{"kind":"shapes","rows":[{"shapes":["circle"],"total":"4"},{"shapes":["square"],"total":"4"},` +
+				`{"shapes":["circle","square"],"total":"?"}]}`,
+			[]string{"4", "?"}, []string{"4", "4", "?"}},
+		{"a staircase shows its marks, and none of its steps",
+			`{"kind":"stairs","steps":9,"marks":[{"step":0,"label":"A"},{"step":9,"label":"B"}],"jumps":[{"from":0,"to":3}]}`,
+			[]string{"A", "B"}, []string{"A", "B"}},
 		{"a table shows its labels and its times", `{"kind":"table","header":["","A"],` +
 			`"rows":[["1","9:15"],["…","?"]]}`, []string{"A", "1", "?"}, []string{"A", "1", "9:15", "?"}},
 		{"a number line shows its ends and the ticks its marks stand on",
