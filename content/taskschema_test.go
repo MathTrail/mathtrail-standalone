@@ -129,6 +129,11 @@ var everyMember = []string{
 	`{"kind":"flags","colors":{"red":"red","yellow":"yellow","green":"green","blue":"синяя","white":"white",` +
 		`"black":"black"},"groups":[{"label":"A","flags":[["red","yellow","?"],["green","blue"]]},` +
 		`{"color":"white","flags":[["white","black"]]}]}`,
+	`{"kind":"lattice","width":4,"height":3,"cells":[[0,0]],"lines":[[0,0,4,3]],"dashed":[[2,0,2,3]],` +
+		`"points":[{"at":[4,3],"label":"A"}],"marks":[{"at":[1,1],"label":"S"}]}`,
+	`{"kind":"tiles","sides":4,"layout":"row","joint":2,"tiles":[["1","","2",""],["","?","",""]]}`,
+	`{"kind":"shapes","rows":[{"shapes":["triangle","square"],"total":"7"}]}`,
+	`{"kind":"stairs","steps":8,"marks":[{"step":0,"label":"A"}],"jumps":[{"from":0,"to":2}]}`,
 }
 
 // A picture with every member of its kind is one the format reads with no
@@ -271,6 +276,17 @@ func TestThePictureTheFormatRefusesTheTaskSchemaRefuses(t *testing.T) {
 			`"groups":[{"flags":[["purple","?"]]}]}`},
 		{"a colour called by digits", `{"kind":"flags","colors":{"red":"r3d"},"groups":[{"flags":[["red","?"]]}]}`},
 		{"a flag of four stripes", `{"kind":"flags","groups":[{"flags":[["?","?","?","?"]]}]}`},
+		{"a lattice nine cells wide", `{"kind":"lattice","width":9,"height":1}`},
+		{"a lattice's line of three numbers", `{"kind":"lattice","width":2,"height":2,"lines":[[0,0,1]]}`},
+		{"a lattice's label of three characters", `{"kind":"lattice","width":2,"height":2,"marks":[{"at":[0,0],"label":"ABC"}]}`},
+		{"a lattice's mark with no label", `{"kind":"lattice","width":2,"height":2,"marks":[{"at":[0,0]}]}`},
+		{"tiles with no layout", `{"kind":"tiles","sides":4,"tiles":[["","","",""],["","","",""]]}`},
+		{"a tile's letter", `{"kind":"tiles","sides":4,"layout":"row","tiles":[["A","","",""],["","","",""]]}`},
+		{"a tile's number of three digits", `{"kind":"tiles","sides":4,"layout":"row","tiles":[["100","","",""],["","","",""]]}`},
+		{"a shape the format does not have", `{"kind":"shapes","rows":[{"shapes":["star"],"total":"5"}]}`},
+		{"a row of shapes with no total", `{"kind":"shapes","rows":[{"shapes":["circle"]}]}`},
+		{"a staircase of seventeen steps", `{"kind":"stairs","steps":17}`},
+		{"a jump drawn twice", `{"kind":"stairs","steps":3,"jumps":[{"from":1,"to":3},{"from":1,"to":3}]}`},
 		{"a group of seven flags", `{"kind":"flags","groups":[{"flags":[` + strings.Repeat(`["?","?"],`, 6) +
 			`["?","?"]]}]}`},
 		{"a group named by a colour and a label", `{"kind":"flags","colors":{"red":"red"},` +

@@ -78,6 +78,34 @@ var wellMade = []struct {
 	{"members left out as null or empty", picture.Clock,
 		`{"kind":"clock","time":"0:00","hour_label":null,"minute_label":""}`},
 	{"a whole number written with a decimal point", picture.Ring, `{"kind":"ring","count":9.0}`},
+	{"a lattice with every member", picture.Lattice,
+		`{"kind":"lattice","width":8,"height":8,"cells":[[0,0],[7,7]],"lines":[[0,0,8,8],[0,8,8,0]],` +
+			`"dashed":[[4,0,4,8]],"points":[{"at":[8,8],"label":"A"},{"at":[0,0]}],"marks":[{"at":[7,0],"label":"?"}]}`},
+	{"ten pentagons in a ring", picture.Tiles,
+		`{"kind":"tiles","sides":5,"layout":"ring","tiles":[["1","2","","",""],["","","","","?"]` +
+			strings.Repeat(`,["","","","",""]`, 8) + `]}`},
+	{"a row of six squares", picture.Tiles,
+		`{"kind":"tiles","sides":4,"layout":"row","tiles":[` + strings.Repeat(`["99","","0",""],`, 5) + `["","","?",""]]}`},
+	{"a row of four hexagons", picture.Tiles,
+		`{"kind":"tiles","sides":6,"layout":"row","joint":3,"tiles":[` + strings.Repeat(`["","","","","",""],`, 3) +
+			`["1","","","","",""]]}`},
+	{"four squares in a ring", picture.Tiles,
+		`{"kind":"tiles","sides":4,"layout":"ring","joint":3,"tiles":[["","","",""],["","","",""],["","","",""],["","","",""]]}`},
+	{"three hexagons round a point", picture.Tiles,
+		`{"kind":"tiles","sides":6,"layout":"ring","joint":1,"tiles":[` + strings.Repeat(`["","","","","",""],`, 2) +
+			`["","","","","",""]]}`},
+	{"six triangles round a point", picture.Tiles,
+		`{"kind":"tiles","sides":3,"layout":"ring","joint":2,"tiles":[` + strings.Repeat(`["","",""],`, 5) + `["","","1"]]}`},
+	{"a lattice of crossing lines and a point's label moved to make room", picture.Lattice,
+		`{"kind":"lattice","width":2,"height":2,"lines":[[0,0,2,2],[2,0,0,2],[0,1,2,1]],` +
+			`"points":[{"at":[2,1],"label":"B"},{"at":[1,1],"label":"A"}],` +
+			`"marks":[{"at":[0,0],"label":"1"},{"at":[0,1],"label":"2"},{"at":[1,1],"label":"3"}]}`},
+	{"a lattice of lines that meet end to end along one line", picture.Lattice,
+		`{"kind":"lattice","width":3,"height":1,"lines":[[0,0,1,0],[1,0,3,0]],"dashed":[[0,0,3,1]]}`},
+	{"rows of shapes", picture.Shapes,
+		`{"kind":"shapes","rows":[{"shapes":["triangle","circle","square","diamond"],"total":"12"},{"shapes":["circle"],"total":"?"}]}`},
+	{"stairs", picture.Stairs,
+		`{"kind":"stairs","steps":16,"marks":[{"step":0,"label":"A"},{"step":16,"label":"B"}],"jumps":[{"from":0,"to":3}]}`},
 }
 
 func TestEveryKindReadsAWellMadeDescription(t *testing.T) {
@@ -362,6 +390,90 @@ var breakages = []struct {
 		`"groups":[{"flags":[["red","blue"]]}]}`, "picture.colors", "calls two colours by one word"},
 	{"a colour that paints nothing", `{"kind":"flags","colors":{"red":"red","blue":"blue"},` +
 		`"groups":[{"flags":[["red","?"]]}]}`, "picture.colors.blue", "paints nothing in the picture"},
+	{"a lattice nine cells wide", `{"kind":"lattice","width":9,"height":1}`, "picture.width",
+		"must be a whole number from 1 to 8"},
+	{"a lattice's cell past its edge", `{"kind":"lattice","width":2,"height":2,"cells":[[2,0]]}`,
+		"picture.cells.0.0", "must be a whole number from 0 that lies within the lattice's width"},
+	{"a lattice's cell of three numbers", `{"kind":"lattice","width":2,"height":2,"cells":[[0,0,0]]}`,
+		"picture.cells.0", "must be [x, y]"},
+	{"a lattice's cell filled twice", `{"kind":"lattice","width":2,"height":2,"cells":[[1,1],[1,1]]}`,
+		"picture.cells.1", "names a cell already named"},
+	{"a lattice's line past its corners", `{"kind":"lattice","width":2,"height":2,"lines":[[0,0,3,0]]}`,
+		"picture.lines.0.2", "must be a whole number from 0 that lies within the lattice's width"},
+	{"a lattice's line of a corner alone", `{"kind":"lattice","width":2,"height":2,"lines":[[0,0]]}`,
+		"picture.lines.0", "must be [x1, y1, x2, y2]"},
+	{"a lattice's line from a corner to itself", `{"kind":"lattice","width":2,"height":2,"lines":[[1,1,1,1]]}`,
+		"picture.lines.0", "must join two different corners"},
+	{"a line drawn again, dashed, from its other end",
+		`{"kind":"lattice","width":2,"height":2,"lines":[[0,0,1,0]],"dashed":[[1,0,0,0]]}`,
+		"picture.dashed.0", "draws a line already drawn"},
+	{"two lines that cross between corners", `{"kind":"lattice","width":2,"height":1,"lines":[[0,0,2,1],[0,1,2,0]]}`,
+		"picture.lines.1", "meets another line between corners"},
+	{"a line that ends on another between corners", `{"kind":"lattice","width":2,"height":2,"lines":[[0,0,2,1],[1,0,1,2]]}`,
+		"picture.lines.1", "meets another line between corners"},
+	{"two lines that run along each other", `{"kind":"lattice","width":3,"height":1,"lines":[[0,0,2,0],[1,0,3,0]]}`,
+		"picture.lines.1", "meets another line between corners"},
+	{"a lattice's point past its corners", `{"kind":"lattice","width":2,"height":2,"points":[{"at":[3,0]}]}`,
+		"picture.points.0.at.0", "must be a whole number from 0 that lies within the lattice's width"},
+	{"two points on one corner", `{"kind":"lattice","width":2,"height":2,"points":[{"at":[1,1]},{"at":[1,1],"label":"P"}]}`,
+		"picture.points.1.at", "is where another label already stands"},
+	{"a mark with no label", `{"kind":"lattice","width":2,"height":2,"marks":[{"at":[0,0]}]}`,
+		"picture.marks.0.label", "is missing"},
+	{"a mark past the cells", `{"kind":"lattice","width":2,"height":2,"marks":[{"at":[1,2],"label":"S"}]}`,
+		"picture.marks.0.at.1", "must be a whole number from 0 that lies within the lattice's height"},
+	{"a lattice's label of three characters", `{"kind":"lattice","width":2,"height":2,"marks":[{"at":[0,0],"label":"ABC"}]}`,
+		"picture.marks.0.label", "must be a label of at most 2 characters"},
+	{"a point's label with no cell of its own",
+		`{"kind":"lattice","width":2,"height":2,"points":[{"at":[1,1],"label":"P"}],"marks":[{"at":[0,0],"label":"A"},` +
+			`{"at":[1,0],"label":"B"},{"at":[0,1],"label":"C"},{"at":[1,1],"label":"D"}]}`,
+		"picture.points", "must leave each point's label a cell of its own"},
+	{"a tile of seven sides", `{"kind":"tiles","sides":7,"layout":"row","tiles":[[],[]]}`, "picture.sides",
+		"must be a whole number from 3 to 6"},
+	{"tiles with no layout", `{"kind":"tiles","sides":4,"tiles":[["","","",""],["","","",""]]}`, "picture.layout",
+		"is missing"},
+	{"a tile a triangle short", `{"kind":"tiles","sides":4,"layout":"row","tiles":[["","",""],["","","",""]]}`,
+		"picture.tiles.0", "must be a list of as many triangles"},
+	{"a tile's letter", `{"kind":"tiles","sides":4,"layout":"row","tiles":[["A","","",""],["","","",""]]}`,
+		"picture.tiles.0.0", "must be a whole number of at most 2 digits"},
+	{"a tile's number of three digits", `{"kind":"tiles","sides":4,"layout":"row","tiles":[["100","","",""],["","","",""]]}`,
+		"picture.tiles.0.0", "must be a whole number of at most 2 digits"},
+	{"a tile joined at its first side", `{"kind":"tiles","sides":4,"layout":"ring","joint":0,"tiles":[["","","",""],["","","",""]]}`,
+		"picture.joint", "must be a whole number from 1 to 3"},
+	{"a row of seven squares", `{"kind":"tiles","sides":4,"layout":"row","tiles":[` + strings.Repeat(`["","","",""],`, 6) +
+		`["","","",""]]}`, "picture.layout", "must run straight"},
+	{"a row of five hexagons", `{"kind":"tiles","sides":6,"layout":"row","tiles":[` +
+		strings.Repeat(`["","","","","",""],`, 4) + `["","","","","",""]]}`, "picture.layout", "must run straight"},
+	{"a row that turns", `{"kind":"tiles","sides":4,"layout":"row","joint":1,"tiles":[["","","",""],["","","",""]]}`,
+		"picture.layout", "must run straight"},
+	{"a row of pentagons", `{"kind":"tiles","sides":5,"layout":"row","tiles":[["","","","",""],["","","","",""]]}`,
+		"picture.layout", "must run straight"},
+	{"a ring that does not close", `{"kind":"tiles","sides":5,"layout":"ring","tiles":[` +
+		strings.Repeat(`["","","","",""],`, 8) + `["","","","",""]]}`, "picture.layout", "must go round once"},
+	{"a ring that goes round more than once", `{"kind":"tiles","sides":5,"layout":"ring","joint":1,"tiles":[` +
+		strings.Repeat(`["","","","",""],`, 9) + `["","","","",""]]}`, "picture.layout", "must go round once"},
+	{"a row of shapes of a star", `{"kind":"shapes","rows":[{"shapes":["star"],"total":"5"}]}`, "picture.rows.0.shapes.0",
+		"must be triangle, square, circle or diamond"},
+	{"a row of no shapes", `{"kind":"shapes","rows":[{"shapes":[],"total":"0"}]}`, "picture.rows.0.shapes",
+		"must hold 1 to 6 shapes"},
+	{"a row of shapes with no total", `{"kind":"shapes","rows":[{"shapes":["circle"]}]}`, "picture.rows.0.total",
+		"is missing"},
+	{"six rows of shapes", `{"kind":"shapes","rows":[` + strings.Repeat(`{"shapes":["circle"],"total":"1"},`, 5) +
+		`{"shapes":["circle"],"total":"1"}]}`, "picture.rows", "must hold 1 to 5 rows"},
+	{"a staircase of two steps", `{"kind":"stairs","steps":2}`, "picture.steps", "must be a whole number from 3 to 16"},
+	{"a mark past the top step", `{"kind":"stairs","steps":3,"marks":[{"step":4,"label":"A"}]}`, "picture.marks.0.step",
+		"must be a step of the staircase"},
+	{"a jump past the top step", `{"kind":"stairs","steps":3,"jumps":[{"from":0,"to":4}]}`, "picture.jumps.0.to",
+		"must be a step of the staircase"},
+	{"a joint of tiles whose sides are unread", `{"kind":"tiles","sides":4,"layout":"row","joint":"x",` +
+		`"tiles":[["","","",""],["","","",""]]}`, "picture.joint", "must be a whole number from 1 to 3"},
+	{"tiles laid out as neither", `{"kind":"tiles","sides":4,"layout":"zigzag","tiles":[["","","",""],["","","",""]]}`,
+		"picture.layout", "must be row or ring"},
+	{"two marks on one step", `{"kind":"stairs","steps":3,"marks":[{"step":1,"label":"A"},{"step":1,"label":"B"}]}`,
+		"picture.marks.1.step", "is a step another mark already stands on"},
+	{"a jump that stays", `{"kind":"stairs","steps":3,"jumps":[{"from":2,"to":2}]}`, "picture.jumps.0",
+		"must go from one step to another"},
+	{"a jump drawn twice", `{"kind":"stairs","steps":3,"jumps":[{"from":1,"to":3},{"from":1,"to":3}]}`, "picture.jumps.1",
+		"draws a jump already drawn"},
 	{"colours on a kind that paints none", `{"kind":"clock","time":"4:30","colors":{"red":"red"}}`,
 		"picture.colors", "is no member of a clock"},
 }
@@ -377,6 +489,34 @@ func TestEachRuleIsOneProblemAtItsMember(t *testing.T) {
 			}
 			if problems[0].Path != test.path || !strings.HasPrefix(problems[0].Rule, test.rule) {
 				t.Errorf("Parse() problem = %+v, want %s %s…", problems[0], test.path, test.rule)
+			}
+		})
+	}
+}
+
+// A problem is said at the member that has it, though a member before it was
+// refused, and every member that can be judged is, though another could not
+// be read.
+func TestEachProblemIsSaidAtItsOwnMember(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		name, description string
+		paths             []string
+	}{
+		{"a crossing after a line refused", `{"kind":"lattice","width":2,"height":1,"lines":[[0,0,0,0],[0,0,2,1],[0,1,2,0]]}`,
+			[]string{"picture.lines.0", "picture.lines.2"}},
+		{"a joint of tiles whose sides could not be read", `{"kind":"tiles","sides":9,"layout":"row","joint":"x",` +
+			`"tiles":[["",""],["",""]]}`, []string{"picture.sides", "picture.joint"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			_, problems := picture.Parse(json.RawMessage(test.description), picture.Point)
+			var paths []string
+			for _, problem := range problems {
+				paths = append(paths, problem.Path)
+			}
+			if !slices.Equal(paths, test.paths) {
+				t.Errorf("Parse() problems at %q, want at %q", paths, test.paths)
 			}
 		})
 	}
@@ -440,12 +580,12 @@ func TestEveryProblemOfAPictureStaysWithinIt(t *testing.T) {
 	}
 }
 
-func TestKindsAreTheThirteenTheFormatLists(t *testing.T) {
+func TestKindsAreTheSeventeenTheFormatLists(t *testing.T) {
 	t.Parallel()
 	want := []picture.Kind{
 		picture.Clock, picture.Table, picture.NumberLine, picture.Row, picture.Ring, picture.Grid,
 		picture.Bars, picture.Venn, picture.Balance, picture.Containers, picture.Piles, picture.Calendar,
-		picture.Flags,
+		picture.Flags, picture.Lattice, picture.Tiles, picture.Shapes, picture.Stairs,
 	}
 	if got := picture.Kinds(); !slices.Equal(got, want) {
 		t.Errorf("Kinds() = %v, want %v", got, want)

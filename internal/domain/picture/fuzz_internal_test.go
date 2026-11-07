@@ -28,6 +28,13 @@ func FuzzParse(f *testing.F) {
 		`{"kind":"flags","colors":{"red":"\u0301x","purple":1,"blue":["b"]},"groups":[{"flags":["red",[]]}]}`,
 		`{"kind":"row","items":[{"skip":true,"label":"\u202e"}],"line":null,"copies":1e400}`,
 		`{"kind":"bars","bars":[{"parts":1e9,"segments":[{"size":-1}],"shaded":"3"}]}`,
+		`{"kind":"lattice","width":3,"height":2,"cells":[[0,0]],"lines":[[0,0,3,2],[0,2,3,0]],"dashed":[[1,0,1,2]],` +
+			`"points":[{"at":[3,2],"label":"P"}],"marks":[{"at":[2,1],"label":"S"}]}`,
+		`{"kind":"lattice","width":1e9,"height":-1,"lines":[[0,0,0,0],[1,1]],"points":[{"at":[0,0],"label":"ABC"}]}`,
+		`{"kind":"tiles","sides":5,"layout":"ring","tiles":[["1","","","","?"],["","","","",""]]}`,
+		`{"kind":"tiles","sides":6,"layout":"row","joint":9,"tiles":[["100"],[1,2,3,4,5,6]]}`,
+		`{"kind":"shapes","rows":[{"shapes":["triangle","star"],"total":"6"},{"shapes":[],"total":null}]}`,
+		`{"kind":"stairs","steps":8,"marks":[{"step":8,"label":"B"},{"step":8,"label":"C"}],"jumps":[{"from":0,"to":0}]}`,
 		`[{"kind":"clock"}]`, `{"kind":"clock","time":"9:99"}`, `{`,
 	} {
 		f.Add([]byte(seed), false)

@@ -249,10 +249,107 @@ func flagGroup(group, each, stripes, shift int, used description) description {
 	return description{"flags": flags, "label": "A"}
 }
 
+// genLattice is a lattice of any size, a cell filled and marked in each
+// corner of it, lines along its edges that meet only at its corners, and a
+// labelled point at its bottom right corner.
+func genLattice() gopter.Gen {
+	return gopter.CombineGens(gen.IntRange(2, 8), gen.IntRange(1, 8)).Map(func(values []any) description {
+		width, _ := values[0].(int)
+		height, _ := values[1].(int)
+		return description{
+			"kind": "lattice", "width": width, "height": height,
+			"cells":  []any{[]any{0, 0}, []any{width - 1, height - 1}},
+			"lines":  []any{[]any{0, 0, width, 0}, []any{0, 0, 0, height}},
+			"dashed": []any{[]any{0, height, width, height}},
+			"points": []any{description{"at": []any{width, height}, "label": "P"}, description{"at": []any{0, height}}},
+			"marks":  []any{description{"at": []any{0, height - 1}, "label": "S"}},
+		}
+	})
+}
+
+// closing are the tiles of each number of sides that close a ring, with the
+// joint that closes it: four squares, three or six hexagons, six triangles
+// and ten pentagons.
+var closing = []struct{ sides, joint, count int }{{4, 1, 4}, {4, 3, 4}, {6, 1, 3}, {6, 2, 6}, {3, 1, 6}, {5, 2, 10}}
+
+// genTiles is a row of squares or hexagons, or a ring that closes, a number
+// in a triangle of every tile and ? in one.
+func genTiles() gopter.Gen {
+	return gopter.CombineGens(gen.Bool(), gen.IntRange(0, len(closing)-1), gen.IntRange(2, 6), gen.IntRange(0, 99)).
+		Map(func(values []any) description {
+			ring, _ := values[0].(bool)
+			pick, _ := values[1].(int)
+			count, _ := values[2].(int)
+			number, _ := values[3].(int)
+			// A row of squares, or of three hexagons.
+			sides, joint := 4, 2
+			if count == 3 {
+				sides, joint = 6, 3
+			}
+			if ring {
+				sides, joint, count = closing[pick].sides, closing[pick].joint, closing[pick].count
+			}
+			tiles := make([]any, count)
+			for i := range tiles {
+				triangles := make([]any, sides)
+				for j := range triangles {
+					triangles[j] = ""
+				}
+				triangles[i%sides] = fmt.Sprint(number)
+				if i == 0 {
+					triangles[sides-1] = "?"
+				}
+				tiles[i] = triangles
+			}
+			layout := "row"
+			if ring {
+				layout = "ring"
+			}
+			return description{"kind": "tiles", "sides": sides, "layout": layout, "joint": joint, "tiles": tiles}
+		})
+}
+
+// genShapes is one to five rows of shapes, each with its total.
+func genShapes() gopter.Gen {
+	return gopter.CombineGens(gen.IntRange(1, 5), gen.IntRange(1, 6)).Map(func(values []any) description {
+		rows, _ := values[0].(int)
+		each, _ := values[1].(int)
+		names := []string{"triangle", "square", "circle", "diamond"}
+		read := make([]any, rows)
+		for i := range read {
+			shapes := make([]any, each)
+			for j := range shapes {
+				shapes[j] = names[(i+j)%len(names)]
+			}
+			total := fmt.Sprint(i + each)
+			if i == rows-1 {
+				total = "?"
+			}
+			read[i] = description{"shapes": shapes, "total": total}
+		}
+		return description{"kind": "shapes", "rows": read}
+	})
+}
+
+// genStairs is a staircase with a mark on the floor and one on its top step,
+// a jump up from the floor and one down from the top.
+func genStairs() gopter.Gen {
+	return gopter.CombineGens(gen.IntRange(3, 16), gen.IntRange(1, 3)).Map(func(values []any) description {
+		steps, _ := values[0].(int)
+		up, _ := values[1].(int)
+		return description{
+			"kind": "stairs", "steps": steps,
+			"marks": []any{description{"step": 0, "label": "A"}, description{"step": steps, "label": "B"}},
+			"jumps": []any{description{"from": 0, "to": up}, description{"from": steps, "to": steps - up}},
+		}
+	})
+}
+
 // genDescription is a description of any kind, within every limit.
 func genDescription() gopter.Gen {
 	return gen.OneGenOf(genClock(), genTable(), genNumberLine(), genRow(), genRing(), genGrid(), genBars(),
-		genVenn(), genBalance(), genContainers(), genPiles(), genCalendar(), genFlags())
+		genVenn(), genBalance(), genContainers(), genPiles(), genCalendar(), genFlags(), genLattice(), genTiles(),
+		genShapes(), genStairs())
 }
 
 // written is a description written out as JSON.
@@ -329,7 +426,7 @@ func marked(value any) any {
 		return copied
 	case string:
 		if slices.Contains(picture.Kinds(), picture.Kind(held)) || held == "square" || held == "dark" ||
-			held == "monday" || held == "sunday" {
+			held == "monday" || held == "sunday" || held == "triangle" || held == "circle" || held == "diamond" {
 			return held
 		}
 		return "QXQXQXQ"

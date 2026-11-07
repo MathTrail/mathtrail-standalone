@@ -5,7 +5,6 @@ import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { Diagram, drawPicture, PictureFrame } from "./diagram";
 import { kinds, type Picture } from "./model";
-import { ahead } from "./testing/ahead";
 import { extremes } from "./testing/extremes";
 import {
 	boxOfShape,
@@ -22,20 +21,16 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-// examples are the example of each kind the content shows the model, and of
-// each kind the card draws ahead of the service.
-const examples = [
-	...Object.values(
-		import.meta.glob<{ picture: Picture }>(
-			"../../../../content/pictures/*.json",
-			{
-				eager: true,
-				import: "default",
-			},
-		),
+// examples are the example of each kind the content shows the model.
+const examples = Object.values(
+	import.meta.glob<{ picture: Picture }>(
+		"../../../../content/pictures/*.json",
+		{
+			eager: true,
+			import: "default",
+		},
 	),
-	...ahead.map((one) => one.example),
-].map(
+).map(
 	(example) =>
 		[`the example of ${example.picture.kind}`, example.picture] as const,
 );
