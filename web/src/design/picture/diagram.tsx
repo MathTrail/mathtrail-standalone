@@ -6,6 +6,7 @@ import { drawClock } from "./clock";
 import { drawContainers } from "./containers";
 import { drawFlags } from "./flags";
 import { drawGrid } from "./grid";
+import { drawLattice } from "./lattice";
 import type { Kind, Picture } from "./model";
 import { drawNumberLine } from "./numberline";
 import { type Painted, paintedOf } from "./paint";
@@ -13,9 +14,12 @@ import { drawPiles } from "./piles";
 import { drawRing } from "./ring";
 import { drawRow } from "./row";
 import { type Drawn, r1 } from "./shapes";
+import { drawStairs } from "./stairs";
 import { drawTable } from "./table";
 import { clearance } from "./text";
+import { drawTiles } from "./tiles";
 import type { Tones } from "./tones";
+import { drawShapes } from "./totals";
 import { drawVenn } from "./venn";
 
 // Drawing is how a picture of one kind is drawn, in the language of the task
@@ -45,6 +49,10 @@ const drawings: { [K in Kind]: Drawing<K> } = {
 	piles: drawPiles,
 	calendar: drawCalendar,
 	flags: drawFlags,
+	lattice: drawLattice,
+	tiles: drawTiles,
+	shapes: drawShapes,
+	stairs: drawStairs,
 };
 
 /**

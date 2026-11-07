@@ -548,6 +548,9 @@ button.mt-bar {
 .mt-pic-fill {
 	fill: var(--picture-fill);
 }
+.mt-pic-faint {
+	opacity: 0.35;
+}
 /* What a picture paints is a colour of the palette, filled in a drawing and
    the ground of a swatch in its key, and the letters on a paint are written
    in the ink that reads on it. */

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import type { Picture } from "../design/picture/model";
 import { kinds, paints } from "../design/picture/model";
+import { ahead } from "../design/picture/testing/ahead";
 import { extremes } from "../design/picture/testing/extremes";
 import { pictureFormat, pictureLimits } from "./picture";
 import { seeded } from "./testing/seeded";
@@ -24,13 +25,17 @@ function goSource(name: string): string {
 }
 
 // examples are the example of each kind the content shows the model, by the
-// file it is in.
-const examples = Object.entries(
-	import.meta.glob<{ picture: unknown }>("../../../content/pictures/*.json", {
-		eager: true,
-		import: "default",
-	}),
-).map(([file, example]) => [file, example.picture] as const);
+// file it is in, and of each kind the card draws ahead of the service, by its
+// kind.
+const examples = [
+	...Object.entries(
+		import.meta.glob<{ picture: unknown }>("../../../content/pictures/*.json", {
+			eager: true,
+			import: "default",
+		}),
+	).map(([file, example]) => [file, example.picture] as const),
+	...ahead.map((one) => [one.kind, one.example.picture] as const),
+];
 
 // referenceTasks are the reference tasks the content holds, with their
 // pictures.
@@ -59,7 +64,7 @@ describe("the card's reading of a picture", () => {
 			...goSource("picture.go").matchAll(/^\t\w+\s+Kind = "(\w+)"$/gm),
 		].map((match) => match[1]);
 
-		expect(kinds).toEqual(listed);
+		expect(kinds).toEqual([...listed, ...ahead.map((one) => one.kind)]);
 	});
 
 	test("knows the colours of the service's palette, in its order, and reads a word for each", () => {
@@ -90,7 +95,15 @@ describe("the card's reading of a picture", () => {
 			});
 		}
 
-		expect(named).toEqual(pictureLimits);
+		const drawnAhead = new Set(ahead.flatMap((one) => one.limits));
+		const held = Object.fromEntries(
+			Object.entries(pictureLimits).filter(([name]) => !drawnAhead.has(name)),
+		);
+
+		expect(named).toEqual(held);
+		for (const name of drawnAhead) {
+			expect(pictureLimits, name).toHaveProperty(name);
+		}
 	});
 
 	test.each(examples)("reads the example %s", (_, picture) => {
@@ -140,6 +153,38 @@ describe("the card's reading of a picture", () => {
 			readPicture({ kind: "row", items: [{}, { label: "" }], gaps: null }),
 		).toEqual({ kind: "row", items: [{}, {}] });
 	});
+
+	test("reads a lattice's label of two characters, though each is written in two halves", () => {
+		const lattice = {
+			kind: "lattice",
+			width: 1,
+			height: 1,
+			marks: [{ at: [0, 0], label: "𝟏𝟐" }],
+		};
+
+		expect(readPicture(lattice)).toEqual(lattice);
+	});
+
+	test.each([
+		["four squares", 4, 4, 1],
+		["three hexagons", 6, 3, 1],
+		["six hexagons", 6, 6, 2],
+		["six triangles", 3, 6, 2],
+		["ten pentagons, joined where half their sides say", 5, 10, undefined],
+	])(
+		"reads a ring of %s, which closes once round",
+		(_, sides, count, joint) => {
+			const ring = {
+				kind: "tiles",
+				sides,
+				layout: "ring",
+				...(joint === undefined ? {} : { joint }),
+				tiles: Array.from({ length: count }, () => Array(sides).fill("")),
+			};
+
+			expect(readPicture(ring)).toEqual(ring);
+		},
+	);
 
 	test.each([
 		["no object", "clock"],
@@ -435,6 +480,320 @@ describe("the card's reading of a picture", () => {
 				groups: [{ label: "A", color: "red", flags: [["red", "?"]] }],
 			},
 		],
+		["a lattice nine cells wide", { kind: "lattice", width: 9, height: 1 }],
+		[
+			"a lattice's cell past its edge",
+			{ kind: "lattice", width: 2, height: 2, cells: [[2, 0]] },
+		],
+		[
+			"a lattice's cell filled twice",
+			{
+				kind: "lattice",
+				width: 2,
+				height: 2,
+				cells: [
+					[1, 1],
+					[1, 1],
+				],
+			},
+		],
+		[
+			"a lattice's line past its corners",
+			{ kind: "lattice", width: 2, height: 2, lines: [[0, 0, 3, 0]] },
+		],
+		[
+			"a lattice's line that joins a corner to itself",
+			{ kind: "lattice", width: 2, height: 2, lines: [[1, 1, 1, 1]] },
+		],
+		[
+			"a lattice's line drawn twice, once from each end",
+			{
+				kind: "lattice",
+				width: 2,
+				height: 2,
+				lines: [[0, 0, 1, 0]],
+				dashed: [[1, 0, 0, 0]],
+			},
+		],
+		[
+			"a lattice's point past its corners",
+			{ kind: "lattice", width: 2, height: 2, points: [{ at: [3, 0] }] },
+		],
+		[
+			"a lattice's mark with no label",
+			{ kind: "lattice", width: 2, height: 2, marks: [{ at: [0, 0] }] },
+		],
+		[
+			"a lattice's mark past its cells",
+			{
+				kind: "lattice",
+				width: 2,
+				height: 2,
+				marks: [{ at: [2, 2], label: "S" }],
+			},
+		],
+		[
+			"a lattice's label of three characters",
+			{
+				kind: "lattice",
+				width: 2,
+				height: 2,
+				marks: [{ at: [0, 0], label: "ABC" }],
+			},
+		],
+		[
+			"two of a lattice's marks in one cell",
+			{
+				kind: "lattice",
+				width: 2,
+				height: 2,
+				marks: [
+					{ at: [0, 0], label: "S" },
+					{ at: [0, 0], label: "E" },
+				],
+			},
+		],
+		[
+			"two of a lattice's points on one corner",
+			{
+				kind: "lattice",
+				width: 2,
+				height: 2,
+				points: [{ at: [1, 1] }, { at: [1, 1], label: "P" }],
+			},
+		],
+		[
+			"a lattice's point labelled with three characters",
+			{
+				kind: "lattice",
+				width: 2,
+				height: 2,
+				points: [{ at: [1, 1], label: "ABC" }],
+			},
+		],
+		[
+			"a lattice's label of three characters each written in two halves",
+			{
+				kind: "lattice",
+				width: 2,
+				height: 2,
+				marks: [{ at: [0, 0], label: "𝟏𝟐𝟑" }],
+			},
+		],
+		[
+			"a point's label with no cell of its own round its corner",
+			{
+				kind: "lattice",
+				width: 2,
+				height: 2,
+				points: [{ at: [1, 1], label: "P" }],
+				marks: [
+					{ at: [0, 0], label: "1" },
+					{ at: [1, 0], label: "2" },
+					{ at: [0, 1], label: "3" },
+					{ at: [1, 1], label: "4" },
+				],
+			},
+		],
+		[
+			"a row of five hexagons",
+			{
+				kind: "tiles",
+				sides: 6,
+				layout: "row",
+				tiles: Array.from({ length: 5 }, () => Array(6).fill("")),
+			},
+		],
+		[
+			"a tile of seven sides",
+			{ kind: "tiles", sides: 7, layout: "row", tiles: [[], []] },
+		],
+		[
+			"a tile with a label too few",
+			{
+				kind: "tiles",
+				sides: 4,
+				layout: "row",
+				tiles: [
+					["1", "2", "3"],
+					["1", "2", "3", "4"],
+				],
+			},
+		],
+		[
+			"a tile's label that is no number",
+			{
+				kind: "tiles",
+				sides: 4,
+				layout: "row",
+				tiles: [
+					["A", "", "", ""],
+					["", "", "", ""],
+				],
+			},
+		],
+		[
+			"a tile's number of three digits",
+			{
+				kind: "tiles",
+				sides: 4,
+				layout: "row",
+				tiles: [
+					["100", "", "", ""],
+					["", "", "", ""],
+				],
+			},
+		],
+		[
+			"a row of seven tiles",
+			{
+				kind: "tiles",
+				sides: 4,
+				layout: "row",
+				tiles: Array.from({ length: 7 }, () => ["", "", "", ""]),
+			},
+		],
+		[
+			"a row that does not run straight",
+			{
+				kind: "tiles",
+				sides: 4,
+				layout: "row",
+				joint: 1,
+				tiles: [
+					["", "", "", ""],
+					["", "", "", ""],
+				],
+			},
+		],
+		[
+			"a row of tiles of an odd number of sides",
+			{
+				kind: "tiles",
+				sides: 5,
+				layout: "row",
+				tiles: [
+					["", "", "", "", ""],
+					["", "", "", "", ""],
+				],
+			},
+		],
+		[
+			"a ring that does not close",
+			{
+				kind: "tiles",
+				sides: 5,
+				layout: "ring",
+				tiles: Array.from({ length: 9 }, () => ["", "", "", "", ""]),
+			},
+		],
+		[
+			"a ring that goes round more than once",
+			{
+				kind: "tiles",
+				sides: 5,
+				layout: "ring",
+				joint: 1,
+				tiles: Array.from({ length: 10 }, () => ["", "", "", "", ""]),
+			},
+		],
+		[
+			"a tile joined at its first side",
+			{
+				kind: "tiles",
+				sides: 4,
+				layout: "ring",
+				joint: 0,
+				tiles: Array.from({ length: 4 }, () => ["", "", "", ""]),
+			},
+		],
+		[
+			"a tile joined past its sides",
+			{
+				kind: "tiles",
+				sides: 4,
+				layout: "ring",
+				joint: 4,
+				tiles: Array.from({ length: 4 }, () => ["", "", "", ""]),
+			},
+		],
+		["no row of shapes", { kind: "shapes", rows: [] }],
+		[
+			"a row of seven shapes",
+			{
+				kind: "shapes",
+				rows: [{ shapes: Array(7).fill("circle"), total: "7" }],
+			},
+		],
+		[
+			"a shape the format does not have",
+			{ kind: "shapes", rows: [{ shapes: ["star"], total: "5" }] },
+		],
+		[
+			"a row of no shapes",
+			{ kind: "shapes", rows: [{ shapes: [], total: "0" }] },
+		],
+		[
+			"a row of shapes with no total",
+			{ kind: "shapes", rows: [{ shapes: ["circle"] }] },
+		],
+		[
+			"six rows of shapes",
+			{
+				kind: "shapes",
+				rows: Array.from({ length: 6 }, () => ({
+					shapes: ["circle"],
+					total: "1",
+				})),
+			},
+		],
+		["a staircase of two steps", { kind: "stairs", steps: 2 }],
+		["a staircase of seventeen steps", { kind: "stairs", steps: 17 }],
+		[
+			"a mark past the top step",
+			{ kind: "stairs", steps: 3, marks: [{ step: 4, label: "A" }] },
+		],
+		[
+			"two marks on one step",
+			{
+				kind: "stairs",
+				steps: 3,
+				marks: [
+					{ step: 1, label: "A" },
+					{ step: 1, label: "B" },
+				],
+			},
+		],
+		[
+			"a jump that stays on its step",
+			{ kind: "stairs", steps: 3, jumps: [{ from: 2, to: 2 }] },
+		],
+		[
+			"a jump drawn twice",
+			{
+				kind: "stairs",
+				steps: 3,
+				jumps: [
+					{ from: 1, to: 3 },
+					{ from: 1, to: 3 },
+				],
+			},
+		],
+		[
+			"a jump past the top step",
+			{ kind: "stairs", steps: 3, jumps: [{ from: 0, to: 4 }] },
+		],
+		[
+			"five jumps",
+			{
+				kind: "stairs",
+				steps: 9,
+				jumps: Array.from({ length: 5 }, (_, at) => ({
+					from: at,
+					to: at + 1,
+				})),
+			},
+		],
 	])("refuses %s", (_, description) => {
 		expect(readPicture(description)).toBeUndefined();
 	});
@@ -459,6 +818,24 @@ describe("the card's reading of a picture", () => {
 			"flags",
 			"color",
 			...paints,
+			"width",
+			"height",
+			"cells",
+			"lines",
+			"dashed",
+			"points",
+			"label",
+			"sides",
+			"layout",
+			"joint",
+			"tiles",
+			"shapes",
+			"total",
+			"steps",
+			"jumps",
+			"step",
+			"from",
+			"to",
 			"__proto__",
 			"constructor",
 		];

@@ -1,5 +1,7 @@
 import * as z from "zod";
-import { type Picture, paints } from "../design/picture/model";
+import { type Picture, paints, shapeNames } from "../design/picture/model";
+import { pointLabelsOf } from "../design/picture/pointLabels";
+import { jointOf, turnOf } from "../design/picture/tiling";
 
 /**
  * pictureLimits are the limits a picture is held to, under the names the
@@ -56,6 +58,28 @@ export const pictureLimits = {
 	maxFlags: 12,
 	minStripes: 2,
 	maxStripes: 3,
+	minLatticeSide: 1,
+	maxLatticeSide: 8,
+	maxLatticeCells: 64,
+	maxLatticeLines: 48,
+	maxLatticeDashed: 8,
+	maxLatticePoints: 16,
+	maxLatticeMarks: 36,
+	maxShortLabelCharacters: 2,
+	minTileSides: 3,
+	maxTileSides: 6,
+	minTiles: 2,
+	maxTiles: 12,
+	maxTilesInRow: 6,
+	maxHexagonsInRow: 4,
+	maxTileDigits: 2,
+	minShapeRows: 1,
+	maxShapeRows: 5,
+	maxShapesInRow: 6,
+	minSteps: 3,
+	maxSteps: 16,
+	maxStairMarks: 4,
+	maxStairJumps: 4,
 	maxColorWords: 2,
 	maxColorCharacters: 16,
 } as const;
@@ -492,6 +516,176 @@ const flags = z
 		}
 	});
 
+// A lattice's corners and cells as the card reads them: [x, y], two whole
+// numbers, each at most its end.
+function pairWithin(width: number, height: number) {
+	return (pair: readonly number[]) =>
+		(pair[0] ?? 0) <= width && (pair[1] ?? 0) <= height;
+}
+
+const coordinate = whole(0, limits.maxLatticeSide);
+const corner = z.tuple([coordinate, coordinate]);
+const segment = z.tuple([coordinate, coordinate, coordinate, coordinate]);
+// A lattice's label is counted in characters, as the service counts them,
+// rather than in the halves of a character some scripts are written in.
+const shortLabel = label.refine(
+	(text) => [...text].length <= limits.maxShortLabelCharacters,
+);
+const latticeLabel = z.strictObject({
+	at: corner,
+	label: optional(shortLabel),
+});
+
+// keyOf is what tells a cell, a corner or a line from the others, a line the
+// same whichever end it is written from.
+function keyOf(numbers: readonly number[]): string {
+	const ends = [numbers.slice(0, 2).join(","), numbers.slice(2).join(",")];
+	return ends.sort().join(" ");
+}
+
+// once says whether no two of some places, cells or lines, are the same.
+function once(places: readonly (readonly number[])[]): boolean {
+	return new Set(places.map(keyOf)).size === places.length;
+}
+
+const lattice = z
+	.strictObject({
+		kind: z.literal("lattice"),
+		width: whole(limits.minLatticeSide, limits.maxLatticeSide),
+		height: whole(limits.minLatticeSide, limits.maxLatticeSide),
+		cells: optional(z.array(corner).max(limits.maxLatticeCells)),
+		lines: optional(z.array(segment).max(limits.maxLatticeLines)),
+		dashed: optional(z.array(segment).max(limits.maxLatticeDashed)),
+		points: optional(z.array(latticeLabel).max(limits.maxLatticePoints)),
+		marks: optional(z.array(latticeLabel).max(limits.maxLatticeMarks)),
+	})
+	.superRefine((read, problems) => {
+		const inACell = pairWithin(read.width - 1, read.height - 1);
+		const onACorner = pairWithin(read.width, read.height);
+		const cells = read.cells ?? [];
+		const marks = (read.marks ?? []).map((one) => one.at);
+		const points = (read.points ?? []).map((one) => one.at);
+		const segments = [...(read.lines ?? []), ...(read.dashed ?? [])];
+		const placed =
+			[...cells, ...marks].every(inACell) &&
+			points.every(onACorner) &&
+			segments.every(
+				(one) => onACorner(one.slice(0, 2)) && onACorner(one.slice(2)),
+			);
+		const apart =
+			once(cells) &&
+			once(marks) &&
+			once(points) &&
+			once(segments) &&
+			segments.every((one) => one[0] !== one[2] || one[1] !== one[3]);
+		const marked = (read.marks ?? []).every((one) => one.label !== undefined);
+		if (!placed || !apart || !marked) {
+			problems.addIssue({
+				code: "custom",
+				message:
+					"every cell, mark, point and line lies in the lattice, once, a line joins two corners and a mark has its label",
+			});
+		} else if (pointLabelsOf(read) === undefined) {
+			problems.addIssue({
+				code: "custom",
+				message:
+					"every point's label has a cell of its own round its corner, one no mark holds",
+			});
+		}
+	});
+
+// A tile's triangle holds a whole number of at most two digits, ? for the
+// one asked about, or nothing.
+const triangle = z.union([
+	z.literal(""),
+	z.literal("?"),
+	z.string().regex(new RegExp(`^\\d{1,${limits.maxTileDigits}}$`)),
+]);
+
+// laidOut says whether tiles lie as their layout says: a row runs straight
+// on, each tile laid against the side opposite the one it shares with the
+// tile before, and holds at most so many tiles, fewer of hexagons, whose
+// triangles are narrower; a ring goes round once and closes, its last tile
+// against its first.
+function laidOut(sides: number, joint: number, count: number, ring: boolean) {
+	const turn = turnOf(sides, joint);
+	const most = sides === 6 ? limits.maxHexagonsInRow : limits.maxTilesInRow;
+	return ring ? count * Math.abs(turn) === sides : turn === 0 && count <= most;
+}
+
+const tiles = z
+	.strictObject({
+		kind: z.literal("tiles"),
+		sides: whole(limits.minTileSides, limits.maxTileSides),
+		layout: z.enum(["row", "ring"]),
+		joint: optional(whole(1, limits.maxTileSides - 1)),
+		tiles: z.array(z.array(triangle)).min(limits.minTiles).max(limits.maxTiles),
+	})
+	.superRefine((read, problems) => {
+		const joint = jointOf(read);
+		const shaped =
+			read.tiles.every((one) => one.length === read.sides) &&
+			joint < read.sides;
+		if (
+			!shaped ||
+			!laidOut(read.sides, joint, read.tiles.length, read.layout === "ring")
+		) {
+			problems.addIssue({
+				code: "custom",
+				message: `every tile has a label for each of its sides; a row of at most ${limits.maxTilesInRow} tiles, ${limits.maxHexagonsInRow} hexagons, runs straight, and a ring closes once round`,
+			});
+		}
+	});
+
+const shapes = z.strictObject({
+	kind: z.literal("shapes"),
+	rows: z
+		.array(
+			z.strictObject({
+				shapes: z.array(z.enum(shapeNames)).min(1).max(limits.maxShapesInRow),
+				total: label,
+			}),
+		)
+		.min(limits.minShapeRows)
+		.max(limits.maxShapeRows),
+});
+
+const step = whole(0, limits.maxSteps);
+
+const stairs = z
+	.strictObject({
+		kind: z.literal("stairs"),
+		steps: whole(limits.minSteps, limits.maxSteps),
+		marks: optional(
+			z.array(z.strictObject({ step, label })).max(limits.maxStairMarks),
+		),
+		jumps: optional(
+			z
+				.array(z.strictObject({ from: step, to: step }))
+				.max(limits.maxStairJumps),
+		),
+	})
+	.superRefine((read, problems) => {
+		const marks = (read.marks ?? []).map((one) => one.step);
+		const jumps = read.jumps ?? [];
+		const onTheStairs = [
+			...marks,
+			...jumps.flatMap((one) => [one.from, one.to]),
+		].every((at) => at <= read.steps);
+		const apart =
+			new Set(marks).size === marks.length &&
+			new Set(jumps.map((one) => `${one.from} ${one.to}`)).size ===
+				jumps.length &&
+			jumps.every((one) => one.from !== one.to);
+		if (!onTheStairs || !apart) {
+			problems.addIssue({
+				code: "custom",
+				message:
+					"every mark and jump stands on a step of the stairs, a mark alone on its step, and a jump, drawn once, goes from one step to another",
+			});
+		}
+	});
+
 /**
  * pictureFormat reads a picture of one of the kinds, held to the format as
  * far as its drawing depends on it. A description it refuses is one the card
@@ -511,4 +705,8 @@ export const pictureFormat: z.ZodType<Picture> = z.discriminatedUnion("kind", [
 	piles,
 	calendar,
 	flags,
+	lattice,
+	tiles,
+	shapes,
+	stairs,
 ]);

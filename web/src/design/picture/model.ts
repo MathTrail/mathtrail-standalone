@@ -1,5 +1,5 @@
 /**
- * The format of a task's picture, as the card draws it: one of thirteen kinds,
+ * The format of a task's picture, as the card draws it: one of seventeen kinds,
  * each with the members of its kind and no other. The service holds every
  * picture to the format before it hands it out, so what reaches a drawing is
  * a description it can draw; the reader in widget/picture.ts holds it to the
@@ -24,6 +24,10 @@ export const kinds = [
 	"piles",
 	"calendar",
 	"flags",
+	"lattice",
+	"tiles",
+	"shapes",
+	"stairs",
 ] as const;
 
 /** Kind is what a picture draws. */
@@ -268,6 +272,80 @@ export type Flags = {
 	groups: FlagGroup[];
 };
 
+/** Corner is a corner of a lattice, or a cell of it: [x, y] from [0, 0] at the top left. */
+export type Corner = [number, number];
+
+/** LatticeLine is a line of a lattice, [x1, y1, x2, y2], from one corner to another. */
+export type LatticeLine = [number, number, number, number];
+
+/** LatticeLabel is a label set at a corner of a lattice, or in a cell of it. */
+export type LatticeLabel = { at: Corner; label?: string };
+
+/**
+ * Lattice is a figure on squared paper, width cells across and height down:
+ * the cells it fills, the lines it draws from corner to corner — walls,
+ * sides, matches — and those it draws dashed — a fold, a cut, an axis —, the
+ * points it sets at corners, each with a label or none, and the labels it
+ * marks cells with.
+ */
+export type Lattice = {
+	kind: "lattice";
+	width: number;
+	height: number;
+	cells?: Corner[];
+	lines?: LatticeLine[];
+	dashed?: LatticeLine[];
+	points?: LatticeLabel[];
+	marks?: LatticeLabel[];
+};
+
+/**
+ * Tiles is identical tiles, in a row or a ring, each a regular polygon of
+ * sides sides cut into triangles from its middle: each tile lists the label of
+ * each of its triangles, or an empty text for one left blank, clockwise from
+ * the side it shares with the tile before it, and joint is the side it shares
+ * with the tile after it, counted the same way, half its sides when left out.
+ */
+export type Tiles = {
+	kind: "tiles";
+	sides: number;
+	layout: "row" | "ring";
+	joint?: number;
+	tiles: string[][];
+};
+
+/** shapeNames are the shapes a row of shapes may hold. */
+export const shapeNames = ["triangle", "square", "circle", "diamond"] as const;
+
+/** ShapeName is a shape a row of shapes holds. */
+export type ShapeName = (typeof shapeNames)[number];
+
+/** ShapeRow is a row of shapes and the total beside it. */
+export type ShapeRow = { shapes: ShapeName[]; total: string };
+
+/**
+ * Shapes is rows of shapes with a total beside each: the same shape stands for
+ * the same number wherever it is drawn.
+ */
+export type Shapes = { kind: "shapes"; rows: ShapeRow[] };
+
+/** StairMark is a label on a step of a staircase, the floor being step 0. */
+export type StairMark = { step: number; label: string };
+
+/** Jump is a move up or down a staircase, from one step to another. */
+export type Jump = { from: number; to: number };
+
+/**
+ * Stairs is a staircase of steps up from the floor, unnumbered: the labels set
+ * on its steps, and the jumps drawn from one step to another.
+ */
+export type Stairs = {
+	kind: "stairs";
+	steps: number;
+	marks?: StairMark[];
+	jumps?: Jump[];
+};
+
 /** Picture is a description of a task's picture, of one of the kinds. */
 export type Picture =
 	| Clock
@@ -282,4 +360,8 @@ export type Picture =
 	| Containers
 	| Piles
 	| Calendar
-	| Flags;
+	| Flags
+	| Lattice
+	| Tiles
+	| Shapes
+	| Stairs;

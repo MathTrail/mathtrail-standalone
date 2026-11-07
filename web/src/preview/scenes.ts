@@ -8,6 +8,7 @@ import {
 	type Paint,
 	type Picture,
 } from "../design/picture/model";
+import { ahead } from "../design/picture/testing/ahead";
 import { extremes } from "../design/picture/testing/extremes";
 import type { CallStage } from "../widget/bridge";
 import { cardWords } from "../widget/dictionaries";
@@ -861,16 +862,20 @@ export function scenesIn(language: string): Scene[] {
 }
 
 // examples are the example of each kind of picture, as the content shows it
-// to the model, in the order the format lists the kinds.
-const examples = Object.values(
-	import.meta.glob<{ purpose: string; picture: Picture }>(
-		"../../../content/pictures/*.json",
-		{
-			eager: true,
-			import: "default",
-		},
+// to the model, or as the card has it for a kind it draws ahead of the
+// service, in the order the format lists the kinds.
+const examples = [
+	...Object.values(
+		import.meta.glob<{ purpose: string; picture: Picture }>(
+			"../../../content/pictures/*.json",
+			{
+				eager: true,
+				import: "default",
+			},
+		),
 	),
-).sort(
+	...ahead.map((one) => one.example),
+].sort(
 	(one, other) =>
 		kinds.indexOf(one.picture.kind) - kinds.indexOf(other.picture.kind),
 );

@@ -155,7 +155,9 @@ func (d *drawn) String() string {
 func (*drawn) Type() string { return "picture" }
 
 // Freeze has nothing to do: the picture was frozen when it was built.
-func (*drawn) Freeze() {}
+func (*drawn) Freeze() {
+	// Every member was frozen as the picture was built from its description.
+}
 
 // Truth is whether the picture has any member.
 func (d *drawn) Truth() starlark.Bool { return len(d.names) > 0 }
