@@ -180,6 +180,34 @@
 		"address": "none",
 		"mind": "Names the kind only: flags of two or three coloured stripes, top to bottom."
 	},
+	"picture.lattice": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of a figure on squared paper, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: squared paper with a figure drawn on it, cells shaded, lines and dashed lines along the grid and labelled points, as a maze, a net of a cube or a fold is drawn. The paper of a school exercise book, not a chart."
+	},
+	"picture.tiles": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of tiles, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: identical tiles, squares or other regular shapes, each cut into triangles from its middle with a number in some, laid in a row or a ring, as domino-like puzzles have them."
+	},
+	"picture.shapes": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of rows of shapes, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: rows of triangles, squares, circles and diamonds with the sum of each row beside it, where each shape stands for a number."
+	},
+	"picture.stairs": {
+		"reader": "child",
+		"where": "The name a screen reader gives any picture of a staircase, of a task or of its solution.",
+		"length": "heard",
+		"address": "none",
+		"mind": "Names the kind only: a staircase seen from the side, its steps unnumbered, with someone standing on a step and jumps drawn as arcs."
+	},
 	"picture.colors": {
 		"reader": "child",
 		"where": "The name a screen reader gives the key under a picture that paints, each colour beside its word; today only flags paint.",

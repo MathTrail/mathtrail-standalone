@@ -11,6 +11,10 @@ export type Extreme = { name: string; picture: Picture };
 // wide is a label as wide as a label of five characters comes.
 const wide = "WWWWW";
 
+// shortWide is a label as wide as a label of two characters comes, the most a
+// lattice's labels may have.
+const shortWide = "WW";
+
 /** extremes are a picture of each kind at its limits. */
 export const extremes: readonly Extreme[] = [
 	{
@@ -396,4 +400,147 @@ export const extremes: readonly Extreme[] = [
 			],
 		},
 	},
+	{
+		name: "lattice of eight by eight, every cell filled, its lines, dashes, points and marks as many and as wide as they come",
+		picture: {
+			kind: "lattice",
+			width: 8,
+			height: 8,
+			cells: cellsOf(8, 8, () => true),
+			lines: [
+				...unitLines(8, (x) => [x, 0, x + 1, 0]),
+				...unitLines(8, (x) => [x, 8, x + 1, 8]),
+				...unitLines(8, (x) => [x, 4, x + 1, 4]),
+				...unitLines(8, (y) => [0, y, 0, y + 1]),
+				...unitLines(8, (y) => [8, y, 8, y + 1]),
+				...unitLines(8, (y) => [4, y, 4, y + 1]),
+			],
+			dashed: unitLines(8, (x) => [x, 2, x + 1, 2]),
+			points: [5, 7].flatMap((y) =>
+				Array.from({ length: 8 }, (_, x) => ({
+					at: [x, y] as [number, number],
+					label: shortWide,
+				})),
+			),
+			marks: cellsOf(8, 5, (x, y) => y < 4 || x < 4).map((at) => ({
+				at,
+				label: shortWide,
+			})),
+		},
+	},
+	{
+		name: "lattice of one cell, a mark in it and a wide label at each corner",
+		picture: {
+			kind: "lattice",
+			width: 1,
+			height: 1,
+			points: [
+				{ at: [0, 0], label: shortWide },
+				{ at: [1, 0], label: "MM" },
+				{ at: [0, 1], label: "99" },
+				{ at: [1, 1], label: shortWide },
+			],
+			marks: [{ at: [0, 0], label: shortWide }],
+		},
+	},
+	{
+		name: "ring of ten pentagons, a two-digit number in every triangle",
+		picture: {
+			kind: "tiles",
+			sides: 5,
+			layout: "ring",
+			tiles: Array.from({ length: 10 }, () => ["99", "88", "?", "00", "99"]),
+		},
+	},
+	{
+		name: "row of four hexagons, a two-digit number in every triangle",
+		picture: {
+			kind: "tiles",
+			sides: 6,
+			layout: "row",
+			tiles: Array.from({ length: 4 }, () => [
+				"99",
+				"88",
+				"?",
+				"00",
+				"99",
+				"88",
+			]),
+		},
+	},
+	{
+		name: "row of six squares, a two-digit number in every triangle",
+		picture: {
+			kind: "tiles",
+			sides: 4,
+			layout: "row",
+			tiles: Array.from({ length: 6 }, () => ["99", "88", "?", "00"]),
+		},
+	},
+	{
+		name: "ring of six triangles, a two-digit number in every triangle",
+		picture: {
+			kind: "tiles",
+			sides: 3,
+			layout: "ring",
+			joint: 1,
+			tiles: Array.from({ length: 6 }, () => ["99", "88", "00"]),
+		},
+	},
+	{
+		name: "five rows of six shapes, each total as wide as labels come",
+		picture: {
+			kind: "shapes",
+			rows: Array.from({ length: 5 }, () => ({
+				shapes: ["triangle", "square", "circle", "diamond", "square", "circle"],
+				total: wide,
+			})),
+		},
+	},
+	{
+		name: "staircase of sixteen steps, four wide marks on its top steps and four jumps",
+		picture: {
+			kind: "stairs",
+			steps: 16,
+			marks: [13, 14, 15, 16].map((step) => ({ step, label: wide })),
+			jumps: [
+				{ from: 0, to: 16 },
+				{ from: 16, to: 0 },
+				{ from: 15, to: 16 },
+				{ from: 1, to: 2 },
+			],
+		},
+	},
+	{
+		name: "staircase of three steps, a wide mark on every step and the floor",
+		picture: {
+			kind: "stairs",
+			steps: 3,
+			marks: [0, 1, 2, 3].map((step) => ({ step, label: "MMMMM" })),
+			jumps: [{ from: 0, to: 3 }],
+		},
+	},
 ];
+
+// cellsOf are the cells of a lattice so wide and so tall that a test keeps,
+// row by row.
+function cellsOf(
+	width: number,
+	height: number,
+	keeps: (x: number, y: number) => boolean,
+): [number, number][] {
+	return Array.from({ length: height }, (_, y) =>
+		Array.from({ length: width }, (_, x) => [x, y] as [number, number]),
+	)
+		.flat()
+		.filter(([x, y]) => keeps(x, y));
+}
+
+// unitLines are as many lines of a lattice as given, each a cell long, the nth
+// where at says.
+function unitLines(
+	count: number,
+	at: (n: number) => [number, number, number, number],
+): [number, number, number, number][] {
+	return Array.from({ length: count }, (_, n) => at(n));
+}
