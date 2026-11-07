@@ -1304,7 +1304,7 @@ func wantStaleSpendingNothing(t *testing.T, h *harness, session *mcp.ClientSessi
 // which the real one cannot be made to do on demand.
 type failingSandbox struct{ err error }
 
-func (s failingSandbox) Run(context.Context, string, solver.Options) (solver.Result, error) {
+func (s failingSandbox) Run(context.Context, string, solver.Options, json.RawMessage) (solver.Result, error) {
 	return solver.Result{}, s.err
 }
 

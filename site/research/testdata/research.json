@@ -378,7 +378,7 @@
   "product": {
     "topics": 17,
     "traps": 20,
-    "checks": 10,
+    "checks": 11,
     "grades": {
       "first": 1,
       "last": 6

@@ -115,7 +115,7 @@ func TestATemplateStopsOnASlipInFillingItIn(t *testing.T) {
 			template := templateNamed(t, embedded, test.topic, test.template)
 			source := exampleNamed(t, embedded, template.Source)
 			program := withLine(t, template.Program, test.prefix, test.line)
-			result, err := sandbox.Run(t.Context(), program, optionsOf(t, &source))
+			result, err := sandbox.Run(t.Context(), program, optionsOf(t, &source), nil)
 			if err != nil {
 				t.Fatalf("Run() error = %v, want the run to happen", err)
 			}
@@ -196,7 +196,7 @@ func TestATemplateFilledAsItsCommentsSayProvesTheAnswer(t *testing.T) {
 			for _, line := range test.lines {
 				program = withLine(t, program, line[0], line[1])
 			}
-			result, err := sandbox.Run(t.Context(), program, solver.Options{test.want, "1", "3", "4", "5"})
+			result, err := sandbox.Run(t.Context(), program, solver.Options{test.want, "1", "3", "4", "5"}, nil)
 			if err != nil {
 				t.Fatalf("Run() error = %v, want the run to happen", err)
 			}
@@ -240,7 +240,7 @@ func TestTheSearchTemplateTellsTheQuestionsLimitFromWhereItStops(t *testing.T) {
 			t.Parallel()
 
 			program := withLine(t, withLine(t, filled, "LARGEST = ", test.largest), "CAPPED = ", test.capped)
-			result, err := sandbox.Run(t.Context(), program, optionsOf(t, &task))
+			result, err := sandbox.Run(t.Context(), program, optionsOf(t, &task), nil)
 			switch {
 			case err != nil:
 				t.Fatalf("Run() error = %v, want the run to happen", err)
@@ -342,7 +342,7 @@ func prove(t *testing.T, sandbox solver.Runner, task *content.Example) solver.Ag
 		t.Fatalf("%s carries no solver: it belongs in examples/solvers/%s.star", task.ID, task.ID)
 	}
 
-	agreement, err := solver.Verdict(t.Context(), sandbox, task.Solver, optionsOf(t, task))
+	agreement, err := solver.Verdict(t.Context(), sandbox, task.Solver, optionsOf(t, task), task.Picture)
 	if err != nil {
 		t.Fatalf("Verdict() error = %v, want the run to happen", err)
 	}

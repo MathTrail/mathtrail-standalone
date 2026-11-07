@@ -26,7 +26,7 @@ func benchmarkRun(b *testing.B, source string, options solver.Options) {
 
 	b.ReportAllocs()
 	for b.Loop() {
-		result, err := runner.Run(ctx, source, options)
+		result, err := runner.Run(ctx, source, options, nil)
 		if err != nil {
 			b.Fatalf("Run: %v", err)
 		}

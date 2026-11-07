@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
@@ -25,16 +26,18 @@ func (s shipped) ReferenceQuestions(rating.GradeLevel) []string { return s.refer
 
 // working is a solver that works its answer out: it finds the option saying
 // what it computed, wherever the letters put it, the way a solver ending in
-// match(options, value) does.
+// match(options, value) does. It reads of the picture the members it is told
+// to, and nothing else.
 type working struct {
 	value string
+	read  []string
 	runs  int
 }
 
-func (w *working) Run(_ context.Context, _ string, options solver.Options) (solver.Result, error) {
+func (w *working) Run(_ context.Context, _ string, options solver.Options, _ json.RawMessage) (solver.Result, error) {
 	w.runs++
 	return solver.Result{
-		Status: solver.StatusOK, Letters: options.Match(w.value), Steps: 1000, Duration: time.Millisecond,
+		Status: solver.StatusOK, Letters: options.Match(w.value), Steps: 1000, Duration: time.Millisecond, Read: w.read,
 	}, nil
 }
 
@@ -46,7 +49,7 @@ type scripted struct {
 	runs   int
 }
 
-func (s *scripted) Run(context.Context, string, solver.Options) (solver.Result, error) {
+func (s *scripted) Run(context.Context, string, solver.Options, json.RawMessage) (solver.Result, error) {
 	s.runs++
 	return s.result, s.err
 }
@@ -65,6 +68,9 @@ type scenario struct {
 	// level is the level the request was opened at; the zero value is the
 	// level of the brief the structure tests ask with.
 	level rating.GradeLevel
+	// fromPicture is whether the request asked for a task solved from its
+	// picture.
+	fromPicture bool
 }
 
 // accepted is the well-formed draft of the structure tests with a solver that
@@ -91,6 +97,9 @@ func (s *scenario) review(t *testing.T) checks.Outcome {
 	request := asked()
 	if s.level != "" {
 		request.GradeLevel = s.level
+	}
+	if s.fromPicture {
+		request.Constraints = []string{profile.FactsOnThePicture}
 	}
 	outcome, err := reviewer.Judge(examined, checks.Against{
 		Asked: request, Language: s.language, Fingerprints: s.fingerprints,
@@ -268,6 +277,8 @@ var refusals = []struct {
 		checks.CodeSolverDisagrees, "self_check.final_answer is not task.correct_answer"},
 	{"a self-check that finds the task unsolvable", func(s *scenario) { s.draft.SelfCheck.FinalAnswer = "UNSOLVABLE" },
 		checks.CodeSolverDisagrees, "cannot be solved as written"},
+	{"a task solved from the picture whose solver reads none of it", solvedFromPicture,
+		checks.CodeSolverUnread, "the solver left task.picture.items unread"},
 	{"a blocking issue", func(s *scenario) {
 		s.draft.SelfCheck.Issues = []checks.Issue{{Type: "ambiguous", Severity: "blocking", Comment: "C reads two ways."}}
 	}, checks.CodeSelfCheckBlocking, "self_check.issues.0 (ambiguous) is blocking"},
@@ -332,6 +343,14 @@ func picture(s *scenario, description json.RawMessage, named ...string) {
 func solutionPicture(s *scenario, description json.RawMessage, named ...string) {
 	s.draft.Task.Solution += " The picture marks " + strings.Join(named, " and ") + "."
 	s.draft.Task.SolutionPicture = description
+}
+
+// solvedFromPicture has a scenario's request ask for a task solved from its
+// picture, and gives the task one: a row of two objects, P and Q, each a
+// fact its solver has to read.
+func solvedFromPicture(s *scenario) {
+	s.fromPicture = true
+	picture(s, pictureOf(1, "P", "Q"), "P", "Q")
 }
 
 // inNumbers gives a scenario's task its options in numbers, the right one 6,
@@ -465,33 +484,44 @@ func TestAMendedTaskIsJudgedAsTheTaskItMeant(t *testing.T) {
 	}
 }
 
-// All ten refusals at once come back all ten, in the order the checks run:
-// the first is the one an attempt is counted by.
+// Every refusal at once comes back whole, in the order the checks run: the
+// first is the one an attempt is counted by. A solver that crashes has read
+// nothing to be judged by, so a task can fail either for the solver's crash or
+// for what it left unread of its picture, never for both.
 func TestEveryFailedCheckIsReportedInItsOrder(t *testing.T) {
 	t.Parallel()
 
-	broken := accepted()
-	apart := append([]string{"a solver that finds another answer", "a self-check that finds the task unsolvable",
-		"a repeat of a task the child has had"}, inRussianLessons...)
-	for _, test := range refusals {
-		if !slices.Contains(apart, test.name) {
-			test.change(&broken)
-		}
-	}
-	picture(&broken, pictureOf(3, "P", "Q", "R"), "P", "Q")
-	broken.references = []string{broken.draft.Task.Question}
-	outcome := broken.review(t)
+	for _, test := range []struct {
+		name, left string
+		missing    checks.Code
+	}{
+		{"with a solver that crashes", "a task solved from the picture whose solver reads none of it", checks.CodeSolverUnread},
+		{"with a solver that runs and reads nothing", "a solver that crashes", checks.CodeSolverError},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 
-	want := []checks.Code{
-		checks.CodeBadStructure, checks.CodeWrongLanguage, checks.CodeDistractorExplanations, checks.CodeDrawingFormat,
-		checks.CodeDrawingMismatch, checks.CodeReadability, checks.CodeSolverError, checks.CodeSolverDisagrees,
-		checks.CodeSelfCheckBlocking, checks.CodeNearDuplicate,
-	}
-	if codes := codesOf(&outcome); !slices.Equal(codes, want) {
-		t.Fatalf("codes = %v, want %v", codes, want)
-	}
-	if event := outcome.Event(); event.Primary != checks.CodeBadStructure || !slices.Equal(event.Failed, want) {
-		t.Errorf("Event() = %+v, want every code, counted by the first", event)
+			broken := accepted()
+			apart := append([]string{"a solver that finds another answer", "a self-check that finds the task unsolvable",
+				"a repeat of a task the child has had", test.left}, inRussianLessons...)
+			for _, refusal := range refusals {
+				if !slices.Contains(apart, refusal.name) {
+					refusal.change(&broken)
+				}
+			}
+			broken.fromPicture = true
+			picture(&broken, pictureOf(3, "P", "Q", "R"), "P", "Q")
+			broken.references = []string{broken.draft.Task.Question}
+			outcome := broken.review(t)
+
+			want := slices.DeleteFunc(checks.Codes(), func(code checks.Code) bool { return code == test.missing })
+			if codes := codesOf(&outcome); !slices.Equal(codes, want) {
+				t.Fatalf("codes = %v, want %v", codes, want)
+			}
+			if event := outcome.Event(); event.Primary != checks.CodeBadStructure || !slices.Equal(event.Failed, want) {
+				t.Errorf("Event() = %+v, want every code, counted by the first", event)
+			}
+		})
 	}
 }
 

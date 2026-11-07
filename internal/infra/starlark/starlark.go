@@ -20,6 +20,7 @@ package starlark
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -97,13 +98,14 @@ func New(limits Limits) (solver.Runner, error) {
 	}, nil
 }
 
-// Run executes one program once and reports what became of it.
+// Run executes one program once and reports what became of it, with the
+// members of the task's picture it read when it ran to the end.
 //
 // The error is for the run not happening: no slot came free in the time a run
 // may wait for one, which is solver.ErrBusy, or whoever asked for it stopped
 // waiting. Everything the program itself did comes back as a status, because
 // that is a fact about the solver rather than about this service.
-func (s *sandbox) Run(ctx context.Context, source string, options solver.Options) (solver.Result, error) {
+func (s *sandbox) Run(ctx context.Context, source string, options solver.Options, picture json.RawMessage) (solver.Result, error) {
 	// Whoever asked has gone: nothing here is worth starting, and the slot
 	// below is worth leaving to a caller who is still waiting for an answer.
 	if err := ctx.Err(); err != nil {
@@ -120,7 +122,7 @@ func (s *sandbox) Run(ctx context.Context, source string, options solver.Options
 	}
 	defer func() { <-s.slots }()
 
-	return s.run(ctx, source, options)
+	return s.run(ctx, source, options, picture)
 }
 
 // take holds a slot for one run: a free one at once, otherwise the first to
@@ -139,7 +141,7 @@ func (s *sandbox) take(ctx context.Context) error {
 }
 
 // run is one program from source to letters, once a slot is held.
-func (s *sandbox) run(ctx context.Context, source string, options solver.Options) (solver.Result, error) {
+func (s *sandbox) run(ctx context.Context, source string, options solver.Options, picture json.RawMessage) (solver.Result, error) {
 	file, program, refusal := compile(programName, source, s.predeclared.Has)
 	if refusal != "" {
 		return refused(refusal), nil
@@ -181,7 +183,17 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 		return spent(solver.StatusNoEntryPoint, nil, problem, thread, started), nil
 	}
 
-	returned, err := starlark.Call(thread, solve, starlark.Tuple{arguments}, nil)
+	// The picture is built only for a solve that takes it, and only once the
+	// run holds its place, so that what waits for a place holds no more than
+	// it was handed. Building it is no step of the program's.
+	given := starlark.Tuple{arguments}
+	var seen *drawn
+	if solve.NumParams() == 2 {
+		var drawing starlark.Value
+		drawing, seen = pictureOf(picture)
+		given = append(given, drawing)
+	}
+	returned, err := starlark.Call(thread, solve, given, nil)
 	if err != nil {
 		return s.failed(ctx, runCtx, thread, file, err, started)
 	}
@@ -190,7 +202,9 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 	if problem != "" {
 		return spent(solver.StatusBadOutput, nil, problem, thread, started), nil
 	}
-	return spent(solver.StatusOK, letters, "", thread, started), nil
+	result := spent(solver.StatusOK, letters, "", thread, started)
+	result.Read = seen.read()
+	return result, nil
 }
 
 // compile reads a program the way every run reads it: no longer than a solver

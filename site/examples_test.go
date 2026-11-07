@@ -141,7 +141,7 @@ func prove(t *testing.T, sandbox solver.Runner, path, answer string) {
 	}
 	options := solver.Options{answer}
 	copy(options[1:], strangers[:])
-	agreement, err := solver.Verdict(t.Context(), sandbox, string(program), options)
+	agreement, err := solver.Verdict(t.Context(), sandbox, string(program), options, nil)
 	if err != nil {
 		t.Fatalf("Verdict() error = %v, want the run to happen", err)
 	}

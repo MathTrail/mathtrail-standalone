@@ -121,7 +121,7 @@ func TestTheWidthOfATupleIsPaidFor(t *testing.T) {
 	const wide = "def solve(options):\n    return match(options, len(product(*[[0, 1]] * 10)))\n"
 
 	roomy := sandbox(t, starlark.Limits{Steps: 20_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
-	result, err := roomy.Run(t.Context(), wide, options)
+	result, err := roomy.Run(t.Context(), wide, options, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
 	}
@@ -130,7 +130,7 @@ func TestTheWidthOfATupleIsPaidFor(t *testing.T) {
 	}
 
 	tight := sandbox(t, starlark.Limits{Steps: 5_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
-	result, err = tight.Run(t.Context(), wide, options)
+	result, err = tight.Run(t.Context(), wide, options, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
 	}
@@ -142,7 +142,7 @@ func TestTheWidthOfATupleIsPaidFor(t *testing.T) {
 	// sixteen bytes each to hold, with no tuples around them, so the budget
 	// that would not cover the tuples covers these.
 	flat := "def solve(options):\n    return match(options, len(list(range(1024))))\n"
-	result, err = tight.Run(t.Context(), flat, options)
+	result, err = tight.Run(t.Context(), flat, options, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
 	}

@@ -39,7 +39,7 @@ func TestTheStepBudgetStopsALoop(t *testing.T) {
 	// the status: both limits end a run the same way, and this test is about
 	// which of the two ended this one.
 	started := time.Now()
-	result, err := runner.Run(context.Background(), forever, options)
+	result, err := runner.Run(context.Background(), forever, options, nil)
 	elapsed := time.Since(started)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
@@ -68,7 +68,7 @@ func TestTheClockStopsAProductAsItGrows(t *testing.T) {
 
 	started := time.Now()
 	result, err := runner.Run(t.Context(),
-		"def solve(options):\n    prod(range(1, 100001))\n    return match(options, 6)\n", options)
+		"def solve(options):\n    prod(range(1, 100001))\n    return match(options, 6)\n", options, nil)
 	elapsed := time.Since(started)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
@@ -88,7 +88,7 @@ func TestTheClockStopsWhatTheBudgetWouldNot(t *testing.T) {
 	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: 50 * time.Millisecond, Concurrency: 1, Wait: time.Minute})
 
 	started := time.Now()
-	result, err := runner.Run(context.Background(), forever, options)
+	result, err := runner.Run(context.Background(), forever, options, nil)
 	elapsed := time.Since(started)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
@@ -109,7 +109,7 @@ func TestACallerThatHasGone(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	if _, err := sandbox(t, limits()).Run(ctx, forever, options); err == nil {
+	if _, err := sandbox(t, limits()).Run(ctx, forever, options, nil); err == nil {
 		t.Fatal("Run: got no error, want the run refused")
 	}
 }
@@ -164,7 +164,7 @@ func TestABuiltinCannotSpendWhatIsLeft(t *testing.T) {
 
 	// A hundred thousand elements: well under the cap, well over the budget.
 	source := "def solve(options):\n    return match(options, len(list(range(100000))))\n"
-	result, err := runner.Run(context.Background(), source, options)
+	result, err := runner.Run(context.Background(), source, options, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
 	}
@@ -200,7 +200,7 @@ func TestASetIsPaidForByWhatItHolds(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
-			result, err := runner.Run(t.Context(), test.source, options)
+			result, err := runner.Run(t.Context(), test.source, options, nil)
 			if err != nil {
 				t.Fatalf("Run: got error %v, want none", err)
 			}
@@ -245,7 +245,7 @@ func TestAMatchIsPaidForByTheTextsItReads(t *testing.T) {
 			// ran out before a million steps did.
 			runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 
-			result, err := runner.Run(context.Background(), test.source, options)
+			result, err := runner.Run(context.Background(), test.source, options, nil)
 			if err != nil {
 				t.Fatalf("Run: got error %v, want none", err)
 			}
@@ -273,7 +273,7 @@ func TestOnlySoManyRunsAtOnce(t *testing.T) {
 		waiting.Add(1)
 		go func() {
 			defer waiting.Done()
-			if _, err := runner.Run(context.Background(), forever, options); err != nil {
+			if _, err := runner.Run(context.Background(), forever, options, nil); err != nil {
 				t.Errorf("Run: got error %v, want none", err)
 			}
 		}()
@@ -292,7 +292,7 @@ func TestSlotsComeBack(t *testing.T) {
 	runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 
 	for i := range 4 {
-		result, err := runner.Run(context.Background(), "def solve(options):\n    return match(options, 6)\n", options)
+		result, err := runner.Run(context.Background(), "def solve(options):\n    return match(options, 6)\n", options, nil)
 		if err != nil {
 			t.Fatalf("run %d: got error %v, want none", i, err)
 		}
@@ -340,7 +340,7 @@ func TestACallerThatGoesAwayMidRun(t *testing.T) {
 	}()
 	defer cancel()
 
-	result, err := runner.Run(ctx, forever, options)
+	result, err := runner.Run(ctx, forever, options, nil)
 	if err == nil {
 		t.Fatalf("Run: got %q (%s), want the run reported as stopped", result.Status, result.Message)
 	}
@@ -362,7 +362,7 @@ func TestACallerWhoseTimeRanOut(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
-	result, err := runner.Run(ctx, forever, options)
+	result, err := runner.Run(ctx, forever, options, nil)
 	if err == nil {
 		t.Fatalf("Run: got %q (%s), want the run reported as stopped", result.Status, result.Message)
 	}
@@ -387,14 +387,14 @@ func TestASlotIsWorthWaitingForButNotForEver(t *testing.T) {
 	// slot being taken from outside, and adding one to the sandbox for the
 	// sake of a test would be the test writing the code.
 	go func() {
-		_, _ = runner.Run(context.Background(), forever, options)
+		_, _ = runner.Run(context.Background(), forever, options, nil)
 	}()
 	time.Sleep(250 * time.Millisecond)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
-	result, err := runner.Run(ctx, forever, options)
+	result, err := runner.Run(ctx, forever, options, nil)
 	if err == nil {
 		t.Fatalf("Run: got %q (%s), want the wait given up on", result.Status, result.Message)
 	}
@@ -413,12 +413,12 @@ func TestARunThatFindsNoSlotIsRefusedAfterItsWait(t *testing.T) {
 	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: 2 * time.Second, Concurrency: 1, Wait: wait})
 
 	go func() {
-		_, _ = runner.Run(context.Background(), forever, options)
+		_, _ = runner.Run(context.Background(), forever, options, nil)
 	}()
 	starlarktest.EverySlotTaken(t, runner)
 
 	started := time.Now()
-	result, err := runner.Run(context.Background(), forever, options)
+	result, err := runner.Run(context.Background(), forever, options, nil)
 	elapsed := time.Since(started)
 	if err == nil {
 		t.Fatalf("Run: got %q (%s), want the run refused for want of a slot", result.Status, result.Message)
@@ -443,7 +443,7 @@ func TestTheWaitIsForASlotNotForTheRun(t *testing.T) {
 		Steps: 1 << 62, Timeout: 300 * time.Millisecond, Concurrency: 1, Wait: 50 * time.Millisecond,
 	})
 
-	result, err := runner.Run(context.Background(), forever, options)
+	result, err := runner.Run(context.Background(), forever, options, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want the run to happen", err)
 	}
@@ -466,15 +466,15 @@ func TestARefusedRunHoldsNoSlot(t *testing.T) {
 	blocked := make(chan struct{})
 	go func() {
 		defer close(blocked)
-		_, _ = runner.Run(context.Background(), forever, options)
+		_, _ = runner.Run(context.Background(), forever, options, nil)
 	}()
 	starlarktest.EverySlotTaken(t, runner)
-	if _, err := runner.Run(context.Background(), forever, options); !errors.Is(err, solver.ErrBusy) {
+	if _, err := runner.Run(context.Background(), forever, options, nil); !errors.Is(err, solver.ErrBusy) {
 		t.Fatalf("Run while the slot is taken: got error %v, want it refused as busy", err)
 	}
 	<-blocked
 
-	result, err := runner.Run(context.Background(), "def solve(options):\n    return match(options, 6)\n", options)
+	result, err := runner.Run(context.Background(), "def solve(options):\n    return match(options, 6)\n", options, nil)
 	if err != nil {
 		t.Fatalf("Run once the slot is free: got error %v, want the run to happen", err)
 	}
@@ -523,7 +523,7 @@ func TestWhatWillNotSayHowLongItIs(t *testing.T) {
 
 	measured, err := sandbox(t, limits()).Run(t.Context(), `def solve(options):
     return match(options, len(list("ab".elems())))
-`, counts)
+`, counts, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
 	}

@@ -54,7 +54,7 @@ var pours = solver.Options{"1", "2", "3", "4", "It is impossible"}
 
 func TestASearchRunsToItsAnswer(t *testing.T) {
 	t.Parallel()
-	result, err := sandbox(t, limits()).Run(context.Background(), pouring, pours)
+	result, err := sandbox(t, limits()).Run(context.Background(), pouring, pours, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
 	}
@@ -119,7 +119,7 @@ func TestTwoRunsOfOneProgram(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			agreement, err := solver.Verdict(context.Background(), sandbox(t, limits()), test.source, test.options)
+			agreement, err := solver.Verdict(context.Background(), sandbox(t, limits()), test.source, test.options, nil)
 			if err != nil {
 				t.Fatalf("Verdict: got error %v, want none", err)
 			}
@@ -140,12 +140,12 @@ func TestTheSameProgramTwiceIsTheSameResult(t *testing.T) {
 	t.Parallel()
 	runner := sandbox(t, limits())
 
-	first, err := runner.Run(context.Background(), pouring, pours)
+	first, err := runner.Run(context.Background(), pouring, pours, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
 	}
 	for i := range 9 {
-		again, err := runner.Run(context.Background(), pouring, pours)
+		again, err := runner.Run(context.Background(), pouring, pours, nil)
 		if err != nil {
 			t.Fatalf("run %d: got error %v, want none", i, err)
 		}
@@ -210,7 +210,7 @@ func TestALargeNumberIsWrittenOutInFull(t *testing.T) {
 	millions := solver.Options{"1000000", "100000", "10000", "1000", "100"}
 
 	result, err := sandbox(t, limits()).Run(
-		context.Background(), "def solve(options):\n    return match(options, 1000.0 * 1000.0)\n", millions)
+		context.Background(), "def solve(options):\n    return match(options, 1000.0 * 1000.0)\n", millions, nil)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
 	}

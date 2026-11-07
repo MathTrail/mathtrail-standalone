@@ -58,7 +58,7 @@ func FuzzRun(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, source string) {
-		result, err := runner.Run(context.Background(), source, options)
+		result, err := runner.Run(context.Background(), source, options, nil)
 		if err != nil {
 			t.Fatalf("Run: got error %v, want none", err)
 		}

@@ -56,6 +56,11 @@ const (
 	// solver found no option, more than one, or another than the task names,
 	// or the self-check arrived at another answer or at none.
 	CodeSolverDisagrees Code = "solver_disagrees"
+	// CodeSolverUnread is a solver of a task solved from its picture that left
+	// a member of the picture with facts unread: it carries them in its own
+	// code, or reads only a part of the picture, and so proves nothing of
+	// what is drawn.
+	CodeSolverUnread Code = "solver_unread"
 	// CodeSelfCheckBlocking is a task the model's own self-check found a
 	// blocking issue in.
 	CodeSelfCheckBlocking Code = "self_check_blocking"
@@ -72,7 +77,7 @@ func Codes() []Code {
 	return []Code{
 		CodeBadStructure, CodeWrongLanguage, CodeDistractorExplanations, CodeDrawingFormat,
 		CodeDrawingMismatch, CodeReadability, CodeSolverError, CodeSolverDisagrees,
-		CodeSelfCheckBlocking, CodeNearDuplicate,
+		CodeSolverUnread, CodeSelfCheckBlocking, CodeNearDuplicate,
 	}
 }
 

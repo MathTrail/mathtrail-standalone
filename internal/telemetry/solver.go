@@ -2,6 +2,7 @@ package telemetry
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -64,12 +65,14 @@ func ObserveSolver(next solver.Runner, tracers trace.TracerProvider, meters metr
 // attribute; only a run that never happened marks the span as failed.
 //
 // What the program arrived at never reaches the span. The letters are the
-// answer, and the answer stays hidden until a child has given theirs.
-func (o *observedSolver) Run(ctx context.Context, source string, options solver.Options) (solver.Result, error) {
+// answer, and the answer stays hidden until a child has given theirs; what it
+// read of the picture stays off as well, since a member's name is the model's
+// to choose.
+func (o *observedSolver) Run(ctx context.Context, source string, options solver.Options, picture json.RawMessage) (solver.Result, error) {
 	ctx, span := o.tracer.Start(ctx, "solver_run")
 	defer span.End()
 
-	result, err := o.next.Run(ctx, source, options)
+	result, err := o.next.Run(ctx, source, options, picture)
 	if err != nil {
 		// Both, because they say different things: the event carries the cause,
 		// and the status is what makes the span show up as failed at all.

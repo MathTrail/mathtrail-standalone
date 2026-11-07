@@ -59,7 +59,7 @@ func TestEveryCostlySolverSpendsNearlyTheWholeBudget(t *testing.T) {
 			t.Parallel()
 
 			task := costlyTask(t, name, lesson.MinSteps)
-			agreement, err := solver.Verdict(t.Context(), sandbox(t, lesson.MinSteps, time.Minute), task.Solver, optionsOf(&task))
+			agreement, err := solver.Verdict(t.Context(), sandbox(t, lesson.MinSteps, time.Minute), task.Solver, optionsOf(&task), nil)
 			if err != nil {
 				t.Fatalf("Verdict() error = %v", err)
 			}
@@ -91,7 +91,7 @@ func TestOnlyTheClockStopsTheProduct(t *testing.T) {
 
 	const clock = 300 * time.Millisecond
 	task := costlyTask(t, lesson.Product, lesson.MinSteps)
-	result, err := sandbox(t, lesson.MinSteps, clock).Run(t.Context(), task.Solver, optionsOf(&task))
+	result, err := sandbox(t, lesson.MinSteps, clock).Run(t.Context(), task.Solver, optionsOf(&task), nil)
 	if err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}

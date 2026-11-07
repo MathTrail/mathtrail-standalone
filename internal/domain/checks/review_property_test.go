@@ -11,6 +11,7 @@ import (
 	"github.com/leanovate/gopter/prop"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
@@ -20,11 +21,12 @@ import (
 // have all been applied.
 type faulty struct {
 	scenario
-	outOfFormat, strayLabel, copied bool
+	outOfFormat, strayLabel, pictured, copied bool
 }
 
 // faults are one way each to fail every check, none of them in the way of
-// another: an idea left unsaid leaves the task itself whole.
+// another but one: an idea left unsaid leaves the task itself whole, while a
+// solver that crashes leaves nothing read of the picture to judge.
 var faults = []struct {
 	code  checks.Code
 	apply func(*faulty)
@@ -43,6 +45,7 @@ var faults = []struct {
 	{checks.CodeReadability, func(f *faulty) { f.draft.Task.Question += longSentence }},
 	{checks.CodeSolverError, func(f *faulty) { f.runner = &scripted{result: solver.Result{Status: solver.StatusError}} }},
 	{checks.CodeSolverDisagrees, func(f *faulty) { f.draft.SelfCheck.FinalAnswer = "B" }},
+	{checks.CodeSolverUnread, func(f *faulty) { f.fromPicture, f.pictured = true, true }},
 	{checks.CodeSelfCheckBlocking, func(f *faulty) {
 		f.draft.SelfCheck.Issues = []checks.Issue{{Type: "ambiguous", Severity: "blocking", Comment: "Two readings."}}
 	}},
@@ -62,7 +65,7 @@ func broken(mask int) scenario {
 			fault.apply(&f)
 		}
 	}
-	if f.outOfFormat || f.strayLabel {
+	if f.outOfFormat || f.strayLabel || f.pictured {
 		copies, labels := 1, []string{"P", "Q"}
 		if f.outOfFormat {
 			copies = 3
@@ -93,6 +96,10 @@ func TestTheReviewHoldsItsProperties(t *testing.T) {
 					if mask&(1<<i) != 0 {
 						want = append(want, fault.code)
 					}
+				}
+				// A solver that crashed read nothing it could be judged by.
+				if slices.Contains(want, checks.CodeSolverError) {
+					want = slices.DeleteFunc(want, func(code checks.Code) bool { return code == checks.CodeSolverUnread })
 				}
 				first := checks.Code("")
 				if len(want) > 0 {
@@ -138,25 +145,26 @@ func TestTheReviewHoldsItsProperties(t *testing.T) {
 }
 
 // A submission comes from the chat's model and is untrusted in every part:
-// whatever its JSON and its program hold, and whatever level and language it
-// is judged against — one of the three or none of them — the review ends in an outcome that keeps its own rules —
-// codes it knows, in the order the checks run, the first one counted, a task
-// accepted only when it failed nothing, and a check left unrun only for a task
-// out of the format.
+// whatever its JSON and its program hold, whatever level and language it is
+// judged against — one of the three or none of them — and whether it was asked
+// to be solved from its picture, the review ends in an outcome that keeps its
+// own rules — codes it knows, in the order the checks run, the first one
+// counted, a task accepted only when it failed nothing, and a check left unrun
+// only for a task out of the format.
 func FuzzReview(f *testing.F) {
 	good := validDraft()
-	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "3-4", "en")
-	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "1-2", "ru")
+	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "3-4", "en", false)
+	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "1-2", "ru", true)
 	russian := russianDraft()
-	f.Add([]byte(jsonOf(f, russian.Task)), []byte(jsonOf(f, russian.SelfCheck)), program, "3-4", "ru")
-	f.Add([]byte(`{"question":"Сколько пар?","question_en":" "}`), []byte(`{}`), "", "1-2", "uk")
-	f.Add([]byte(`{"options":{"A":"x"},"question":" "}`), []byte("{"), "", "", "")
+	f.Add([]byte(jsonOf(f, russian.Task)), []byte(jsonOf(f, russian.SelfCheck)), program, "3-4", "ru", false)
+	f.Add([]byte(`{"question":"Сколько пар?","question_en":" "}`), []byte(`{}`), "", "1-2", "uk", true)
+	f.Add([]byte(`{"options":{"A":"x"},"question":" "}`), []byte("{"), "", "", "", true)
 	f.Add([]byte(`{"question":"P is left of R.","drawing":"P───Q \n","picture":`+
 		`{"kind":"row","items":[{"label":"R"},{"label":"7"}],"copies":3}}`),
 		[]byte(`{"issues":[{"type":"ambiguous","severity":"blocking","comment":"C"}],"final_answer":"B"}`),
-		"x", "9-10", "en-GB")
+		"x", "9-10", "en-GB", true)
 
-	f.Fuzz(func(t *testing.T, task, selfCheck []byte, source, level, language string) {
+	f.Fuzz(func(t *testing.T, task, selfCheck []byte, source, level, language string, fromPicture bool) {
 		reviewer := checks.NewReviewer(shipped{catalog: testCatalog, references: []string{good.Task.Question}},
 			&working{value: "six pairs"})
 		examined, err := reviewer.Examine(t.Context(),
@@ -166,6 +174,9 @@ func FuzzReview(f *testing.F) {
 		}
 		request := asked()
 		request.GradeLevel = rating.GradeLevel(level)
+		if fromPicture {
+			request.Constraints = []string{profile.FactsOnThePicture}
+		}
 		outcome, err := reviewer.Judge(examined, checks.Against{
 			Asked: request, Language: language, Fingerprints: []string{checks.Fingerprint(good.Task.Question, language)},
 		})

@@ -2,6 +2,7 @@ package solver_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"strings"
 	"testing"
@@ -24,7 +25,7 @@ type scripted struct {
 	asked []solver.Options
 }
 
-func (s *scripted) Run(_ context.Context, _ string, options solver.Options) (solver.Result, error) {
+func (s *scripted) Run(_ context.Context, _ string, options solver.Options, _ json.RawMessage) (solver.Result, error) {
 	s.asked = append(s.asked, options)
 	if s.err != nil && len(s.asked) > s.errAfter {
 		return solver.Result{}, s.err
@@ -104,7 +105,7 @@ func TestVerdict(t *testing.T) {
 			t.Parallel()
 			runner := &scripted{answers: test.answers}
 
-			agreement, err := solver.Verdict(context.Background(), runner, "irrelevant", task)
+			agreement, err := solver.Verdict(context.Background(), runner, "irrelevant", task, nil)
 			if err != nil {
 				t.Fatalf("Verdict: got error %v, want none", err)
 			}
@@ -150,7 +151,7 @@ func TestTheSecondRunSeesTheShiftedOptions(t *testing.T) {
 	t.Parallel()
 	runner := &scripted{answers: []solver.Result{ok("A"), ok("C")}}
 
-	if _, err := solver.Verdict(context.Background(), runner, "irrelevant", task); err != nil {
+	if _, err := solver.Verdict(context.Background(), runner, "irrelevant", task, nil); err != nil {
 		t.Fatalf("Verdict: got error %v, want none", err)
 	}
 	if len(runner.asked) != 2 {
@@ -168,7 +169,7 @@ func TestVerdictPassesOnWhatTheRunnerCouldNotDo(t *testing.T) {
 	t.Parallel()
 	broken := errors.New("no free slot")
 
-	if _, err := solver.Verdict(context.Background(), &scripted{err: broken}, "irrelevant", task); !errors.Is(err, broken) {
+	if _, err := solver.Verdict(context.Background(), &scripted{err: broken}, "irrelevant", task, nil); !errors.Is(err, broken) {
 		t.Fatalf("Verdict: got error %v, want %v", err, broken)
 	}
 }
@@ -178,7 +179,7 @@ func TestVerdictPassesOnWhatBrokeTheSecondRun(t *testing.T) {
 	broken := errors.New("no free slot")
 	runner := &scripted{answers: []solver.Result{ok("A")}, err: broken, errAfter: 1}
 
-	if _, err := solver.Verdict(context.Background(), runner, "irrelevant", task); !errors.Is(err, broken) {
+	if _, err := solver.Verdict(context.Background(), runner, "irrelevant", task, nil); !errors.Is(err, broken) {
 		t.Fatalf("Verdict: got error %v, want %v", err, broken)
 	}
 }
@@ -188,7 +189,7 @@ func TestFailedNamesTheRunThatDidNotGetThere(t *testing.T) {
 	timedOut := solver.Result{Status: solver.StatusTimeout, Message: "the solver ran longer than 2s"}
 	runner := &scripted{answers: []solver.Result{ok("A"), timedOut}}
 
-	agreement, err := solver.Verdict(context.Background(), runner, "irrelevant", task)
+	agreement, err := solver.Verdict(context.Background(), runner, "irrelevant", task, nil)
 	if err != nil {
 		t.Fatalf("Verdict: got error %v, want none", err)
 	}
