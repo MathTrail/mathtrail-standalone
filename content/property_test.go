@@ -298,12 +298,16 @@ func TestATrapCatalogReadsOnlyWithEveryTrapsAdvice(t *testing.T) {
 func TestTheIdeaHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 
-	list := ideasOfLength(rating.Grades12, 20)
+	words := ideasOfLength(rating.Grades12, 20)
+	list := make([]listedIdea, len(words))
+	for i, text := range words {
+		list[i] = listedIdea{text: text, fromPicture: i%3 == 0}
+	}
 	properties := gopter.NewProperties(nil)
 	properties.Property("an idea on the list is named by the words at its place", prop.ForAll(
 		func(number, round int) bool {
 			idea, err := ideaOf(list, profile.Idea{Number: number, Round: round})
-			return err == nil && idea.Number == number && idea.Round == round && idea.Text == list[number-1]
+			return err == nil && idea.Number == number && idea.Round == round && idea.Text == words[number-1]
 		},
 		gen.IntRange(1, len(list)),
 		gen.IntRange(1, 1<<30),

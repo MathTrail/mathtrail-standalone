@@ -109,7 +109,7 @@ func (s *Service) showResult(ctx context.Context, account store.Account, in show
 		return Reply[shownOut]{}, fmt.Errorf("mcp: tell how the answer went: %w", err)
 	}
 	noteTaskRequest(ctx, profile.RequestIDFor(p.CurrentTask.ID))
-	return s.shown(p, &recorded, chatFrom(ctx))
+	return s.shown(p, &recorded, chatFrom(ctx), pictureChatFrom(ctx))
 }
 
 // toldOnceWritten reads the profile and tells how the answer to the task went,
@@ -133,8 +133,8 @@ func (s *Service) toldOnceWritten(ctx context.Context, account store.Account, ta
 
 // shown is how the answer went, as its card shows it and as the words tell it
 // to the model in the chat the call came from.
-func (s *Service) shown(p *profile.Profile, recorded *profile.Recorded, chat chatKind) (Reply[shownOut], error) {
-	choice, err := s.topicChoiceOf(p, s.now())
+func (s *Service) shown(p *profile.Profile, recorded *profile.Recorded, chat chatKind, pictures profile.Chat) (Reply[shownOut], error) {
+	choice, err := s.topicChoiceOf(p, s.now(), pictures)
 	if err != nil {
 		return Reply[shownOut]{}, fmt.Errorf("mcp: the choice of the topic: %w", err)
 	}

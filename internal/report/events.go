@@ -81,20 +81,20 @@ var events = map[string][]string{
 		"level", "attempt", "outcome", "primary", "failed", "near_duplicate_of", "minor_issues", "duration_ms",
 		"solver_steps", "solver_ms", "task_bytes", "self_check_bytes", "solver_bytes", "core_idea_bytes",
 		"total_bytes", "retired", "mended", "question_en_given", "solution_picture", "solution_picture_bytes",
-		"instructions_version", "user",
+		"from_picture", "instructions_version", "user",
 	},
 	// A task handed out, an answer and a topic mastered are what the children
 	// are counted from, and each names its child by the name it is counted
 	// under that month, which leads back to no child.
 	"task_accepted": {
 		"topic", "level", "difficulty", "attempts", "seconds_since_request", "picture", "drawing", "ready", "by_card",
-		"instructions_version", "user", "learner", "host", "language", "grade", "cohort", "country", "region", "signin_country",
+		"from_picture", "instructions_version", "user", "learner", "host", "language", "grade", "cohort", "country", "region", "signin_country",
 	},
 	// A task written ahead, kept until the child asks for the next one, and one
 	// written ahead and let go once the lesson moved away from it, with why.
 	"task_kept": {
-		"topic", "level", "difficulty", "attempts", "seconds_since_request", "picture", "drawing", "instructions_version",
-		"user",
+		"topic", "level", "difficulty", "attempts", "seconds_since_request", "picture", "drawing", "from_picture",
+		"instructions_version", "user",
 	},
 	"task_dropped": {"reason", "written", "topic", "level", "difficulty", "instructions_version", "user"},
 	// The chance beside the user is the child's rating, answer by answer, as
@@ -212,11 +212,12 @@ func Fits(event, field string, value any) bool {
 		return wholeWithin(value, lowestGrade, highestGrade)
 	case "topics_mastered":
 		return wholeWithin(value, 0, mostTopicsMastered)
-	case "drawing", "ready", "by_card", "probe":
+	case "drawing", "ready", "by_card", "probe", "from_picture":
 		// Whether the task came with a drawing, which a line written before
 		// pictures says, and never the drawing itself, which is the task's
 		// text; whether it was written ahead and kept; whether a card took it;
-		// and whether it was a probe of a topic on pause.
+		// whether it was a probe of a topic on pause; and whether it was solved
+		// from the picture.
 		_, isBool := value.(bool)
 		return isBool
 	}

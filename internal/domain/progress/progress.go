@@ -118,11 +118,11 @@ type Recommendation struct {
 }
 
 // Of is where the child whose profile this is stands today, a date in UTC,
-// and how that moved since the last answer and over the week ending today. It
-// fails only when the rule can suggest nothing at all, which is a catalog with
-// no topic taught at any level.
-func Of(p *profile.Profile, catalog tutor.Catalog, today profile.Date) (Summary, error) {
-	next, err := Recommend(p, catalog)
+// and how that moved since the last answer and over the week ending today, as
+// the chat it is read in is told it. It fails only when the rule can suggest
+// nothing at all, which is a catalog with no topic taught at any level.
+func Of(p *profile.Profile, catalog tutor.Catalog, today profile.Date, chat profile.Chat) (Summary, error) {
+	next, err := Recommend(p, catalog, chat)
 	if err != nil {
 		return Summary{}, err
 	}
@@ -134,7 +134,7 @@ func Of(p *profile.Profile, catalog tutor.Catalog, today profile.Date) (Summary,
 	if summary.Trial == nil {
 		summary.Overall = standing(p.Ratings.Theta)
 	}
-	summary.Topics = topics(p, catalog, summary.Overall)
+	summary.Topics = topics(p, catalog, summary.Overall, chat)
 	for _, topic := range p.Topics {
 		summary.Skipped += topic.Skipped
 	}
@@ -158,9 +158,11 @@ func TrialOf(p *profile.Profile) *Trial {
 // chosen for the lessons when a person chose one, at the point the rule sets on
 // it. The rest of the brief — the plot, the traps, the rule's own reasoning —
 // is for the model that writes the task, and reaches it when a task is asked
-// for.
-func Recommend(p *profile.Profile, catalog tutor.Catalog) (Recommendation, error) {
-	brief, mode, err := tutor.Next(p, catalog, tutor.Choice{})
+// for. It is what the rule would set in the chat it is read in, which a topic
+// solved from the picture reaches only when that chat is known to draw the
+// card.
+func Recommend(p *profile.Profile, catalog tutor.Catalog, chat profile.Chat) (Recommendation, error) {
+	brief, mode, err := tutor.Next(p, catalog, tutor.Choice{}, chat)
 	if err != nil {
 		return Recommendation{}, fmt.Errorf("progress: %w", err)
 	}
@@ -170,7 +172,7 @@ func Recommend(p *profile.Profile, catalog tutor.Catalog) (Recommendation, error
 		Difficulty: brief.Difficulty,
 		Goal:       brief.PedagogicalGoal,
 		Chosen:     mode == profile.TutorPerson,
-		Probe:      tutor.Probes(p, catalog, brief.TargetConcept, mode),
+		Probe:      tutor.Probes(p, tutor.Shown(catalog, chat), brief.TargetConcept, mode),
 	}, nil
 }
 
@@ -180,9 +182,12 @@ func Recommend(p *profile.Profile, catalog tutor.Catalog) (Recommendation, error
 // A topic stands somewhere once the trial series is over and the topic has an
 // answer, overall being nil until then, and its rank is compared with the
 // overall one rank for rank, so that the word beside it agrees with the names
-// drawn.
-func topics(p *profile.Profile, catalog tutor.Catalog, overall *Standing) []Topic {
-	reachable, paused := tutor.WithinReach(p, catalog), tutor.PausedTopics(p, catalog)
+// drawn. Which topics are within reach or on pause is read as the rule reads
+// it in the chat: a topic solved from the picture is neither in a chat not
+// known to draw the card, and is listed there only once the child has met it.
+func topics(p *profile.Profile, catalog tutor.Catalog, overall *Standing, chat profile.Chat) []Topic {
+	shown := tutor.Shown(catalog, chat)
+	reachable, paused := tutor.WithinReach(p, shown), tutor.PausedTopics(p, shown)
 	listed := []Topic{}
 	for _, id := range catalog.TopicIDs() {
 		summary := p.Topics[id]

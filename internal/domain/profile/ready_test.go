@@ -386,6 +386,73 @@ func TestATaskWrittenAheadFitsOnlyTheLessonItWasWrittenFor(t *testing.T) {
 	}
 }
 
+// A task solved from the picture, written ahead where the card is drawn, fits
+// a chat not known to draw it no more, kept or still being written: nobody
+// there could see its picture, and that is why it is let go, whatever else the
+// lesson there changed. A task in words fits either chat.
+func TestATaskSolvedFromThePictureFitsOnlyAChatThatDrawsTheCard(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name        string
+		fromPicture bool
+		chat        profile.Chat
+		topic       string
+		want        profile.Misfit
+	}{
+		{"in words, a chat with cards", false, profile.ChatWithCards, "", profile.MisfitNone},
+		{"in words, a chat of words", false, profile.ChatOfWords, "", profile.MisfitNone},
+		{"from the picture, a chat with cards", true, profile.ChatWithCards, "", profile.MisfitNone},
+		{"from the picture, a chat of words", true, profile.ChatOfWords, "", profile.MisfitChat},
+		{"from the picture, a chat of words, the lessons kept elsewhere", true, profile.ChatOfWords, "time.clocks",
+			profile.MisfitChat},
+		{"in words, a chat of words, the lessons kept elsewhere", false, profile.ChatOfWords, "time.clocks",
+			profile.MisfitLessonTopic},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			request, kept := writtenAhead(t, tc.fromPicture)
+			now := profile.Lesson{
+				Language: "en", ExcludedSkills: request.Brief.ExcludedSkills,
+				InstructionsVersion: written().InstructionsVersion, Chat: tc.chat, Topic: tc.topic,
+			}
+			if got := request.Misfit(&now); got != tc.want {
+				t.Errorf("the request's Misfit() = %q, want %q", got, tc.want)
+			}
+			if got := kept.Misfit(&now); got != tc.want {
+				t.Errorf("the kept task's Misfit() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// writtenAhead is a task on counting.gaps written ahead, solved from the
+// picture or in words: the request it was written for, as it stood, and the
+// task kept.
+func writtenAhead(t *testing.T, fromPicture bool) (profile.OpenRequest, *profile.ReadyTask) {
+	t.Helper()
+
+	p := parseFixture(t, "dima")
+	brief := briefOn("counting.gaps")
+	if fromPicture {
+		brief.Constraints = []string{profile.FactsOnThePicture}
+	}
+	request, err := p.AskAhead(&brief, profile.TutorRule, "en", "", asked)
+	if err != nil {
+		t.Fatalf("AskAhead() error = %v, want nil", err)
+	}
+	asOpened := *request
+	kept, err := p.Keep(written(), secret(), newSealer(t), keptAt)
+	if err != nil {
+		t.Fatalf("Keep() error = %v, want nil", err)
+	}
+	if kept.FromPicture != fromPicture {
+		t.Errorf("the kept task's FromPicture = %v, want %v", kept.FromPicture, fromPicture)
+	}
+	return asOpened, kept
+}
+
 // A task written while the lessons were kept to a topic fits only while they
 // still are: given back to the rule, the lessons have moved away from it.
 func TestATaskWrittenOnTheLessonsTopicFitsOnlyWhileTheyAreKeptToIt(t *testing.T) {

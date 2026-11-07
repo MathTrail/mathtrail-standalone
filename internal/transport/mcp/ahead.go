@@ -25,31 +25,41 @@ import (
 const aheadNextText = "Now call prepare_task: it gives you the package of the next task, which you write ahead " +
 	"while the child works on this one, and which is kept until another is asked for. Say nothing about that task."
 
-// lessonNow is the lesson as it stands for a task written ahead: its language
-// — the parent's choice, or else language, the chat's —, the topic the
-// lessons are kept to, the skills kept out of the tasks, the instructions
-// tasks are written to now, and where a person asked this task to stand.
-func (s *Service) lessonNow(p *profile.Profile, language string, asked profile.Place) profile.Lesson {
+// lessonNow is the lesson as it stands for a task written ahead, in the chat
+// the call came from: its language — the parent's choice, or else language,
+// the chat's —, the topic the lessons are kept to there, the skills kept out
+// of the tasks, the instructions tasks are written to now, where a person
+// asked this task to stand, and what the chat is known to show.
+func (s *Service) lessonNow(p *profile.Profile, language string, asked profile.Place, chat profile.Chat) profile.Lesson {
 	return profile.Lesson{
 		Language:            p.Student.LessonLanguage(language),
-		Topic:               tutor.LessonTopic(p, s.content),
+		Topic:               s.lessonTopic(p, chat),
 		ExcludedSkills:      p.Student.ExcludedSkills,
 		InstructionsVersion: s.content.InstructionsVersion(),
 		Asked:               asked,
+		Chat:                chat,
 	}
+}
+
+// lessonTopic is the topic the lessons are kept to now in a chat, or none: a
+// topic all of whose tasks are solved from the picture counts as no choice in
+// a chat not known to draw the card, and the rule chooses there.
+func (s *Service) lessonTopic(p *profile.Profile, chat profile.Chat) string {
+	return tutor.LessonTopic(p, tutor.Shown(s.content, chat))
 }
 
 // askedPlace is where a person asked a task to stand, as a choice passed to
 // the tool that asks for one says it beside the topic the lessons are kept
 // to: naming that topic asks for nothing, since it is set anyway.
-func (s *Service) askedPlace(p *profile.Profile, choice tutor.Choice) profile.Place {
-	asked := choice.Beside(tutor.LessonTopic(p, s.content))
+func (s *Service) askedPlace(p *profile.Profile, choice tutor.Choice, chat profile.Chat) profile.Place {
+	asked := choice.Beside(s.lessonTopic(p, chat))
 	return profile.Place{Topic: asked.Topic, GradeLevel: asked.GradeLevel, Difficulty: asked.Difficulty}
 }
 
-// letGone is a task written ahead that was let go: why, whether it had been
-// written and kept or was still being written, where it stood, and the
-// version of the instructions it was written to.
+// letGone is a task written ahead that was let go, or a request for a task
+// solved from the picture that a chat not known to draw the card met: why,
+// whether it had been written and kept or was still being written, where it
+// stood, and the version of the instructions it was written to.
 type letGone struct {
 	why     profile.Misfit
 	written bool
@@ -79,6 +89,28 @@ func (s *Service) letGo(p *profile.Profile, lesson *profile.Lesson, now time.Tim
 		}
 	}
 	return gone
+}
+
+// unseen lets go of the request open for a task solved from the picture, when
+// the call came from a chat not known to draw the card: nobody there could see
+// its task, so it goes before anything else, and the call goes on as if none
+// were open. It says what it let go; nothing is written here.
+func (s *Service) unseen(p *profile.Profile, chat profile.Chat, now time.Time) []letGone {
+	open := p.OpenRequest
+	if open == nil || !open.Awaited(s.window, now) || shownIn(open, chat) {
+		return nil
+	}
+	p.CloseRequest()
+	return []letGone{{why: profile.MisfitChat,
+		at:      profile.Place{Topic: open.Brief.TargetConcept, GradeLevel: open.Brief.GradeLevel, Difficulty: open.Brief.Difficulty},
+		version: s.content.InstructionsVersion()}}
+}
+
+// shownIn reports whether the task of a request may go to the chat: a task in
+// words to any, and one solved from the picture only to a chat known to draw
+// the card.
+func shownIn(request *profile.OpenRequest, chat profile.Chat) bool {
+	return !request.Brief.FromPicture() || chat.ShowsPictures()
 }
 
 // sayLetGo leaves the line of each task written ahead that was let go, once
@@ -139,7 +171,7 @@ func (s *Service) waitForAhead(ctx context.Context, account store.Account, p *pr
 		skipped = &left
 		s.events.write(ctx, account, eventTaskSkipped, s.skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
 	}
-	s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, request, true)...)
+	s.events.write(ctx, account, eventTaskRequested, s.requestFields(p, request, true, pictureChatFrom(ctx))...)
 	return request, skipped, nil
 }
 
@@ -200,5 +232,6 @@ func (s *Service) acceptedLine(ctx context.Context, p *profile.Profile, account 
 		zap.Int64("seconds_since_request", int64(how.written/time.Second)),
 		zap.String("picture", picture.KindOf(task.Picture)),
 		zap.Bool("ready", how.ready),
+		zap.Bool("from_picture", task.FromPicture),
 	}, s.acceptedFields(ctx, p, account, task, now)...)
 }

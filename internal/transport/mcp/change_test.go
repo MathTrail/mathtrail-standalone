@@ -58,7 +58,7 @@ func TestTheProgressTellsWhatTheAnswersMoved(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load the content: %v", err)
 	}
-	summary, err := progress.Of(stored, loaded, profile.DateOf(moving.now()))
+	summary, err := progress.Of(stored, loaded, profile.DateOf(moving.now()), profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Of() error = %v, want nil", err)
 	}

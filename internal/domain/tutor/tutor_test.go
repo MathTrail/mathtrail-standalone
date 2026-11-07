@@ -43,6 +43,9 @@ func (c catalog) LevelsOf(topic string) []rating.GradeLevel {
 
 func (c catalog) ExampleTraps(topic string, _ rating.GradeLevel) []string { return c.examples[topic] }
 
+// SolvedFromPicture is false for every topic: a catalog of tasks in words.
+func (catalog) SolvedFromPicture(string) bool { return false }
+
 func threeTopics() catalog {
 	return catalog{
 		topics: []string{"counting.gaps", "logic.ordering", "time.clocks"},
@@ -147,7 +150,7 @@ func answeredInTurn(p *profile.Profile, topics ...string) {
 func brief(t *testing.T, p *profile.Profile, c tutor.Catalog) profile.Brief {
 	t.Helper()
 
-	built, mode, err := tutor.Next(p, c, tutor.Choice{})
+	built, mode, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -402,7 +405,7 @@ func TestAFailureOnATopicOutOfReachIsNotWorkedOver(t *testing.T) {
 		p := settled(t)
 		failedAt(p, failed, 2)
 
-		got, _, err := tutor.Next(p, withAnOlderTopic(), tutor.Choice{})
+		got, _, err := tutor.Next(p, withAnOlderTopic(), tutor.Choice{}, profile.ChatWithCards)
 		if err != nil {
 			t.Fatalf("Next() error = %v, want nil", err)
 		}
@@ -614,7 +617,7 @@ func TestOwnMistakesEnoughAskTheExamplesForNothing(t *testing.T) {
 	p.Topics["counting.gaps"] = summary
 
 	asked := 0
-	got, _, err := tutor.Next(p, askedCatalog{catalog: threeTopics(), asked: &asked}, tutor.Choice{})
+	got, _, err := tutor.Next(p, askedCatalog{catalog: threeTopics(), asked: &asked}, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -683,7 +686,7 @@ func TestACatalogWithNoTopicIsRefused(t *testing.T) {
 	nowhere := threeTopics()
 	nowhere.levels = map[string][]rating.GradeLevel{"counting.gaps": nil, "logic.ordering": nil, "time.clocks": nil}
 	for _, c := range []catalog{{}, nowhere} {
-		if _, _, err := tutor.Next(child(t), c, tutor.Choice{}); err == nil {
+		if _, _, err := tutor.Next(child(t), c, tutor.Choice{}, profile.ChatWithCards); err == nil {
 			t.Error("Next() error = nil, want a refusal when no topic is taught at any level")
 		}
 	}
@@ -717,7 +720,7 @@ func TestABriefNeverLeavesAListOut(t *testing.T) {
 
 	topics := threeTopics()
 	delete(topics.examples, "counting.gaps")
-	got, _, err := tutor.Next(child(t), topics, tutor.Choice{})
+	got, _, err := tutor.Next(child(t), topics, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -737,7 +740,7 @@ func TestWithEveryTopicMasteredTheRationaleSaysSo(t *testing.T) {
 		mastered(p, topic, rating.Grades12)
 	}
 
-	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{})
+	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -771,7 +774,7 @@ func TestATopicWithoutTasksAtItsLevelBorrowsTheNearest(t *testing.T) {
 			rating.Grades56: {"wrong_operation", "off_by_one"},
 		},
 	}
-	got, _, err := tutor.Next(child(t), topics, tutor.Choice{})
+	got, _, err := tutor.Next(child(t), topics, tutor.Choice{}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}

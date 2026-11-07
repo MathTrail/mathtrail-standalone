@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
 
 // chatKind is how the chat a call came from shows a tool's result: drawn as a
@@ -65,16 +67,46 @@ func chatOf(client *mcp.ClientCapabilities, info *mcp.Implementation) chatKind {
 	return wordsChat
 }
 
-// chatKey holds the chat a call came from. It is a type of its own, so that
-// nothing else a context carries can be taken for it.
-type chatKey struct{}
+// pictureChatOf is the chat a call came from as a task solved from the
+// picture is given to it: one known to draw the card — ChatGPT, or a client
+// that declared MCP Apps with the call — and a chat of words otherwise. A
+// client that declared nothing the server can read is one of words here, the
+// reverse of chatOf: a task in words taken wrongly to a chat that draws no card
+// is read out, while a task solved from the picture taken there is one nobody
+// can see.
+func pictureChatOf(client *mcp.ClientCapabilities, info *mcp.Implementation) profile.Chat {
+	if clientFamily(info) == familyChatGPT || appsOf(client) == appsDeclared {
+		return profile.ChatWithCards
+	}
+	return profile.ChatOfWords
+}
+
+// chatKey holds the chat a call came from, and pictureChatKey the same chat as
+// a task solved from the picture is given to it. Each is a type of its own, so
+// that nothing else a context carries can be taken for it.
+type (
+	chatKey        struct{}
+	pictureChatKey struct{}
+)
 
 // withChat is how the frame of a call tells the tool which chat the call came
-// from. The context carries it to the function that words the tool's reply,
-// and from there it travels as an argument: it changes the words a tool hands
-// back, never the work the tool does, so it is no argument of every tool's.
-func withChat(ctx context.Context, chat chatKind) context.Context {
-	return context.WithValue(ctx, chatKey{}, chat)
+// from, both as its words are told it and as a task solved from the picture
+// is given to it. The context carries the first to the function that words the
+// tool's reply, and the second to the tool that chooses a task, and from there
+// each travels as an argument. The words of a reply are those of every tool,
+// and a task solved from the picture the work of a few, so neither is an
+// argument of every tool's.
+func withChat(ctx context.Context, client *mcp.ClientCapabilities, info *mcp.Implementation) context.Context {
+	ctx = context.WithValue(ctx, chatKey{}, chatOf(client, info))
+	return context.WithValue(ctx, pictureChatKey{}, pictureChatOf(client, info))
+}
+
+// pictureChatFrom is the chat the frame put in ctx, as a task solved from the
+// picture is given to it. A call that came with none is taken for a chat of
+// words, which is given no such task: profile.ChatOfWords is the zero Chat.
+func pictureChatFrom(ctx context.Context) profile.Chat {
+	chat, _ := ctx.Value(pictureChatKey{}).(profile.Chat)
+	return chat
 }
 
 // chatFrom is the chat the frame put in ctx. A call that came with none is

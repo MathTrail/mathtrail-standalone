@@ -133,6 +133,9 @@ const (
 	// CodeControlCharacters is a text with characters that control rather
 	// than show.
 	CodeControlCharacters = "control_characters"
+	// CodeNeedsCard is a topic all of whose tasks are solved from the
+	// picture, asked for from a chat not known to draw the card.
+	CodeNeedsCard = "needs_card"
 )
 
 // Codes are every code a rule can be broken with.
@@ -140,6 +143,7 @@ func Codes() []string {
 	return []string{
 		CodeRequired, CodeTooLong, CodeTooMany, CodeEntryLength, CodeOutOfRange, CodeNotOneOf,
 		CodeNotInCatalog, CodeNotTaught, CodeNotALanguage, CodeEmptyText, CodeControlCharacters,
+		CodeNeedsCard,
 	}
 }
 

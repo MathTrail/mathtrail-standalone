@@ -195,7 +195,7 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 		return Reply[progressOut]{}, err
 	}
 
-	summary, mistakes, review, err := s.reviewed(p, profile.DateOf(s.now()))
+	summary, mistakes, review, err := s.reviewed(p, profile.DateOf(s.now()), pictureChatFrom(ctx))
 	if err != nil {
 		return Reply[progressOut]{}, err
 	}
@@ -223,8 +223,10 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 // the summary of the progress, the mistakes that repeat, and the review of the
 // topics — none during the trial series —, which the progress tells and whose
 // suggestions the card of a task offers.
-func (s *Service) reviewed(p *profile.Profile, today profile.Date) (progress.Summary, []progress.Mistake, *progress.Review, error) {
-	summary, err := progress.Of(p, s.content, today)
+func (s *Service) reviewed(p *profile.Profile, today profile.Date, chat profile.Chat) (
+	progress.Summary, []progress.Mistake, *progress.Review, error,
+) {
+	summary, err := progress.Of(p, s.content, today, chat)
 	if err != nil {
 		return progress.Summary{}, nil, nil, err
 	}

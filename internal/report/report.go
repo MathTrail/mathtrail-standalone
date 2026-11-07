@@ -124,6 +124,10 @@ type line struct {
 	// a card do so says.
 	Ready  bool `json:"ready"`
 	ByCard bool `json:"by_card"`
+	// A task handed in, kept or handed out: whether its brief asked for a
+	// task solved from the picture, which lines written before the service
+	// gave such tasks leave out.
+	FromPicture bool `json:"from_picture"`
 	// A task written ahead and let go: why, and whether it had been written
 	// and kept or was still being written.
 	Reason  string `json:"reason"`

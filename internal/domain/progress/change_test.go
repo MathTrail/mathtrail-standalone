@@ -348,8 +348,8 @@ func TestATopicNoAnswerOfItsOwnMovedStandsWhereItStood(t *testing.T) {
 			lastAnswer.Topic = ids[last]
 			lastAnswer.Before = &profile.Levels{Delta: deltas[last] - moves[last], Theta: theta - 0.2}
 
-			summary, err := progress.Of(p, catalog, today)
-			again, _ := progress.Of(p, catalog, today)
+			summary, err := progress.Of(p, catalog, today, profile.ChatWithCards)
+			again, _ := progress.Of(p, catalog, today, profile.ChatWithCards)
 			if err != nil || !reflect.DeepEqual(summary, again) {
 				return false
 			}
@@ -411,7 +411,7 @@ func TestAnAnswerNeverMovesItsTopicAndTheOverallRatingApart(t *testing.T) {
 			p.Topics[lastTopic] = topic
 			p.Recent[len(p.Recent)-1].Before = &profile.Levels{Delta: delta, Theta: theta}
 
-			summary, err := progress.Of(p, catalog, today)
+			summary, err := progress.Of(p, catalog, today, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}

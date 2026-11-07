@@ -494,7 +494,7 @@ func askForTheRaceAt(t *testing.T, p *profile.Profile, level rating.GradeLevel, 
 	}
 	brief, mode, err := tutor.Next(p, loaded, tutor.Choice{
 		Topic: "logic.ordering", GradeLevel: level, Difficulty: difficulty, Reason: "The child asked for a race.",
-	})
+	}, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Next() error = %v", err)
 	}

@@ -27,9 +27,17 @@ The attempts an accepted task took, and the seconds from its request to its acce
 | f3e2d1c0b9a8 | (call not read) | 3 | 2 | 3 | 1.0 | 40 | 40 | 40 |
 | 5e6f7a8b9c0d | chatgpt | 1 | 0 | 0 | 3.0 | 180 | 180 | 180 |
 
+## Tasks solved from the picture
+
+The tasks whose brief asked for one solved from the picture, counted apart as well as among all above: handed in, the attempts judged, of which the checks refused some; out of attempts, the requests whose last attempt was refused; kept, those written ahead and kept; accepted, those handed out, with the attempts they took and the seconds from the request, of which handed out ready had been kept. A chat that does not draw the card is given none. A line written before the service gave such tasks says nothing of them, and is counted among the tasks in words.
+
+| Instructions | Host | Handed in | Refused | Out of attempts | Kept | Accepted | Handed out ready | Attempts, mean | Seconds, median | Seconds, 90th percentile |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0a1b2c3d4e5f | claude | 2 | 1 | 0 | 0 | 1 | 0 | 2.0 | 95 | 95 |
+
 ## Tasks written ahead
 
-Asked ahead counts the requests opened for the next task while the child worked on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took into its own place, kept or waited for, which only an earlier release let a card do; let go, the tasks written ahead, kept or still being written, that the lesson moved away from before they were handed out.
+Asked ahead counts the requests opened for the next task while the child worked on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took into its own place, kept or waited for, which only an earlier release let a card do; let go, the tasks written ahead, kept or still being written, that the lesson moved away from before they were handed out, and the requests for a task solved from the picture that a chat not drawing the card met while the child waited for them.
 
 | Instructions | Host | Asked ahead | Kept | Handed out ready | Taken by the card | Let go |
 |---|---|---:|---:|---:|---:|---:|
@@ -38,7 +46,7 @@ Asked ahead counts the requests opened for the next task while the child worked 
 
 ## Why tasks written ahead were let go
 
-The reason the lesson moved away from a task: another language of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person asked for, or another version of the instructions. Written says whether the task had been written and kept, or was still being written.
+The reason the lesson moved away from a task: another language of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person asked for, a chat that does not draw the card, for a task solved from the picture, or another version of the instructions. Written says whether the task had been written and kept, or was still being written.
 
 | Instructions | Reason | Written | Let go |
 |---|---|---|---:|
@@ -131,6 +139,15 @@ An attempt is counted by one check, the first its refusal names, and fails that 
 | 88b63e22129c | readability | 1 | 1 |
 | 5e6f7a8b9c0d | bad_structure | 1 | 1 |
 | 5e6f7a8b9c0d | near_duplicate | 1 | 1 |
+
+## Why attempts solved from the picture were refused
+
+The same, for the attempts of tasks solved from the picture alone, which are counted above as well.
+
+| Instructions | Check | Counted by it | Failed it |
+|---|---|---:|---:|
+| 0a1b2c3d4e5f | readability | 1 | 1 |
+| 0a1b2c3d4e5f | near_duplicate | 0 | 1 |
 
 ## What near-duplicates repeated
 

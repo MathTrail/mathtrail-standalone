@@ -298,10 +298,17 @@ const firstRunText = "There is no profile yet. If the adult made one before, it 
 // taskText is what the model is told of a task on the child's card, accepted,
 // handed in again or written ahead, followed by the task in words: in a chat
 // that draws the cards, that the card shows it, and in one that draws none,
-// that it is read out. A host may keep only the start of the instructions, so
-// the words that come with the task are where these rules are sure to be read.
-func taskText(chat chatKind) string {
-	if chat == wordsChat {
+// that it is read out. A task solved from the picture is never read out, since
+// no words carry its picture: should the card not show it, another task is
+// asked for. A host may keep only the start of the instructions, so the words
+// that come with the task are where these rules are sure to be read.
+func taskText(chat chatKind, fromPicture bool) string {
+	switch {
+	case fromPicture && chat == wordsChat:
+		return pictureUnseenText
+	case fromPicture:
+		return onTheCardPictureText
+	case chat == wordsChat:
 		return readOutText
 	}
 	return onTheCardText
@@ -320,14 +327,33 @@ func taskText(chat chatKind) string {
 // gives the task away. The words of the task follow all the same, for the one
 // case a card may still fail in: the adult says it shows no task, or a note of
 // the chat's says it draws none.
-const onTheCardText = "The card shows the task by itself: do not announce it, and do not write the task, its " +
-	"options or its hint in the chat, in words or as a quiz of your own. The child answers on the card, and the " +
-	"card records the answer itself: do not ask for the answer in the chat, which would cost the adult a message, " +
-	"and add nothing of your own about the task — not its topic, not why it came, not how to solve it — until the " +
-	"child has answered or the adult asks about it. Only if the adult says the card shows no task, or you are told " +
+const onTheCardText = cardShowsTaskText + " Only if the adult says the card shows no task, or you are told " +
 	"this chat draws no cards, read out the question and the options A to E below and nothing else, for the adult " +
 	"to read to the child; give the hint only when it is asked for, and record with submit_answer the child's " +
 	"answer the adult gives in the chat."
+
+// cardShowsTaskText is what a chat that draws the cards is told of every task
+// on the card, before what to do should the card not show it.
+const cardShowsTaskText = "The card shows the task by itself: do not announce it, and do not write the task, its " +
+	"options or its hint in the chat, in words or as a quiz of your own. The child answers on the card, and the " +
+	"card records the answer itself: do not ask for the answer in the chat, which would cost the adult a message, " +
+	"and add nothing of your own about the task — not its topic, not why it came, not how to solve it — until the " +
+	"child has answered or the adult asks about it."
+
+// onTheCardPictureText is what a chat that draws the cards is told of a task
+// solved from the picture: what it is told of any, but that the task is not
+// read out should the card not show it, since its facts are a picture no words
+// carry. Another task is asked for instead, and nothing is answered wrong.
+const onTheCardPictureText = cardShowsTaskText + " This task is solved from its picture, which no words carry: if " +
+	"the adult says the card shows no task, or you are told this chat draws no cards, do not read it out; say so " +
+	"to the adult in a sentence, and ask for another task with next_task."
+
+// pictureUnseenText is what a chat that draws no cards is told of a task
+// solved from the picture on the card, which reaches it only when the card
+// was drawn elsewhere: nobody there sees its picture, and no words carry it.
+const pictureUnseenText = "This task is solved from its picture, which this chat does not show and no words carry: " +
+	"do not read it out, and add nothing of your own about it. When the adult asks for a task, ask for another " +
+	"with next_task."
 
 // readOutText is what a chat that draws no cards is told of a task. The task
 // stands on the child's card all the same, and nobody sees that card there, so

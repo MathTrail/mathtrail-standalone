@@ -122,12 +122,12 @@ type packageIdea struct {
 // the child has not been given in its round, is what moves it along the topic.
 // A place the list does not have, or a round before the first, names nothing a
 // task could be built on.
-func ideaOf(list []string, named profile.Idea) (packageIdea, error) {
+func ideaOf(list []listedIdea, named profile.Idea) (packageIdea, error) {
 	if named.Number < 1 || named.Number > len(list) || named.Round < 1 {
 		return packageIdea{}, fmt.Errorf("content: build the package: idea %d of round %d is not on a list of %d",
 			named.Number, named.Round, len(list))
 	}
-	return packageIdea{Number: named.Number, Round: named.Round, Text: list[named.Number-1]}, nil
+	return packageIdea{Number: named.Number, Round: named.Round, Text: list[named.Number-1].text}, nil
 }
 
 // packageCorridor is the point of the ladder the rule recommends for the child

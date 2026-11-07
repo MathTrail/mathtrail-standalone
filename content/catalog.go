@@ -36,6 +36,10 @@ type Topic struct {
 	// SitePage reports whether the site has published the topic's page, which
 	// is what a link to the page waits for.
 	SitePage bool `json:"site_page"`
+	// SolvedFromPicture reports whether every task of the topic is solved from
+	// the picture, its facts on the card alone: such a topic is set only where
+	// the card is known to be drawn, and never in the trial series.
+	SolvedFromPicture bool `json:"solved_from_picture,omitempty"`
 }
 
 // HasLevel reports whether the topic is offered at this grade level.

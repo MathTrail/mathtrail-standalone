@@ -37,15 +37,24 @@ func write(out io.Writer, c *counts) error {
 			"with one, and a line written before pictures the tasks that came with a text drawing; where only some " +
 			"lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not " +
 			"logged.", c.acceptedTable()},
+		{"Tasks solved from the picture", "The tasks whose brief asked for one solved from the picture, counted " +
+			"apart as well as among all above: handed in, the attempts judged, of which the checks refused some; out " +
+			"of attempts, the requests whose last attempt was refused; kept, those written ahead and kept; accepted, " +
+			"those handed out, with the attempts they took and the seconds from the request, of which handed out " +
+			"ready had been kept. A chat that does not draw the card is given none. A line written before the " +
+			"service gave such tasks says nothing of them, and is counted among the tasks in words.",
+			c.fromPictureTable()},
 		{"Tasks written ahead", "Asked ahead counts the requests opened for the next task while the child worked " +
 			"on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the " +
 			"tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took " +
 			"into its own place, kept or waited for, which only an earlier release let a card do; let go, the " +
 			"tasks written ahead, kept or still being written, that the lesson moved away from before they were " +
-			"handed out.", c.aheadTable()},
+			"handed out, and the requests for a task solved from the picture that a chat not drawing the card " +
+			"met while the child waited for them.", c.aheadTable()},
 		{"Why tasks written ahead were let go", "The reason the lesson moved away from a task: another language " +
 			"of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person " +
-			"asked for, or another version of the instructions. Written says whether the task had been written and " +
+			"asked for, a chat that does not draw the card, for a task solved from the picture, or another " +
+			"version of the instructions. Written says whether the task had been written and " +
 			"kept, or was still being written.", c.letGoTable()},
 		{"Tasks written ahead, handed out", "How long next_task took when it handed out a task written ahead, " +
 			"which the card shows the moment the call answers: the whole call, and the same less its calls to Drive " +
@@ -78,7 +87,9 @@ func write(out io.Writer, c *counts) error {
 			"says only that its task came with a text drawing, and other is a kind no format has, which only a " +
 			"file edited by hand holds.", c.kindsTable()},
 		{"Why attempts were refused", "An attempt is counted by one check, the first its refusal names, and " +
-			"fails that check and any others beside it.", c.refusalsTable()},
+			"fails that check and any others beside it.", refusalsTable(c.refusals, c.versions)},
+		{"Why attempts solved from the picture were refused", "The same, for the attempts of tasks solved from " +
+			"the picture alone, which are counted above as well.", refusalsTable(c.pictureRefusals, c.versions)},
 		{"What near-duplicates repeated", "The attempts that failed near_duplicate, by the level they were asked " +
 			"at and the kinds of earlier task their question repeats: reference, a reference task of that level, " +
 			"past, a task the child had been given, reference_en, a reference task of that level that the " +
@@ -232,6 +243,28 @@ func (c *counts) acceptedTable() *table {
 	return t
 }
 
+// fromPictureTable is, for each group, what became of the tasks solved from
+// the picture.
+func (c *counts) fromPictureTable() *table {
+	t := &table{columns: []string{
+		"Instructions", "Host", "Handed in", "Refused", "Out of attempts", "Kept", "Accepted", "Handed out ready",
+		"Attempts, mean", "Seconds, median", "Seconds, 90th percentile",
+	}, named: 2}
+	groups := slices.Collect(maps.Keys(c.fromPicture))
+	slices.SortFunc(groups, c.compareGroups)
+	for _, g := range groups {
+		counted := c.fromPicture[g]
+		attempts, seconds := notLogged, slices.Sorted(slices.Values(counted.seconds))
+		if len(counted.attempts) > 0 {
+			attempts = strconv.FormatFloat(mean(counted.attempts), 'f', 1, 64)
+		}
+		t.add(g.version, g.host, number(counted.handedIn), number(counted.refused), number(counted.outOfAttempts),
+			number(counted.kept), number(len(counted.attempts)), number(counted.ready), attempts,
+			medianOf(seconds), rankOf(seconds, 90))
+	}
+	return t
+}
+
 // handInsTable is, for each group and format, how large its hand-ins were:
 // the median of every part, and the whole's 90th percentile.
 func (c *counts) handInsTable() *table {
@@ -337,18 +370,18 @@ func (c *counts) kindsTable() *table {
 
 // refusalsTable is the checks that refused attempts under each version, the
 // one that refused the most first.
-func (c *counts) refusalsTable() *table {
+func refusalsTable(refused map[refusedBy]*refusals, versions []string) *table {
 	t := &table{columns: []string{"Instructions", "Check", "Counted by it", "Failed it"}, named: 2}
-	keys := slices.Collect(maps.Keys(c.refusals))
+	keys := slices.Collect(maps.Keys(refused))
 	slices.SortFunc(keys, func(a, b refusedBy) int {
 		return cmp.Or(
-			cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
-			cmp.Compare(c.refusals[b].counted, c.refusals[a].counted),
+			cmp.Compare(slices.Index(versions, a.version), slices.Index(versions, b.version)),
+			cmp.Compare(refused[b].counted, refused[a].counted),
 			cmp.Compare(a.check, b.check),
 		)
 	})
 	for _, key := range keys {
-		t.add(key.version, key.check, number(c.refusals[key].counted), number(c.refusals[key].failed))
+		t.add(key.version, key.check, number(refused[key].counted), number(refused[key].failed))
 	}
 	return t
 }

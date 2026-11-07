@@ -132,7 +132,7 @@ func TestTheRuleReproducesTheReferenceBriefs(t *testing.T) {
 		t.Run(want.Student, func(t *testing.T) {
 			t.Parallel()
 
-			got, mode, err := tutor.Next(fixture(t, want.Student), catalog, tutor.Choice{})
+			got, mode, err := tutor.Next(fixture(t, want.Student), catalog, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				t.Fatalf("Next() error = %v, want nil", err)
 			}

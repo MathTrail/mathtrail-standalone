@@ -189,9 +189,9 @@ type cardOut struct {
 	Probe bool `json:"probe,omitempty"`
 }
 
-// cardOf is the task on the card as the card is handed it, a probe marked as
-// such while it waits for its answer.
-func (s *Service) cardOf(p *profile.Profile, task *profile.CurrentTask) *cardOut {
+// cardOf is the task on the card as the card is handed it in a chat, a probe
+// marked as such while it waits for its answer.
+func (s *Service) cardOf(p *profile.Profile, task *profile.CurrentTask, chat profile.Chat) *cardOut {
 	return &cardOut{
 		ID:       task.ID,
 		Topic:    task.Topic,
@@ -200,7 +200,7 @@ func (s *Service) cardOf(p *profile.Profile, task *profile.CurrentTask) *cardOut
 		Picture:  pictureOf(task.Picture, task.Language),
 		Options:  task.Options,
 		Hint:     task.Hint,
-		Probe:    task.Answered == nil && tutor.Probes(p, s.content, task.Topic, task.TutorMode),
+		Probe:    task.Answered == nil && tutor.Probes(p, tutor.Shown(s.content, chat), task.Topic, task.TutorMode),
 	}
 }
 
@@ -276,9 +276,12 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	}
 
 	now := s.now()
+	// A request for a task solved from the picture is gone for a chat not
+	// known to draw the card, as one past its window is.
 	request := p.OpenRequest
-	if request == nil || request.ID != in.RequestID || !request.Awaited(s.window, now) {
-		return s.stale(p, in.RequestID, chatFrom(ctx), now), nil
+	if request == nil || request.ID != in.RequestID || !request.Awaited(s.window, now) ||
+		!shownIn(request, pictureChatFrom(ctx)) {
+		return s.stale(p, in.RequestID, chatFrom(ctx), pictureChatFrom(ctx), now), nil
 	}
 	noteTaskRequest(ctx, request.ID)
 	outcome, err := s.judge(ctx, examined, checks.Against{
@@ -290,7 +293,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	}
 	done := &reviewed{
 		account: account, profile: p, revision: revision, outcome: &outcome, attempt: request.Attempts + 1,
-		level: request.Brief.GradeLevel, now: now, started: started, size: size,
+		level: request.Brief.GradeLevel, fromPicture: request.Brief.FromPicture(), now: now, started: started, size: size,
 	}
 
 	if !outcome.Accepted() {
@@ -298,7 +301,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	}
 	// The task gives the idea its package named once it is handed out, the
 	// task of a request an earlier build opened, which named none, among them.
-	request.Idea = s.requestIdea(p, request)
+	request.Idea = tutor.RequestIdea(p, s.content, request)
 	if request.Ahead {
 		return s.keep(ctx, done, in.Solver)
 	}
@@ -349,10 +352,11 @@ func (s *Service) judge(ctx context.Context, examined checks.Examined, against c
 // words tell the chat it came from what they tell of any task on the card. A
 // task that has had its answer is done with, and the card says no task comes
 // to it.
-func (s *Service) stale(p *profile.Profile, requestID string, chat chatKind, now time.Time) Reply[handedInOut] {
+func (s *Service) stale(p *profile.Profile, requestID string, chat chatKind, pictures profile.Chat, now time.Time,
+) Reply[handedInOut] {
 	if ready := p.ReadyTask; ready != nil && ready.ID == profile.TaskIDFor(requestID) {
 		return s.keptReply(p, fmt.Sprintf("Task %s was accepted already and is kept: nothing was checked or spent.",
-			ready.ID))
+			ready.ID), pictures)
 	}
 	lead := "The request_id is not the open request's: that request was accepted already, ran out of attempts, " +
 		"was replaced by a newer one or waited too long. Nothing was checked or spent."
@@ -376,7 +380,7 @@ func (s *Service) stale(p *profile.Profile, requestID string, chat chatKind, now
 		}
 	}
 	reply := s.onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card. %s Ask for a new task only "+
-		"when another is asked for.", lead, task.ID, taskText(chat)))
+		"when another is asked for.", lead, task.ID, taskText(chat, task.FromPicture)), pictures)
 	reply.Payload.Status, reply.Payload.Code = statusStale, codeStaleRequest
 	return reply
 }
@@ -391,9 +395,11 @@ type reviewed struct {
 	outcome  *checks.Outcome
 	attempt  int
 	// level is the level of the request's brief, which the line about the
-	// review names.
-	level rating.GradeLevel
-	now   time.Time
+	// review names, and fromPicture whether the brief asked for a task solved
+	// from the picture, which the line says so that those are counted apart.
+	level       rating.GradeLevel
+	fromPicture bool
+	now         time.Time
 	// started is when the call began, for how long the review took.
 	started time.Time
 	// size is how large the hand-in was.
@@ -475,7 +481,7 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 	}, done.now)...)
 	reply := s.onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s goes on the child's card now. %s "+
 		"Never say which option is right before the child has answered, even when the adult asks. %s", done.attempt,
-		issued.ID, taskText(chatFrom(ctx)), aheadNextText))
+		issued.ID, taskText(chatFrom(ctx), issued.FromPicture), aheadNextText), pictureChatFrom(ctx))
 	reply.Payload.Attempt = done.attempt
 	return reply, nil
 }
@@ -501,8 +507,10 @@ func (s *Service) keep(ctx context.Context, done *reviewed, program string) (Rep
 		zap.Int("attempts", done.attempt),
 		zap.Int64("seconds_since_request", int64(done.now.Sub(request.OpenedAt.Time)/time.Second)),
 		zap.String("picture", picture.KindOf(kept.Picture)),
+		zap.Bool("from_picture", kept.FromPicture),
 	)
-	reply := s.keptReply(p, fmt.Sprintf("Accepted at attempt %d and kept: task %s is written ahead.", done.attempt, kept.ID))
+	reply := s.keptReply(p, fmt.Sprintf("Accepted at attempt %d and kept: task %s is written ahead.", done.attempt, kept.ID),
+		pictureChatFrom(ctx))
 	reply.Payload.Attempt = done.attempt
 	return reply, nil
 }
@@ -512,7 +520,7 @@ func (s *Service) keep(ctx context.Context, done *reviewed, program string) (Rep
 // payload keeps the shape a card is drawn from: the task the child is working
 // on, when there is one, and else a card no task comes to — the task kept
 // comes on the card next_task draws when the next task is asked for.
-func (s *Service) keptReply(p *profile.Profile, lead string) Reply[handedInOut] {
+func (s *Service) keptReply(p *profile.Profile, lead string, chat profile.Chat) Reply[handedInOut] {
 	text := joined(lead, "It comes on the card next_task draws the moment the next task is asked for. "+
 		"Say nothing about it, and ask for no other task: the child is working on the one on the card.",
 		s.lastAnswerText(p))
@@ -521,7 +529,7 @@ func (s *Service) keptReply(p *profile.Profile, lead string) Reply[handedInOut] 
 	}
 	if task := p.CurrentTask; task != nil {
 		payload = handedInOut{
-			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: s.cardOf(p, task),
+			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: s.cardOf(p, task, chat),
 			Language: task.Language,
 		}
 	}
@@ -567,11 +575,11 @@ func secretOf(task *checks.Task, program string) *profile.TaskSecret {
 
 // onTheCard is the task the child has, as the card shows it and as the words
 // read it out where there is no card.
-func (s *Service) onTheCard(p *profile.Profile, task *profile.CurrentTask, lead string) Reply[handedInOut] {
+func (s *Service) onTheCard(p *profile.Profile, task *profile.CurrentTask, lead string, chat profile.Chat) Reply[handedInOut] {
 	return Reply[handedInOut]{
 		Text: lead + "\n\n" + taskWords(task),
 		Payload: handedInOut{
-			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: s.cardOf(p, task),
+			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: s.cardOf(p, task, chat),
 			Language: task.Language,
 		},
 	}
@@ -646,6 +654,7 @@ func submittedFields(done *reviewed, event *checks.Submitted, took time.Duration
 		zap.Strings("retired", retired),
 		zap.Strings("mended", event.Mended),
 		questionInEnglishField(event),
+		zap.Bool("from_picture", done.fromPicture),
 	}, solutionPictureFields(task))
 }
 

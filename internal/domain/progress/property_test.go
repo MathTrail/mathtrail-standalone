@@ -33,7 +33,7 @@ func TestTheTrialSeriesDecidesWhetherARatingIsShown(t *testing.T) {
 			gaps.Delta = delta
 			p.Topics["counting.gaps"] = gaps
 
-			summary, err := progress.Of(p, catalog, today)
+			summary, err := progress.Of(p, catalog, today, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}
@@ -113,7 +113,7 @@ func TestTheTopicsListedAreTheOnesMetOrWithinReach(t *testing.T) {
 				p.Topics[ids[at]] = kept
 			}
 
-			summary, err := progress.Of(p, catalog, today)
+			summary, err := progress.Of(p, catalog, today, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}
@@ -155,7 +155,7 @@ func TestTheProgressReadsPauseAndBehindAsTheRuleDoes(t *testing.T) {
 				kept.Delta = delta
 				p.Topics[ids[at]] = kept
 			}
-			summary, err := progress.Of(p, catalog, today)
+			summary, err := progress.Of(p, catalog, today, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}

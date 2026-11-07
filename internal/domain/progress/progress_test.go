@@ -51,7 +51,7 @@ var today = profile.DateOf(time.Date(2026, time.October, 4, 12, 0, 0, 0, time.UT
 func summaryOf(t *testing.T, p *profile.Profile, catalog tutor.Catalog) progress.Summary {
 	t.Helper()
 
-	summary, err := progress.Of(p, catalog, today)
+	summary, err := progress.Of(p, catalog, today, profile.ChatWithCards)
 	if err != nil {
 		t.Fatalf("Of() error = %v, want nil", err)
 	}
@@ -301,7 +301,7 @@ func TestTheRecommendationIsTheRulesOwn(t *testing.T) {
 			t.Parallel()
 
 			p := fixture(t, student)
-			brief, _, err := tutor.Next(p, catalog, tutor.Choice{})
+			brief, _, err := tutor.Next(p, catalog, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				t.Fatalf("Next() error = %v", err)
 			}
@@ -377,7 +377,7 @@ func TestTheSkippedTasksAreShownToTheParent(t *testing.T) {
 func TestAProgressWithNothingToSuggestFails(t *testing.T) {
 	t.Parallel()
 
-	if _, err := progress.Of(fixture(t, "olya"), emptyCatalog{}, today); err == nil {
+	if _, err := progress.Of(fixture(t, "olya"), emptyCatalog{}, today, profile.ChatWithCards); err == nil {
 		t.Error("Of() error = nil for a catalog with no topics, want an error")
 	}
 }
@@ -388,6 +388,7 @@ func (emptyCatalog) TopicIDs() []string                              { return ni
 func (emptyCatalog) LevelsOf(string) []rating.GradeLevel             { return nil }
 func (emptyCatalog) TrapIDs() []string                               { return nil }
 func (emptyCatalog) ExampleTraps(string, rating.GradeLevel) []string { return nil }
+func (emptyCatalog) SolvedFromPicture(string) bool                   { return false }
 
 // A topic the catalog no longer has is not listed, and its skips still count
 // in all: the total is every task the profile recorded as left without an

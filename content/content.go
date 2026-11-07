@@ -39,7 +39,7 @@ type Content struct {
 	templates map[string][]Template
 	pictures  []PictureExample
 	// ideas are the ideas of each topic, by its id and then by level.
-	ideas map[string]map[rating.GradeLevel][]string
+	ideas map[string]ideaFile
 
 	topicByID map[string]Topic
 	trapByID  map[string]Trap
@@ -214,6 +214,24 @@ func (c *Content) LevelsOf(topic string) []rating.GradeLevel {
 // not taught at, has none.
 func (c *Content) IdeaCount(topic string, level rating.GradeLevel) int {
 	return len(c.ideas[topic][level])
+}
+
+// SolvedFromPicture reports whether every task of a topic is solved from the
+// picture, and false for a topic the catalog does not have.
+func (c *Content) SolvedFromPicture(topic string) bool {
+	return c.topicByID[topic].SolvedFromPicture
+}
+
+// IdeaFromPicture reports whether the task built on an idea, by its place
+// from 1 on its topic's list at a level, is solved from the picture: one the
+// list marks so, or any idea of a topic all of whose tasks are. A place the
+// list does not have is no such idea.
+func (c *Content) IdeaFromPicture(topic string, level rating.GradeLevel, number int) bool {
+	list := c.ideas[topic][level]
+	if number < 1 || number > len(list) {
+		return false
+	}
+	return c.SolvedFromPicture(topic) || list[number-1].fromPicture
 }
 
 // BasesOf lists the topics a topic builds on, in catalog order: none for a

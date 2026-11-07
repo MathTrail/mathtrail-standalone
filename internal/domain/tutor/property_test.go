@@ -132,7 +132,7 @@ func TestTheRuleHoldsItsProperties(t *testing.T) {
 
 	properties.Property("the same profile always gives the same brief", prop.ForAll(
 		func(s *seed) bool {
-			first, mode, err := tutor.Next(s.build(), c, tutor.Choice{})
+			first, mode, err := tutor.Next(s.build(), c, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}
@@ -140,7 +140,7 @@ func TestTheRuleHoldsItsProperties(t *testing.T) {
 			// two calls on one profile would miss a rule that read the map
 			// once and remembered.
 			for range 20 {
-				again, mode2, err := tutor.Next(s.build(), c, tutor.Choice{})
+				again, mode2, err := tutor.Next(s.build(), c, tutor.Choice{}, profile.ChatWithCards)
 				if err != nil || mode != mode2 || !reflect.DeepEqual(first, again) {
 					return false
 				}
@@ -153,7 +153,7 @@ func TestTheRuleHoldsItsProperties(t *testing.T) {
 	properties.Property("the brief can always be filled", prop.ForAll(
 		func(s *seed) bool {
 			p := s.build()
-			brief, _, err := tutor.Next(p, c, tutor.Choice{})
+			brief, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 			return err == nil && fillable(p, &brief, c)
 		},
 		genSeed(),
@@ -163,8 +163,8 @@ func TestTheRuleHoldsItsProperties(t *testing.T) {
 		func(s *seed, other int) bool {
 			p, q := s.build(), s.build()
 			q.Student.Grade = 1 + other%6
-			first, _, err := tutor.Next(p, c, tutor.Choice{})
-			second, _, err2 := tutor.Next(q, c, tutor.Choice{})
+			first, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
+			second, _, err2 := tutor.Next(q, c, tutor.Choice{}, profile.ChatWithCards)
 			return err == nil && err2 == nil && reflect.DeepEqual(first, second)
 		},
 		genSeed(), gen.IntRange(0, 5),
@@ -186,7 +186,7 @@ func TestOutOfReachOnlyAProbeIsSet(t *testing.T) {
 		"on a probe's turn, and a topic on pause whose easiest task the overall level reaches", prop.ForAll(
 		func(s *seed) bool {
 			p := s.build()
-			brief, _, err := tutor.Next(p, c, tutor.Choice{})
+			brief, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}
@@ -207,7 +207,7 @@ func TestOutOfReachOnlyAProbeIsSet(t *testing.T) {
 			if !tutor.ProbeDue(p) || len(probed) == 0 {
 				return true
 			}
-			brief, _, err := tutor.Next(p, c, tutor.Choice{})
+			brief, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}
@@ -231,7 +231,7 @@ func TestATopicOnPauseBeyondTheOverallLevelIsNeverSet(t *testing.T) {
 		"pause has its easiest task within reach of the overall level", prop.ForAll(
 		func(s *seed) bool {
 			p := s.build()
-			brief, _, err := tutor.Next(p, c, tutor.Choice{})
+			brief, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}
@@ -276,7 +276,7 @@ func TestTheRuleKeepsWithinReach(t *testing.T) {
 				return true
 			}
 			failed := p.Recent[len(p.Recent)-1].Topic
-			brief, _, err := tutor.Next(p, c, tutor.Choice{})
+			brief, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 			if err != nil {
 				return false
 			}
@@ -348,7 +348,7 @@ func settingAfter(s *seed, c catalog, answered, skipped int) (string, bool) {
 	topic.Skipped = skipped
 	p.Topics[c.topics[0]] = topic
 
-	brief, _, err := tutor.Next(p, c, tutor.Choice{})
+	brief, _, err := tutor.Next(p, c, tutor.Choice{}, profile.ChatWithCards)
 	return brief.Setting, err == nil
 }
 
@@ -559,7 +559,7 @@ func playDay(t *testing.T, catalog tutor.Catalog, sealer profile.Sealer, d *dayS
 			behind[topic] = p.Behind(topic)
 		}
 		due, probeable := tutor.ProbeDue(p), tutor.Probeable(p, catalog)
-		next, mode, err := tutor.Next(p, catalog, tutor.Choice{})
+		next, mode, err := tutor.Next(p, catalog, tutor.Choice{}, profile.ChatWithCards)
 		if err != nil {
 			t.Fatalf("Next() error = %v, want nil", err)
 		}
