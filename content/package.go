@@ -30,6 +30,11 @@ const examplesPerPackage = 3
 // in and checked.
 const guideName = "task_writing.md"
 
+// pictureGuideName is the guide's section on a task solved from the picture,
+// which only the package of such a task carries, after the guide: a task in
+// words would pay for its words with every package and use none of them.
+const pictureGuideName = "task_writing_picture.md"
+
 // Request is what a package is built from: the brief the task is to be
 // written to, the corridor its level and difficulty came from and the child it
 // is for.
@@ -202,6 +207,15 @@ type packageLimits struct {
 	TotalCharacters    int `json:"total_characters"`
 }
 
+// guideFor is the guide a package carries for a brief: with the section on a
+// task solved from the picture after it when the brief asks for one.
+func (c *Content) guideFor(brief *profile.Brief) string {
+	if !brief.FromPicture() {
+		return c.instructions[guideName]
+	}
+	return c.instructions[guideName] + "\n" + c.instructions[pictureGuideName]
+}
+
 // contentsFor gathers every part of a package for one request.
 func (c *Content) contentsFor(request *Request) (packageContents, error) {
 	topic, known := c.topicByID[request.Brief.TargetConcept]
@@ -242,7 +256,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 		},
 		Templates: c.templatePrograms(topic.ID),
 		Pictures:  c.picturesFor(topic.ID),
-		Guide:     c.instructions[guideName],
+		Guide:     c.guideFor(&request.Brief),
 	}
 	examples := c.examplesFor(request.Brief.TargetConcept, level, request.Brief.Difficulty, request.TopicTasks)
 	contents.Examples = make([]packageExample, 0, len(examples)) // a topic with none is shown an empty list, not null

@@ -28,7 +28,8 @@
     "Number cards split into two piles with equal sums: which sets can be split.",
     "Gears in a ring, each turning the next one the other way: with an odd number of gears none of them can turn.",
     "Fruits picked by rules that change the number of one kind by two or not at all: that number stays even or odd, which tells the last fruit.",
-    "Creatures with three hands each, holding hands so that no hand is free: an odd number of them cannot do it."
+    "Creatures with three hands each, holding hands so that no hand is free: an odd number of them cannot do it.",
+    {"idea": "Identical tiles in a row, the numbers equal where two tiles touch: following the tiles from one whose numbers are shown gives the number marked ?.", "solved_from_picture": true}
   ],
   "5-6": [
     "Steps that add or multiply: which numbers can be reached.",
@@ -48,6 +49,7 @@
     "The squares of a chessboard numbered row by row: a row has an even number of squares, so the odd numbers lie on one colour in a row and on the other in the next.",
     "Children round a table where each child and both neighbours together hold an odd number of sweets: the numbers repeat every three places, so unless three divides the count, each holds an odd number.",
     "A number written as a sum of odd numbers in a row: an odd count of them gives an odd sum, and an even count a multiple of four.",
-    "Numbers chosen from a small set and told only by their product: when that product cannot tell whether their sum is odd or even."
+    "Numbers chosen from a small set and told only by their product: when that product cannot tell whether their sum is odd or even.",
+    {"idea": "A crown of identical tiles in a ring, the numbers equal where tiles touch and some hidden: going round both ways tells the number marked ?.", "solved_from_picture": true}
   ]
 }

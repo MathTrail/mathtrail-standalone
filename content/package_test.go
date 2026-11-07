@@ -234,6 +234,40 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 	}
 }
 
+// The package of a task solved from the picture carries the guide's section on
+// such tasks after the guide, and the package of a task in words the guide
+// alone: the section is read by the model writing such a task, and paid for by
+// no other.
+func TestOnlyThePackageOfATaskSolvedFromThePictureCarriesItsSection(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	guide, _ := shipped.Instruction("task_writing.md")
+	section, ok := shipped.Instruction("task_writing_picture.md")
+	if !ok || !strings.HasPrefix(section, "## A task solved from the picture\n") {
+		t.Fatalf("the section is %q, want the guide's section on a task solved from the picture", section)
+	}
+	for _, tc := range []struct {
+		name        string
+		constraints []string
+		want        string
+	}{
+		{"in words", []string{}, guide},
+		{"solved from the picture", []string{profile.FactsOnThePicture}, guide + "\n" + section},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			asked := request("geometry.grid", rating.Grades56, 3, 0)
+			asked.Brief.Constraints = tc.constraints
+			if _, got := packageFor(t, shipped, asked); got.Guide != tc.want {
+				t.Errorf("the guide is %d bytes, want %d: the guide, with the section after it only for a task "+
+					"solved from the picture", len(got.Guide), len(tc.want))
+			}
+		})
+	}
+}
+
 // A package names the idea of the topic its task is built on, as the request
 // named it: the words at its place on the topic's list at the brief's level,
 // and the round of the list it was named in.
@@ -611,8 +645,10 @@ func typicalRequests(shipped *content.Content) []*content.Request {
 // at every limit the profile sets: the longest notes, a setting as long as an
 // interest may be, and as many excluded skills as it allows, the
 // longest-described of them. Each is the model's own choice, made with the
-// longest reason the rule takes. The child's own text and the model's reason
-// are one letter repeated, so that a wider letter makes a heavier package.
+// longest reason the rule takes, and asks for a task solved from the picture,
+// whose package carries the guide's section on such tasks besides the guide.
+// The child's own text and the model's reason are one letter repeated, so that
+// a wider letter makes a heavier package.
 func requestsAtTheLimits(t *testing.T, shipped *content.Content, letter string) []*content.Request {
 	t.Helper()
 
@@ -635,6 +671,7 @@ func requestsAtTheLimits(t *testing.T, shipped *content.Content, letter string) 
 					asked.Brief.Setting = strings.Repeat(letter, profile.MaxInterest)
 					asked.Brief.ExcludedSkills = excluded
 					asked.Brief.Rationale = rationale
+					asked.Brief.Constraints = []string{profile.FactsOnThePicture}
 					heaviest = append(heaviest, asked)
 				}
 			}
@@ -867,28 +904,55 @@ func ideasOf(t *testing.T, topic string) map[rating.GradeLevel][]string {
 	if err != nil {
 		t.Fatalf("read the ideas of %s: %v", topic, err)
 	}
-	var lists map[rating.GradeLevel][]string
-	if err := json.Unmarshal(raw, &lists); err != nil {
+	var listed map[rating.GradeLevel][]json.RawMessage
+	if err := json.Unmarshal(raw, &listed); err != nil {
 		t.Fatalf("parse the ideas of %s: %v", topic, err)
 	}
+	lists := make(map[rating.GradeLevel][]string, len(listed))
+	for level, ideas := range listed {
+		for _, idea := range ideas {
+			lists[level] = append(lists[level], ideaText(t, idea))
+		}
+	}
 	return lists
+}
+
+// ideaText is the words of an idea as its list writes it: a text, or the
+// object of an idea solved from the picture.
+func ideaText(t *testing.T, idea json.RawMessage) string {
+	t.Helper()
+
+	var text string
+	if err := json.Unmarshal(idea, &text); err == nil {
+		return text
+	}
+	var marked struct {
+		Idea string `json:"idea"`
+	}
+	if err := json.Unmarshal(idea, &marked); err != nil {
+		t.Fatalf("parse the idea %s: %v", idea, err)
+	}
+	return marked.Idea
 }
 
 // The guide points the model at parts of the package by name, and at the
 // difficulty every reference task carries. Every such name is a part the
 // package has, so that a rename on one side cannot leave the other pointing at
-// nothing.
+// nothing. The guide is read as the package of a task solved from the picture
+// carries it, with its section on such tasks after it.
 func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	encoded, _ := packageFor(t, shipped, request("counting.gaps", rating.Grades12, 3, 0))
+	asked := request("counting.gaps", rating.Grades12, 3, 0)
+	asked.Brief.Constraints = []string{profile.FactsOnThePicture}
+	encoded, got := packageFor(t, shipped, asked)
 	var tree map[string]any
 	if err := json.Unmarshal(encoded, &tree); err != nil {
 		t.Fatalf("read the package: %v", err)
 	}
 
-	guide, _ := shipped.Instruction("task_writing.md")
+	guide := got.Guide
 	named := regexp.MustCompile("`((?:limits|child|brief|idea)(?:\\.[a-z_]+)+)`").FindAllStringSubmatch(guide, -1)
 	if len(named) == 0 {
 		t.Fatal("the guide names no part of the package")
@@ -910,6 +974,7 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 		"`solver_templates`", "`pictures`", "## The difficulty", "`idea.text`", "`idea.round`", "`core_idea`",
 		"Only `prohibitions` come before it",
 		"every text the child reads in the package's `language`",
+		"`facts_on_the_picture`", "`solve(options, picture)`", "`solver_unread`", "`facts_in_words`",
 	} {
 		if !strings.Contains(guide, said) {
 			t.Errorf("the guide does not say %q", said)

@@ -19,7 +19,8 @@
     "One number crossed out of a list so that the others add up to a given total: it is what the whole sum is over by.",
     "A little table whose rows and columns are added up: all the rows together make as much as all the columns.",
     "A whole that is a few things and half of itself more, such as a catch of fish: the few are the other half.",
-    "A snail that climbs so far by day and slips back less by night: on its last day it reaches the top and does not slip."
+    "A snail that climbs so far by day and slips back less by night: on its last day it reaches the top and does not slip.",
+    {"idea": "Rows of two or three shapes with a total beside each, the same shape always the same number: a row of one kind of shape gives it, and the others follow.", "solved_from_picture": true}
   ],
   "3-4": [
     "Heads and legs of two kinds of animals: suppose all were of one kind, and each animal of the other kind adds the difference in legs.",
@@ -41,7 +42,8 @@
     "Strengths or prices tied together in a chain, each so many times another: all counted in units of the smallest.",
     "Leftovers made into new pieces: every few used pieces give one more, which is used in its turn.",
     "An answer chosen by estimating: each number rounded, and only one of the options is near.",
-    "Nine dates in a square on a calendar page: they add up to nine times the one in the middle."
+    "Nine dates in a square on a calendar page: they add up to nine times the one in the middle.",
+    {"idea": "Rows of three or four kinds of shapes with their totals, no row of one kind alone: two rows that differ by one shape give that shape's number.", "solved_from_picture": true}
   ],
   "5-6": [
     "Sums of 1, 11, 111 and so on, column by column.",

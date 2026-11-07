@@ -411,7 +411,7 @@ func TestInstructionsAreInTheBinary(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)
 
-	for _, name := range []string{"mcp_instructions.md", "task_writing.md", "widget_description.md"} {
+	for _, name := range []string{"mcp_instructions.md", "task_writing.md", "task_writing_picture.md", "widget_description.md"} {
 		text, ok := c.Instruction(name)
 		if !ok || text == "" {
 			t.Errorf("Instruction(%s) = %q, %v; want the text of the file", name, text, ok)
