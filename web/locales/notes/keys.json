@@ -1771,6 +1771,20 @@
 		"address": "none",
 		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Two players take turns; 'winning strategy' is the term of the language's olympiad books."
 	},
+	"topic.counting.figures": {
+		"reader": "both",
+		"where": "The name of the topic Counting figures: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. Counting the triangles or squares a figure on squared paper holds, and matches moved or taken away; in Russian it is the question 'how many figures'."
+	},
+	"topic.geometry.cubes_paper": {
+		"reader": "both",
+		"where": "The name of the topic Cubes and paper: a result's band, the progress, the topic choice, and its page's heading on the site.",
+		"length": "label",
+		"address": "none",
+		"mind": "Also a link and a button, and set unchanged into sentences such as topic_choice.ask, so it keeps its dictionary form. The nets of a cube, a sheet of paper folded and punched, and a die rolled along a row of cells: a cube as a shape, never a number cubed."
+	},
 	"skill.addition": {
 		"reader": "parent",
 		"where": "The skill Addition: a tick under 'Not at school yet' on the profile's form, and listed under it in the profile.",

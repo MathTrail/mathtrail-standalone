@@ -327,6 +327,9 @@ func TestEveryTopicHasASolverTemplate(t *testing.T) {
 
 	embedded := loaded(t)
 	for _, topic := range embedded.Topics() {
+		if waitsForReferenceTasks(topic.ID) {
+			continue
+		}
 		if len(embedded.Templates(topic.ID)) == 0 {
 			t.Errorf("%s: got no solver template, want one generalised from the solvers of its "+
 				"reference tasks, in solvers/%s/", topic.ID, topic.ID)

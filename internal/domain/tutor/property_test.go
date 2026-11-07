@@ -553,12 +553,12 @@ func playDay(t *testing.T, catalog tutor.Catalog, sealer profile.Sealer, d *dayS
 	given := map[string]int{} // where each topic's last task stands in the day, from one
 	steps := make([]step, 0, tasks)
 	for place := 1; place <= tasks; place++ {
-		waiting := waitingFor(p, catalog)
+		waiting := waitingFor(p, shownTo(p, catalog))
 		behind := map[string]bool{}
 		for _, topic := range waiting {
 			behind[topic] = p.Behind(topic)
 		}
-		due, probeable := tutor.ProbeDue(p), tutor.Probeable(p, catalog)
+		due, probeable := tutor.ProbeDue(p), tutor.Probeable(p, shownTo(p, catalog))
 		next, mode, err := tutor.Next(p, catalog, tutor.Choice{}, profile.ChatWithCards)
 		if err != nil {
 			t.Fatalf("Next() error = %v, want nil", err)
@@ -573,12 +573,22 @@ func playDay(t *testing.T, catalog tutor.Catalog, sealer profile.Sealer, d *dayS
 		given[task.Topic] = place
 		if random.Float64() >= d.Left {
 			set.right = answeredByChance(t, catalog, p, task, truth, sealer, random)
-			set.reachedAfter = slices.Contains(tutor.WithinReach(p, catalog), task.Topic)
+			set.reachedAfter = slices.Contains(tutor.WithinReach(p, shownTo(p, catalog)), task.Topic)
 		}
 		steps = append(steps, set)
 		now = now.Add(3 * time.Minute)
 	}
 	return steps
+}
+
+// shownTo is the catalog the rule chooses among for the child in a chat that
+// draws the card: the whole of it once the trial series is over, and during
+// the series only the topics told in words.
+func shownTo(p *profile.Profile, catalog tutor.Catalog) tutor.Catalog {
+	if p.Ratings.InTrial() {
+		return tutor.Shown(catalog, profile.ChatOfWords)
+	}
+	return tutor.Shown(catalog, profile.ChatWithCards)
 }
 
 // waitingFor is what the rule chooses a topic anew among: the topics within

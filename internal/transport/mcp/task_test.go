@@ -2118,12 +2118,9 @@ func TestNextTaskStatesWhatItTakes(t *testing.T) {
 	tool := listed.Tools[at]
 	loaded, _ := shipped()
 	for _, topic := range loaded.Topics() {
-		levels := make([]string, 0, len(topic.GradeLevels))
-		for _, level := range topic.GradeLevels {
-			levels = append(levels, string(level))
-		}
-		if line := "- " + topic.ID + " (" + strings.Join(levels, ", ") + ")"; !strings.Contains(tool.Description, line) {
-			t.Errorf("the description of next_task does not name the topic %s with its levels, %q", topic.ID, line)
+		if levels := taughtLine(t, tool.Description, topic.ID); !slices.Equal(levels, topic.GradeLevels) {
+			t.Errorf("the description of next_task names the topic %s after the levels %v, want %v",
+				topic.ID, levels, topic.GradeLevels)
 		}
 	}
 	schema, err := json.Marshal(tool.InputSchema)
@@ -2133,6 +2130,32 @@ func TestNextTaskStatesWhatItTakes(t *testing.T) {
 	if want := fmt.Sprintf("at most %d characters", tutor.MaxReason); !strings.Contains(string(schema), want) {
 		t.Errorf("the input schema does not say %q about the reason", want)
 	}
+}
+
+// taughtLine is the levels the description of next_task names a topic after:
+// those of the one line of its list — "- " and the levels, ": " and the ids —
+// that holds the topic's id, or none when no line does or more than one does.
+func taughtLine(t *testing.T, description, topic string) []rating.GradeLevel {
+	t.Helper()
+
+	var levels []rating.GradeLevel
+	found := 0
+	for line := range strings.Lines(description) {
+		item, listed := strings.CutPrefix(strings.TrimSuffix(line, "\n"), "- ")
+		taught, ids, ok := strings.Cut(item, ": ")
+		if !listed || !ok || !slices.Contains(strings.Split(ids, ", "), topic) {
+			continue
+		}
+		found++
+		levels = levels[:0]
+		for level := range strings.SplitSeq(taught, ", ") {
+			levels = append(levels, rating.GradeLevel(level))
+		}
+	}
+	if found != 1 {
+		return nil
+	}
+	return levels
 }
 
 // skipsPayload is what the progress shows of the skipped tasks.

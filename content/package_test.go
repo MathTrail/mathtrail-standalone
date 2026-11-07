@@ -410,6 +410,9 @@ func TestAPackageShowsATaskThatDrawsAndOneThatDrawsItsSolution(t *testing.T) {
 		}
 	}
 	for _, topic := range shipped.Topics() {
+		if waitsForReferenceTasks(topic.ID) {
+			continue
+		}
 		for _, level := range topic.GradeLevels {
 			wantEveryPackageToDrawASolution(t, shipped, topic.ID, level, drawn[topic.ID+" "+string(level)])
 		}

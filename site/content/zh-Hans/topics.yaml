@@ -85,3 +85,7 @@ topics:
     phrase: 有些孩子同时参加两个兴趣小组。如何避免把这些孩子数两次。
   winning-strategy:
     phrase: 谁能拿到最后一根火柴？找出无论对方怎么走都能赢的局面。
+  counting-figures:
+    phrase: 一幅图里藏着多少个三角形或正方形，拿走或移动火柴后又会怎样变化。
+  cubes-and-paper:
+    phrase: 把展开图折成正方体，把打了孔的纸展开，让骰子沿着方格滚动：先在脑子里想，再动手验证。

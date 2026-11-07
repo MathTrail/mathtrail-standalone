@@ -425,8 +425,10 @@ describe("the panel of topics", () => {
 				[
 					"Enumeration",
 					"Gaps and boundaries",
+					"Counting figures",
 					"Pigeonhole principle",
 					"Figures on a square grid",
+					"Cubes and paper",
 				],
 			],
 			["Time", ["Clocks", "Calendar and age"]],

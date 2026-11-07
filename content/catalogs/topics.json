@@ -231,5 +231,33 @@
       "parity.alternation"
     ],
     "site_page": true
+  },
+  {
+    "id": "counting.figures",
+    "name": "Counting figures",
+    "description": "How many triangles or squares a figure drawn on squared paper holds, and matches moved or taken away to leave a figure.",
+    "grade_levels": [
+      "1-2",
+      "3-4",
+      "5-6"
+    ],
+    "slug": "counting-figures",
+    "builds_on": [],
+    "site_page": false,
+    "solved_from_picture": true
+  },
+  {
+    "id": "geometry.cubes_paper",
+    "name": "Cubes and paper",
+    "description": "The nets of a cube, a sheet folded and punched, and a die rolled along a straight path.",
+    "grade_levels": [
+      "1-2",
+      "3-4",
+      "5-6"
+    ],
+    "slug": "cubes-and-paper",
+    "builds_on": [],
+    "site_page": false,
+    "solved_from_picture": true
   }
 ]

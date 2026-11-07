@@ -85,3 +85,7 @@ topics:
     phrase: Certains enfants vont dans deux clubs à la fois. Comment ne pas les compter deux fois.
   winning-strategy:
     phrase: Qui prendra la dernière allumette ? Chercher les positions gagnantes, quoi que fasse l’autre joueur.
+  counting-figures:
+    phrase: Combien de triangles ou de carrés se cachent dans un dessin, et ce qui change quand on enlève ou déplace des allumettes.
+  cubes-and-paper:
+    phrase: "Plier un patron en cube, déplier une feuille percée, faire rouler un dé sur des cases : d’abord l’imaginer, puis vérifier."

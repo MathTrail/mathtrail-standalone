@@ -84,3 +84,7 @@ topics:
     phrase: Some children go to two clubs at once. How not to count them twice.
   winning-strategy:
     phrase: Who takes the last match? Look for the positions that win whatever the other player does.
+  counting-figures:
+    phrase: How many triangles or squares hide in one drawing, and what changes when matches are taken away or moved.
+  cubes-and-paper:
+    phrase: "Fold a net into a cube, unfold a punched sheet, roll a die along a row: picture it first, then check."

@@ -45,14 +45,14 @@
         "read_as": "size",
         "better": "lower",
         "bound": {
-          "value": 0.25618330849925247,
+          "value": 0.2836308007561347,
           "own": true
         },
         "values": {
           "service": {
-            "value": 0.5692962411094499,
-            "low": 0.38298774648215267,
-            "high": 0.758161561800759,
+            "value": 0.630290668346966,
+            "low": 0.40784626655935935,
+            "high": 0.8794873182728689,
             "mark": "baseline"
           },
           "ceiling": {
@@ -73,21 +73,21 @@
         "read_as": "value",
         "better": "higher",
         "bound": {
-          "value": 0.44073499999999993,
+          "value": 0.402865,
           "own": true
         },
         "values": {
           "service": {
-            "value": 0.37849999999999995,
-            "low": 0.30700000000000005,
-            "high": 0.44699999999999995,
+            "value": 0.32199999999999995,
+            "low": 0.2425,
+            "high": 0.3985,
             "mark": "baseline"
           },
           "ceiling": {
             "of": "oracle",
-            "value": 0.6089999999999999,
-            "low": 0.5924999999999999,
-            "high": 0.6305000000000001
+            "value": 0.6214999999999999,
+            "low": 0.5995,
+            "high": 0.643
           }
         }
       },
@@ -106,9 +106,9 @@
         },
         "values": {
           "service": {
-            "value": 0.5,
-            "low": 0.2,
-            "high": 0.8,
+            "value": 0.3,
+            "low": 0,
+            "high": 0.6,
             "mark": "on_the_edge"
           },
           "ceiling": {
@@ -134,9 +134,9 @@
         },
         "values": {
           "service": {
-            "value": 0.022222222222222223,
+            "value": 0.028037383177570093,
             "low": 0,
-            "high": 0.05172413793103448,
+            "high": 0.06862745098039216,
             "mark": "reached"
           },
           "ceiling": {
@@ -162,10 +162,10 @@
         },
         "values": {
           "service": {
-            "value": 0.1,
-            "low": 0.00819672131147541,
-            "high": 0.22580645161290322,
-            "mark": "on_the_edge"
+            "value": 0.07216494845360824,
+            "low": 0.0070921985815602835,
+            "high": 0.14893617021276595,
+            "mark": "reached"
           },
           "ceiling": {
             "of": "perfect",
@@ -185,14 +185,14 @@
         "read_as": "value",
         "better": "lower",
         "bound": {
-          "value": 6.964285714285715,
+          "value": 5.643750000000001,
           "own": true
         },
         "values": {
           "service": {
-            "value": 4.642857142857143,
-            "low": 3.6206896551724137,
-            "high": 6.148148148148148,
+            "value": 3.7625,
+            "low": 3.278688524590164,
+            "high": 4.258064516129032,
             "mark": "baseline"
           },
           "ceiling": {
@@ -213,14 +213,14 @@
         "read_as": "value",
         "better": "lower",
         "bound": {
-          "value": 5.43,
+          "value": 5.8809523809523805,
           "own": true
         },
         "values": {
           "service": {
-            "value": 3.62,
-            "low": 2.4444444444444446,
-            "high": 4.53125,
+            "value": 3.9206349206349205,
+            "low": 2.6285714285714286,
+            "high": 5.076086956521739,
             "mark": "baseline"
           },
           "ceiling": {
@@ -246,9 +246,9 @@
         },
         "values": {
           "service": {
-            "value": 42,
-            "low": 38,
-            "high": 44,
+            "value": 44,
+            "low": 42,
+            "high": 45,
             "mark": "reached"
           },
           "ceiling": null
@@ -269,10 +269,10 @@
         },
         "values": {
           "service": {
-            "value": 3.725490196078431,
+            "value": 0.39215686274509803,
             "low": 0,
-            "high": 8.823529411764707,
-            "mark": "on_the_edge"
+            "high": 1.176470588235294,
+            "mark": "reached"
           },
           "ceiling": null
         }
@@ -287,14 +287,14 @@
         "read_as": "value",
         "better": "lower",
         "bound": {
-          "value": 73,
+          "value": 72,
           "own": false
         },
         "values": {
           "service": {
-            "value": 40,
-            "low": 34,
-            "high": 44,
+            "value": 42,
+            "low": 36,
+            "high": 48,
             "mark": "reached"
           },
           "ceiling": null
@@ -310,14 +310,14 @@
         "read_as": "value",
         "better": "lower",
         "bound": {
-          "value": 2,
+          "value": 2.666666666666667,
           "own": false
         },
         "values": {
           "service": {
-            "value": 0.588235294117647,
+            "value": 0.980392156862745,
             "low": 0,
-            "high": 1.3725490196078431,
+            "high": 2.549019607843137,
             "mark": "reached"
           },
           "ceiling": null
@@ -335,9 +335,9 @@
         "bound": null,
         "values": {
           "service": {
-            "value": 0.44084139166553227,
-            "low": 0.381636916823789,
-            "high": 0.49586594436253506,
+            "value": 0.45758626293284166,
+            "low": 0.4057623015265688,
+            "high": 0.5001387154685324,
             "mark": null
           },
           "ceiling": {
@@ -360,23 +360,23 @@
         "bound": null,
         "values": {
           "service": {
-            "value": 0.47750000000000015,
-            "low": 0.4615,
-            "high": 0.49450000000000005,
+            "value": 0.46950000000000003,
+            "low": 0.449,
+            "high": 0.48850000000000005,
             "mark": null
           },
           "ceiling": {
             "of": "oracle",
-            "value": 0.6234999999999999,
-            "low": 0.604,
-            "high": 0.6439999999999999
+            "value": 0.6355,
+            "low": 0.6194999999999999,
+            "high": 0.653
           }
         }
       }
     ]
   },
   "product": {
-    "topics": 17,
+    "topics": 19,
     "traps": 20,
     "checks": 11,
     "grades": {

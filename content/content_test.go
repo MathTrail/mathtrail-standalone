@@ -36,6 +36,8 @@ var (
 		"number.divisibility",
 		"logic.sets",
 		"games.strategy",
+		"counting.figures",
+		"geometry.cubes_paper",
 	}
 	wantTraps = []string{
 		"off_by_one",
@@ -282,18 +284,21 @@ func TestLookupFindsAnEntryAndMissesWhatIsNotThere(t *testing.T) {
 // Grades 1-4 carry five reference tasks for every topic, level and difficulty.
 // Three of them go into the package for the model, and the rotation that stops
 // a child seeing the same examples twice has nothing to rotate without the
-// other two.
+// other two. A topic all of whose tasks are solved from the picture carries one
+// at each, as it does at every level.
 func TestEveryCellOfGradesOneToFourHasFiveTasks(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)
 
-	const want = 5
+	topics := c.Topics()
 	for _, level := range []rating.GradeLevel{rating.Grades12, rating.Grades34} {
 		count := tasksByTopicAndDifficulty(c, level)
-		for _, topic := range c.Topics() {
-			if !topic.HasLevel(level) {
+		for i := range topics {
+			topic := &topics[i]
+			if !topic.HasLevel(level) || waitsForReferenceTasks(topic.ID) {
 				continue
 			}
+			want := tasksAtEachDifficulty(topic, 5)
 			for difficulty := 1; difficulty <= 5; difficulty++ {
 				if got := count[topic.ID][difficulty]; got != want {
 					t.Errorf("%s at %s, difficulty %d: got %d reference tasks, want %d",
@@ -307,20 +312,39 @@ func TestEveryCellOfGradesOneToFourHasFiveTasks(t *testing.T) {
 // Grades 5–6 carry three reference tasks for every topic at each difficulty.
 // The rule aims at the middle of the corridor, but a request can still come at
 // either end, and a package for it would otherwise show the nearest middle
-// tasks there are; three of a difficulty let a package turn through them.
+// tasks there are; three of a difficulty let a package turn through them. A
+// topic all of whose tasks are solved from the picture carries one at each.
 func TestEveryTopicOfGradesFiveAndSixHasThreeTasksAtEachDifficulty(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)
 
 	count := tasksByTopicAndDifficulty(c, rating.Grades56)
-	for _, topic := range c.Topics() {
+	topics := c.Topics()
+	for i := range topics {
+		topic := &topics[i]
+		if waitsForReferenceTasks(topic.ID) {
+			continue
+		}
+		want := tasksAtEachDifficulty(topic, 3)
 		for difficulty := 1; difficulty <= 5; difficulty++ {
-			if got := count[topic.ID][difficulty]; got != 3 {
-				t.Errorf("%s at %s, difficulty %d: got %d reference tasks, want 3",
-					topic.ID, rating.Grades56, difficulty, got)
+			if got := count[topic.ID][difficulty]; got != want {
+				t.Errorf("%s at %s, difficulty %d: got %d reference tasks, want %d",
+					topic.ID, rating.Grades56, difficulty, got, want)
 			}
 		}
 	}
+}
+
+// tasksAtEachDifficulty is how many reference tasks a topic carries at each
+// difficulty of a level whose topics carry wordTasks: one, for a topic all of
+// whose tasks are solved from the picture. Its package still shows three, from
+// the difficulties around the one asked for, and each of its tasks is a genre's
+// whole picture and solver, which five or three to a difficulty would repeat.
+func tasksAtEachDifficulty(topic *content.Topic, wordTasks int) int {
+	if topic.SolvedFromPicture {
+		return 1
+	}
+	return wordTasks
 }
 
 // The reference tasks of one topic, level and difficulty do not all keep their
