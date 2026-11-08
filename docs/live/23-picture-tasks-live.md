@@ -11,6 +11,7 @@
   - Each of those repeats a reference task of its level, at 0.71 to 1.00: in today's topics the reference task of the idea itself, which the package shows last, and in the two new topics the nearest one of the level.
   - One question copied its reference task word for word.
   - Every second attempt rewrote the question, to 0.19 to 0.65 alike, and was accepted. No request ran out of attempts.
+  - A sentence of the guide that asks for the genre's rules in the model's own words (R327) took them away: a re-check of the five chats with the most of them gave none in 8 tasks.
   - Without the near-copies, 2 of 50 hand-ins were refused: one came with no picture at all, and one drew its answer, which the hidden answer's check caught.
 - **A task solved from the picture takes longer to write.**
   - The first hand-in came 31 s after the package on average, median 26 s.
@@ -87,9 +88,20 @@ The near-duplicate check compares a task solved from the picture with the refere
 - No refused picture was a reference task's picture. In 12 of the 14 refusals with a picture, the second attempt kept the picture and only rewrote the rules in other words.
 - The refusal is right by its own rule, since the question did copy a reference task, but the child gets nothing for it: the second task is the first in other words, 14 s later.
 
-What could change it is the author's to decide (RUN.md, table 3):
-- a sentence in the guide's section asking for the rules in the model's own words;
-- or comparing the picture with the reference tasks' pictures, as R321 compares it with the child's past tasks, rather than the question.
+The author chose a sentence in the guide's section, which asks for the genre's rules in the model's own words (R327), over comparing the picture with the reference tasks' pictures.
+
+## The re-check
+
+The five chats with the most near-copies were held again on the guide with that sentence, the same profiles, model and message, against a server of its own. The instructions changed with the guide.
+
+| | Tasks solved from the picture | First attempts refused as near-copies | Nearest reference task |
+|---|---:|---:|---|
+| The run | 8 | 5 | 0.85–1.00 among those refused |
+| The re-check | 8 | 0 | 0.41–0.67 |
+
+- One hand-in of the re-check was refused, the crown at `5-6`, by `solver_error`, and its second attempt was accepted.
+- The five tasks asked for reached the card 28 to 69 s after their request, median 34 s.
+- The re-check cost $2.28.
 
 ## The time to write
 
@@ -122,7 +134,7 @@ From the package to the hand-in, by the proxy's clock:
 ## What it means
 
 - **The tasks are safe to give.** A solver that reads the picture, the read rule and the hidden answer's check kept every one of the 34 right, in all 17 genres. The check of the hidden answer caught the one picture that drew its answer.
-- **The near-copies are the one cost the run found,** and it falls on the wait rather than on the task. A guide's sentence is the cheaper change to try first.
+- **The near-copies are the one cost the run found,** and it falls on the wait rather than on the task. A sentence of the guide took them away in the re-check.
 - **Д31 stays a debt.** The run found no solver that answers another question, and one whose proof holds only for its own picture.
 
 ## Cost and time
