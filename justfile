@@ -59,7 +59,7 @@ TRIVY_IMAGE := "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7
 # scripts that font is a fallback, FreeSerif or, for Telugu, Unifont's bitmaps,
 # whose sizes no phone's font has. Its release is the one web/package.json pins
 # playwright-core to, since a release drives only the browsers of its own build.
-PLAYWRIGHT_IMAGE := "mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea"
+PLAYWRIGHT_IMAGE := "mcr.microsoft.com/playwright:v1.65.0-noble@sha256:6e3fb709361521eb27161606e6da6d2674e5e89fa16516cb37d6fdd91372273d"
 
 # The BigQuery emulator the SQL of the counts kept for years is tested against,
 # pinned by tag and digest. It is no BigQuery: SQLite runs the queries under it.
