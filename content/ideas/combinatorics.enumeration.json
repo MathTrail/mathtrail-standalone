@@ -37,7 +37,7 @@
     "Two things of different kinds bought from three kinds, such as a cup and a saucer: each pair of kinds multiplied, and the products added.",
     "Two rooks of different colours on a small board that do not attack: the second keeps off the first one's row and column.",
     {"idea": "Sticks of two lengths drawn on squared paper: whether they make one square using every stick, each side a quarter of their total length.", "solved_from_picture": true},
-    {"idea": "Cones of one scoop with any of the toppings, none, one or several, flavours and toppings drawn as piles: each topping either on the cone or not.", "solved_from_picture": true},
+    {"idea": "Cones of one scoop with one topping or with none, flavours and toppings drawn as piles: a cone with no topping counts as one more for each flavour.", "solved_from_picture": true},
     {"idea": "A maze on squared paper from S to E, its walls drawn: the fewest moves from cell to cell, never through a wall.", "solved_from_picture": true}
   ],
   "5-6": [
@@ -61,7 +61,7 @@
     "Numbers paired up so that in every pair the bigger is at least twice the smaller: the small numbers must go with the big ones.",
     "A small table whose rows and columns must add up to multiples of 3: the free cells decide all the others.",
     "Seats on the two sides of a booth with room for so many on a side: the people split between the sides first, then each side seated.",
-    {"idea": "A maze on squared paper with S and two exits, its walls drawn: how many moves longer the shortest way to the farther exit is.", "solved_from_picture": true},
+    {"idea": "A walled garden on squared paper with S marked: how many cells a beetle reaches from S, moving to a cell beside it and never through a wall.", "solved_from_picture": true},
     {"idea": "Routes from S to F across squared paper, only right or down and through the marked cell: the routes to that cell times the routes on from it.", "solved_from_picture": true}
   ]
 }

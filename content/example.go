@@ -27,7 +27,13 @@ type Example struct {
 	Topic      string            `json:"topic"`
 	GradeLevel rating.GradeLevel `json:"grade_level"`
 	Difficulty int               `json:"difficulty"`
-	Question   string            `json:"question"`
+	// Idea is the place, from 1, of the idea the task is built on in its
+	// topic's list at its level, set only on a task solved from the picture in a
+	// topic told in words: such a task is shown in the package of its idea
+	// alone, and stands outside the count of its topic's reference tasks and
+	// outside the traps they give.
+	Idea     int    `json:"idea,omitempty"`
+	Question string `json:"question"`
 	// Picture is the description of the task's picture, which the card draws,
 	// set only where the task has something to see.
 	Picture       json.RawMessage   `json:"picture,omitempty"`
@@ -55,6 +61,10 @@ type Example struct {
 	// ignored, which is why it is refused outright.
 	Solver string `json:"-"`
 }
+
+// ofAnIdea reports whether the task is shown in the package of its idea alone:
+// a task solved from the picture in a topic told in words.
+func (e *Example) ofAnIdea() bool { return e.Idea > 0 }
 
 // Distractor is one wrong option: the mistake it comes from, and what the child
 // is told after choosing it.
@@ -220,6 +230,9 @@ func (c exampleCheck) run(p *problems, i int, task *Example) {
 
 	c.checkPlacement(p, where, task)
 
+	if task.Idea < 0 {
+		p.addf("%s: idea %d is no place on a list of ideas, which counts from 1", where, task.Idea)
+	}
 	if task.Difficulty < profile.MinDifficulty || task.Difficulty > profile.MaxDifficulty {
 		p.addf("%s: difficulty %d is outside %d-%d", where, task.Difficulty, profile.MinDifficulty, profile.MaxDifficulty)
 	}

@@ -405,7 +405,7 @@ func TestAPackageShowsATaskThatDrawsAndOneThatDrawsItsSolution(t *testing.T) {
 	shipped := loaded(t)
 	drawn := map[string]bool{}
 	for _, task := range shipped.Examples() {
-		if task.Picture != nil {
+		if task.Picture != nil && task.Idea == 0 { // a task of an idea is shown in its idea's package alone
 			drawn[task.Topic+" "+string(task.GradeLevel)] = true
 		}
 	}
@@ -458,28 +458,51 @@ func wantAnExampleWith(t *testing.T, examples []map[string]json.RawMessage, memb
 	}
 }
 
-// A package carries the solver templates of its own topic, all of them and in
-// their order, and those of no other topic.
+// A package carries the solver templates of its own topic in their order, and
+// those of no other topic: all of them for a task solved from the picture, and
+// for a task in words all but those of its tasks solved from the picture.
 func TestAPackageCarriesTheSolverTemplatesOfItsTopic(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	carried := 0
+	carried, pictured := 0, 0
 	for _, topic := range shipped.Topics() {
-		_, got := packageFor(t, shipped, request(topic.ID, rating.Grades56, 3, 0))
-		want := []string{}
-		for _, template := range shipped.Templates(topic.ID) {
+		for _, fromPicture := range []bool{false, true} {
+			got, ofPictures := wantTheTemplatesOf(t, shipped, topic.ID, fromPicture)
+			carried, pictured = carried+got, pictured+ofPictures
+		}
+	}
+	if carried == 0 || pictured == 0 {
+		t.Fatalf("packages carried %d templates, %d of tasks solved from the picture, so nothing here was tested",
+			carried, pictured)
+	}
+}
+
+// wantTheTemplatesOf holds the package of a topic's task, in words or solved
+// from the picture, to the templates it carries, and is how many it carries
+// and how many of those are of tasks solved from the picture.
+func wantTheTemplatesOf(t *testing.T, shipped *content.Content, topic string, fromPicture bool) (carried, pictured int) {
+	t.Helper()
+
+	asked := request(topic, rating.Grades56, 3, 0)
+	if fromPicture {
+		asked.Brief.Constraints = []string{profile.FactsOnThePicture}
+	}
+	_, got := packageFor(t, shipped, asked)
+	want := []string{}
+	for _, template := range shipped.Templates(topic) {
+		if fromPicture || !template.FromPicture {
 			want = append(want, template.Program)
 		}
-		if !slices.Equal(got.Templates, want) {
-			t.Errorf("%s: %d solver templates, want the topic's own %d in their order",
-				topic.ID, len(got.Templates), len(want))
+		if fromPicture && template.FromPicture {
+			pictured++
 		}
-		carried += len(got.Templates)
 	}
-	if carried == 0 {
-		t.Fatal("no package carried a template, so nothing here was tested")
+	if !slices.Equal(got.Templates, want) {
+		t.Errorf("%s, solved from the picture %v: %d solver templates, want the topic's own %d in their order",
+			topic, fromPicture, len(got.Templates), len(want))
 	}
+	return len(got.Templates), pictured
 }
 
 // A package carries the examples of the kinds of picture its own topic draws,

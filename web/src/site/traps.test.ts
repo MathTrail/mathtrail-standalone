@@ -42,6 +42,15 @@ describe("the traps of a topic", () => {
 		expect(ranked.get("x")).toEqual(["first", "second", "third", "fourth"]);
 	});
 
+	test("leave out the reference tasks of an idea solved from the picture, as the service does", () => {
+		const ranked = rankTraps(catalog, [
+			task("x", "second"),
+			{ ...task("x", "first", "first"), idea: 3 },
+		]);
+
+		expect(ranked.get("x")).toEqual(["second"]);
+	});
+
 	test("are refused when a reference task names a trap the catalog does not have", () => {
 		expect(() => rankTraps(catalog, [task("x", "first", "fifth")])).toThrow(
 			"the reference task x-first-fifth names the trap fifth, which the catalog does not have",

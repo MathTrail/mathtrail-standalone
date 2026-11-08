@@ -23,6 +23,10 @@ type Template struct {
 	Name string
 	// Source is the reference task whose solver it was generalised from.
 	Source string
+	// FromPicture says it was generalised from a reference task solved from
+	// the picture in a topic told in words: it stands outside the most a topic
+	// has, and only the package of a task solved from the picture shows it.
+	FromPicture bool
 	// Program is the Starlark source, exactly as the model is shown it.
 	Program string
 }
@@ -34,7 +38,8 @@ const (
 	templatesDir = "solvers"
 	// templatesPerTopic is the most templates a topic has: the search its
 	// tasks usually need and, where the topic has another of a different kind,
-	// that one as well.
+	// that one as well. The templates of its tasks solved from the picture are
+	// not counted, since a package of a task in words never shows them.
 	templatesPerTopic = 2
 )
 
@@ -67,8 +72,10 @@ func loadTemplates(src fs.FS, topics map[string]Topic, examples []Example) (map[
 	}
 
 	topicOf := make(map[string]string, len(examples))
+	pictured := make(map[string]bool)
 	for i := range examples {
 		topicOf[examples[i].ID] = examples[i].Topic
+		pictured[examples[i].ID] = examples[i].ofAnIdea()
 	}
 
 	p := &problems{file: templatesDir}
@@ -81,6 +88,16 @@ func loadTemplates(src fs.FS, topics map[string]Topic, examples []Example) (map[
 		ofTopic, err := loadTopicTemplates(src, p, entry.Name(), topicOf)
 		if err != nil {
 			return nil, err
+		}
+		inWords := 0
+		for i := range ofTopic {
+			ofTopic[i].FromPicture = pictured[ofTopic[i].Source]
+			if !ofTopic[i].FromPicture {
+				inWords++
+			}
+		}
+		if inWords > templatesPerTopic {
+			p.addf("%s: %d templates, and a topic has at most %d", entry.Name(), inWords, templatesPerTopic)
 		}
 		templates[entry.Name()] = ofTopic
 	}
@@ -126,9 +143,6 @@ func loadTopicTemplates(src fs.FS, p *problems, topic string, topicOf map[string
 			Topic: topic, Name: name, Program: string(program),
 			Source: sourceOf(p, where, topic, string(program), topicOf),
 		})
-	}
-	if len(templates) > templatesPerTopic {
-		p.addf("%s: %d templates, and a topic has at most %d", topic, len(templates), templatesPerTopic)
 	}
 	return templates, nil
 }
@@ -182,11 +196,15 @@ func versioned(templates map[string][]Template) []instructionFile {
 }
 
 // templatePrograms are the programs of a topic's templates, as a package
-// carries them: a list that is empty rather than null for a topic with none.
-func (c *Content) templatePrograms(topic string) []string {
+// carries them: those of its tasks solved from the picture only in the package
+// of such a task, and a list that is empty rather than null for a topic with
+// none.
+func (c *Content) templatePrograms(topic string, fromPicture bool) []string {
 	programs := make([]string, 0, templatesPerTopic)
-	for _, template := range c.templates[topic] {
-		programs = append(programs, template.Program)
+	for i := range c.templates[topic] {
+		if template := &c.templates[topic][i]; fromPicture || !template.FromPicture {
+			programs = append(programs, template.Program)
+		}
 	}
 	return programs
 }

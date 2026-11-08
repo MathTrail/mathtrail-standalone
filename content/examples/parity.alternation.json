@@ -2231,5 +2231,45 @@
         "text": "24 is the fewest games played in all, not the games Cat played."
       }
     }
+  },
+  {
+    "id": "par-34-d4-6",
+    "topic": "parity.alternation",
+    "grade_level": "3-4",
+    "difficulty": 4,
+    "idea": 14,
+    "question": "The picture shows a row of tiles that are all alike. Each has the same four numbers in the same order round it, but only some are shown. Where two tiles touch, the numbers next to the shared side are equal. Which number is in the triangle marked ?",
+    "picture": {"kind": "tiles", "sides": 4, "layout": "row", "joint": 2, "tiles": [["1", "2", "", ""], ["", "6", "", ""], ["", "", "7", ""], ["?", "", "", ""], ["", "", "", ""]]},
+    "options": {"A": "7", "B": "6", "C": "1", "D": "2", "E": "It cannot be told"},
+    "correct_answer": "A",
+    "hint": "What does the second tile tell you about the first one?",
+    "solution": "Each tile reads the same four numbers round it. The first tile shows 1 and 2, the third shows that 7 follows them, and the second shows the last number, 6. The fourth tile starts with the number the third has at its joint, 7, so its marked triangle holds 7.",
+    "solution_picture": {"kind": "tiles", "sides": 4, "layout": "row", "joint": 2, "tiles": [["1", "2", "7", "6"], ["7", "6", "1", "2"], ["1", "2", "7", "6"], ["7", "6", "1", "2"], ["1", "2", "7", "6"]]},
+    "distractors": {
+      "B": {"trap": "off_by_one", "text": "That number is one triangle along."},
+      "C": {"trap": "reversed_relation", "text": "The tile was read from the wrong side."},
+      "D": {"trap": "ignored_condition", "text": "The tiles touch at their shared sides."},
+      "E": {"trap": "missed_case", "text": "The tiles together show all four numbers."}
+    }
+  },
+  {
+    "id": "par-56-d3-4",
+    "topic": "parity.alternation",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "idea": 19,
+    "question": "The picture shows a crown of ten tiles that are all alike: each has the same five numbers in the same order round it. Where two tiles touch, the numbers next to the shared side are equal. Which number is in the triangle marked ?",
+    "picture": {"kind": "tiles", "sides": 5, "layout": "ring", "joint": 2, "tiles": [["1", "2", "3", "4", "5"], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "?", ""], ["", "", "", "", ""], ["", "", "", "", ""]]},
+    "options": {"A": "4", "B": "3", "C": "5", "D": "2", "E": "It cannot be told"},
+    "correct_answer": "B",
+    "hint": "Follow the ring tile by tile: which number does each tile start with?",
+    "solution": "Each tile starts with the number the tile before it has at its joint. The tiles start with 1, 3, 5, 2, 4 and then again 1, 3, 5, so the eighth tile starts with 5 and its marked triangle holds 3.",
+    "solution_picture": {"kind": "tiles", "sides": 5, "layout": "ring", "joint": 2, "tiles": [["1", "2", "3", "4", "5"], ["3", "4", "5", "1", "2"], ["5", "1", "2", "3", "4"], ["2", "3", "4", "5", "1"], ["4", "5", "1", "2", "3"], ["1", "2", "3", "4", "5"], ["3", "4", "5", "1", "2"], ["5", "1", "2", "3", "4"], ["2", "3", "4", "5", "1"], ["4", "5", "1", "2", "3"]]},
+    "distractors": {
+      "A": {"trap": "off_by_one", "text": "That is the next triangle along."},
+      "C": {"trap": "stopped_early", "text": "That is where the marked tile starts."},
+      "D": {"trap": "reversed_relation", "text": "The triangles were read the other way round."},
+      "E": {"trap": "missed_case", "text": "The ring gives every tile's numbers."}
+    }
   }
 ]

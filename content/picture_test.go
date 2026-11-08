@@ -28,8 +28,9 @@ func TestEveryKindOfPictureHasItsExample(t *testing.T) {
 }
 
 // Every reference task's picture is held to what a task the model writes is:
-// its format, its labels against its question, and the answer kept off it.
-// The reference tasks show the model how a topic is drawn, and a reference
+// its format, its labels against its question, and the answer kept off it, as
+// for a task solved from the picture where the task names an idea solved from
+// it. The reference tasks show the model how a topic is drawn, and a reference
 // picture the checks refused would teach it to be refused.
 func TestEveryReferencePicturePassesTheChecksOfATaskHandedIn(t *testing.T) {
 	t.Parallel()
@@ -44,7 +45,11 @@ func TestEveryReferencePicturePassesTheChecksOfATaskHandedIn(t *testing.T) {
 			Question: example.Question, Picture: example.Picture, Options: example.Options,
 			CorrectAnswer: example.CorrectAnswer,
 		}
-		for _, problem := range append(checks.PictureFormat(task, "en"), checks.PictureMatch(task, "en")...) {
+		match := checks.PictureMatch
+		if example.Idea > 0 {
+			match = checks.PictureMatchFromPicture
+		}
+		for _, problem := range append(checks.PictureFormat(task, "en"), match(task, "en")...) {
 			t.Errorf("%s: %s", example.ID, problem.Message)
 		}
 	}

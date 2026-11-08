@@ -43,7 +43,7 @@
     "Leftovers made into new pieces: every few used pieces give one more, which is used in its turn.",
     "An answer chosen by estimating: each number rounded, and only one of the options is near.",
     "Nine dates in a square on a calendar page: they add up to nine times the one in the middle.",
-    {"idea": "Rows of three or four kinds of shapes with their totals, no row of one kind alone: two rows that differ by one shape give that shape's number.", "solved_from_picture": true}
+    {"idea": "Rows of two shapes with their totals, every pair of three shapes once: the rows added count each shape twice, so the row of all three is half of that.", "solved_from_picture": true}
   ],
   "5-6": [
     "Sums of 1, 11, 111 and so on, column by column.",

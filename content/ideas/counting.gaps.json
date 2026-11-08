@@ -13,8 +13,8 @@
     "Children holding hands in a line: one pair of joined hands fewer than the children.",
     "Cake layers with cream between every two: one layer of cream fewer than layers of cake.",
     "A bus route of a few stops: one stretch fewer than the stops, and a ride counted in stretches.",
-    {"idea": "Two animals on a drawn staircase an even number of steps apart, one going up and one coming down a step at a time: the step where they meet.", "solved_from_picture": true},
-    {"idea": "A fence drawn whole, the number of its rails written under each gap: how many rails the whole fence takes, each gap its own number.", "solved_from_picture": true}
+    {"idea": "A frog jumping up a drawn staircase, each jump as long as the one drawn and the top a whole number of jumps up: the jumps from the floor to the top.", "solved_from_picture": true},
+    {"idea": "A fence drawn whole, the rails one gap takes written under the gaps: how many rails the whole fence takes, one gap fewer than its posts.", "solved_from_picture": true}
   ],
   "3-4": [
     "Volumes standing in order on a shelf: from the first page of the first volume to the last page of the last, only the volumes between and the covers lie.",

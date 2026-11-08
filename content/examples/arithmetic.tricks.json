@@ -2229,5 +2229,47 @@
         "text": "1305 is the step from 1873 to 3178, but the step from 3871 to 7138 is bigger."
       }
     }
+  },
+  {
+    "id": "tri-12-d2-6",
+    "topic": "arithmetic.tricks",
+    "grade_level": "1-2",
+    "difficulty": 2,
+    "idea": 21,
+    "question": "In the picture, each shape stands for a number, the same number every time. The number beside a row is the sum of its shapes. What number is the question mark?",
+    "picture": {"kind": "shapes", "rows": [{"shapes": ["triangle", "triangle"], "total": "8"}, {"shapes": ["triangle", "square"], "total": "7"}, {"shapes": ["square"], "total": "?"}]},
+    "options": {"A": "7", "B": "4", "C": "3", "D": "8", "E": "11"},
+    "correct_answer": "C",
+    "hint": "Two triangles make 8. What is one triangle?",
+    "solution": "Two triangles make 8, so one triangle is 4. A triangle and a square make 7, so the square is 7 minus 4, which is 3.",
+    "solution_picture": {"kind": "shapes", "rows": [{"shapes": ["triangle"], "total": "4"}, {"shapes": ["square"], "total": "3"}]},
+    "solution_total": "7 − 4 = 3",
+    "distractors": {
+      "A": {"trap": "number_from_text", "text": "That is a sum of two shapes."},
+      "B": {"trap": "stopped_early", "text": "That is the triangle, not the square."},
+      "D": {"trap": "answered_other_question", "text": "That is the first row's sum."},
+      "E": {"trap": "wrong_operation", "text": "The triangle was added, not taken away."}
+    }
+  },
+  {
+    "id": "tri-34-d3-6",
+    "topic": "arithmetic.tricks",
+    "grade_level": "3-4",
+    "difficulty": 3,
+    "idea": 21,
+    "question": "In the picture, each shape stands for a number, the same number every time. The number beside a row is the sum of its shapes. What number is the question mark?",
+    "picture": {"kind": "shapes", "rows": [{"shapes": ["triangle", "square"], "total": "9"}, {"shapes": ["square", "circle"], "total": "7"}, {"shapes": ["triangle", "circle"], "total": "8"}, {"shapes": ["triangle", "square", "circle"], "total": "?"}]},
+    "options": {"A": "15", "B": "24", "C": "8", "D": "12", "E": "9"},
+    "correct_answer": "D",
+    "hint": "What do the first three rows add up to together?",
+    "solution": "The first three rows together hold each shape twice, and they add up to 9 plus 7 plus 8, which is 24. So one of each shape is half of 24, which is 12.",
+    "solution_picture": {"kind": "shapes", "rows": [{"shapes": ["triangle"], "total": "5"}, {"shapes": ["square"], "total": "4"}, {"shapes": ["circle"], "total": "3"}]},
+    "solution_total": "24 ÷ 2 = 12",
+    "distractors": {
+      "A": {"trap": "missed_case", "text": "That adds two rows and leaves one out."},
+      "B": {"trap": "stopped_early", "text": "The three rows count each shape twice."},
+      "C": {"trap": "number_from_text", "text": "That is one of the sums."},
+      "E": {"trap": "answered_other_question", "text": "That is the first row only."}
+    }
   }
 ]

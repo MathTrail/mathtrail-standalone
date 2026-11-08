@@ -94,6 +94,9 @@ func load(src fs.FS) (*Content, error) {
 	if c.ideas, ideaFiles, err = loadIdeas(src, c.topics); err != nil {
 		return nil, err
 	}
+	if misnamed := c.checkExampleIdeas(); misnamed != nil {
+		return nil, misnamed
+	}
 	if c.schemas, err = loadSchemas(src); err != nil {
 		return nil, err
 	}
@@ -262,7 +265,7 @@ func (c *Content) ExampleTraps(topic string, level rating.GradeLevel) []string {
 	seen := map[string]int{}
 	for i := range c.examples {
 		task := &c.examples[i]
-		if task.Topic != topic || task.GradeLevel != level {
+		if task.Topic != topic || task.GradeLevel != level || task.ofAnIdea() {
 			continue
 		}
 		for _, distractor := range task.Distractors {
@@ -379,4 +382,42 @@ func (p *problems) err() error {
 		return nil
 	}
 	return fmt.Errorf("content: %s:\n  - %s", p.file, strings.Join(p.list, "\n  - "))
+}
+
+// checkExampleIdeas refuses a reference task that names an idea it cannot be
+// shown for: one in a topic all of whose tasks are solved from the picture,
+// which are counted as any topic's are; one whose list at its level has no
+// idea solved from the picture at that place; one with no picture to solve it
+// from; and a second task of one idea, which a package of that idea could not
+// choose between.
+func (c *Content) checkExampleIdeas() error {
+	p := &problems{file: examplesDir}
+	type place struct {
+		topic  string
+		level  rating.GradeLevel
+		number int
+	}
+	named := map[place]string{}
+	for i := range c.examples {
+		task := &c.examples[i]
+		if !task.ofAnIdea() {
+			continue
+		}
+		at := place{task.Topic, task.GradeLevel, task.Idea}
+		switch {
+		case c.SolvedFromPicture(task.Topic):
+			p.addf("%s: names idea %d, and every task of %s is solved from the picture, so its reference tasks "+
+				"name none", task.ID, task.Idea, task.Topic)
+		case !c.IdeaFromPicture(task.Topic, task.GradeLevel, task.Idea):
+			p.addf("%s: names idea %d of %s at %s, which its list does not hold as one solved from the picture",
+				task.ID, task.Idea, task.Topic, task.GradeLevel)
+		case len(task.Picture) == 0:
+			p.addf("%s: names an idea solved from the picture, and has no picture to solve it from", task.ID)
+		case named[at] != "":
+			p.addf("%s: names idea %d of %s at %s, as %s does", task.ID, task.Idea, task.Topic, task.GradeLevel, named[at])
+		default:
+			named[at] = task.ID
+		}
+	}
+	return p.err()
 }

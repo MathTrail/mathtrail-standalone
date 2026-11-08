@@ -287,27 +287,17 @@ func TestEveryCellOfGradesOneToFourHasFiveTasks(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)
 
-	type cell struct {
-		topic      string
-		level      rating.GradeLevel
-		difficulty int
-	}
-	count := map[cell]int{}
-	for _, example := range c.Examples() {
-		count[cell{example.Topic, example.GradeLevel, example.Difficulty}]++
-	}
-
 	const want = 5
-	for _, topic := range c.Topics() {
-		for _, level := range []rating.GradeLevel{rating.Grades12, rating.Grades34} {
+	for _, level := range []rating.GradeLevel{rating.Grades12, rating.Grades34} {
+		count := tasksByTopicAndDifficulty(c, level)
+		for _, topic := range c.Topics() {
 			if !topic.HasLevel(level) {
 				continue
 			}
 			for difficulty := 1; difficulty <= 5; difficulty++ {
-				key := cell{topic.ID, level, difficulty}
-				if got := count[key]; got != want {
+				if got := count[topic.ID][difficulty]; got != want {
 					t.Errorf("%s at %s, difficulty %d: got %d reference tasks, want %d",
-						key.topic, key.level, key.difficulty, got, want)
+						topic.ID, level, difficulty, got, want)
 				}
 			}
 		}
@@ -370,13 +360,14 @@ func TestNoCellKeepsEveryRightAnswerUnderOneLetter(t *testing.T) {
 }
 
 // tasksByTopicAndDifficulty counts the reference tasks of one level, by topic
-// and then by difficulty. A topic with none at the level is not in it.
+// and then by difficulty, but for those of an idea solved from the picture,
+// which stand outside the count. A topic with none at the level is not in it.
 func tasksByTopicAndDifficulty(c *content.Content, level rating.GradeLevel) map[string]map[int]int {
 	count := map[string]map[int]int{}
 	examples := c.Examples()
 	for i := range examples {
 		example := &examples[i]
-		if example.GradeLevel != level {
+		if example.GradeLevel != level || example.Idea > 0 {
 			continue
 		}
 		if count[example.Topic] == nil {

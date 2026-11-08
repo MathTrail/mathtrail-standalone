@@ -160,7 +160,7 @@ func trapCounts(c *content.Content, topic string, level rating.GradeLevel) map[s
 	examples := c.Examples()
 	for i := range examples {
 		task := &examples[i]
-		if task.Topic != topic || task.GradeLevel != level {
+		if task.Topic != topic || task.GradeLevel != level || task.Idea > 0 {
 			continue
 		}
 		for _, distractor := range task.Distractors {
