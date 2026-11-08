@@ -6,10 +6,6 @@ import fixture from "../../../site/research/testdata/research.json";
 import { progressOf, readSiteData, siteData } from "./data";
 import { siteDictionaries } from "./words";
 
-// waitingForReferenceTasks are the topics of the catalog whose reference tasks
-// are still being written: until they are, a topic has no traps to rank.
-const waitingForReferenceTasks = ["counting.figures", "geometry.cubes_paper"];
-
 // catalog is the service's catalog of topics and traps, with no reference task,
 // in which the page of knights and liars alone is published.
 const catalog = {
@@ -64,22 +60,11 @@ describe("the site's own data", () => {
 		);
 	});
 
-	test("ranks the traps of every topic of the catalog that has its reference tasks", () => {
+	test("ranks the traps of every topic of the catalog", () => {
 		expect([...data.traps.keys()].sort()).toEqual(
-			topics
-				.map((topic) => topic.id)
-				.filter((id) => !waitingForReferenceTasks.includes(id))
-				.sort(),
+			topics.map((topic) => topic.id).sort(),
 		);
 	});
-
-	test("lets a topic wait for its reference tasks only while it has none", () => {
-		for (const id of waitingForReferenceTasks) {
-			expect(topics.map((topic) => topic.id)).toContain(id);
-			expect(data.traps.has(id)).toBe(false);
-		}
-	});
-
 	test("ranks the traps of knights and liars a missed condition, a statement trusted and a solution stopped halfway, the commonest first", () => {
 		expect(data.traps.get("logic.knights_liars")?.slice(0, 3)).toEqual([
 			"ignored_condition",

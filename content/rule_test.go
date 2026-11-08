@@ -123,6 +123,8 @@ func TestANewChildOfGradesFiveAndSixIsGivenTheTopicsOwnTraps(t *testing.T) {
 		"pigeonhole.basic":            {"best_case_not_worst", "off_by_one"},
 		"parity.alternation":          {"wrong_parity", "ignored_condition"},
 		"algorithms.weighing_pouring": {"missed_case", "ignored_condition"},
+		"counting.figures":            {"missed_case", "stopped_early"},
+		"geometry.cubes_paper":        {"missed_case", "stopped_early"},
 	}
 	for _, topic := range c.Topics() {
 		want, isPinned := pinned[topic.ID]

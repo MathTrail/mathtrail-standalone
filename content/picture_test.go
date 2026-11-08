@@ -30,13 +30,14 @@ func TestEveryKindOfPictureHasItsExample(t *testing.T) {
 // Every reference task's picture is held to what a task the model writes is:
 // its format, its labels against its question, and the answer kept off it, as
 // for a task solved from the picture where the task names an idea solved from
-// it. The reference tasks show the model how a topic is drawn, and a reference
+// it or its topic is one all of whose tasks are. The reference tasks show the model how a topic is drawn, and a reference
 // picture the checks refused would teach it to be refused.
 func TestEveryReferencePicturePassesTheChecksOfATaskHandedIn(t *testing.T) {
 	t.Parallel()
 
+	shipped := loaded(t)
 	drawn := 0
-	for _, example := range loaded(t).Examples() {
+	for _, example := range shipped.Examples() {
 		if example.Picture == nil {
 			continue
 		}
@@ -46,7 +47,7 @@ func TestEveryReferencePicturePassesTheChecksOfATaskHandedIn(t *testing.T) {
 			CorrectAnswer: example.CorrectAnswer,
 		}
 		match := checks.PictureMatch
-		if example.Idea > 0 {
+		if example.Idea > 0 || shipped.SolvedFromPicture(example.Topic) {
 			match = checks.PictureMatchFromPicture
 		}
 		for _, problem := range append(checks.PictureFormat(task, "en"), match(task, "en")...) {
@@ -106,9 +107,6 @@ func TestEveryTopicDrawsASolutionAtEveryLevel(t *testing.T) {
 		}
 	}
 	for _, topic := range shipped.Topics() {
-		if waitsForReferenceTasks(topic.ID) {
-			continue
-		}
 		for _, level := range topic.GradeLevels {
 			if !drawsAt[place{topic.ID, level}] {
 				t.Errorf("%s at %s: no reference task draws its solution", topic.ID, level)

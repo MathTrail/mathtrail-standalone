@@ -1,0 +1,300 @@
+[
+  {
+    "id": "fig-12-d1-1",
+    "topic": "counting.figures",
+    "grade_level": "1-2",
+    "difficulty": 1,
+    "question": "How many squares are in the picture? Count the small ones and the big one.",
+    "picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 2, 0], [0, 1, 2, 1], [0, 2, 2, 2], [0, 0, 0, 2], [1, 0, 1, 2], [2, 0, 2, 2]]},
+    "options": {"A": "1", "B": "4", "C": "5", "D": "6", "E": "9"},
+    "correct_answer": "C",
+    "hint": "How many small squares are there, and is there a bigger one?",
+    "solution": "There are 4 small squares, and the 4 of them together make 1 big square. So there are 4 + 1 = 5 squares.",
+    "solution_picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 2, 0], [0, 1, 2, 1], [0, 2, 2, 2], [0, 0, 0, 2], [1, 0, 1, 2], [2, 0, 2, 2]], "marks": [{"at": [0, 0], "label": "1"}, {"at": [1, 0], "label": "2"}, {"at": [0, 1], "label": "3"}, {"at": [1, 1], "label": "4"}]},
+    "solution_total": "4 + 1 = 5",
+    "distractors": {
+      "A": {"trap": "stopped_early", "text": "The small squares count too."},
+      "B": {"trap": "missed_case", "text": "The big square counts too."},
+      "D": {"trap": "double_count", "text": "One square was counted twice."},
+      "E": {"trap": "answered_other_question", "text": "Those are the corners, not squares."}
+    }
+  },
+  {
+    "id": "fig-12-d2-1",
+    "topic": "counting.figures",
+    "grade_level": "1-2",
+    "difficulty": 2,
+    "question": "The picture shows a square with two lines from corner to corner. How many triangles can you see in it?",
+    "picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 2, 0], [2, 0, 2, 2], [2, 2, 0, 2], [0, 2, 0, 0], [0, 0, 2, 2], [2, 0, 0, 2]]},
+    "options": {"A": "7", "B": "4", "C": "6", "D": "8", "E": "10"},
+    "correct_answer": "D",
+    "hint": "How many small triangles are there, and which two of them make a bigger one?",
+    "solution": "The two lines cut the square into 4 small triangles. Two small triangles side by side make a bigger triangle, and there are 4 of those, one along each side of the square. So there are 4 + 4 = 8 triangles.",
+    "solution_picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 2, 0], [2, 0, 2, 2], [2, 2, 0, 2], [0, 2, 0, 0], [0, 0, 2, 2], [2, 0, 0, 2]]},
+    "solution_total": "4 + 4 = 8",
+    "distractors": {
+      "A": {"trap": "off_by_one", "text": "One triangle was missed."},
+      "B": {"trap": "stopped_early", "text": "Only the smallest triangles were counted."},
+      "C": {"trap": "missed_case", "text": "Some triangles of two pieces were missed."},
+      "E": {"trap": "double_count", "text": "Some triangles were counted twice."}
+    }
+  },
+  {
+    "id": "fig-12-d3-1",
+    "topic": "counting.figures",
+    "grade_level": "1-2",
+    "difficulty": 3,
+    "question": "Each line in the picture is a match. How many matches are in the picture?",
+    "picture": {"kind": "lattice", "width": 3, "height": 1, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], [2, 0, 3, 0], [0, 1, 1, 1], [1, 1, 2, 1], [2, 1, 3, 1], [0, 0, 0, 1], [1, 0, 1, 1], [2, 0, 2, 1], [3, 0, 3, 1]]},
+    "options": {"A": "11", "B": "12", "C": "3", "D": "9", "E": "10"},
+    "correct_answer": "E",
+    "hint": "Is a side two squares share one match or two?",
+    "solution": "There are 3 matches along the top and 3 along the bottom. Up and down there are 4 more, since two squares side by side share one match. So there are 3 + 3 + 4 = 10 matches.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 1, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], [2, 0, 3, 0], [0, 1, 1, 1], [1, 1, 2, 1], [2, 1, 3, 1]], "dashed": [[0, 0, 0, 1], [1, 0, 1, 1], [2, 0, 2, 1], [3, 0, 3, 1]]},
+    "solution_total": "3 + 3 + 4 = 10",
+    "distractors": {
+      "A": {"trap": "off_by_one", "text": "One match was counted twice."},
+      "B": {"trap": "double_count", "text": "A shared side is one match."},
+      "C": {"trap": "answered_other_question", "text": "That is the squares, not the matches."},
+      "D": {"trap": "missed_case", "text": "One match was missed."}
+    }
+  },
+  {
+    "id": "fig-12-d4-1",
+    "topic": "counting.figures",
+    "grade_level": "1-2",
+    "difficulty": 4,
+    "question": "Each line in the picture is a match. The dashed matches are taken away. How many squares, small or big, are still whole?",
+    "picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], [1, 1, 2, 1], [0, 2, 1, 2], [1, 2, 2, 2], [0, 0, 0, 1], [0, 1, 0, 2], [1, 1, 1, 2], [2, 0, 2, 1], [2, 1, 2, 2]], "dashed": [[1, 0, 1, 1], [0, 1, 1, 1]]},
+    "options": {"A": "2", "B": "5", "C": "1", "D": "3", "E": "4"},
+    "correct_answer": "A",
+    "hint": "Which squares lose a side when the dashed matches go?",
+    "solution": "Taking the dashed matches away breaks the three small squares that use them. The small square at the bottom right is still whole, and so is the big square round all four. So 2 squares are whole.",
+    "solution_picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], [1, 1, 2, 1], [0, 2, 1, 2], [1, 2, 2, 2], [0, 0, 0, 1], [0, 1, 0, 2], [1, 1, 1, 2], [2, 0, 2, 1], [2, 1, 2, 2]], "marks": [{"at": [1, 1], "label": "1"}]},
+    "solution_total": "1 + 1 = 2",
+    "distractors": {
+      "B": {"trap": "ignored_condition", "text": "The dashed matches are taken away."},
+      "C": {"trap": "missed_case", "text": "The big square is still whole."},
+      "D": {"trap": "double_count", "text": "A broken square was counted."},
+      "E": {"trap": "stopped_early", "text": "Some squares lost a side."}
+    }
+  },
+  {
+    "id": "fig-12-d5-1",
+    "topic": "counting.figures",
+    "grade_level": "1-2",
+    "difficulty": 5,
+    "question": "Lines go from the top of the big triangle to its base. How many triangles are there, small and big?",
+    "picture": {"kind": "lattice", "width": 4, "height": 4, "lines": [[0, 0, 0, 4], [0, 4, 4, 4], [0, 0, 4, 4], [0, 0, 1, 4], [0, 0, 2, 4]]},
+    "options": {"A": "3", "B": "6", "C": "4", "D": "5", "E": "7"},
+    "correct_answer": "B",
+    "hint": "How many triangles are there of one piece, of two pieces and of three?",
+    "solution": "The lines from the top corner cut the big triangle into 3 small triangles. Two small ones side by side make a triangle too, and there are 2 such pairs. The whole triangle is 1 more. So there are 3 + 2 + 1 = 6 triangles.",
+    "solution_picture": {"kind": "lattice", "width": 4, "height": 4, "lines": [[0, 0, 0, 4], [0, 4, 4, 4], [0, 0, 4, 4], [0, 0, 1, 4], [0, 0, 2, 4]], "marks": [{"at": [0, 3], "label": "1"}, {"at": [1, 3], "label": "2"}, {"at": [2, 3], "label": "3"}]},
+    "solution_total": "3 + 2 + 1 = 6",
+    "distractors": {
+      "A": {"trap": "missed_case", "text": "Bigger triangles count too."},
+      "C": {"trap": "stopped_early", "text": "Triangles of two pieces count too."},
+      "D": {"trap": "off_by_one", "text": "One triangle was missed."},
+      "E": {"trap": "double_count", "text": "One triangle was counted twice."}
+    }
+  },
+  {
+    "id": "fig-34-d1-1",
+    "topic": "counting.figures",
+    "grade_level": "3-4",
+    "difficulty": 1,
+    "question": "The filled cells in the picture make a figure. How many squares of any size are made only of filled cells?",
+    "picture": {"kind": "lattice", "width": 3, "height": 3, "cells": [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 1], [2, 2]]},
+    "options": {"A": "9", "B": "14", "C": "8", "D": "12", "E": "11"},
+    "correct_answer": "E",
+    "hint": "How many squares of four cells fit with no empty cell?",
+    "solution": "There are 8 small squares, one for each filled cell. A square of four cells fits in 3 places, and the fourth place has the empty cell. A square of nine cells would need the empty cell too. So there are 8 + 3 = 11 squares.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 3, "cells": [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 1], [2, 2]], "marks": [{"at": [0, 0], "label": "1"}, {"at": [0, 1], "label": "2"}, {"at": [1, 1], "label": "3"}]},
+    "solution_total": "8 + 3 = 11",
+    "distractors": {
+      "A": {"trap": "answered_other_question", "text": "That is the cells of a full square."},
+      "B": {"trap": "ignored_condition", "text": "A square with the empty cell does not count."},
+      "C": {"trap": "missed_case", "text": "Bigger squares count too."},
+      "D": {"trap": "double_count", "text": "One square was counted twice."}
+    }
+  },
+  {
+    "id": "fig-34-d2-1",
+    "topic": "counting.figures",
+    "grade_level": "3-4",
+    "difficulty": 2,
+    "question": "Look at cell X in the picture. Count the squares of filled cells, small or big, that have X inside them.",
+    "picture": {"kind": "lattice", "width": 3, "height": 3, "cells": [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]], "marks": [{"at": [0, 1], "label": "X"}]},
+    "options": {"A": "4", "B": "14", "C": "3", "D": "2", "E": "5"},
+    "correct_answer": "A",
+    "hint": "Which squares of four cells reach cell X?",
+    "solution": "Cell X is a square of its own. Two squares of four cells hold it: the one at the top left and the one at the bottom left. The big square of nine cells holds it too. So 1 + 2 + 1 = 4 squares hold X.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 3, "cells": [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2], [1, 2]], "marks": [{"at": [0, 1], "label": "X"}]},
+    "solution_total": "1 + 2 + 1 = 4",
+    "distractors": {
+      "B": {"trap": "answered_other_question", "text": "That counts every square, not only those with X."},
+      "C": {"trap": "missed_case", "text": "The big square holds X too."},
+      "D": {"trap": "stopped_early", "text": "Squares of four cells hold X too."},
+      "E": {"trap": "double_count", "text": "One square was counted twice."}
+    }
+  },
+  {
+    "id": "fig-34-d3-1",
+    "topic": "counting.figures",
+    "grade_level": "3-4",
+    "difficulty": 3,
+    "question": "How many triangles can you find in the figure in the picture? Count every triangle, small or big, whose sides are lines of the figure.",
+    "picture": {"kind": "lattice", "width": 4, "height": 2, "lines": [[0, 0, 4, 0], [4, 0, 4, 2], [4, 2, 0, 2], [0, 2, 0, 0], [0, 0, 4, 2], [2, 0, 2, 2]]},
+    "options": {"A": "2", "B": "4", "C": "3", "D": "5", "E": "6"},
+    "correct_answer": "B",
+    "hint": "How many triangles does the long line make with the sides of the rectangle?",
+    "solution": "The long line cuts the rectangle into 2 big triangles. The short line cuts a small triangle off each of them, and the other piece of each has four corners, so it is no triangle. So there are 2 + 2 = 4 triangles.",
+    "solution_picture": {"kind": "lattice", "width": 4, "height": 2, "lines": [[0, 0, 4, 0], [4, 0, 4, 2], [4, 2, 0, 2], [0, 2, 0, 0], [0, 0, 4, 2], [2, 0, 2, 2]]},
+    "solution_total": "2 + 2 = 4",
+    "distractors": {
+      "A": {"trap": "stopped_early", "text": "Only the small triangles were counted."},
+      "C": {"trap": "missed_case", "text": "One of the big triangles was missed."},
+      "D": {"trap": "double_count", "text": "One triangle was counted twice."},
+      "E": {"trap": "ignored_condition", "text": "Shapes with four corners do not count."}
+    }
+  },
+  {
+    "id": "fig-34-d4-1",
+    "topic": "counting.figures",
+    "grade_level": "3-4",
+    "difficulty": 4,
+    "question": "Each line in the picture is a match. How many squares of any size do the matches make?",
+    "picture": {"kind": "lattice", "width": 3, "height": 2, "lines": [[0, 0, 1, 0], [2, 0, 3, 0], [0, 1, 1, 1], [1, 1, 2, 1], [2, 1, 3, 1], [0, 2, 1, 2], [1, 2, 2, 2], [2, 2, 3, 2], [0, 0, 0, 1], [0, 1, 0, 2], [1, 0, 1, 1], [1, 1, 1, 2], [2, 0, 2, 1], [3, 0, 3, 1], [3, 1, 3, 2]]},
+    "options": {"A": "6", "B": "8", "C": "3", "D": "4", "E": "2"},
+    "correct_answer": "C",
+    "hint": "Which squares have a match on each of their four sides?",
+    "solution": "Two matches are missing. One breaks two small squares at the top, and the other breaks two small squares at the bottom. Both big squares of two by two lose a side too. Three small squares are left whole: the two on the left and the one at the top right.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 2, "lines": [[0, 0, 1, 0], [2, 0, 3, 0], [0, 1, 1, 1], [1, 1, 2, 1], [2, 1, 3, 1], [0, 2, 1, 2], [1, 2, 2, 2], [2, 2, 3, 2], [0, 0, 0, 1], [0, 1, 0, 2], [1, 0, 1, 1], [1, 1, 1, 2], [2, 0, 2, 1], [3, 0, 3, 1], [3, 1, 3, 2]], "marks": [{"at": [0, 0], "label": "1"}, {"at": [0, 1], "label": "2"}, {"at": [2, 0], "label": "3"}]},
+    "solution_total": "1 + 1 + 1 = 3",
+    "distractors": {
+      "A": {"trap": "stopped_early", "text": "Not every small square is whole."},
+      "B": {"trap": "ignored_condition", "text": "Some sides have no match."},
+      "D": {"trap": "double_count", "text": "A broken square was counted."},
+      "E": {"trap": "missed_case", "text": "One more square is whole."}
+    }
+  },
+  {
+    "id": "fig-34-d5-1",
+    "topic": "counting.figures",
+    "grade_level": "3-4",
+    "difficulty": 5,
+    "question": "Each line in the picture is a match. Count every square, small or big. How many matches are a side of two squares at once?",
+    "picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], [0, 1, 1, 1], [1, 1, 2, 1], [0, 2, 1, 2], [1, 2, 2, 2], [0, 0, 0, 1], [0, 1, 0, 2], [1, 0, 1, 1], [1, 1, 1, 2], [2, 0, 2, 1], [2, 1, 2, 2]]},
+    "options": {"A": "5", "B": "4", "C": "8", "D": "12", "E": "16"},
+    "correct_answer": "D",
+    "hint": "Is a match on the outside a side of the big square too?",
+    "solution": "Each of the 4 inside matches is a side of two small squares. Each of the 8 outside matches is a side of one small square and of the big square. So all 4 + 8 = 12 matches are a side of two squares.",
+    "solution_picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], [0, 1, 1, 1], [1, 1, 2, 1], [0, 2, 1, 2], [1, 2, 2, 2], [0, 0, 0, 1], [0, 1, 0, 2], [1, 0, 1, 1], [1, 1, 1, 2], [2, 0, 2, 1], [2, 1, 2, 2]], "marks": [{"at": [0, 0], "label": "1"}, {"at": [1, 0], "label": "2"}, {"at": [0, 1], "label": "3"}, {"at": [1, 1], "label": "4"}]},
+    "solution_total": "4 + 8 = 12",
+    "distractors": {
+      "A": {"trap": "answered_other_question", "text": "That is the number of squares."},
+      "B": {"trap": "missed_case", "text": "The big square has sides too."},
+      "C": {"trap": "answered_other_question", "text": "That is the matches round the outside."},
+      "E": {"trap": "double_count", "text": "Each match counts once."}
+    }
+  },
+  {
+    "id": "fig-56-d1-1",
+    "topic": "counting.figures",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "The picture shows a rectangle of squared paper with all its lines. How many squares of every size can be found on its lines?",
+    "picture": {"kind": "lattice", "width": 4, "height": 3, "lines": [[0, 0, 4, 0], [0, 1, 4, 1], [0, 2, 4, 2], [0, 3, 4, 3], [0, 0, 0, 3], [1, 0, 1, 3], [2, 0, 2, 3], [3, 0, 3, 3], [4, 0, 4, 3]]},
+    "options": {"A": "12", "B": "20", "C": "18", "D": "14", "E": "24"},
+    "correct_answer": "B",
+    "hint": "How many squares of each size fit, one size at a time?",
+    "solution": "Squares of one cell: 4 in a row and 3 rows, 12. Squares of two by two: 3 in a row and 2 rows, 6. Squares of three by three: 2 in a row and 1 row, 2. So there are 12 + 6 + 2 = 20 squares.",
+    "solution_picture": {"kind": "lattice", "width": 4, "height": 3, "lines": [[0, 0, 4, 0], [0, 1, 4, 1], [0, 2, 4, 2], [0, 3, 4, 3], [0, 0, 0, 3], [1, 0, 1, 3], [2, 0, 2, 3], [3, 0, 3, 3], [4, 0, 4, 3]], "marks": [{"at": [0, 0], "label": "12"}, {"at": [1, 0], "label": "6"}, {"at": [2, 0], "label": "2"}]},
+    "solution_total": "12 + 6 + 2 = 20",
+    "distractors": {
+      "A": {"trap": "missed_case", "text": "Bigger squares count too."},
+      "C": {"trap": "stopped_early", "text": "The three by three squares were missed."},
+      "D": {"trap": "missed_case", "text": "The two by two squares were missed."},
+      "E": {"trap": "double_count", "text": "Some squares were counted twice."}
+    }
+  },
+  {
+    "id": "fig-56-d2-1",
+    "topic": "counting.figures",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "How many squares have all four corners at the points drawn in the picture? Count tilted squares too.",
+    "picture": {"kind": "lattice", "width": 2, "height": 2, "points": [{"at": [0, 0]}, {"at": [0, 1]}, {"at": [0, 2]}, {"at": [1, 0]}, {"at": [1, 1]}, {"at": [1, 2]}, {"at": [2, 0]}, {"at": [2, 1]}, {"at": [2, 2]}]},
+    "options": {"A": "4", "B": "5", "C": "6", "D": "9", "E": "8"},
+    "correct_answer": "C",
+    "hint": "Can four of the points make a square standing on its corner?",
+    "solution": "Squares of one cell: 4. A square of two by two cells: 1. A tilted square with its corners at the middles of the sides: 1. So there are 4 + 1 + 1 = 6 squares.",
+    "solution_picture": {"kind": "lattice", "width": 2, "height": 2, "points": [{"at": [0, 0]}, {"at": [0, 1]}, {"at": [0, 2]}, {"at": [1, 0]}, {"at": [1, 1]}, {"at": [1, 2]}, {"at": [2, 0]}, {"at": [2, 1]}, {"at": [2, 2]}], "lines": [[1, 0, 2, 1], [2, 1, 1, 2], [1, 2, 0, 1], [0, 1, 1, 0]]},
+    "solution_total": "4 + 1 + 1 = 6",
+    "distractors": {
+      "A": {"trap": "stopped_early", "text": "The big square counts too."},
+      "B": {"trap": "missed_case", "text": "A tilted square counts too."},
+      "D": {"trap": "answered_other_question", "text": "That is the points, not squares."},
+      "E": {"trap": "double_count", "text": "Some squares were counted twice."}
+    }
+  },
+  {
+    "id": "fig-56-d3-1",
+    "topic": "counting.figures",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "How many triangles can you find in the figure in the picture? Count every triangle, small or big, whose sides are lines of the figure.",
+    "picture": {"kind": "lattice", "width": 4, "height": 4, "lines": [[0, 0, 4, 0], [0, 0, 0, 4], [4, 0, 0, 4], [0, 2, 2, 2], [2, 0, 2, 2], [0, 0, 2, 2]]},
+    "options": {"A": "5", "B": "4", "C": "6", "D": "7", "E": "9"},
+    "correct_answer": "D",
+    "hint": "How many small triangles are there, and which of them join into bigger ones?",
+    "solution": "The lines cut the big triangle into 4 small triangles. The line from the corner has a bigger triangle on each side of it, each made of two small ones, and the whole figure is one more. So there are 4 + 2 + 1 = 7 triangles.",
+    "solution_picture": {"kind": "lattice", "width": 4, "height": 4, "lines": [[0, 0, 4, 0], [0, 0, 0, 4], [4, 0, 0, 4], [0, 2, 2, 2], [2, 0, 2, 2], [0, 0, 2, 2]], "marks": [{"at": [1, 0], "label": "1"}, {"at": [0, 1], "label": "2"}, {"at": [2, 0], "label": "3"}, {"at": [0, 2], "label": "4"}]},
+    "solution_total": "4 + 2 + 1 = 7",
+    "distractors": {
+      "A": {"trap": "missed_case", "text": "Triangles of two pieces count too."},
+      "B": {"trap": "stopped_early", "text": "Only the smallest triangles were counted."},
+      "C": {"trap": "missed_case", "text": "The big triangle counts too."},
+      "E": {"trap": "double_count", "text": "Some triangles were counted twice."}
+    }
+  },
+  {
+    "id": "fig-56-d4-1",
+    "topic": "counting.figures",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Each line in the picture is a match. What is the least number of matches you must take away so that no square of any size is left?",
+    "picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], [0, 1, 1, 1], [1, 1, 2, 1], [0, 2, 1, 2], [1, 2, 2, 2], [0, 0, 0, 1], [0, 1, 0, 2], [1, 0, 1, 1], [1, 1, 1, 2], [2, 0, 2, 1], [2, 1, 2, 2]]},
+    "options": {"A": "1", "B": "4", "C": "2", "D": "5", "E": "3"},
+    "correct_answer": "E",
+    "hint": "How many squares can one match break at most?",
+    "solution": "There are 5 squares: 4 small ones and the big one. A match is a side of at most 2 of them, so 2 matches leave a square whole. Taking away the two inside matches that stand up and down breaks all four small squares, and one match of the top side breaks the big one: 3 matches.",
+    "solution_picture": {"kind": "lattice", "width": 2, "height": 2, "lines": [[1, 0, 2, 0], [0, 1, 1, 1], [1, 1, 2, 1], [0, 2, 1, 2], [1, 2, 2, 2], [0, 0, 0, 1], [0, 1, 0, 2], [2, 0, 2, 1], [2, 1, 2, 2]], "dashed": [[1, 0, 1, 1], [1, 1, 1, 2], [0, 0, 1, 0]]},
+    "distractors": {
+      "A": {"trap": "best_case_not_worst", "text": "One match leaves squares behind."},
+      "B": {"trap": "missed_case", "text": "One match can break two squares."},
+      "C": {"trap": "stopped_early", "text": "Two matches leave a square standing."},
+      "D": {"trap": "answered_other_question", "text": "That is the number of squares."}
+    }
+  },
+  {
+    "id": "fig-56-d5-1",
+    "topic": "counting.figures",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "Each line in the picture is a match. How many more matches are needed to finish a big square of three by three made of nine small squares?",
+    "picture": {"kind": "lattice", "width": 3, "height": 3, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], [2, 0, 3, 0], [0, 1, 1, 1], [1, 1, 2, 1], [2, 1, 3, 1], [0, 2, 1, 2], [1, 2, 2, 2], [2, 2, 3, 2], [0, 0, 0, 1], [0, 1, 0, 2], [0, 2, 0, 3], [1, 0, 1, 1], [1, 1, 1, 2], [1, 2, 1, 3], [2, 0, 2, 1], [2, 1, 2, 2], [2, 2, 2, 3]]},
+    "options": {"A": "6", "B": "24", "C": "5", "D": "3", "E": "18"},
+    "correct_answer": "A",
+    "hint": "Which sides of the big square are missing?",
+    "solution": "The bottom side and the right side of the big square are missing, 3 matches each. So 6 more matches are needed.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 3, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], [2, 0, 3, 0], [0, 1, 1, 1], [1, 1, 2, 1], [2, 1, 3, 1], [0, 2, 1, 2], [1, 2, 2, 2], [2, 2, 3, 2], [0, 0, 0, 1], [0, 1, 0, 2], [0, 2, 0, 3], [1, 0, 1, 1], [1, 1, 1, 2], [1, 2, 1, 3], [2, 0, 2, 1], [2, 1, 2, 2], [2, 2, 2, 3]], "dashed": [[0, 3, 3, 3], [3, 0, 3, 3]]},
+    "distractors": {
+      "B": {"trap": "answered_other_question", "text": "That is all the matches of the square."},
+      "C": {"trap": "off_by_one", "text": "The corner needs a match on both sides."},
+      "D": {"trap": "stopped_early", "text": "Only one missing side was counted."},
+      "E": {"trap": "answered_other_question", "text": "Those are the matches already there."}
+    }
+  }
+]

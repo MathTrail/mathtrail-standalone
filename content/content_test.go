@@ -295,7 +295,7 @@ func TestEveryCellOfGradesOneToFourHasFiveTasks(t *testing.T) {
 		count := tasksByTopicAndDifficulty(c, level)
 		for i := range topics {
 			topic := &topics[i]
-			if !topic.HasLevel(level) || waitsForReferenceTasks(topic.ID) {
+			if !topic.HasLevel(level) {
 				continue
 			}
 			want := tasksAtEachDifficulty(topic, 5)
@@ -322,9 +322,6 @@ func TestEveryTopicOfGradesFiveAndSixHasThreeTasksAtEachDifficulty(t *testing.T)
 	topics := c.Topics()
 	for i := range topics {
 		topic := &topics[i]
-		if waitsForReferenceTasks(topic.ID) {
-			continue
-		}
 		want := tasksAtEachDifficulty(topic, 3)
 		for difficulty := 1; difficulty <= 5; difficulty++ {
 			if got := count[topic.ID][difficulty]; got != want {
@@ -350,7 +347,10 @@ func tasksAtEachDifficulty(topic *content.Topic, wordTasks int) int {
 // The reference tasks of one topic, level and difficulty do not all keep their
 // right answer under the same letter. A package shows them side by side, and a
 // model that always found it under one letter would learn to put it there,
-// as a child who always found it there would learn to guess.
+// as a child who always found it there would learn to guess. A topic all of
+// whose tasks are solved from the picture has one task at each difficulty, and
+// a package shows those of the difficulties around the one asked for, so its
+// tasks are held to it level by level.
 func TestNoCellKeepsEveryRightAnswerUnderOneLetter(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)
@@ -364,6 +364,9 @@ func TestNoCellKeepsEveryRightAnswerUnderOneLetter(t *testing.T) {
 	mixed := map[cell]bool{}
 	for _, example := range c.Examples() {
 		key := cell{example.Topic, example.GradeLevel, example.Difficulty}
+		if c.SolvedFromPicture(example.Topic) {
+			key.difficulty = 0 // the whole level
+		}
 		if letter, seen := first[key]; !seen {
 			first[key] = example.CorrectAnswer
 		} else if letter != example.CorrectAnswer {
@@ -380,6 +383,38 @@ func TestNoCellKeepsEveryRightAnswerUnderOneLetter(t *testing.T) {
 	slices.Sort(failures)
 	for _, failure := range failures {
 		t.Error(failure)
+	}
+	wantNoLetterOfItsDifficulty(t, c)
+}
+
+// wantNoLetterOfItsDifficulty fails a level of a topic all of whose tasks are
+// solved from the picture whose every right answer stands under the letter of
+// its difficulty, A at 1 to E at 5: a package shows the tasks of difficulties
+// side by side, and a model would learn the letter from the difficulty.
+func wantNoLetterOfItsDifficulty(t *testing.T, c *content.Content) {
+	t.Helper()
+
+	type level struct {
+		topic string
+		at    rating.GradeLevel
+	}
+	followed := map[level]bool{}
+	examples := c.Examples()
+	for i := range examples {
+		example := &examples[i]
+		if !c.SolvedFromPicture(example.Topic) {
+			continue
+		}
+		key := level{example.Topic, example.GradeLevel}
+		follows := example.CorrectAnswer == string(rune('A'+example.Difficulty-1))
+		if was, seen := followed[key]; !seen || was {
+			followed[key] = follows
+		}
+	}
+	for key, follows := range followed {
+		if follows {
+			t.Errorf("%s at %s: every right answer stands under the letter of its difficulty", key.topic, key.at)
+		}
 	}
 }
 
