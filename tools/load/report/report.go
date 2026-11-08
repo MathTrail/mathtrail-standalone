@@ -260,6 +260,7 @@ func (r *Run) write(page *strings.Builder, hards []Hard, instance Instance) {
 	fmt.Fprintf(page, ", %d requests, %d sessions opened again.\n\n", r.Requests, r.Reconnects)
 
 	r.writeKinds(page)
+	r.writeTools(page)
 	r.writeStarts(page)
 	r.writeCost(page, instance)
 	r.writeSpent(page)
@@ -277,11 +278,32 @@ func cell(text string) string {
 func (r *Run) writeKinds(page *strings.Builder) {
 	page.WriteString("| Kind | Count | Share | p50 | p95 | p99 | Max |\n|---|---:|---:|---:|---:|---:|---:|\n")
 	for _, kind := range Kinds(r.Calls) {
-		metrics := latencies(r.Calls, kind)
-		fmt.Fprintf(page, "| %s | %d | %.1f%% | %s | %s | %s | %s |\n",
-			cell(kind.String()), metrics.Requests, 100*float64(metrics.Requests)/float64(len(r.Calls)),
-			rounded(metrics.Latencies.P50), rounded(metrics.Latencies.P95),
-			rounded(metrics.Latencies.P99), rounded(metrics.Latencies.Max))
+		metrics := latencies(r.Calls, func(c *Call) bool { return c.Kind == kind })
+		fmt.Fprintf(page, "| %s | %d | %.1f%% | %s |\n",
+			cell(kind.String()), metrics.Requests, 100*float64(metrics.Requests)/float64(len(r.Calls)), times(metrics))
+	}
+	page.WriteString("\n")
+}
+
+// writeTools writes a line for every tool and page the run called: how many
+// of its calls were answered, and how long those took. A tool that holds its
+// answer back on purpose, as the question of a waiting card does, would
+// otherwise stand in the line of all answers for the slowness of every tool.
+func (r *Run) writeTools(page *strings.Builder) {
+	var tools []string
+	for i := range r.Calls {
+		if r.Calls[i].Kind == session.Answered && !slices.Contains(tools, r.Calls[i].Tool) {
+			tools = append(tools, r.Calls[i].Tool)
+		}
+	}
+	if len(tools) == 0 {
+		return
+	}
+	slices.Sort(tools)
+	page.WriteString("| Tool or page, answered | Count | p50 | p95 | p99 | Max |\n|---|---:|---:|---:|---:|---:|\n")
+	for _, tool := range tools {
+		metrics := latencies(r.Calls, func(c *Call) bool { return c.Kind == session.Answered && c.Tool == tool })
+		fmt.Fprintf(page, "| %s | %d | %s |\n", cell(tool), metrics.Requests, times(metrics))
 	}
 	page.WriteString("\n")
 }
@@ -338,12 +360,12 @@ func Kinds(calls []Call) []session.Kind {
 	return kinds
 }
 
-// latencies are the times the calls of one kind took, as the load library
-// counts them.
-func latencies(calls []Call, kind session.Kind) *vegeta.Metrics {
+// latencies are the times the calls chosen took, as the load library counts
+// them.
+func latencies(calls []Call, chosen func(*Call) bool) *vegeta.Metrics {
 	var metrics vegeta.Metrics
 	for i := range calls {
-		if calls[i].Kind != kind {
+		if !chosen(&calls[i]) {
 			continue
 		}
 		metrics.Add(&vegeta.Result{
@@ -354,6 +376,13 @@ func latencies(calls []Call, kind session.Kind) *vegeta.Metrics {
 	}
 	metrics.Close()
 	return &metrics
+}
+
+// times are the cells of a table's line that tell how long calls took: the
+// median, the 95th and the 99th percentile, and the longest.
+func times(metrics *vegeta.Metrics) string {
+	return fmt.Sprintf("%s | %s | %s | %s", rounded(metrics.Latencies.P50), rounded(metrics.Latencies.P95),
+		rounded(metrics.Latencies.P99), rounded(metrics.Latencies.Max))
 }
 
 func rounded(d time.Duration) time.Duration { return d.Round(time.Millisecond) }

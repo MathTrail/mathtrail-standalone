@@ -176,11 +176,7 @@ type cardOut struct {
 	// is held as any value rather than as raw JSON because the protocol's
 	// library derives the result's schema from this type and holds every
 	// result to it, and would describe raw JSON as a list of bytes.
-	Picture any `json:"picture"`
-	// Drawing is always empty. A card of the release before pictures requires
-	// it, and shows no task at all without it, for as long as a host may keep
-	// that card's page.
-	Drawing string            `json:"drawing"`
+	Picture any               `json:"picture"`
 	Options map[string]string `json:"options"`
 	Hint    string            `json:"hint"`
 	// Probe marks a probe: a task set by the rule in a topic on pause, whose

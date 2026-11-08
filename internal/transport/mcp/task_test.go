@@ -1764,7 +1764,7 @@ func TestTheAnswerStaysSealed(t *testing.T) {
 			t.Errorf("the task %s draws the %q screen, want the task's card", card.name, payload.Screen)
 		}
 		if keys := slices.Sorted(maps.Keys(payload.Task)); !slices.Equal(keys,
-			[]string{"drawing", "hint", "id", "language", "options", "picture", "question", "topic"}) {
+			[]string{"hint", "id", "language", "options", "picture", "question", "topic"}) {
 			t.Errorf("the card of the task %s has %v, want what a child may see and nothing else", card.name, keys)
 		}
 	}
@@ -2265,8 +2265,7 @@ func TestTheWordsOfATaskCarryNoPicture(t *testing.T) {
 }
 
 // A picture reaches every card that shows its task as it was handed in, its
-// keys in order, beside the empty drawing a card of the release before
-// requires; and the protocol's library, which holds every result to the
+// keys in order; and the protocol's library, which holds every result to the
 // schema it derives, lets the payload through.
 func TestAPictureReachesTheCardAsItWasHandedIn(t *testing.T) {
 	t.Parallel()
@@ -2288,7 +2287,6 @@ func TestAPictureReachesTheCardAsItWasHandedIn(t *testing.T) {
 		var payload struct {
 			Task struct {
 				Picture json.RawMessage `json:"picture"`
-				Drawing *string         `json:"drawing"`
 			} `json:"task"`
 		}
 		if err := json.Unmarshal(rawPayload(t, card.result), &payload); err != nil {
@@ -2296,9 +2294,6 @@ func TestAPictureReachesTheCardAsItWasHandedIn(t *testing.T) {
 		}
 		if got := string(payload.Task.Picture); got != want {
 			t.Errorf("the picture of the task %s is %s, want %s", card.name, got, want)
-		}
-		if payload.Task.Drawing == nil || *payload.Task.Drawing != "" {
-			t.Errorf("the drawing of the task %s is %v, want an empty one", card.name, payload.Task.Drawing)
 		}
 	}
 	p, _ := loadKept(t, kept)

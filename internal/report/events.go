@@ -72,7 +72,7 @@ var events = map[string][]string{
 	},
 	"mcp_panic": {"panic", "stack", "method", "user"},
 	"task_requested": {
-		"topic", "level", "difficulty", "goal", "tutor_mode", "probe", "already_open", "ahead", "by_card",
+		"topic", "level", "difficulty", "goal", "tutor_mode", "probe", "already_open", "ahead",
 		"instructions_version", "user",
 	},
 	"task_skipped": {"topic", "level", "difficulty", "instructions_version", "user"},
@@ -87,13 +87,13 @@ var events = map[string][]string{
 	// are counted from, and each names its child by the name it is counted
 	// under that month, which leads back to no child.
 	"task_accepted": {
-		"topic", "level", "difficulty", "attempts", "seconds_since_request", "picture", "drawing", "ready", "by_card",
+		"topic", "level", "difficulty", "attempts", "seconds_since_request", "picture", "ready",
 		"from_picture", "instructions_version", "user", "learner", "host", "language", "grade", "cohort", "country", "region", "signin_country",
 	},
 	// A task written ahead, kept until the child asks for the next one, and one
 	// written ahead and let go once the lesson moved away from it, with why.
 	"task_kept": {
-		"topic", "level", "difficulty", "attempts", "seconds_since_request", "picture", "drawing", "from_picture",
+		"topic", "level", "difficulty", "attempts", "seconds_since_request", "picture", "from_picture",
 		"instructions_version", "user",
 	},
 	"task_dropped": {"reason", "written", "topic", "level", "difficulty", "instructions_version", "user"},
@@ -212,12 +212,9 @@ func Fits(event, field string, value any) bool {
 		return wholeWithin(value, lowestGrade, highestGrade)
 	case "topics_mastered":
 		return wholeWithin(value, 0, mostTopicsMastered)
-	case "drawing", "ready", "by_card", "probe", "from_picture":
-		// Whether the task came with a drawing, which a line written before
-		// pictures says, and never the drawing itself, which is the task's
-		// text; whether it was written ahead and kept; whether a card took it;
-		// whether it was a probe of a topic on pause; and whether it was solved
-		// from the picture.
+	case "ready", "probe", "from_picture":
+		// Whether the task was written ahead and kept, whether it was a probe
+		// of a topic on pause, and whether it was solved from the picture.
 		_, isBool := value.(bool)
 		return isBool
 	}

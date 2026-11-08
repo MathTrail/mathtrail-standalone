@@ -72,9 +72,8 @@ const handedTask = z.object({
 		question: z.string(),
 		// The task's picture, which the card draws; a task without one, a
 		// card of a release before pictures, and a picture the card cannot
-		// draw all read as none, and the task stands on its words. The empty
-		// text drawing the service still sends for those earlier cards is
-		// read past.
+		// draw all read as none, and the task stands on its words. The text
+		// drawing a payload of a release before pictures carries is read past.
 		picture: z.optional(pictureFormat).catch(undefined),
 		options,
 		hint: z.string(),

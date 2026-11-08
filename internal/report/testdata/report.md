@@ -17,7 +17,7 @@ Asked for counts the requests opened; handed in, the attempts judged, of which t
 
 ## Accepted tasks
 
-The attempts an accepted task took, and the seconds from its request to its acceptance: the time the chat's model took to write it — for a task written ahead, the time its writing took, though the child had it at once. With a picture counts the tasks that came with one, and a line written before pictures the tasks that came with a text drawing; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not logged.
+The attempts an accepted task took, and the seconds from its request to its acceptance: the time the chat's model took to write it — for a task written ahead, the time its writing took, though the child had it at once. With a picture counts the tasks that came with one; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not logged.
 
 | Instructions | Host | Accepted | With a picture | At the first attempt | Attempts, mean | Seconds, median | Seconds, 90th percentile | Seconds, longest |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
@@ -37,12 +37,12 @@ The tasks whose brief asked for one solved from the picture, counted apart as we
 
 ## Tasks written ahead
 
-Asked ahead counts the requests opened for the next task while the child worked on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took into its own place, kept or waited for, which only an earlier release let a card do; let go, the tasks written ahead, kept or still being written, that the lesson moved away from before they were handed out, and the requests for a task solved from the picture that a chat not drawing the card met while the child waited for them.
+Asked ahead counts the requests opened for the next task while the child worked on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the tasks handed out that had been kept, out of all handed out; let go, the tasks written ahead, kept or still being written, that the lesson moved away from before they were handed out, and the requests for a task solved from the picture that a chat not drawing the card met while the child waited for them.
 
-| Instructions | Host | Asked ahead | Kept | Handed out ready | Taken by the card | Let go |
-|---|---|---:|---:|---:|---:|---:|
-| 88b63e22129c | claude | 2 | 1 | 2 of 3 | 1 | 1 |
-| f3e2d1c0b9a8 | claude | 0 | 1 | 0 of 0 | 0 | 0 |
+| Instructions | Host | Asked ahead | Kept | Handed out ready | Let go |
+|---|---|---:|---:|---:|---:|
+| 88b63e22129c | claude | 2 | 1 | 2 of 3 | 1 |
+| f3e2d1c0b9a8 | claude | 0 | 1 | 0 of 0 | 0 |
 
 ## Why tasks written ahead were let go
 
@@ -117,11 +117,11 @@ The tasks accepted on each topic whose line says whether they came with a pictur
 
 ## Pictures by kind
 
-The tasks accepted with a picture, by its kind; a line written before pictures says only that its task came with a text drawing, and other is a kind no format has, which only a file edited by hand holds.
+The tasks accepted with a picture, by its kind; other is a kind no format has, which only a file edited by hand holds.
 
 | Instructions | Kind | Accepted |
 |---|---|---:|
-| 88b63e22129c | (a text drawing) | 2 |
+| 88b63e22129c | row | 2 |
 | f3e2d1c0b9a8 | clock | 1 |
 | f3e2d1c0b9a8 | row | 1 |
 
