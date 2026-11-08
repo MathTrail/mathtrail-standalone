@@ -2239,5 +2239,89 @@
         "text": "1.5 divides the two lengths, 720 ÷ 480, which tells how many times as long the queue was. The question asks by how many metres it got shorter."
       }
     }
+  },
+  {
+    "id": "gaps-12-d2-6",
+    "topic": "counting.gaps",
+    "grade_level": "1-2",
+    "difficulty": 2,
+    "idea": 14,
+    "question": "Frog F jumps up the stairs in the picture. Each jump is as long as the one drawn. How many jumps take it from the floor to the top step?",
+    "picture": {"kind": "stairs", "steps": 9, "marks": [{"step": 0, "label": "F"}], "jumps": [{"from": 0, "to": 3}]},
+    "options": {"A": "6", "B": "9", "C": "4", "D": "2", "E": "3"},
+    "correct_answer": "E",
+    "hint": "How many steps does one jump take?",
+    "solution": "One jump takes 3 steps, and there are 9 steps. 3, 6, 9: the frog needs 3 jumps.",
+    "solution_picture": {"kind": "stairs", "steps": 9, "marks": [{"step": 9, "label": "F"}], "jumps": [{"from": 0, "to": 3}, {"from": 3, "to": 6}, {"from": 6, "to": 9}]},
+    "solution_total": "9 ÷ 3 = 3",
+    "distractors": {
+      "A": {"trap": "wrong_operation", "text": "The steps were not divided by 3."},
+      "B": {"trap": "number_from_text", "text": "That is the steps, not the jumps."},
+      "C": {"trap": "off_by_one", "text": "The floor is not a jump."},
+      "D": {"trap": "stopped_early", "text": "Two jumps reach only step 6."}
+    }
+  },
+  {
+    "id": "gaps-34-d3-6",
+    "topic": "counting.gaps",
+    "grade_level": "3-4",
+    "difficulty": 3,
+    "idea": 13,
+    "question": "Kittens A and B walk on the stairs in the picture, both starting at once. With each move, A goes up and B goes down as far as their jumps show. On which step do they meet? The floor is step 0.",
+    "picture": {"kind": "stairs", "steps": 10, "marks": [{"step": 0, "label": "A"}, {"step": 10, "label": "B"}], "jumps": [{"from": 0, "to": 2}, {"from": 10, "to": 7}]},
+    "options": {"A": "4", "B": "5", "C": "2", "D": "7", "E": "10"},
+    "correct_answer": "A",
+    "hint": "Where is each kitten after one move, and after two?",
+    "solution": "After one move A is on step 2 and B on step 7. After two moves A is on step 4 and B on step 4, so they meet on step 4.",
+    "solution_picture": {"kind": "stairs", "steps": 10, "marks": [{"step": 4, "label": "A"}], "jumps": [{"from": 0, "to": 2}, {"from": 2, "to": 4}, {"from": 10, "to": 7}, {"from": 7, "to": 4}]},
+    "solution_total": "2 + 2 = 4",
+    "distractors": {
+      "B": {"trap": "off_by_one", "text": "The floor is step 0, not step 1."},
+      "C": {"trap": "stopped_early", "text": "They have not met after one move."},
+      "D": {"trap": "stopped_early", "text": "That is B after one move."},
+      "E": {"trap": "number_from_text", "text": "That is the top, where B starts."}
+    }
+  },
+  {
+    "id": "gaps-12-d2-7",
+    "topic": "counting.gaps",
+    "grade_level": "1-2",
+    "difficulty": 2,
+    "idea": 15,
+    "question": "The picture shows a fence with its posts. The number under each gap is how many rails that gap takes. How many rails does the whole fence take?",
+    "picture": {"kind": "row", "items": [{}, {}, {}, {}, {}], "gaps": "3"},
+    "options": {"A": "15", "B": "12", "C": "4", "D": "3", "E": "8"},
+    "correct_answer": "B",
+    "hint": "How many gaps are there between the posts?",
+    "solution": "There are 5 posts, so there are 4 gaps between them. Each gap takes 3 rails, so the fence takes 4 × 3 = 12 rails.",
+    "solution_picture": {"kind": "row", "items": [{}, {}, {}, {}, {}], "gaps": "3", "span": "12"},
+    "solution_total": "4 × 3 = 12",
+    "distractors": {
+      "A": {"trap": "off_by_one", "text": "Count the gaps, not the posts."},
+      "C": {"trap": "answered_other_question", "text": "That is the gaps, not the rails."},
+      "D": {"trap": "stopped_early", "text": "That is one gap, not the fence."},
+      "E": {"trap": "wrong_operation", "text": "The posts and rails were added."}
+    }
+  },
+  {
+    "id": "gaps-34-d2-6",
+    "topic": "counting.gaps",
+    "grade_level": "3-4",
+    "difficulty": 2,
+    "idea": 14,
+    "question": "A fence runs along both sides of a path, as the picture shows. Each gap between two posts takes one rail. How many rails do both sides take together?",
+    "picture": {"kind": "row", "items": [{}, {}, {}, {}, {}, {}, {}], "copies": 2},
+    "options": {"A": "6", "B": "14", "C": "12", "D": "7", "E": "13"},
+    "correct_answer": "C",
+    "hint": "How many gaps does one side have?",
+    "solution": "One side has 7 posts, so it has 6 gaps and takes 6 rails. The other side takes 6 more, so both sides take 6 + 6 = 12 rails.",
+    "solution_picture": {"kind": "row", "items": [{}, {}, {}, {}, {}, {}, {}], "gaps": "1", "copies": 2, "span": "6"},
+    "solution_total": "6 + 6 = 12",
+    "distractors": {
+      "A": {"trap": "stopped_early", "text": "That is only one side."},
+      "B": {"trap": "off_by_one", "text": "Count the gaps, not the posts."},
+      "D": {"trap": "missed_case", "text": "One side, and posts not gaps."},
+      "E": {"trap": "double_count", "text": "A gap was counted twice."}
+    }
   }
 ]

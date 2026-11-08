@@ -30,6 +30,11 @@ const examplesPerPackage = 3
 // in and checked.
 const guideName = "task_writing.md"
 
+// pictureGuideName is the guide's section on a task solved from the picture,
+// which only the package of such a task carries, after the guide: a task in
+// words would pay for its words with every package and use none of them.
+const pictureGuideName = "task_writing_picture.md"
+
 // Request is what a package is built from: the brief the task is to be
 // written to, the corridor its level and difficulty came from and the child it
 // is for.
@@ -202,6 +207,15 @@ type packageLimits struct {
 	TotalCharacters    int `json:"total_characters"`
 }
 
+// guideFor is the guide a package carries for a brief: with the section on a
+// task solved from the picture after it when the brief asks for one.
+func (c *Content) guideFor(brief *profile.Brief) string {
+	if !brief.FromPicture() {
+		return c.instructions[guideName]
+	}
+	return c.instructions[guideName] + "\n" + c.instructions[pictureGuideName]
+}
+
 // contentsFor gathers every part of a package for one request.
 func (c *Content) contentsFor(request *Request) (packageContents, error) {
 	topic, known := c.topicByID[request.Brief.TargetConcept]
@@ -240,11 +254,14 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 			NoteCharacters:     picture.MaxNoteCharacters,
 			TotalCharacters:    picture.MaxTotalCharacters,
 		},
-		Templates: c.templatePrograms(topic.ID),
+		Templates: c.templatePrograms(topic.ID, request.Brief.FromPicture()),
 		Pictures:  c.picturesFor(topic.ID),
-		Guide:     c.instructions[guideName],
+		Guide:     c.guideFor(&request.Brief),
 	}
 	examples := c.examplesFor(request.Brief.TargetConcept, level, request.Brief.Difficulty, request.TopicTasks)
+	if request.Brief.FromPicture() {
+		examples = c.withTheTaskOfItsIdea(examples, request.Brief.TargetConcept, level, request.Idea.Number)
+	}
 	contents.Examples = make([]packageExample, 0, len(examples)) // a topic with none is shown an empty list, not null
 	for i := range examples {
 		task := &examples[i]
@@ -305,7 +322,7 @@ func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty,
 	for known := level.Known(); known; level, known = levelBelow(level) {
 		var pool []Example
 		for i := range c.examples {
-			if c.examples[i].Topic == topic && c.examples[i].GradeLevel == level {
+			if c.examples[i].Topic == topic && c.examples[i].GradeLevel == level && !c.examples[i].ofAnIdea() {
 				pool = append(pool, c.examples[i])
 			}
 		}
@@ -315,6 +332,22 @@ func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty,
 		}
 	}
 	return nil
+}
+
+// withTheTaskOfItsIdea is the tasks picked for the package of a task solved
+// from the picture with the reference task built on its idea in the last
+// place, where a task shown for its picture stands, when a reference task is:
+// it shows the genre the idea asks for, which the topic's other tasks do not.
+func (c *Content) withTheTaskOfItsIdea(picked []Example, topic string, level rating.GradeLevel, idea int) []Example {
+	at := slices.IndexFunc(c.examples, func(task Example) bool {
+		return task.ofAnIdea() && task.Topic == topic && task.GradeLevel == level && task.Idea == idea
+	})
+	if at < 0 || len(picked) == 0 {
+		return picked
+	}
+	shown := slices.Clone(picked)
+	shown[len(shown)-1] = c.examples[at]
+	return shown
 }
 
 // withADrawnTask is the tasks picked for a package with one that draws among

@@ -16,6 +16,49 @@ import (
 // ideaPath is where the ideas of this topic live.
 func ideaPath(topic string) string { return ideasDir + "/" + topic + ideaSuffix }
 
+// withoutTemplatesOf takes out of a copy of the content the templates
+// generalised from a reference task.
+func withoutTemplatesOf(src fstest.MapFS, task string) {
+	for name, file := range src {
+		if named := sourceLine.FindStringSubmatch(string(file.Data)); strings.HasPrefix(name, templatesDir+"/") &&
+			named != nil && named[1] == task {
+			delete(src, name)
+		}
+	}
+}
+
+// ideaCopy is a copy of the content without the reference tasks that name an
+// idea and the templates generalised from them, so that a case may rewrite a
+// topic's lists of ideas without leaving such a task naming a place its list
+// no longer holds as solved from the picture.
+func ideaCopy(t *testing.T) fstest.MapFS {
+	t.Helper()
+
+	src := contentCopy(t)
+	for name, file := range src {
+		topic, isTasks := strings.CutSuffix(strings.TrimPrefix(name, examplesDir+"/"), examplesSuffix)
+		if !isTasks || strings.Contains(topic, "/") {
+			continue
+		}
+		var tasks []map[string]any
+		if err := json.Unmarshal(file.Data, &tasks); err != nil {
+			t.Fatalf("read %s: %v", name, err)
+		}
+		kept := tasks[:0]
+		for _, task := range tasks {
+			if _, named := task["idea"]; named {
+				id, _ := task["id"].(string)
+				delete(src, examplesDir+"/"+solversDir+"/"+id+solverSuffix)
+				withoutTemplatesOf(src, id)
+				continue
+			}
+			kept = append(kept, task)
+		}
+		src[name] = asFile(t, kept)
+	}
+	return src
+}
+
 // wordIdeas is a topic's file of ideas as a test writes it: every idea in
 // words, a text of its own.
 type wordIdeas map[rating.GradeLevel][]string
@@ -57,7 +100,7 @@ func TestIdeasAreReadAsTheirFileHoldsThem(t *testing.T) {
 	lengths := map[rating.GradeLevel]int{
 		rating.Grades12: fewestIdeas, rating.Grades34: 20, rating.Grades56: profile.MaxIdeasPerList,
 	}
-	src, file := contentCopy(t), wordIdeas{}
+	src, file := ideaCopy(t), wordIdeas{}
 	for level, length := range lengths {
 		file[level] = ideasOfLength(level, length)
 	}
@@ -137,7 +180,7 @@ func TestABrokenListOfIdeasStopsTheService(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			src := contentCopy(t)
+			src := ideaCopy(t)
 			file := wordIdeas{}
 			for _, level := range gapsLevels {
 				file[level] = sampleIdeas(level)
@@ -170,7 +213,7 @@ func TestSomethingThatIsNotAListOfIdeasStopsTheService(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			src := contentCopy(t)
+			src := ideaCopy(t)
 			src[test.file] = &fstest.MapFile{Data: []byte(test.data)}
 			wantProblem(t, src, test.want)
 		})
@@ -178,7 +221,7 @@ func TestSomethingThatIsNotAListOfIdeasStopsTheService(t *testing.T) {
 	t.Run("a topic with no list", func(t *testing.T) {
 		t.Parallel()
 
-		src := contentCopy(t)
+		src := ideaCopy(t)
 		delete(src, ideaPath("counting.gaps"))
 		wantProblem(t, src, `topic "counting.gaps" has no file of ideas`)
 	})
@@ -193,13 +236,13 @@ func TestIdeasThatCannotBeReadStopTheService(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			wantProblem(t, unreadable{MapFS: contentCopy(t), name: name}, "content: read "+name)
+			wantProblem(t, unreadable{MapFS: ideaCopy(t), name: name}, "content: read "+name)
 		})
 	}
 	t.Run("no directory", func(t *testing.T) {
 		t.Parallel()
 
-		src := contentCopy(t)
+		src := ideaCopy(t)
 		for name := range src {
 			if strings.HasPrefix(name, ideasDir+"/") {
 				delete(src, name)
@@ -215,7 +258,7 @@ func TestIdeasThatCannotBeReadStopTheService(t *testing.T) {
 func TestAChangedIdeaChangesTheInstructionsVersion(t *testing.T) {
 	t.Parallel()
 
-	base := contentCopy(t)
+	base := ideaCopy(t)
 	withIdeas(t, base, "counting.gaps", gapsLevels...)
 	before, err := load(base)
 	if err != nil {
@@ -293,7 +336,7 @@ func solvedFromPicture(t *testing.T, src fstest.MapFS, topic string) {
 func TestAnIdeaMarkedSolvedFromThePictureIsReadSo(t *testing.T) {
 	t.Parallel()
 
-	src := contentCopy(t)
+	src := ideaCopy(t)
 	src[ideaPath("counting.gaps")] = asFile(t, gapsIdeas(markedIdea("Posts in a row drawn on the card.")))
 	loaded, err := load(src)
 	if err != nil {
@@ -329,7 +372,7 @@ func TestAnIdeaMarkedSolvedFromThePictureIsReadSo(t *testing.T) {
 func TestEveryIdeaOfATopicSolvedFromThePictureIsOne(t *testing.T) {
 	t.Parallel()
 
-	src := contentCopy(t)
+	src := ideaCopy(t)
 	solvedFromPicture(t, src, "counting.gaps")
 	marked := make([]any, 0, fewestIdeas)
 	for _, idea := range sampleIdeas(rating.Grades12) {
@@ -382,7 +425,7 @@ func TestABrokenMarkOfAnIdeaStopsTheService(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			src := contentCopy(t)
+			src := ideaCopy(t)
 			src[ideaPath("counting.gaps")] = asFile(t, test.file)
 			wantProblem(t, src, test.want)
 		})

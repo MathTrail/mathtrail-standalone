@@ -12,7 +12,9 @@
     "A clock striking: the time from the first stroke to the last counted in gaps.",
     "Children holding hands in a line: one pair of joined hands fewer than the children.",
     "Cake layers with cream between every two: one layer of cream fewer than layers of cake.",
-    "A bus route of a few stops: one stretch fewer than the stops, and a ride counted in stretches."
+    "A bus route of a few stops: one stretch fewer than the stops, and a ride counted in stretches.",
+    {"idea": "A frog jumping up a drawn staircase, each jump as long as the one drawn and the top a whole number of jumps up: the jumps from the floor to the top.", "solved_from_picture": true},
+    {"idea": "A fence drawn whole, the rails one gap takes written under the gaps: how many rails the whole fence takes, one gap fewer than its posts.", "solved_from_picture": true}
   ],
   "3-4": [
     "Volumes standing in order on a shelf: from the first page of the first volume to the last page of the last, only the volumes between and the covers lie.",
@@ -26,7 +28,9 @@
     "A train of carriages with links between them, and the length of the whole train.",
     "Pages numbered on both sides of the sheets: how many sheets a run of pages takes.",
     "Two clocks striking together at different paces, strokes that fall at once heard as one: the time from the number of strokes heard.",
-    "Straight cuts across a round pancake: each new cut adds one piece more than the points where it crosses earlier cuts, so the most pieces come when no three cuts meet."
+    "Straight cuts across a round pancake: each new cut adds one piece more than the points where it crosses earlier cuts, so the most pieces come when no three cuts meet.",
+    {"idea": "Two animals on a drawn staircase, on different steps and each jumping its own number of steps a move: the first step of the staircase both stand on.", "solved_from_picture": true},
+    {"idea": "A fence along both sides of a path, drawn as two rows of posts: the gaps of both sides together, each side one gap fewer than its posts.", "solved_from_picture": true}
   ],
   "5-6": [
     "A cake or a sheet cut along lines in two directions: the pieces from the cuts.",

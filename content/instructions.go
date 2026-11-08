@@ -34,7 +34,9 @@ type instructionFile struct {
 // file that says nothing still changes the version, which would leave two
 // different versions meaning the same thing. A set without the guide is refused
 // as well: every package carries it, and a package without it would leave the
-// model to guess how a task is written and handed in. So is a set without the
+// model to guess how a task is written and handed in, and so is one without
+// the guide's section on a task solved from the picture, which the package of
+// every such task carries. So is a set without the
 // server's instructions, which every model is given as it connects: without
 // them a model meets the tools with nothing said about the child, the answer
 // or the order of a lesson. And so is a set without the widget's description:
@@ -68,6 +70,10 @@ func loadInstructions(src fs.FS) ([]instructionFile, error) {
 	}
 	if !slices.ContainsFunc(entries, func(entry fs.DirEntry) bool { return entry.Name() == guideName }) {
 		p.addf("%s: the file is missing, and every package carries it", guideName)
+	}
+	if !slices.ContainsFunc(entries, func(entry fs.DirEntry) bool { return entry.Name() == pictureGuideName }) {
+		p.addf("%s: the file is missing, and every package of a task solved from the picture carries it",
+			pictureGuideName)
 	}
 	if !slices.ContainsFunc(entries, func(entry fs.DirEntry) bool { return entry.Name() == serverInstructionsName }) {
 		p.addf("%s: the file is missing, and every model that connects is given it", serverInstructionsName)

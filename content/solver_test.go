@@ -9,6 +9,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/picture"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark/starlarktest"
@@ -35,11 +36,30 @@ func TestEveryReferenceTaskProvesItsOwnAnswer(t *testing.T) {
 	var spent costs
 	for _, task := range embedded.Examples() {
 		t.Run(task.ID, func(t *testing.T) {
-			spent.add(task.ID, prove(t, sandbox, &task))
+			agreement := prove(t, sandbox, &task)
+			if task.Idea > 0 {
+				wantEveryFactRead(t, &task, agreement)
+			}
+			spent.add(task.ID, agreement)
 		})
 	}
 
 	spent.report(t)
+}
+
+// wantEveryFactRead holds the solver of a reference task solved from the
+// picture to what the service holds such a task's solver to: on either run it
+// read every member of the picture that carries facts.
+func wantEveryFactRead(t *testing.T, task *content.Example, agreement solver.Agreement) {
+	t.Helper()
+
+	for at, run := range agreement.Runs {
+		for _, member := range picture.Facts(task.Picture) {
+			if !slices.Contains(run.Read, member) {
+				t.Errorf("run %d of the solver left picture.%s unread", at+1, member)
+			}
+		}
+	}
 }
 
 // A solver template is shown to the model as a program to start its own from,
