@@ -90,6 +90,8 @@ const pageNames: readonly string[] = [
 		"arithmetic-with-a-trick",
 		"calendar-and-age",
 		"clocks",
+		"counting-figures",
+		"cubes-and-paper",
 		"divisibility-and-remainders",
 		"enumeration",
 		"figures-on-a-grid",

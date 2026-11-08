@@ -521,6 +521,8 @@ Gathered on 2026-10-12 from Google's suggestions for France, Belgium, Switzerlan
 | divisibility and remainders | «Divisibilité et restes» | «critères de divisibilité», «division euclidienne» |
 | overlapping groups | «Groupes qui se chevauchent» ⚑ | «diagramme de Venn» |
 | games with a winning strategy | «Jeux à stratégie gagnante» ⚑ | «jeu de Nim», «jeu des allumettes» |
+| counting figures | Compter les figures | « combien de triangles », « énigmes d’allumettes » |
+| cubes and paper | Cubes et papier ⚑ | « patron du cube », « pliage et perforation » |
 
 **Descriptions** can carry «énigmes mathématiques», «problèmes de logique», «primaire», which reads alike in all four countries, on "Techniques" «résolution de problèmes», and «raisonnement» as a noun. «Avec correction» fits a topic's page and "Techniques" only.
 
@@ -556,3 +558,14 @@ Gathered on 2026-10-12 from Google's suggestions for France, Belgium, Switzerlan
 - The make-believe app's cheer is «Tu es une star !!!», since «champion» would make the child a boy.
 - Mamie, Maman and Papa written with capitals, as names, in drawings too.
 - The card names both a group and a topic «Parties d’un tout» (`group.parts`, `topic.fractions.parts`), so the topics page will show the topic under a group of its own name, as the Spanish does. The fix belongs to the card's dictionary, and the site follows it.
+
+### Figures, nets and folds
+
+| English | French | Note |
+|---|---|---|
+| net (of a cube) | patron (du cube) | |
+| fold | pli, plier | |
+| hole, punch | trou, percer | |
+| die | dé | |
+| face (of a cube) | face | |
+| match | allumette | |

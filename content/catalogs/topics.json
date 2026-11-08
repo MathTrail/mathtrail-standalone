@@ -243,7 +243,7 @@
     ],
     "slug": "counting-figures",
     "builds_on": [],
-    "site_page": false,
+    "site_page": true,
     "solved_from_picture": true
   },
   {
@@ -257,7 +257,7 @@
     ],
     "slug": "cubes-and-paper",
     "builds_on": [],
-    "site_page": false,
+    "site_page": true,
     "solved_from_picture": true
   }
 ]

@@ -76,7 +76,7 @@ pillars:
       more: + cualquiera
     checked:
       title: Un programa comprueba al modelo.
-      text: "Un problema solo llega a su hijo o hija después de pasar todas las comprobaciones: una sola opción correcta, la respuesta reproducida por un solucionador, un texto legible para su grado, ninguna repetición y, si hay dibujo, las etiquetas que nombra el enunciado y ninguna respuesta en él."
+      text: "Un problema solo llega a su hijo o hija después de pasar todas las comprobaciones: una sola opción correcta, la respuesta reproducida por un solucionador, un texto legible para su grado, ninguna repetición y, si hay dibujo, las etiquetas que nombra el enunciado y ninguna respuesta en él. En un problema que se resuelve con el dibujo, el valor correcto solo puede aparecer en el dibujo entre los valores de al menos tres opciones incorrectas."
       checks:
         - una sola respuesta
         - solucionador

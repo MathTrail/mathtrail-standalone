@@ -1,0 +1,111 @@
+# The page of the topic of cubes and paper, for a parent, in Portuguese.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Cubos e papel"
+description: "O que são os problemas de planificação do cubo e de dobradura, como se resolvem, onde as crianças costumam errar e como ajudar em casa."
+hero:
+  lead: "Uma planificação plana de seis quadrados se dobra num cubo; uma folha dobrada e furada uma vez se abre com vários furos; num dado que rola por uma fileira, dá para descobrir o número de cima. Estes problemas se resolvem imaginando a dobra, o rolar ou o desdobrar, um passo de cada vez."
+  method: "Dobrar, rolar ou desdobrar, um passo de cada vez"
+  teaches: "A ver como uma forma plana vira um sólido, e de volta"
+  art:
+    opposite: "1 e 5 ficam opostos"
+basis:
+  title: "As regras da dobra"
+  cards:
+    - title: "Faces opostas nunca se tocam"
+      text: "Numa planificação, dois quadrados numa mesma fileira com um quadrado entre eles viram faces opostas do cubo."
+      art:
+        opposite: "3 e 6 são opostos"
+    - title: "Uma dobra dobra as camadas"
+      text: "Uma folha dobrada uma vez tem 2 camadas onde a dobra a põe, e dobrada de novo, 4. Um furo atravessa cada camada."
+      art:
+        holes: "2 dobras, 4 camadas, 4 furos"
+    - title: "Um dado soma 7"
+      text: "Num dado, os números de faces opostas somam 7: 1 e 6, 2 e 5, 3 e 4."
+      art:
+        bottom: "2 em cima, 5 embaixo"
+idea:
+  title: "Um passo de cada vez"
+  lead: "Dobrar, rolar ou desdobrar de cabeça um passo de cada vez, e notar o que cada passo faz."
+  table:
+    head:
+      - "O que se faz"
+      - "O que muda"
+    rows:
+      - - "um quadrado da planificação se dobra para cima"
+        - "ele vira a próxima face do cubo"
+      - - "uma folha é dobrada uma vez"
+        - "as suas camadas dobram onde ela fica"
+      - - "um dado tomba sobre uma aresta"
+        - "uma face do lado vai para cima"
+      - - "um dado tomba duas vezes para a frente"
+        - "a face de baixo vai para cima"
+  note:
+    title: "Por que isso importa"
+    text: "As crianças muitas vezes tentam adivinhar o resultado inteiro de uma vez. Cada passo é fácil, e seguir um por um não deixa nada para adivinhar."
+method:
+  title: "Como resolver: uma dobra de cada vez"
+  lead: "Dizer o quadrado, a dobra ou o tombo que vem primeiro, dizer o que ele faz e passar ao próximo. Quando der, recortar uma planificação de papel ou usar um dado de verdade para conferir. Os exemplos abaixo vão do mais simples a um de olimpíada."
+  steps:
+    - "Escolher o primeiro quadrado, a primeira dobra ou o primeiro tombo"
+    - "Dizer o que ele faz com as faces ou as camadas"
+    - "Seguir passo a passo e conferir com papel ou com um dado"
+examples:
+  - title: "A face oposta"
+    question: "A planificação de um cubo é uma cruz: uma coluna de 4 quadrados numerados 1, 2, 3 e 4 de cima para baixo, e os quadrados 5 e 6 de cada lado do quadrado 2. Que número fica oposto ao 2 quando ela é dobrada?"
+    steps:
+      - "Os quadrados 1 e 3 estão junto ao 2 na coluna, então tocam nele."
+      - "Os quadrados 5 e 6 estão dos lados do 2, então também tocam nele."
+      - "O quadrado 4 está dois quadrados abaixo do 2, com o 3 entre eles: ele fica oposto ao 2."
+    answer: "O número 4."
+    note:
+      title: "Conferir com papel"
+      text: "Desenhe a cruz em papel quadriculado, recorte e dobre: o 2 e o 4 ficam um de frente para o outro."
+    art:
+      opposite: "2 e 4 são opostos"
+  - title: "Duas dobras e um furo"
+    question: "Uma folha quadrada é dobrada ao meio e depois ao meio de novo. A folha dobrada leva um furo. Quantos furos há quando ela é aberta?"
+    steps:
+      - "A primeira dobra dá 2 camadas."
+      - "A segunda dobra as dobra: 4 camadas."
+      - "O furo atravessa as 4 camadas, então a folha aberta tem 4 furos."
+    answer: "4 furos."
+    note:
+      title: "Onde ficam os furos"
+      text: "Os furos ficam nos 4 quartos da folha, cada um o reflexo do próximo em relação a uma linha de dobra."
+    art:
+      holes: "um furo em cada quarto"
+  - title: "Um dado rola"
+    question: "Um dado está com o 2 em cima. Ele tomba duas vezes sobre a aresta, para a frente. As faces opostas de um dado somam 7. Que número está em cima agora?"
+    steps:
+      - "O primeiro tombo leva para cima a face de trás."
+      - "O segundo tombo leva para cima a face que no início estava embaixo."
+      - "Embaixo estava o número oposto ao 2, ou seja, 7 − 2 = 5."
+    answer: "O número 5."
+    note:
+      title: "Depois de quatro tombos"
+      text: "Mais dois tombos trazem o 2 de volta para cima: rolando em linha reta, a face de cima volta a cada 4 tombos."
+    art:
+      top: "5 em cima"
+traps:
+  missed_case:
+    shows: "Uma face, uma camada ou um caso é esquecido: um quadrado que, ao dobrar, encosta em outro, ou uma camada que o furo também atravessa."
+    say: "“Tem alguma face, ou camada, que ainda não foi contada?”"
+  ignored_condition:
+    shows: "Uma regra do problema se perde: quadrados vizinhos são tomados por faces opostas, ou se esquece que as faces opostas de um dado somam 7."
+    say: "“Isso segue a regra que o problema dá?”"
+  stopped_early:
+    shows: "A solução para um passo antes: depois da primeira dobra, ou depois de um só tombo do dado."
+    say: "“Falta mais um passo?”"
+home:
+  - title: "Planificações de papel"
+    text: "Desenhe uma cruz de seis quadrados, recorte e dobre num cubo. Quais quadrados ficam opostos?"
+  - title: "Dobrar e furar"
+    text: "Dobre uma folha duas vezes, faça um furo com um lápis e adivinhem juntos quantos furos haverá antes de abrir."
+  - title: "Um dado de verdade"
+    text: "Olhe um dado com a criança: quais números são opostos? Façam ele rolar pela mesa e digam o número de cima antes de olhar."
+ask: "Quero um problema de cubos e papel"

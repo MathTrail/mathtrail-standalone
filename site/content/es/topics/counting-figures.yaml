@@ -1,0 +1,117 @@
+# The page of the topic of counting figures, for a parent, in Spanish.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Contar figuras"
+description: "Qué son los problemas de contar figuras y con cerillas, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa."
+hero:
+  lead: "Un dibujo de pocas líneas esconde más triángulos y cuadrados de los que se ven a primera vista: pequeños y grandes, hechos de varias piezas. Estos problemas piden contarlos todos, o decir qué cerillas quitar para que una figura cambie. Todo consiste en contar por tamaños, empezando por los más pequeños."
+  method: "Contar por tamaños, de los más pequeños en adelante"
+  teaches: "A contar cada figura una sola vez, sin saltarse ninguna ni repetirla"
+  art:
+    count: "4 cuadrados pequeños y 1 grande: 5"
+basis:
+  title: "Qué cuenta como figura"
+  cards:
+    - title: "Las grandes también cuentan"
+      text: "Un cuadrado de 2 por 2 casillas tiene 4 cuadrados pequeños y 1 grande a su alrededor. Una figura hecha de varias piezas también cuenta."
+      art:
+        count: "4 + 1 = 5 cuadrados"
+    - title: "Lados sobre las líneas"
+      text: "Un triángulo cuenta solo si cada uno de sus lados está sobre una línea del dibujo. Dos líneas de esquina a esquina forman 8 triángulos en un cuadrado."
+      art:
+        count: "4 pequeños y 4 de dos piezas: 8"
+    - title: "Una cerilla es un lado"
+      text: "Donde dos cuadrados de cerillas se tocan, comparten una cerilla. Una fila de 3 cuadrados necesita 10 cerillas, no 12."
+      art:
+        count: "3 + 3 + 4 = 10 cerillas"
+idea:
+  title: "Contar tamaño a tamaño"
+  lead: "Enumerar las figuras por su tamaño: primero las más pequeñas, luego las de dos piezas, luego las mayores, y sumar."
+  table:
+    head:
+      - "El dibujo"
+      - "Las más pequeñas"
+      - "Las mayores"
+      - "En total"
+    rows:
+      - - "un cuadrado de 2 por 2 casillas"
+        - "4"
+        - "1"
+        - "5"
+      - - "un cuadrado de 3 por 3 casillas"
+        - "9"
+        - "4 + 1"
+        - "14"
+      - - "un rectángulo de 2 por 3 casillas"
+        - "6"
+        - "2"
+        - "8"
+  note:
+    title: "Por qué importa"
+    text: "Los niños y las niñas suelen contar solo las figuras pequeñas, o cuentan una grande dos veces a partir de dos de sus piezas. Ir tamaño a tamaño, y anotar cada tamaño, evita las dos cosas."
+method:
+  title: "Cómo resolverlo: de las más pequeñas en adelante"
+  lead: "Nombrar cada tamaño de figura que cabe en el dibujo, contar cada tamaño por separado y sumar. Con cerillas, preguntarse de qué cuadrados es lado cada cerilla. Los ejemplos de abajo van del más sencillo a uno de olimpiada."
+  steps:
+    - "Encontrar las figuras más pequeñas y contarlas"
+    - "Contar las figuras de cada tamaño mayor, una tras otra"
+    - "Sumar y comprobar que no falta ningún tamaño"
+examples:
+  - title: "Dos líneas desde arriba"
+    question: "Desde la esquina de arriba de un triángulo bajan dos líneas hasta su base. ¿Cuántos triángulos hay en el dibujo?"
+    steps:
+      - "Las dos líneas dividen el triángulo en 3 triángulos pequeños."
+      - "Dos triángulos pequeños juntos forman un triángulo: hay 2 parejas así."
+      - "El triángulo entero es 1 más. En total, 3 + 2 + 1 = 6."
+    answer: "6 triángulos."
+    note:
+      title: "Una comprobación rápida"
+      text: "Cada triángulo de aquí tiene su vértice en la esquina y su base en la línea de abajo. Esa línea tiene 4 puntos, y cada 2 de ellos forman una base: 6 parejas."
+    art:
+      count: "3 + 2 + 1 = 6"
+  - title: "Un cuadrado de 3 por 3"
+    question: "Se dibuja un cuadrado de 3 por 3 casillas con todas sus líneas. ¿Cuántos cuadrados de cualquier tamaño hay?"
+    steps:
+      - "Cuadrados de una casilla: 3 filas de 3, es decir, 9."
+      - "Los cuadrados de 2 por 2 caben en 2 filas de 2 lugares, es decir, 4."
+      - "El cuadrado entero de 3 por 3 es 1 más. En total, 9 + 4 + 1 = 14."
+    answer: "14 cuadrados."
+    note:
+      title: "No son 9"
+      text: "9 cuenta solo los cuadrados pequeños. Un cuadrado de varias casillas también es un cuadrado."
+    art:
+      sizes: "9 de una casilla, 4 de 2 por 2, 1 de 3 por 3"
+  - title: "Cerillas que quitar"
+    question: "12 cerillas forman un cuadrado de 2 por 2 casillas. ¿Cuál es el menor número de cerillas que hay que quitar para que no quede ningún cuadrado de ningún tamaño?"
+    steps:
+      - "Hay 5 cuadrados: 4 pequeños y el grande."
+      - "Una cerilla es lado de 2 cuadrados como mucho, así que 2 cerillas rompen como mucho 4 cuadrados, y queda uno."
+      - "Las 2 cerillas de dentro que están de pie rompen los 4 cuadrados pequeños, y 1 cerilla de arriba rompe el grande: 3 cerillas."
+    answer: "3 cerillas."
+    note:
+      title: "Por qué no 2"
+      text: "Cada cerilla rompe 1 o 2 cuadrados, y hay que romper 5, así que 2 cerillas no bastan."
+    art:
+      taken: "las cerillas de trazos se quitan"
+traps:
+  missed_case:
+    shows: "Se salta un tamaño de figura: el cuadrado grande que rodea a los pequeños, o los triángulos de dos piezas."
+    say: "«¿Hay una figura mayor hecha de varias piezas?»"
+  double_count:
+    shows: "Una figura se cuenta dos veces, a partir de dos de sus piezas, o una cerilla compartida se cuenta para sus dos cuadrados."
+    say: "«¿Esta figura ya está contada?»"
+  stopped_early:
+    shows: "La cuenta se para en las figuras más pequeñas, o en la primera respuesta que parece buena."
+    say: "«¿Hay figuras de otro tamaño?»"
+home:
+  - title: "Papel cuadriculado"
+    text: "Dibuje con su hijo o hija un cuadrado de 2 por 2 casillas y cuenten juntos sus cuadrados. Después pruebe con 3 por 3."
+  - title: "Cerillas"
+    text: "Forme una fila de cuadrados con cerillas o palitos. ¿Cuántas hacen falta para 4 cuadrados? ¿Y para 5?"
+  - title: "Tamaño a tamaño"
+    text: "Al contar, diga en voz alta cada tamaño: pequeñas, de dos piezas, mayores. Apunte los números y súmelos."
+ask: "Dame un problema de contar figuras"

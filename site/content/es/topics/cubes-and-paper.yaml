@@ -1,0 +1,111 @@
+# The page of the topic of cubes and paper, for a parent, in Spanish.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Cubos y papel"
+description: "Qué son los problemas de desarrollos del cubo y papel doblado, cómo se resuelven, dónde suelen equivocarse los niños y las niñas y cómo ayudar en casa."
+hero:
+  lead: "Un desarrollo plano de seis cuadrados se pliega en un cubo; una hoja doblada y perforada una vez se abre con varios agujeros; en un dado que rueda por una fila se puede averiguar el número de arriba. Estos problemas se resuelven imaginando el plegado, el giro o el desplegado, un paso cada vez."
+  method: "Plegar, rodar o desplegar, un paso cada vez"
+  teaches: "A ver cómo una figura plana se vuelve un cuerpo, y al revés"
+  art:
+    opposite: "1 y 5 quedan opuestos"
+basis:
+  title: "Las reglas del plegado"
+  cards:
+    - title: "Las caras opuestas no se tocan"
+      text: "En un desarrollo, dos cuadrados en una misma fila con un cuadrado entre ellos se convierten en caras opuestas del cubo."
+      art:
+        opposite: "3 y 6 son opuestos"
+    - title: "Un doblez duplica las capas"
+      text: "Una hoja doblada una vez tiene 2 capas donde el doblez la pone, y doblada otra vez, 4. Una perforación hace un agujero en cada capa."
+      art:
+        holes: "2 dobleces, 4 capas, 4 agujeros"
+    - title: "Un dado suma 7"
+      text: "En un dado, los números de caras opuestas suman 7: 1 y 6, 2 y 5, 3 y 4."
+      art:
+        bottom: "arriba 2, abajo 5"
+idea:
+  title: "Un paso cada vez"
+  lead: "Plegar, rodar o desplegar mentalmente un paso cada vez, y fijarse en lo que hace cada paso."
+  table:
+    head:
+      - "Lo que se hace"
+      - "Lo que cambia"
+    rows:
+      - - "un cuadrado del desarrollo se dobla hacia arriba"
+        - "se convierte en la siguiente cara del cubo"
+      - - "una hoja se dobla una vez"
+        - "sus capas se duplican donde queda"
+      - - "un dado vuelca sobre una arista"
+        - "una cara lateral sube arriba"
+      - - "un dado vuelca dos veces hacia delante"
+        - "la cara de abajo sube arriba"
+  note:
+    title: "Por qué importa"
+    text: "Los niños y las niñas suelen adivinar el resultado entero de golpe. Cada paso es fácil, y seguirlos uno a uno no deja nada que adivinar."
+method:
+  title: "Cómo resolverlo: un doblez cada vez"
+  lead: "Nombrar el cuadrado, el doblez o el vuelco que va primero, decir qué hace y pasar al siguiente. Cuando se pueda, recortar un desarrollo de papel o usar un dado de verdad para comprobar. Los ejemplos de abajo van del más sencillo a uno de olimpiada."
+  steps:
+    - "Elegir el primer cuadrado, doblez o vuelco"
+    - "Decir qué hace con las caras o las capas"
+    - "Seguir paso a paso y comprobar con papel o con un dado"
+examples:
+  - title: "La cara opuesta"
+    question: "El desarrollo de un cubo es una cruz: una columna de 4 cuadrados numerados 1, 2, 3 y 4 de arriba abajo, y los cuadrados 5 y 6 a cada lado del cuadrado 2. ¿Qué número queda opuesto al 2 al plegarlo?"
+    steps:
+      - "Los cuadrados 1 y 3 están junto al 2 en la columna, así que lo tocan."
+      - "Los cuadrados 5 y 6 están a los lados del 2, así que también lo tocan."
+      - "El cuadrado 4 está dos cuadrados por debajo del 2, con el 3 entre ambos: queda opuesto al 2."
+    answer: "El número 4."
+    note:
+      title: "Comprobarlo con papel"
+      text: "Dibuje la cruz en papel cuadriculado, recórtela y pliéguela: el 2 y el 4 quedan uno frente al otro."
+    art:
+      opposite: "2 y 4 son opuestos"
+  - title: "Dos dobleces y un agujero"
+    question: "Una hoja cuadrada se dobla por la mitad y luego otra vez por la mitad. Se le hace un agujero a la hoja doblada. ¿Cuántos agujeros hay al abrirla?"
+    steps:
+      - "El primer doblez da 2 capas."
+      - "El segundo doblez las duplica: 4 capas."
+      - "El agujero atraviesa las 4 capas, así que la hoja abierta tiene 4 agujeros."
+    answer: "4 agujeros."
+    note:
+      title: "Dónde quedan los agujeros"
+      text: "Los agujeros quedan en los 4 cuartos de la hoja, cada uno reflejo del siguiente respecto a una línea de doblez."
+    art:
+      holes: "un agujero en cada cuarto"
+  - title: "Un dado rueda"
+    question: "Un dado tiene el 2 arriba. Vuelca dos veces sobre su arista hacia delante. Las caras opuestas de un dado suman 7. ¿Qué número queda arriba ahora?"
+    steps:
+      - "El primer vuelco sube arriba la cara de atrás."
+      - "El segundo vuelco sube arriba la cara que al principio estaba abajo."
+      - "Abajo estaba el número opuesto al 2, es decir, 7 − 2 = 5."
+    answer: "El número 5."
+    note:
+      title: "Tras cuatro vuelcos"
+      text: "Dos vuelcos más devuelven el 2 arriba: rodando en línea recta, la cara de arriba vuelve cada 4 vuelcos."
+    art:
+      top: "arriba 5"
+traps:
+  missed_case:
+    shows: "Se salta una cara, una capa o un caso: un cuadrado que al plegarse toca a otro, o una capa que la perforación también atraviesa."
+    say: "«¿Hay alguna cara, o alguna capa, sin contar?»"
+  ignored_condition:
+    shows: "Se pierde una regla del problema: se toman cuadrados vecinos por caras opuestas, o se olvida que las caras opuestas de un dado suman 7."
+    say: "«¿Cumple esto la regla que da el problema?»"
+  stopped_early:
+    shows: "La solución se para un paso antes: tras el primer doblez, o tras un solo vuelco del dado."
+    say: "«¿Falta un paso más?»"
+home:
+  - title: "Desarrollos de papel"
+    text: "Dibuje una cruz de seis cuadrados, recórtela y pliéguela en un cubo. ¿Qué cuadrados quedan opuestos?"
+  - title: "Doblar y perforar"
+    text: "Doble una hoja dos veces, haga un agujero con un lápiz y adivinen juntos cuántos agujeros habrá antes de abrirla."
+  - title: "Un dado de verdad"
+    text: "Mire un dado con su hijo o hija: ¿qué números son opuestos? Háganlo rodar por la mesa y digan el número de arriba antes de mirar."
+ask: "Dame un problema de cubos y papel"

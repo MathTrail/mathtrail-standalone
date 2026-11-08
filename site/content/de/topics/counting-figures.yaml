@@ -1,0 +1,117 @@
+# The page of the topic of counting figures, for a parent, in German.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Figuren zählen"
+description: "Worum es bei „Figuren zählen“ geht, also um Streichholzrätsel, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können."
+hero:
+  lead: "In einer Zeichnung aus wenigen Linien stecken mehr Dreiecke und Quadrate, als man zuerst sieht: kleine und große, die aus mehreren Teilen bestehen. Diese Aufgaben fragen nach allen, oder nach den Streichhölzern, die man wegnehmen muss, damit sich eine Figur ändert. Der ganze Trick ist, nach Größen zu zählen, mit den kleinsten zuerst."
+  method: "Nach Größen zählen, von den kleinsten an"
+  teaches: "Jede Figur genau einmal zu zählen, ohne eine auszulassen oder doppelt zu zählen"
+  art:
+    count: "4 kleine Quadrate und 1 großes: 5"
+basis:
+  title: "Was als Figur zählt"
+  cards:
+    - title: "Große zählen auch"
+      text: "Ein Quadrat aus 2 mal 2 Kästchen enthält 4 kleine Quadrate und 1 großes um sie herum. Auch eine Figur aus mehreren Teilen zählt."
+      art:
+        count: "4 + 1 = 5 Quadrate"
+    - title: "Seiten auf den Linien"
+      text: "Ein Dreieck zählt nur, wenn jede seiner Seiten auf einer Linie der Zeichnung liegt. Zwei Linien von Ecke zu Ecke ergeben in einem Quadrat 8 Dreiecke."
+      art:
+        count: "4 kleine und 4 aus zwei Teilen: 8"
+    - title: "Ein Streichholz ist eine Seite"
+      text: "Wo sich zwei Quadrate aus Streichhölzern berühren, teilen sie ein Streichholz. Eine Reihe aus 3 Quadraten braucht 10 Streichhölzer, nicht 12."
+      art:
+        count: "3 + 3 + 4 = 10 Streichhölzer"
+idea:
+  title: "Größe für Größe zählen"
+  lead: "Die Figuren nach ihrer Größe aufzählen: erst die kleinsten, dann die aus zwei Teilen, dann die größeren, und alles zusammenzählen."
+  table:
+    head:
+      - "Die Zeichnung"
+      - "Die kleinsten"
+      - "Die größeren"
+      - "Zusammen"
+    rows:
+      - - "ein Quadrat aus 2 mal 2 Kästchen"
+        - "4"
+        - "1"
+        - "5"
+      - - "ein Quadrat aus 3 mal 3 Kästchen"
+        - "9"
+        - "4 + 1"
+        - "14"
+      - - "ein Rechteck aus 2 mal 3 Kästchen"
+        - "6"
+        - "2"
+        - "8"
+  note:
+    title: "Warum das wichtig ist"
+    text: "Kinder zählen oft nur die kleinen Figuren, oder sie zählen eine große doppelt, über zwei ihrer Teile. Wer Größe für Größe vorgeht und jede Größe aufschreibt, vermeidet beides."
+method:
+  title: "So wird gelöst: von den kleinsten an"
+  lead: "Alle Größen nennen, die in der Zeichnung vorkommen, jede Größe für sich zählen und dann zusammenzählen. Bei Streichhölzern fragen, von welchen Quadraten jedes Streichholz eine Seite ist. Die Beispiele unten reichen von ganz einfach bis Olympiade-Niveau."
+  steps:
+    - "Die kleinsten Figuren finden und zählen"
+    - "Die Figuren jeder größeren Größe der Reihe nach zählen"
+    - "Zusammenzählen und prüfen, dass keine Größe fehlt"
+examples:
+  - title: "Zwei Linien von der Spitze"
+    question: "Von der oberen Ecke eines Dreiecks gehen zwei Linien zu seiner Grundseite. Wie viele Dreiecke sind in der Zeichnung?"
+    steps:
+      - "Die zwei Linien teilen das Dreieck in 3 kleine Dreiecke."
+      - "Zwei kleine Dreiecke nebeneinander bilden ein Dreieck: Davon gibt es 2 Paare."
+      - "Das ganze Dreieck ist 1 mehr. Zusammen 3 + 2 + 1 = 6."
+    answer: "6 Dreiecke."
+    note:
+      title: "Eine schnelle Probe"
+      text: "Jedes Dreieck hier hat seine Spitze in der Ecke und seine Grundseite auf der unteren Linie. Auf ihr liegen 4 Punkte, und je 2 davon ergeben eine Grundseite: 6 Paare."
+    art:
+      count: "3 + 2 + 1 = 6"
+  - title: "Ein Quadrat aus 3 mal 3"
+    question: "Ein Quadrat aus 3 mal 3 Kästchen ist mit allen Linien gezeichnet. Wie viele Quadrate jeder Größe gibt es?"
+    steps:
+      - "Quadrate aus einem Kästchen: 3 Reihen zu 3, also 9."
+      - "Quadrate aus 2 mal 2 passen in 2 Reihen zu 2 Plätzen, also 4."
+      - "Das ganze Quadrat aus 3 mal 3 ist 1 mehr. Zusammen 9 + 4 + 1 = 14."
+    answer: "14 Quadrate."
+    note:
+      title: "Nicht 9"
+      text: "9 zählt nur die kleinen Quadrate. Ein Quadrat aus mehreren Kästchen ist auch ein Quadrat."
+    art:
+      sizes: "9 aus einem Kästchen, 4 aus 2 mal 2, 1 aus 3 mal 3"
+  - title: "Streichhölzer wegnehmen"
+    question: "12 Streichhölzer bilden ein Quadrat aus 2 mal 2 Kästchen. Wie viele Streichhölzer muss man mindestens wegnehmen, damit kein Quadrat irgendeiner Größe übrig bleibt?"
+    steps:
+      - "Es gibt 5 Quadrate: 4 kleine und das große."
+      - "Ein Streichholz ist höchstens von 2 Quadraten eine Seite, also zerstören 2 Streichhölzer höchstens 4 Quadrate, und eines bleibt."
+      - "Die 2 inneren Streichhölzer, die senkrecht stehen, zerstören alle 4 kleinen Quadrate, und 1 Streichholz oben zerstört das große: 3 Streichhölzer."
+    answer: "3 Streichhölzer."
+    note:
+      title: "Warum nicht 2"
+      text: "Jedes Streichholz zerstört 1 oder 2 Quadrate, und 5 müssen weg. 2 Streichhölzer sind also zu wenig."
+    art:
+      taken: "die gestrichelten Streichhölzer kommen weg"
+traps:
+  missed_case:
+    shows: "Eine Größe wird übersehen: das große Quadrat um die kleinen oder die Dreiecke aus zwei Teilen."
+    say: "„Gibt es eine größere Figur aus mehreren Teilen?“"
+  double_count:
+    shows: "Eine Figur wird doppelt gezählt, über zwei ihrer Teile, oder ein gemeinsames Streichholz wird für beide Quadrate gezählt."
+    say: "„Ist diese Figur schon gezählt?“"
+  stopped_early:
+    shows: "Das Zählen hört bei den kleinsten Figuren auf oder bei der ersten Antwort, die richtig aussieht."
+    say: "„Gibt es Figuren einer anderen Größe?“"
+home:
+  - title: "Karopapier"
+    text: "Zeichnen Sie ein Quadrat aus 2 mal 2 Kästchen und zählen Sie gemeinsam die Quadrate. Versuchen Sie danach 3 mal 3."
+  - title: "Streichhölzer"
+    text: "Legen Sie eine Reihe Quadrate aus Streichhölzern oder Stäbchen. Wie viele braucht man für 4 Quadrate? Für 5?"
+  - title: "Größe für Größe"
+    text: "Nennen Sie beim Zählen jede Größe laut: kleine, dann aus zwei Teilen, dann größere. Schreiben Sie die Zahlen auf und zählen Sie sie zusammen."
+ask: "Gib mir eine Aufgabe zum Thema „Figuren zählen“"

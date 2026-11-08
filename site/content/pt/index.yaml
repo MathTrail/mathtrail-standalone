@@ -76,7 +76,7 @@ pillars:
       more: + qualquer um
     checked:
       title: Um programa verifica o modelo.
-      text: "Um problema só chega à criança depois de passar por todas as verificações: uma única alternativa correta, a resposta reproduzida por um resolvedor, um texto legível para o ano escolar, nenhuma repetição e um desenho, quando houver, com os rótulos que o enunciado usa e sem a resposta nele."
+      text: "Um problema só chega à criança depois de passar por todas as verificações: uma única alternativa correta, a resposta reproduzida por um resolvedor, um texto legível para o ano escolar, nenhuma repetição e um desenho, quando houver, com os rótulos que o enunciado usa e sem a resposta nele. Num problema que se resolve pelo desenho, o valor certo só pode aparecer no desenho entre os valores de pelo menos três alternativas erradas."
       checks:
         - resposta única
         - resolvedor

@@ -1,0 +1,117 @@
+# The page of the topic of counting figures, for a parent, in Portuguese.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Contar figuras"
+description: "O que são os problemas de contar figuras e de palitos, como se resolvem, onde as crianças costumam errar e como ajudar em casa."
+hero:
+  lead: "Um desenho de poucas linhas esconde mais triângulos e quadrados do que se vê de início: pequenos, e grandes feitos de várias partes. Estes problemas pedem para encontrar todos, ou para dizer quais palitos tirar para mudar uma figura. O segredo é contar por tamanhos, começando pelos menores."
+  method: "Contar por tamanhos, dos menores para os maiores"
+  teaches: "A contar cada figura uma só vez, sem esquecer nem repetir nenhuma"
+  art:
+    count: "4 quadrados pequenos e 1 grande: 5"
+basis:
+  title: "O que conta como figura"
+  cards:
+    - title: "As grandes também contam"
+      text: "Um quadrado de 2 por 2 quadradinhos tem 4 quadrados pequenos e 1 grande em volta deles. Uma figura feita de várias partes também conta."
+      art:
+        count: "4 + 1 = 5 quadrados"
+    - title: "Lados sobre as linhas"
+      text: "Um triângulo só conta se cada um dos seus lados estiver sobre uma linha do desenho. Duas linhas de canto a canto formam 8 triângulos num quadrado."
+      art:
+        count: "4 pequenos e 4 de duas partes: 8"
+    - title: "Um palito é um lado"
+      text: "Onde dois quadrados de palitos se encostam, eles dividem um palito. Uma fileira de 3 quadrados usa 10 palitos, não 12."
+      art:
+        count: "3 + 3 + 4 = 10 palitos"
+idea:
+  title: "Contar tamanho por tamanho"
+  lead: "Listar as figuras pelo tamanho: primeiro as menores, depois as de duas partes, depois as maiores, e somar."
+  table:
+    head:
+      - "O desenho"
+      - "As menores"
+      - "As maiores"
+      - "No total"
+    rows:
+      - - "um quadrado de 2 por 2 quadradinhos"
+        - "4"
+        - "1"
+        - "5"
+      - - "um quadrado de 3 por 3 quadradinhos"
+        - "9"
+        - "4 + 1"
+        - "14"
+      - - "um retângulo de 2 por 3 quadradinhos"
+        - "6"
+        - "2"
+        - "8"
+  note:
+    title: "Por que isso importa"
+    text: "As crianças muitas vezes contam só as figuras pequenas, ou contam uma grande duas vezes a partir de duas das suas partes. Ir tamanho por tamanho, anotando cada tamanho, resolve as duas coisas."
+method:
+  title: "Como resolver: dos menores para os maiores"
+  lead: "Dizer cada tamanho de figura que cabe no desenho, contar cada tamanho separadamente e somar. Com palitos, perguntar de quais quadrados cada palito é lado. Os exemplos abaixo vão do mais simples a um de olimpíada."
+  steps:
+    - "Achar as figuras menores e contá-las"
+    - "Contar as figuras de cada tamanho maior, uma depois da outra"
+    - "Somar e conferir que nenhum tamanho ficou de fora"
+examples:
+  - title: "Duas linhas a partir do topo"
+    question: "Do canto de cima de um triângulo descem duas linhas até a base. Quantos triângulos há no desenho?"
+    steps:
+      - "As duas linhas dividem o triângulo em 3 triângulos pequenos."
+      - "Dois triângulos pequenos lado a lado formam um triângulo: há 2 pares assim."
+      - "O triângulo inteiro é mais 1. No total, 3 + 2 + 1 = 6."
+    answer: "6 triângulos."
+    note:
+      title: "Uma conferência rápida"
+      text: "Aqui todo triângulo tem o vértice no canto e a base na linha de baixo. Essa linha tem 4 pontos, e quaisquer 2 deles formam uma base: 6 pares."
+    art:
+      count: "3 + 2 + 1 = 6"
+  - title: "Um quadrado de 3 por 3"
+    question: "Um quadrado de 3 por 3 quadradinhos está desenhado com todas as suas linhas. Quantos quadrados de qualquer tamanho há?"
+    steps:
+      - "Quadrados de um quadradinho: 3 fileiras de 3, ou seja, 9."
+      - "Os quadrados de 2 por 2 cabem em 2 fileiras de 2 lugares, ou seja, 4."
+      - "O quadrado inteiro de 3 por 3 é mais 1. No total, 9 + 4 + 1 = 14."
+    answer: "14 quadrados."
+    note:
+      title: "Não são 9"
+      text: "9 conta só os quadrados pequenos. Um quadrado de vários quadradinhos também é um quadrado."
+    art:
+      sizes: "9 de um quadradinho, 4 de 2 por 2, 1 de 3 por 3"
+  - title: "Palitos para tirar"
+    question: "12 palitos formam um quadrado de 2 por 2 quadradinhos. Qual é o menor número de palitos que é preciso tirar para que não sobre nenhum quadrado de nenhum tamanho?"
+    steps:
+      - "Há 5 quadrados: 4 pequenos e o grande."
+      - "Um palito é lado de no máximo 2 quadrados, então 2 palitos desfazem no máximo 4 quadrados, e sobra um."
+      - "Os 2 palitos de dentro que estão em pé desfazem os 4 quadrados pequenos, e 1 palito de cima desfaz o grande: 3 palitos."
+    answer: "3 palitos."
+    note:
+      title: "Por que não 2"
+      text: "Cada palito desfaz 1 ou 2 quadrados, e é preciso desfazer 5, então 2 palitos não bastam."
+    art:
+      taken: "os palitos tracejados são tirados"
+traps:
+  missed_case:
+    shows: "Um tamanho de figura é esquecido: o quadrado grande em volta dos pequenos, ou os triângulos de duas partes."
+    say: "“Tem uma figura maior feita de várias partes?”"
+  double_count:
+    shows: "Uma figura é contada duas vezes, a partir de duas das suas partes, ou um palito dividido é contado para os seus dois quadrados."
+    say: "“Essa figura já foi contada?”"
+  stopped_early:
+    shows: "A contagem para nas figuras menores, ou na primeira resposta que parece certa."
+    say: "“Tem figuras de outro tamanho?”"
+home:
+  - title: "Papel quadriculado"
+    text: "Desenhe com a criança um quadrado de 2 por 2 quadradinhos e contem juntos os seus quadrados. Depois tentem 3 por 3."
+  - title: "Palitos"
+    text: "Monte uma fileira de quadrados com palitos de fósforo ou de sorvete. Quantos são precisos para 4 quadrados? E para 5?"
+  - title: "Tamanho por tamanho"
+    text: "Ao contar, diga cada tamanho em voz alta: os pequenos, os de duas partes, os maiores. Anote os números e some."
+ask: "Quero um problema de contar figuras"

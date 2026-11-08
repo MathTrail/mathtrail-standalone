@@ -622,6 +622,8 @@ Gathered on 2026-10-12 from Google's suggestions for India in Hindi (`hl=hi`, `g
 | divisibility and remainders | «विभाज्यता और शेषफल» | «विभाज्यता के नियम», «शेषफल» |
 | overlapping groups | «आपस में मिलते समूह» ⚑ | «वेन आरेख», «वेन डायग्राम» |
 | games with a winning strategy | «जीतने की रणनीति वाले खेल» ⚑ | «गणितीय खेल»; «जीतने की रणनीति» alone is the elections' |
+| counting figures | आकृतियाँ गिनना | “चित्र में कितने त्रिभुज”, “तीलियों की पहेली” |
+| cubes and paper | घन और कागज़ ⚑ | “घन का जाल”, “कागज़ मोड़ना” |
 
 **Descriptions** can carry «गणित की पहेलियाँ», «गणित के सवाल», «बच्चों के लिए», the stage in words, «प्राथमिक कक्षाएँ», on "Techniques" «सवाल हल करने के तरीके», on "Why" «सोचने वाले सवाल» and how to teach a child maths, which the page's own sources back. «उत्तर सहित» and «हल सहित» fit a topic's page and "Techniques" only; the home page's honest words are the card's, «हर गलती को समझाता है».
 
@@ -672,3 +674,14 @@ Gathered on 2026-10-12 from Google's suggestions for India in Hindi (`hl=hi`, `g
 - «हिन्दी» in the language picker, as Intl names the language, and «हिंदी» in prose, as the card spells every such word.
 - The card names both a group and a topic «पूरे के हिस्से» (`group.parts`, `topic.fractions.parts`), so the topics page will show the topic under a group of its own name, as in Spanish. The fix belongs to the card's dictionary, and the site follows it.
 - The card's «अंक» is a school mark (`progress.grades_note`), a digit in the maths and a point in darts; the site keeps «अंक» for all three and writes «नंबर» for a mark wherever it could be read as a digit.
+
+### Figures, nets and folds
+
+| English | Hindi | Note |
+|---|---|---|
+| net (of a cube) | जाल (घन का) | |
+| fold | मोड़, मोड़ना | |
+| hole, punch | छेद, छेदना | |
+| die | पासा | |
+| face (of a cube) | फलक | |
+| match | तीली | |

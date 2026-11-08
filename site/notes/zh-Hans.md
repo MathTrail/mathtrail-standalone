@@ -504,6 +504,8 @@ Gathered on 2026-10-12 from Google's suggestions for Singapore and Malaysia and 
 | divisibility and remainders | «整除与余数» | «有余数的除法», «余数问题» |
 | overlapping groups | «容斥原理» | the same; «重叠问题» |
 | games with a winning strategy | «必胜策略» | the same; «抢30», «取火柴游戏» |
+| counting figures | 数图形 | “数三角形”“火柴棒游戏” |
+| cubes and paper | 立方体与折纸 ⚑ | “正方体展开图”“折纸打孔” |
 
 **Descriptions** can carry «奥数题», «数学思维», «逻辑推理», «解题方法», «解题思路» and «免费», a fact, and on "Why" what parents ask, «奥数有什么用».
 
@@ -537,3 +539,14 @@ Gathered on 2026-10-12 from Google's suggestions for Singapore and Malaysia and 
 - Pólya's phases from the edition in print, «理解题目 · 拟订方案 · 执行方案 · 回顾», against 阎育苏's older «弄清问题 · 拟定计划 · 实现计划 · 回顾».
 - The consent screen's wording of the Drive permission comes from Google's Marketplace, not from the screen itself.
 - What the code does to Chinese, which no translation can mend: the italic captions on "Techniques" and any `*…*` lean Han characters by a slant the font does not have.
+
+### Figures, nets and folds
+
+| English | Chinese | Note |
+|---|---|---|
+| net (of a cube) | 展开图 | |
+| fold | 折痕、对折 | |
+| hole, punch | 孔、打孔 | |
+| die | 骰子 | |
+| face (of a cube) | 面 | |
+| match | 火柴 | |

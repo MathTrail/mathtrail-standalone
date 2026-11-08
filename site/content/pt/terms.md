@@ -29,7 +29,7 @@ Cada problema é escrito pelo próprio modelo do chat e depois verificado por um
 - um programa que resolve o problema reproduz essa resposta por força bruta;
 - a redação é legível para o ano escolar;
 - o problema não é uma quase repetição de um anterior;
-- todo desenho segue o formato exigido, traz os rótulos tal como o enunciado os nomeia e não tem nenhuma resposta escrita nele.
+- todo desenho segue o formato exigido, traz os rótulos tal como o enunciado os nomeia e não tem nenhuma resposta escrita nele. Num problema que se resolve pelo desenho, o valor certo só pode aparecer no desenho entre os valores de pelo menos três alternativas erradas.
 
 Se a redação, o desenho e a solução concordam **quanto ao sentido**, e se um desenho entrega a resposta de alguma outra forma, quem verifica é o próprio modelo, não o programa. Por isso o MathTrail não promete que todo problema seja perfeito, e você não deve tratá-lo como uma fonte de respostas definitivas. Se um problema parece errado, ele pode estar errado — conte para nós.
 

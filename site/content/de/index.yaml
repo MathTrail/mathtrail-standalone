@@ -76,7 +76,7 @@ pillars:
       more: + jede
     checked:
       title: Ein Programm prüft das Modell.
-      text: "Eine Aufgabe erreicht Ihr Kind erst, wenn sie jede Prüfung bestanden hat: eine einzige richtige Antwort, die Antwort von einem Lösungsprogramm nachgerechnet, lesbar für die Klasse, keine Wiederholung und, falls es ein Bild gibt, Beschriftungen wie in der Aufgabe und keine Antwort darauf."
+      text: "Eine Aufgabe erreicht Ihr Kind erst, wenn sie jede Prüfung bestanden hat: eine einzige richtige Antwort, die Antwort von einem Lösungsprogramm nachgerechnet, lesbar für die Klasse, keine Wiederholung und, falls es ein Bild gibt, Beschriftungen wie in der Aufgabe und keine Antwort darauf. In einer Aufgabe, die man am Bild löst, darf der richtige Wert auf dem Bild nur zwischen den Werten von mindestens drei falschen Antwortmöglichkeiten stehen."
       checks:
         - genau eine Antwort
         - Löser

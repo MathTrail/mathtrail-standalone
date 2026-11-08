@@ -46,7 +46,7 @@ MathTrail is not in ChatGPT's directory yet. Until it is, ChatGPT's developer mo
 - **The card says "Make a wish for tomorrow".** A child gets up to 50 new tasks a day, and the day also closes after ten requests in which no task could be written. The day ends at midnight by the clock of the device your child answers the card on. Until your child has answered a card, it ends at midnight UTC. The progress and the last task stay available.
 - **Claude puts "Another task" in the message box under "Use caution before running this prompt".** That is the card's request waiting for you: press Enter to send it.
 - **Claude asks whether to allow MathTrail to save the profile.** Saving replaces what the profile held before, so Claude asks first. Allow it when you asked for the change.
-- **No card appears.** Some chats show no cards. The chat then gives the task in words with its options A to E, and you type the letter of your child's answer.
+- **No card appears.** Some chats show no cards. The chat then gives the task in words with its options A to E, and you type the letter of your child's answer. A task solved from its picture comes only where cards are shown: should its card not appear, ask for another task.
 - **The profile cannot be read, or it is in Drive's bin.** MathTrail says so in the chat and changes nothing. Restore the file from the bin, or let MathTrail put back its latest readable version or start a new profile, as [the guide to your child's data](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/parents.md) explains.
 - **A task looks wrong.** It may be: the program checks what it can, and the meaning is checked by the model itself. Tell us what the task said.
 

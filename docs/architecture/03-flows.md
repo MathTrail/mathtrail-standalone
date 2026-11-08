@@ -180,7 +180,7 @@ sequenceDiagram
     MT-->>M: the package
     M->>MT: submit_task
     MT->>D: read, then write — the current task
-    MT-->>M: accepted, plus the task as text: wording, options A–E, hint — no picture, the wording carries every fact
+    MT-->>M: accepted, plus the task as text: wording, options A–E, hint — no picture, the wording carries every fact, since a chat that draws no cards is given no task solved from its picture
     M-->>A: reads the task out in the chat, for the adult to read to the child, with no answer in sight
     A->>M: B, the child's answer
     M->>MT: submit_answer — task id, option B
@@ -189,7 +189,7 @@ sequenceDiagram
     M-->>A: starts from the trap the child fell into, then the solution step by step, about the step
 ```
 
-Text mode is not a reduced version: the same tools, the same payloads and, but for the questions a card asks while it waits, the same Drive calls (О-10). The only difference is who draws the card — the widget, or the model with words. The one thing the child loses is the button that records without spending a chat turn, which matters on a free tier (PRODUCT 6).
+Text mode is not a reduced version: the same tools, the same payloads and, but for the questions a card asks while it waits, the same Drive calls (О-10). The only difference is who draws the card — the widget, or the model with words. The child loses the button that records without spending a chat turn, which matters on a free tier (PRODUCT 6), and the tasks solved from the picture: their facts stand on the picture alone, so such a chat is given tasks in words only, and a task of that kind kept or still open for the child is let go there (R322).
 
 ## Scenario 5. Progress and the profile
 

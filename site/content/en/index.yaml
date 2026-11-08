@@ -76,7 +76,7 @@ pillars:
       more: + any
     checked:
       title: A program checks the model.
-      text: "A task reaches your child only after it passes every check: one correct option, the answer reproduced by a solver, readable for the grade, not a repeat, and a picture, where there is one, labelled as the question names it, with no answer on it."
+      text: "A task reaches your child only after it passes every check: one correct option, the answer reproduced by a solver, readable for the grade, not a repeat, and a picture, where there is one, labelled as the question names it, with no answer on it. In a task solved from its picture, the right value may stand on the picture only among the values of at least three wrong options."
       checks:
         - one answer
         - solver

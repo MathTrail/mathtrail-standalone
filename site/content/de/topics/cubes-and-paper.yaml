@@ -1,0 +1,111 @@
+# The page of the topic of cubes and paper, for a parent, in German.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Würfel und Papier"
+description: "Worum es bei „Würfel und Papier“ geht, also um Würfelnetze, wie man solche Aufgaben löst, wo Kinder Fehler machen und wie Sie zu Hause helfen können."
+hero:
+  lead: "Ein flaches Netz aus sechs Quadraten lässt sich zu einem Würfel falten; ein gefaltetes Blatt, einmal gelocht, hat aufgefaltet mehrere Löcher; bei einem Spielwürfel, der eine Reihe entlang rollt, lässt sich die Zahl oben herausfinden. Solche Aufgaben löst man, indem man sich das Falten, Rollen oder Auffalten Schritt für Schritt vorstellt."
+  method: "Falten, rollen oder auffalten, einen Schritt nach dem anderen"
+  teaches: "Zu sehen, wie aus einer flachen Form eine räumliche wird, und zurück"
+  art:
+    opposite: "1 und 5 liegen gegenüber"
+basis:
+  title: "Die Regeln des Faltens"
+  cards:
+    - title: "Gegenüberliegende Flächen berühren sich nie"
+      text: "Im Netz werden zwei Quadrate in einer Reihe mit einem Quadrat dazwischen zu gegenüberliegenden Flächen des Würfels."
+      art:
+        opposite: "3 und 6 liegen gegenüber"
+    - title: "Ein Falz verdoppelt die Lagen"
+      text: "Ein einmal gefaltetes Blatt liegt dort, wo der Falz es hinlegt, in 2 Lagen, ein zweites Mal gefaltet in 4. Ein Lochen macht in jede Lage ein Loch."
+      art:
+        holes: "2 Falze, 4 Lagen, 4 Löcher"
+    - title: "Ein Spielwürfel ergibt 7"
+      text: "Auf einem Spielwürfel ergeben die Zahlen gegenüberliegender Flächen zusammen 7: 1 und 6, 2 und 5, 3 und 4."
+      art:
+        bottom: "oben 2, unten 5"
+idea:
+  title: "Schritt für Schritt"
+  lead: "Im Kopf einen Schritt nach dem anderen falten, rollen oder auffalten und festhalten, was jeder Schritt bewirkt."
+  table:
+    head:
+      - "Was getan wird"
+      - "Was sich ändert"
+    rows:
+      - - "ein Quadrat des Netzes wird hochgeklappt"
+        - "es wird die nächste Fläche des Würfels"
+      - - "ein Blatt wird einmal gefaltet"
+        - "seine Lagen verdoppeln sich, wo es liegt"
+      - - "ein Spielwürfel kippt über eine Kante"
+        - "eine Seitenfläche kommt nach oben"
+      - - "ein Spielwürfel kippt zweimal geradeaus"
+        - "die untere Fläche kommt nach oben"
+  note:
+    title: "Warum das wichtig ist"
+    text: "Kinder raten oft das ganze Ergebnis auf einmal. Jeder Schritt ist leicht, und wer ihnen einzeln folgt, muss nichts raten."
+method:
+  title: "So wird gelöst: ein Falz nach dem anderen"
+  lead: "Das Quadrat, den Falz oder das Kippen nennen, das zuerst kommt, sagen, was es bewirkt, und dann zum nächsten gehen. Wo es geht, ein Netz aus Papier ausschneiden oder einen echten Spielwürfel nehmen und prüfen. Die Beispiele unten reichen von ganz einfach bis Olympiade-Niveau."
+  steps:
+    - "Das erste Quadrat, den ersten Falz oder das erste Kippen wählen"
+    - "Sagen, was es mit den Flächen oder Lagen macht"
+    - "Schritt für Schritt weitergehen und mit Papier oder Spielwürfel prüfen"
+examples:
+  - title: "Die Fläche gegenüber"
+    question: "Ein Würfelnetz ist ein Kreuz: eine Spalte aus 4 Quadraten, von oben mit 1, 2, 3 und 4 nummeriert, und die Quadrate 5 und 6 links und rechts von Quadrat 2. Welche Zahl liegt nach dem Falten gegenüber der 2?"
+    steps:
+      - "Die Quadrate 1 und 3 liegen in der Spalte neben der 2, sie berühren sie also."
+      - "Die Quadrate 5 und 6 liegen seitlich neben der 2, sie berühren sie auch."
+      - "Quadrat 4 liegt zwei Quadrate unter der 2, mit der 3 dazwischen: Es kommt gegenüber der 2 zu liegen."
+    answer: "Die Zahl 4."
+    note:
+      title: "Mit Papier prüfen"
+      text: "Zeichnen Sie das Kreuz auf Karopapier, schneiden Sie es aus und falten Sie es: 2 und 4 liegen einander gegenüber."
+    art:
+      opposite: "2 und 4 liegen gegenüber"
+  - title: "Zwei Falze und ein Loch"
+    question: "Ein quadratisches Blatt wird in der Mitte gefaltet und dann noch einmal in der Mitte. Durch das gefaltete Blatt wird ein Loch gestanzt. Wie viele Löcher hat es aufgefaltet?"
+    steps:
+      - "Der erste Falz ergibt 2 Lagen."
+      - "Der zweite Falz verdoppelt sie: 4 Lagen."
+      - "Das Loch geht durch alle 4 Lagen, also hat das aufgefaltete Blatt 4 Löcher."
+    answer: "4 Löcher."
+    note:
+      title: "Wo die Löcher sind"
+      text: "Die Löcher liegen in den 4 Vierteln des Blattes, jedes ein Spiegelbild des nächsten an einer Falzlinie."
+    art:
+      holes: "ein Loch in jedem Viertel"
+  - title: "Ein Spielwürfel rollt"
+    question: "Ein Spielwürfel steht mit der 2 oben. Er kippt zweimal geradeaus über seine Kante. Gegenüberliegende Flächen eines Spielwürfels ergeben zusammen 7. Welche Zahl ist jetzt oben?"
+    steps:
+      - "Das erste Kippen bringt die hintere Fläche nach oben."
+      - "Das zweite Kippen bringt die Fläche nach oben, die am Anfang unten war."
+      - "Unten lag die Zahl gegenüber der 2, also 7 − 2 = 5."
+    answer: "Die Zahl 5."
+    note:
+      title: "Nach viermal Kippen"
+      text: "Noch zweimal Kippen bringt die 2 wieder nach oben: Geradeaus gerollt kehrt die obere Fläche alle 4 Kippungen zurück."
+    art:
+      top: "oben 5"
+traps:
+  missed_case:
+    shows: "Eine Fläche, eine Lage oder ein Fall wird übersehen: ein Quadrat, das beim Falten an ein anderes stößt, oder eine Lage, durch die das Loch auch geht."
+    say: "„Gibt es eine Fläche oder Lage, die noch nicht gezählt ist?“"
+  ignored_condition:
+    shows: "Eine Regel der Aufgabe geht verloren: Nebeneinanderliegende Quadrate werden für gegenüberliegende Flächen gehalten, oder die 7 gegenüberliegender Flächen eines Spielwürfels wird vergessen."
+    say: "„Passt das zu der Regel der Aufgabe?“"
+  stopped_early:
+    shows: "Die Lösung hört einen Schritt zu früh auf: nach dem ersten Falz oder nach einmal Kippen."
+    say: "„Gibt es noch einen Schritt?“"
+home:
+  - title: "Netze aus Papier"
+    text: "Zeichnen Sie ein Kreuz aus sechs Quadraten, schneiden Sie es aus und falten Sie es zu einem Würfel. Welche Quadrate liegen sich gegenüber?"
+  - title: "Falten und lochen"
+    text: "Falten Sie ein Blatt zweimal, machen Sie mit einem Bleistift ein Loch und raten Sie gemeinsam die Löcher, bevor Sie es auffalten."
+  - title: "Ein echter Spielwürfel"
+    text: "Sehen Sie sich gemeinsam einen Spielwürfel an: Welche Zahlen liegen gegenüber? Kippen Sie ihn über den Tisch und sagen Sie die Zahl oben, bevor Sie hinschauen."
+ask: "Gib mir eine Aufgabe zum Thema „Würfel und Papier“"

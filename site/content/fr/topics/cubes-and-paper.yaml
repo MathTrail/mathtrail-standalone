@@ -1,0 +1,111 @@
+# The page of the topic of cubes and paper, for a parent, in French.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Cubes et papier"
+description: "Ce que sont les problèmes de patrons du cube et de pliage, comment on les résout, où les enfants se trompent et comment les aider à la maison."
+hero:
+  lead: "Un patron plat de six carrés se plie en cube ; une feuille pliée et percée une fois se déplie avec plusieurs trous ; pour un dé qui roule le long d’une rangée, on peut trouver le nombre du dessus. Ces problèmes se résolvent en imaginant le pliage, le roulement ou le dépliage, une étape à la fois."
+  method: "Plier, rouler ou déplier, une étape à la fois"
+  teaches: "À voir comment une forme plate devient un solide, et inversement"
+  art:
+    opposite: "1 et 5 se retrouvent opposés"
+basis:
+  title: "Les règles du pliage"
+  cards:
+    - title: "Les faces opposées ne se touchent pas"
+      text: "Dans un patron, deux carrés d’une même rangée séparés par un carré deviennent des faces opposées du cube."
+      art:
+        opposite: "3 et 6 sont opposés"
+    - title: "Un pli double les épaisseurs"
+      text: "Une feuille pliée une fois a 2 épaisseurs là où le pli la pose, et pliée encore une fois, 4. Une perforation fait un trou dans chaque épaisseur."
+      art:
+        holes: "2 plis, 4 épaisseurs, 4 trous"
+    - title: "Un dé fait 7"
+      text: "Sur un dé, les nombres de deux faces opposées font 7 en tout : 1 et 6, 2 et 5, 3 et 4."
+      art:
+        bottom: "2 dessus, 5 dessous"
+idea:
+  title: "Une étape à la fois"
+  lead: "Plier, rouler ou déplier dans sa tête une étape à la fois, et noter ce que fait chaque étape."
+  table:
+    head:
+      - "Ce qu’on fait"
+      - "Ce qui change"
+    rows:
+      - - "un carré du patron se replie"
+        - "il devient la face suivante du cube"
+      - - "une feuille est pliée une fois"
+        - "ses épaisseurs doublent là où elle se pose"
+      - - "un dé bascule sur une arête"
+        - "une face de côté passe dessus"
+      - - "un dé bascule deux fois tout droit"
+        - "la face du dessous passe dessus"
+  note:
+    title: "Pourquoi c’est important"
+    text: "Les enfants devinent souvent tout le résultat d’un coup. Chaque étape est facile, et les suivre une à une ne laisse rien à deviner."
+method:
+  title: "Comment résoudre : un pli à la fois"
+  lead: "Nommer le carré, le pli ou la bascule qui vient en premier, dire ce qu’il fait, puis passer au suivant. Quand c’est possible, découper un patron en papier ou prendre un vrai dé pour vérifier. Les exemples ci-dessous vont du plus simple à un problème d’olympiade."
+  steps:
+    - "Choisir le premier carré, le premier pli ou la première bascule"
+    - "Dire ce qu’il fait aux faces ou aux épaisseurs"
+    - "Avancer étape par étape, puis vérifier avec du papier ou un dé"
+examples:
+  - title: "La face opposée"
+    question: "Le patron d’un cube est une croix : une colonne de 4 carrés numérotés 1, 2, 3 et 4 de haut en bas, et les carrés 5 et 6 de chaque côté du carré 2. Quel nombre se retrouve opposé au 2 une fois le patron plié ?"
+    steps:
+      - "Les carrés 1 et 3 sont à côté du 2 dans la colonne, donc ils le touchent."
+      - "Les carrés 5 et 6 sont sur les côtés du 2, donc ils le touchent aussi."
+      - "Le carré 4 est deux carrés sous le 2, avec le 3 entre eux : il se retrouve opposé au 2."
+    answer: "Le nombre 4."
+    note:
+      title: "Vérifier avec du papier"
+      text: "Dessinez la croix sur du papier quadrillé, découpez-la et pliez-la : le 2 et le 4 se font face."
+    art:
+      opposite: "2 et 4 sont opposés"
+  - title: "Deux plis et un trou"
+    question: "Une feuille carrée est pliée en deux, puis encore en deux. On perce un trou dans la feuille pliée. Combien de trous y a-t-il quand on la déplie ?"
+    steps:
+      - "Le premier pli donne 2 épaisseurs."
+      - "Le second pli les double : 4 épaisseurs."
+      - "Le trou traverse les 4 épaisseurs, donc la feuille dépliée a 4 trous."
+    answer: "4 trous."
+    note:
+      title: "Où sont les trous"
+      text: "Les trous sont dans les 4 quarts de la feuille, chacun le reflet du suivant par rapport à une ligne de pli."
+    art:
+      holes: "un trou dans chaque quart"
+  - title: "Un dé qui roule"
+    question: "Un dé a le 2 sur le dessus. Il bascule deux fois sur son arête, tout droit devant lui. Les faces opposées d’un dé font 7 en tout. Quel nombre est maintenant dessus ?"
+    steps:
+      - "La première bascule amène dessus la face de derrière."
+      - "La seconde bascule amène dessus la face qui était dessous au départ."
+      - "Dessous, il y avait le nombre opposé au 2, soit 7 − 2 = 5."
+    answer: "Le nombre 5."
+    note:
+      title: "Après quatre bascules"
+      text: "Deux bascules de plus ramènent le 2 dessus : en roulant tout droit, la face du dessus revient toutes les 4 bascules."
+    art:
+      top: "5 dessus"
+traps:
+  missed_case:
+    shows: "Une face, une épaisseur ou un cas est oublié : un carré qui, en se pliant, vient toucher un autre, ou une épaisseur que la perforation traverse aussi."
+    say: "« Y a-t-il une face, ou une épaisseur, pas encore comptée ? »"
+  ignored_condition:
+    shows: "Une règle du problème se perd : des carrés voisins sont pris pour des faces opposées, ou on oublie que les faces opposées d’un dé font 7."
+    say: "« Est-ce que cela respecte la règle du problème ? »"
+  stopped_early:
+    shows: "La solution s’arrête une étape trop tôt : après le premier pli, ou après une seule bascule du dé."
+    say: "« Reste-t-il une étape à suivre ? »"
+home:
+  - title: "Des patrons en papier"
+    text: "Dessinez une croix de six carrés, découpez-la et pliez-la en cube. Quels carrés se retrouvent opposés ?"
+  - title: "Plier et percer"
+    text: "Pliez une feuille deux fois, faites un trou avec un crayon et devinez ensemble le nombre de trous avant de la déplier."
+  - title: "Un vrai dé"
+    text: "Regardez un dé ensemble : quels nombres sont opposés ? Faites-le rouler sur la table et dites le nombre du dessus avant de regarder."
+ask: "Donne-moi un problème sur le thème « Cubes et papier »"

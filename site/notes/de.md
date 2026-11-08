@@ -507,6 +507,8 @@ Gathered on 2026-10-12 from Google's suggestions for Germany, Austria and Switze
 | divisibility and remainders | «Teilbarkeit und Reste» | «Teilbarkeitsregeln», «Division mit Rest» |
 | overlapping groups | «Überlappende Gruppen» ⚑ | «Mengendiagramm», «Venn-Diagramm Aufgaben», «Schnittmenge» |
 | games with a winning strategy | «Spiele mit Gewinnstrategie» ⚑ | «Nim-Spiel», «Strategiespiele Mathe Grundschule»; «Gewinnstrategie» alone is board games and the lottery |
+| counting figures | Figuren zählen ⚑ | „wie viele Dreiecke“, „Streichholzrätsel“ |
+| cubes and paper | Würfel und Papier ⚑ | „Würfelnetz“, „Papier falten und lochen“ |
 
 **Descriptions** can carry «Knobelaufgaben», which the glossary lists for "puzzle" and the German site never writes, «Matherätsel», «Logikrätsel», «Grundschule», «kostenlos», a fact, on "Techniques" «Problemlösestrategien», and on "Why" «logisches Denken», as a noun and never with «fördern». «Mit Lösungen» fits a topic's page and "Techniques" only.
 
@@ -540,3 +542,14 @@ Gathered on 2026-10-12 from Google's suggestions for Germany, Austria and Switze
 - «u. a.» in `cite.many`, as German writes it, where the Spanish kept «et al.».
 - "The assumption method" as «Rechnen mit einer Annahme»: German has no fixed name for it.
 - The card names the topic of enumeration «Systematisches Probieren», "trying systematically"; the technique "List systematically" is «Systematisch auflisten», close to it but not the card's word.
+
+### Figures, nets and folds
+
+| English | German | Note |
+|---|---|---|
+| net (of a cube) | Netz (Würfelnetz) | |
+| fold | Falz, falten | |
+| hole, punch | Loch, lochen | |
+| die | Spielwürfel | |
+| face (of a cube) | Fläche (des Würfels) | |
+| match | Streichholz | |

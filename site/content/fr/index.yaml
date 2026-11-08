@@ -76,7 +76,7 @@ pillars:
       more: + toute autre
     checked:
       title: Un programme vérifie le modèle.
-      text: "Un problème n’arrive à votre enfant qu’après avoir réussi toutes les vérifications : une seule bonne réponse, la réponse retrouvée par un solveur, un texte lisible pour le niveau scolaire, pas de doublon, et un dessin, s’il y en a un, dont les étiquettes sont celles de l’énoncé et qui ne montre pas la réponse."
+      text: "Un problème n’arrive à votre enfant qu’après avoir réussi toutes les vérifications : une seule bonne réponse, la réponse retrouvée par un solveur, un texte lisible pour le niveau scolaire, pas de doublon, et un dessin, s’il y en a un, dont les étiquettes sont celles de l’énoncé et qui ne montre pas la réponse. Dans un problème qui se résout sur le dessin, la bonne valeur ne peut figurer sur le dessin que parmi les valeurs d’au moins trois réponses fausses."
       checks:
         - une seule réponse
         - solveur
