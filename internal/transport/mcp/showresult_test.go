@@ -392,7 +392,10 @@ func TestThereIsNoAnswerToShowWithoutAProfile(t *testing.T) {
 func TestThePictureOfTheSolutionIsSealedUntilTheAnswer(t *testing.T) {
 	t.Parallel()
 
-	const marker = "1979"
+	// The marker is five Latin capitals, which no number or duration a line
+	// of the log carries can come to, and an identifier written in base64
+	// only by a chance of about one in a hundred million.
+	const marker = "QZXWJ"
 	kept := racer(t)
 	h, session := lessonShowing(t, kept)
 	request := askForTheRace(t, session, kept)
@@ -401,7 +404,8 @@ func TestThePictureOfTheSolutionIsSealedUntilTheAnswer(t *testing.T) {
 	task["solution_picture"] = map[string]any{
 		"kind": "row", "items": []map[string]string{{"label": marker}, {"label": "2026"}},
 	}
-	task["solution_total"] = "1970 + 9 = " + marker
+	task["solution"] = fmt.Sprint(task["solution"], " The first post is ", marker, ".")
+	task["solution_total"] = marker + " + 9 = 1979"
 
 	handed := call(t, session, "submit_task", race)
 	card := wantOnTheCard(t, handed)
@@ -430,7 +434,7 @@ func TestThePictureOfTheSolutionIsSealedUntilTheAnswer(t *testing.T) {
 	shown := showIt(t, session, card.Task.ID)
 	for tool, after := range map[string]*mcp.CallToolResult{"submit_answer": answered, "show_result": shown} {
 		if shown := payloadOf[pictured](t, after); shown.Result.SolutionPicture["kind"] != "row" ||
-			shown.Result.SolutionTotal != "1970 + 9 = "+marker {
+			shown.Result.SolutionTotal != marker+" + 9 = 1979" {
 			t.Errorf("%s = %+v, want the picture of the solution and its total", tool, shown.Result)
 		}
 	}

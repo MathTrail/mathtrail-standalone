@@ -34,9 +34,8 @@ func write(out io.Writer, c *counts) error {
 		{"Accepted tasks", "The attempts an accepted task took, and the seconds from its request to its " +
 			"acceptance: the time the chat's model took to write it — for a task written ahead, the time its " +
 			"writing took, though the child had it at once. With a picture counts the tasks that came " +
-			"with one, and a line written before pictures the tasks that came with a text drawing; where only some " +
-			"lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not " +
-			"logged.", c.acceptedTable()},
+			"with one; where only some lines of a group say whether they did, it counts among those, as 2 of 3, " +
+			"and where none says, it is not logged.", c.acceptedTable()},
 		{"Tasks solved from the picture", "The tasks whose brief asked for one solved from the picture, counted " +
 			"apart as well as among all above: handed in, the attempts judged, of which the checks refused some; out " +
 			"of attempts, the requests whose last attempt was refused; kept, those written ahead and kept; accepted, " +
@@ -46,11 +45,10 @@ func write(out io.Writer, c *counts) error {
 			c.fromPictureTable()},
 		{"Tasks written ahead", "Asked ahead counts the requests opened for the next task while the child worked " +
 			"on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the " +
-			"tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took " +
-			"into its own place, kept or waited for, which only an earlier release let a card do; let go, the " +
-			"tasks written ahead, kept or still being written, that the lesson moved away from before they were " +
-			"handed out, and the requests for a task solved from the picture that a chat not drawing the card " +
-			"met while the child waited for them.", c.aheadTable()},
+			"tasks handed out that had been kept, out of all handed out; let go, the tasks written ahead, kept " +
+			"or still being written, that the lesson moved away from before they were handed out, and the " +
+			"requests for a task solved from the picture that a chat not drawing the card met while the child " +
+			"waited for them.", c.aheadTable()},
 		{"Why tasks written ahead were let go", "The reason the lesson moved away from a task: another language " +
 			"of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person " +
 			"asked for, a chat that does not draw the card, for a task solved from the picture, or another " +
@@ -69,8 +67,8 @@ func write(out io.Writer, c *counts) error {
 			"instance, or one not held, finds the task at the next question. A card that asked first only " +
 			"more than a quarter of an hour after, one drawn again with its chat, is left out.", c.shownTable()},
 		{"Hand-ins by their parts", "How large the tasks handed in were, in bytes of the JSON the checks read: " +
-			"the task, the self-check, the solver, the core idea inside the task, and the whole, the brief among " +
-			"it when one came. Format now is a hand-in of the form the guide asks for; before, one that also " +
+			"the task, the self-check, the solver, the core idea inside the task, and the whole, with the brief " +
+			"a hand-in of before brought. Format now is a hand-in of the form the guide asks for; before, one that also " +
 			"brought what the form no longer reads, from a chat begun with an earlier guide. Mended counts the " +
 			"hand-ins with a field read as it was meant rather than as it was written.", c.handInsTable()},
 		{"What was mended", "The fields read as they were meant rather than as they were written — a letter in " +
@@ -83,8 +81,7 @@ func write(out io.Writer, c *counts) error {
 		{"Pictures by topic", "The tasks accepted on each topic whose line says whether they came with a " +
 			"picture, and how many of them did. A line written before the service said so is left out.",
 			c.picturesTable()},
-		{"Pictures by kind", "The tasks accepted with a picture, by its kind; a line written before pictures " +
-			"says only that its task came with a text drawing, and other is a kind no format has, which only a " +
+		{"Pictures by kind", "The tasks accepted with a picture, by its kind; other is a kind no format has, which only a " +
 			"file edited by hand holds.", c.kindsTable()},
 		{"Why attempts were refused", "An attempt is counted by one check, the first its refusal names, and " +
 			"fails that check and any others beside it.", refusalsTable(c.refusals, c.versions)},
@@ -179,16 +176,15 @@ func (c *counts) tasksTable() *table {
 // aheadTable is, for each group, what became of the tasks written ahead.
 func (c *counts) aheadTable() *table {
 	t := &table{columns: []string{
-		"Instructions", "Host", "Asked ahead", "Kept", "Handed out ready", "Taken by the card", "Let go",
+		"Instructions", "Host", "Asked ahead", "Kept", "Handed out ready", "Let go",
 	}, named: 2}
 	for _, g := range c.groups() {
 		counted := c.tasks[g]
-		if counted.ahead+counted.kept+counted.ready+counted.byCard+counted.letGo == 0 {
+		if counted.ahead+counted.kept+counted.ready+counted.letGo == 0 {
 			continue
 		}
 		t.add(g.version, g.host, number(counted.ahead), number(counted.kept),
-			fmt.Sprintf("%d of %d", counted.ready, len(counted.attempts)), number(counted.byCard),
-			number(counted.letGo))
+			fmt.Sprintf("%d of %d", counted.ready, len(counted.attempts)), number(counted.letGo))
 	}
 	return t
 }

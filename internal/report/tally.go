@@ -57,15 +57,13 @@ type tasks struct {
 	attempts []int
 	seconds  []int64
 	// told counts the tasks accepted whose line says whether they came with a
-	// picture, or with a text drawing before pictures, and pictured those of
-	// them that did.
+	// picture, and pictured those of them that did.
 	told, pictured int
 	// ahead counts the requests opened for a task written ahead, kept the
 	// tasks written ahead and kept, and letGo those let go, kept or still being
 	// written, once the lesson moved away from them. ready counts the tasks
-	// handed out that had been kept, and byCard the tasks a card took, kept
-	// or waited for, while a release let a card take one into its own place.
-	ahead, kept, letGo, ready, byCard int
+	// handed out that had been kept.
+	ahead, kept, letGo, ready int
 }
 
 // handInOf is whose hand-ins are measured together: a group, and the format
@@ -111,10 +109,6 @@ type pictures struct{ accepted, pictured int }
 // kindOf is a kind of picture as the tasks of one version of the instructions
 // drew it.
 type kindOf struct{ version, kind string }
-
-// textDrawing is the kind a line written before pictures gives a task that
-// came with a drawing: it says only that there was one.
-const textDrawing = "(a text drawing)"
 
 // refusedBy is a check that refused attempts, under a version of the
 // instructions.
@@ -370,9 +364,6 @@ func (t *tasks) count(l *line) {
 		if l.Ready {
 			t.ready++
 		}
-		if l.ByCard {
-			t.byCard++
-		}
 	case eventTaskKept:
 		t.kept++
 	case eventTaskDropped:
@@ -395,13 +386,12 @@ func countQuestionInEnglish(l *line, counted *tasks) {
 }
 
 // picture counts whether an accepted task came with a picture, for its group,
-// for its topic and by its kind. A line written before pictures counts its
-// text drawing so, under its own version of the instructions, and a line that
-// says neither is counted neither way, so that the tasks accepted before the
-// service said so read as unknown rather than as pictured by none.
+// for its topic and by its kind. A line that does not say is counted neither
+// way, so that the tasks accepted before the service said so read as unknown
+// rather than as pictured by none.
 func (c *counts) picture(l *line, counted *tasks) {
-	kind, told := pictureOf(l)
-	if !told {
+	kind := l.Picture
+	if kind == "" {
 		return
 	}
 	key := topicOf{version: l.InstructionsVersion, topic: l.Topic}
@@ -418,21 +408,6 @@ func (c *counts) picture(l *line, counted *tasks) {
 	counted.pictured++
 	onTopic.pictured++
 	c.kinds[kindOf{version: l.InstructionsVersion, kind: kind}]++
-}
-
-// pictureOf is the kind of picture a line says its task came with, or none,
-// and whether it says at all.
-func pictureOf(l *line) (kind string, told bool) {
-	switch {
-	case l.Picture != "":
-		return l.Picture, true
-	case l.Drawing == nil:
-		return "", false
-	case *l.Drawing:
-		return textDrawing, true
-	default:
-		return picture.None, true
-	}
 }
 
 // refusedAttempt counts a refused attempt against the check it is counted by,

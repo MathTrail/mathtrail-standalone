@@ -23,7 +23,7 @@ Do not press **Allow** on that page. It signs a parent in with Google, and the b
 
 ## The demo profile
 
-The account opens one demo profile: a child known by a pseudonym, with the trial series done and about thirty tasks answered, some of them wrongly on purpose. It is a profile made for review, kept in a demo Google account's Drive, and nothing done in it reaches a real family or is counted as a child.
+The account opens one demo profile: a child known by a pseudonym, with the trial series done and several dozen tasks answered, some of them wrongly on purpose. It is a profile made for review, kept in a demo Google account's Drive, and nothing done in it reaches a real family or is counted as a child.
 
 ## What to try
 

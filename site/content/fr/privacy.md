@@ -5,7 +5,7 @@ description: Ce que MathTrail sait de votre enfant, où c’est conservé, et co
 
 # Politique de confidentialité
 
-Dernière mise à jour : 26 octobre 2026.
+Dernière mise à jour : 8 novembre 2026.
 
 MathTrail est un projet gratuit et open source, conçu et géré par ALT EdTech. Les questions sur cette politique ou sur les données de votre enfant sont à adresser à [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). La façon de le connecter, et ce qu’il faut faire si quelque chose semble anormal, sont expliquées sur la [page d’aide](../help/).
 
@@ -101,7 +101,7 @@ Géolocalisation IP par [DB-IP](https://db-ip.com), sous licence [Creative Commo
 - **Les deux cookies de la connexion** : 10 minutes pour celui qui relie les étapes d’une connexion, et 180 jours pour celui qui mémorise les applications que vous avez approuvées.
 - **Les journaux du service, et l’enregistrement des requêtes de Cloud Run** : 30 jours.
 - **La copie des lignes à partir desquelles on compte les enfants** : 62 jours.
-- **Les traces** de la durée des requêtes : 30 jours. Elles couvrent environ une requête sur dix, avec l’adresse, le navigateur, le chemin et la chaîne de requête effacés.
+- **Les traces** de la durée des requêtes : 30 jours. Celles du service lui-même couvrent environ une requête sur dix, avec l’adresse, le navigateur, le chemin et la chaîne de requête effacés. Google Cloud Run trace aussi de lui-même jusqu’à une requête toutes les dix secondes et garde l’adresse complète demandée ; une telle trace d’une connexion peut donc contenir ce qui est cité plus haut : le code de connexion à usage unique de Google, le domaine d’un compte Workspace et l’adresse e-mail que le chat suggère.
 - **Les mesures** du fonctionnement du service, comme le nombre d’appels réussis : 24 mois. Elles ne contiennent rien sur les enfants.
 - **Les totaux** : pendant des années. Ils ne contiennent aucun identifiant, de quelque sorte que ce soit.
 - **Les journaux d’accès de ce site et vos conversations** : aussi longtemps que GitHub et le fournisseur de votre chat les conservent, selon leurs propres politiques.

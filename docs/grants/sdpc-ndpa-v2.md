@@ -37,7 +37,7 @@ Under this model the school provides no Student Data. The table says what MathTr
 | Enrollment | Student grade level | R | The grade, 1 to 6 |
 | | School enrollment, homeroom, guidance counselor, curriculum programs, year of graduation | No | |
 | Parent/guardian contact information | Address, phone | No | |
-| | Email | No | Never asked for. A chat may put an email address in the query of the sign-in's address, and the project has Cloud Logging keep no record of a request whose address carries a query; the records made before that took effect leave when their 30 days are up. For the maintainer: whether the traces Cloud Run makes of a request by itself keep that query |
+| | Email | No | Never asked for. A chat may put an email address in the query of the sign-in's address, and the project has Cloud Logging keep no record of a request whose address carries a query; the records made before that took effect leave when their 30 days are up. The traces Cloud Run makes of up to one request every ten seconds by itself do keep that query, for 30 days, and the privacy policy says so; the 30 days to 8 November 2026 held none with an email address |
 | Parent/guardian ID | Parent ID number | R | The opaque code for the adult's account, made with the service's key from the Google account; in the log it ties the lines of one account together, its children's included |
 | Parent/guardian name | First and/or last | No | |
 | Schedule | All | No | |

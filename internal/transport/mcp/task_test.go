@@ -952,77 +952,34 @@ func TestAProgramThatCrashesIsASolverThatDidNotRun(t *testing.T) {
 	}
 }
 
-// A task is held to the brief its request keeps, whatever brief comes with it:
-// one handed back, as a chat begun with the guide that asked for it still does,
-// is read past — another difficulty, a skill let back in, words, broken JSON —
-// and the task stands on the card where the request asked, the skills the
-// child has not met kept out.
-func TestABriefHandedBackIsReadPastWhateverItSays(t *testing.T) {
-	t.Parallel()
-
-	for _, tc := range []struct {
-		name  string
-		brief func(asked profile.Brief) any
-	}{
-		{"as it was received", func(asked profile.Brief) any { return asked }},
-		{"another difficulty", func(asked profile.Brief) any {
-			asked.Difficulty = 4
-			return asked
-		}},
-		{"a skill the child has not met let back in", func(asked profile.Brief) any {
-			asked.ExcludedSkills = []string{}
-			return asked
-		}},
-		{"words", func(profile.Brief) any { return "the brief as it came" }},
-		{"broken JSON", func(profile.Brief) any { return `{"setting":"park",}` }},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			kept := racer(t, "fractions")
-			_, session := lesson(t, kept)
-			request := askForTheRace(t, session, kept)
-			race := raceOn(request)
-			race["brief"] = tc.brief(request.Brief)
-
-			got := payloadOf[handedInPayload](t, call(t, session, "submit_task", race))
-			if got.Screen != "task" || got.Task == nil || got.Attempt != 1 {
-				t.Fatalf("submit_task = %+v, want the race on the card at the first attempt", got)
-			}
-			p, _ := loadKept(t, kept)
-			if task := p.CurrentTask; task.Difficulty != request.Brief.Difficulty || task.GradeLevel != request.Brief.GradeLevel ||
-				task.Topic != request.Brief.TargetConcept {
-				t.Errorf("the task on the card stands at %s %s %d, want where the request asked", task.Topic,
-					task.GradeLevel, task.Difficulty)
-			}
-		})
-	}
-}
-
-// A chat begun with the guide that asked for the brief and the plan still
-// hands them in: the task is accepted at the first attempt, as one handed in
-// without them is.
-func TestAHandInOfAChatBegunBeforeIsAccepted(t *testing.T) {
+// The brief and the plan a guide of long ago asked for are retired for good:
+// the plan is a member the format does not have, and the brief an argument the
+// tool does not name.
+func TestAHandInWithTheRetiredBriefOrPlanIsRefused(t *testing.T) {
 	t.Parallel()
 
 	kept := racer(t)
 	_, session := lesson(t, kept)
 	request := askForTheRace(t, session, kept)
-	race := raceOn(request)
-	race["brief"] = request.Brief
-	task, _ := race["task"].(map[string]any)
+	planned := raceOn(request)
+	task, _ := planned["task"].(map[string]any)
 	task["design_thought_process"] = "Plot: a race. Traps: a reversed comparison, stopping early."
+	refused := call(t, session, "submit_task", planned)
+	if got := payloadOf[handedInPayload](t, refused); got.Code != "bad_structure" ||
+		!strings.Contains(textOf(t, refused), `"design_thought_process"`) {
+		t.Errorf("submit_task with the plan = %+v, %q, want it refused naming the plan", got, textOf(t, refused))
+	}
 
-	got := payloadOf[handedInPayload](t, call(t, session, "submit_task", race))
-	if got.Screen != "task" || got.Task == nil || got.Attempt != 1 {
-		t.Errorf("submit_task = %+v, want the race on the card at the first attempt", got)
+	briefed := raceOn(request)
+	briefed["brief"] = request.Brief
+	if got := call(t, session, "submit_task", briefed); !got.IsError || !strings.Contains(textOf(t, got), "brief") {
+		t.Errorf("submit_task with the brief = %q, want the argument refused by its name", textOf(t, got))
 	}
 }
 
-// submit_task names the brief as an argument to leave out: it is no longer one
-// the tool needs, and the library refuses an argument its schema does not name
-// before the tool runs, so it stays named for a chat that still sends it.
-func TestSubmitTaskNamesTheBriefAsAnArgumentToLeaveOut(t *testing.T) {
+// submit_task takes the request, the task, its solver and its self-check, and
+// nothing else: the brief stays with the request.
+func TestSubmitTaskTakesItsFourArgumentsAlone(t *testing.T) {
 	t.Parallel()
 
 	_, session := lesson(t, racer(t))
@@ -1045,11 +1002,12 @@ func TestSubmitTaskNamesTheBriefAsAnArgumentToLeaveOut(t *testing.T) {
 			t.Fatalf("read submit_task's schema %s: %v", raw, err)
 		}
 	}
-	if want := []string{"request_id", "self_check", "solver", "task"}; !slices.Equal(slices.Sorted(slices.Values(schema.Required)), want) {
+	want := []string{"request_id", "self_check", "solver", "task"}
+	if !slices.Equal(slices.Sorted(slices.Values(schema.Required)), want) {
 		t.Errorf("required = %v, want %v", schema.Required, want)
 	}
-	if brief, named := schema.Properties["brief"]; !named || !strings.HasPrefix(brief.Description, "leave it out") {
-		t.Errorf("brief = %+v, named %v, want it named as one to leave out", brief, named)
+	if named := slices.Sorted(maps.Keys(schema.Properties)); !slices.Equal(named, want) {
+		t.Errorf("arguments = %v, want %v", named, want)
 	}
 }
 
@@ -1764,7 +1722,7 @@ func TestTheAnswerStaysSealed(t *testing.T) {
 			t.Errorf("the task %s draws the %q screen, want the task's card", card.name, payload.Screen)
 		}
 		if keys := slices.Sorted(maps.Keys(payload.Task)); !slices.Equal(keys,
-			[]string{"drawing", "hint", "id", "language", "options", "picture", "question", "topic"}) {
+			[]string{"hint", "id", "language", "options", "picture", "question", "topic"}) {
 			t.Errorf("the card of the task %s has %v, want what a child may see and nothing else", card.name, keys)
 		}
 	}
@@ -2265,8 +2223,7 @@ func TestTheWordsOfATaskCarryNoPicture(t *testing.T) {
 }
 
 // A picture reaches every card that shows its task as it was handed in, its
-// keys in order, beside the empty drawing a card of the release before
-// requires; and the protocol's library, which holds every result to the
+// keys in order; and the protocol's library, which holds every result to the
 // schema it derives, lets the payload through.
 func TestAPictureReachesTheCardAsItWasHandedIn(t *testing.T) {
 	t.Parallel()
@@ -2288,7 +2245,6 @@ func TestAPictureReachesTheCardAsItWasHandedIn(t *testing.T) {
 		var payload struct {
 			Task struct {
 				Picture json.RawMessage `json:"picture"`
-				Drawing *string         `json:"drawing"`
 			} `json:"task"`
 		}
 		if err := json.Unmarshal(rawPayload(t, card.result), &payload); err != nil {
@@ -2296,9 +2252,6 @@ func TestAPictureReachesTheCardAsItWasHandedIn(t *testing.T) {
 		}
 		if got := string(payload.Task.Picture); got != want {
 			t.Errorf("the picture of the task %s is %s, want %s", card.name, got, want)
-		}
-		if payload.Task.Drawing == nil || *payload.Task.Drawing != "" {
-			t.Errorf("the drawing of the task %s is %v, want an empty one", card.name, payload.Task.Drawing)
 		}
 	}
 	p, _ := loadKept(t, kept)
@@ -2718,7 +2671,7 @@ func TestTheLineOfAHandInThatCannotBeReadMeasuresNoIdea(t *testing.T) {
 }
 
 // The line of a hand-in from a chat begun with an earlier guide names what the
-// format no longer reads that came with it, and counts the brief in the whole.
+// format no longer reads that came with it.
 func TestTheLineOfAHandInFromBeforeNamesWhatWasRetired(t *testing.T) {
 	t.Parallel()
 
@@ -2726,18 +2679,17 @@ func TestTheLineOfAHandInFromBeforeNamesWhatWasRetired(t *testing.T) {
 	h, session := lesson(t, kept)
 	request := askForTheRace(t, session, kept)
 	race := raceOn(request)
-	race["brief"] = request.Brief
 	task, _ := race["task"].(map[string]any)
-	task["design_thought_process"] = "Plot: a race."
+	task["drawing"] = ""
 	call(t, session, "submit_task", race)
 
 	line := submittedLine(t, h)
-	if retired := namesOf(line["retired"]); !slices.Equal(retired, []string{"brief", "task.design_thought_process"}) {
-		t.Errorf("retired = %v, want the brief and the plan", retired)
+	if retired := namesOf(line["retired"]); !slices.Equal(retired, []string{"task.drawing"}) {
+		t.Errorf("retired = %v, want the empty drawing", retired)
 	}
 	parts := bytesOf(t, line, "task_bytes") + bytesOf(t, line, "self_check_bytes") + bytesOf(t, line, "solver_bytes")
-	if total := bytesOf(t, line, "total_bytes"); total <= parts {
-		t.Errorf("total_bytes = %d, want the brief among it beside the parts' %d", total, parts)
+	if total := bytesOf(t, line, "total_bytes"); total != parts {
+		t.Errorf("total_bytes = %d, want the parts' %d", total, parts)
 	}
 }
 

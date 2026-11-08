@@ -51,18 +51,25 @@ func TestAWellFormedSubmissionDecodesWhole(t *testing.T) {
 }
 
 // A member the format has retired is read past, and named, so that a chat
-// begun with the guide that asked for it loses no attempt over it.
+// begun with the guide that asked for it loses no attempt over it; a member
+// whose retirement has run its course is a stray like any other.
 func TestARetiredMemberIsReadPast(t *testing.T) {
 	t.Parallel()
 
 	submitted := validParts(t)
-	task := withMember(t, submitted.task, "design_thought_process", "Plot: docking.")
+	task := withMember(t, submitted.task, "drawing", "")
 	draft, problems := checks.Decode(task, submitted.selfCheck)
 	if len(problems) != 0 {
 		t.Fatalf("Decode() problems = %v, want none", problems)
 	}
-	if !slices.Equal(draft.Retired, []string{"task.design_thought_process"}) {
-		t.Errorf("Retired = %v, want the plan named by its path", draft.Retired)
+	if !slices.Equal(draft.Retired, []string{"task.drawing"}) {
+		t.Errorf("Retired = %v, want the empty drawing named by its path", draft.Retired)
+	}
+
+	planned := withMember(t, submitted.task, "design_thought_process", "Plot: docking.")
+	if _, problems := checks.Decode(planned, submitted.selfCheck); !mentions(problems,
+		`task has a member the format does not have: "design_thought_process"`) {
+		t.Errorf("Decode() problems = %v, want the plan refused as a member the format does not have", problems)
 	}
 }
 
@@ -185,12 +192,12 @@ func TestARetiredMemberIsAStrayAnywhereElse(t *testing.T) {
 		want   string
 	}{
 		{"in the self-check", func(p *parts) {
-			p.selfCheck = withMember(t, p.selfCheck, "design_thought_process", "Plot: docking.")
-		}, `self_check has a member the format does not have: "design_thought_process"`},
+			p.selfCheck = withMember(t, p.selfCheck, "drawing", "")
+		}, `self_check has a member the format does not have: "drawing"`},
 		{"in an explanation", func(p *parts) {
 			p.task = json.RawMessage(strings.Replace(string(p.task), `"trap":"missed_case"`,
-				`"trap":"missed_case","design_thought_process":"why"`, 1))
-		}, `task.distractors.* has a member the format does not have: "design_thought_process"`},
+				`"trap":"missed_case","drawing":""`, 1))
+		}, `task.distractors.* has a member the format does not have: "drawing"`},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -400,7 +407,7 @@ func wantEveryUnreadPartNamed(t *testing.T, draft *checks.Draft, problems []chec
 func wantOnlyTheFormatsNames(t *testing.T, draft *checks.Draft) {
 	t.Helper()
 
-	retired := []string{"task.design_thought_process", "task.drawing", "task.drawing_structure"}
+	retired := []string{"task.drawing", "task.drawing_structure"}
 	for _, path := range draft.Retired {
 		if !slices.Contains(retired, path) {
 			t.Errorf("Retired names %q, which the format never retired", path)

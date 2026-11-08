@@ -165,6 +165,39 @@ func TestPercentilesAreKeptKindByKind(t *testing.T) {
 	}
 }
 
+// The answers are timed tool by tool as well, so that a tool that holds its
+// answer back, as a waiting card's question does, does not hide how long the
+// others took; a call that was not answered stands in no tool's line.
+func TestPercentilesAreKeptToolByTool(t *testing.T) {
+	t.Parallel()
+
+	held, submitted := between(0, 4000, session.Answered), between(0, 3000, session.Answered)
+	held.Tool, submitted.Tool = "read_task", "submit_task"
+	busy := between(0, 9000, session.Busy)
+	busy.Tool = "submit_task"
+	run := report.Run{Scenario: "lesson", Calls: []report.Call{
+		between(0, 20, session.Answered), between(0, 30, session.Answered), held, submitted, busy,
+	}}
+	var page strings.Builder
+	if _, err := report.Write(&page, []report.Run{run}, report.Instance{VCPU: 1, GiB: 0.5}); err != nil {
+		t.Fatalf("Write() error = %v", err)
+	}
+	for _, want := range []struct{ begins, ends string }{
+		{"| get_profile | 2 |", "| 30ms |"},
+		{"| read_task | 1 |", "| 4s |"},
+		{"| submit_task | 1 |", "| 3s |"},
+	} {
+		found := false
+		for line := range strings.Lines(page.String()) {
+			line = strings.TrimSuffix(line, "\n")
+			found = found || strings.HasPrefix(line, want.begins) && strings.HasSuffix(line, want.ends)
+		}
+		if !found {
+			t.Errorf("the report has no line beginning %q and ending %q:\n%s", want.begins, want.ends, page.String())
+		}
+	}
+}
+
 // Every answer the service should never give fails the run: a failure of its
 // own, a request it did not answer, an answer of another call, a protocol it
 // does not speak — and whatever the scenario expected and did not see.

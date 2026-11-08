@@ -105,7 +105,7 @@ The instructions for the step's field, from [reviewers.md](reviewers.md), as ent
 Sign-in for reviewers, with no Google account:
 1. Add MathTrail as a custom connector with the address https://mcp.mathtrail.app/mcp, then press Connect.
 2. MathTrail's page "Connect … to MathTrail?" opens. At its foot, open "Reviewing MathTrail for a directory?", type the reviewer's password given at the end of these instructions, and press "Sign in as the reviewer". Do not press "Allow": it signs a parent in with Google, and the browser remembers it. If the page goes straight to Google, clear the cookies of mcp.mathtrail.app and connect again.
-3. The chat comes back connected to a demo profile: a child known by the pseudonym Comet, grade 3, with about thirty tasks answered, some wrongly on purpose. Nothing done in it reaches a real family.
+3. The chat comes back connected to a demo profile: a child known by the pseudonym Comet, grade 3, with several dozen tasks answered, some wrongly on purpose. Nothing done in it reaches a real family.
 
 What to try, typing as the adult who runs the lesson; the child answers on the card:
 1. "Let's do a MathTrail task." A card shows that the task is being written, and within a minute or two it shows the task and five options.

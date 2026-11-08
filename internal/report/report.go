@@ -112,18 +112,12 @@ type line struct {
 	QuestionInEnglishGiven *bool    `json:"question_en_given"`
 
 	// An accepted task: the attempts it took, the seconds from the request to
-	// the task, and the kind of its picture, or none. A line written before
-	// pictures says only whether the task came with a text drawing, and one
-	// written before that says neither.
+	// the task, and the kind of its picture, or none.
 	Attempts            whole  `json:"attempts"`
 	SecondsSinceRequest whole  `json:"seconds_since_request"`
 	Picture             string `json:"picture"`
-	Drawing             *bool  `json:"drawing"`
-	// A task handed out: whether it was written ahead and kept, and whether a
-	// card took it into its own place, which only a line from a release that let
-	// a card do so says.
-	Ready  bool `json:"ready"`
-	ByCard bool `json:"by_card"`
+	// A task handed out: whether it was written ahead and kept.
+	Ready bool `json:"ready"`
 	// A task handed in, kept or handed out: whether its brief asked for a
 	// task solved from the picture, which lines written before the service
 	// gave such tasks leave out.

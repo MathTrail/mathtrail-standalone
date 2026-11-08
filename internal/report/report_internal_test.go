@@ -110,8 +110,7 @@ func TestACallIsKnownByItsSpanBeforeItsRequest(t *testing.T) {
 // The pictures of a group are counted among the tasks whose lines say whether
 // they came with one: where only some say, the count stands beside how many
 // said, so that it is not read against every task accepted, and where none
-// says, no count is made up. A line written before pictures says whether its
-// task came with a text drawing, and is counted so.
+// says, no count is made up.
 func TestAPictureIsCountedAmongTheLinesThatSaySo(t *testing.T) {
 	t.Parallel()
 
@@ -127,7 +126,6 @@ func TestAPictureIsCountedAmongTheLinesThatSaySo(t *testing.T) {
 		{"every line says", []string{accepted(`,"picture":"clock"`), accepted(`,"picture":"none"`)}, "1"},
 		{"some lines say", []string{accepted(`,"picture":"row"`), accepted(""), accepted(`,"picture":"none"`)}, "1 of 2"},
 		{"no line says", []string{accepted(""), accepted("")}, notLogged},
-		{"lines written before pictures", []string{accepted(`,"drawing":true`), accepted(`,"drawing":false`)}, "1"},
 		{"a picture of no kind the format has", []string{accepted(`,"picture":"other"`)}, "1"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -145,8 +143,7 @@ func TestAPictureIsCountedAmongTheLinesThatSaySo(t *testing.T) {
 }
 
 // The pictures are counted by their kind, under the version of the
-// instructions their tasks were written to, and a line written before
-// pictures by the one thing it says: that its task came with a text drawing.
+// instructions their tasks were written to.
 func TestAPictureIsCountedByItsKind(t *testing.T) {
 	t.Parallel()
 
@@ -154,11 +151,11 @@ func TestAPictureIsCountedByItsKind(t *testing.T) {
 		`{"message":"task_accepted","topic":"time.clocks","attempts":1,"picture":"clock","instructions_version":"v2"}`,
 		`{"message":"task_accepted","topic":"time.clocks","attempts":1,"picture":"clock","instructions_version":"v2"}`,
 		`{"message":"task_accepted","topic":"logic.sets","attempts":1,"picture":"none","instructions_version":"v2"}`,
-		`{"message":"task_accepted","topic":"logic.sets","attempts":1,"drawing":true,"instructions_version":"v1"}`,
+		`{"message":"task_accepted","topic":"time.clocks","attempts":1,"picture":"clock","instructions_version":"v1"}`,
 	)
 	want := map[kindOf]int{
-		{version: "v2", kind: "clock"}:     2,
-		{version: "v1", kind: textDrawing}: 1,
+		{version: "v2", kind: "clock"}: 2,
+		{version: "v1", kind: "clock"}: 1,
 	}
 	if !maps.Equal(c.kinds, want) {
 		t.Errorf("pictures by kind = %v, want %v", c.kinds, want)
