@@ -6,13 +6,13 @@
   - every `correct_answer` was right;
   - every solver read the facts from `picture` and computed the quantity the question asks;
   - none hard-coded a fact the picture holds.
-- **The answer is drawn twice, both times as the rules allow.** The two crowns of tiles draw the right number on a tile, each beside the values of three wrong options. No other picture shows the answer as a value.
+- **The answer is drawn twice, both times as the rules allow.** The two crowns of tiles draw the right number on a tile, each beside the values of three wrong options. One more picture shows the answer's number as something else: a sheet writes the order of its folds as 1 and 2, and its answer is 2.
 - **Refusals: 16 of 50 hand-ins, and 15 of them failed `near_duplicate`.**
   - Each of those repeats a reference task of its level, at 0.71 to 1.00: in today's topics the reference task of the idea itself, which the package shows last, and in the two new topics the nearest one of the level.
   - One question copied its reference task word for word.
   - Every second attempt rewrote the question, to 0.19 to 0.65 alike, and was accepted. No request ran out of attempts.
   - A sentence of the guide that asks for the genre's rules in the model's own words (R327) took them away: a re-check of the five chats with the most of them gave none in 8 tasks.
-  - Without the near-copies, 2 of 50 hand-ins were refused: one came with no picture at all, and one drew its answer, which the hidden answer's check caught.
+  - Without the near-copies, 1 of 50 hand-ins was refused: it drew its answer, which the hidden answer's check caught. One of the near-copies also came with no picture at all.
 - **A task solved from the picture takes longer to write.**
   - The first hand-in came 31 s after the package on average, median 26 s.
   - The four tasks in words of the same chats came after 19 s, median 17 s.
@@ -92,7 +92,7 @@ The author chose a sentence in the guide's section, which asks for the genre's r
 
 ## The re-check
 
-The five chats with the most near-copies were held again on the guide with that sentence, the same profiles, model and message, against a server of its own. The instructions changed with the guide.
+Ten chats had the task asked for refused as a near-copy. Five of them, one for each pair of genres, were held again on the guide with that sentence: numbers under shapes, the crown at `5-6`, the goat and the pieces, cutting and the mirror, the maze and the path. The profiles, the model and the message were the same, against a server of its own, at instructions `86ed9de57eb6`. After the review, the paragraph's wording was made to fit the new topics too, which show three reference tasks rather than one, and the version moved again.
 
 | | Tasks solved from the picture | First attempts refused as near-copies | Nearest reference task |
 |---|---:|---:|---|
@@ -125,7 +125,7 @@ From the package to the hand-in, by the proxy's clock:
   - Every solver reads the facts from `picture`. The one fixed number is a cell the question names.
   - One solver takes a shortcut: the crown at `5-6` assumes how each tile is turned, rather than searching every turn. The shortcut is right here because the six numbers come out distinct, and the solver does not check that. On a crown with a number repeated, it could prove a wrong answer.
 - **The answer on the picture.** The two crowns draw the right number on a tile, beside three wrong options' values, as R320 allows. One sheet writes the order of its folds as 1 and 2, the way the lattice's format writes it, and its answer is 2. Naming folds by letters would keep such a number off the picture.
-- **Small things a parent may notice:**
+- **Small things a parent may notice,** kept as a debt, Д35:
   - three questions name a count the picture shows: "five squares", "six squares" and "two lines";
   - a route on cells is called a maze though no wall is drawn;
   - a solution names "tile 2 in the picture", which only the solution's picture draws;
@@ -135,7 +135,7 @@ From the package to the hand-in, by the proxy's clock:
 
 - **The tasks are safe to give.** A solver that reads the picture, the read rule and the hidden answer's check kept every one of the 34 right, in all 17 genres. The check of the hidden answer caught the one picture that drew its answer.
 - **The near-copies are the one cost the run found,** and it falls on the wait rather than on the task. A sentence of the guide took them away in the re-check.
-- **Д31 stays a debt.** The run found no solver that answers another question, and one whose proof holds only for its own picture.
+- **Д31 stays a debt.** The run found no solver that answers another question. It did find one whose proof holds for its own picture alone, the crown at `5-6`, and such a solver is what the service's own solver would catch.
 
 ## Cost and time
 
