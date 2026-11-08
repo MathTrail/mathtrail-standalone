@@ -176,7 +176,7 @@ The same sign-in as Claude's, from [reviewers.md](reviewers.md): the reviewer op
 - **Sign-in steps:**
 
 ```text chatgpt-sign-in-steps
-No username and no Google account: the reviewers' sign-in takes the password alone.
+No username and no Google account: the reviewers' sign-in takes the password alone. A username shown with these steps only fills the form's field.
 1. Connect MathTrail. Its page "Connect … to MathTrail?" opens.
 2. At the foot of that page, open "Reviewing MathTrail for a directory?", type the password and press "Sign in as the reviewer". Do not press "Allow": it signs a parent in with Google, and the browser remembers it. If the page goes straight to Google, clear the cookies of mcp.mathtrail.app and connect again.
 3. ChatGPT comes back connected to a demo profile: a child known by the pseudonym Comet, grade 3, with several dozen tasks answered, some wrongly on purpose. Nothing done in it reaches a real family.
