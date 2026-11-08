@@ -525,6 +525,8 @@ Gathered on 2026-10-12 from Google's suggestions for Egypt, Saudi Arabia, Morocc
 | divisibility and remainders | «قابلية القسمة والبواقي» | the same; «باقي القسمة» |
 | overlapping groups | «المجموعات المتداخلة» ⚑ | «مخطط فن» |
 | games with a winning strategy | «ألعاب باستراتيجية رابحة» ⚑ | nothing that is maths: «ألعاب رياضيات» are games for screens |
+| counting figures | عدّ الأشكال | «كم مثلثًا في الشكل»، «ألغاز أعواد الثقاب» |
+| cubes and paper | المكعبات والورق ⚑ | «شبكة المكعب»، «طي الورق» |
 
 **Descriptions** can carry «مسائل رياضيات», «ألغاز رياضيات للأطفال», the stage in words, «المرحلة الابتدائية», on "Techniques" «استراتيجيات حل المسائل», and on "Why" «التفكير المنطقي», which the page's own sources back. «مع الحل» fits a topic's page and "Techniques" only; the home page's honest word is «شرح الخطأ».
 
@@ -561,3 +563,14 @@ Gathered on 2026-10-12 from Google's suggestions for Egypt, Saudi Arabia, Morocc
 - The one Arabic edition found, «الرياضيات المسلية», for "Living Mathematics"; every other book keeps its English title.
 - «ت {year}» for the dagger before a death year.
 - The duals of the counted nouns on "Research", «ان» for some and «ين» for others, and the sentences worded to give each slot its case (see "The counted nouns of "Research""). The forms after 1 and after 0 follow the card's «1 مرة» and «0 مرة» (`progress.times`) rather than «مرة واحدة».
+
+### Figures, nets and folds
+
+| English | Arabic | Note |
+|---|---|---|
+| net (of a cube) | شبكة (المكعب) | |
+| fold | طيّة، طوى | |
+| hole, punch | ثقب، ثقب | |
+| die | حجر النرد | |
+| face (of a cube) | وجه (المكعب) | |
+| match | عود ثقاب | |

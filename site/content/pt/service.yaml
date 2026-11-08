@@ -87,7 +87,7 @@ map:
     model:
       name: O modelo do host
       sub: Escreve o problema, o resolvedor, as explicações
-      about: O Claude ou o ChatGPT. Escreve o problema, um resolvedor em Starlark, uma explicação para cada alternativa errada e uma autoverificação; conduz a aula em palavras onde não se desenham cartões. O próprio MathTrail não chama nenhum modelo.
+      about: O Claude ou o ChatGPT. Escreve o problema, um resolvedor em Starlark, uma explicação para cada alternativa errada e uma autoverificação; conduz a aula em palavras onde não se desenham cartões. O próprio MathTrail não chama nenhum modelo. Um chat que não mostra cartões só recebe problemas em palavras.
     appsrt:
       name: Ambiente de execução de MCP Apps
       sub: O frame isolado em que o cartão vive
@@ -126,7 +126,7 @@ map:
     checks:
       name: Verificações
       sub: Em que um problema enviado precisa passar
-      about: "Um problema enviado precisa passar em tudo isto: a estrutura e cinco alternativas diferentes, as letras do idioma da aula, explicações distintas, o resolvedor, a autoverificação, a legibilidade, as quase repetições e o desenho: o formato, os rótulos confrontados com o enunciado e nenhuma resposta escrita nele. Todas as falhas são informadas de uma só vez."
+      about: "Um problema enviado precisa passar em tudo isto: a estrutura e cinco alternativas diferentes, as letras do idioma da aula, explicações distintas, o resolvedor, a autoverificação, a legibilidade, as quase repetições e o desenho: o formato, os rótulos confrontados com o enunciado e nenhuma resposta escrita nele. Todas as falhas são informadas de uma só vez. Num problema que se resolve pelo desenho, o valor certo só pode aparecer no desenho entre os valores de pelo menos três alternativas erradas."
     solver:
       name: Resolvedor
       sub: Sandbox Starlark, limite de passos

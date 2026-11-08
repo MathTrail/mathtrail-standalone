@@ -479,6 +479,8 @@ Gathered on 2026-10-12 from Google's suggestions for Spain, Mexico, Argentina an
 | divisibility and remainders | «Divisibilidad y restos» | «problemas de divisibilidad», «criterios de divisibilidad» |
 | overlapping groups | «Grupos que se superponen» ⚑ | «problemas de diagramas de Venn», «problemas de conjuntos» |
 | games with a winning strategy | «Juegos con estrategia ganadora» ⚑ | «juego del Nim», «juegos matemáticos de estrategia»; «estrategia ganadora» alone is gambling and trading |
+| counting figures | Contar figuras | «cuántos triángulos hay», «acertijos con cerillas» |
+| cubes and paper | Cubos y papel ⚑ | «desarrollo del cubo», «doblar y perforar papel» |
 
 Several of these names come from Peru's school subject «razonamiento matemático»: «cortes y estacas», «verdades y mentiras», «método del cangrejo», «trasvases». A first line uses one only where it means exactly the card's topic.
 
@@ -507,3 +509,14 @@ Several of these names come from Peru's school subject «razonamiento matemátic
 - The books marked unsure: «Aritmética recreativa», «Amusements in Mathematics», the years of «Matemáticas recreativas», and the missing subtitle of «En el reino del ingenio».
 - The make-believe app's cheer is «¡¡¡Eres una estrella!!!», since «campeón» would make the child a boy.
 - The card names both a group and a topic «Partes de un todo» (`group.parts`, `topic.fractions.parts`), so the topics page will show the topic under a group of its own name. The fix belongs to the card's dictionary, and the site follows it.
+
+### Figures, nets and folds
+
+| English | Spanish | Note |
+|---|---|---|
+| net (of a cube) | desarrollo (del cubo) | |
+| fold | doblez, doblar | |
+| hole, punch | agujero, perforar | |
+| die | dado | |
+| face (of a cube) | cara | |
+| match | cerilla | |

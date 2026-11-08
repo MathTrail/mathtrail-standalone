@@ -1,0 +1,117 @@
+# The page of the topic of counting figures, for a parent.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Counting figures"
+description: "What counting-figures problems (matchstick puzzles) are, how they are solved, where kids go wrong, and how to help at home."
+hero:
+  lead: "A drawing of a few lines holds more triangles and squares than first meet the eye: small ones, and big ones made of several pieces. These tasks ask for all of them, or for the matches to take away to change a figure. Counting by size, smallest first, is the whole skill."
+  method: "Count by size, from the smallest up"
+  teaches: "To count every figure once, with none missed and none counted twice"
+  art:
+    count: "4 small squares and 1 big one: 5"
+basis:
+  title: "What counts as a figure"
+  cards:
+    - title: "Big ones count too"
+      text: "A square of 2 by 2 cells holds 4 small squares and 1 big square round them. A figure made of several pieces counts as well."
+      art:
+        count: "4 + 1 = 5 squares"
+    - title: "Sides on the lines"
+      text: "A triangle counts only when each of its sides lies on a line of the drawing. Two lines from corner to corner make 8 triangles in a square."
+      art:
+        count: "4 small and 4 of two pieces: 8"
+    - title: "A match is one side"
+      text: "Where two squares of matches touch, they share one match. A row of 3 squares takes 10 matches, not 12."
+      art:
+        count: "3 + 3 + 4 = 10 matches"
+idea:
+  title: "Count size by size"
+  lead: "List the figures by their size: the smallest first, then those of two pieces, then the bigger ones, and add the counts up."
+  table:
+    head:
+      - "The drawing"
+      - "The smallest"
+      - "The bigger ones"
+      - "In all"
+    rows:
+      - - "a square of 2 by 2 cells"
+        - "4"
+        - "1"
+        - "5"
+      - - "a square of 3 by 3 cells"
+        - "9"
+        - "4 + 1"
+        - "14"
+      - - "a rectangle of 2 by 3 cells"
+        - "6"
+        - "2"
+        - "8"
+  note:
+    title: "Why it matters"
+    text: "Children often count only the small figures, or count a big one twice from two of its pieces. Going size by size, and writing each size down, settles both."
+method:
+  title: "How to solve: from the smallest up"
+  lead: "Name each size of figure the drawing can hold, count each size on its own, then add. For matches, ask which squares each match is a side of. The examples below go from the simplest to an olympiad's."
+  steps:
+    - "Find the smallest figures and count them"
+    - "Count the figures of each bigger size in turn"
+    - "Add the counts, and check that no size was left out"
+examples:
+  - title: "Two lines from the top"
+    question: "Two lines go from the top corner of a triangle down to its base. How many triangles are there in the drawing?"
+    steps:
+      - "The two lines cut the triangle into 3 small triangles."
+      - "Two small triangles side by side make a triangle: there are 2 such pairs."
+      - "The whole triangle is 1 more. In all, 3 + 2 + 1 = 6."
+    answer: "6 triangles."
+    note:
+      title: "A quick check"
+      text: "Every triangle here has its top at the corner and its base on the bottom line. The bottom line holds 4 points, and any 2 of them make a base: 6 pairs."
+    art:
+      count: "3 + 2 + 1 = 6"
+  - title: "A square of 3 by 3"
+    question: "A square of 3 by 3 cells is drawn with all its lines. How many squares of any size are there?"
+    steps:
+      - "Squares of one cell: 3 rows of 3, that is 9."
+      - "Squares of 2 by 2 fit in 2 rows of 2 places, that is 4."
+      - "The whole square of 3 by 3 is 1 more. In all, 9 + 4 + 1 = 14."
+    answer: "14 squares."
+    note:
+      title: "Not 9"
+      text: "9 counts only the small squares. A square made of several cells is a square too."
+    art:
+      sizes: "9 of one cell, 4 of 2 by 2, 1 of 3 by 3"
+  - title: "Matches to take away"
+    question: "12 matches make a square of 2 by 2 cells. What is the least number of matches to take away so that no square of any size is left?"
+    steps:
+      - "There are 5 squares: 4 small ones and the big one."
+      - "A match is a side of 2 squares at most, so 2 matches break at most 4 squares, and one is left."
+      - "The 2 inside matches that stand up and down break all 4 small squares, and 1 match of the top breaks the big one: 3 matches."
+    answer: "3 matches."
+    note:
+      title: "Why not 2"
+      text: "Each match breaks 1 or 2 squares, and there are 5 to break, so 2 matches are too few."
+    art:
+      taken: "the dashed matches are taken away"
+traps:
+  missed_case:
+    shows: "A size of figure is missed: the big square round the small ones, or the triangles made of two pieces."
+    say: "“Is there a bigger figure made of several pieces?”"
+  double_count:
+    shows: "One figure is counted twice, from two of its pieces, or a shared match is counted for both of its squares."
+    say: "“Has this one been counted already?”"
+  stopped_early:
+    shows: "The count stops at the smallest figures, or at the first answer that looks right."
+    say: "“Are there figures of another size?”"
+home:
+  - title: "Squared paper"
+    text: "Draw a square of 2 by 2 cells and count its squares together. Then try 3 by 3."
+  - title: "Matches"
+    text: "Lay a row of squares with matches or sticks. How many are needed for 4 squares? For 5?"
+  - title: "Size by size"
+    text: "When counting, say each size out loud: small ones, then two pieces, then bigger. Write the numbers down and add them."
+ask: "Give me a task about counting figures"

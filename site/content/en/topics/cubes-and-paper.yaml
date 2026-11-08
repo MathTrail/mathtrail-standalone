@@ -1,0 +1,111 @@
+# The page of the topic of cubes and paper, for a parent.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Cubes and paper"
+description: "What cube and paper problems (cube nets, paper folding) are, how they are solved, where kids go wrong, and how to help at home."
+hero:
+  lead: "A flat net of six squares folds into a cube; a folded sheet, punched once, opens with several holes; a die rolled along a row shows a number on top that can be worked out. These tasks are solved by picturing the folding, the rolling or the unfolding, one step at a time."
+  method: "Fold, roll or unfold one step at a time"
+  teaches: "To see how a flat shape becomes a solid one, and back"
+  art:
+    opposite: "1 and 5 land opposite"
+basis:
+  title: "The rules of folding"
+  cards:
+    - title: "Opposite faces never touch"
+      text: "In a net, two squares in a row with one square between them become opposite faces of the cube."
+      art:
+        opposite: "3 and 6 are opposite"
+    - title: "A fold doubles the layers"
+      text: "A sheet folded once has 2 layers where the fold lays it, and folded again 4. A punch makes a hole in every layer."
+      art:
+        holes: "2 folds, 4 layers, 4 holes"
+    - title: "A die makes 7"
+      text: "On a die the numbers on opposite faces add up to 7: 1 and 6, 2 and 5, 3 and 4."
+      art:
+        bottom: "2 on top, 5 on the bottom"
+idea:
+  title: "Follow one step at a time"
+  lead: "Fold, roll or unfold in the mind one step at a time, and note what each step does."
+  table:
+    head:
+      - "What is done"
+      - "What changes"
+    rows:
+      - - "a square of the net folds up"
+        - "it becomes the next face of the cube"
+      - - "a sheet is folded once"
+        - "its layers double where it lies"
+      - - "a die rolls over one edge"
+        - "a side face comes up on top"
+      - - "a die rolls twice straight on"
+        - "the bottom comes up on top"
+  note:
+    title: "Why it matters"
+    text: "Children often guess the whole result at once. Each step is easy, and following them one by one leaves nothing to guess."
+method:
+  title: "How to solve: one fold at a time"
+  lead: "Name the square, the fold or the roll that comes first, say what it does, then go on to the next. Where you can, cut out a paper net or use a real die to check. The examples below go from the simplest to an olympiad's."
+  steps:
+    - "Pick the first square, fold or roll"
+    - "Say what it does to the faces or the layers"
+    - "Go on step by step, then check with paper or a die"
+examples:
+  - title: "The face opposite"
+    question: "A net of a cube is a cross: a column of 4 squares numbered 1, 2, 3 and 4 from the top, and squares 5 and 6 on either side of square 2. Which number is opposite 2 when it is folded?"
+    steps:
+      - "Squares 1 and 3 are next to 2 in the column, so they touch it."
+      - "Squares 5 and 6 are beside 2, so they touch it too."
+      - "Square 4 is two squares below 2, with 3 between them: it lands opposite 2."
+    answer: "The number 4."
+    note:
+      title: "Check with paper"
+      text: "Draw the cross on squared paper, cut it out and fold it: 2 and 4 face each other."
+    art:
+      opposite: "2 and 4 are opposite"
+  - title: "Two folds and a punch"
+    question: "A square sheet is folded in half, then in half again. One hole is punched through the folded sheet. How many holes are there when it is opened?"
+    steps:
+      - "The first fold makes 2 layers."
+      - "The second fold doubles them: 4 layers."
+      - "The punch goes through all 4 layers, so the opened sheet has 4 holes."
+    answer: "4 holes."
+    note:
+      title: "Where the holes are"
+      text: "The holes lie in the 4 quarters of the sheet, each a mirror of the next across a fold line."
+    art:
+      holes: "one hole in each quarter"
+  - title: "A die rolls on"
+    question: "A die stands with 2 on top. It rolls over its edge straight ahead twice. Opposite faces of a die add up to 7. Which number is on top now?"
+    steps:
+      - "The first roll brings the face from the back up to the top."
+      - "The second roll brings up the face that was at the bottom at the start."
+      - "The bottom was opposite the 2, so it is 7 − 2 = 5."
+    answer: "The number 5."
+    note:
+      title: "After four rolls"
+      text: "Two more rolls bring the 2 back on top: rolling straight on, the top comes back every 4 rolls."
+    art:
+      top: "5 on top"
+traps:
+  missed_case:
+    shows: "A face, a layer or a case is missed: a square that folds round to touch another, or a layer the punch also goes through."
+    say: "“Is there a face, or a layer, not counted yet?”"
+  ignored_condition:
+    shows: "A rule of the task is lost: squares side by side are taken for opposite faces, or the 7 that opposite faces of a die make is forgotten."
+    say: "“Does this fit the rule the task gives?”"
+  stopped_early:
+    shows: "The working stops one step short: after the first fold, or after one roll of the die."
+    say: "“Is there one more step to follow?”"
+home:
+  - title: "Paper nets"
+    text: "Draw a cross of six squares, cut it out and fold it into a cube. Which squares end up opposite?"
+  - title: "Fold and punch"
+    text: "Fold a sheet twice, make one hole with a pencil, and guess the holes before opening it."
+  - title: "A real die"
+    text: "Look at a die: which numbers are opposite? Roll it along the table and say the top number before looking."
+ask: "Give me a task about cubes and paper"

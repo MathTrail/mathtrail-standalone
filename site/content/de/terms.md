@@ -29,7 +29,7 @@ Jede Aufgabe wird vom eigenen Modell des Chats geschrieben und dann von einem Pr
 - ein Lösungsprogramm dieselbe Antwort findet, indem es alle Fälle durchprobiert;
 - die Formulierung für die Klasse lesbar ist;
 - die Aufgabe kein Beinahe-Duplikat einer früheren ist;
-- ein Bild, falls es eines gibt, dem vorgeschriebenen Format folgt, die Beschriftungen trägt, die der Aufgabentext nennt, und dass keine Antwort darauf steht.
+- ein Bild, falls es eines gibt, dem vorgeschriebenen Format folgt, die Beschriftungen trägt, die der Aufgabentext nennt, und dass keine Antwort darauf steht. In einer Aufgabe, die man am Bild löst, darf der richtige Wert auf dem Bild nur zwischen den Werten von mindestens drei falschen Antwortmöglichkeiten stehen.
 
 Ob Formulierung, Bild und Lösung **inhaltlich** übereinstimmen und ob ein Bild die Antwort auf andere Weise verrät, prüft das Modell selbst, nicht das Programm. Deshalb verspricht MathTrail nicht, dass jede Aufgabe fehlerfrei ist, und Sie sollten MathTrail nicht als Quelle maßgeblicher Antworten behandeln. Wenn eine Aufgabe falsch aussieht, kann sie falsch sein – sagen Sie es uns.
 

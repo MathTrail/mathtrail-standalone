@@ -258,6 +258,16 @@
 				"answer": "7"
 			}
 		],
+		"counting.figures": [
+			{ "level": "1-2", "solver": "triangles-rays", "answer": "6" },
+			{ "level": "3-4", "solver": "squares-three", "answer": "14" },
+			{ "level": "5-6", "solver": "matches-none", "answer": "3" }
+		],
+		"geometry.cubes_paper": [
+			{ "level": "1-2", "solver": "net-opposite", "answer": "4" },
+			{ "level": "1-2", "solver": "two-folds", "answer": "4" },
+			{ "level": "3-4", "solver": "die-two-rolls", "answer": "5" }
+		],
 		"number.divisibility": [
 			{
 				"level": "5-6",

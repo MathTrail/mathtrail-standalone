@@ -87,7 +87,7 @@ map:
     model:
       name: Das Modell des Hosts
       sub: Schreibt die Aufgabe, das Lösungsprogramm, die Erklärungen
-      about: Claude oder ChatGPT. Schreibt die Aufgabe, ein Lösungsprogramm in Starlark, eine Erklärung zu jeder falschen Antwortmöglichkeit und eine Selbstprüfung; führt die Lektion in Worten, wo keine Karten angezeigt werden. MathTrail selbst ruft kein Modell auf.
+      about: Claude oder ChatGPT. Schreibt die Aufgabe, ein Lösungsprogramm in Starlark, eine Erklärung zu jeder falschen Antwortmöglichkeit und eine Selbstprüfung; führt die Lektion in Worten, wo keine Karten angezeigt werden. MathTrail selbst ruft kein Modell auf. Ein Chat, der keine Karten zeichnet, bekommt nur Aufgaben in Worten.
     appsrt:
       name: MCP-Apps-Laufzeitumgebung
       sub: Der Rahmen in einer Sandbox, in dem die Karte läuft
@@ -126,7 +126,7 @@ map:
     checks:
       name: Prüfungen
       sub: Was eine eingereichte Aufgabe bestehen muss
-      about: "Was eine eingereichte Aufgabe bestehen muss: ihre Struktur und fünf verschiedene Antwortmöglichkeiten, die Buchstaben der Lektionssprache, unterschiedliche Erklärungen, das Lösungsprogramm, die Selbstprüfung, die Lesbarkeit, Beinahe-Duplikate und das Bild: sein Format, seine Beschriftungen im Abgleich mit dem Aufgabentext und dass keine Antwort darauf steht. Alle nicht bestandenen Prüfungen werden auf einmal gemeldet."
+      about: "Was eine eingereichte Aufgabe bestehen muss: ihre Struktur und fünf verschiedene Antwortmöglichkeiten, die Buchstaben der Lektionssprache, unterschiedliche Erklärungen, das Lösungsprogramm, die Selbstprüfung, die Lesbarkeit, Beinahe-Duplikate und das Bild: sein Format, seine Beschriftungen im Abgleich mit dem Aufgabentext und dass keine Antwort darauf steht. Alle nicht bestandenen Prüfungen werden auf einmal gemeldet. In einer Aufgabe, die man am Bild löst, darf der richtige Wert auf dem Bild nur zwischen den Werten von mindestens drei falschen Antwortmöglichkeiten stehen."
     solver:
       name: Löser
       sub: Starlark-Sandbox, Schrittlimit

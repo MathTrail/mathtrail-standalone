@@ -494,6 +494,8 @@ Gathered on 2026-10-12 from Google's suggestions for Brazil, and briefly for Por
 | divisibility and remainders | “Divisibilidade e restos” | “critérios de divisibilidade”, “problemas de divisão com resto” |
 | overlapping groups | “Grupos que se sobrepõem” ⚑ | “diagrama de Venn”, “problemas com conjuntos” |
 | games with a winning strategy | “Jogos com estratégia vencedora” ⚑ | “jogo do Nim” |
+| counting figures | Contar figuras | “quantos triângulos tem”, “desafios com palitos” |
+| cubes and paper | Cubos e papel ⚑ | “planificação do cubo”, “dobradura e furo” |
 
 **Descriptions** can carry “desafios matemáticos”, “raciocínio lógico”, “problemas de lógica”, “ensino fundamental”, on "Techniques" “estratégias de resolução de problemas” and “Polya”, and on "Why" “olimpíadas de matemática”. “Com respostas” and “resolvidos” fit a topic's page and "Techniques" only.
 
@@ -526,3 +528,14 @@ Gathered on 2026-10-12 from Google's suggestions for Brazil, and briefly for Por
 - “Iemelian Ignátiev”, a transliteration no Brazilian edition fixes; the English "Yemelyan Ignatyev" is the alternative.
 - The card names both a group and a topic “Partes de um todo” (`group.parts`, `topic.fractions.parts`), so the topics page will show the topic under a group of its own name; and its `group.counting` is “Contagem”, narrower than "Counting and enumeration". Fixes belong to the card's dictionary, and the site follows it.
 - CLDR gives Portuguese the `one` form for 0 and 1 alike, so a count of zero, if the site ever shows one, reads “0 problema”.
+
+### Figures, nets and folds
+
+| English | Portuguese | Note |
+|---|---|---|
+| net (of a cube) | planificação (do cubo) | |
+| fold | dobra, dobrar | |
+| hole, punch | furo, furar | |
+| die | dado | |
+| face (of a cube) | face | |
+| match | palito | |

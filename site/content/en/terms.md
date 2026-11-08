@@ -29,7 +29,7 @@ Every task is written by the chat's own model and then checked by a program befo
 - a solver program reproduces that answer by brute force;
 - the wording is readable for the grade;
 - the task is not a near-duplicate of an earlier one;
-- any picture follows the required format, is labelled as the question names it, and has no answer written on it.
+- any picture follows the required format, is labelled as the question names it, and has no answer written on it. In a task solved from its picture, the right value may stand on the picture only among the values of at least three wrong options.
 
 Whether the wording, the picture and the solution agree **in meaning**, and whether a picture gives the answer away some other way, is checked by the model itself, not by the program. So MathTrail does not promise that every task is flawless, and you should not treat it as a source of authoritative answers. If a task looks wrong, it may be wrong — tell us.
 

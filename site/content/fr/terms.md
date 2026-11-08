@@ -29,7 +29,7 @@ Chaque problème est rédigé par le modèle du chat lui-même, puis vérifié p
 - un programme qui résout le problème retrouve cette réponse par force brute ;
 - la formulation est lisible pour le niveau scolaire ;
 - le problème n’est pas un quasi-doublon d’un problème précédent ;
-- tout dessin respecte le format requis, porte les étiquettes telles que l’énoncé les nomme, et ne porte aucune réponse écrite.
+- tout dessin respecte le format requis, porte les étiquettes telles que l’énoncé les nomme, et ne porte aucune réponse écrite. Dans un problème qui se résout sur le dessin, la bonne valeur ne peut figurer sur le dessin que parmi les valeurs d’au moins trois réponses fausses.
 
 Si la formulation, le dessin et la solution concordent **quant au sens**, et si un dessin ne dévoile pas la réponse d’une autre manière, c’est le modèle lui-même qui le vérifie, et non le programme. MathTrail ne promet donc pas que chaque problème soit sans défaut, et vous ne devriez pas le considérer comme une source de réponses qui font autorité. Si un problème semble faux, il l’est peut-être : dites-le-nous.
 

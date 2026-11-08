@@ -87,7 +87,7 @@ map:
     model:
       name: Le modèle de l’hôte
       sub: Écrit le problème, le solveur, les explications
-      about: Claude ou ChatGPT. Écrit le problème, un solveur en Starlark, une explication pour chaque mauvaise réponse proposée et une autovérification ; mène la leçon avec des mots partout où les cartes ne s’affichent pas. MathTrail lui-même n’appelle aucun modèle.
+      about: Claude ou ChatGPT. Écrit le problème, un solveur en Starlark, une explication pour chaque mauvaise réponse proposée et une autovérification ; mène la leçon avec des mots partout où les cartes ne s’affichent pas. MathTrail lui-même n’appelle aucun modèle. Un chat qui n’affiche pas de cartes ne reçoit que des problèmes sous forme de texte.
     appsrt:
       name: Environnement d’exécution MCP Apps
       sub: Le cadre isolé où vit la carte
@@ -126,7 +126,7 @@ map:
     checks:
       name: Vérifications
       sub: Ce que doit passer un problème soumis
-      about: "Ce que doit passer un problème soumis : sa structure et cinq réponses proposées différentes, les lettres de la langue de la leçon, des explications distinctes, le solveur, l’autovérification, la lisibilité, les quasi-doublons et le dessin : son format, ses étiquettes confrontées à l’énoncé, et aucune réponse écrite dessus. Tous les échecs sont signalés en une seule fois."
+      about: "Ce que doit passer un problème soumis : sa structure et cinq réponses proposées différentes, les lettres de la langue de la leçon, des explications distinctes, le solveur, l’autovérification, la lisibilité, les quasi-doublons et le dessin : son format, ses étiquettes confrontées à l’énoncé, et aucune réponse écrite dessus. Tous les échecs sont signalés en une seule fois. Dans un problème qui se résout sur le dessin, la bonne valeur ne peut figurer sur le dessin que parmi les valeurs d’au moins trois réponses fausses."
     solver:
       name: Solveur
       sub: Bac à sable Starlark, limite de pas

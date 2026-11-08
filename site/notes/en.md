@@ -45,6 +45,8 @@ Gathered on 2026-10-12 from Google's suggestions for the US, the UK, India and A
 | divisibility and remainders | Divisibility and remainders | "divisibility rules", "remainder word problems" |
 | overlapping groups | Overlapping groups ⚑ | "Venn diagram word problems"; "overlapping sets" is the GMAT |
 | games with a winning strategy | Games with a winning strategy ⚑ | "Nim"; "winning strategy" is video games |
+| counting figures | Counting figures ⚑ | "how many triangles in the picture", "matchstick puzzles" |
+| cubes and paper | Cubes and paper ⚑ | "cube nets", "paper folding and hole punching", "dice puzzles" |
 
 The first line of ordering, knights and liars, enumeration, gaps, clocks, calendar, arithmetic, overlapping groups and games gives its searched name too.
 

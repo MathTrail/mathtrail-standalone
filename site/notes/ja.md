@@ -533,6 +533,8 @@ Gathered on 2026-10-12 from Google's suggestions for Japan and the titles of the
 | divisibility and remainders | 「倍数・約数とあまり」 | 「倍数と約数」, 「あまりのあるわり算」 |
 | overlapping groups | 「集合算」 | the same; 「ベン図」 |
 | games with a winning strategy | 「必勝法のあるゲーム」 | 「必勝法」, 「石取りゲーム」 |
+| counting figures | 図形を数える | 「三角形はいくつ」「マッチ棒パズル」 |
+| cubes and paper | 立方体と紙 ⚑ | 「立方体の展開図」「折り紙 穴あけ」 |
 
 The cram schools' names, 「推理算」, 「日暦算」, 「年齢算」, 「相当算」, 「油分け算」, name a kind of problem only, never with 「受験」 or 「入試」.
 
@@ -569,3 +571,14 @@ The cram schools' names, 「推理算」, 「日暦算」, 「年齢算」, 「�
 - "Reference task" as 「お手本問題」, "the chat's model" as 「チャットの AI」 on the pages for parents, "What to say" as 「声かけ」, "Where children go wrong" as 「つまずきやすいところ」.
 - The books marked less than sure: 『おもしろい計算術』, the volumes and years of 『数学おもちゃ箱』, and whether 『パズルの王様』 holds the whole of Amusements in Mathematics.
 - The counters of "Research": the site's dictionary gives each noun with its counter (「問のお手本問題」, 「人」), and the page writes the number straight before it, 「120問のお手本問題」, 「12人」, with no space in Japanese.
+
+### Figures, nets and folds
+
+| English | Japanese | Note |
+|---|---|---|
+| net (of a cube) | 展開図 | |
+| fold | 折り目、折る | |
+| hole, punch | 穴、穴をあける | |
+| die | さいころ | |
+| face (of a cube) | 面 | |
+| match | マッチ棒 | |

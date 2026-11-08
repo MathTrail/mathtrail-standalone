@@ -44,6 +44,8 @@ Gathered on 2026-10-12 from Yandex's and Google's suggestions and the titles of 
 | divisibility and remainders | Делимость и остатки | the same; «признаки делимости», «деление с остатком» |
 | overlapping groups | Пересекающиеся группы ⚑ | «круги Эйлера», a method's name |
 | games with a winning strategy | Игры с выигрышной стратегией ⚑ | little anywhere: «выигрышная стратегия» is noughts and crosses, chess and an informatics exam |
+| counting figures | Сколько фигур | «сколько треугольников на рисунке», «задачи со спичками» |
+| cubes and paper | Кубики и бумага ⚑ | «развёртка куба», «задачи на складывание бумаги», «игральный кубик» |
 
 «Задачи на отношения» and «пропорции» go to the page of ratios, and «дроби» to the page of parts; each page also keeps its card's name, so «части» stands in both. The first line of ordering, enumeration, the pigeonhole principle and overlapping groups gives its searched name too.
 

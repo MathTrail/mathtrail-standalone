@@ -87,7 +87,7 @@ map:
     model:
       name: The host's model
       sub: Writes the task, the solver, the explanations
-      about: Claude or ChatGPT. Writes the task, a Starlark solver, an explanation behind each wrong option and a self-check; leads the lesson in words wherever cards are not drawn. MathTrail itself calls no model.
+      about: Claude or ChatGPT. Writes the task, a Starlark solver, an explanation behind each wrong option and a self-check; leads the lesson in words wherever cards are not drawn. MathTrail itself calls no model. A chat that draws no cards is given tasks in words alone.
     appsrt:
       name: MCP Apps runtime
       sub: The sandboxed frame the card lives in
@@ -126,7 +126,7 @@ map:
     checks:
       name: Checks
       sub: What a handed-in task must pass
-      about: "What a handed-in task must pass: its structure and five different options, the letters of the lesson's language, distinct explanations, the solver, the self-check, readability, near-duplicates and the picture: its format, its labels against the question, and no answer written on it. Every failure is reported at once."
+      about: "What a handed-in task must pass: its structure and five different options, the letters of the lesson's language, distinct explanations, the solver, the self-check, readability, near-duplicates and the picture: its format, its labels against the question, and no answer written on it. Every failure is reported at once. In a task solved from its picture, the right value may stand on the picture only among the values of at least three wrong options."
     solver:
       name: Solver
       sub: Starlark sandbox, step limit

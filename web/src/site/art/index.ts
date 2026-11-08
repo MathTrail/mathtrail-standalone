@@ -2,6 +2,8 @@ import { art as arithmeticWithATrick } from "./arithmetic-with-a-trick";
 import type { TopicArt } from "./art";
 import { art as calendarAndAge } from "./calendar-and-age";
 import { art as clocks } from "./clocks";
+import { art as countingFigures } from "./counting-figures";
+import { art as cubesAndPaper } from "./cubes-and-paper";
 import { art as divisibilityAndRemainders } from "./divisibility-and-remainders";
 import { art as enumeration } from "./enumeration";
 import { art as figuresOnAGrid } from "./figures-on-a-grid";
@@ -25,6 +27,8 @@ export const topicArt: ReadonlyMap<string, TopicArt> = new Map([
 	["arithmetic-with-a-trick", arithmeticWithATrick],
 	["calendar-and-age", calendarAndAge],
 	["clocks", clocks],
+	["counting-figures", countingFigures],
+	["cubes-and-paper", cubesAndPaper],
 	["divisibility-and-remainders", divisibilityAndRemainders],
 	["enumeration", enumeration],
 	["figures-on-a-grid", figuresOnAGrid],

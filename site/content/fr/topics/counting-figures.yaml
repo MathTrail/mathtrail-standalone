@@ -1,0 +1,117 @@
+# The page of the topic of counting figures, for a parent, in French.
+# The topic's name, its group, its grades and its traps' names are not here:
+# they are the card's words and the catalog's numbers. The page's drawings, each
+# example's level, and the answer its solver proves, are the site's data; an
+# example here is worked through to that answer. The traps are the topic's
+# commonest, counted in its reference tasks.
+
+title: "Compter les figures"
+description: "Ce que sont les problèmes de figures à compter et d’allumettes, comment on les résout, où les enfants se trompent et comment les aider à la maison."
+hero:
+  lead: "Un dessin de quelques traits cache plus de triangles et de carrés qu’on n’en voit d’abord : des petits, et des grands faits de plusieurs morceaux. Ces problèmes demandent de les trouver tous, ou de dire quelles allumettes enlever pour changer une figure. Tout l’art est de compter par tailles, en commençant par les plus petites."
+  method: "Compter par tailles, des plus petites aux plus grandes"
+  teaches: "À compter chaque figure une seule fois, sans en oublier ni en répéter"
+  art:
+    count: "4 petits carrés et 1 grand : 5"
+basis:
+  title: "Ce qui compte comme une figure"
+  cards:
+    - title: "Les grandes comptent aussi"
+      text: "Un carré de 2 sur 2 cases contient 4 petits carrés et 1 grand autour d’eux. Une figure faite de plusieurs morceaux compte aussi."
+      art:
+        count: "4 + 1 = 5 carrés"
+    - title: "Des côtés sur les traits"
+      text: "Un triangle ne compte que si chacun de ses côtés est sur un trait du dessin. Deux traits d’un coin à l’autre font 8 triangles dans un carré."
+      art:
+        count: "4 petits et 4 de deux morceaux : 8"
+    - title: "Une allumette, un côté"
+      text: "Là où deux carrés d’allumettes se touchent, ils partagent une allumette. Une rangée de 3 carrés demande 10 allumettes, pas 12."
+      art:
+        count: "3 + 3 + 4 = 10 allumettes"
+idea:
+  title: "Compter taille par taille"
+  lead: "Lister les figures selon leur taille : d’abord les plus petites, puis celles de deux morceaux, puis les plus grandes, et additionner."
+  table:
+    head:
+      - "Le dessin"
+      - "Les plus petites"
+      - "Les plus grandes"
+      - "En tout"
+    rows:
+      - - "un carré de 2 sur 2 cases"
+        - "4"
+        - "1"
+        - "5"
+      - - "un carré de 3 sur 3 cases"
+        - "9"
+        - "4 + 1"
+        - "14"
+      - - "un rectangle de 2 sur 3 cases"
+        - "6"
+        - "2"
+        - "8"
+  note:
+    title: "Pourquoi c’est important"
+    text: "Les enfants ne comptent souvent que les petites figures, ou comptent deux fois une grande à partir de deux de ses morceaux. Aller taille par taille, en notant chaque taille, règle les deux."
+method:
+  title: "Comment résoudre : des plus petites aux plus grandes"
+  lead: "Nommer chaque taille de figure que le dessin peut contenir, compter chaque taille à part, puis additionner. Pour les allumettes, se demander de quels carrés chaque allumette est un côté. Les exemples ci-dessous vont du plus simple à un problème d’olympiade."
+  steps:
+    - "Trouver les plus petites figures et les compter"
+    - "Compter les figures de chaque taille plus grande, l’une après l’autre"
+    - "Additionner et vérifier qu’aucune taille n’a été oubliée"
+examples:
+  - title: "Deux traits depuis le sommet"
+    question: "Deux traits partent du coin du haut d’un triangle et descendent jusqu’à sa base. Combien y a-t-il de triangles dans le dessin ?"
+    steps:
+      - "Les deux traits coupent le triangle en 3 petits triangles."
+      - "Deux petits triangles côte à côte forment un triangle : il y a 2 paires de ce genre."
+      - "Le triangle entier en fait 1 de plus. En tout, 3 + 2 + 1 = 6."
+    answer: "6 triangles."
+    note:
+      title: "Une vérification rapide"
+      text: "Ici, chaque triangle a son sommet dans le coin et sa base sur le trait du bas. Ce trait porte 4 points, et 2 d’entre eux font une base : 6 paires."
+    art:
+      count: "3 + 2 + 1 = 6"
+  - title: "Un carré de 3 sur 3"
+    question: "On dessine un carré de 3 sur 3 cases avec tous ses traits. Combien y a-t-il de carrés de toutes tailles ?"
+    steps:
+      - "Carrés d’une case : 3 rangées de 3, soit 9."
+      - "Les carrés de 2 sur 2 tiennent en 2 rangées de 2 places, soit 4."
+      - "Le carré entier de 3 sur 3 en fait 1 de plus. En tout, 9 + 4 + 1 = 14."
+    answer: "14 carrés."
+    note:
+      title: "Pas 9"
+      text: "9 ne compte que les petits carrés. Un carré de plusieurs cases est aussi un carré."
+    art:
+      sizes: "9 d’une case, 4 de 2 sur 2, 1 de 3 sur 3"
+  - title: "Des allumettes à enlever"
+    question: "12 allumettes forment un carré de 2 sur 2 cases. Quel est le plus petit nombre d’allumettes à enlever pour qu’il ne reste aucun carré, de quelque taille que ce soit ?"
+    steps:
+      - "Il y a 5 carrés : 4 petits et le grand."
+      - "Une allumette est le côté de 2 carrés au plus, donc 2 allumettes cassent au plus 4 carrés, et il en reste un."
+      - "Les 2 allumettes intérieures qui sont debout cassent les 4 petits carrés, et 1 allumette du haut casse le grand : 3 allumettes."
+    answer: "3 allumettes."
+    note:
+      title: "Pourquoi pas 2"
+      text: "Chaque allumette casse 1 ou 2 carrés, et il y en a 5 à casser : 2 allumettes ne suffisent pas."
+    art:
+      taken: "les allumettes en pointillés sont enlevées"
+traps:
+  missed_case:
+    shows: "Une taille de figure est oubliée : le grand carré autour des petits, ou les triangles de deux morceaux."
+    say: "« Y a-t-il une figure plus grande faite de plusieurs morceaux ? »"
+  double_count:
+    shows: "Une figure est comptée deux fois, à partir de deux de ses morceaux, ou une allumette partagée est comptée pour ses deux carrés."
+    say: "« Cette figure est-elle déjà comptée ? »"
+  stopped_early:
+    shows: "Le comptage s’arrête aux plus petites figures, ou à la première réponse qui semble juste."
+    say: "« Y a-t-il des figures d’une autre taille ? »"
+home:
+  - title: "Du papier quadrillé"
+    text: "Dessinez ensemble un carré de 2 sur 2 cases et comptez ses carrés. Essayez ensuite 3 sur 3."
+  - title: "Des allumettes"
+    text: "Formez une rangée de carrés avec des allumettes ou des bâtonnets. Combien en faut-il pour 4 carrés ? Pour 5 ?"
+  - title: "Taille par taille"
+    text: "En comptant, nommez chaque taille à voix haute : les petites, celles de deux morceaux, les plus grandes. Notez les nombres et additionnez-les."
+ask: "Donne-moi un problème sur le thème « Compter les figures »"
