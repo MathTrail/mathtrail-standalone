@@ -5,7 +5,7 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 # Privacy policy
 
-Last updated: 26 October 2026.
+Last updated: 8 November 2026.
 
 MathTrail is a free, open-source project, made and run by ALT EdTech. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). How to connect it, and what to do when something looks wrong, is on the [help page](../help/).
 
@@ -101,7 +101,7 @@ IP geolocation by [DB-IP](https://db-ip.com), under the [Creative Commons Attrib
 - **The two cookies of the sign-in** — 10 minutes for the one that ties a sign-in together, and 180 days for the one that remembers the apps you approved.
 - **The service's logs, and Cloud Run's record of requests** — 30 days.
 - **The copy of the lines children are counted from** — 62 days.
-- **Traces** of how long requests took — 30 days. They cover about one request in ten, with the address, the browser, the path and the query blanked out.
+- **Traces** of how long requests took — 30 days. The service's own cover about one request in ten, with the address, the browser, the path and the query blanked out. Google Cloud Run also traces up to one request every ten seconds by itself and keeps the full address asked for, so such a trace of a sign-in may hold what is named above: Google's one-time sign-in code, the domain of a Workspace account and the email address the chat suggests.
 - **Measurements** of the service's work, such as how many calls succeeded — 24 months. They hold nothing about a child.
 - **The totals** — for years. They hold no identifier of any kind.
 - **This website's access logs and your conversations** — as long as GitHub and your chat provider keep them, under their own policies.

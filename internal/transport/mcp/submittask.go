@@ -38,15 +38,10 @@ const (
 // submitTaskIn is what submit_task takes. The two parts of the task are taken
 // as whatever JSON arrived and read by the checks, in words of their own: the
 // library that holds arguments to a schema quotes back what broke it, and the
-// answer of this tool is read by the model and may be drawn on a card.
-//
-// The brief is retired: the task is held to the brief its request keeps. It
-// stays an argument, one to leave out, because the library refuses an argument
-// its schema does not name before the tool runs, and a chat begun with the
-// guide that asked for the brief still sends it.
+// answer of this tool is read by the model and may be drawn on a card. The
+// task is held to the brief its request keeps.
 type submitTaskIn struct {
 	RequestID string `json:"request_id" jsonschema:"the id of the request next_task or prepare_task opened"`
-	Brief     any    `json:"brief,omitempty" jsonschema:"leave it out: the brief stays with the request, and one sent is read past"`
 	Task      any    `json:"task" jsonschema:"the task as a JSON object, written as the guide in the package describes"`
 	Solver    string `json:"solver" jsonschema:"the Starlark program that proves the answer, written as the guide in the package describes"`
 	SelfCheck any    `json:"self_check" jsonschema:"your own check of the task as a JSON object, written as the guide in the package describes"`
@@ -67,26 +62,12 @@ func (in *submitTaskIn) submission() (*checks.Submission, error) {
 }
 
 // handedIn is how large a hand-in was, part by part, in bytes of the JSON the
-// checks read — never a word of it — and whether the brief the format retired
-// came with it.
-type handedIn struct {
-	task, selfCheck, solver, brief int
-	withBrief                      bool
-}
+// checks read — never a word of it.
+type handedIn struct{ task, selfCheck, solver int }
 
 // measured is how large the hand-in in was, its parts as the checks read them.
 func measured(in *submitTaskIn, submission *checks.Submission) handedIn {
-	size := handedIn{
-		task: len(submission.Task), selfCheck: len(submission.SelfCheck), solver: len(in.Solver),
-		withBrief: in.Brief != nil,
-	}
-	if !size.withBrief {
-		return size
-	}
-	if brief, err := partJSON(in.Brief); err == nil {
-		size.brief = len(brief)
-	}
-	return size
+	return handedIn{task: len(submission.Task), selfCheck: len(submission.SelfCheck), solver: len(in.Solver)}
 }
 
 // partJSON is a part of the task as the JSON it is. A client may send a part
@@ -627,10 +608,6 @@ func reasonsText(outcome *checks.Outcome) string {
 // measured too, its idea as a part of it.
 func submittedFields(done *reviewed, event *checks.Submitted, took time.Duration) []zap.Field {
 	size, task := &done.size, done.outcome.Draft.Task
-	retired := slices.Clone(event.Retired)
-	if size.withBrief {
-		retired = append([]string{"brief"}, retired...)
-	}
 	return slices.Concat([]zap.Field{
 		zap.String("level", string(done.level)),
 		zap.Int("attempt", done.attempt),
@@ -646,8 +623,8 @@ func submittedFields(done *reviewed, event *checks.Submitted, took time.Duration
 		zap.Int("self_check_bytes", size.selfCheck),
 		zap.Int("solver_bytes", size.solver),
 		coreIdeaSize(task),
-		zap.Int("total_bytes", size.task+size.selfCheck+size.solver+size.brief),
-		zap.Strings("retired", retired),
+		zap.Int("total_bytes", size.task+size.selfCheck+size.solver),
+		zap.Strings("retired", event.Retired),
 		zap.Strings("mended", event.Mended),
 		questionInEnglishField(event),
 		zap.Bool("from_picture", done.fromPicture),

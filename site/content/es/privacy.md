@@ -5,7 +5,7 @@ description: Qué sabe MathTrail de su hijo o hija, dónde se guarda y cómo rec
 
 # Política de privacidad
 
-Última actualización: 26 de octubre de 2026.
+Última actualización: 8 de noviembre de 2026.
 
 MathTrail es un proyecto gratuito y de código abierto, creado y gestionado por ALT EdTech. Las preguntas sobre esta política o sobre los datos de su hijo o hija se envían a [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). Cómo conectarlo, y qué hacer si algo parece ir mal, se explica en la [página de ayuda](../help/).
 
@@ -101,7 +101,7 @@ Geolocalización por IP de [DB-IP](https://db-ip.com), bajo la licencia [Creativ
 - **Las dos cookies del inicio de sesión**: 10 minutos la que enlaza los pasos de un inicio de sesión, y 180 días la que recuerda las aplicaciones que usted aprobó.
 - **Los registros del servicio y el registro de peticiones de Cloud Run**: 30 días.
 - **La copia de las líneas con las que se cuenta a los niños y las niñas**: 62 días.
-- **Las trazas** de cuánto tardaron las peticiones: 30 días. Abarcan aproximadamente una de cada diez peticiones, con la dirección, el navegador, la ruta y la consulta borrados.
+- **Las trazas** de cuánto tardaron las peticiones: 30 días. Las del propio servicio abarcan aproximadamente una de cada diez peticiones, con la dirección, el navegador, la ruta y la consulta borrados. Además, Google Cloud Run traza por su cuenta hasta una petición cada diez segundos y conserva la dirección completa solicitada, así que una de esas trazas de un inicio de sesión puede contener lo que se indica más arriba: el código de inicio de sesión de un solo uso de Google, el dominio de una cuenta de Workspace y la dirección de correo electrónico que sugiere el chat.
 - **Las mediciones** del funcionamiento del servicio, como cuántas llamadas tuvieron éxito: 24 meses. No contienen nada sobre ningún niño ni ninguna niña.
 - **Los totales**: durante años. No contienen ningún identificador de ningún tipo.
 - **Los registros de acceso de este sitio web y sus conversaciones**: el tiempo que los conserven GitHub y el proveedor de su chat, según sus propias políticas.

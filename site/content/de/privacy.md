@@ -5,7 +5,7 @@ description: Was MathTrail über Ihr Kind weiß, wo das gespeichert ist und wie 
 
 # Datenschutzerklärung
 
-Stand: 26. Oktober 2026.
+Stand: 8. November 2026.
 
 MathTrail ist ein kostenloses Open-Source-Projekt, das von ALT EdTech entwickelt und betrieben wird. Fragen zu dieser Datenschutzerklärung oder zu den Daten Ihres Kindes richten Sie an [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). Wie Sie MathTrail verbinden und was zu tun ist, wenn etwas nicht zu stimmen scheint, steht auf der [Hilfeseite](../help/).
 
@@ -101,7 +101,7 @@ IP-Geolokalisierung durch [DB-IP](https://db-ip.com), unter der Lizenz [Creative
 - **Die zwei Cookies der Anmeldung** – 10 Minuten das Cookie, das die Schritte einer Anmeldung zusammenhält, und 180 Tage das Cookie, das sich die von Ihnen zugelassenen Apps merkt.
 - **Die Protokolle des Dienstes und die Aufzeichnung der Anfragen durch Cloud Run** – 30 Tage.
 - **Die Kopie der Zeilen, nach denen Kinder gezählt werden** – 62 Tage.
-- **Traces** zur Dauer von Anfragen – 30 Tage. Erfasst wird etwa jede zehnte Anfrage, wobei Adresse, Browser, Pfad und Abfrageparameter unkenntlich gemacht sind.
+- **Traces** zur Dauer von Anfragen – 30 Tage. Die Traces des Dienstes selbst erfassen etwa jede zehnte Anfrage, wobei Adresse, Browser, Pfad und Abfrageparameter unkenntlich gemacht sind. Google Cloud Run erstellt außerdem von sich aus Traces von bis zu einer Anfrage alle zehn Sekunden und behält dabei die vollständige angefragte Adresse. Ein solcher Trace einer Anmeldung kann daher enthalten, was oben genannt ist: den einmal gültigen Anmeldecode von Google, die Domain eines Workspace-Kontos und die E-Mail-Adresse, die der Chat vorschlägt.
 - **Messwerte** zur Arbeit des Dienstes, etwa wie viele Aufrufe gelungen sind – 24 Monate. Über ein Kind enthalten sie nichts.
 - **Die Gesamtzahlen** – jahrelang. Kennungen irgendeiner Art enthalten sie nicht.
 - **Die Zugriffsprotokolle dieser Website und Ihre Unterhaltungen** – so lange, wie GitHub und der Anbieter Ihres Chats sie nach ihren eigenen Richtlinien aufbewahren.

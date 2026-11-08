@@ -5,7 +5,7 @@ description: O que o MathTrail sabe sobre a criança, onde isso fica guardado e 
 
 # Política de privacidade
 
-Última atualização: 26 de outubro de 2026.
+Última atualização: 8 de novembro de 2026.
 
 O MathTrail é um projeto gratuito e de código aberto, criado e mantido pela ALT EdTech. Envie perguntas sobre esta política ou sobre os dados da criança para [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). Como conectá-lo, e o que fazer quando algo parece errado, está na [página de ajuda](../help/).
 
@@ -101,7 +101,7 @@ Geolocalização por IP da [DB-IP](https://db-ip.com), sob a licença [Creative 
 - **Os dois cookies do login**: 10 minutos para o que liga as partes de um login, e 180 dias para o que lembra os apps que você aprovou.
 - **Os registros do serviço e o registro de requisições do Cloud Run**: 30 dias.
 - **A cópia das linhas a partir das quais as crianças são contadas**: 62 dias.
-- **Rastros** do tempo que as requisições levaram: 30 dias. Eles cobrem cerca de uma requisição em cada dez, com o endereço, o navegador, o caminho e a consulta apagados.
+- **Rastros** do tempo que as requisições levaram: 30 dias. Os do próprio serviço cobrem cerca de uma requisição em cada dez, com o endereço, o navegador, o caminho e a consulta apagados. O Google Cloud Run também rastreia por conta própria até uma requisição a cada dez segundos e guarda o endereço completo solicitado, então um rastro desses de um login pode conter o que foi citado acima: o código de login de uso único do Google, o domínio de uma conta do Workspace e o endereço de e-mail que o chat sugere.
 - **Medições** do funcionamento do serviço, como quantas chamadas deram certo: 24 meses. Elas não contêm nada sobre nenhuma criança.
 - **Os totais**: por anos. Eles não contêm nenhum identificador, de nenhum tipo.
 - **Os registros de acesso deste site e as suas conversas**: pelo tempo que o GitHub e o provedor do seu chat os guardarem, segundo as próprias políticas.

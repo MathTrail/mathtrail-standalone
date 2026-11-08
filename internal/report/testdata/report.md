@@ -72,7 +72,7 @@ How long after the hand-in that accepted a task written while the child waited t
 
 ## Hand-ins by their parts
 
-How large the tasks handed in were, in bytes of the JSON the checks read: the task, the self-check, the solver, the core idea inside the task, and the whole, the brief among it when one came. Format now is a hand-in of the form the guide asks for; before, one that also brought what the form no longer reads, from a chat begun with an earlier guide. Mended counts the hand-ins with a field read as it was meant rather than as it was written.
+How large the tasks handed in were, in bytes of the JSON the checks read: the task, the self-check, the solver, the core idea inside the task, and the whole, with the brief a hand-in of before brought. Format now is a hand-in of the form the guide asks for; before, one that also brought what the form no longer reads, from a chat begun with an earlier guide. Mended counts the hand-ins with a field read as it was meant rather than as it was written.
 
 | Instructions | Host | Format | Hand-ins | Mended | Task, median | Self-check, median | Solver, median | Core idea, median | Whole, median | Whole, 90th percentile |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|

@@ -18,7 +18,7 @@ import (
 // is read past only when it holds nothing; one that holds a drawing is refused
 // in words of its own, since the picture it means to show would be lost.
 var retiredMembers = map[string][]string{
-	"task": {"design_thought_process", textDrawing, textDrawingStructure},
+	"task": {textDrawing, textDrawingStructure},
 }
 
 // The members a task once drew its picture with, in characters.
