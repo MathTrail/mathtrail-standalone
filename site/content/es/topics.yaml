@@ -85,3 +85,7 @@ topics:
     phrase: Hay niños y niñas que van a dos clubes a la vez. Cómo no contar a nadie dos veces.
   winning-strategy:
     phrase: ¿Quién se lleva la última cerilla? Buscar las posiciones que ganan, haga lo que haga el otro jugador.
+  counting-figures:
+    phrase: Cuántos triángulos o cuadrados se esconden en un dibujo, y qué cambia al quitar o mover cerillas.
+  cubes-and-paper:
+    phrase: "Plegar un desarrollo en un cubo, desplegar una hoja perforada, hacer rodar un dado por las casillas: primero imaginarlo, luego comprobarlo."

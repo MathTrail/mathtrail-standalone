@@ -6224,6 +6224,21 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
                   <span
                     class="mt-topic-option-name"
                   >
+                    عدّ الأشكال
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
                     مبدأ برج الحمام
                   </span>
                 </span>
@@ -6247,6 +6262,21 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
                     class="mt-topic-from"
                   >
                     من الصف 5
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    المكعبات والورق
                   </span>
                 </span>
               </button>

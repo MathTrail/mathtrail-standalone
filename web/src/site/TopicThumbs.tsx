@@ -35,6 +35,8 @@ export const thumbDrawings: {
 	"two-to-three": TwoToThree,
 	matches: Matches,
 	balance: Balance,
+	"nested-squares": NestedSquares,
+	"cube-net": CubeNet,
 };
 
 /**
@@ -341,6 +343,38 @@ function Balance() {
 			<span class="s-thumb-pan">
 				<Shapes kind="coin" paints={these(3, "orange")} />
 			</span>
+		</span>
+	);
+}
+
+// NestedSquares draws a square of four small squares, its frame a square too.
+function NestedSquares() {
+	return (
+		<span class="s-thumb">
+			<span class="s-thumb-grid s-thumb-frame-square" data-columns="2">
+				<Shapes kind="cell" paints={these(4, "sky")} />
+			</span>
+		</span>
+	);
+}
+
+// CubeNet draws the net of a cube as a cross of six cells, row by row, the
+// one that folds up into the lid in another colour.
+function CubeNet() {
+	const rows = ["-L--", "####", "-#--"];
+	return (
+		<span class="s-thumb s-thumb-grid" data-columns="4">
+			{[...rows.join("")].map((cell, at) =>
+				cell === "-" ? (
+					<span key={at} class="s-thumb-cell" data-empty="" />
+				) : (
+					<span
+						key={at}
+						class="s-thumb-cell"
+						data-paint={cell === "L" ? "orange" : "leaf"}
+					/>
+				),
+			)}
 		</span>
 	);
 }

@@ -1,0 +1,41 @@
+{
+  "1-2": [
+    "A square of two by two cells drawn with all its lines: the small squares and the big one around them.",
+    "A figure of cells shaped like a cross or a letter: the squares of one cell and the bigger squares made of several.",
+    "A square with both its diagonals drawn: the small triangles and those made of two pieces.",
+    "A square with one diagonal and one line through its middle: the triangles in it, small and large.",
+    "A triangle with one line from a corner to the opposite side: the two pieces and the whole triangle.",
+    "A triangle with two or three lines from its top corner down to its base: the triangles of one, two or more pieces.",
+    "A big triangle with one line across it from side to side: the triangles in the drawing, the whole one too.",
+    "A house drawn as a square under a triangle roof, with a line down its middle: the triangles in the drawing.",
+    "Matches laid along the sides of a row of squares, a shared side one match: how many matches the picture holds.",
+    "Matches laid as squares, some of them drawn dashed: the squares still whole when the dashed matches are taken away.",
+    "Matches laid as a row of squares: the fewest matches to take away so that no square is left whole."
+  ],
+  "3-4": [
+    "A square of cells with some of its cells cut out: the squares of every size whose cells are all still there.",
+    "A square of cells with one cell marked: the squares of every size that hold the marked cell.",
+    "A square of cells with one diagonal drawn across the whole of it: the squares of every size the diagonal does not cut.",
+    "A right triangle drawn on squared paper with the paper's lines inside it: the whole squares that lie inside it.",
+    "Several squares drawn overlapping on squared paper: the squares whose four sides all lie on the drawn lines.",
+    "A triangle with lines from its top corner to its base and one or two lines across it: the triangles of every size.",
+    "A rectangle with both its diagonals and the two lines through its middle: the triangles of every size.",
+    "A square of two by two cells with a diagonal drawn in each cell: the triangles of every size.",
+    "Matches laid along every side of the cells of a figure, some taken away: the squares of every size still whole.",
+    "Matches laid as a few squares in a figure: the matches that are a side of two squares at once.",
+    "Matches laid as a square of two by two cells: the fewest to take away so that only the big outer square is left whole."
+  ],
+  "5-6": [
+    "A rectangle of cells drawn with all its lines: the squares of every size, counted size by size.",
+    "Points drawn at some corners of squared paper: the squares, tilted ones too, whose four corners are all drawn points.",
+    "A figure of lines on squared paper: the triangles and the squares whose sides lie on the lines, and which there are more of.",
+    "A square with the square joining the middles of its sides drawn inside it, and its diagonals: the triangles of every size.",
+    "A figure of triangles drawn on squared paper with one cell marked: the triangles that hold the marked cell.",
+    "A square cut into triangles by lines that meet only at corners of the paper: the triangles made of exactly two pieces.",
+    "Squares and lines drawn on squared paper, some cells shaded: the largest square on the drawn lines that holds no shaded cell.",
+    "Matches laid as a square of three by three cells: the fewest to take away so that no square of any size is left whole.",
+    "Matches laid as a figure of squares: the fewest matches to move so that every square is the same size and no match is loose.",
+    "Matches laid as a figure of squares: the fewest to take away so that the squares left share no match.",
+    "Matches laid on squared paper: the fewest matches to add so that every match is a side of a whole square."
+  ]
+}

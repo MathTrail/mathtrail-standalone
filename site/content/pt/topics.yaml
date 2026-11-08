@@ -85,3 +85,7 @@ topics:
     phrase: Algumas crianças frequentam dois clubes ao mesmo tempo. Como não contá-las duas vezes.
   winning-strategy:
     phrase: Quem pega o último palito? Procurar as posições que ganham, faça o que fizer o outro jogador.
+  counting-figures:
+    phrase: Quantos triângulos ou quadrados se escondem em um desenho, e o que muda ao tirar ou mudar palitos de lugar.
+  cubes-and-paper:
+    phrase: "Dobrar uma planificação em um cubo, desdobrar uma folha furada, rolar um dado pelos quadradinhos: primeiro imaginar, depois conferir."

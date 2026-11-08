@@ -1,5 +1,5 @@
 {
-  "purpose": "A figure on squared paper, width cells across and height down, a cell written [x, y] from [0, 0] at the top left: cells filled; lines from corner to corner, [x1, y1, x2, y2], for walls, the sides of triangles, matches or sticks; dashed lines for a fold, a cut or an axis; points at corners, with a label or without; and labels in cells. When the brief's constraints hold facts_on_the_picture, every fact of the task stands here, and the question says only what to find.",
-  "topics": ["geometry.grid", "combinatorics.enumeration"],
+  "purpose": "A figure on squared paper, width cells across and height down, a cell written [x, y] from [0, 0] at the top left: cells filled; lines from corner to corner, [x1, y1, x2, y2], for walls, the sides of triangles, matches or sticks; dashed lines for a fold, a cut, an axis or matches to take away; points at corners, with a label or without; and labels in cells. When the brief's constraints hold facts_on_the_picture, every fact of the task stands here, and the question says only what to find.",
+  "topics": ["geometry.grid", "combinatorics.enumeration", "counting.figures", "geometry.cubes_paper"],
   "picture": {"kind": "lattice", "width": 3, "height": 3, "lines": [[1, 0, 1, 2], [2, 1, 2, 3]], "marks": [{"at": [0, 0], "label": "S"}, {"at": [2, 2], "label": "E"}]}
 }

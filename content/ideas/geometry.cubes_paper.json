@@ -1,0 +1,39 @@
+{
+  "1-2": [
+    "A net of a cube shaped like a cross, a letter on each face: the face opposite the marked one when it is folded.",
+    "A net of a cube with numbers on five faces, opposite faces adding up to 7: the number the empty face gets.",
+    "A sheet folded once along the dashed line and punched through both halves: the holes when it is opened.",
+    "A sheet folded in half twice along two dashed lines and punched once: the holes when it is opened.",
+    "A sheet folded once along a dashed line: the numbered cell that lands on the marked cell.",
+    "A sheet with cells shaded on both sides of a dashed line, folded along it: the shaded cells that land on shaded cells.",
+    "A die on a cell with the number on its top drawn, opposite faces adding up to 7: the number on its bottom.",
+    "A die with its top number drawn, opposite faces adding up to 7, rolled along a straight row of two or four cells: the number on top at the end.",
+    "A die rolled along a straight row of cells, its top number drawn on the first: the cells where that number is on top again.",
+    "Two dice side by side on a row of cells, the number on each one's top drawn, opposite faces adding up to 7: the sum of the numbers on their bottoms."
+  ],
+  "3-4": [
+    "A net of a cube that is not a cross, a number on each face: the number opposite the marked face when it is folded.",
+    "Shapes of six cells drawn side by side, each with a letter: which of them fold into a cube.",
+    "A net of a cube with one cell missing, letters on the places it could go: the places where it makes a whole net.",
+    "A net of a cube with a few faces shaded: how many shaded faces touch the marked face along an edge once it is folded.",
+    "A net of a cube with a number on every face: whether it folds into a true die, every two opposite faces adding up to 7.",
+    "A box with no lid drawn as its five cells: the cell that becomes its bottom.",
+    "A sheet folded along dashed lines in the order written at their ends, then punched through the marked cell: which cells of the opened sheet have holes.",
+    "A strip of numbered cells folded like a fan along its dashed lines: the number on top of the pile.",
+    "A sheet folded in half with a shape cut out along the fold, drawn on one half: the cells of the hole when it is opened.",
+    "A sheet folded in half twice and a corner of the folded pile cut away: the cells cut out of the opened sheet.",
+    "A die rolled along a straight row to a marked cell, its top number drawn on the first, opposite faces adding up to 7: the number on top there, or that it cannot be told."
+  ],
+  "5-6": [
+    "A net of a cube with a number on each face: the largest or the smallest sum of two opposite faces.",
+    "A net of a cube with a number on each face and a point at one corner: the sum of the three faces that meet there.",
+    "A net of a cube with points at two of its corners: whether they become the same corner of the folded cube.",
+    "Cells drawn on squared paper, a net of a cube with one cell too many: the cell to take away so that the rest folds into a cube.",
+    "A net of a box longer than it is wide, drawn in cells: the face opposite the marked one when it is folded.",
+    "A sheet folded along dashed lines that do not halve it, so a punch may miss a layer, then punched: the holes when opened.",
+    "A sheet folded along dashed lines and cut along a line of the folded pile: the pieces the sheet falls into when opened.",
+    "A die rolled along a straight row, the number on top drawn in its last cell, opposite faces adding up to 7: the number on top at the start, or that it cannot be told.",
+    "A die rolled along a straight row, its top number drawn on the first cell, opposite faces adding up to 7: how many cells of the row tell the number on top.",
+    "A straight row of cells with a die's top number drawn in its first and its last, opposite faces adding up to 7: whether the die could roll from one to the other."
+  ]
+}

@@ -119,27 +119,38 @@ func (s *Service) nextTaskTool() Tool {
 			"While the profile keeps the lessons to a topic, lesson_topic, every task is on it once the trial " +
 			"series is over, and another topic is refused. It writes to the profile's file in the adult's Google " +
 			"Drive the request it opens, the task it hands out and the unanswered task it records as skipped." +
-			"\n\nTopics, by id, with the levels each is taught at:\n" + s.topicList(),
+			"\n\nTopics, by id, after the levels they are taught at:\n" + s.topicList(),
 		Effect:    Adds,
 		DrawsCard: true,
 	}, s.nextTask)
 }
 
 // topicList is the topic catalog as the model needs it to choose a topic of
-// its own: the id and the levels it is taught at, a line each. What a topic is
-// stays out, since the ids say it well enough: with it the list would push the
-// description past what a host may keep of one, and the topics at its end would
-// be the ones lost. The package describes the topic a task is written on.
+// its own: the ids of the topics taught at the same levels on one line, after
+// those levels, the lines in the order the catalog first names their levels.
+// What a topic is stays out, since the ids say it well enough, and a line a
+// topic would repeat its levels on: either would push the description past
+// what a host may keep of one, and the topics at its end would be the ones
+// lost. The package describes the topic a task is written on.
 func (s *Service) topicList() string {
-	var lines strings.Builder
+	var order []string
+	ids := map[string][]string{}
 	for _, topic := range s.content.Topics() {
 		levels := make([]string, 0, len(topic.GradeLevels))
 		for _, level := range topic.GradeLevels {
 			levels = append(levels, string(level))
 		}
-		fmt.Fprintf(&lines, "- %s (%s)\n", topic.ID, strings.Join(levels, ", "))
+		taught := strings.Join(levels, ", ")
+		if _, seen := ids[taught]; !seen {
+			order = append(order, taught)
+		}
+		ids[taught] = append(ids[taught], topic.ID)
 	}
-	return strings.TrimSuffix(lines.String(), "\n")
+	lines := make([]string, 0, len(order))
+	for _, taught := range order {
+		lines = append(lines, fmt.Sprintf("- %s: %s", taught, strings.Join(ids[taught], ", ")))
+	}
+	return strings.Join(lines, "\n")
 }
 
 // nextTask opens a request for a task and draws the card it will come to — or

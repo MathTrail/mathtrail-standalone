@@ -37,7 +37,7 @@ func TestEveryReferenceTaskProvesItsOwnAnswer(t *testing.T) {
 	for _, task := range embedded.Examples() {
 		t.Run(task.ID, func(t *testing.T) {
 			agreement := prove(t, sandbox, &task)
-			if task.Idea > 0 {
+			if task.Idea > 0 || embedded.SolvedFromPicture(task.Topic) {
 				wantEveryFactRead(t, &task, agreement)
 			}
 			spent.add(task.ID, agreement)
@@ -442,4 +442,31 @@ func named(ids []string) string {
 		return ""
 	}
 	return fmt.Sprintf(": %v", ids)
+}
+
+// The template for counting triangles joins lines laid end to end along one
+// straight line as one line, so that a figure of matches, each drawn as a
+// line of its own, is counted as the figure it makes: here one triangle whose
+// every side is two matches.
+func TestTheTriangleTemplateCountsAFigureOfMatches(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	at := slices.IndexFunc(shipped.Templates("counting.figures"), func(template content.Template) bool {
+		return template.Name == "triangles-on-lines"
+	})
+	if at < 0 {
+		t.Fatal("counting.figures has no template triangles-on-lines")
+	}
+	program := shipped.Templates("counting.figures")[at].Program
+	matches := []byte(`{"kind": "lattice", "width": 2, "height": 2, "lines": [[0, 0, 1, 0], [1, 0, 2, 0], ` +
+		`[0, 0, 0, 1], [0, 1, 0, 2], [2, 0, 1, 1], [1, 1, 0, 2]]}`)
+	options := solver.Options{"0", "1", "2", "3", "4"}
+	agreement, err := solver.Verdict(t.Context(), serviceSandbox(t), program, options, matches)
+	if err != nil {
+		t.Fatalf("Verdict() error = %v, want the run to happen", err)
+	}
+	if !agreement.Agreed() || agreement.Letter != "B" {
+		t.Errorf("the template answers %s (%s), want B, one triangle", agreement.Letter, agreement.Explain())
+	}
 }

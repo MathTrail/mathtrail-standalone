@@ -65,7 +65,6 @@ describe("the site's own data", () => {
 			topics.map((topic) => topic.id).sort(),
 		);
 	});
-
 	test("ranks the traps of knights and liars a missed condition, a statement trusted and a solution stopped halfway, the commonest first", () => {
 		expect(data.traps.get("logic.knights_liars")?.slice(0, 3)).toEqual([
 			"ignored_condition",

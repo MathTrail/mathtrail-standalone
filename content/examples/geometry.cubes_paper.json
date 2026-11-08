@@ -1,0 +1,296 @@
+[
+  {
+    "id": "cube-12-d1-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "1-2",
+    "difficulty": 1,
+    "question": "A die stands on the cell in the picture, with the number in the cell on top. Opposite faces of a die add up to 7. Which number is on its bottom?",
+    "picture": {"kind": "lattice", "width": 1, "height": 1, "cells": [[0, 0]], "marks": [{"at": [0, 0], "label": "2"}]},
+    "options": {"A": "9", "B": "2", "C": "7", "D": "5", "E": "6"},
+    "correct_answer": "D",
+    "hint": "Which number makes 7 with the number on top?",
+    "solution": "The top and the bottom are opposite faces, so they add up to 7. The top is 2, and 7 − 2 = 5, so 5 is on the bottom.",
+    "solution_picture": {"kind": "lattice", "width": 1, "height": 1, "cells": [[0, 0]], "marks": [{"at": [0, 0], "label": "5"}]},
+    "solution_total": "7 − 2 = 5",
+    "distractors": {
+      "A": {"trap": "wrong_operation", "text": "The numbers were added."},
+      "B": {"trap": "answered_other_question", "text": "That is the top, not the bottom."},
+      "C": {"trap": "number_from_text", "text": "7 is the sum of the two."},
+      "E": {"trap": "off_by_one", "text": "That is one more than the answer."}
+    }
+  },
+  {
+    "id": "cube-12-d2-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "1-2",
+    "difficulty": 2,
+    "question": "The sheet in the picture is folded along the dashed line. Its left part is laid over its right part. Then a hole is punched at cell O. How many holes are there when the sheet is opened?",
+    "picture": {"kind": "lattice", "width": 6, "height": 2, "cells": [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1], [3, 0], [3, 1], [4, 0], [4, 1], [5, 0], [5, 1]], "dashed": [[2, 0, 2, 2]], "points": [{"at": [2, 0], "label": "1"}], "marks": [{"at": [2, 0], "label": "O"}]},
+    "options": {"A": "6", "B": "1", "C": "3", "D": "4", "E": "2"},
+    "correct_answer": "E",
+    "hint": "How many layers of paper lie at cell O after the fold?",
+    "solution": "The fold lays the 2 columns on the left over the next 2 columns. Cell O then has 2 layers: its own cell and the cell just left of the fold. So the opened sheet has 2 holes.",
+    "solution_picture": {"kind": "lattice", "width": 6, "height": 2, "cells": [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1], [3, 0], [3, 1], [4, 0], [4, 1], [5, 0], [5, 1]], "marks": [{"at": [1, 0], "label": "O"}, {"at": [2, 0], "label": "O"}]},
+    "solution_total": "1 + 1 = 2",
+    "distractors": {
+      "A": {"trap": "answered_other_question", "text": "That is the columns of the sheet."},
+      "B": {"trap": "stopped_early", "text": "The fold puts a second layer at O."},
+      "C": {"trap": "off_by_one", "text": "Only two layers lie at O."},
+      "D": {"trap": "double_count", "text": "Only one fold was made."}
+    }
+  },
+  {
+    "id": "cube-12-d3-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "1-2",
+    "difficulty": 3,
+    "question": "The net in the picture is folded into a cube. Which number is on the face opposite 2?",
+    "picture": {"kind": "lattice", "width": 3, "height": 4, "cells": [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [1, 3]], "marks": [{"at": [1, 0], "label": "1"}, {"at": [0, 1], "label": "2"}, {"at": [1, 1], "label": "3"}, {"at": [2, 1], "label": "4"}, {"at": [1, 2], "label": "5"}, {"at": [1, 3], "label": "6"}]},
+    "options": {"A": "4", "B": "3", "C": "1", "D": "5", "E": "6"},
+    "correct_answer": "A",
+    "hint": "Which faces fold up beside 2, and which one is left?",
+    "solution": "When the net is folded, 1, 3, 5 and 6 all fold up next to 2. Only 4 is left, on the far side of 3, so 4 is opposite 2.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 4, "cells": [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [1, 3]], "marks": [{"at": [0, 1], "label": "2"}, {"at": [2, 1], "label": "4"}]},
+    "distractors": {
+      "B": {"trap": "ignored_condition", "text": "3 touches 2 along an edge."},
+      "C": {"trap": "missed_case", "text": "1 folds down beside 2."},
+      "D": {"trap": "reversed_relation", "text": "5 folds up beside 2."},
+      "E": {"trap": "stopped_early", "text": "6 touches 2 once folded."}
+    }
+  },
+  {
+    "id": "cube-12-d4-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "1-2",
+    "difficulty": 4,
+    "question": "The net in the picture is folded into a die. Opposite faces of a die add up to 7. Which number goes on the empty face?",
+    "picture": {"kind": "lattice", "width": 3, "height": 4, "cells": [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [1, 3]], "marks": [{"at": [1, 0], "label": "1"}, {"at": [0, 1], "label": "2"}, {"at": [1, 1], "label": "3"}, {"at": [2, 1], "label": "5"}, {"at": [1, 2], "label": "6"}]},
+    "options": {"A": "6", "B": "4", "C": "3", "D": "7", "E": "1"},
+    "correct_answer": "B",
+    "hint": "Which face lands opposite the empty one?",
+    "solution": "When the net is folded, the empty face lands opposite 3. Opposite faces add up to 7, and 7 − 3 = 4, so the empty face gets 4.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 4, "cells": [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [1, 3]], "marks": [{"at": [1, 0], "label": "1"}, {"at": [0, 1], "label": "2"}, {"at": [1, 1], "label": "3"}, {"at": [2, 1], "label": "5"}, {"at": [1, 2], "label": "6"}, {"at": [1, 3], "label": "4"}]},
+    "solution_total": "7 − 3 = 4",
+    "distractors": {
+      "A": {"trap": "double_count", "text": "6 is on the die already."},
+      "C": {"trap": "answered_other_question", "text": "That is the number opposite it."},
+      "D": {"trap": "number_from_text", "text": "7 is the sum of the two."},
+      "E": {"trap": "ignored_condition", "text": "1 is on the die already."}
+    }
+  },
+  {
+    "id": "cube-12-d5-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "1-2",
+    "difficulty": 5,
+    "question": "Fold the sheet along line 1, then along line 2. Each fold lays the left part over the right, or the top part over the bottom. A hole is then punched at cell O. How many holes are in the open sheet?",
+    "picture": {"kind": "lattice", "width": 4, "height": 4, "cells": [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3], [2, 0], [2, 1], [2, 2], [2, 3], [3, 0], [3, 1], [3, 2], [3, 3]], "dashed": [[2, 0, 2, 4], [0, 2, 4, 2]], "points": [{"at": [2, 0], "label": "1"}, {"at": [0, 2], "label": "2"}], "marks": [{"at": [3, 3], "label": "O"}]},
+    "options": {"A": "8", "B": "2", "C": "4", "D": "1", "E": "16"},
+    "correct_answer": "C",
+    "hint": "How many layers does each fold make at cell O?",
+    "solution": "The first fold lays the left half over the right half, so every cell there has 2 layers. The second fold lays the top over the bottom, so cell O has 2 + 2 = 4 layers, one from each quarter of the sheet. The opened sheet has 4 holes, one in each quarter.",
+    "solution_picture": {"kind": "lattice", "width": 4, "height": 4, "cells": [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3], [2, 0], [2, 1], [2, 2], [2, 3], [3, 0], [3, 1], [3, 2], [3, 3]], "marks": [{"at": [0, 0], "label": "O"}, {"at": [0, 3], "label": "O"}, {"at": [3, 0], "label": "O"}, {"at": [3, 3], "label": "O"}]},
+    "solution_total": "2 + 2 = 4",
+    "distractors": {
+      "A": {"trap": "double_count", "text": "Two folds give four layers, not eight."},
+      "B": {"trap": "stopped_early", "text": "The second fold doubles the layers again."},
+      "D": {"trap": "ignored_condition", "text": "Every layer gets a hole."},
+      "E": {"trap": "answered_other_question", "text": "That is all the cells of the sheet."}
+    }
+  },
+  {
+    "id": "cube-34-d1-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "3-4",
+    "difficulty": 1,
+    "question": "The five cells in the picture fold up into a box with no lid. Which number is on the bottom of the box?",
+    "picture": {"kind": "lattice", "width": 3, "height": 3, "cells": [[0, 0], [1, 0], [2, 0], [1, 1], [1, 2]], "marks": [{"at": [0, 0], "label": "1"}, {"at": [1, 0], "label": "2"}, {"at": [2, 0], "label": "3"}, {"at": [1, 1], "label": "4"}, {"at": [1, 2], "label": "5"}]},
+    "options": {"A": "2", "B": "4", "C": "1", "D": "3", "E": "5"},
+    "correct_answer": "B",
+    "hint": "Which cell has four cells round it once the box is folded?",
+    "solution": "Fold the three cells of the top row down, and the cell at the foot up. Cells 1, 2, 3 and 5 become the four sides, standing round cell 4, which is the bottom.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 3, "cells": [[0, 0], [1, 0], [2, 0], [1, 1], [1, 2]], "marks": [{"at": [1, 1], "label": "4"}]},
+    "distractors": {
+      "A": {"trap": "ignored_condition", "text": "2 folds down as a side."},
+      "C": {"trap": "reversed_relation", "text": "1 folds up as a side."},
+      "D": {"trap": "missed_case", "text": "3 folds up as a side."},
+      "E": {"trap": "ignored_condition", "text": "5 folds up as a side."}
+    }
+  },
+  {
+    "id": "cube-34-d2-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "3-4",
+    "difficulty": 2,
+    "question": "The net in the picture is folded into a cube. Which number is on the face opposite 1?",
+    "picture": {"kind": "lattice", "width": 4, "height": 3, "cells": [[0, 0], [1, 0], [1, 1], [2, 1], [2, 2], [3, 2]], "marks": [{"at": [0, 0], "label": "1"}, {"at": [1, 0], "label": "2"}, {"at": [1, 1], "label": "3"}, {"at": [2, 1], "label": "4"}, {"at": [2, 2], "label": "5"}, {"at": [3, 2], "label": "6"}]},
+    "options": {"A": "6", "B": "2", "C": "4", "D": "3", "E": "5"},
+    "correct_answer": "C",
+    "hint": "Fold the net one cell at a time from 1.",
+    "solution": "Rolling the cube from 1 along the steps, 2 and 3 fold up beside 1, then 4 lands on the far side, opposite 1. 5 and 6 fold up beside 1 too.",
+    "solution_picture": {"kind": "lattice", "width": 4, "height": 3, "cells": [[0, 0], [1, 0], [1, 1], [2, 1], [2, 2], [3, 2]], "marks": [{"at": [0, 0], "label": "1"}, {"at": [2, 1], "label": "4"}]},
+    "distractors": {
+      "A": {"trap": "missed_case", "text": "6 folds up beside 1."},
+      "B": {"trap": "ignored_condition", "text": "2 touches 1 along an edge."},
+      "D": {"trap": "off_by_one", "text": "3 is one cell short of opposite."},
+      "E": {"trap": "stopped_early", "text": "5 folds up beside 1."}
+    }
+  },
+  {
+    "id": "cube-34-d3-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "3-4",
+    "difficulty": 3,
+    "question": "The picture shows three shapes, each of six cells. How many of the shapes can be folded into a cube?",
+    "picture": {"kind": "lattice", "width": 6, "height": 7, "cells": [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2], [1, 2], [4, 0], [3, 1], [4, 1], [5, 1], [4, 2], [4, 3], [0, 4], [0, 5], [1, 5], [2, 5], [3, 5], [3, 6]]},
+    "options": {"A": "0", "B": "1", "C": "3", "D": "2", "E": "6"},
+    "correct_answer": "D",
+    "hint": "Try to fold each shape round a cube, one cell after another.",
+    "solution": "The cross folds into a cube, and so does the row of four with one cell above one end and one below the other. The block of two by three cannot: two of its cells would land on the same face. So 2 shapes fold into a cube.",
+    "solution_picture": {"kind": "lattice", "width": 6, "height": 7, "cells": [[4, 0], [3, 1], [4, 1], [5, 1], [4, 2], [4, 3], [0, 4], [0, 5], [1, 5], [2, 5], [3, 5], [3, 6]]},
+    "distractors": {
+      "A": {"trap": "stopped_early", "text": "Two of the shapes do fold."},
+      "B": {"trap": "missed_case", "text": "One more shape folds up."},
+      "C": {"trap": "ignored_condition", "text": "The block of two by three cannot fold."},
+      "E": {"trap": "answered_other_question", "text": "That is the cells of one shape."}
+    }
+  },
+  {
+    "id": "cube-34-d4-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "3-4",
+    "difficulty": 4,
+    "question": "The net in the picture is folded into a cube. How many faces marked S touch face M along an edge?",
+    "picture": {"kind": "lattice", "width": 3, "height": 4, "cells": [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [1, 3]], "marks": [{"at": [1, 1], "label": "M"}, {"at": [1, 0], "label": "S"}, {"at": [1, 3], "label": "S"}, {"at": [2, 1], "label": "S"}]},
+    "options": {"A": "0", "B": "3", "C": "1", "D": "4", "E": "2"},
+    "correct_answer": "E",
+    "hint": "Which face of the cube does not touch M?",
+    "solution": "Folded, every face of the cube touches M but the one opposite it. The face at the foot of the net lands opposite M, so its S does not touch M. The other two faces marked S touch it, so the answer is 2.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 4, "cells": [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [1, 3]], "marks": [{"at": [1, 1], "label": "M"}, {"at": [1, 0], "label": "S"}, {"at": [2, 1], "label": "S"}]},
+    "distractors": {
+      "A": {"trap": "stopped_early", "text": "Faces marked S do touch M."},
+      "B": {"trap": "ignored_condition", "text": "The S opposite M does not touch it."},
+      "C": {"trap": "missed_case", "text": "One more S touches M."},
+      "D": {"trap": "answered_other_question", "text": "That is the faces M touches."}
+    }
+  },
+  {
+    "id": "cube-34-d5-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "3-4",
+    "difficulty": 5,
+    "question": "A die stands on the first cell of the path in the picture, with the number in that cell on top. It rolls over its edge from cell to cell along the path, without turning, to cell E. Opposite faces of a die add up to 7. Which number is on top when it reaches E?",
+    "picture": {"kind": "lattice", "width": 3, "height": 1, "cells": [[0, 0], [1, 0], [2, 0]], "marks": [{"at": [0, 0], "label": "2"}, {"at": [2, 0], "label": "E"}]},
+    "options": {"A": "5", "B": "2", "C": "It cannot be told", "D": "7", "E": "9"},
+    "correct_answer": "A",
+    "hint": "After two rolls straight on, which face of the die is on top?",
+    "solution": "Each roll tips the die over one edge. After the first roll the face that was at the back is on top, and after the second the face that was at the bottom is. The bottom is opposite the 2 on top, so it is 7 − 2 = 5.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 1, "cells": [[0, 0], [1, 0], [2, 0]], "marks": [{"at": [0, 0], "label": "2"}, {"at": [2, 0], "label": "5"}]},
+    "solution_total": "7 − 2 = 5",
+    "distractors": {
+      "B": {"trap": "answered_other_question", "text": "That is the top at the start."},
+      "C": {"trap": "missed_case", "text": "Two rolls bring the bottom up."},
+      "D": {"trap": "number_from_text", "text": "7 is the sum of the two."},
+      "E": {"trap": "wrong_operation", "text": "2 and 7 were added."}
+    }
+  },
+  {
+    "id": "cube-56-d1-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "5-6",
+    "difficulty": 1,
+    "question": "Lena cuts out the net in the picture and folds it into a paper cube. Each square has a number on it. What is the largest sum of the numbers on two opposite faces of the cube?",
+    "picture": {"kind": "lattice", "width": 4, "height": 3, "cells": [[0, 0], [0, 1], [1, 1], [2, 1], [3, 1], [2, 2]], "marks": [{"at": [0, 0], "label": "8"}, {"at": [0, 1], "label": "9"}, {"at": [1, 1], "label": "3"}, {"at": [2, 1], "label": "1"}, {"at": [3, 1], "label": "6"}, {"at": [2, 2], "label": "4"}]},
+    "options": {"A": "17", "B": "10", "C": "15", "D": "9", "E": "12"},
+    "correct_answer": "E",
+    "hint": "Fold the long row round in your mind: which of its squares end up facing each other?",
+    "solution": "Imagine the long row wrapping round the cube. In a straight row, two squares with one square between them become opposite faces. So the faces with 9 and 1 are opposite, and so are the faces with 3 and 6. A cube has three pairs of opposite faces, so the two squares left over, 8 and 4, are opposite too. The sums are 9 + 1 = 10, 3 + 6 = 9 and 8 + 4 = 12. The largest is 12.",
+    "solution_picture": {"kind": "lattice", "width": 4, "height": 3, "cells": [[0, 0], [2, 2]], "lines": [[0, 0, 1, 0], [1, 0, 1, 1], [1, 1, 4, 1], [4, 1, 4, 2], [3, 2, 4, 2], [3, 2, 3, 3], [2, 3, 3, 3], [2, 2, 2, 3], [0, 2, 2, 2], [0, 0, 0, 2]], "marks": [{"at": [0, 0], "label": "8"}, {"at": [0, 1], "label": "9"}, {"at": [1, 1], "label": "3"}, {"at": [2, 1], "label": "1"}, {"at": [3, 1], "label": "6"}, {"at": [2, 2], "label": "4"}]},
+    "solution_total": "8 + 4 = 12",
+    "distractors": {
+      "A": {"trap": "ignored_condition", "text": "The faces with 9 and 8 touch."},
+      "B": {"trap": "missed_case", "text": "It leaves out the pair 8 and 4."},
+      "C": {"trap": "off_by_one", "text": "With two squares between them, 9 and 6 touch."},
+      "D": {"trap": "reversed_relation", "text": "9 is the smallest sum, not the largest."}
+    }
+  },
+  {
+    "id": "cube-56-d2-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A die rolls straight along the row of cells in the picture, from cell S to the last cell, tipping over one edge for each cell. In the last cell it shows the number drawn there on top. Opposite faces of a die add up to 7. Which number was on top at S?",
+    "picture": {"kind": "lattice", "width": 7, "height": 1, "cells": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]], "marks": [{"at": [0, 0], "label": "S"}, {"at": [6, 0], "label": "4"}]},
+    "options": {"A": "3", "B": "4", "C": "It cannot be told", "D": "7", "E": "11"},
+    "correct_answer": "A",
+    "hint": "How many rolls bring the bottom of a die up to the top?",
+    "solution": "From S to the last cell the die rolls 6 times. Four rolls straight on bring the top face back on top, and two more bring the bottom up. So the 4 on top at the end was at the bottom at S, and the top at S was 7 − 4 = 3.",
+    "solution_picture": {"kind": "lattice", "width": 7, "height": 1, "cells": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]], "marks": [{"at": [0, 0], "label": "3"}, {"at": [4, 0], "label": "3"}, {"at": [6, 0], "label": "4"}]},
+    "solution_total": "7 − 4 = 3",
+    "distractors": {
+      "B": {"trap": "stopped_early", "text": "Six rolls do not bring 4 back."},
+      "C": {"trap": "missed_case", "text": "An even number of rolls tells it."},
+      "D": {"trap": "number_from_text", "text": "7 is the sum of the two."},
+      "E": {"trap": "wrong_operation", "text": "4 and 7 were added."}
+    }
+  },
+  {
+    "id": "cube-56-d3-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "The seven filled cells in the picture are one cell too many for a cube. How many of the cells could be cut away so that the other six fold into a cube?",
+    "picture": {"kind": "lattice", "width": 3, "height": 4, "cells": [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [1, 3], [2, 2]]},
+    "options": {"A": "1", "B": "2", "C": "3", "D": "7", "E": "0"},
+    "correct_answer": "B",
+    "hint": "Cut away one cell at a time, and try to fold the six left.",
+    "solution": "Without the cell just below the right end of the middle row, the six cells are a cross, which folds into a cube. Without that right end itself, the six left fold into a cube too. Cutting away any other cell leaves six that cannot fold. So 2 of the cells could go.",
+    "solution_picture": {"kind": "lattice", "width": 3, "height": 4, "cells": [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [1, 3], [2, 2]], "marks": [{"at": [2, 1], "label": "1"}, {"at": [2, 2], "label": "2"}]},
+    "distractors": {
+      "A": {"trap": "missed_case", "text": "Another cell could go as well."},
+      "C": {"trap": "double_count", "text": "One of those cells leaves no cube."},
+      "D": {"trap": "answered_other_question", "text": "That is all the cells."},
+      "E": {"trap": "stopped_early", "text": "Some cells can be cut away."}
+    }
+  },
+  {
+    "id": "cube-56-d4-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A sheet of paper is folded along the dashed lines in the order of their numbers. Each fold lays the part on the left over the part on the right, or the part above over the part below. Then a hole is punched through every layer at cell O. How many holes are there when the sheet is opened out?",
+    "picture": {"kind": "lattice", "width": 4, "height": 4, "cells": [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3], [2, 0], [2, 1], [2, 2], [2, 3], [3, 0], [3, 1], [3, 2], [3, 3]], "dashed": [[2, 0, 2, 4], [0, 2, 4, 2], [3, 0, 3, 4]], "points": [{"at": [2, 0], "label": "1"}, {"at": [0, 2], "label": "2"}, {"at": [3, 0], "label": "3"}], "marks": [{"at": [3, 3], "label": "O"}]},
+    "options": {"A": "16", "B": "4", "C": "8", "D": "6", "E": "1"},
+    "correct_answer": "C",
+    "hint": "How many layers lie at cell O after each fold?",
+    "solution": "The first fold gives the right half 2 layers, and the second gives the bottom right quarter 4. The third fold lays the third column of that quarter over the fourth, so cell O has 4 + 4 = 8 layers. The opened sheet has 8 holes.",
+    "solution_picture": {"kind": "lattice", "width": 4, "height": 4, "cells": [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3], [2, 0], [2, 1], [2, 2], [2, 3], [3, 0], [3, 1], [3, 2], [3, 3]], "marks": [{"at": [0, 0], "label": "O"}, {"at": [0, 3], "label": "O"}, {"at": [1, 0], "label": "O"}, {"at": [1, 3], "label": "O"}, {"at": [2, 0], "label": "O"}, {"at": [2, 3], "label": "O"}, {"at": [3, 0], "label": "O"}, {"at": [3, 3], "label": "O"}]},
+    "solution_total": "4 + 4 = 8",
+    "distractors": {
+      "A": {"trap": "answered_other_question", "text": "That is all the cells of the sheet."},
+      "B": {"trap": "stopped_early", "text": "The third fold doubles the layers again."},
+      "D": {"trap": "missed_case", "text": "Each fold doubles the layers at O."},
+      "E": {"trap": "ignored_condition", "text": "Every layer gets a hole."}
+    }
+  },
+  {
+    "id": "cube-56-d5-1",
+    "topic": "geometry.cubes_paper",
+    "grade_level": "5-6",
+    "difficulty": 5,
+    "question": "A die stands on the first cell of the row in the picture, with the number in that cell on top. It rolls straight along the row, tipping over one edge for each cell. Opposite faces of a die add up to 7. In how many cells of the row, the first one too, can you tell which number is on top?",
+    "picture": {"kind": "lattice", "width": 7, "height": 1, "cells": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]], "marks": [{"at": [0, 0], "label": "3"}]},
+    "options": {"A": "3", "B": "7", "C": "2", "D": "4", "E": "1"},
+    "correct_answer": "D",
+    "hint": "After how many rolls is the top face known again?",
+    "solution": "After an even number of rolls the top is known: the same 3 after 4 rolls, and the 4 opposite it after 2 or 6. After an odd number of rolls a side face is on top, and it cannot be told. The first cell and the cells after 2, 4 and 6 rolls make 4 cells.",
+    "solution_picture": {"kind": "lattice", "width": 7, "height": 1, "cells": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]], "marks": [{"at": [0, 0], "label": "3"}, {"at": [2, 0], "label": "4"}, {"at": [4, 0], "label": "3"}, {"at": [6, 0], "label": "4"}]},
+    "solution_total": "1 + 3 = 4",
+    "distractors": {
+      "A": {"trap": "off_by_one", "text": "The first cell tells it too."},
+      "B": {"trap": "ignored_condition", "text": "After odd rolls a side is on top."},
+      "C": {"trap": "stopped_early", "text": "Six rolls tell the top as well."},
+      "E": {"trap": "missed_case", "text": "Two rolls tell the top as well."}
+    }
+  }
+]

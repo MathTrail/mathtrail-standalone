@@ -9735,6 +9735,10 @@ a.s-related-card:hover {
 	grid-template-columns: repeat(2, 7px);
 }
 
+.s-thumb-grid[data-columns="4"] {
+	grid-template-columns: repeat(4, 12px);
+}
+
 .s-thumb-grid[data-columns="5"] {
 	grid-template-columns: repeat(5, 12px);
 }
@@ -9911,6 +9915,22 @@ a.s-related-card:hover {
 .s-thumb-day {
 	inline-size: 10px;
 	block-size: 10px;
+}
+
+/* An empty place of a grid, where a net of a cube has no cell. */
+.s-thumb-cell[data-empty] {
+	background: none;
+}
+
+/* Small squares inside the frame of the square they make together. */
+.s-thumb-frame-square {
+	padding: 2px;
+	border: 2px solid var(--s-paint-orange);
+	border-radius: 3px;
+}
+
+.s-thumb-frame-square[data-columns="2"] {
+	grid-template-columns: repeat(2, 12px);
 }
 
 /* A clock's face, its hour hand up and its minute hand to the side. */

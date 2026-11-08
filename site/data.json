@@ -9,8 +9,10 @@
 			"topics": [
 				"combinatorics.enumeration",
 				"counting.gaps",
+				"counting.figures",
 				"pigeonhole.basic",
-				"geometry.grid"
+				"geometry.grid",
+				"geometry.cubes_paper"
 			]
 		},
 		{
@@ -85,6 +87,12 @@
 		},
 		"games.strategy": {
 			"card": { "markup": "matches" }
+		},
+		"counting.figures": {
+			"card": { "markup": "nested-squares" }
+		},
+		"geometry.cubes_paper": {
+			"card": { "markup": "cube-net" }
 		}
 	},
 	"examples": {

@@ -98,14 +98,14 @@ describe("the card's reading of a picture", () => {
 	});
 
 	test("reads every picture the reference tasks carry", () => {
-		expect(references).toHaveLength(122);
+		expect(references).toHaveLength(152);
 		for (const [id, picture] of references) {
 			expect(readPicture(picture), id).toEqual(picture);
 		}
 	});
 
 	test("reads every picture of a solution the reference tasks carry", () => {
-		expect(solutions).toHaveLength(53);
+		expect(solutions).toHaveLength(83);
 		for (const [id, picture] of solutions) {
 			expect(readPicture(picture), id).toEqual(picture);
 		}

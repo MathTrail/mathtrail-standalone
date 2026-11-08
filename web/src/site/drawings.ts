@@ -8,7 +8,8 @@ import type { CatalogTopic } from "./topics";
  * digits, a fence of posts, hutches with rabbits in them, cells of a grid, a
  * clock's face, two weeks with a day marked in each, a product that makes a
  * hundred, dots that alternate, groups of dots and the one left over, three
- * quarters, one tenth, two parts to three, matches, and a balance.
+ * quarters, one tenth, two parts to three, matches, a balance, a square of
+ * four squares, and the net of a cube.
  */
 export const thumbs = [
 	"lined-up",
@@ -28,6 +29,8 @@ export const thumbs = [
 	"two-to-three",
 	"matches",
 	"balance",
+	"nested-squares",
+	"cube-net",
 ] as const;
 
 /** Thumb is the name of a card's small drawing. */
