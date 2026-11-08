@@ -167,11 +167,25 @@ ChatGPT asks for a justification of every hint in its dashboard, after it scans 
 
 ### Reviewer access (GPT-09)
 
-The same sign-in as Claude's, from [reviewers.md](reviewers.md): the reviewer opens "Reviewing MathTrail for a directory?" on MathTrail's consent screen and types the password, which goes into the dashboard's secure form and nowhere else. The package carries no credentials and no reviewer instructions: ChatGPT refuses `test_credentials` and `reviewer_instructions` in a ZIP.
+The same sign-in as Claude's, from [reviewers.md](reviewers.md): the reviewer opens "Reviewing MathTrail for a directory?" on MathTrail's consent screen and types the password. The package carries no credentials and no reviewer instructions: ChatGPT refuses `test_credentials` and `reviewer_instructions` in a ZIP. They go into the dashboard's Review information, whose reviewer credentials are a login URL, a tenant, a username, a password and the sign-in steps (§13 of catalogs.md):
+
+- **Login URL:** https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/reviewers.md. The sign-in happens on MathTrail's own page when the plugin connects, not at an address of its own, so the field names the page for reviewers.
+- **Tenant:** none.
+- **Username:** none, since the sign-in takes the password alone; `reviewer` if the form will not take the field empty.
+- **Password:** from the password manager. It is written nowhere else.
+- **Sign-in steps:**
+
+```text chatgpt-sign-in-steps
+No username and no Google account: the reviewers' sign-in takes the password alone. A username shown with these steps only fills the form's field.
+1. Connect MathTrail. Its page "Connect … to MathTrail?" opens.
+2. At the foot of that page, open "Reviewing MathTrail for a directory?", type the password and press "Sign in as the reviewer". Do not press "Allow": it signs a parent in with Google, and the browser remembers it. If the page goes straight to Google, clear the cookies of mcp.mathtrail.app and connect again.
+3. ChatGPT comes back connected to a demo profile: a child known by the pseudonym Comet, grade 3, with several dozen tasks answered, some wrongly on purpose. Nothing done in it reaches a real family.
+Type as the adult who runs the lesson; the child answers on the card. The demo child has 50 new tasks a day, shared by every reviewer. More for reviewers: https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/reviewers.md
+```
 
 ### Left to T71.6
 
-- the demo recording's address (`review.demo_recording_url`, GPT-10);
-- the countries (`publication.countries`, GPT-14);
+- the demo recording's address (GPT-10): in the dashboard's Review information, which keeps a field the ZIP leaves out editable, or as `review.demo_recording_url` in the package;
+- the countries (GPT-14): all the form offers, by the author's decision of 2026-10-14; in the package, `publication.countries: []` says the same;
 - the domain's token, served from a setting (R216, GPT-08);
 - the developer's verified identity (О-65, GPT-01).
