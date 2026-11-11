@@ -1,6 +1,6 @@
 # An app for MathTrail lessons on phones, tablets and the browser: specification
 
-> Status: being written, a part at a time. Sections 1, 2 and 9 were written on 2026-11-11; the others are written by the parts the contents name.
+> Status: being written, a part at a time. Sections 1, 2, 3, 5 and 9 were written on 2026-11-11; the others are written by the parts the contents name.
 
 This is the specification of an app in which a family takes a MathTrail lesson without a chat: on an Android or iOS phone or tablet, or in a browser on a computer. It is written for two readers. The first is the author, who chooses from it: the name, the architecture, the default model, the payment. The second is whoever builds the app. The app is built in a new public repository of its own, and that repository starts with a copy of this file. Links to the service's own files are therefore full addresses on GitHub, and stay valid in the copy.
 
@@ -21,7 +21,9 @@ The task was set on 2026-10-14, and its decisions were revised on 2026-11-11. Wh
 - **The profile** is shared with the free MathTrail: the same file in the parent's Drive, and one child to a Google account.
 - **Languages and countries.** The first release speaks all 64 languages of the card, and the app is offered worldwide, as MathTrail is.
 - **The code** lives in a new public repository. The name MathTrail is not licensed to forks.
-- **The architecture** is not chosen yet. Section 3 weighs the approaches and recommends one, and the author chooses.
+- **The architecture** is C: the phone keeps the sign-in, and the app's server writes every task with a loop of its own (2026-11-11, section 3.6).
+- **The free mode may depend on the author's server.** The server may write every task, on the adult's key too (2026-11-11, section 3.2).
+- **The day's ceiling is shared.** MathTrail's 50 tasks and 10 failed requests a day stay shared by the chat and the app (2026-11-11, section 5.8).
 - **The name and the web address.** The app gets a new name of its own, and its web version a domain of its own (2026-11-11, section 1.4). The name itself is still to be chosen.
 - **Developer accounts.** The App Store and Google Play accounts are the company's, ALT EdTech LLC's (2026-11-11, section 9.2).
 - MathTrail Canvas and the coach on the site's page "Coach" have nothing to do with this app.
@@ -60,9 +62,9 @@ The specification rests on these, and proposes to change any of them only as a q
 |---|---|---|
 | 1 | [What it is and for whom](#1-what-it-is-and-for-whom) | Written |
 | 2 | [Screens and scenarios](#2-screens-and-scenarios) | Written |
-| 3 | Architecture | Written in T112.3 |
+| 3 | [Architecture](#3-architecture) | Written |
 | 4 | Cards | Written in T112.4 |
-| 5 | Connecting to MathTrail | Written in T112.3 |
+| 5 | [Connecting to MathTrail](#5-connecting-to-mathtrail) | Written |
 | 6 | The model and the measurement | Written in T112.5 |
 | 7 | Voice | Written in T112.7 |
 | 8 | Money | Written in T112.6 |
@@ -344,7 +346,7 @@ During the trial series it shows only how many of its five tasks are done, and t
 | What happened | What MathTrail returns | What the adult sees |
 |---|---|---|
 | A try did not pass the checks | `submit_task`: `status: rejected`, the reasons | "A try didn't pass the checks; a new one is being written." |
-| Three tries refused | `submit_task`: `status: rejected` with `attempts_left: 0` | "This task didn't work out", and "Another task" |
+| Three tries refused | `submit_task`: `status: rejected`, `code: attempts_exhausted`, `attempts_left: 0` | "This task didn't work out", and "Another task" |
 | Too many calls in a short time | `isError`, a sentence, no payload | Nothing, at first: the app waits a moment and makes the same call again; if that keeps failing, "MathTrail is busy, try again in a minute" |
 | The sign-in has ended, or access was taken back | `401` with a challenge, or `isError` with `mcp/www_authenticate` | "Sign in again", which starts 2.3 |
 | Drive is full | `isError`, a sentence | "Your Google Drive is full: nothing was saved, the answer included. Free up space and try again" |
@@ -375,13 +377,465 @@ During the trial series it shows only how many of its five tasks are done, and t
 
 These came up while the screens were written. Each belongs to a later part.
 
-- **For section 3.** Do tasks taken in the chat count against the ten free tasks of the author's key, or only the app's own? Where is the ten counted, and does its day end at the family's midnight, as MathTrail's does (R293)? Do refused tries and failed requests count against the ten? Every one of them costs the author tokens.
-- **For sections 3 and 5.** The app must declare MCP Apps when it connects, or be known by MathTrail in some other way to draw the cards. Otherwise MathTrail treats it as a chat of words: its instructions change, and no task solved from its picture comes to it (R305, R322).
+- **For section 3.** Do tasks taken in the chat count against the ten free tasks of the author's key, or only the app's own? Where is the ten counted, and does its day end at the family's midnight, as MathTrail's does (R293)? Do refused tries and failed requests count against the ten? Every one of them costs the author tokens. *Answered in 3.5.*
+- **For sections 3 and 5.** The app must declare MCP Apps when it connects, or be known by MathTrail in some other way to draw the cards. Otherwise MathTrail treats it as a chat of words: its instructions change, and no task solved from its picture comes to it (R305, R322). *Answered in 5.7.*
 - **For section 12.** A failure reaches the app as one English sentence and `isError`. The reasons are a damaged profile, a profile in the bin, a full Drive, or Drive not answering, and they carry no code. To show the screens of 2.5 and 2.10 in the adult's language, the app needs a code it can read. It would have to guess from English words otherwise.
 - **For sections 4 and 12.** The widget's card has no "I don't know". If the app shows MathTrail's own card (section 4), the button is a change to the card, hidden in the chat, where the adult says it in words.
 - **For section 9.** What the stores ask of deleting an account in the app, and whether opening the profile's file in Drive meets it. The profile is a file in the adult's own Drive, which no tool deletes. If it does not meet it, MathTrail needs a tool that deletes the file (section 12).
-- **For sections 5 and 9.** Signing out of the app ends the parent's grant at Google, and so disconnects MathTrail in their chats too (R114). The alternative is a sign-out that only forgets the app's tokens and leaves the grant, which the adult then removes in their Google account. Which of the two the app does, and what the stores ask of a sign-out, is still to be decided.
+- **For sections 5 and 9.** Signing out of the app ends the parent's grant at Google, and so disconnects MathTrail in their chats too (R114). The alternative is a sign-out that only forgets the app's tokens and leaves the grant, which the adult then removes in their Google account. Which of the two the app does, and what the stores ask of a sign-out, is still to be decided. *Answered in 5.5: both, as two choices.*
 - **For section 14.** "MathTrail" is used by MathTalk PBC for a maths trail for children in Cambridge, Massachusetts, and its domain `mathtrail.com`. That concerns the free MathTrail as well as the app.
+
+## 3. Architecture
+
+Every page cited here was read on 2026-11-11. Every fact about MathTrail was read in its code on the same day, at commit `7025812`, and is cited by file. The recommendation is in 3.6: the phone keeps the sign-in, and the app's server writes every task. The author chose it on 2026-11-11.
+
+### 3.1 What decides it
+
+| Fact | Where it is stated | What follows |
+|---|---|---|
+| A page in a browser can neither sign in to MathTrail nor call its `/mcp`. `/mcp`, `/oauth/token` and `/oauth/revoke` send no CORS headers, an `OPTIONS` request is answered `405`, and `/mcp` answers a foreign `Origin` with `403` | [`address.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/http/middleware/address.go), [`router.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/http/router.go); SPEC 9.2 and its remark 51 | The web version needs a server of its own between the page and MathTrail, or MathTrail changes (5.6) |
+| A phone can sign in today. A redirect address may be `https` on any host. A request without an `Origin` header, which is what an app's HTTP client sends, passes | [`redirect.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/redirect.go), `address.go` | The phone needs no server to reach MathTrail |
+| Access tokens last 15 minutes and refresh tokens 30 days from each issue, within a sign-in of 90 days. A refresh token stays good to its own end after it is used. `/mcp` checks neither the client nor the address a token comes from. MathTrail cannot end one client's tokens: `/oauth/revoke` ends the parent's whole grant at Google (R114) | [`grants.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/grants.go), [`access.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/access.go); SPEC 9.3 | A refresh token opens the child's profile for up to 90 days, and only Google can stop it. The fewer places hold one, the better |
+| The sign-in and the renewal of tokens take 20 requests a minute from one address on each instance, 6 at once (R219). That is about 200 families in a lesson at once through one address | [`ratelimit.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/ratelimit/ratelimit.go); SPEC 10.2 and its remark 60; [docs/catalogs.md](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/catalogs.md) §8.1 | A server that renews every family's tokens meets this limit. Phones that renew their own do not |
+| The day's 50 tasks and 10 failed requests are counted in the profile, for every client together, with no count per client (R291) | [`task.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/domain/profile/task.go), [`limits.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/limits.go) | The ten free tasks on the author's key are a count of the app's own (3.5) |
+| A client cannot tell from MathTrail which family it serves. The tokens are sealed and carry no email. No tool returns an identifier of the account | `grants.go`; SPEC 7 | A server that counts each family's free tasks needs an identifier MathTrail does not give yet (3.5) |
+| Anthropic: "Call the Claude API from your own back end". App Attest serves iOS and macOS alone. It goes through a Swift package in beta that "requires the OS 27 betas", sends no beta headers, and carries "no end-user identity". Android and the browser have no such path. Third parties may not offer a sign-in with a Claude plan | [authentication](https://platform.claude.com/docs/en/manage-claude/authentication), [App Attest](https://platform.claude.com/docs/en/manage-claude/app-attest), [the Swift package](https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/apple-foundation-models), [legal and compliance](https://code.claude.com/docs/en/legal-and-compliance) | The author's key needs a server: on Android and in the browser always, and on iOS too while App Attest is in beta |
+| The answer is sealed in the profile and never travels in a tool's result. But whoever runs the model holds the task the model wrote, the answer with it | `TestTheAnswerStaysSealed` in [`task_test.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/task_test.go) | The answer is wherever the loop of 3.4 runs |
+| Apple: "An app may not store credentials or tokens to social networks off of the device". Its rule on keys the user brings is likely to refuse the mode on the adult's key on iOS | 9.3 | A server that keeps MathTrail's tokens has to argue its case in the review notes. The adult's key on iOS is a risk in every approach |
+
+### 3.2 The approaches
+
+Each approach is drawn with the same parts: the device the adult holds, the app's server where there is one, MathTrail with the parent's Drive, the Claude API, and the stores. The two modes are the adult's own API key and the author's key with its ten free tasks.
+
+#### A. The app's server does everything
+
+```mermaid
+flowchart LR
+    Device["Phone, tablet or browser<br/>the cards, the purchase"] -->|"the app's own API"| Server["The app's server<br/>every family's MathTrail tokens<br/>both keys, the ten, the subscription"]
+    Device -.->|"the sign-in, in the system's browser"| MT
+    Server -->|"MCP, with the family's token"| MT["MathTrail"]
+    MT --> Drive["The parent's Drive"]
+    Server -->|"Messages API"| Claude["Claude API"]
+    Store["App Store, Google Play,<br/>the web's payment"] -->|"notifications"| Server
+```
+
+The device talks only to the app's server. The server receives the code of each sign-in, keeps every family's tokens, calls every MathTrail tool, writes the tasks and counts the quota.
+
+- **For:** the device is thin and the same on every platform. The browser works without a change to MathTrail. The answer never reaches the device before the child answers.
+- **Against:**
+  - the server holds every family's refresh tokens, each good for up to 90 days, and nobody but Google can end one (3.1);
+  - Apple's rule on tokens off the device weighs on it;
+  - every renewal comes from the server's addresses, so about 200 families in a lesson at once is the ceiling until R219 raises it;
+  - the server relays every call of every lesson, so it costs the most to run and has the most to do.
+
+#### B. The device goes straight to MathTrail and to the Claude API
+
+```mermaid
+flowchart LR
+    Device["Phone or tablet<br/>MathTrail's tokens, the adult's key<br/>the loop of 3.4"] -->|"MCP"| MT["MathTrail"]
+    Device -->|"Messages API, the adult's key"| Claude["Claude API"]
+    MT --> Drive["The parent's Drive"]
+```
+
+The device signs in, keeps its tokens and runs the loop itself. There is no server.
+
+- **For:** it costs the author nothing to run. Each family renews its tokens from its own address. No third party holds a token.
+- **Against:**
+  - it serves the adult's key alone. The author's key cannot be put on a device (3.1), so the paid mode still needs a server;
+  - in the browser it needs MathTrail to change: CORS and the app's origin on `/mcp`, `/oauth/token` and `/oauth/revoke`, and the refresh token kept in the page (5.6);
+  - the task the model wrote, its answer included, is in the memory of the device the child uses. It is never shown, but it is there;
+  - a change to the prompt or the model waits for a release in two stores, and old versions keep running for months.
+
+#### C. Mixed: the phone keeps the sign-in, the server writes the tasks
+
+```mermaid
+flowchart LR
+    Phone["Phone or tablet<br/>MathTrail's tokens, the adult's key<br/>every call but writing"] -->|"MCP: next_task, submit_answer,<br/>progress, profile"| MT["MathTrail"]
+    Phone -->|"write this task: the request,<br/>a 15-minute token, the adult's key"| Server["The app's server<br/>the author's key, the loop of 3.4<br/>the ten, the subscription"]
+    Page["Browser"] -->|"the page's calls,<br/>with a sealed cookie"| Server
+    Server -->|"MCP: get_package, prepare_task,<br/>submit_task, and the page's calls"| MT
+    Server -->|"Messages API"| Claude["Claude API"]
+    MT --> Drive["The parent's Drive"]
+    Store["App Store, Google Play,<br/>the web's payment"] -->|"notifications"| Server
+```
+
+- **On a phone**, the app signs in itself and keeps MathTrail's tokens in the system's secure store. It calls MathTrail itself for everything but writing a task: `next_task`, `read_task`, `submit_answer`, the progress and the profile.
+- **To write a task**, the phone sends the server a job: the request's id, its current access token, which lasts 15 minutes at most, and, in that mode, the adult's key. The server checks the family, the quota, the subscription and the country, then runs the loop of 3.4. It keeps neither the token nor the key, and never renews a token.
+- **In the browser**, the page cannot call MathTrail (3.1), so the same server is its back end. It receives the code of the page's sign-in and seals the tokens into the page's cookie, which no script can read. It keeps nothing at rest and makes the page's calls to MathTrail. This is how MathTrail itself keeps Google's tokens ([02-auth](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/architecture/02-auth.md)).
+- **For:**
+  - on a phone, no refresh token leaves the device. The server holds an access token for minutes, for one job;
+  - the loop lives in one place, and a change to the prompt or the model is a deployment of the server, not a release in the stores;
+  - the answer never reaches the device before the child answers;
+  - the browser works without a change to MathTrail;
+  - phones renew their tokens from their own addresses, so only the browser's families count against R219 on the server's addresses.
+- **Against:**
+  - the browser is served differently from the phones, so the server has two jobs: writing tasks and acting as the page's back end;
+  - the adult's key passes through the author's server with each job. The app's privacy policy has to say that it is used for that job alone and never kept;
+  - the free mode depends on the author's server. The author accepted that on 2026-11-11.
+
+**C′: on the adult's key the phone writes the task itself.** Then the free mode needs no server and the key never leaves the phone. The price is a second loop on the phone, a release in the stores for every change of the prompt, and the answer in the phone's memory. The author allowed the free mode to depend on the server, so C′ is not recommended.
+
+#### Rejected
+
+- **The author's key inside the app or the page.** Anthropic: "Anyone who uses a webpage can read an API key in that page's code" ([authentication](https://platform.claude.com/docs/en/manage-claude/authentication)), and a key in an app's package is read the same way. No device can keep a count of ten tasks that the family cannot reset, and the whole spend of the key would be open to anyone who took it.
+- **App Attest for the author's key on iOS.** It lets an iOS app reach the API on the author's account without a server, but its package is in beta on the OS 27 betas and "is **not** a general-purpose Messages API client". Its tokens "carry no end-user identity", so nothing in it counts a family's ten tasks, and Android and the browser need the server anyway. To look at again when the package leaves beta.
+- **The Claude API's MCP connector** as the one who writes the task: 3.4.
+
+### 3.3 The approaches side by side
+
+| | A. The server does everything | B. Straight from the device | C. Mixed (chosen) |
+|---|---|---|---|
+| **The author's key** | On the server | Not possible | On the server |
+| **The adult's key** | On the server, or sent with each job | On the device | On the device, sent with each job, never kept |
+| **MathTrail's tokens** | On the server, every family's | On the device | On the phone. For the browser, sealed in the page's cookie |
+| **The answer before the child answers** | The server and Anthropic | The device's memory and Anthropic | The server and Anthropic |
+| **The ten free tasks** | The server counts them | No author's key, so no ten | The server counts them |
+| **The subscription** | The server keeps its state | None | The server keeps its state |
+| **The browser** | Works | Needs MathTrail to change, and the page holds a refresh token | Works, through the server |
+| **Renewals against R219** | Every family's, from the server's addresses | Each family's own address | The browser's families only, from the server's addresses |
+| **A change to the prompt or the model** | A deployment of the server | A release in the stores | A deployment of the server |
+| **The server** | Relays every call and holds every family's tokens | None | Writes tasks, and is the page's back end |
+| **The stores (9.9)** | Tokens off the device, under Apple 5.1.1(v) | The adult's key on iOS, under 3.1.1 | An access token for one job only. The adult's key on iOS is the same risk in every approach |
+| **Changes to MathTrail** | 3.6, items 1–5 | 3.6, items 1, 3, 4 and 5, and CORS and the origin for the browser | 3.6, items 1–5 |
+
+**Cost.**
+- **The model** costs the same in every approach: the tokens of the tasks, which T112.5 measures. Only the connector of 3.4 would add to them.
+- **The server** costs little beside the model. Cloud Run bills an instance while "at least one request is being processed", rounded up to 100 ms, and requests open at once share it ([Cloud Run pricing](https://cloud.google.com/run/pricing)). A job keeps its request open while the model writes. One job alone for 60 seconds on one vCPU and half a GiB costs about $0.0015 past the free tier, at $0.000024 a vCPU-second and $0.0000025 a GiB-second. That is an estimate from the prices, not a measurement.
+- **The free tier is shared by a billing account.** "The free tier usage is aggregated across projects by billing account" (the same page). On MathTrail's billing account, the app's server would spend the free tier that MathTrail's own 12,000–18,000 tasks a month rely on ([docs/load.md](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/load.md)). So the server belongs on a billing account of its own, which is section 8's question.
+- **The database** of 3.5: Firestore's free quota is "1 GiB … 50,000 per day" reads and "20,000 per day" writes, for one database per project ([Firestore pricing](https://cloud.google.com/firestore/pricing)). A job reads a family's record and writes its count, so the free quota holds thousands of jobs a day.
+
+**Difficulty.**
+- A puts the most on the server: a sign-in for every family, a store of their tokens and a relay of every tool. The device does least.
+- B puts everything on the device: the loop, an MCP client and the sign-in. It needs no server, and it has no paid mode.
+- C splits the work. The phone signs in and has an MCP client. The server has the loop, the metering and the page's back end. C has more parts than A, because the phone and the server both call MathTrail. But each part is simpler, and the parts that change most often, the prompt and the model, are in one place.
+
+### 3.4 Who runs the loop
+
+The loop is SPEC 5.10's: take the request's package, have the model write a task, hand it in, and write again from the reasons of a refusal, three attempts in all. There are two ways to run it. One is the app's own code. The other is the Claude API's MCP connector, which lets the model call MathTrail's tools itself.
+
+**The app's own code, on the server.** One task, in C:
+1. The phone calls `next_task`. It answers `screen: coming` with a `request_id`. When a task written ahead was kept, it answers `screen: task` with the card at once, and there is nothing to write.
+2. The phone sends the server the job (3.2, C).
+3. The server calls `get_package` with the request. The package arrives as words, its JSON after the line `Package:` ([`getpackage.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/getpackage.go)), and the server reads it out of them until MathTrail gives it structured (3.6).
+4. The server asks the model for the task, its solver and its self-check, with the guide that comes in the package. MathTrail's instructions to a chat's model are about talking to the adult and are not sent. How the model is asked is section 6's.
+5. The server hands it in with `submit_task`. An accepted task comes back with its card, which has no answer. A refusal comes back with `reasons`, each with its code and messages, and `attempts_left`. The reasons go back to the model in the same conversation, so its earlier turns are read from the cache.
+6. After the third refusal, `code: attempts_exhausted` closes the request, and the day counts one failed request.
+7. While the server writes, it tells the phone each step over the job's connection: "the task is being written", "a try did not pass", "the task is on the card". If the connection drops, the phone asks `read_task` with the request, which says whether the task is still being written, how many tries were turned down, or that it is on the card.
+
+**Writing ahead** (R235). Once a task is on the card, the phone asks the server to write the next one. The server calls `prepare_task`, which opens the request and answers with its package, in words, with the request's id inside them ([`preparetask.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/preparetask.go)). The server then writes the task in the same loop, and `submit_task` keeps it sealed: `code: task_kept`. The next `next_task` hands it out at once. On the author's key the server writes ahead only while the day's ten have room, or under a subscription (2.7).
+
+**A hand-in whose answer was lost.** A repeat of `submit_task` after an accepted task is safe: it answers `stale_request` with the same card, and nothing is counted twice. A repeat after a refusal is not: it is judged again and spends another attempt ([`submittask.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/submittask.go)). So the loop first asks `read_task`. If the task is on the card, it is done. If the count of refused tries went up, the reasons are lost, and the loop writes again from what it has.
+
+**The connector.** The model is given MathTrail's address and a token, and calls the tools itself ([MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector), beta `mcp-client-2026-09-15`):
+- it supports "only [tool calls]", over Streamable HTTP, to a public `https` server. The caller obtains and refreshes the token: "API consumers are expected to handle the OAuth flow and obtain the access token prior to making the API call, and to refresh the token as needed";
+- tools can be enabled one by one, so the model can be given `get_package` and `submit_task` alone. But the model decides the calls, and how many attempts to make. Opus 5.5 and Sonnet 5.5 refuse a forced choice of tool: "`any` and `tool` return a 400 error" ([define tools](https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools));
+- a tool's result is defined as text: "`content: string or array of BetaTextBlock`" ([Messages API](https://platform.claude.com/docs/en/api/beta/messages/create)). Nothing says that `structuredContent` reaches the caller, so the card from `submit_task` would have to be fetched again with `read_task`;
+- "The MCP connector is not covered by ZDR arrangements", and the family's MathTrail token passes through Anthropic;
+- which name and capabilities it sends MathTrail, and which version of the protocol it speaks, are not documented. Claude's own hosts call themselves "`claude-ai`" or "`Anthropic`" ([testing](https://claude.com/docs/connectors/building/testing)). MathTrail would then label the app's lessons `claude` ([`labels.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/labels.go)), and count them as Claude's in the log, the report and the public numbers. If it declares no MCP Apps, MathTrail closes every request for a task solved from its picture, and the connector meets `stale_request` (R322, 5.7).
+
+**Recommendation: the app's own code, on the server.** The connector would spare the loop's code. The price is a wrong label, no tasks solved from the picture, a token handed to another party, and an order no code holds to. The own loop also lets the server tell the phone each step, as screen 2.6 shows them.
+
+### 3.5 The ten free tasks and the subscription
+
+**What counts.** A task the server wrote on the author's key, which MathTrail accepted. A task written ahead counts when it is accepted, because it cost the author the same. A refused try does not count, as in MathTrail (О-35). But every try costs the author tokens, so the failed requests on the author's key, three refusals each, are counted apart, against a ceiling of their own. Its number is section 8's. Tasks taken in the chat, or on the adult's key, do not count: they cost the author nothing. This answers the first note of 2.12.
+
+**Where and until when.** The server counts, because only the server uses the author's key. The day ends at the family's midnight, by the offset from UTC the phone sends with each job. A new offset takes effect from the next day, as in MathTrail (R293), so moving the device's clock buys no tasks. MathTrail's own ceiling of 50 stays above the ten, in its profile. The two counts never meet: the adult meets the ten first, unless the chat took tasks that day.
+
+**Which family.** The server needs an identifier of the family that a new installation or a new sign-in does not reset. MathTrail gives none today (3.1). Three ways:
+1. **MathTrail names the account to each client apart.** `get_profile` would return an identifier made from the parent's identifier and the client's, like OpenID Connect's pairwise subject: two clients receive different identifiers, and neither leads back to the parent. The server calls `get_profile` itself with the token the phone lends it, so the phone cannot forge it. This is a change to MathTrail (3.6), and the recommended way.
+2. **Until then, the profile's file.** `get_profile` returns the file's link in Drive (`location.link`). Its digest survives new installations and new sign-ins. A new profile (`start_over`) makes a new file, and so another ten, but it also starts the child's ratings from nothing. The weakness: the field exists for the export, not as an identity. MathTrail's contract would have to keep it stable for this use.
+3. **An account of the app's own**, with a second sign-in. Rejected: it is one more account for the adult, and a login of its own brings Apple's rule on an equivalent login with it (9.3).
+
+A family with several Google accounts gets ten tasks on each. Each account costs the author at most ten tasks a day. The backstop for all of them is a spend limit at Anthropic: "Spend limits set a maximum monthly cost an organization can incur for API usage", and a workspace may have its own, except the default one ([rate limits](https://platform.claude.com/docs/en/api/rate-limits)). Past it, a request is refused "and states when access resumes". So the server writes in a workspace of its own, under a limit no number of families can pass.
+
+**The subscription.** It is bought in the App Store, on Google Play or on the web (sections 8 and 9). The server keeps its state from the stores' notifications and the web payment's, and every device reads that one state. That is what Apple asks of a subscription "available across all of the user's devices" (3.1.2(a), 9.3).
+- Apple's server notifications say when a subscription renews or expires: "Use the data in the notifications to update your user-account database" ([App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications)).
+- Google's say only that something changed, and the server "must call the Google Play Developer API … to get the complete status" ([real-time notifications](https://developer.android.com/google/play/billing/rtdn-reference)).
+- A purchase is tied to the family when it is made. On iOS this is `appAccountToken`, "a UUID to associate the purchase with an account in your system" ([Apple](https://developer.apple.com/documentation/storekit/product/purchaseoption/appaccounttoken(_:))). On Android it is `setObfuscatedAccountId`, at most 64 characters and with no personal data ([Google](https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder)). Both are made from the family's identifier.
+
+The server therefore needs a small database: each family's subscription and its day's counts.
+
+**The country.** Anthropic's API is offered in its supported regions alone (9.6), and it sees the server's address, never the family's. So the server checks the country of the phone's address with each job, in both modes, from a GeoIP database such as the one MathTrail reads at start. MathTrail learns the country at sign-in, but keeps it sealed in its token, and the app needs no change for it. This answers the first note of 9.10.
+
+### 3.6 Recommendation
+
+**Recommendation: C, with the app's own loop on the server.** On a phone, the refresh tokens stay on the device. One loop serves both keys, and changes without a release in the stores. The answer never reaches the device before the child answers. The browser is served by the same server, and MathTrail keeps its rule on origins.
+
+One task, on a phone:
+
+```mermaid
+sequenceDiagram
+    participant P as Phone
+    participant S as The app's server
+    participant M as MathTrail
+    participant C as Claude API
+    P->>M: next_task(language)
+    M-->>P: screen coming, request_id
+    P->>S: write it: request_id, a 15-minute token,<br/>the adult's key in that mode, the offset from UTC
+    S->>M: get_profile
+    M-->>S: the family's identifier (3.5)
+    S->>S: the ten, the subscription, the country
+    S->>M: get_package(request_id)
+    M-->>S: the package, in words
+    loop up to three attempts
+        S->>C: Messages: the guide, the package, the reasons of the last refusal
+        C-->>S: the task, its solver, its self-check
+        S->>M: submit_task(request_id, …)
+        M-->>S: the card, or the reasons
+        S-->>P: each step
+    end
+    S-->>P: the card, with no answer
+    P->>M: submit_answer(task_id, letter, hint_used, utc_offset)
+    M-->>P: how the answer went
+```
+
+**What it needs from MathTrail.** These go to section 12, where T112.7 orders them:
+1. **A label of its own** for the app's lessons in the log, the report and the counts kept for years. Under its own name it lands in `other` today (5.7). Whether its children count in the public numbers is T112.7's question.
+2. **An identifier of the account for each client apart** (3.5).
+3. **The package and the request written ahead, structured.** Today `get_package` and `prepare_task` answer in words alone, and the task's schema is not served (5.10).
+4. **A code on every failure.** Today a failure is one English sentence (2.12).
+5. **A contract on the fields of 5.10**, held by tests, with a version and a period of notice before a field goes.
+6. **Optional:** a repeated hand-in of the same attempt answered with its first verdict, so that a lost answer costs no attempt (3.4).
+
+C needs no change to MathTrail's origins, limits or sign-in. Its daily ceiling stays shared (5.8).
+
+**Chosen on 2026-11-11: C**, with the app's own loop on the server.
+
+### 3.7 Notes for the later parts
+
+- **For section 4.** The app may declare MCP Apps only if it draws the tasks' pictures, by itself or with MathTrail's card (5.7).
+- **For section 6.** The loop of 3.4 is what T112.5 measures: on the server, the reasons of a refusal going back to the model in the same conversation, with the package's guide and no chat instructions.
+- **For section 8.** The server's cost and its database, the ceiling of failed requests on the author's key, and whether the app's server shares Cloud Run's free tier with MathTrail (3.3).
+- **For section 11.** The phone needs an MCP client of the 2026-07-28 protocol and the system's sign-in (5.3) in the chosen technology. The server's loop is one piece of code.
+- **For section 13.** The review notes say why a server holds a family's token for minutes (Apple 5.1.1(v)), and why Google is the only login (4.8).
+
+## 5. Connecting to MathTrail
+
+In C, the phone and the app's server are both clients of MathTrail, on behalf of the same family. This section says what each of them sends and keeps, and what it may rely on. MathTrail's code and pages were read on 2026-11-11, as in section 3. The service is at `https://mcp.mathtrail.app/mcp`.
+
+### 5.1 The MCP client
+
+MathTrail speaks MCP 2026-07-28 with no sessions ([`server.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/server.go)). Each call is one `POST` to `/mcp` with one JSON-RPC message, and there is no handshake ([basic protocol](https://modelcontextprotocol.io/specification/2026-07-28/basic/index), [Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)):
+- `Authorization: Bearer` with the access token;
+- `MCP-Protocol-Version: 2026-07-28`, which "**MUST** match" the version in the message, together with the `Mcp-Method` header and, for a tool's call, `Mcp-Name`;
+- in the message's `params._meta`, on every call: `io.modelcontextprotocol/protocolVersion`, `io.modelcontextprotocol/clientCapabilities` and `io.modelcontextprotocol/clientInfo`. "Every request supplies this metadata in its `_meta` field", because the server "**MUST NOT** rely on prior requests". MathTrail reads the client's name and capabilities there, call by call ([`boundary.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/boundary.go)).
+
+The phone and the server send the same `clientInfo` and the same capabilities: they are two halves of one client, and MathTrail judges each call by what that call says (5.7).
+
+### 5.2 The Client ID Metadata Document
+
+The app is registered by a document on its own domain, as Claude is (R03, R105). For example:
+
+```json
+{
+  "client_id": "https://app.example/oauth/client.json",
+  "client_name": "The app",
+  "redirect_uris": [
+    "https://app.example/oauth/app",
+    "https://app.example/oauth/web"
+  ],
+  "token_endpoint_auth_method": "none",
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"]
+}
+```
+
+What MathTrail asks of it ([`internal/infra/cimd/`](https://github.com/MathTrail/mathtrail-standalone/tree/main/internal/infra/cimd), [`clients.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/clients.go)):
+- **The address.** `https` on port 443, with a path that is neither empty nor `/`, no `.` or `..` segment, no fragment, and at most 1,024 characters. Every address its name resolves to must be public. MathTrail never follows a redirect and reads only a `200` of at most 64 KB, within 10 seconds, tried twice.
+- **The fields.**
+  - `client_id` equals the document's address exactly.
+  - `client_name` is not empty and has at most 100 characters. The consent page shows it: "Connect {name} to MathTrail?".
+  - `redirect_uris` holds 1 to 32 addresses, each `https` on any host, or the computer's loopback. An address that breaks the rules is dropped, and a document with none left is refused.
+  - There is no `client_secret`, and `token_endpoint_auth_method` names no secret. `private_key_jwt` is read as a public client.
+  - Every other field is ignored, `logo_uri` and `jwks_uri` among them.
+- **The copy.** MathTrail keeps a copy for the document's `max-age` less its `Age`, at least 5 minutes and at most 24 hours, in each instance's memory. A change to the document reaches every instance within a day at most.
+- **No list of allowed clients** exists (R105): the consent page is the check a person makes. The host of a redirect address need not be the document's.
+
+One document serves the phones and the web. The refresh token is bound to the client that received it ([`token.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/token.go)), and a phone and a page never trade tokens, so nothing is gained by two. The two redirect addresses differ, for the reason in 5.4.
+
+### 5.3 Signing in on a phone
+
+```mermaid
+sequenceDiagram
+    participant A as The app
+    participant B as The system's browser
+    participant M as MathTrail
+    participant G as Google
+    A->>A: a PKCE verifier and its S256 challenge, a state
+    A->>B: open /oauth/authorize: client_id, redirect_uri, code_challenge,<br/>resource=https://mcp.mathtrail.app/mcp, scope=mcp, state
+    B->>M: GET /oauth/authorize
+    M->>M: read the document, check the redirect, PKCE, resource and scope
+    M-->>B: "Connect {name} to MathTrail?"
+    B->>G: sign in, and allow drive.file
+    G-->>B: back to MathTrail's callback
+    B->>M: GET /oauth/callback
+    M-->>B: 302 to https://app.example/oauth/app?code, state, iss
+    B-->>A: the system hands the address to the app
+    A->>M: POST /oauth/token: the code, the verifier, redirect_uri, client_id, resource
+    M-->>A: an access token for 15 minutes, a refresh token for 30 days
+```
+
+- **The parameters** are those of [02-auth](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/architecture/02-auth.md) and SPEC 9.3. PKCE is S256 alone. `resource` is MathTrail's address exactly. The one scope is `mcp`, and any other is refused with `invalid_scope` ([`authorize.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/authorize.go)). The code lasts 60 seconds. The app checks that `iss` is MathTrail's issuer.
+- **The system's browser, never a view inside the app.** Google refuses its sign-in in a view embedded in an app: "The authorization endpoint is displayed inside an embedded user-agent disallowed by Google's OAuth 2.0 Policies" ([Google](https://developers.google.com/identity/protocols/oauth2/native-app)). The consent page is skipped next time when the system's browser keeps MathTrail's cookie.
+- **iOS.** `ASWebAuthenticationSession` with the callback `.https(host:path:)`, from iOS 17.4: "The host must be a member of a domain associated with the app" ([Apple](https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession/callback/https(host:path:))). The domain serves `apple-app-site-association` "using `https://` with a valid certificate and with no redirects" ([associated domains](https://developer.apple.com/documentation/xcode/supporting-associated-domains)). By a forum post, the system asks for the `webcredentials` service for this ([thread](https://developer.apple.com/forums/thread/763621)); Apple's pages do not name it. So the app needs iOS 17.4 or later.
+- **Android.** Chrome's Auth Tab, from Chrome 137: "For redirects using the https schema, the browser verifies that the redirect domain and client app are owned by the same publisher using Digital Asset Links" ([Auth Tab](https://developer.chrome.com/docs/android/custom-tabs/guide-auth-tab)). Where there is no Auth Tab, "an Auth Tab intent automatically launches a Custom Tab instead". The app then receives the address as a verified App Link, declared with `android:autoVerify="true"` and `assetlinks.json` ([App Links](https://developer.android.com/training/app-links/verify-android-applinks)). AppAuth recommends "a fallback page … at the same address" for a link not verified ([AppAuth](https://github.com/openid/AppAuth-Android)).
+- **Why `https`.** MathTrail refuses a scheme of the app's own (SPEC 9.3), and RFC 8252 prefers `https` anyway: "the identity of the destination app is guaranteed to the authorization server by the operating system. For this reason, native apps SHOULD use them" ([§7.2](https://www.rfc-editor.org/rfc/rfc8252#section-7.2)).
+- **The store's reviewer** signs in by the password on MathTrail's consent page (R222, 9.3), with no Google account to type.
+
+### 5.4 Signing in in the browser
+
+```mermaid
+sequenceDiagram
+    participant P as The page
+    participant S as The app's server
+    participant M as MathTrail
+    P->>S: go to /signin
+    S-->>P: 302 to /oauth/authorize, with the server's PKCE,<br/>and its state in a sealed cookie
+    P->>M: the consent page and Google, as on a phone
+    M-->>P: 302 to https://app.example/oauth/web?code
+    P->>S: GET /oauth/web?code
+    S->>M: POST /oauth/token
+    M-->>S: the tokens
+    S-->>P: the tokens sealed in a cookie: HttpOnly, Secure, SameSite
+    P->>S: the page's calls, with the cookie
+    S->>M: MCP, with the token out of the cookie
+```
+
+- The server keeps nothing at rest. The cookie carries both tokens sealed with the server's key, and the page cannot read it. When the access token nears its end, the server renews it and sets the cookie again. A browser keeps about 4 KB in a cookie, so the server measures the sealed tokens against that before it relies on one cookie, and splits them in two if it must.
+- This is the back end for the front end of [RFC 10017](https://www.rfc-editor.org/rfc/rfc10017), a best current practice since August 2026. It presents its patterns "in decreasing order of security", this one first, and "strongly recommended for … applications that handle personal data".
+  - Its back end keeps the tokens "in the context of a cookie-based session, avoiding the direct exposure of any tokens to the browser-based application". It "MUST enable the Secure flag" and "the HttpOnly flag", and "SHOULD enable the SameSite=Strict flag".
+  - The cookie that keeps the sign-in's state is `SameSite=Lax` instead: the return from MathTrail is a navigation from another site, and a strict cookie would not come with it.
+  - The RFC's back end "interacts with the authorization server as a confidential OAuth client". MathTrail has public clients alone (R106), so the server signs in as one, with PKCE.
+- **The two redirect addresses.** The phone's, `/oauth/app`, is claimed by the app in `apple-app-site-association` and `assetlinks.json`. The page's, `/oauth/web`, is left out of both. Otherwise a sign-in on the web, on a phone that has the app, would open the app.
+
+### 5.5 Tokens
+
+| Token | How long it lasts | On a phone | For the browser | On the app's server |
+|---|---|---|---|---|
+| Access | 15 minutes, and never past the end of the Google token inside it less 3 minutes, nor past the sign-in's end | In memory, and in the secure store | Sealed in the page's cookie | Lent for one job, and never kept |
+| Refresh | 30 days from each issue, and never past the sign-in's end | The system's secure store, on this device alone and not in backups: the Keychain on iOS, a key in the Android Keystore | Sealed in the page's cookie | Never, but for the page's cookie |
+| The sign-in | 90 days from the sign-in. A renewal after that is `invalid_grant` | — | — | — |
+
+Sources: [`grants.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/grants.go); SPEC 9.3.
+
+**Renewing.**
+- The app renews by `expires_in`, before the access token ends, as Claude does (02-auth). It keeps the newest refresh token.
+- The token it presented stays good to its own end, so a renewal whose answer was lost can be made again with it, and two renewals at once both succeed. Only the client that received a token may renew it.
+- The renewal answers `429` with `Retry-After` when the address's pace is used up, and `503 temporarily_unavailable` with `Retry-After` when the parent's renewals at Google are (5.8). The app waits and tries again. Neither is a reason to sign in again.
+- The app knows when it signed in, so it can tell the adult a week before the 90 days end.
+
+**Google keeps at most 100 refresh tokens per account for MathTrail's client**, and the oldest is dropped silently past that (02-auth). Every sign-in takes one, in the app or in a chat, on any device. An app that signs in again and again could disconnect the parent's chat. So the app signs in only when MathTrail says the grant is gone: `invalid_grant`, or a call answered `401` with `error="invalid_token"`.
+
+**Lending the token to the server.** The phone sends its access token with each job, over TLS. The server uses it for that job alone, keeps it in memory, never writes it to a log and never renews it. A job lasts a few minutes at most, so the phone renews a token that has less than ten minutes left before it lends it.
+
+**Signing out.** Two choices, as 2.12 asked:
+- **"Sign out"** forgets the tokens on this device. On the web, the server clears the cookie. The grant stays, and the other devices and the chats go on.
+- **"Disconnect MathTrail everywhere"** calls `/oauth/revoke` with the refresh token and the `client_id`. Google ends the whole grant, so every app and chat of the parent's is disconnected at once (R114). The screen says so before it does it. A token already issued keeps working for a while: an access token to its end, and a renewal while the Google token inside it lasts (SPEC, remark 55). This is the "mechanism to revoke" of Apple's 5.1.1(v).
+
+**When access is gone.** A call answered `401` with a challenge, or a failure whose `_meta["mcp/www_authenticate"]` holds one, means the grant ended at Google or its Google token ran out ([`challenge.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/challenge.go)). The app renews once. If the renewal is `invalid_grant`, the adult signs in again (2.3).
+
+### 5.6 The origin of the browser's calls
+
+**The page talks only to the app's server, on its own origin.** The server calls MathTrail from its own process, with no `Origin` header, and `/mcp` lets such a call through ([`address.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/http/middleware/address.go)). MathTrail does not change.
+
+**The other way: MathTrail opens itself to the app's origin.** It would send CORS headers for that origin on `/mcp`, `/oauth/token` and `/oauth/revoke`, answer `OPTIONS`, and accept that origin beside its own. The protocol allows it: "Servers **MUST** validate the `Origin` header", and a list of origins is a validation ([Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)). But the page would then keep the refresh token where any script on the page can read it. A token taken from there opens the child's profile for up to 90 days, and nobody but Google can end it (3.1). The author kept the rule in T47 (SPEC, remark 51), and C gives no new reason to change it.
+
+### 5.7 The client's name and MCP Apps
+
+**The name.** MathTrail labels a client by words in its `clientInfo.name`, in any case ([`labels.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/labels.go)): `claude` or `anthropic` make it Claude, `chatgpt` or `openai` ChatGPT, `inspector` and `mathtrail-load` the service's own tools. The app's name contains none of them. Today it then lands in `other`, counted among the children with every client nobody knows. A label of its own is a change to MathTrail (3.6, item 1). The name is also what decides the answer to a lost grant: every client but ChatGPT gets the `401` of 5.5 ([`challenge.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/challenge.go)).
+
+**MCP Apps.** A client that draws the cards declares the extension in every call:
+
+```json
+"io.modelcontextprotocol/clientCapabilities": {
+  "extensions": {
+    "io.modelcontextprotocol/ui": { "mimeTypes": ["text/html;profile=mcp-app"] }
+  }
+}
+```
+
+MathTrail checks only that the key is there ([`chat.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/chat.go)). It sends a task solved from its picture only to a client that declares it (R322). The server's calls must declare it too. A `get_package` or `submit_task` that leaves it out, while a request for such a task is open, is answered `stale_request`, and the request is closed ([`ahead.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/ahead.go)). The rest of what MathTrail sends a client that declares nothing differs only in its words, not in its payload (R305).
+
+The app declares it only if it draws the tasks' pictures, by its own code or with MathTrail's card. That is section 4's to decide. An app that cannot draw them declares nothing, and receives tasks in words alone.
+
+### 5.8 Limits
+
+| Limit | Number | Counted by | Who meets it in C | What the app does |
+|---|---|---|---|---|
+| The address's pace: the sign-in, `/oauth/token`, `/oauth/revoke`, the two documents | 20 a minute, 6 at once, on each instance (R219) | The address | A phone: its own address. The browser's families: the server's addresses, about 200 in a lesson at once | Waits for `Retry-After`, 3 seconds, and tries again. The first refusal is R219's sign to raise the number |
+| Renewals that go to Google | 12 a minute, 4 at once | The parent | Phone or server, whichever renews | Waits for `Retry-After` |
+| Calls | 60 a minute, 20 at once | The parent | The phone and the server together, for one family | A failure in words: "MathTrail received too many calls in a short time". The app waits a moment and makes the same call again |
+| Each instance's doors, the sign-in's and the lessons' | 200 a minute each | The instance | Everyone, the chats included | The same failure. The app's lessons slow the chats' when many crowd into one minute (SPEC 10.2) |
+| The day | 50 tasks and 10 failed requests (R291) | The child's profile, for every client together | Everyone | `next_task` answers `status: limited`, `code: limit_reached`, and the night card of 2.7 shows |
+| The ten free tasks | 10 tasks, and the failed requests' own ceiling (3.5) | The app's server | Only the author's key | The screen of 2.7 |
+
+Sources: [`internal/ratelimit/`](https://github.com/MathTrail/mathtrail-standalone/tree/main/internal/ratelimit), [`limits.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/limits.go), [`config.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/config/config.go); SPEC 10.2. The paces are counted in each instance's memory, so with several instances they let in more (SPEC 10.4).
+
+Cloud Run's calls leave from "a regional pool of dynamic IP addresses shared across all serverless workloads" ([static outbound IP](https://cloud.google.com/run/docs/configuring/static-outbound-ip)). So the server's renewals for the browser are not tied to one address, and other services may share its address. A fixed address would need Cloud NAT, and C does not need one.
+
+**Chosen on 2026-11-11: MathTrail's ceiling stays shared** by the chat and the app, as it is now (question 5 of T112).
+- The subscription gives tasks beyond the ten up to these 50, and the tasks taken in the chat that day count among them. The subscription's screen says so (2.7).
+- MathTrail does not change. A ceiling of the app's own would have needed MathTrail to know the app by something a client cannot simply claim, and would have let one family take more of Cloud Run's free tier.
+
+### 5.9 Errors and retries
+
+The aim is that no task is handed out twice and no attempt is spent for nothing.
+
+| Call | When its answer is lost or times out | What the app does |
+|---|---|---|
+| `next_task` that opened a request | A repeat within the request's 15 minutes returns the same request, `already_open: true`, and writes nothing | Calls again |
+| `next_task` that handed out a task written ahead | A repeat finds that task on the card without an answer, records it as skipped, and opens a new request (R246) | First asks `read_task` with the request written ahead, whose id the server named when it wrote the task. If its task is on the card, shows it |
+| `prepare_task` | A repeat returns the same request, and its package again | Calls again |
+| `get_package`, `read_task`, `get_profile`, `read_progress` | They only read | Calls again |
+| `submit_task` | Safe after an accepted or kept task. After a refusal, a repeat spends another attempt | 3.4: `read_task` first |
+| `submit_answer` | A repeat shows the answer as it was recorded, `already_answered: true`, whatever letter it carries | Calls again |
+| `save_profile`, `edit_profile` | A repeat sets the same fields again. `restore` puts nothing back over a file that reads. `start_over` sets another file aside | Calls again, but first asks `get_profile` whether a `start_over` was done |
+
+Sources: [`nexttask.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/nexttask.go), `submittask.go`, [`submitanswer.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/submitanswer.go), and their tests.
+
+**A failure of MathTrail's own** is a result with `isError` and one English sentence, with no code ([`failure.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/failure.go)).
+- `timeout` and a conflict that lost three times say "make the same call again".
+- `busy`, the solver's slots being full, spends no attempt, and the call is made again after a moment.
+- A full Drive, Drive not answering, a damaged file, a file in the bin and a newer file have their screens in 2.5 and 2.10.
+- Today the app tells these apart only by the English sentence. A code is a change to MathTrail (3.6, item 4).
+
+**The job to the server.** If the phone's connection to the server drops, the server finishes the job, and the phone learns how it ended from `read_task`. If the server is down, the request stays open for its 15 minutes. The next `next_task` returns it, `already_open`, and the phone sends the job again.
+
+**The chat and the app at the same time.** They share the request, the card and the task written ahead. A `next_task` in one hands back the other's request, or skips the other's task left without an answer. The settings say so, in a sentence: a lesson in the chat and one in the app at the same moment take each other's tasks.
+
+### 5.10 The fields the app relies on
+
+| Tool | The app sends | The app reads |
+|---|---|---|
+| `next_task` | `language` | `screen`, `status`, `code`, `request_id`, `already_open`, `task`, `child`, `last_answer`, `topic_choice` |
+| `get_package` (server) | `request_id` | The words: the package's JSON after `Package:` |
+| `prepare_task` (server) | `language` | The words: the request's id and the package |
+| `submit_task` (server) | `request_id`, `task`, `solver`, `self_check` | `screen`, `status`, `code`, `reasons[].code`, `reasons[].messages`, `attempt`, `attempts_left`, `task` |
+| `read_task` | `request_id`, `refused` | `screen`, `refused`, `code`, `another_waits`, `task` |
+| `submit_answer` | `task_id`, `answer`, `hint_used`, `utc_offset` | `result` with `correct`, `correct_answer`, `trap`, `solution`, `rating`, `trial`, `already_answered`, `solution_picture`, `solution_total`; `task`, `topic_choice` |
+| `read_progress` | — | The payload of `get_progress` |
+| `get_profile`, `save_profile`, `edit_profile` | The profile's fields; `restore`, `start_over`; `lesson_topic`, `ui_language` | `screen`, `profile`, `problems[]`, `location`, `changed` |
+| Any failure | — | `isError`; `_meta["mcp/www_authenticate"]` |
+
+Sources: `internal/transport/mcp/`, the payload of each tool. The card on `task` carries exactly `hint`, `id`, `language`, `options`, `picture`, `question` and `topic`, as `TestTheAnswerStaysSealed` holds.
+
+**What holds these fields today.**
+- Every tool but `get_package` and `prepare_task` declares an `outputSchema` in `tools/list`, built from its Go types. That is the one contract MathTrail serves to a machine.
+- Tests hold some fields: the card's keys, the closed lists of `screen` and `code` ([`labels_internal_test.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/labels_internal_test.go)), the day's limit, the answer recorded once. No test holds a tool's whole payload for an outside client.
+- `read_task`, `read_progress` and `edit_profile` are marked for the card alone (`ui.visibility: ["app"]`). Nothing enforces it, and the app calls them as the card does. The contract has to say so.
+
+**What MathTrail would add** (3.6, item 5).
+- A contract test for each tool: the fields of this table, their types, and the closed lists of `screen`, `status` and `code`.
+- A version of the contract, served with the tools.
+- A period of notice before a field the app reads goes away.
+- On its side, the app's repository checks MathTrail's live `tools/list` against what it reads, in its own CI.
+
+### 5.11 Notes for the later parts
+
+- **For section 4.** Declaring MCP Apps depends on drawing the pictures (5.7).
+- **For section 6.** The model is given the package's guide, and none of MathTrail's instructions to a chat's model (3.4).
+- **For section 11.** iOS 17.4 or later, for the `https` callback (5.3). On Android, Chrome's Auth Tab, or a Custom Tab with a verified App Link. An MCP client of the 2026-07-28 protocol, and the secure stores of 5.5.
+- **For section 12.** The changes of 3.6, and the period of notice of 5.10.
 
 ## 9. Law and the stores
 
@@ -625,8 +1079,8 @@ The approaches are section 3's: the app's own server, the device going straight 
 
 ### 9.10 Notes for the later parts
 
-- **For section 3.** App Attest gives iOS and macOS a way to the Claude API on the author's account without a server. Android and the browser have none, and nothing in it counts a family's ten free tasks. Where the country is checked against Anthropic's regions is section 3's too: MathTrail learns the country at sign-in, but keeps it sealed in its own token.
-- **For sections 3 and 5.** Apple's rule on "tokens to social networks off of the device" weighs on a server that keeps MathTrail's tokens.
+- **For section 3.** App Attest gives iOS and macOS a way to the Claude API on the author's account without a server. Android and the browser have none, and nothing in it counts a family's ten free tasks. Where the country is checked against Anthropic's regions is section 3's too: MathTrail learns the country at sign-in, but keeps it sealed in its own token. *Answered in 3.2 and 3.5.*
+- **For sections 3 and 5.** Apple's rule on "tokens to social networks off of the device" weighs on a server that keeps MathTrail's tokens. *Answered in 3.2 and 5.5: in C the phone keeps them.*
 - **For sections 4 and 11.** On iOS, MathTrail's card fetched at run time falls under 2.5.2 and 4.7, while a card bundled into the app does not.
 - **For section 12.** A tool that deletes the profile's file and ends the grant, which both stores' deletion needs. The edits to MathTrail's policy and terms of 9.7. Perhaps a machine-readable mark of AI in the task's payload, for Article 50.
 - **For section 13.** The parent's verifiable consent under COPPA and its method; the representatives in the EU, the UK and Brazil; the app's own policy and terms; a work email on the company's domain; the D-U-N-S number; where reports of a task go and who answers them.
