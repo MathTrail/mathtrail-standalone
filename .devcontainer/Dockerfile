@@ -20,7 +20,7 @@ FROM mcr.microsoft.com/devcontainers/base:3.0.12-noble@sha256:ec556aed93f62aa6d1
 
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
-ARG GO_VERSION=1.27.3
+ARG GO_VERSION=1.27.4
 # Node.js LTS for the widget build.
 ARG NODE_VERSION=24.21.0
 ARG JUST_VERSION=1.58.0

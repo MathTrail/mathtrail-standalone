@@ -851,6 +851,18 @@ A decision can be revised by a later task on new facts; the revision is a new en
 - **Blocks:** nothing.
 - **Sources:** Q84, Q87; `go.mod`; `experiments/reproduce.sh`; `release/README.md`; `.github/workflows/research.yml`; https://pkg.go.dev/vuln/GO-2026-6809.
 
+### Q90. The module moves to Go 1.27.4, as Q89 moved it to 1.27.3
+
+- **Question:** GO-2026-6859 (CVE-2026-97054), published on 2026-11-11, can crash an HTTP/1 server in `net/http` through a race on `MaxBytesReader`'s headers, and Go 1.27.4 fixes it. The product moves to that Go the same day. Does the module follow it again?
+- **Why it matters:** as in Q89, every job that takes its Go from `go.mod` would run a Go with a known hole, and the module's own vulnerability check reads the Go it is built with.
+- **Decision (the author, 2026-11-11: "перейди на go последней верии - там найден уязвимость"):** `go.mod` declares go 1.27.4, by Q89's rule.
+  - Under it the three experiments reproduce their results as `reproduce.sh` compares them. The executor ran `just research reproduce` for each on 2026-11-11, and CI runs them again.
+  - The results stay as they were made: their `provenance.txt` and E-A4's `machine_go` keep the Go that made them, and the artifact's README already says that Go can be an earlier patch release.
+  - The changed `go.mod` makes a new artifact, which `paper.yml` releases after the product's next release.
+- **Who and when:** the author, 2026-11-11; done by the executor in the change that moved the product to go 1.27.4.
+- **Blocks:** nothing.
+- **Sources:** Q89; `go.mod`; `experiments/reproduce.sh`; `release/README.md`; `.github/workflows/research.yml`; https://pkg.go.dev/vuln/GO-2026-6859.
+
 ## Answer when convenient
 
 Questions about the author's reasons and intentions. They block nothing: each has a default, or needs none.
