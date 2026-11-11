@@ -1,6 +1,6 @@
 # An app for MathTrail lessons on phones, tablets and the browser: specification
 
-> Status: being written, a part at a time. Sections 1, 2, 3, 5 and 9 were written on 2026-11-11; the others are written by the parts the contents name.
+> Status: being written, a part at a time. Sections 1, 2, 3, 4, 5, 9, 10 and 11 were written on 2026-11-11; the others are written by the parts the contents name.
 
 This is the specification of an app in which a family takes a MathTrail lesson without a chat: on an Android or iOS phone or tablet, or in a browser on a computer. It is written for two readers. The first is the author, who chooses from it: the name, the architecture, the default model, the payment. The second is whoever builds the app. The app is built in a new public repository of its own, and that repository starts with a copy of this file. Links to the service's own files are therefore full addresses on GitHub, and stay valid in the copy.
 
@@ -26,6 +26,10 @@ The task was set on 2026-10-14, and its decisions were revised on 2026-11-11. Wh
 - **The day's ceiling is shared.** MathTrail's 50 tasks and 10 failed requests a day stay shared by the chat and the app (2026-11-11, section 5.8).
 - **The name and the web address.** The app gets a new name of its own, and its web version a domain of its own (2026-11-11, section 1.4). The name itself is still to be chosen.
 - **Developer accounts.** The App Store and Google Play accounts are the company's, ALT EdTech LLC's (2026-11-11, section 9.2).
+- **The card's look.** The card in the app looks as it does in the chats: the same tokens and colours. The app's own name shows in its icon, its mark and its own screens (2026-11-11, section 4.5).
+- **The app's server** is written in Go, as MathTrail is (2026-11-11, section 11.6).
+- **The cards** are MathTrail's own, taken as a package and mounted by the app (2026-11-11, section 4.5).
+- **The technology** is one web app: the browser shows it, and Capacitor carries it into the App Store and Google Play (2026-11-11, section 11.7).
 - MathTrail Canvas and the coach on the site's page "Coach" have nothing to do with this app.
 
 ### MathTrail's
@@ -63,14 +67,14 @@ The specification rests on these, and proposes to change any of them only as a q
 | 1 | [What it is and for whom](#1-what-it-is-and-for-whom) | Written |
 | 2 | [Screens and scenarios](#2-screens-and-scenarios) | Written |
 | 3 | [Architecture](#3-architecture) | Written |
-| 4 | Cards | Written in T112.4 |
+| 4 | [Cards](#4-cards) | Written |
 | 5 | [Connecting to MathTrail](#5-connecting-to-mathtrail) | Written |
 | 6 | The model and the measurement | Written in T112.5 |
 | 7 | Voice | Written in T112.7 |
 | 8 | Money | Written in T112.6 |
 | 9 | [Law and the stores](#9-law-and-the-stores) | Written |
-| 10 | 64 languages | Written in T112.4 |
-| 11 | Technologies | Written in T112.4 |
+| 10 | [64 languages](#10-64-languages) | Written |
+| 11 | [Technologies](#11-technologies) | Written |
 | 12 | Changes to MathTrail | Written in T112.7 |
 | 13 | The first release and after | Written in T112.7 |
 | 14 | Open questions | Written in T112.7 |
@@ -380,7 +384,7 @@ These came up while the screens were written. Each belongs to a later part.
 - **For section 3.** Do tasks taken in the chat count against the ten free tasks of the author's key, or only the app's own? Where is the ten counted, and does its day end at the family's midnight, as MathTrail's does (R293)? Do refused tries and failed requests count against the ten? Every one of them costs the author tokens. *Answered in 3.5.*
 - **For sections 3 and 5.** The app must declare MCP Apps when it connects, or be known by MathTrail in some other way to draw the cards. Otherwise MathTrail treats it as a chat of words: its instructions change, and no task solved from its picture comes to it (R305, R322). *Answered in 5.7.*
 - **For section 12.** A failure reaches the app as one English sentence and `isError`. The reasons are a damaged profile, a profile in the bin, a full Drive, or Drive not answering, and they carry no code. To show the screens of 2.5 and 2.10 in the adult's language, the app needs a code it can read. It would have to guess from English words otherwise.
-- **For sections 4 and 12.** The widget's card has no "I don't know". If the app shows MathTrail's own card (section 4), the button is a change to the card, hidden in the chat, where the adult says it in words.
+- **For sections 4 and 12.** The widget's card has no "I don't know". If the app shows MathTrail's own card (section 4), the button is a change to the card, hidden in the chat, where the adult says it in words. *Answered in 4.4.*
 - **For section 9.** What the stores ask of deleting an account in the app, and whether opening the profile's file in Drive meets it. The profile is a file in the adult's own Drive, which no tool deletes. If it does not meet it, MathTrail needs a tool that deletes the file (section 12).
 - **For sections 5 and 9.** Signing out of the app ends the parent's grant at Google, and so disconnects MathTrail in their chats too (R114). The alternative is a sign-out that only forgets the app's tokens and leaves the grant, which the adult then removes in their Google account. Which of the two the app does, and what the stores ask of a sign-out, is still to be decided. *Answered in 5.5: both, as two choices.*
 - **For section 14.** "MathTrail" is used by MathTalk PBC for a maths trail for children in Cambridge, Massachusetts, and its domain `mathtrail.com`. That concerns the free MathTrail as well as the app.
@@ -603,11 +607,159 @@ C needs no change to MathTrail's origins, limits or sign-in. Its daily ceiling s
 
 ### 3.7 Notes for the later parts
 
-- **For section 4.** The app may declare MCP Apps only if it draws the tasks' pictures, by itself or with MathTrail's card (5.7).
+- **For section 4.** The app may declare MCP Apps only if it draws the tasks' pictures, by itself or with MathTrail's card (5.7). *Answered in 4.5: it draws them with MathTrail's card, and declares it.*
 - **For section 6.** The loop of 3.4 is what T112.5 measures: on the server, the reasons of a refusal going back to the model in the same conversation, with the package's guide and no chat instructions.
 - **For section 8.** The server's cost and its database, the ceiling of failed requests on the author's key, and whether the app's server shares Cloud Run's free tier with MathTrail (3.3).
-- **For section 11.** The phone needs an MCP client of the 2026-07-28 protocol and the system's sign-in (5.3) in the chosen technology. The server's loop is one piece of code.
+- **For section 11.** The phone needs an MCP client of the 2026-07-28 protocol and the system's sign-in (5.3) in the chosen technology. The server's loop is one piece of code. *Answered in 11.2 and 11.6.*
 - **For section 13.** The review notes say why a server holds a family's token for minutes (Apple 5.1.1(v)), and why Google is the only login (4.8).
+
+## 4. Cards
+
+Every page cited here was read on 2026-11-11. MathTrail's card was read in its code on the same day, at commit `441acc6`, and is cited by file under [`web/`](https://github.com/MathTrail/mathtrail-standalone/tree/main/web). Sizes were measured on the widget that commit builds. The paths are lettered A to C within this section alone; section 3's approaches are lettered apart. The recommendation is in 4.5: the app takes MathTrail's own card as a package and mounts it itself.
+
+### 4.1 What decides it
+
+| Fact | Where it is stated | What follows |
+|---|---|---|
+| The card already works without a chat host. The site's home page mounts the widget's own task card and the card of a task being written, and gives them three things: a `Service` that records an answer, says how a task stands, reads the progress and saves a change to the profile; a `Host`; and one language's words. The site draws its still cards from the same components | [`web/src/demo/hero.tsx`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/src/demo/hero.tsx), [`web/src/demo/service.ts`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/src/demo/service.ts), [`web/src/widget/service.ts`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/src/widget/service.ts), [`web/src/widget/bridge.ts`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/src/widget/bridge.ts); R170, R188, R197 | The card can be reused as a component, with no MCP Apps frame around it |
+| The widget is one HTML file of 1,981,419 bytes, 528 KB compressed with gzip. Its 64 dictionaries take 1,544,833 bytes of it, 78 %. One language's dictionary is 17 KB (`zh-Hans`) to 41 KB (`ta`). The demo's script is 105 KB, 38 KB compressed, and the page hands it one language's words | `internal/widget/widget.html`; SPEC 8.6 | A card that carries one language weighs a fraction of the widget |
+| The card is 17,560 lines of TypeScript and Preact, its tests left out: 8,545 in `web/src/design/`, 5,858 of them the pictures, 8,235 in `web/src/widget/` and 780 in `web/src/i18n/`. A picture is a pure function of its description, drawn as SVG with no measurement in a browser. The format has grown from twelve kinds to seventeen since R272, four of them for tasks solved from the picture (R316) | [`web/src/design/picture/`](https://github.com/MathTrail/mathtrail-standalone/tree/main/web/src/design/picture) | Drawing the cards anew is writing all of that again, and keeping it in step |
+| A tool's payload carries ids and codes, and the card says them in its own words | SPEC 7.3 | Every path needs the card's dictionaries, even one that draws its own cards |
+| The card leans on a chat. "Another task" puts the words "Another task" in the chat, for the model to answer. It has no "I don't know", since the adult says that in the chat. 17 of its 326 English texts send the adult to the chat | [`TaskCard.tsx`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/src/widget/TaskCard.tsx), [`ResultCard.tsx`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/src/widget/ResultCard.tsx), [`choices.ts`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/src/widget/choices.ts), [`web/locales/en.json`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/locales/en.json) | Every path needs changes to the card (4.4) |
+| Apple: an app may not "download, install, or execute code which introduces or changes features or functionality", and HTML5 and JavaScript mini apps fall under 4.7. Google: a web view of content its owner allows is allowed | 9.3, 9.4 | On iOS, a card fetched from MathTrail while the app runs is a risk. A card bundled into the app is not |
+| MathTrail sends a task solved from its picture only to a client that declares MCP Apps | 5.7; R322 | The app declares it only if it draws all seventeen kinds |
+| The stable MCP Apps spec: "All View content MUST be rendered in sandboxed iframes with restricted permissions", and a host that is a web page talks to the view "through an intermediate Sandbox proxy" on another origin. The draft, since release 2.1.0 of 10 November 2026, "does not require Hosts to use any one particular framing mechanism", but still: "If the Host is a web page, it MUST wrap the View in an iframe", and "The Host and the iframe MUST have different origins". Claude itself, on a phone, "renders apps in a native WebView … rather than a sandboxed iframe" | [stable spec](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx), [draft](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx), [release 2.1.0](https://github.com/modelcontextprotocol/ext-apps/releases/tag/v2.1.0), [Claude's design guidelines](https://claude.com/docs/connectors/building/mcp-apps/design-guidelines) | A host of MCP Apps on a phone may use a web view. In the browser it needs an iframe on an origin of its own |
+
+### 4.2 The three paths
+
+#### A. The app draws the cards itself
+
+```mermaid
+flowchart LR
+    MT["MathTrail's tools<br/>structuredContent: ids, codes, the picture's description"] --> Screens["The app's own screens<br/>in its own toolkit: SwiftUI, Compose, Flutter, React Native"]
+    Words["The card's dictionaries,<br/>copied from web/locales"] --> Screens
+    Pictures["Seventeen kinds of picture,<br/>written again"] --> Screens
+```
+
+The app reads the payloads of `next_task`, `submit_answer`, `read_task`, `read_progress` and the profile's tools, and draws every screen with its own toolkit. It copies the words from `web/locales/*.json`, and draws the pictures again from their format.
+
+- **For:**
+  - the cards look and behave as the platform's own;
+  - any technology of section 11 will do, and no web view is needed;
+  - Apple's 4.2 on apps made of web pages does not arise.
+- **Against:**
+  - about 17,600 lines are written again, the 5,900 of the pictures among them. They are written once for each toolkit the app uses: twice with native Swift and Kotlin, and once more for the browser;
+  - every change to MathTrail's card is made again in the app: a new kind of picture, a new screen, a new key. Until it is, MathTrail can send a task the app cannot draw;
+  - the checks of the layout are written again: every screen in 64 languages and the pseudo-language, at 320 px, with the pictures' words measured (SPEC 8.6);
+  - the app may declare MCP Apps only once all seventeen kinds are drawn. Until then no task solved from its picture comes to it (5.7).
+
+#### B. MathTrail's widget in a web view, with the app as its host
+
+```mermaid
+flowchart LR
+    MT["MathTrail"] -->|"resources/read ui://mathtrail/app.html,<br/>or a copy built into the app"| View["The widget, 2 MB,<br/>in WKWebView, Android's WebView,<br/>or a sandboxed iframe in the browser"]
+    View <-->|"AppBridge: tool calls, ui/message,<br/>model context, links, host context"| Host["The app, as a host of MCP Apps"]
+    Host -->|"MCP"| MT
+```
+
+The app shows `ui://mathtrail/app.html` as Claude and ChatGPT do. It reads the widget from MathTrail with `resources/read`, or bundles a copy when it is built. It plays the host's side with the library's `AppBridge`, "a proxy between the host application and a view running in an iframe" ([AppBridge](https://apps.extensions.modelcontextprotocol.io/api/classes/app-bridge.AppBridge.html)). That means it answers the widget's tool calls (`submit_answer`, `read_task`, `read_progress`, `edit_profile`), its messages, its lines to the model and its links, and hands it the theme, the locale and the safe area.
+
+- **For:**
+  - the card is exactly the one Claude and ChatGPT show: every screen, the seventeen kinds and the 64 languages at once;
+  - MathTrail changes nothing for the lesson's core;
+  - a widget fetched from MathTrail follows every change to the card with no work in the app.
+- **Against:**
+  - a widget fetched while the app runs is code that changes the app's features without a review, under Apple's 2.5.2 and 4.7 (9.3). A copy bundled at build time passes, but then the app follows the card only with its own releases, and the advantage of the line above is gone;
+  - each view carries 2 MB, every dictionary included;
+  - "Another task" reaches the host as a chat message in the card's language. The host has to read any message as a request for a task. The 17 texts that send the adult to the chat stay, and "I don't know", "Report this task" and the note that AI wrote the task are missing;
+  - the widget expects a card for each tool's call, and the host to hand it each result. The app would play a chat host that has no chat, and the lines the widget tells the model go nowhere;
+  - in the browser, the spec asks for an iframe on another origin. That is one more origin for the app's server to serve.
+
+#### C. MathTrail's card as a component from a package
+
+```mermaid
+flowchart LR
+    Pkg["MathTrail's card, a package:<br/>screens, pictures, words, tokens"] --> Web["The app's web layer<br/>its own screens and the card's"]
+    Web -->|"Service: the phone's MCP client"| MT["MathTrail"]
+    Web -->|"Service, in the browser"| Server["The app's server"]
+    Server -->|"MCP"| MT
+    Web -->|"Host: another task, a link"| App["The app"]
+```
+
+MathTrail publishes its card's components, pictures, dictionaries and tokens as an npm package with a version. The app mounts the card's screens as the site's demo does, and gives them its own `Service`, its own `Host` and one language's words.
+
+- **For:**
+  - every screen, the seventeen kinds and the 64 languages, as in path B, without playing a host of MCP Apps and without an iframe;
+  - one language's words at a time. The widget less its other 63 dictionaries comes to about 460 KB, and a package without the bridge to a chat host weighs less still. This is arithmetic, not a measurement: the package does not exist yet;
+  - the card is built into the app, so it passes 2.5.2 on iOS. On Android it is its owner's content in a web view (9.4);
+  - the same components serve the phone's web view and the browser's page;
+  - the app follows the card by raising the package's version, and its own checks run on the card it ships;
+  - the seams are already in the code, and two of MathTrail's own pages use them (R170, R197).
+- **Against:**
+  - MathTrail has to publish the package and keep it. Its interface has to stay stable: the `Service`, the `Host`, the words and each screen's properties, with a version and a note of every change (section 12). The card becomes an interface others rely on;
+  - the cards are web code. On React Native, Flutter, Kotlin Multiplatform or native, the card runs in a web view beside native screens (section 11);
+  - the changes of 4.4 are still needed in MathTrail's card.
+
+### 4.3 The paths side by side
+
+| | A. The app draws them | B. The widget, the app as its host | C. The card as a package |
+|---|---|---|---|
+| **64 languages** | The words copied, the layout made again | At once | At once, one language loaded |
+| **Seventeen kinds of picture** | Drawn again, kept in step by hand | At once | At once |
+| **Every screen** | Drawn again | At once | At once |
+| **Weight** | The app's own | 2 MB in each view | About 460 KB at most, by arithmetic |
+| **iOS review (9.3)** | Clear | Fetched: 2.5.2 and 4.7. Bundled: clear | Clear: bundled |
+| **The browser** | A third version of the cards | An iframe on an origin of its own | The same components |
+| **Changes to MathTrail** | None but the card's dictionaries as a source | The changes of 4.4 | The package, and the changes of 4.4 |
+| **When MathTrail's card changes** | The app writes it again | Fetched: at once. Bundled: with the app's release | With the app's release, by raising the version |
+| **Technologies it allows (section 11)** | Any | Any with a web view | Any with a web view; one code base only with a web app |
+| **MCP Apps declared (5.7)** | Only once all seventeen kinds are drawn | Yes | Yes |
+
+### 4.4 What the card lacks, on any path
+
+On paths B and C these are changes to MathTrail's card, and on path A the app draws them itself. Each is drawn only when the host asks for it, so the card in Claude and ChatGPT stays as it is. They go to section 12.
+
+- **"Another task" as the host's own action.** In the chat it stays a message to the model. In the app, the `Host` is told, and the app calls `next_task`.
+- **"I don't know"** on the task's card. It records the answer `?`, as the chat does when the adult says so. This answers the note of 2.12.
+- **"Report this task"**, which both stores ask of content written by AI (9.3, 9.4). The card shows the control, and the `Host` sends the report to the app's server.
+- **A note that AI wrote the task**, which Article 50 of the EU AI Act asks for (9.5). The machine-readable mark in the task's data is MathTrail's to add (9.10).
+- **Words for a host with no chat.** The 17 texts that send the adult to the chat need wordings without it, in all 64 dictionaries. Among them are "Ask for a task in the chat" and "This card can't be shown here. The chat says the same in words."
+- **The lines to the model.** The `Host` of an app ignores them. This needs no change.
+
+### 4.5 Recommendation
+
+**Recommendation: path C, MathTrail's card as a package.**
+- Path C gives the app every screen, picture and language, as path B does. It does so without playing a chat host, without 2 MB a view, and without a fetched widget's risk on iOS.
+- Path A would write the card again, once for each toolkit and again for each change MathTrail makes to it.
+- The app declares MCP Apps (5.7), since it draws every picture with MathTrail's own code.
+- The card looks as it does in the chats: the same tokens and colours. The author chose that on 2026-11-11. The app's own name shows in its icon, its mark and its own screens, and those screens take their colours from the same `tokens.css`.
+
+```mermaid
+flowchart TD
+    subgraph Pkg["MathTrail's card, a package"]
+        Cards["The card's screens: task, being written,<br/>waiting, result, progress, profile, topic"]
+        Pics["The pictures"]
+        Dict["64 dictionaries and the lookup"]
+        Tokens["tokens.css"]
+    end
+    subgraph App["The app's web layer"]
+        Own["The app's own screens: first launch, consent,<br/>the key, the quota, the subscription, settings"]
+        Svc["Service: record the answer, how a task stands,<br/>read the progress, save the profile"]
+        Hst["Host: another task, I don't know,<br/>report a task, open a link"]
+    end
+    Pkg --> App
+    Svc -->|"on a phone"| MT["MathTrail"]
+    Svc -->|"in the browser"| S["The app's server"] --> MT
+    Hst -->|"another task"| Job["next_task, then a job<br/>to the app's server (3.4)"]
+```
+
+**Chosen on 2026-11-11: path C**, MathTrail's card as a package.
+
+### 4.6 Notes for the later parts
+
+- **For section 11.** Path C makes the cards web code. A web app carries them in one code base. Any other technology carries them in a web view beside its own screens.
+- **For section 12.** The package itself: what it holds, its name, its version and its licence, MIT as the rest of `web/`. The host's choices of 4.4, and the 17 wordings without the chat in 64 languages. The machine-readable mark of AI in the task's data.
+- **For section 13.** The app's own checks run the card's layout on its own screens too: every language and the pseudo-language, at 320, 360 and 640 px, in Chromium and WebKit, as `just web-layout` does for the card.
 
 ## 5. Connecting to MathTrail
 
@@ -677,7 +829,7 @@ sequenceDiagram
 
 - **The parameters** are those of [02-auth](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/architecture/02-auth.md) and SPEC 9.3. PKCE is S256 alone. `resource` is MathTrail's address exactly. The one scope is `mcp`, and any other is refused with `invalid_scope` ([`authorize.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/authorize.go)). The code lasts 60 seconds. The app checks that `iss` is MathTrail's issuer.
 - **The system's browser, never a view inside the app.** Google refuses its sign-in in a view embedded in an app: "The authorization endpoint is displayed inside an embedded user-agent disallowed by Google's OAuth 2.0 Policies" ([Google](https://developers.google.com/identity/protocols/oauth2/native-app)). The consent page is skipped next time when the system's browser keeps MathTrail's cookie.
-- **iOS.** `ASWebAuthenticationSession` with the callback `.https(host:path:)`, from iOS 17.4: "The host must be a member of a domain associated with the app" ([Apple](https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession/callback/https(host:path:))). The domain serves `apple-app-site-association` "using `https://` with a valid certificate and with no redirects" ([associated domains](https://developer.apple.com/documentation/xcode/supporting-associated-domains)). By a forum post, the system asks for the `webcredentials` service for this ([thread](https://developer.apple.com/forums/thread/763621)); Apple's pages do not name it. So the app needs iOS 17.4 or later.
+- **iOS.** `ASWebAuthenticationSession` with the callback `.https(host:path:)`, from iOS 17.4: "The host must be a member of a domain associated with the app" ([Apple](https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession/callback/https(host:path:))). The domain serves `apple-app-site-association` "using `https://` with a valid certificate and with no redirects" ([associated domains](https://developer.apple.com/documentation/xcode/supporting-associated-domains)). By a forum post, the system asks for the `webcredentials` service for this ([thread](https://developer.apple.com/forums/thread/763621)); Apple's pages do not name it, and AppAuth-iOS says the same (11.2). So the app needs iOS 17.4 or later.
 - **Android.** Chrome's Auth Tab, from Chrome 137: "For redirects using the https schema, the browser verifies that the redirect domain and client app are owned by the same publisher using Digital Asset Links" ([Auth Tab](https://developer.chrome.com/docs/android/custom-tabs/guide-auth-tab)). Where there is no Auth Tab, "an Auth Tab intent automatically launches a Custom Tab instead". The app then receives the address as a verified App Link, declared with `android:autoVerify="true"` and `assetlinks.json` ([App Links](https://developer.android.com/training/app-links/verify-android-applinks)). AppAuth recommends "a fallback page … at the same address" for a link not verified ([AppAuth](https://github.com/openid/AppAuth-Android)).
 - **Why `https`.** MathTrail refuses a scheme of the app's own (SPEC 9.3), and RFC 8252 prefers `https` anyway: "the identity of the destination app is guaranteed to the authorization server by the operating system. For this reason, native apps SHOULD use them" ([§7.2](https://www.rfc-editor.org/rfc/rfc8252#section-7.2)).
 - **The store's reviewer** signs in by the password on MathTrail's consent page (R222, 9.3), with no Google account to type.
@@ -832,9 +984,9 @@ Sources: `internal/transport/mcp/`, the payload of each tool. The card on `task`
 
 ### 5.11 Notes for the later parts
 
-- **For section 4.** Declaring MCP Apps depends on drawing the pictures (5.7).
+- **For section 4.** Declaring MCP Apps depends on drawing the pictures (5.7). *Answered in 4.5.*
 - **For section 6.** The model is given the package's guide, and none of MathTrail's instructions to a chat's model (3.4).
-- **For section 11.** iOS 17.4 or later, for the `https` callback (5.3). On Android, Chrome's Auth Tab, or a Custom Tab with a verified App Link. An MCP client of the 2026-07-28 protocol, and the secure stores of 5.5.
+- **For section 11.** iOS 17.4 or later, for the `https` callback (5.3). On Android, Chrome's Auth Tab, or a Custom Tab with a verified App Link. An MCP client of the 2026-07-28 protocol, and the secure stores of 5.5. *Answered in 11.1 and 11.2.*
 - **For section 12.** The changes of 3.6, and the period of notice of 5.10.
 
 ## 9. Law and the stores
@@ -1081,7 +1233,353 @@ The approaches are section 3's: the app's own server, the device going straight 
 
 - **For section 3.** App Attest gives iOS and macOS a way to the Claude API on the author's account without a server. Android and the browser have none, and nothing in it counts a family's ten free tasks. Where the country is checked against Anthropic's regions is section 3's too: MathTrail learns the country at sign-in, but keeps it sealed in its own token. *Answered in 3.2 and 3.5.*
 - **For sections 3 and 5.** Apple's rule on "tokens to social networks off of the device" weighs on a server that keeps MathTrail's tokens. *Answered in 3.2 and 5.5: in C the phone keeps them.*
-- **For sections 4 and 11.** On iOS, MathTrail's card fetched at run time falls under 2.5.2 and 4.7, while a card bundled into the app does not.
+- **For sections 4 and 11.** On iOS, MathTrail's card fetched at run time falls under 2.5.2 and 4.7, while a card bundled into the app does not. *Answered in 4.2 and 4.5: the card is built into the app.*
 - **For section 12.** A tool that deletes the profile's file and ends the grant, which both stores' deletion needs. The edits to MathTrail's policy and terms of 9.7. Perhaps a machine-readable mark of AI in the task's payload, for Article 50.
 - **For section 13.** The parent's verifiable consent under COPPA and its method; the representatives in the EU, the UK and Brazil; the app's own policy and terms; a work email on the company's domain; the D-U-N-S number; where reports of a task go and who answers them.
 - **For section 14.** Two findings touch the free MathTrail as well as the app: whether it needs a representative in the EU and the UK, and whether Brazil's ECA Digital reaches it. A third: the App Store has had another app named MathTrail since 15 October 2026 (В24).
+
+## 10. 64 languages
+
+Every page cited here was read on 2026-11-11, and MathTrail's code at commit `441acc6`. The first release speaks the 64 languages of the card (the author's decision). This section says where each of the app's words comes from, how the words that are new are translated and checked, and what the stores and the phones do with the 64.
+
+### 10.1 What words the app has, and where each comes from
+
+| Words | How many | Where they come from | Who wrote them, and what checks them |
+|---|---|---|---|
+| **The card's** | 326 keys in each of 64 dictionaries | The card's package (4.5) | `en` and `ru` were written by people. The other 62 are machine translations nobody who speaks the language has read (SPEC 8.7). The card's tests and its layout check hold them |
+| **The card's texts for a host with no chat** | 17 keys, in 64 dictionaries | MathTrail's dictionaries, as a change to the card (4.4) | Translated as the card's are (10.2) |
+| **The names of the topics and skills** | One for each id of the catalogs | The card's dictionaries (`topic.<id>`, `skill.<id>`) | As the card's |
+| **The app's own screens**: first launch, the adult's key, the consent to send data to Anthropic, the day's quota, the subscription, settings and data, the failures of 2.10, reporting a task, the age check | Of the order of 150 keys. This is an estimate from the screens of section 2, not a count | The app's own dictionaries, in the card's format, read by the card's lookup | 10.2 |
+| **The task**: its wording, options, hint, trap and solution | — | Claude writes them in the lesson's language (section 6) | MathTrail's checks know the scripts, sentence ends and conjunctions of the 64 (R285) |
+| **The listing in the stores** | Name, subtitle, description, keywords, screenshots | Translated for the listing (10.3) | 10.3 |
+| **The app's privacy policy and terms** | Two documents | Written for the app (9.7) | In English first, which prevails over a translation, as MathTrail's do ([`pages.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/pages.go)) |
+| **Others' screens** | — | Google's sign-in, the stores' purchase sheets and the system's age prompt follow the device's language. MathTrail's consent page is in English whatever the browser reads: "the page that takes the agreement speaks the language the agreement is kept in" (`pages.go`) | Not the app's |
+
+### 10.2 How the app's own words are translated and checked
+
+They are made as the card's dictionaries were made in T66b.3–T66b.5, in the service's [plan](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/plan/phase-13.md), by R288:
+- **The source.** English, with Russian written beside it by a person, never translated by a machine.
+- **A note for every key**, in the format of [`web/locales/notes/`](https://github.com/MathTrail/mathtrail-standalone/tree/main/web/locales/notes): whom the text is for, where it stands, how long it may be and how it speaks to its reader. The polite "you" goes to the adult where the language has one, and nothing shows the child's gender.
+- **Translation by families of languages**, each family by one helper, and each dictionary read again by another helper, as the site's pages were in T66b.7.
+- **The tests the card's dictionaries pass** ([`dictionaries.test.ts`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/src/widget/dictionaries.test.ts)): the keys of English and their order, each wording's placeholders, the CLDR plural categories of its language, no invisible characters, and the polite form by language.
+- **The pseudo-language** `en-XA`, at least as long as the longest translation of each key, letters counted as a reader sees them (SPEC 8.6).
+- **The layout** of every screen of the app, in every language and the pseudo-language, at 320, 360 and 640 px, in Chromium and WebKit, as `just web-layout` measures the card. A script new to the project is looked at once by eye.
+
+**What a paid product changes.** In the free MathTrail a wrong word is a bug like any other, mended by editing one file (SPEC 8.7). In the app a family pays for the lessons, and a store's reviews are public. A wrong word in a language nobody has read stays until someone who reads it complains. Having a speaker read the card's and the app's words before a language is sold costs money, which section 8 counts. Whether to wait for that reading is a question for section 14 (10.6).
+
+### 10.3 The listing in the stores
+
+**Which of the 64 a listing can be written in.** The App Store takes 50 languages ([locale shortcodes](https://developer.apple.com/documentation/appstoreconnectapi/managing-metadata-in-your-app-by-using-locale-shortcodes), [localizations](https://developer.apple.com/help/app-store-connect/reference/app-store-localizations)), and Google Play takes 86 codes ([translations](https://support.google.com/googleplay/android-developer/answer/9844778)).
+
+| | Languages | Count |
+|---|---|---|
+| **Both stores** | `ar`, `bn`, `ca`, `cs`, `da`, `de`, `el`, `en`, `es`, `fi`, `fr`, `gu`, `he`, `hi`, `hr`, `hu`, `id`, `it`, `ja`, `kn`, `ko`, `ml`, `mr`, `ms`, `nb`, `nl`, `pa`, `pl`, `pt`, `ro`, `ru`, `sk`, `sv`, `ta`, `te`, `th`, `tr`, `uk`, `ur`, `vi`, `zh-Hans`, `zh-Hant` | 42 |
+| **Google Play alone** | `am`, `az`, `bg`, `fa`, `fil`, `hy`, `ka`, `kk`, `lt`, `sr`, `sw` | 11 |
+| **The App Store alone** | `or` | 1 |
+| **Neither** | `bs`, `ckb`, `ha`, `ig`, `ku`, `mai`, `ps`, `uz`, `yo`, `zu` | 10 |
+
+So the App Store can carry 43 of the 64, and Google Play 53.
+- Some codes differ from the card's. Apple writes Norwegian `no` and Bengali `bn-BD`. Google writes Hebrew `iw-IL`, Norwegian `no-NO`, and Chinese `zh-CN` and `zh-TW`.
+- Both stores split Portuguese and Spanish by country, and the card has one of each. One translation serves both variants of a store.
+
+**A language the store does not take.** In App Store Connect, "screenshots and the properties for the new language default to those of the primary language, except for the description and keywords" ([localize](https://developer.apple.com/help/app-store-connect/manage-app-information/localize-app-information)). The primary language here is English. On Google Play, a user can read an automated translation of a listing written in another language, but "Automated translations aren't available in Armenian, Raeto-romance, Tagalog, and Zulu". Play's own free machine translation of a listing reaches ten languages alone.
+
+**The fields** have limits of their own:
+
+| Field | App Store | Google Play |
+|---|---|---|
+| Name | 30 characters | 30 |
+| Subtitle, short description | 30 | 80 |
+| Promotional text | 170 | — |
+| Description | 4,000 | 4,000 |
+| Keywords | "up to 100 bytes" | — |
+| What's new | 4,000 | — |
+
+Sources: [app information](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information), [version information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information), [Play's limits](https://support.google.com/googleplay/android-developer/answer/9859152). Apple counts keywords in bytes. A script of India takes three bytes a letter in UTF-8, so its keywords get about 33 letters.
+
+**Screenshots.** Apple asks for at least one iPhone screenshot "with Dynamic Island", and one of a 13-inch iPad when the app runs on iPad, as this one does ([specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)). A localization without screenshots of its own shows the primary language's.
+
+**Recommendation.**
+- Write the listing in every language a store takes: 43 in the App Store and 53 on Google Play.
+- Translate it as the site's pages are translated (T66b.7, R298): by the brief [`site/notes/README.md`](https://github.com/MathTrail/mathtrail-standalone/blob/main/site/notes/README.md) and a glossary for each language. Glossaries exist for eight: `es`, `pt`, `de`, `fr`, `ja`, `zh-Hans`, `ar` and `hi`. Every other language gets its glossary first, as each of the site's languages did.
+- Photograph the screenshots from the app's own preview in each language, as `just listing-shots` photographs the card for Claude's directory.
+- Keep the app's name the same in every language. Translate the subtitle.
+- The ten languages that no store takes see an English listing, and the app itself still speaks them.
+
+### 10.4 Right to left, long words and 320 px
+
+- **Direction.** The card takes it from the language's script, so a language added later needs no code. Six of the 64 are written right to left: `ar`, `ckb`, `fa`, `he`, `ps` and `ur` ([`lookup.ts`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/src/i18n/lookup.ts)). A picture is always laid out left to right (SPEC 8.8). The app's own screens set their direction by the same lookup.
+- **Long words.** The pseudo-language and the layout check of 10.2 cover the app's screens too.
+- **320 px.** The card works from 320 px and never scrolls sideways, and its wide layout starts at 640 px (SPEC 8.4). The app's screens keep to the same widths: a narrow phone at 320 px, and a tablet in the wide layout.
+- **Screens that are not the app's** follow the device's language, not the lesson's: the purchase sheet, Google's sign-in and the age prompt. A family whose lessons are in Hausa sees them in the language its phone is set to.
+- **Fonts.** The card uses the system's fonts alone ([`tokens.css`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/widget/tokens.css)). T66b looked at the new scripts in Noto, in a test browser, never on a phone.
+  - **iOS.** Apple's list of system fonts names an iOS font for Ethiopic (Kefa), Bengali, Devanagari, Gujarati, Gurmukhi, Kannada, Malayalam, Odia, Tamil, Telugu, Thai, Hebrew and Arabic, and Urdu's Nastaliq ([system fonts](https://developer.apple.com/fonts/system-fonts/)). It names no iOS system font for Armenian or Georgian, although the SF family has "SF Armenian" and "SF Georgian" ([fonts](https://developer.apple.com/fonts/)).
+  - **Android** ships a Noto family for each of these scripts, Armenian and Georgian among them. Its Arabic is Naskh, and it has no Nastaliq, so Urdu reads in Naskh there ([`fonts.xml`](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/data/fonts/fonts.xml)).
+  - **What it means:** a release is accepted only after every script of the 64 has been seen on a real iPhone and a real Android phone. The author has both. Armenian (`hy`), Georgian (`ka`) and Amharic (`am`) come first.
+
+### 10.5 What the first release leaves out
+
+- **Voice**, in any language (section 7).
+- **MathTrail's consent page in the adult's language.** It stays in English by MathTrail's own rule (10.1). The app's screen before the sign-in says, in the adult's language, that the next page is in English and what it asks.
+
+### 10.6 Notes for the later parts
+
+- **For section 8.** Readers who speak the languages, the glossaries the listing needs, and the screenshots in 43 and 53 languages.
+- **For section 12.** The 17 wordings without the chat, in 64 dictionaries. The card's lookup goes into the package with the dictionaries.
+- **For section 13.** Every script seen on a real iPhone and Android phone before a release. The listing's languages.
+- **For section 14.** Is a language sold before someone who speaks it has read the card's and the app's words? The author left it to section 14 on 2026-11-11, once section 8 has priced the reading (В27 in the service's plan).
+
+## 11. Technologies
+
+Every page cited here was read on 2026-11-11, and MathTrail's code at commit `441acc6`. Versions are those current that day. The recommendation is in 11.7: one web app, which the browser shows and Capacitor carries into the stores, with MathTrail's card from its package and a small native plugin of the app's own.
+
+### 11.1 What the technology must carry
+
+| Need | Why | Section |
+|---|---|---|
+| MathTrail's card, as a component | It is the cheapest way to every screen, picture and language | 4.5 |
+| An MCP client of the 2026-07-28 protocol on the phone | The phone calls MathTrail itself for everything but writing a task | 3.6, 5.1 |
+| Calls to MathTrail that carry no foreign `Origin`, and that read the answer as soon as it comes | `/mcp` answers a foreign `Origin` with `403`. `submit_answer`, and `next_task` handing out a task written ahead, answer before their write to Drive, and hold the request open until it is done, for up to 31 seconds (SPEC 7.6; R255) | 3.1 |
+| The sign-in in the system's browser, back to an `https` address | `ASWebAuthenticationSession` with `.https` from iOS 17.4. On Android, Chrome's Auth Tab, or a Custom Tab with a verified App Link | 5.3 |
+| The refresh token in the Keychain and the Android Keystore | It opens the child's profile for up to 90 days | 5.5 |
+| StoreKit and Play Billing, and a payment on the web | Both stores ask for their own payment inside the app | 3.5, 9.3, 9.4 |
+| The age signals: Apple's Declared Age Range and Google's Play Age Signals | The laws on app stores and age | 9.5 |
+| No third-party analytics or advertising | The Kids Category and Families | 9.3, 9.4 |
+| The browser's version, served by the app's server | A page cannot reach MathTrail | 5.4 |
+
+### 11.2 The technologies
+
+#### 1. A web app: in the browser, and in Capacitor in the stores
+
+One code base: a Vite and Preact app, as `web/` is. It is built for the browser and served by the app's server, and the same build is packed into [Capacitor](https://capacitorjs.com/docs/updating/8-0) for iOS and Android. Capacitor 8 needs iOS 15 and Android 7 (API 24). Capacitor 9 is in beta since 28 October 2026, and "on-track to release … general availability at the end of November". It needs iOS 16 and Xcode 27 ([beta](https://ionic.io/blog/the-capacitor-9-beta-is-here), [9.0](https://capacitorjs.com/docs/next/updating/9-0)).
+
+- **From `web/`: everything.** The card's package, the pictures, the dictionaries and their lookup, the tokens, and the way the card is previewed and its layout measured.
+- **The MCP client.** The TypeScript SDK, Tier 1, whose version 2 "implements the MCP spec up to 2026-07-28" ([TypeScript SDK](https://ts.sdk.modelcontextprotocol.io), [tiers](https://modelcontextprotocol.io/docs/sdk)). The widget already uses `@modelcontextprotocol/client` 2.4.0. Its transport takes a "Custom fetch implementation used for all network requests" (`StreamableHTTPClientTransportOptions.fetch`, read in the package).
+- **The origin, and an answer that comes at once.**
+  - A call made from Capacitor's web view carries the web view's origin: `capacitor://localhost` on iOS and `https://localhost` on Android ([config](https://capacitorjs.com/docs/config), [issue 4546](https://github.com/ionic-team/ionic-docs/issues/4546)). MathTrail answers it with `403`.
+  - Capacitor's own `CapacitorHttp` "provides native http support via patching `fetch` and `XMLHttpRequest` to use native libraries" ([CapacitorHttp](https://capacitorjs.com/docs/apis/http)). Its native request adds no `Origin`: this was read in Capacitor's source, and its documentation does not say it.
+  - But it reads the whole answer before it hands any of it over: "CapacitorHttp seems block stream response until it's finished?" ([issue 7890](https://github.com/ionic-team/capacitor/issues/7890), open). The child would then wait out MathTrail's write to Drive after every answer, the very wait R255 took away.
+  - So the app's own native plugin makes MathTrail's calls: `URLSession` on iOS, an HTTP client on Android. It streams each event to the web layer as it arrives, and is handed to the SDK as its `fetch`. MathTrail does not change. A plugin that streams an answer exists, [`capacitor-stream-http`](https://github.com/chatboxai/capacitor-stream-http) (MIT), but it states no Capacitor version.
+  - The other way is for MathTrail to accept the two web view origins and answer CORS. That proves nothing about the caller, since every Capacitor app sends the same two origins. It is a change to the rule of 5.6, and it is not needed.
+- **The sign-in.** No free plugin was found that opens `ASWebAuthenticationSession` with an `https` callback.
+  - `@capacitor/browser` opens `SFSafariViewController` on iOS, which is not a sign-in session ([Browser](https://capacitorjs.com/docs/apis/browser)).
+  - Capawesome's OAuth plugin does it ("To use an `https` redirect URI … add the **Associated Domains** capability"), but "This plugin is only available to Capawesome Insiders", from $99 a month ([OAuth](https://capawesome.io/plugins/oauth/), [pricing](https://capawesome.io/insiders/pricing/)).
+  - `@capgo/capacitor-social-login` takes a custom scheme alone on a phone.
+  - So the app's own native plugin signs in as well, in about a hundred lines of Swift and Kotlin: `ASWebAuthenticationSession` with `.https`, and the Auth Tab with a Custom Tab where there is none (5.3). This is an estimate. "Plugins in Capacitor enable JavaScript to interface directly with Native APIs" ([creating plugins](https://capacitorjs.com/docs/plugins/creating-plugins)).
+- **The tokens.** [`capacitor-secure-storage-plugin`](https://github.com/martinkasa/capacitor-secure-storage-plugin) 0.13.0 or [`@aparajita/capacitor-secure-storage`](https://github.com/aparajita/capacitor-secure-storage) 8.0.1, both MIT and for Capacitor 8: the Keychain, and the Android Keystore. On the web the tokens stay in the server's sealed cookie (5.4). The second plugin's web side keeps values "**unencrypted** in `localStorage`", which the web version must not use.
+- **The payment.** [`@revenuecat/purchases-capacitor`](https://www.npmjs.com/package/@revenuecat/purchases-capacitor) 14.1.0, MIT, for Capacitor 8. Its web side is a stub, so the browser uses RevenueCat's [web SDK](https://www.revenuecat.com/docs/web/web-billing/web-sdk). 11.4 weighs RevenueCat against code of the app's own.
+- **The age signals.** [`@capawesome/capacitor-age-signals`](https://capawesome.io/docs/sdks/capacitor/age-signals/) 0.5.1, Apache-2.0, free: "the Play Age Signals API (Android) and DeclaredAgeRange (iOS)".
+- **Building, testing, releasing.**
+  - The web app, its tests (Vitest in happy-dom, Playwright in Chromium and WebKit) and the Android build run in the devcontainer.
+  - The iOS build runs on macOS (11.5).
+  - The native plugin is tested by XCTest and JUnit in CI, and by hand on the author's devices.
+- **The review.** Apple publishes nothing on Capacitor by name. "Your app should include features, content, and UI that elevate it beyond a repackaged website" (4.2). A vendor's guide of October 2026 says that an app "that bundles its web code locally and uses real native features is a different thing, and it can pass" ([Capgo](https://capgo.app/blog/how-to-pass-app-store-review-2026/)). This app's native parts are the sign-in, the calls, the Keychain, the purchase and the age signal.
+- **For:**
+  - one code base for three platforms;
+  - the card whole;
+  - an MCP client of Tier 1;
+  - nearly everything is checked in a browser, which suits an author with no Mac (11.5).
+- **Against:**
+  - a native plugin of the app's own to write and keep, in Swift and Kotlin;
+  - a web app's feel inside the stores, which the review may question under 4.2.
+
+**A PWA** is the same web app, installed from the browser.
+- On iOS, an app added to the Home Screen gets Web Push since 16.4 ([WebKit](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/)). Such apps "have their own counter of days of use" for Safari's rule that deletes a site's storage "after seven days of Safari use without user interaction" ([WebKit](https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/)).
+- "Currently, the Apple App Store doesn't accept listings of PWAs, but Google Play does" ([Ionic](https://ionic.io/blog/take-your-web-app-further-with-capacitor), 2023), through a Trusted Web Activity ([Chrome](https://developer.chrome.com/docs/android/trusted-web-activity)).
+- A PWA sells through the web's payment, never StoreKit.
+- So it is a way to install the web version that costs a manifest and a service worker. It does not replace the stores.
+
+#### 2. React Native with Expo
+
+One code base for iOS, Android and the web: [Expo SDK 58](https://expo.dev/changelog/sdk-58), on React Native 0.88, iOS 16.4 and Xcode 26.4. Expo for web renders through React Native for Web.
+
+- **From `web/`:** the dictionaries and the tokens' values.
+  - The card can run as a [DOM component](https://github.com/expo/expo/blob/main/docs/pages/guides/dom-components.mdx), `'use dom'`. On a phone, "It re-exports a wrapped `react-native-webview` behind the scenes", and on the web it is plain DOM.
+  - A DOM component's root is React. The card is Preact, so a React wrapper mounts the card's root into an element of its own, the way Expo's example mounts a D3 chart ([Expo](https://expo.dev/blog/dom-component-use-case)). No source says this works for Preact.
+  - Props must be serializable. "Native actions are always asynchronous and accept only serializable arguments", and new props "re-render the entire React tree". The card's `Service` then crosses a bridge for every call.
+- **The MCP client.** The TypeScript SDK, on React Native's own networking: "there is no concept of CORS in native apps" ([React Native](https://reactnative.dev/docs/network)). Since SDK 52, `expo/fetch` "supports download streaming" ([SDK 52](https://expo.dev/changelog/2024-11-12-sdk-52)), and "On Android and iOS, `expo/fetch` is also installed as the global `fetch`" ([Expo](https://docs.expo.dev/versions/latest/sdk/expo/)). The origin and the late answer of 11.1 do not arise.
+- **The sign-in.** `expo-web-browser` uses `ASWebAuthenticationSession`, and an `https` callback on iOS 17.4 with `preferUniversalLinks` ([WebBrowser](https://docs.expo.dev/versions/latest/sdk/webbrowser/)). Its changelog fixed `https` callbacks "silently failing on iOS 17.4+" lately. On Android it opens Custom Tabs. Neither the Auth Tab nor an `https` redirect is documented there.
+- **The tokens:** `expo-secure-store`: the Keychain, and values "encrypted with Android's Keystore system". **The payment:** `react-native-purchases`, in a development build.
+- **The build.** Expo's build service builds for iOS with no Mac: 15 iOS builds a month free, in a low-priority queue ([pricing](https://expo.dev/pricing)).
+- **For:**
+  - one code base;
+  - native screens of the app's own;
+  - no origin or streaming problem;
+  - iOS builds with no Mac.
+- **Against:**
+  - two kinds of screen, React Native's own and the card in a web view;
+  - the app's own screens cannot use the card's components, so they are drawn again in React Native, and the look splits between the two;
+  - the card's Preact inside a React DOM component is not documented;
+  - the most moving parts: Metro, Expo's services and native modules.
+
+#### 3. Flutter
+
+One code base for iOS, Android and the web: [Flutter 3.50](https://docs.flutter.dev/release/archive).
+
+- **From `web/`:** the dictionaries and the tokens' values. The card runs only in a web view, through [`webview_flutter`](https://pub.dev/packages/webview_flutter), which does not serve the web build. Otherwise it is drawn again in Dart, which is path A.
+- **The MCP client.** [`mcp_dart`](https://github.com/leehack/mcp_dart) 2.4.3, by the community and absent from MCP's list of SDKs. It claims "the complete core client/server wire surface of the locked MCP 2026-07-28 specification".
+- **The sign-in.** [`flutter_web_auth_2`](https://github.com/ThexXTURBOXx/flutter_web_auth_2) 5.x: `ASWebAuthenticationSession`, "Chrome Auth Tab on Android", Universal Links, iOS 17.4. **The tokens:** `flutter_secure_storage`. **The payment:** `purchases_flutter`.
+- **The web.** Flutter draws onto a canvas through CanvasKit or Skwasm ([renderers](https://docs.flutter.dev/platform-integration/web/renderers)). For a letter its fonts lack, it fetches fonts from `https://fonts.gstatic.com/s/` by default ([initialization](https://docs.flutter.dev/platform-integration/web/initialization)). A switch meant to stop that does not stop it ([issue 163554](https://github.com/flutter/flutter/issues/163554), open). With 64 languages, every family's browser would call Google for fonts. Its accessibility on the web is off until a user or the app turns it on ([accessibility](https://docs.flutter.dev/ui/accessibility/web-accessibility)).
+- **For:**
+  - one code base;
+  - the best sign-in plugin of the five, with the Auth Tab.
+- **Against:**
+  - the card is foreign to it;
+  - an MCP client outside MCP's own SDKs;
+  - the weakest web version for a card of text in 64 scripts.
+
+#### 4. Kotlin Multiplatform with Compose Multiplatform
+
+Shared Kotlin, and shared screens through Compose Multiplatform 1.12.2. Its iOS side is "Stable", and its web side, on Kotlin/Wasm, is "Beta" ([platforms](https://kotlinlang.org/docs/multiplatform/supported-platforms.html)).
+
+- **From `web/`:** the dictionaries and the tokens' values. The card runs only in a web view, or is drawn again.
+- **The MCP client.** The [Kotlin SDK](https://github.com/modelcontextprotocol/kotlin-sdk) 0.16.0 is Tier 3. Its newest protocol is `2025-11-25`, and 2026-07-28 is an open tracking issue ([842](https://github.com/modelcontextprotocol/kotlin-sdk/issues/842)). The app would write its own client of the protocol, or wait.
+- **The sign-in.** [`kotlin-multiplatform-oidc`](https://github.com/kalinjul/kotlin-multiplatform-oidc) 0.18.4: "Https redirect uris are supported on Android (verified App Links…), iOS 17.4+… and Web". **The payment:** RevenueCat's [`purchases-kmp`](https://github.com/RevenueCat/purchases-kmp) 4.1.0, for Android and iOS, not the web.
+- **For:**
+  - shared logic;
+  - native screens.
+- **Against:**
+  - no MCP client of the protocol;
+  - a web version in beta;
+  - the card is foreign to it;
+  - iOS needs Xcode on macOS for every build.
+
+#### 5. Native: Swift with SwiftUI, Kotlin with Jetpack Compose
+
+Two code bases, and a third for the web.
+
+- **From `web/`:** the dictionaries. The card runs in `WKWebView` and Android's `WebView`, served from the app with a scheme handler ([`WKURLSchemeHandler`](https://developer.apple.com/documentation/webkit/wkurlschemehandler)) or [`WebViewAssetLoader`](https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader). Otherwise it is drawn again, twice.
+- **The MCP client.** The [Swift SDK](https://github.com/modelcontextprotocol/swift-sdk) 0.12.1 is Tier 3 and speaks `2025-11-25`. Its support for 2026-07-28 is an open pull request ([314](https://github.com/modelcontextprotocol/swift-sdk/pull/314)). The Kotlin SDK is as above.
+- **The sign-in.** [AppAuth-iOS](https://github.com/openid/AppAuth-iOS) 3.0.0 uses `ASWebAuthenticationSession`. It says: "HTTPS redirects require iOS 17.4+, an Associated Domains entitlement for the redirect host using the `webcredentials` service… An `applinks` (Universal Links) association alone is not enough". That confirms the forum post of 5.3. [AppAuth-Android](https://github.com/openid/AppAuth-Android) takes App Links, but not the Auth Tab.
+- **The payment:** StoreKit 2 and Play Billing directly, or RevenueCat.
+- **For:**
+  - the closest fit to each platform;
+  - the least to argue under 4.2.
+- **Against:**
+  - the most code: two apps and a web version;
+  - two MCP clients that lack the protocol;
+  - for an author with no Mac, native iOS work without Xcode at hand is the hardest of the five.
+
+### 11.3 The technologies side by side
+
+| | 1. Web app in Capacitor | 2. React Native, Expo | 3. Flutter | 4. Kotlin Multiplatform | 5. Native |
+|---|---|---|---|---|---|
+| **Code bases for phones and the browser** | One | One | One | One, its web in beta | Three |
+| **MathTrail's card (4.5)** | The package, as it is | The package in a DOM component, through a React wrapper | A web view on phones; none on the web | A web view | A web view, twice |
+| **The app's own screens** | With the card's components and tokens | Drawn in React Native | Drawn in Flutter | Drawn in Compose | Drawn twice |
+| **MCP client of 2026-07-28** | TypeScript, Tier 1 | TypeScript, Tier 1 | `mcp_dart`, community | None yet | None yet |
+| **Origin and the late answer (11.1)** | The app's own plugin | Do not arise | Do not arise on phones | Do not arise | Do not arise |
+| **Sign-in with an `https` callback** | The app's own plugin | iOS: yes. Android: not documented | Yes, with the Auth Tab | Yes | Yes, AppAuth |
+| **Payment** | RevenueCat, or plugins | RevenueCat | RevenueCat | RevenueCat, no web | StoreKit 2, Play Billing |
+| **The web version** | The same app | React Native for Web | Canvas, fonts from Google | Beta | A third app |
+| **iOS without a Mac (11.5)** | macOS in CI | Expo's builds, or macOS in CI | macOS in CI | macOS in CI | macOS in CI, and Xcode for everything |
+| **Review under 4.2** | To argue, with native parts | Clear | Clear | Clear | Clear |
+| **What it takes from `web/`** | Everything | The card in a web view, the words, the tokens' values | The words, the tokens' values | The words, the tokens' values | The words |
+
+### 11.4 The subscription: RevenueCat, or code of the app's own
+
+**RevenueCat.**
+- It has SDKs for each of the five technologies, and a web SDK ([installation](https://www.revenuecat.com/docs/getting-started/installation)). Its web billing goes through Stripe: "RevenueCat does not directly handle or store credit card information" ([web billing](https://www.revenuecat.com/docs/web/web-billing/configuring-overview)).
+- It tells the server of each change: "RevenueCat will send `POST` requests to your server" ([webhooks](https://www.revenuecat.com/docs/integrations/webhooks)). It has a REST API ([v2](https://www.revenuecat.com/docs/api-v2)). It has no Go SDK, and the server needs none for webhooks and REST.
+- Price: "Pay nothing for up to $2,500 in monthly tracked revenue", "Then pay 1%" ([pricing](https://www.revenuecat.com/pricing)).
+
+**Code of the app's own.**
+- StoreKit 2 and Play Billing on the phone, and Stripe or a seller that pays the sales tax itself, such as Paddle, on the web.
+- On the server, Apple's notifications are verified against Apple's root certificates. Apple's [App Store Server Library](https://developer.apple.com/documentation/appstoreserverapi/simplifying-your-implementation-by-using-the-app-store-server-library) is "available in four languages", Java, Node, Python and Swift, and not Go. Unofficial Go ports exist.
+- Google's notifications come through Pub/Sub, and "tell you only that the purchase state changed" ([Play](https://developer.android.com/google/play/billing/getting-ready)). The server then asks Google's [Android Publisher API](https://pkg.go.dev/google.golang.org/api/androidpublisher/v3), whose Go client is official and "in maintenance mode".
+- One state across the three is the app's own work (3.5).
+
+**Recommendation: RevenueCat for the first release.**
+- It keeps one state of the subscription across the App Store, Google Play and the web, which Apple's 3.1.2(a) asks for.
+- It costs nothing below $2,500 a month.
+- The server reads its webhooks in place of the stores' notifications. That changes a line of 3.5, but not its design.
+- Its fee goes to section 8. Code of the app's own can replace it once the 1 % outweighs the work.
+- RevenueCat processes the purchases on the company's behalf, so the privacy labels list it. It is not analytics.
+
+### 11.5 Building for iOS outside the devcontainer, without a Mac
+
+The author has no Mac, and has an iPhone or iPad and an Android device (2026-11-11). Every iOS build is therefore made in the cloud, and tried on the author's devices.
+
+| Path | Cost | Without a Mac? | Notes |
+|---|---|---|---|
+| **GitHub Actions, a standard macOS runner** | Free in a public repository: "GitHub Actions usage is free for standard GitHub-hosted runners in public repositories" ([billing](https://docs.github.com/en/actions/concepts/billing-and-usage)). $0.062 a minute in a private one ([pricing](https://docs.github.com/en/billing/reference/actions-runner-pricing)) | Yes | `macos-26` with Xcode 26.6 by default, `macos-15`, and `xcode-27` in preview ([runner images](https://github.com/actions/runner-images)). Larger runners are never free |
+| **Xcode Cloud** | 25 compute hours a month come with the developer programme, then from $49.99 a month for 100 ([Xcode Cloud](https://developer.apple.com/xcode-cloud/)) | **No.** "Use Xcode to initially configure your project or workspace to use Xcode Cloud" ([first workflow](https://developer.apple.com/documentation/xcode/configuring-your-first-xcode-cloud-workflow)) | Out, unless a Mac is borrowed once |
+| **Codemagic** | 500 free macOS M2 minutes a month, one build at a time, then $0.095 a minute ([pricing](https://codemagic.io/pricing/)) | Yes | Builds Capacitor, Flutter, React Native and native apps |
+| **Expo's builds** | 15 iOS builds a month free, in a low-priority queue ([pricing](https://expo.dev/pricing)) | Yes | "designed to work for any native project, whether or not you use Expo and React Native" ([builds](https://docs.expo.dev/build/introduction/)) |
+| **A rented Mac** | AWS's `mac2` about $0.65 an hour in US East, with "a 24-hour minimum allocation period" ([EC2 Mac](https://aws.amazon.com/ec2/instance-types/mac/), AWS's price data): about $16 a session. MacStadium from $109 a month ([pricing](https://www.macstadium.com/pricing)) | It is a Mac | For a bug only Xcode can show |
+
+**Signing and uploading.**
+- "you can use App Store Connect keys to sign in to xcodebuild without ever signing into Xcode", with `-allowProvisioningUpdates` ([WWDC21](https://developer.apple.com/videos/play/wwdc2021/10204/)). The key lives in the repository's secrets.
+- The build is uploaded from the runner. App Store Connect's [Build Uploads](https://developer.apple.com/documentation/appstoreconnectapi/build-uploads) API also lets one "upload your build using any language or platform you prefer" ([WWDC25](https://developer.apple.com/videos/play/wwdc2025/324/)).
+- TestFlight takes "up to 100 internal testers" ([testers](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers)). The author's iPhone is the first.
+
+**Debugging the web view on an iPhone without a Mac.**
+- Safari's Web Inspector needs a Mac: content is inspected "from Safari's Develop menu" once `isInspectable` is set ([WebKit](https://webkit.org/blog/13936/enabling-the-inspection-of-web-content-in-apps/)). Capacitor sets it in debug builds.
+- [`ios-webkit-debug-proxy`](https://github.com/google/ios-webkit-debug-proxy) "works on Linux", but its open issues say Chrome's tools "are simply no longer compatible" from iOS 18.1.4, and that new tabs go undetected from iOS 17.4 ([426](https://github.com/google/ios-webkit-debug-proxy/issues/426), [416](https://github.com/google/ios-webkit-debug-proxy/issues/416)). It cannot be relied on.
+- An in-page console, [Eruda](https://github.com/liriliri/eruda) (MIT), in debug builds alone.
+- Most of it is checked in the devcontainer, in Playwright's WebKit and Chromium, as `just web-layout` does. WebKit on Linux is not Safari on iOS, so the iPhone remains the last check.
+- When a bug shows on iOS alone, a day on an EC2 Mac costs about $16.
+
+**Android** debugs from Linux: "Remote debug live content on an Android device from your Windows, Mac, or Linux computer", web views included once `setWebContentsDebuggingEnabled` is on ([Chrome](https://developer.chrome.com/docs/devtools/remote-debugging/webviews)).
+
+**What stays in the devcontainer:** the web app and its tests, the server in Go, the Android build, and every check but the iOS build's.
+
+**Recommendation: GitHub Actions on standard macOS runners.** They cost $0 while the repository is public, as it will be. Codemagic's free minutes are the second path. A rented Mac, about $16 a day, is for the rare bug only Xcode shows. The new repository's rule "devcontainer only" gets one exception, the iOS build in CI (section 13).
+
+### 11.6 The app's server, in Go
+
+**Chosen by the author on 2026-11-11: Go, as MathTrail is.** What follows from it:
+- **The MCP client.** The [Go SDK](https://github.com/modelcontextprotocol/go-sdk) is Tier 1. Version 1.7.0 "brings full support for protocol version **`2026-07-28`**", and 1.8.0 is current. MathTrail's load tool already calls MathTrail with it at 2026-07-28 ([`tools/load/session/session.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/tools/load/session/session.go)).
+- **Claude.** [`anthropic-sdk-go`](https://github.com/anthropics/anthropic-sdk-go) 2.9.0, one of Anthropic's own SDKs ([SDKs](https://platform.claude.com/docs/en/cli-sdks-libraries/overview)).
+- **The subscription.** RevenueCat's webhooks and REST (11.4). Without RevenueCat, the server verifies Apple's notifications with code of its own and reads Google's through the Android Publisher API.
+- **The payload's types.** MathTrail's own are under `internal/`, which another module cannot import. Every tool but `get_package` and `prepare_task` declares an `outputSchema` in `tools/list` ([`profile_test.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/profile_test.go)). The server's types are generated from it, for example with [`go-jsonschema`](https://github.com/omissis/go-jsonschema). The phone's come with the card's package. The contract tests of 5.10 hold both.
+- **Two clients, in two languages.** The phone's is in TypeScript, the server's in Go, and both send the same `clientInfo` and capabilities (5.1). The browser's back end of 5.4 is in Go too.
+- **The rules carry over.** MathTrail's own rules for Go code, layout, tests and images apply to the server nearly unchanged (section 13).
+
+### 11.7 Recommendation
+
+**Recommendation: technology 1, one web app.**
+- The browser shows it, served by the app's server, and Capacitor carries it into the App Store and Google Play.
+- MathTrail's card comes from its package (4.5).
+- A native plugin of the app's own signs in and makes MathTrail's calls.
+- RevenueCat handles the subscription (11.4).
+- iOS is built on GitHub's macOS runners (11.5).
+- The server is in Go (11.6).
+
+Why:
+- one code base for the three platforms, and MathTrail's card whole;
+- an MCP client of Tier 1 on the phone and on the server;
+- with no Mac, nearly every check runs in a browser.
+- The price is a small native plugin, and an argument under 4.2 that its native parts answer.
+- React Native with Expo is the second choice. It removes the plugin and eases 4.2, at the cost of a second kind of screen and a card in an undocumented wrapper.
+
+```mermaid
+flowchart LR
+    subgraph Repo["The app's repository"]
+        WebApp["The web app<br/>its screens, MathTrail's card package"]
+        Shells["Capacitor's iOS and Android shells<br/>the app's native plugin"]
+        Srv["The server, in Go<br/>the loop, the quota, the page's back end"]
+    end
+    subgraph Dev["The devcontainer"]
+        Checks["Vitest, Playwright in Chromium and WebKit,<br/>Gradle, go test"]
+    end
+    WebApp --> Checks
+    Shells --> Checks
+    Srv --> Checks
+    Shells --> Mac["GitHub Actions, macOS runner<br/>xcodebuild, signing by an API key"]
+    Mac --> TF["TestFlight, then the App Store"]
+    Checks --> Play["Google Play"]
+    Checks --> Run["Cloud Run: the server,<br/>and the web app it serves"]
+```
+
+**Chosen on 2026-11-11: technology 1**, one web app in the browser and in Capacitor.
+
+### 11.8 Notes for the later parts
+
+- **For section 3.** With RevenueCat, the server keeps the subscription's state from RevenueCat's webhooks rather than from each store's notifications (3.5).
+- **For section 8.** RevenueCat's 1 % past $2,500 a month. $0 for iOS builds while the repository is public, and about $16 a day for a rented Mac when one is needed.
+- **For section 12.** The card's package (4.6), and a stable `outputSchema` for every tool the app reads, `get_package` and `prepare_task` included (5.10).
+- **For section 13.** The first task of the new repository proves the riskiest part on the author's devices: the native plugin's calls to MathTrail with no `Origin`, streamed, through the TypeScript SDK's `fetch`, and its sign-in with an `https` callback. Other rules that carry over from MathTrail's:
+  - "devcontainer only", with the iOS build in CI as its one exception;
+  - exact versions, which cover Capacitor's plugins and the iOS and Android dependencies;
+  - GitHub Actions pinned by commit.
