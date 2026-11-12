@@ -1,6 +1,6 @@
 # An app for MathTrail lessons on phones, tablets and the browser: specification
 
-> Status: being written, a part at a time. Sections 1, 2, 3, 4, 5, 9, 10 and 11 were written on 2026-11-11, and section 6 on 2026-11-12; the others are written by the parts the contents name.
+> Status: being written, a part at a time. Sections 1, 2, 3, 4, 5, 9, 10 and 11 were written on 2026-11-11, and sections 6 and 8 on 2026-11-12; the others are written by the parts the contents name.
 
 This is the specification of an app in which a family takes a MathTrail lesson without a chat: on an Android or iOS phone or tablet, or in a browser on a computer. It is written for two readers. The first is the author, who chooses from it: the name, the architecture, the default model, the payment. The second is whoever builds the app. The app is built in a new public repository of its own, and that repository starts with a copy of this file. Links to the service's own files are therefore full addresses on GitHub, and stay valid in the copy.
 
@@ -31,6 +31,9 @@ The task was set on 2026-10-14, and its decisions were revised on 2026-11-11. Wh
 - **The cards** are MathTrail's own, taken as a package and mounted by the app (2026-11-11, section 4.5).
 - **The technology** is one web app: the browser shows it, and Capacitor carries it into the App Store and Google Play (2026-11-11, section 11.7).
 - **The default model** is Claude Haiku 5.5 at medium effort, for every task (2026-11-12, section 6.6).
+- **The price.** $7.99 a month and $59.99 a year from the US storefront, and $3.99 and $34.99 in the storefronts of India and South-East Asia (2026-11-12, section 8.12).
+- **The free quota.** Ten tasks a day on the author's key, written in a workspace of their own at Anthropic under a limit of $50 a month to begin with, raised as the subscriptions bring in more (2026-11-12, section 8.12).
+- **MathTrail's Cloud Run.** Past its free tier, the company pays it, and the app counts its share as a cost of its tasks (2026-11-12, section 8.4).
 - MathTrail Canvas and the coach on the site's page "Coach" have nothing to do with this app.
 
 ### MathTrail's
@@ -72,7 +75,7 @@ The specification rests on these, and proposes to change any of them only as a q
 | 5 | [Connecting to MathTrail](#5-connecting-to-mathtrail) | Written |
 | 6 | [The model and the measurement](#6-the-model-and-the-measurement) | Written |
 | 7 | Voice | Written in T112.7 |
-| 8 | Money | Written in T112.6 |
+| 8 | [Money](#8-money) | Written |
 | 9 | [Law and the stores](#9-law-and-the-stores) | Written |
 | 10 | [64 languages](#10-64-languages) | Written |
 | 11 | [Technologies](#11-technologies) | Written |
@@ -610,7 +613,7 @@ C needs no change to MathTrail's origins, limits or sign-in. Its daily ceiling s
 
 - **For section 4.** The app may declare MCP Apps only if it draws the tasks' pictures, by itself or with MathTrail's card (5.7). *Answered in 4.5: it draws them with MathTrail's card, and declares it.*
 - **For section 6.** The loop of 3.4 is what T112.5 measures: on the server, the reasons of a refusal going back to the model in the same conversation, with the package's guide and no chat instructions.
-- **For section 8.** The server's cost and its database, the ceiling of failed requests on the author's key, and whether the app's server shares Cloud Run's free tier with MathTrail (3.3).
+- **For section 8.** The server's cost and its database, the ceiling of failed requests on the author's key, and whether the app's server shares Cloud Run's free tier with MathTrail (3.3). *Answered in 8.3 and 8.5: a billing account of its own, priced with no free tier, and three failed requests a day.*
 - **For section 11.** The phone needs an MCP client of the 2026-07-28 protocol and the system's sign-in (5.3) in the chosen technology. The server's loop is one piece of code. *Answered in 11.2 and 11.6.*
 - **For section 13.** The review notes say why a server holds a family's token for minutes (Apple 5.1.1(v)), and why Google is the only login (4.8).
 
@@ -1159,10 +1162,389 @@ The first attempt is out of 10 requests, or 11 where one request failed: Haiku 5
   - A task costs $0.0053 on Haiku 5.5 at medium, failed requests included, and a failed request $0.0050 (n = 1). On Sonnet 5.5 a task costs $0.0442. A task solved from the picture costs $0.0081 and $0.0750 (n = 10 each). The rule chose 1 or 2 of them among the 20 tasks after the trial series. How many come on a family's later days was not measured.
   - The guide is read from the cache only while a request comes at least every five minutes. After a quiet spell, the first request writes it again: about 6,700 tokens, $0.0008 on Haiku 5.5 and $0.016 on Sonnet 5.5. A one-hour cache costs twice the base price to write.
   - The last task of a lesson written ahead stays kept in the profile, and the next lesson hands it out unless it no longer fits (R235). It is rarely written for nothing.
+  - *Answered in 8.1.*
 - **For section 12.**
   - `submit_task` declares `task` and `self_check` as any JSON value. Through the API, Sonnet 5.5 sent nearly half its calls, 34 of 72, with everything packed into `task`. The chats do not: in production's log for the 30 days to 2026-11-12, none of the 164 calls of `submit_task` from Claude or the 119 from ChatGPT was refused for its arguments (`tool_call` lines with `outcome: invalid`). The app's server unpacks such a call itself (6.2). MathTrail could declare both fields as objects, or unpack the call the same way, so that every client of the API is spared it.
   - MathTrail's log does not keep why the arguments of a call were refused.
 - **For section 13.** `anthropic-sdk-go` is under the Apache License 2.0 since version 2 ([migration guide](https://platform.claude.com/docs/en/api/migration-2026-10-21)), no longer MIT.
+
+## 8. Money
+
+Every page cited here was read on 2026-11-12. The model's prices are the measurement's (section 6), recounted from its records. Every other price is from its seller's own page. Amounts are in US dollars and leave out the tax a buyer pays, unless a line says otherwise. Section 7 is a note for the second release, so no voice is priced here. The recommendation is in 8.12.
+
+```mermaid
+flowchart LR
+    Family["A family"] -->|"the subscription"| Stores["App Store, Google Play:<br/>15 %, and the tax"]
+    Family -->|"the subscription, on the web"| Paddle["Paddle: 5 % + 50¢,<br/>and the tax"]
+    Stores --> RC["RevenueCat: 1 % past<br/>$2,500 a month"]
+    Paddle --> RC
+    RC --> Company["ALT EdTech"]
+    Company -->|"about $0.0056 a task"| Anthropic["Claude API"]
+    Company -->|"$0.0001–0.0010 a task"| Server["The app's server,<br/>on Cloud Run"]
+    Company -->|"$0, or $0.00026 a task<br/>past the free tier"| MT["MathTrail's Cloud Run"]
+```
+
+### 8.1 What a task costs
+
+| Part | A task | Source |
+|---|---|---|
+| **The model**, a task in words | **$0.0053**, failed requests included. Median $0.0047, 90th percentile $0.0088, the dearest $0.0111 (n = 50) | 6.3 |
+| **The model**, a task solved from the picture | $0.0081 (n = 10) | 6.5 |
+| **The model, as a family meets it** | **$0.0056**, taking one task in ten to be solved from the picture. The rule chose one or two of them among the 20 tasks after the trial series, and none during it (6.5). One in ten is the upper end | Computed |
+| **The guide written to the cache again** | $0.0008 for the first request after five minutes without one (6.7). With 100 tasks a day spread over 12 hours, half the requests pay it, $0.0004 a task on average. At 1,000 a day almost none does | Computed: the gap between requests has an exponential distribution |
+| **The app's server** | $0.0010 at 100 tasks a day, $0.0007 at 1,000, $0.0001 at 10,000 | 8.3 |
+| **The database** | $0 up to about 20,000 tasks a day | 8.3 |
+| **MathTrail's Cloud Run** | $0 while MathTrail's month has room in its free tier, and $0.00026 at most once it has none | 8.4 |
+| **All of it, at 1,000 tasks a day** | **about $0.0066** | The figure every sum below uses. It is $0.0069 at 100 tasks a day and $0.0060 at 10,000 |
+
+**Haiku 5.5's prices, read again.** Per million tokens:
+- input $0.10;
+- writing to the cache $0.125 for five minutes and $0.20 for an hour;
+- a cache read $0.01;
+- output $0.50.
+
+These hold "for prompts up to 100,000 tokens", counting "all of its input tokens, including cache reads and cache writes" ([pricing](https://platform.claude.com/docs/en/about-claude/pricing)). A request of the measurement held about 24,000.
+
+**The Batch API halves the price, and does not fit.** "Most batches" complete "within 1 hour", and results may come "after 24 hours" ([batch processing](https://platform.claude.com/docs/en/build-with-claude/batch-processing)). Even a task written ahead is wanted within minutes.
+
+### 8.2 A family's day and month
+
+**What MathTrail's families do today cannot be told from its log.**
+- The 30 days to 2026-11-12 hold 176 tasks handed out in Claude and ChatGPT, under the names of fewer than ten children. The author's own checks and the reviewers' demo profile are among them.
+- MathTrail's public counts show no group of fewer than ten children (SPEC 12.4), and this document keeps to the same rule.
+- So the families below are assumptions, and 8.11 tries the free ones against different shares of payers.
+
+| A family | Tasks a month | What it costs the author a month | Of it, the model |
+|---|---|---|---|
+| **Free, a family that stays: five tasks on two days a week** | 45 | $0.30 | $0.25 |
+| **Free, all ten every day** | 300 | $1.98 | $1.68 |
+| **Free, the dearest day every day**: ten tasks at the dearest price measured, and three failed requests (8.5) | 300 | $4.10 | $3.80 |
+| **On the adult's own key, ten every day** | 300 | $0.29: the server and MathTrail's share | $0 |
+| **A subscriber: twenty tasks on fifteen days** | 300 | $1.98 | $1.68 |
+| **A subscriber at MathTrail's ceiling, 50 every day** | 1,500 | $9.90 | $8.40 |
+
+- **The dearest free day** is $0.13 of model, $0.0111 for each of ten tasks and $0.0050 for each of three failed requests. It needs every task to cost what the dearest of 50 did.
+- **On the adult's key** the adult pays Anthropic, and the author pays only the server's job and MathTrail's share: about $0.001 a task.
+
+### 8.3 The app's server
+
+**Cloud Run** bills by the request in `us-central1`, a first-tier region ([pricing](https://cloud.google.com/run/pricing)):
+- $0.000024 a vCPU-second, $0.0000025 a GiB-second and $0.40 a million requests;
+- time is "rounded up to the nearest 100 millisecond";
+- an instance is billed while it holds any request, so requests that overlap share its time.
+
+**What a job holds.** One task keeps its job's request open for about 40 seconds:
+- 34 seconds of writing on average (n = 51, 6.3);
+- about 6 seconds of the server's own calls to MathTrail with Drive (8.4).
+
+At 1 vCPU and 512 MiB, with jobs coming at random over 12 hours a day, an instance is billed for 12 h × (1 − e^(−N × 40 s / 12 h)) a day, where N is the tasks of the day:
+
+| Tasks a day | Seconds billed a day | A month | A task |
+|---|---|---|---|
+| 100 | 3,820 | $2.90 | $0.0010 |
+| 1,000 | 26,100 | $19.80 | $0.0007 |
+| 10,000 | 43,200: the instance is busy all 12 hours, with about nine jobs open at once | $32.84 | $0.0001 |
+
+- **The page's back end.** In the browser the server also makes the page's own calls: `next_task`, `submit_answer` and the progress, about 4 seconds with Drive. That adds about $0.0001 to a task in the browser.
+- **Instance-based billing** costs $0.000018 a vCPU-second, but pays for an instance whether or not a request is open, "with a minimum of 1 minute". One instance kept for a month comes to about $49. Billing by the request is cheaper at every volume of the table above.
+
+**No free tier is counted.**
+- Cloud Run's free tier "is aggregated across projects by billing account" (the same page). On MathTrail's billing account the server would spend MathTrail's (3.3).
+- On a billing account of its own the server would get a free tier of its own. But Google's terms forbid using the services "in a manner intended to avoid incurring Fees (including creating multiple Customer Applications, Accounts, or Projects to simulate or act as a single Customer Application, Account, or Project (respectively)) or to circumvent Service-specific usage limits or quotas" ([terms](https://cloud.google.com/terms), §3.3(d)(iii), last modified 12 October 2026). The app is a product apart from MathTrail, so an account of its own reads as allowed. The numbers above do not lean on that reading.
+- **What it means:** the server sits on a billing account of its own, so that the paid product's costs are kept apart from the free one's. It is priced as though it had no free tier. This answers the question of 3.3.
+
+**The database** of 3.5.
+- Firestore's free quota is "Stored data 1 GiB Document reads 50,000 per day Document writes 20,000 per day", and "Firestore allows exactly one free database per project" ([Firestore pricing](https://cloud.google.com/firestore/pricing)). The quota is per project, not per billing account.
+- A job reads the family's record and its subscription, and writes the day's count: two reads and one write. So about 20,000 tasks a day cost nothing. Past that, writes cost $0.09 per 100,000 in `us-central1`.
+
+**A cap on the server's spend.**
+- A budget alone "doesn't automatically cap Google Cloud … usage or spending" ([budgets](https://cloud.google.com/billing/docs/how-to/budgets)).
+- Since 13 October 2026 a spend cap can pause Cloud Run in one project: usage "is automatically paused for the remainder of the budget period" ([release notes](https://docs.cloud.google.com/billing/docs/release-notes), [spend caps](https://docs.cloud.google.com/billing/docs/how-to/budgets-spend-caps)). Its "enforcement … isn't instant".
+- A pause stops subscribers as well, so the cap is a guard against a fault, set well above any month expected. It is not how a quota is kept.
+
+### 8.4 MathTrail's Cloud Run, and who pays past its free tier
+
+**What a task in the app costs MathTrail.** One task makes MathTrail answer five calls. Their times are medians with Drive, from production:
+
+| Call | Who makes it | Seconds | Source |
+|---|---|---|---|
+| `get_profile`, for the family's identifier (3.5) | The server | 1.0 (n = 4) | [`docs/live/09-load.md`](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/live/09-load.md) |
+| `prepare_task` | The server | 1.9, taken from `next_task`, which reads and writes the same way: it was not measured on its own | [`docs/live/16-task-time.md`](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/live/16-task-time.md), 43 tasks |
+| `submit_task`, 1.66 times: 83 hand-ins for 50 tasks (6.3) | The server | 1.8 each, 2.9 in all | The same |
+| `next_task`, handing out the kept task | The phone | 1.9 | The same |
+| `submit_answer` | The phone | 2.2 (n = 19) | `09-load.md` |
+
+That makes about 10 seconds, nearly all of it waiting on Drive. The app's card does not ask `read_task` while its task is written (3.4), so a task in the app costs MathTrail less than the 15 seconds measured for a task in a chat. A lesson of the load tool against the deployed service came to 10.15 vCPU-seconds a task, card questions included ([`docs/load.md`](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/load.md)).
+
+**In money.**
+- MathTrail runs on 1 vCPU and 1 GiB, so 10 seconds bill 10 vCPU-seconds and 10 GiB-seconds. Past the free tier that is **$0.00026 a task**, about 4 % of the task's whole cost.
+- It is the most a task can cost MathTrail. Requests that overlap on one instance share their billed time, so a busy service pays less a task.
+- **The free tier**, 180,000 vCPU-seconds a month, holds about 18,000 such tasks on a quiet service, the chats' included.
+- **What is left of it.** In the 30 days to 2026-11-12, MathTrail used 4,459 vCPU-seconds, 2.5 % of the free tier (`just usage 30d`). That is about 25 for each task handed out in the chats, with everything else the service did. The rest holds about 17,700 of the app's tasks a month, some 590 a day.
+- **Once the app passes it,** three things change:
+  - the budget's alert of $1 a month fires ([`budget.tf`](https://github.com/MathTrail/mathtrail-standalone/blob/main/infra/terraform/budget.tf));
+  - MathTrail no longer costs $0, which its product requirements set as a goal;
+  - the app's families count against MathTrail's ceiling of five instances with every chat's.
+
+**Who pays** (question 4 of the task). The author chose A on 2026-11-12.
+
+| | What it means | |
+|---|---|---|
+| **A. ALT EdTech pays MathTrail's bill, and the app counts its share as a cost of its tasks** | MathTrail's billing moves to the company's own account in the service's task T76. The sum is $0.26 for 1,000 of the app's tasks past the free tier. Nothing new is built | **Recommended** |
+| **B. The app pays MathTrail** | MathTrail would need a paid way in, and then the free side would be selling access. Between two products of one company it is bookkeeping, not code | No |
+| **C. The app's server on MathTrail's billing account** | The paid product spends the free tier MathTrail's families in the chats rely on (3.3) | No |
+| **D. MathTrail holds the app to a ceiling of its own** | It undoes the shared ceiling of the day the author kept on 2026-11-11 (5.8) | No |
+
+**A spend cap is not for MathTrail.** The spend cap of 8.3 would pause MathTrail for every family in the chats as well. MathTrail keeps its alert, and the author raises its sum once the app's traffic is real (section 14).
+
+### 8.5 Anthropic's tiers and limits
+
+**Tiers are not bought.** All of this is from [rate limits](https://platform.claude.com/docs/en/api/rate-limits), unless a line names another page.
+- "Organizations are placed on a tier automatically based on usage history and account standing", and a new one "may start in the Evaluation tier, with limits below the standard limits". Since 26 June 2026 there are three tiers: "Start, Build, and Scale" ([release notes](https://platform.claude.com/docs/en/release-notes/overview)).
+- **Each tier caps a month's spend:** Start $500, Build $1,000, Scale $200,000. At the cap, "API usage pauses until 00:00 UTC on the first day of the next month", with HTTP 429 and no `retry-after`. Past Scale, "contact sales": "Organizations on the Custom tier have no monthly spend cap".
+- **Haiku 5.5 at Start:** 4,000 requests, 2,000,000 input tokens and 400,000 output tokens a minute. Cache reads "Do NOT count toward ITPM"; cache writes do.
+
+**What it means.**
+- **At Start, the cap binds long before the rate does.** $500 buys about 89,000 tasks a month, or 3,000 a day. The output rate alone would allow 49 tasks a minute, since a task writes 8,084 output tokens.
+- **The cap stops every family, subscribers included, until the month ends.** So the app must never reach it. The server watches the month's spend and the tier, and the company asks for the next tier before it is needed (section 13).
+- **The free tasks get a workspace of their own.**
+  - A workspace can "Cap monthly spending", lower than the organization's, and "You cannot set spend limits on the Default Workspace" ([workspaces](https://platform.claude.com/docs/en/manage-claude/workspaces)). A request past a limit the customer set is refused with HTTP 400 ([rate limits](https://platform.claude.com/docs/en/api/rate-limits)).
+  - So free tasks are written in a workspace whose limit is the sum the author will spend on them in a month (8.11). Subscribers' tasks are written in another.
+  - When the free workspace reaches its limit, the free tasks of that month are over. The app says so, and offers the subscription and the adult's own key. Subscribers do not notice.
+
+**The ceiling of failed requests on the author's key** (3.5) is **three a day** without a subscription. With one, it is MathTrail's own ten.
+- A failed request cost $0.0050 (n = 1), and 1 request in 51 failed in the measurement. A family reaches three only when something is wrong: interests that every task trips over, say, or a fault.
+- Three bound a free family's dearest day at $0.13 (8.2).
+- Past three, the server writes no more tasks for that family that day on the author's key. The app says today's tasks did not work out, and offers the adult's own key.
+
+### 8.6 The stores' fees and taxes
+
+| | App Store | Google Play |
+|---|---|---|
+| **The fee on a subscription** | 15 % in the [Small Business Program](https://developer.apple.com/app-store/small-business-program/), for a developer with "no more than 1 million USD in total proceeds" in the year before and the year so far, "regardless of whether or not the subscription has accumulated one year of paid service" ([subscriptions](https://developer.apple.com/app-store/subscriptions/)). Otherwise 30 % in a subscriber's first year and 15 % after | Auto-renewing subscriptions pay "10% + 5% billing fee" in Australia, the EEA, Japan, the UK and the US: the fee came in on 30 June 2026 in the EEA, the UK and the US, and on 30 September in Australia and Japan. Elsewhere "Subscriptions 15%" until the new fees reach the rest of the world on 30 September 2027 ([fees](https://support.google.com/googleplay/android-developer/answer/112622), [new structure](https://support.google.com/googleplay/android-developer/answer/16954621)) |
+| **Joining** | The account holder accepts Schedule 2 and lists any associated accounts. Proceeds are adjusted "fifteen (15) days after the end of the fiscal calendar month in which your enrollment is approved" | The 15 % on the first $1M needs an account group ([15 %](https://support.google.com/googleplay/android-developer/answer/10632485)). Whether the new rows need one too, the pages do not say |
+| **Who pays the tax** | Apple "shall collect and remit" it in the US, Canada, the UK, the EU, Australia, India, Switzerland and Taiwan, among others, and in Japan and Russia for a developer outside them. Elsewhere the developer is "solely responsible" (Schedule 2, Exhibit B, of the [agreement](https://developer.apple.com/support/terms/apple-developer-program-license-agreement/)) | Google in the EU, the UK, Norway, Taiwan, and 47 states with DC; in Australia, India, Japan and South Korea for a developer based outside them; and in a few others. The developer in Switzerland, Tanzania and Zimbabwe ([tax](https://support.google.com/googleplay/android-developer/answer/138000)) |
+| **The price and the tax** | "Prices advertised to customers in all countries except the U.S. and Canada include taxes" ([tech talk](https://developer.apple.com/videos/play/tech-talks/110364/), 2022). The commission is taken on the price "net of any and all taxes collected" | The price is entered "tax-exclusive", and tax is added in the countries priced with it, the EEA, the UK, Japan, India, Australia and Brazil among them |
+| **Refunds** | Apple decides, and the developer pays back "an amount equal to the price" (Schedule 2, §6.3) | The developer's own policy. Google refunds in the first 48 hours, and "Google will return the service fee to you" ([refunds](https://support.google.com/googleplay/android-developer/answer/2741495)) |
+
+**What it means.**
+- **Each store keeps 15 % of a subscription** once the company has joined Apple's programme, which it should do before the first sale.
+- **The company registers for no sales tax on what it sells in the app** in the countries both lists name, and they hold the app's main markets. What the company owes on its profit is outside this section.
+- **A subscription of $4.99** leaves $4.24 in the US and $3.53 where 20 % VAT is inside the price.
+- **RevenueCat:** "Pay nothing for up to $2,500 in monthly tracked revenue. Then pay 1% of what you track". It counts the revenue "before the platform cut" ([pricing](https://www.revenuecat.com/pricing)). Past $2,500 a month, all of it pays 1 %.
+- **Refunds** take 2.9 % of freemium apps' paid subscriptions in their first period, at the median ([State of Subscription Apps 2026](https://www.revenuecat.com/state-of-subscription-apps/)).
+
+### 8.7 Paying on the web
+
+**What one charge costs**, for a card from outside the US paid in another currency:
+
+| Provider | Rate | $4.99 | $39.99 | Who registers for the tax and files it |
+|---|---|---|---|---|
+| **Stripe, with the company as the seller**, through RevenueCat's own web billing: 2.9 % + 30¢ for the card, 1.5 % for a card from abroad, 1 % for the currency, 0.7 % for Billing, 0.5 % for Tax ([Stripe](https://stripe.com/pricing), [RevenueCat web](https://www.revenuecat.com/docs/web/overview)) | 6.6 % + $0.30 | $0.63, 12.6 % | $2.94, 7.4 % | The company, in every country below. Stripe Tax "Complete", which registers and files, starts at $90 a month |
+| **Stripe Managed Payments**, Stripe as the merchant of record: 3.5 % on top of the payment fees and Billing | 9.6 % + $0.30 | $0.78, 15.6 % | $4.14, 10.4 % | Stripe, in "80+ countries" ([Managed Payments](https://stripe.com/managed-payments)). Open in 39 countries, the US among them, since 22 April 2026, after "an eligibility review" ([changelog](https://docs.stripe.com/payments/managed-payments/changelog), [eligibility](https://docs.stripe.com/payments/managed-payments/eligibility)) |
+| **Paddle**, the merchant of record, with RevenueCat: "Paddle remains the billing engine and merchant of record" ([RevenueCat and Paddle](https://www.revenuecat.com/docs/web/integrations/paddle)) | "5% + 50¢ per Checkout transaction", from abroad too ([Paddle](https://www.paddle.com/pricing)) | $0.75, 15.0 % | $2.50, 6.3 % | Paddle: "We collect the correct rate of tax, track the filing deadlines … submit sales tax returns" |
+| **Lemon Squeezy**, the merchant of record | 5 % + 50¢, with 1.5 % from abroad and 0.5 % on subscriptions ([fees](https://docs.lemonsqueezy.com/help/getting-started/fees)) | $0.85, 17.0 % | $3.30, 8.3 % | Lemon Squeezy. Stripe bought it in 2024 and is moving its users "to Stripe Managed Payments" ([update](https://www.lemonsqueezy.com/blog/2026-update)) |
+
+- The percentages of the three merchants of record are taken on the price with its tax.
+- Paddle and Lemon Squeezy offer a price of their own below $10.
+- RevenueCat's own web billing does not serve India: "Customers based in India aren't supported".
+
+**What the company owes when it sells itself**, as a seller in the US with no place of business abroad:
+
+| Where | What it owes | Source |
+|---|---|---|
+| **The EU** | VAT from the first sale, through the "non-Union scheme" of the One Stop Shop. The €10,000 threshold is for a seller "established … in only one Member State" | [OSS](https://vat-one-stop-shop.ec.europa.eu/one-stop-shop_en) |
+| **The UK** | Registration "regardless of taxable turnover" for a business "based outside the UK" | [GOV.UK](https://www.gov.uk/register-for-vat) |
+| **US states** | Each state's own threshold, such as "$100,000 or 200 transactions" in Arkansas or "$500,000" in California. Washington taxes digital products "regardless of whether" they are "subscriptions" | [Streamlined Sales Tax](https://www.streamlinedsalestax.org/for-businesses/remote-seller-faqs/remote-seller-state-guidance), [WAC 458-20-15503](https://app.leg.wa.gov/wac/default.aspx?cite=458-20-15503) |
+| **Australia** | GST once sales connected with Australia reach A$75,000, by a search summary of the tax office's pages, which refused to load | [ATO](https://www.ato.gov.au/businesses-and-organisations/international-tax-for-business/gst-for-non-resident-businesses/how-australian-gst-works) |
+| **Canada** | GST/HST once revenues exceed "$30,000 CAD over any 12-month period"; sales through a registered platform are not counted | [CRA](https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/digital-economy-gsthst/find-out-need-register/cross-border-threshold-amounts.html) |
+| **India** | Registration for "online information and data base access or retrieval services" to consumers, with no threshold, by a search summary of section 24 of the GST Act | [CBIC](https://cbic-gst.gov.in/gst-registration-rules.html) |
+| **Japan** | Consumption tax on electronic services to consumers, "regardless of whether such businesses are domestic or foreign". The ¥10 million threshold is by a search summary. Since 1 April 2025 a designated platform pays it for what it sells | [NTA](https://www.nta.go.jp/english/taxes/consumption_tax/05.htm) |
+
+**Recommendation for the web: Paddle, through RevenueCat.**
+- Paddle's fee is the stores' 15 % on a monthly $4.99, and 6 % on a yearly $39.99.
+- The company registers for no tax anywhere.
+- One state of the subscription across the three stores stays RevenueCat's (11.4).
+- Stripe Managed Payments is the second choice, once it has passed its review.
+- Stripe with the company as the seller is cheapest on paper. But it means registering for VAT in the EU and the UK before the first sale, and filing there every quarter.
+
+**The question of 9.4: a web subscription on Android.**
+- Google allows a "consumption-only (reader) app", in which "a user could log in when the app opens and access content paid for somewhere else", as long as the product "cannot be purchased from within the app" ([FAQ](https://support.google.com/googleplay/android-developer/answer/10281818)).
+- This app sells through Play Billing as well. The pages read do not say whether an app that sells through Play Billing may also honour a subscription bought on the web outside the programmes of 9.4.
+- Apple allows it, as long as the same subscription is sold in the app (3.1.3(b), 9.3).
+- **What it means:** the company asks Google's developer support before the release (section 13). Until Google answers, the Android app honours what was bought on Google Play alone.
+
+### 8.8 Prices by country
+
+- **Apple.**
+  - A subscription has "800 price points in each currency", and App Store Connect "provides comparable prices for all 175 App Store countries and regions". Each storefront can be set by hand ([pricing](https://developer.apple.com/help/app-store-connect/manage-subscriptions/manage-pricing-for-auto-renewable-subscriptions)).
+  - "Apple will not make price adjustments on your auto-renewable subscription products": a change of tax or exchange rate moves the proceeds instead.
+- **Google** converts a price entered without tax into each currency, adds the tax where prices carry it, and then "the price is charmed". Each country can be set by hand ([subscription prices](https://support.google.com/googleplay/android-developer/answer/140504)). No regular re-pricing for exchange rates was found.
+- **What families pay by region.** Monthly medians run from $3.75 in India and South-East Asia to $9.99 in North America, and yearly from $18.32 to $39.99 ([State of Subscription Apps 2026](https://www.revenuecat.com/state-of-subscription-apps/)). In India and South-East Asia 0.7 % of installs pay within 35 days, against 2.8 % in North America, and 7.7 % of first payments are refunded.
+- **The floor.** The model costs the same in every country. The subscriber of 8.2 costs $1.98 a month, and one at the ceiling $9.90. Where a price's net is below the subscriber's cost, every subscriber loses money.
+  - $3.99 in India leaves $2.87 after the 18 % GST inside the price and the store's 15 %, and so $0.89 past the subscriber's tasks.
+- **The countries left out.** The app is offered only where Anthropic's API is (9.6), so China and Russia are out whatever the price.
+
+### 8.9 The subscription
+
+**What it gives:**
+- tasks past ten a day, up to MathTrail's ceiling of 50, which counts the tasks taken in the chat as well (2.7);
+- writing the next task ahead after the tenth;
+- MathTrail's own ceiling of ten failed requests a day, in place of the three of 8.5.
+
+The cards, the progress and the profile are the same without it.
+
+**Monthly and yearly.**
+- Education leans to the year. "Education, Travel, and Shopping all favor annual plans (59–66%)", and "Annual plans drive majority revenue in Health & Fitness, Education, Travel". "Education has highest yearly median at $44.99" ([State of Subscription Apps 2026](https://www.revenuecat.com/state-of-subscription-apps/), 115,000 apps, 2025's numbers).
+- At the first renewal, the median Education app keeps 56 % of monthly subscribers and 24 % of yearly ones ([renewal rates](https://www.revenuecat.com/blog/growth/average-subscription-renewal-rates-by-app-category)).
+
+**What similar products ask in the US:**
+
+| Product | A month | A year | Free |
+|---|---|---|---|
+| [IXL](https://www.ixl.com/membership/family/subscribe/monthly/math), maths alone | $9.95 | $79 | "ten questions a day for free" without an account ([guide](https://www.ixl.com/userguides/us/IXLUserGuide.pdf)): the shape of the app's ten tasks |
+| [Prodigy Math](https://www.prodigygame.com/main-en/parents-learn-more-about-pricing-competitor) | $9.95–19.95 | $74.95–134.95 | The game's questions |
+| [Matific](https://apps.apple.com/us/app/matific-maths-game/id1440019986) | $9.99 | $78.99 | A 7-day trial |
+| [DoodleMath](https://apps.apple.com/us/app/doodlemath-elementary-math/id598196680) | $10.99 | $94.99 | A 7-day trial |
+| [Beast Academy Online](https://help.beastacademy.com/a/1792549-ways-to-save-on-subscriptions-and-books) | $15.99, a sibling $10.99 | $99.99, a sibling $64.99 | None |
+| [Synthesis Tutor](https://www.synthesis.com/tutor) | $29 | $119 | A 7-day trial |
+| [Khan Academy Kids](https://apps.apple.com/us/app/khan-academy-kids/id1378467217) | — | — | "Always 100% free" |
+
+The free MathTrail in the chats stands beside them all. The app sells a lesson without a chat and more than ten tasks a day, not the tasks themselves.
+
+**A trial.**
+- With ten tasks free every day, the app is tried without one.
+- Both stores offer free trials: Apple from "3 Days" to "1 Year", one "introductory offer per subscription group" ([offers](https://developer.apple.com/help/app-store-connect/manage-subscriptions/set-up-introductory-offers-for-auto-renewable-subscriptions)); Google "from 3 days to 3 years" ([offers](https://support.google.com/googleplay/android-developer/answer/12154973)).
+- A trial can come later.
+
+**Family Sharing.**
+- Apple lets a subscription be shared "with up to five family members", but once enabled "this can't be undone" ([subscriptions](https://developer.apple.com/app-store/subscriptions/)).
+- The app knows a family by its Google account, one child to an account (1.3, 3.5). A subscription shared to another Apple account would arrive with no link to that child's Google account.
+- It stays off. A second child needs a second Google account and, in the first release, a second subscription. Beast Academy and IXL price a sibling lower; a price for siblings is a question for later (section 14).
+
+### 8.10 Fixed costs
+
+| What | A year | Source |
+|---|---|---|
+| The Apple Developer Program | $99 | 9.2 |
+| Google Play | $25, once | 9.2 |
+| The app's domain, a `.app` | $8.20 the first year, $14.20 after | 1.4 |
+| Building for iOS | $0 while the repository is public | 11.5 |
+| RevenueCat and Paddle | Their share of each sale (8.6, 8.7) | — |
+| **Without the representatives** | **$132 the first year, $113 after: about $10 a month** | |
+| Representatives in the EU and the UK, if they are needed (9.5) | From €150, [DataRep](https://www.datarep.com/shop/)'s small package for "no more than 1,000 individuals in the EU/EEA/UK". [Prighter](https://prighter.com/pricing.md): €420–852 for each of the two. [EDPO](https://edpo.com/data-protection-representative-price/): €1,920 and £1,080 | Their price pages |
+| A lawyer, the impact assessment and the parent's verifiable consent (9.5) | No public price, not counted | — |
+
+**Having speakers read the languages** (В27 in the service's plan, and 10.2).
+- **The words.**
+  - The card's English dictionary holds 1,916 words in 326 keys, the names of the topics among them. They were counted in [`web/locales/en.json`](https://github.com/MathTrail/mathtrail-standalone/blob/main/web/locales/en.json) on 2026-11-12.
+  - The 17 wordings for a host with no chat come to about 100 words, at the card's 5.8 words a key.
+  - The app's own 150 keys (10.1, an estimate) come to about 870.
+  - The listing comes to about 650: a description of up to 4,000 characters, the subtitle, the keywords and the promotional text.
+  - That is about 3,500 words a language, and 217,000 for the 62 languages beyond `en` and `ru`.
+- **The rates.**
+  - A person editing a machine's or a model's draft costs "$0.06–$0.12 /word". A reviewer checking a language's quality in place costs "$31–$48 /hour" ([Alconost](https://alconost.com/en/blog/localization-cost), from "3,200+ projects", 2020–2026).
+  - Proofreaders on Upwork charge a median of $25 an hour, by a search summary.
+  - Lokalise will not proofread such text: proofreading and editing "do not apply to machine translations (MT) or AI-generated translations" ([Lokalise](https://docs.lokalise.com/en/articles/2141000-professional-translation-services)).
+- **The price.**
+  - Editing every word costs $210–420 a language, $13,000–26,000 for the 62.
+  - A reviewer who reads each screen in place costs $110–170 a language, $6,700–10,400 for the 62. That assumes 1,000 words an hour, which is an assumption and not a source.
+  - At $25 an hour, $90 a language and $5,400 for the 62.
+- **Readers for nothing.**
+  - Crowdin is free for open source only if "You do not have any commercial products related to the open-source project" ([Crowdin](https://crowdin.com/page/open-source-project-setup-request)), and the app is one.
+  - Weblate's Libre plan is "only for public projects" ([Weblate](https://weblate.org/en/hosting/)).
+  - The card's dictionaries belong to the free MathTrail, so volunteers could read them there, apart from the app.
+- **The glossaries and the listing's screenshots** are made as the site's are (10.3), and cost time, not money.
+- **What it means for В27:** one language read by a reviewer costs what 23–35 months of one subscriber leave after their tasks, at the price of 8.12. Section 14 decides whether a language is sold before it is read.
+
+### 8.11 Does the free quota pay for itself
+
+**The model.** Every number is per install, over its first year.
+- **What the free tasks cost:** active days × tasks a day × $0.0066.
+  - **Active days.** Education apps keep 13.9 % of users on Android and 14.6 % on iOS on day 1, and 2.7 % and 3.2 % on day 30 ([AppsFlyer](https://www.appsflyer.com/glossary/retention-rate/), 2024, with no sample stated). Adjust gives 18 % and 4 %, by a search summary.
+  - Joining day 1 to day 30 by a power law, and carrying it on to day 365, gives about **7 active days** a year for each install: the first day, 1.5 more in the first month, and about 4.5 after it. The carrying past day 30 is an assumption.
+  - **Tasks a day:** five, the family that stays of 8.2. A family that takes all ten is tried too.
+- **What the subscriptions bring:** the share of installs that pay × paid months × (the net price − the subscriber's tasks × $0.0066).
+  - **The share that pays** within 35 days: 2.0 % of all apps, 2.1 % of freemium ones, 3.1 % of Education apps on iOS, 2.8 % in North America and 0.7 % in India and South-East Asia ([State of Subscription Apps 2026](https://www.revenuecat.com/state-of-subscription-apps/)).
+  - **Paid months.** A monthly subscriber pays about 3.8 months of their first year. That joins the first renewal, 56 % in Education, to the 8 % of monthly subscribers still paying after a year. RevenueCat's revenue per payer in Education's first year, $22.82, is 4.6 months at $4.99, the same order.
+
+**What the model gives.** Each cell is the gain per install, in its first year, after its free tasks. Free days take five tasks, and the subscriber takes 300 a month, both as in 8.2. The price is in the US, with no VAT.
+
+| A month | 1 % pay | 2.1 % pay | 3.1 % pay | Breaks even when |
+|---|---|---|---|---|
+| $4.99 | −$0.15 | −$0.06 | +$0.03 | 2.7 % pay |
+| $5.99 | −$0.12 | +$0.01 | +$0.13 | 2.0 % pay |
+| $6.99 | −$0.09 | +$0.08 | +$0.23 | 1.6 % pay |
+| **$7.99** | −$0.05 | **+$0.15** | +$0.33 | **1.3 % pay** |
+| $9.99 | +$0.01 | +$0.28 | +$0.53 | 1.0 % pay |
+
+- **At $7.99, the ten free tasks pay for themselves once 1.3 % of installs subscribe.** The median freemium app reaches 2.1 %. At $4.99 they need 2.7 %, more than the median.
+- **Where families take all ten on every free day,** they do not: −$0.09 per install at $7.99 and 2.1 %.
+- **In India and South-East Asia, where 0.7 % pay,** they do not at any price near the region's. At $3.99 the loss is $0.21 per install. There the free tasks are the author's gift.
+- **The model is rough.** Its retention is that of education apps in general, carried past day 30, and every share of payers is a median of other apps.
+
+**How many free families one subscriber carries.** At $7.99 the subscriber of 8.2 leaves $4.81 a month after their tasks in the US, and $3.68 where 20 % VAT is inside the price. That pays for 2.4 families that take all ten every day, 1.9 with VAT. It pays for 16 families that take five tasks two days a week, 12 with VAT.
+
+**If the quota does not pay for itself,** the author chooses among:
+1. **Fewer free tasks a day,** five, say. It saves only on the families that take more than five.
+2. **Ten a day for the first week, then fewer.** A new family sees the whole lesson, and a family that stays costs less.
+3. **A monthly limit on the free workspace** (8.5). When it is spent, the free tasks are over until the month ends, and the subscription and the adult's own key stay. It holds the author's spending to a sum chosen in advance. Its price is that a family late in a busy month finds no free task.
+4. **Ten a week in place of ten a day.**
+5. **A ceiling of the subscription's own, below MathTrail's 50.** At 30 a day, a subscriber at that ceiling every day leaves $0.85 a month at $7.99, where one at 50 costs the author $3.11. It matters only if such subscribers become common.
+
+### 8.12 Recommendation
+
+- **The price:** $7.99 a month and $59.99 a year, set from the US storefront, with the comparable prices Apple and Google make for the others.
+  - It is below every children's maths product of 8.9 but the free Khan Academy Kids.
+  - It pays for the ten free tasks wherever the share of payers is that of the median freemium app (8.11).
+  - A yearly payer leaves $27 a year after 300 tasks a month.
+- **A lower price, $3.99 a month and $34.99 a year,** in the storefronts of India and South-East Asia, where the median monthly price is $3.75.
+  - A monthly subscriber there leaves $0.89 a month after their tasks, and a yearly one $1.44 a year.
+  - At $29.99 a year, a subscriber of 300 tasks a month would cost more than they pay: $21.60 after the GST and the store, against $23.76 of tasks.
+- **The quota: ten free tasks a day stays,** written in a workspace of its own at Anthropic, whose monthly limit is the author's to set (8.5).
+  - Where families take all ten every day, or few of them pay, the free tasks do not pay for themselves, and the limit is what they may cost.
+  - At the model's $0.0056 a task, $50 a month is about 8,900 free tasks, and $200 about 35,700.
+- **The ceiling of failed requests** on the author's key: three a day (8.5).
+- **MathTrail's Cloud Run:** the company pays, and the app counts $0.00026 a task past MathTrail's free tier as its own cost (8.4).
+- **On the web:** Paddle through RevenueCat (8.7).
+- **No trial,** and Family Sharing off (8.9).
+- **Anthropic:** free tasks in a workspace of their own, under the limit the author sets (8.5).
+
+**Chosen by the author on 2026-11-12:**
+- $7.99 a month and $59.99 a year, and $3.99 and $34.99 in India and South-East Asia;
+- ten free tasks a day, under a limit of $50 a month on the free workspace to begin with, about 8,900 free tasks. The limit holds everything the free tasks cost, and is raised as the subscriptions bring in more;
+- the company pays MathTrail's Cloud Run past its free tier (8.4, A).
+
+**What the author gains or loses on one family a month, at that price:**
+
+| A family | A month |
+|---|---|
+| Free, five tasks two days a week | −$0.30 |
+| Free, all ten every day | −$1.98 |
+| On the adult's own key, ten every day | −$0.29 |
+| A subscriber of 300 tasks, in the US | +$4.81 |
+| The same, where 20 % VAT is in the price | +$3.68 |
+| The same, at $3.99 in India | +$0.89 |
+| A yearly subscriber at $59.99, in the US | +$2.27, which is $27 a year |
+| A subscriber at the ceiling, 50 every day, in the US | −$3.11 |
+
+**The fixed costs** of 8.10, about $10 a month, take two subscribers to cover. Prighter's two representatives at its lower price, €840 a year, take about 16 more, taking a euro to be about $1.10.
+
+### 8.13 Notes for the later parts
+
+- **For section 12.**
+  - Telling the app's tasks apart in MathTrail's log is what lets the company see its share of 8.4. It is the label of 3.6, item 1.
+- **For section 13.**
+  - Joining Apple's Small Business Program before the first sale.
+  - Paddle's account and its review of the product, and RevenueCat's.
+  - Two workspaces at Anthropic, with the free one's limit.
+  - Watching the spend against the tier's cap, and asking for the next tier before it is needed.
+  - The server's own billing account, with a spend cap well above the month expected.
+  - Asking Google whether the Android app may honour a web subscription.
+- **For section 14.**
+  - В27: one language read by a reviewer costs $110–170 (8.10).
+  - The product requirements' $0 for MathTrail: whether it still holds, and what the budget's alert is raised to, once the app's traffic passes the free tier (8.4).
+  - A price for a sibling.
 
 ## 9. Law and the stores
 
@@ -1263,7 +1645,7 @@ The [App Review Guidelines](https://developer.apple.com/app-store/review/guideli
 - A new fee structure started in the EEA, the UK and the US on 30 June 2026, in Australia and Japan on 30 September 2026, and comes to South Korea on 31 December 2026 and everywhere else on 30 September 2027. Auto-renewing subscriptions pay 10 %.
 - **United States:** since 29 October 2025, under the court's injunction, Google does not forbid telling users of a price outside the store, and does not require Play Billing. Alternative billing and links out each pay their own fee: 10 % on a subscription bought within 24 hours of a link ([US](https://support.google.com/googleplay/android-developer/answer/15582165), [links](https://support.google.com/googleplay/android-developer/answer/16470497)). A settlement with Epic of 4 March 2026 is still before the court, by Google's page. Secondary sources say it was withdrawn on 15 July 2026.
 - **The EEA and the UK:** a programme of billing choice since 30 June 2026 ([choice](https://support.google.com/googleplay/android-developer/answer/17161464)). **South Korea and India:** user choice billing, its fee "Reduced by 4%" ([user choice](https://support.google.com/googleplay/android-developer/answer/13821247)).
-- **What it means:** Play Billing in the app. Whether a subscription bought on the web may unlock the Android app outside these programmes, the policy does not say; section 8 has to settle it. The fees are section 8's.
+- **What it means:** Play Billing in the app. Whether a subscription bought on the web may unlock the Android app outside these programmes, the policy does not say; section 8 has to settle it. The fees are section 8's. *Answered in 8.6 and 8.7: Google allows it to an app that sells nothing itself, and the company asks Google before the release whether this app may.*
 
 **Deleting the account** ([deletion](https://support.google.com/googleplay/android-developer/answer/13327111), [User Data](https://support.google.com/googleplay/android-developer/answer/10144311)).
 - "If your app enables account creation, you must: provide users with an in-app path to delete their app accounts and associated data; and provide a web link resource where users can request app account deletion and associated data deletion." An app creates an account when it "directs the user to an app account creation flow outside of the app", as the sign-in through MathTrail does.
@@ -1499,7 +1881,7 @@ Sources: [app information](https://developer.apple.com/help/app-store-connect/re
 
 ### 10.6 Notes for the later parts
 
-- **For section 8.** Readers who speak the languages, the glossaries the listing needs, and the screenshots in 43 and 53 languages.
+- **For section 8.** Readers who speak the languages, the glossaries the listing needs, and the screenshots in 43 and 53 languages. *Answered in 8.10: a reader costs $90–420 a language; the glossaries and the screenshots are made as the site's are, at no cost.*
 - **For section 12.** The 17 wordings without the chat, in 64 dictionaries. The card's lookup goes into the package with the dictionaries.
 - **For section 13.** Every script seen on a real iPhone and Android phone before a release. The listing's languages.
 - **For section 14.** Is a language sold before someone who speaks it has read the card's and the app's words? The author left it to section 14 on 2026-11-11, once section 8 has priced the reading (В27 in the service's plan).
@@ -1752,7 +2134,7 @@ flowchart LR
 ### 11.8 Notes for the later parts
 
 - **For section 3.** With RevenueCat, the server keeps the subscription's state from RevenueCat's webhooks rather than from each store's notifications (3.5).
-- **For section 8.** RevenueCat's 1 % past $2,500 a month. $0 for iOS builds while the repository is public, and about $16 a day for a rented Mac when one is needed.
+- **For section 8.** RevenueCat's 1 % past $2,500 a month. $0 for iOS builds while the repository is public, and about $16 a day for a rented Mac when one is needed. *Answered in 8.6 and 8.10.*
 - **For section 12.** The card's package (4.6), and a stable `outputSchema` for every tool the app reads, `get_package` and `prepare_task` included (5.10).
 - **For section 13.** The first task of the new repository proves the riskiest part on the author's devices: the native plugin's calls to MathTrail with no `Origin`, streamed, through the TypeScript SDK's `fetch`, and its sign-in with an `https` callback. Other rules that carry over from MathTrail's:
   - "devcontainer only", with the iOS build in CI as its one exception;
