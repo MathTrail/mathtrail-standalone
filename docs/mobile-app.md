@@ -1,6 +1,6 @@
 # An app for MathTrail lessons on phones, tablets and the browser: specification
 
-> Status: being written, a part at a time. Sections 1, 2, 3, 4, 5, 9, 10 and 11 were written on 2026-11-11; the others are written by the parts the contents name.
+> Status: being written, a part at a time. Sections 1, 2, 3, 4, 5, 9, 10 and 11 were written on 2026-11-11, and section 6 on 2026-11-12; the others are written by the parts the contents name.
 
 This is the specification of an app in which a family takes a MathTrail lesson without a chat: on an Android or iOS phone or tablet, or in a browser on a computer. It is written for two readers. The first is the author, who chooses from it: the name, the architecture, the default model, the payment. The second is whoever builds the app. The app is built in a new public repository of its own, and that repository starts with a copy of this file. Links to the service's own files are therefore full addresses on GitHub, and stay valid in the copy.
 
@@ -30,6 +30,7 @@ The task was set on 2026-10-14, and its decisions were revised on 2026-11-11. Wh
 - **The app's server** is written in Go, as MathTrail is (2026-11-11, section 11.6).
 - **The cards** are MathTrail's own, taken as a package and mounted by the app (2026-11-11, section 4.5).
 - **The technology** is one web app: the browser shows it, and Capacitor carries it into the App Store and Google Play (2026-11-11, section 11.7).
+- **The default model** is Claude Haiku 5.5 at medium effort, for every task (2026-11-12, section 6.6).
 - MathTrail Canvas and the coach on the site's page "Coach" have nothing to do with this app.
 
 ### MathTrail's
@@ -69,7 +70,7 @@ The specification rests on these, and proposes to change any of them only as a q
 | 3 | [Architecture](#3-architecture) | Written |
 | 4 | [Cards](#4-cards) | Written |
 | 5 | [Connecting to MathTrail](#5-connecting-to-mathtrail) | Written |
-| 6 | The model and the measurement | Written in T112.5 |
+| 6 | [The model and the measurement](#6-the-model-and-the-measurement) | Written |
 | 7 | Voice | Written in T112.7 |
 | 8 | Money | Written in T112.6 |
 | 9 | [Law and the stores](#9-law-and-the-stores) | Written |
@@ -988,6 +989,180 @@ Sources: `internal/transport/mcp/`, the payload of each tool. The card on `task`
 - **For section 6.** The model is given the package's guide, and none of MathTrail's instructions to a chat's model (3.4).
 - **For section 11.** iOS 17.4 or later, for the `https` callback (5.3). On Android, Chrome's Auth Tab, or a Custom Tab with a verified App Link. An MCP client of the 2026-07-28 protocol, and the secure stores of 5.5. *Answered in 11.1 and 11.2.*
 - **For section 12.** The changes of 3.6, and the period of notice of 5.10.
+
+## 6. The model and the measurement
+
+Every page cited here was read on 2026-11-11. The loop below was measured on the night of 2026-11-11 to 12, against MathTrail at commit `d23cfbb` run on a laptop, not in production. The recommendation is in 6.6: Haiku 5.5 at medium effort.
+
+### 6.1 What the model is given
+
+The server writes each task in a conversation of its own with the model, the loop of 3.4. The conversation holds:
+
+- **The system prompt.** It is the server's own instruction, quoted below, followed by the package's `guide`. The guide is the same in every package. A task in words gets one text, and a task solved from its picture gets a longer one ([`task_writing.md`](https://github.com/MathTrail/mathtrail-standalone/blob/main/content/instructions/task_writing.md), [`task_writing_picture.md`](https://github.com/MathTrail/mathtrail-standalone/blob/main/content/instructions/task_writing_picture.md)).
+- **The first message.** It holds the words MathTrail answered `get_package` or `prepare_task` with, and the package without its guide: the brief, the idea, the child, three reference tasks, the solver templates, the pictures, the traps, the prohibitions and the limits.
+- **One tool, `submit_task`.** It is MathTrail's own, from `tools/list`, with one change: `task` and `self_check` are declared as objects. MathTrail declares them as any JSON value, a string included (6.2).
+- **Not MathTrail's instructions to a chat's model.** Those are about talking to the adult, and the app has no conversation (3.4).
+
+The instruction, as measured:
+
+> You write olympiad-style maths tasks for MathTrail, for a child of grades 1 to 6 whose parent runs the lesson in an app. Each request brings a package from MathTrail: the brief, the idea to build the task on, the child, reference tasks, sample solvers, examples of pictures, every trap, what the task may not use, and the limits it is held to. The guide below says how the task is written, handed in and checked. Follow it exactly.
+>
+> Write one task to the package, with its solver and its self-check, and hand it in by calling submit_task with the request id the package names. The call takes the task, the solver and the self-check as three arguments of their own: task and self_check are JSON objects, not strings, and solver is a string. Write nothing else: only the call reaches MathTrail, and nobody reads any other text.
+>
+> When MathTrail refuses the task, its answer lists every reason. Fix all of them, keep what passed, and hand the whole task in again with submit_task. A request allows three attempts.
+>
+> The guide follows.
+
+**The request** to the [Messages API](https://platform.claude.com/docs/en/api/messages/create):
+- `tool_choice` is `auto`, with one call at a time. Forcing the tool is not an option. On Haiku 5.5, with a forced call "the response starts with the tool call and has no thinking block" ([migration guide](https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide)), and Sonnet 5.5 refuses a forced choice (3.4).
+- Thinking is adaptive, at the effort of 6.3. `max_tokens` is 32,000, and the answer is streamed.
+- **The cache.** A breakpoint ends the system prompt, and the automatic one follows the conversation as it grows ([prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)). The tool and the system prompt come to about 6,700 tokens, the same for every request on one model, so every request after the first reads them from the cache. Each request writes its own package to the cache, about 4,600–5,300 tokens. A later attempt reads the whole conversation before it.
+
+### 6.2 The loop
+
+1. **The request.** The first task of a lesson comes from `next_task`, which opens a request, and then from `get_package`. Every task after it is written ahead: `prepare_task` opens the request and hands back its package, while the child works on the card (R235).
+2. **The hand-in.** The server passes the model's call to `submit_task` as it is, with two exceptions.
+   - It sets `request_id` itself, so a mistyped id costs nothing.
+   - **It unpacks a call the model packed into one string.** Sonnet 5.5 opened the value of `task` with a quote, and wrote into that string the task, then the solver and the self-check. It did so in 34 of its 72 hand-ins. Put back behind `{"task":`, the string is exactly the call that was meant, so the server rebuilds it. Haiku 5.5 did the same twice in 156 hand-ins. Neither the tool's objects nor the instruction's sentence about three arguments stopped it: the 34 came with both. Without unpacking, MathTrail refuses such a call before any check, with "missing properties: solver, self_check". It spends no attempt, but it costs another call to the model.
+3. **A refusal** goes back to the model in the same conversation, as the result of its call, in MathTrail's words: each reason with its code and messages. Three attempts in all. After the third, `attempts_exhausted` closes the request and the day counts one failed request (SPEC 5.10).
+4. **Arguments MathTrail does not check**, such as a call with a field missing, go back to the model the same way, marked as an error. MathTrail spends no attempt on them. The server allows two such calls in a request.
+5. **A failure MathTrail asks to repeat** ("hand in the same task again", "make the same call again") is repeated after three seconds, with no call to the model.
+6. **A turn with no call.** One reminder, then the request is given up. A turn cut off at `max_tokens` is asked again once, and a `refusal` stop gives the request up. A request given up stays open for MathTrail's 15 minutes. The server should write it again in a new conversation, since its attempts are left (5.9). Of these, only turns cut off at `max_tokens` came up: five turns of Haiku 5.5 at high effort, on tasks solved from the picture (6.5). Each of their requests still ended in a task.
+
+**Time.** A call of the model is limited to ten minutes, and a request to MathTrail's window of 15 minutes. The longest request measured took 140 seconds for a task in words and 403 for one solved from the picture (6.3, 6.5).
+
+### 6.3 The measurement
+
+**Method.**
+- **The server.** `just play-server` at commit `d23cfbb`, with the development sign-in and profiles in memory, one server for each configuration. MathTrail's own report, `go run ./cmd/report`, added up its log. The report agrees with the measurement's records on every count of requests, hand-ins, refusals and attempts below, and on the times within a few seconds.
+- **The client** called itself `mathtrail-app-measure`, which MathTrail labels `other`, and declared MCP Apps, as the app will (4.5).
+- **The configurations.** Haiku 5.5 at medium and at high effort, and Sonnet 5.5 at medium. Haiku 4.5 and Sonnet 5 were left out: Haiku 4.5 costs ten times what Haiku 5.5 does, and Sonnet 5 costs what Sonnet 5.5 does, with a dearer cache read. Opus 5.5 was left out too ([pricing](https://platform.claude.com/docs/en/about-claude/pricing), [models](https://platform.claude.com/docs/en/about-claude/models/overview)). These were the author's choices of 2026-11-11.
+- **The families.** Each configuration taught five new profiles a free day each: ten tasks handed out. Each profile had its own language and grade: Spanish at grade 1, Hindi at 2, English at 3, Russian at 5 and Chinese (`zh-Hans`) at 6. That covers all three levels, and three scripts besides Latin. The first five answers are the trial series, so six of each day's ten tasks were chosen during it.
+- **The child's answers.** They were right but for the third, sixth and ninth task, the same for every configuration, so that MathTrail's rule led each the same way. The rule chose every topic itself.
+- **The price** of each call is computed from its `usage` and the prices of 2026-11-11, per million tokens:
+
+| Model | Input | Cache write, 5 minutes | Cache read | Output |
+|---|---|---|---|---|
+| Haiku 5.5, prompts up to 100,000 tokens | $0.10 | $0.125 | $0.01 | $0.50 |
+| Sonnet 5.5 | $2 | $2.50 | $0.10 | $10 |
+
+- **The script** lives outside the repository, as the task asks. It is a Go module on [`anthropic-sdk-go`](https://github.com/anthropics/anthropic-sdk-go) 2.9.0 and the MCP [Go SDK](https://github.com/modelcontextprotocol/go-sdk) 1.8.0. The tasks it wrote were kept there for reading by eye, and no task's text is in this document.
+- **A pilot** of three tasks a configuration came first and found the packed call of 6.2. Its tasks are not counted.
+
+**Results.** `n` is the number of requests, and the intervals are Wilson's, at 95 %.
+
+| | Haiku 5.5, medium | Haiku 5.5, high | Sonnet 5.5, medium |
+|---|---|---|---|
+| Requests | 51 | 51 | 50 |
+| Ended in a task | 50: 98 % (90–100) | 50: 98 % (90–100) | 50: 100 % (93–100) |
+| Accepted at the first attempt | 26: 51 % (38–64) | 35: 69 % (55–80) | 28: 56 % (42–69) |
+| Out of attempts | 1 | 1 | 0 |
+| Attempts per accepted task | 1.60 | 1.38 | 1.44 |
+| Hand-ins MathTrail judged | 83 | 72 | 72 |
+| Seconds per call of the model, median and 90th percentile, and the calls counted | 21 and 39, of 83 | 37 and 74, of 73 | 14 and 22, of 72 |
+| Seconds from the package to the accepted task, median and 90th percentile, of 50 | 33 and 58 | 54 and 84 | 18 and 30 |
+| The longest | 71 | 140 | 62 |
+| Tokens per accepted task: cache write, cache read, output | 9,239, 14,988, 8,084 | 9,742, 13,325, 13,425 | 6,180, 11,614, 2,754 |
+| Of the output, thinking | 5,736 | 11,199 | 1,146 |
+| Input tokens outside the cache, per task | 5 | 5 | 5 |
+| **Cost per accepted task**, failed requests included | **$0.0053** | **$0.0081** | **$0.0442** |
+| Cost of the one failed request | $0.0050 | $0.0141 | — |
+| Spent in all, for 50 tasks | $0.27 | $0.40 | $2.21 |
+| Tasks that came with a drawing, of 50 | 16 | 21 | 5 |
+
+What the numbers say:
+- **Every configuration ends nearly every request in a task.** The three shares overlap entirely: 50 tasks can tell 90 % from 70 %, not 98 % from 100 %.
+- **Haiku 5.5 at medium costs an eighth of Sonnet 5.5.** Its tasks take more attempts and more tokens, but its tokens cost a twentieth.
+- **Most of the price is output.** On Sonnet 5.5, output is 62 % of a task's price and writing the package to the cache 35 %. Reading the guide and the conversation from the cache costs almost nothing.
+- **Sonnet 5.5 is the fastest.** Haiku 5.5 thinks more: at high effort its thinking doubles, its first attempts pass more often, and each task still takes longer and costs more.
+
+### 6.4 Refusals
+
+Each refused hand-in can carry several codes (SPEC 5.9). The counts are hand-ins refused with each code, of the hand-ins in the table above.
+
+| Code | Haiku 5.5, medium | Haiku 5.5, high | Sonnet 5.5, medium |
+|---|---|---|---|
+| `solver_error` | 13 | 15 | 4 |
+| `near_duplicate` | 8 | 1 | 4 |
+| `drawing_mismatch` | 6 | 4 | 3 |
+| `bad_structure` | 4 | 2 | 12 |
+| `drawing_format` | 4 | 0 | 1 |
+| `distractor_explanations` | 1 | 0 | 3 |
+| `readability` | 1 | 1 | 1 |
+| `solver_disagrees` | 1 | 0 | 0 |
+| `wrong_language` | 1 | 0 | 0 |
+
+- **Haiku 5.5 fails mostly in its solver.** A `solver_error` is a program that does not run, or returns no list of options. It fixes the solver within its attempts: only one request a configuration ran out of them.
+- **Sonnet 5.5 fails mostly in the task's format**, with `bad_structure`.
+- **Haiku 5.5 at medium repeats a reference task or a past one most often:** `near_duplicate`, 8 times.
+- The solver and the task's own answer disagreed once in the 227 hand-ins (`solver_disagrees`), and MathTrail refused that task.
+
+### 6.5 By language, by the trial series, by the picture
+
+Each cell is one profile's ten tasks, so most differences between the languages of one configuration are within the noise. A cell gives the share accepted at the first attempt, the cost per task, and the median seconds from the package to the accepted task.
+
+| Language | Haiku 5.5, medium | Haiku 5.5, high | Sonnet 5.5, medium |
+|---|---|---|---|
+| Spanish, grade 1 | 55 %, $0.0048, 23 | 80 %, $0.0064, 46 | 60 %, $0.0334, 14 |
+| Hindi, grade 2 | 60 %, $0.0047, 24 | 55 %, $0.0097, 38 | 70 %, $0.0371, 17 |
+| English, grade 3 | 50 %, $0.0051, 33 | 60 %, $0.0068, 47 | 70 %, $0.0358, 15 |
+| Russian, grade 5 | 60 %, $0.0058, 37 | 70 %, $0.0088, 70 | 50 %, $0.0591, 22 |
+| Chinese, grade 6 | 30 %, $0.0063, 40 | 80 %, $0.0087, 66 | 30 %, $0.0554, 25 |
+
+The first attempt is out of 10 requests, or 11 where one request failed: Haiku 5.5 at medium in Spanish, and at high in Hindi.
+
+- **No language fails.** All 15 cells ended at least 10 requests of 11 in a task.
+- **Chinese at grade 6** passed at the first attempt three times in ten, on both Haiku 5.5 at medium and Sonnet 5.5. It is the one cell low on two models, and the one worth watching. Grade 6 tasks are longer, so it may be the grade, not the language.
+- **Russian and Chinese** cost more on Sonnet 5.5: their tasks, at grades 5 and 6, are longer.
+
+**The trial series.** Haiku 5.5 passed fewer first attempts on the tasks chosen during the series than on those after it. At medium it was 42 % of 31 against 65 % of 20, and at high 61 % of 31 against 80 % of 20. Sonnet 5.5 passed as many: 57 % of 30 and 55 % of 20. Every request of the series but one in each Haiku configuration still ended in a task.
+
+**Tasks solved from the picture.** MathTrail's rule chose only 1 or 2 of them in a configuration's 50 tasks, since none comes during the trial series (R322). They were measured apart, by asking for their two topics, `counting.figures` and `geometry.cubes_paper`, by name: two profiles, English at grade 3 and Russian at grade 5, five tasks each, for each configuration.
+
+| Tasks solved from the picture | Haiku 5.5, medium | Haiku 5.5, high | Sonnet 5.5, medium |
+|---|---|---|---|
+| Requests, and those ended in a task | 10, 10 | 10, 10 | 10, 10 |
+| Accepted at the first attempt | 5 | 5 | 3 |
+| Attempts per accepted task | 1.6 | 1.6 | 1.7 |
+| Seconds from the request to the accepted task, by MathTrail's report: median, 90th percentile, longest | 49, 84, 90 | 76, 297, 403 | 31, 45, 55 |
+| Output per task, and of it thinking | 12,532, 9,624 | 31,489, 27,817 | 4,811, 1,773 |
+| Calls cut off at 32,000 tokens | 0 | 5, in 3 requests | 0 |
+| Cost per task | $0.0081 | $0.0190 | $0.0750 |
+
+- **They cost more than a task in words:** half as much again on Haiku 5.5 at medium, 1.7 times as much on Sonnet 5.5 and 2.3 times on Haiku 5.5 at high. They take longer too: Haiku 5.5 at medium writes one in 49 seconds, against 33 for a task in words.
+- **Haiku 5.5 at high effort thinks past the limit.** Five of its calls ran out of 32,000 tokens before they handed anything in. Its slowest request took nearly seven minutes.
+- Sonnet 5.5 packed 7 of its 17 calls into one string here too (6.2).
+
+### 6.6 The default model
+
+**The rule, set before the measurement.** If Haiku 5.5, at either effort, ends as many requests in a task as Sonnet 5.5, within the noise of 50, and no language clearly fails, the default is Haiku 5.5 at that effort, since it costs about a twentieth per token. Otherwise it is Sonnet 5.5 at medium.
+
+**Recommendation: Haiku 5.5 at medium effort, for every task.**
+- It ends 98 % of requests in a task (90–100), against Sonnet 5.5's 100 % (93–100). No language fails.
+- A task costs $0.0053, against $0.0442 on Sonnet 5.5. That makes a free day of ten tasks about $0.05.
+- At high effort, Haiku 5.5 passes more first attempts but costs half as much again, and takes 54 seconds where medium takes 33. On tasks solved from the picture it ran out of 32,000 tokens five times, and one request took nearly seven minutes.
+- A task solved from the picture costs $0.0081 on Haiku 5.5 at medium, and takes 49 seconds.
+- The price is time. The median task takes 33 seconds to write, against Sonnet 5.5's 18, and nine in ten take 58 seconds or less. Writing ahead hides that whenever the child spends longer on a task than its writing takes. Only the first task of a lesson is waited for.
+
+**An option: Sonnet 5.5 for the first task of a lesson.** The child waits for it, and Sonnet 5.5 writes it in 18 seconds where Haiku 5.5 takes 33. On a day of ten tasks this adds about $0.04. Each model keeps a cache of its own. Sonnet 5.5's stays warm only while lessons start at least every five minutes; otherwise the first task pays $0.016 more, to write the guide again (6.7).
+
+**Chosen by the author on 2026-11-12: Haiku 5.5 at medium effort, for every task.**
+
+**What the measurement does not say.**
+- It says nothing of how good a task is beyond MathTrail's checks: whether it is interesting, or the right step for the child. The tasks are kept outside the repository, for the author to read.
+- 50 tasks a configuration tell a large difference, not a small one. A shift of a few points in the share of requests that end in a task needs hundreds of tasks, which production's log will give (section 12).
+- It ran on a laptop against one server per configuration, with nothing else to share it with.
+
+### 6.7 Notes for the later parts
+
+- **For section 8.**
+  - A task costs $0.0053 on Haiku 5.5 at medium, failed requests included, and a failed request $0.0050 (n = 1). On Sonnet 5.5 a task costs $0.0442. A task solved from the picture costs $0.0081 and $0.0750 (n = 10 each). The rule chose 1 or 2 of them among the 20 tasks after the trial series. How many come on a family's later days was not measured.
+  - The guide is read from the cache only while a request comes at least every five minutes. After a quiet spell, the first request writes it again: about 6,700 tokens, $0.0008 on Haiku 5.5 and $0.016 on Sonnet 5.5. A one-hour cache costs twice the base price to write.
+  - The last task of a lesson written ahead stays kept in the profile, and the next lesson hands it out unless it no longer fits (R235). It is rarely written for nothing.
+- **For section 12.**
+  - `submit_task` declares `task` and `self_check` as any JSON value. Through the API, Sonnet 5.5 sent nearly half its calls, 34 of 72, with everything packed into `task`. The chats do not: in production's log for the 30 days to 2026-11-12, none of the 164 calls of `submit_task` from Claude or the 119 from ChatGPT was refused for its arguments (`tool_call` lines with `outcome: invalid`). The app's server unpacks such a call itself (6.2). MathTrail could declare both fields as objects, or unpack the call the same way, so that every client of the API is spared it.
+  - MathTrail's log does not keep why the arguments of a call were refused.
+- **For section 13.** `anthropic-sdk-go` is under the Apache License 2.0 since version 2 ([migration guide](https://platform.claude.com/docs/en/api/migration-2026-10-21)), no longer MIT.
 
 ## 9. Law and the stores
 
