@@ -83,7 +83,9 @@ FONT_LICENSES := "OFL-1.1"
 # a tool that builds the widget and ends up in nothing that is shipped, and it is
 # allowed only while it stays a development dependency. lightningcss, under
 # MPL-2.0, is the CSS minifier the widget's bundler cannot be installed without.
-NPM_LICENSE_EXCEPTIONS := "lightningcss=MPL-2.0"
+# tslib, under 0BSD, which asks for nothing at all, comes only with the
+# bundler's build in WebAssembly, which npm installs for no platform but wasm32.
+NPM_LICENSE_EXCEPTIONS := "lightningcss=MPL-2.0,tslib=0BSD"
 
 # The Go template that prints the module a package of a tool's build comes
 # from, and its version, when that module is neither the tool nor the service it
