@@ -1,6 +1,6 @@
 # An app for MathTrail lessons on phones, tablets and the browser: specification
 
-> Status: being written, a part at a time. Sections 1, 2, 3, 4, 5, 9, 10 and 11 were written on 2026-11-11, and sections 6 and 8 on 2026-11-12; the others are written by the parts the contents name.
+> Status: complete. Sections 1–5 and 9–11 were written on 2026-11-11, and sections 6–8 and 12–14 on 2026-11-12, when the whole document was read again.
 
 This is the specification of an app in which a family takes a MathTrail lesson without a chat: on an Android or iOS phone or tablet, or in a browser on a computer. It is written for two readers. The first is the author, who chooses from it: the name, the architecture, the default model, the payment. The second is whoever builds the app. The app is built in a new public repository of its own, and that repository starts with a copy of this file. Links to the service's own files are therefore full addresses on GitHub, and stay valid in the copy.
 
@@ -34,6 +34,10 @@ The task was set on 2026-10-14, and its decisions were revised on 2026-11-11. Wh
 - **The price.** $7.99 a month and $59.99 a year from the US storefront, and $3.99 and $34.99 in the storefronts of India and South-East Asia (2026-11-12, section 8.12).
 - **The free quota.** Ten tasks a day on the author's key, written in a workspace of their own at Anthropic under a limit of $50 a month to begin with, raised as the subscriptions bring in more (2026-11-12, section 8.12).
 - **MathTrail's Cloud Run.** Past its free tier, the company pays it, and the app counts its share as a cost of its tasks (2026-11-12, section 8.4).
+- **The app's children in MathTrail's public numbers** are counted, as the chats' are, with a row of their own under a neutral word in the split by host (2026-11-12, section 14.1).
+- **Languages.** The subscription is sold in all 64. The list of languages marks which ones a speaker has read, and a language gets a reader once its own subscriptions have paid for one (2026-11-12, section 14.1).
+- **The order of the releases.** The web version first, then Google Play, then the App Store (2026-11-12, section 13).
+- **The new repository** lives in a GitHub organization of the app's own name (2026-11-12, section 13.8).
 - MathTrail Canvas and the coach on the site's page "Coach" have nothing to do with this app.
 
 ### MathTrail's
@@ -66,24 +70,24 @@ The specification rests on these, and proposes to change any of them only as a q
 
 ## Contents
 
-| # | Section | Status |
-|---|---|---|
-| 1 | [What it is and for whom](#1-what-it-is-and-for-whom) | Written |
-| 2 | [Screens and scenarios](#2-screens-and-scenarios) | Written |
-| 3 | [Architecture](#3-architecture) | Written |
-| 4 | [Cards](#4-cards) | Written |
-| 5 | [Connecting to MathTrail](#5-connecting-to-mathtrail) | Written |
-| 6 | [The model and the measurement](#6-the-model-and-the-measurement) | Written |
-| 7 | Voice | Written in T112.7 |
-| 8 | [Money](#8-money) | Written |
-| 9 | [Law and the stores](#9-law-and-the-stores) | Written |
-| 10 | [64 languages](#10-64-languages) | Written |
-| 11 | [Technologies](#11-technologies) | Written |
-| 12 | Changes to MathTrail | Written in T112.7 |
-| 13 | The first release and after | Written in T112.7 |
-| 14 | Open questions | Written in T112.7 |
+| # | Section |
+|---|---|
+| 1 | [What it is and for whom](#1-what-it-is-and-for-whom) |
+| 2 | [Screens and scenarios](#2-screens-and-scenarios) |
+| 3 | [Architecture](#3-architecture) |
+| 4 | [Cards](#4-cards) |
+| 5 | [Connecting to MathTrail](#5-connecting-to-mathtrail) |
+| 6 | [The model and the measurement](#6-the-model-and-the-measurement) |
+| 7 | [Voice](#7-voice) |
+| 8 | [Money](#8-money) |
+| 9 | [Law and the stores](#9-law-and-the-stores) |
+| 10 | [64 languages](#10-64-languages) |
+| 11 | [Technologies](#11-technologies) |
+| 12 | [Changes to MathTrail](#12-changes-to-mathtrail) |
+| 13 | [The first release and after](#13-the-first-release-and-after) |
+| 14 | [Open questions](#14-open-questions) |
 
-The T- numbers are the parts of the plan in the service's [RUN.md](https://github.com/MathTrail/mathtrail-standalone/blob/main/RUN.md), phase 19.
+The T- numbers are the parts of the plan that wrote this document, phase 19 of the service's plan, kept in its [archive](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/plan/phase-19.md). The В- numbers are questions to the author in the same plan's [RUN.md](https://github.com/MathTrail/mathtrail-standalone/blob/main/RUN.md), table 3. The app's own work is planned in [RUN.APP.md](https://github.com/MathTrail/mathtrail-standalone/blob/main/RUN.APP.md), in the author's language, which moves to the new repository with this file as its RUN.md: its tasks are numbered П00…, and its questions ВП1….
 
 ## 1. What it is and for whom
 
@@ -387,11 +391,11 @@ These came up while the screens were written. Each belongs to a later part.
 
 - **For section 3.** Do tasks taken in the chat count against the ten free tasks of the author's key, or only the app's own? Where is the ten counted, and does its day end at the family's midnight, as MathTrail's does (R293)? Do refused tries and failed requests count against the ten? Every one of them costs the author tokens. *Answered in 3.5.*
 - **For sections 3 and 5.** The app must declare MCP Apps when it connects, or be known by MathTrail in some other way to draw the cards. Otherwise MathTrail treats it as a chat of words: its instructions change, and no task solved from its picture comes to it (R305, R322). *Answered in 5.7.*
-- **For section 12.** A failure reaches the app as one English sentence and `isError`. The reasons are a damaged profile, a profile in the bin, a full Drive, or Drive not answering, and they carry no code. To show the screens of 2.5 and 2.10 in the adult's language, the app needs a code it can read. It would have to guess from English words otherwise.
+- **For section 12.** A failure reaches the app as one English sentence and `isError`. The reasons are a damaged profile, a profile in the bin, a full Drive, or Drive not answering, and they carry no code. To show the screens of 2.5 and 2.10 in the adult's language, the app needs a code it can read. It would have to guess from English words otherwise. *Answered in 12.2, change 4.*
 - **For sections 4 and 12.** The widget's card has no "I don't know". If the app shows MathTrail's own card (section 4), the button is a change to the card, hidden in the chat, where the adult says it in words. *Answered in 4.4.*
-- **For section 9.** What the stores ask of deleting an account in the app, and whether opening the profile's file in Drive meets it. The profile is a file in the adult's own Drive, which no tool deletes. If it does not meet it, MathTrail needs a tool that deletes the file (section 12).
+- **For section 9.** What the stores ask of deleting an account in the app, and whether opening the profile's file in Drive meets it. The profile is a file in the adult's own Drive, which no tool deletes. If it does not meet it, MathTrail needs a tool that deletes the file (section 12). *Answered in 9.3: it does not, and 12.3 asks for the tool.*
 - **For sections 5 and 9.** Signing out of the app ends the parent's grant at Google, and so disconnects MathTrail in their chats too (R114). The alternative is a sign-out that only forgets the app's tokens and leaves the grant, which the adult then removes in their Google account. Which of the two the app does, and what the stores ask of a sign-out, is still to be decided. *Answered in 5.5: both, as two choices.*
-- **For section 14.** "MathTrail" is used by MathTalk PBC for a maths trail for children in Cambridge, Massachusetts, and its domain `mathtrail.com`. That concerns the free MathTrail as well as the app.
+- **For section 14.** "MathTrail" is used by MathTalk PBC for a maths trail for children in Cambridge, Massachusetts, and its domain `mathtrail.com`. That concerns the free MathTrail as well as the app. *Answered in 14.4.*
 
 ## 3. Architecture
 
@@ -597,8 +601,8 @@ sequenceDiagram
     M-->>P: how the answer went
 ```
 
-**What it needs from MathTrail.** These go to section 12, where T112.7 orders them:
-1. **A label of its own** for the app's lessons in the log, the report and the counts kept for years. Under its own name it lands in `other` today (5.7). Whether its children count in the public numbers is T112.7's question.
+**What it needs from MathTrail.** Section 12 orders these:
+1. **A label of its own** for the app's lessons in the log, the report and the counts kept for years. Under its own name it lands in `other` today (5.7). Its children count in the public numbers, with a row of their own (14.1).
 2. **An identifier of the account for each client apart** (3.5).
 3. **The package and the request written ahead, structured.** Today `get_package` and `prepare_task` answer in words alone, and the task's schema is not served (5.10).
 4. **A code on every failure.** Today a failure is one English sentence (2.12).
@@ -615,7 +619,7 @@ C needs no change to MathTrail's origins, limits or sign-in. Its daily ceiling s
 - **For section 6.** The loop of 3.4 is what T112.5 measures: on the server, the reasons of a refusal going back to the model in the same conversation, with the package's guide and no chat instructions.
 - **For section 8.** The server's cost and its database, the ceiling of failed requests on the author's key, and whether the app's server shares Cloud Run's free tier with MathTrail (3.3). *Answered in 8.3 and 8.5: a billing account of its own, priced with no free tier, and three failed requests a day.*
 - **For section 11.** The phone needs an MCP client of the 2026-07-28 protocol and the system's sign-in (5.3) in the chosen technology. The server's loop is one piece of code. *Answered in 11.2 and 11.6.*
-- **For section 13.** The review notes say why a server holds a family's token for minutes (Apple 5.1.1(v)), and why Google is the only login (4.8).
+- **For section 13.** The review notes say why a server holds a family's token for minutes (Apple 5.1.1(v)), and why Google is the only login (4.8). *Answered in 13.3.*
 
 ## 4. Cards
 
@@ -762,8 +766,8 @@ flowchart TD
 ### 4.6 Notes for the later parts
 
 - **For section 11.** Path C makes the cards web code. A web app carries them in one code base. Any other technology carries them in a web view beside its own screens.
-- **For section 12.** The package itself: what it holds, its name, its version and its licence, MIT as the rest of `web/`. The host's choices of 4.4, and the 17 wordings without the chat in 64 languages. The machine-readable mark of AI in the task's data.
-- **For section 13.** The app's own checks run the card's layout on its own screens too: every language and the pseudo-language, at 320, 360 and 640 px, in Chromium and WebKit, as `just web-layout` does for the card.
+- **For section 12.** The package itself: what it holds, its name, its version and its licence, MIT as the rest of `web/`. The host's choices of 4.4, and the 17 wordings without the chat in 64 languages. The machine-readable mark of AI in the task's data. *Answered in 12.2, changes 6 and 7.*
+- **For section 13.** The app's own checks run the card's layout on its own screens too: every language and the pseudo-language, at 320, 360 and 640 px, in Chromium and WebKit, as `just web-layout` does for the card. *Answered in 13.5.*
 
 ## 5. Connecting to MathTrail
 
@@ -991,7 +995,7 @@ Sources: `internal/transport/mcp/`, the payload of each tool. The card on `task`
 - **For section 4.** Declaring MCP Apps depends on drawing the pictures (5.7). *Answered in 4.5.*
 - **For section 6.** The model is given the package's guide, and none of MathTrail's instructions to a chat's model (3.4).
 - **For section 11.** iOS 17.4 or later, for the `https` callback (5.3). On Android, Chrome's Auth Tab, or a Custom Tab with a verified App Link. An MCP client of the 2026-07-28 protocol, and the secure stores of 5.5. *Answered in 11.1 and 11.2.*
-- **For section 12.** The changes of 3.6, and the period of notice of 5.10.
+- **For section 12.** The changes of 3.6, and the period of notice of 5.10. *Answered in 12.2.*
 
 ## 6. The model and the measurement
 
@@ -1166,7 +1170,18 @@ The first attempt is out of 10 requests, or 11 where one request failed: Haiku 5
 - **For section 12.**
   - `submit_task` declares `task` and `self_check` as any JSON value. Through the API, Sonnet 5.5 sent nearly half its calls, 34 of 72, with everything packed into `task`. The chats do not: in production's log for the 30 days to 2026-11-12, none of the 164 calls of `submit_task` from Claude or the 119 from ChatGPT was refused for its arguments (`tool_call` lines with `outcome: invalid`). The app's server unpacks such a call itself (6.2). MathTrail could declare both fields as objects, or unpack the call the same way, so that every client of the API is spared it.
   - MathTrail's log does not keep why the arguments of a call were refused.
-- **For section 13.** `anthropic-sdk-go` is under the Apache License 2.0 since version 2 ([migration guide](https://platform.claude.com/docs/en/api/migration-2026-10-21)), no longer MIT.
+  - *Answered in 12.4, items 12 and 13.*
+- **For section 13.** `anthropic-sdk-go` is under the Apache License 2.0 since version 2 ([migration guide](https://platform.claude.com/docs/en/api/migration-2026-10-21)), no longer MIT. *Answered in 13.8.*
+
+## 7. Voice
+
+This is a note for the second release. The first release is cards alone (the author's decision of 2026-11-11): the model only writes tasks, and nobody speaks to it. Voice is worth having only with a conversation, where the adult asks about a task or the model explains a mistake in its own words. So voice comes with the conversation, and the conversation is the larger change: the model then talks to the adult by MathTrail's instructions to a chat's model, which section 6 leaves out. The second release decides three things.
+
+- **Both ways, or only in.** The adult speaks and reads the model's answer on the screen, or the app speaks the answer back too. A voice that speaks back reads the hint, the trap and the solution aloud, so it costs a synthesis of every card's words in the lesson's language, beside the recognition.
+- **On the phone, or in the cloud.** Recognition and synthesis on the device cost nothing a minute and send no sound off it, but each system covers a list of languages of its own. A cloud service is billed by the minute. The second release prices a minute of each, and lists which of the 64 languages each one lacks. A language with no voice keeps the cards alone, as now.
+- **The child's voice beside the microphone.** The child sits beside the adult, so a recording can carry the child's voice even when the adult speaks. COPPA counts "a photograph, video, or audio file where such file contains a child's image or voice" as personal information, and "voiceprints" among biometric identifiers (16 CFR 312.2, read through the [eCFR's API](https://www.ecfr.gov/current/title-16/chapter-I/subchapter-C/part-312) on 2026-11-12). Its one exception for sound is narrow: an operator that "collects an audio file containing a child's voice, and no other personal information", uses it only to answer the child's request, discloses it to nobody and "deletes it immediately after responding" needs no parent's consent for it (§ 312.5(c)(9)). The app collects other personal information, the answers and the profile, so whether the exception holds for it is a question for a lawyer. The safer design keeps sound on the device: recognised there, never sent and never kept.
+
+The second release also weighs what the stores say of a conversation written by AI (9.3, 9.4), which binds a chat harder than a card, and the age rating it brings.
 
 ## 8. Money
 
@@ -1455,7 +1470,7 @@ The free MathTrail in the chats stands beside them all. The app sells a lesson w
   - Weblate's Libre plan is "only for public projects" ([Weblate](https://weblate.org/en/hosting/)).
   - The card's dictionaries belong to the free MathTrail, so volunteers could read them there, apart from the app.
 - **The glossaries and the listing's screenshots** are made as the site's are (10.3), and cost time, not money.
-- **What it means for В27:** one language read by a reviewer costs what 23–35 months of one subscriber leave after their tasks, at the price of 8.12. Section 14 decides whether a language is sold before it is read.
+- **What it means for В27:** one language read by a reviewer costs what 23–35 months of one subscriber leave after their tasks, at the price of 8.12. Section 14.1 records the author's decision: every language is sold, and each is read once its own subscriptions have paid for it.
 
 ### 8.11 Does the free quota pay for itself
 
@@ -1534,6 +1549,7 @@ The free MathTrail in the chats stands beside them all. The app sells a lesson w
 
 - **For section 12.**
   - Telling the app's tasks apart in MathTrail's log is what lets the company see its share of 8.4. It is the label of 3.6, item 1.
+  - *Answered in 12.2, change 1.*
 - **For section 13.**
   - Joining Apple's Small Business Program before the first sale.
   - Paddle's account and its review of the product, and RevenueCat's.
@@ -1541,10 +1557,12 @@ The free MathTrail in the chats stands beside them all. The app sells a lesson w
   - Watching the spend against the tier's cap, and asking for the next tier before it is needed.
   - The server's own billing account, with a spend cap well above the month expected.
   - Asking Google whether the Android app may honour a web subscription.
+  - *Answered in 13.2, 13.3, 13.6 and 13.7.*
 - **For section 14.**
   - В27: one language read by a reviewer costs $110–170 (8.10).
   - The product requirements' $0 for MathTrail: whether it still holds, and what the budget's alert is raised to, once the app's traffic passes the free tier (8.4).
   - A price for a sibling.
+  - *Answered in 14.1, 14.2 and 14.3, О-86.*
 
 ## 9. Law and the stores
 
@@ -1758,7 +1776,7 @@ The three names were searched in the stores on 2026-11-11: the App Store through
 | **MathHike** | [MathHike](https://apps.apple.com/us/app/mathhike/id6819455720), Education, free, since 2026-10-30, in every storefront searched: an "expedition" through maths and programming | No app of the name | Taken. Apple asks for "a unique app name" (2.3.7), and another developer has used the name in education first |
 | **MathTrail** | [MathTrail](https://apps.apple.com/us/app/mathtrail/id1517560724), Education, $1.99, since 2026-10-15: maths for high school. MathTalk PBC's own app is [Measure! Everything!](https://apps.apple.com/us/app/measure-everything/id1480238670) | No app of the name | A third user of the name in education, beside MathTalk's trail and the free MathTrail. This corrects section 1.4, which found none |
 
-**The registers** are searched by hand, because USPTO, TMview and Justia answer a program with a browser check. The author searches TMview (the US, the EU, the UK, WIPO and national offices together), the USPTO and the WIPO Global Brand Database for MathPeak, Math Peak, MathHike, Math Hike, MathTrail and Math Trail, in classes 9 (software), 41 (education) and 42 (software as a service), live and dead. Not yet done: В23 and В24 wait for it.
+**The registers** are searched by hand, because USPTO, TMview and Justia answer a program with a browser check. The author searches TMview (the US, the EU, the UK, WIPO and national offices together), the USPTO and the WIPO Global Brand Database for MathPeak, Math Peak, MathHike, Math Hike, MathTrail and Math Trail, in classes 9 (software), 41 (education) and 42 (software as a service), live and dead. Not yet done: ВП1 of the [app's plan](https://github.com/MathTrail/mathtrail-standalone/blob/main/RUN.APP.md) and В24 of the service's plan wait for it.
 
 **What it means:** MathHike drops out. MathPeak is the candidate left, once the registers clear it.
 
@@ -1791,9 +1809,9 @@ The approaches are section 3's: the app's own server, the device going straight 
 - **For section 3.** App Attest gives iOS and macOS a way to the Claude API on the author's account without a server. Android and the browser have none, and nothing in it counts a family's ten free tasks. Where the country is checked against Anthropic's regions is section 3's too: MathTrail learns the country at sign-in, but keeps it sealed in its own token. *Answered in 3.2 and 3.5.*
 - **For sections 3 and 5.** Apple's rule on "tokens to social networks off of the device" weighs on a server that keeps MathTrail's tokens. *Answered in 3.2 and 5.5: in C the phone keeps them.*
 - **For sections 4 and 11.** On iOS, MathTrail's card fetched at run time falls under 2.5.2 and 4.7, while a card bundled into the app does not. *Answered in 4.2 and 4.5: the card is built into the app.*
-- **For section 12.** A tool that deletes the profile's file and ends the grant, which both stores' deletion needs. The edits to MathTrail's policy and terms of 9.7. Perhaps a machine-readable mark of AI in the task's payload, for Article 50.
-- **For section 13.** The parent's verifiable consent under COPPA and its method; the representatives in the EU, the UK and Brazil; the app's own policy and terms; a work email on the company's domain; the D-U-N-S number; where reports of a task go and who answers them.
-- **For section 14.** Two findings touch the free MathTrail as well as the app: whether it needs a representative in the EU and the UK, and whether Brazil's ECA Digital reaches it. A third: the App Store has had another app named MathTrail since 15 October 2026 (В24).
+- **For section 12.** A tool that deletes the profile's file and ends the grant, which both stores' deletion needs. The edits to MathTrail's policy and terms of 9.7. Perhaps a machine-readable mark of AI in the task's payload, for Article 50. *Answered in 12.2 and 12.3.*
+- **For section 13.** The parent's verifiable consent under COPPA and its method; the representatives in the EU, the UK and Brazil; the app's own policy and terms; a work email on the company's domain; the D-U-N-S number; where reports of a task go and who answers them. *Answered in 13.7.*
+- **For section 14.** Two findings touch the free MathTrail as well as the app: whether it needs a representative in the EU and the UK, and whether Brazil's ECA Digital reaches it. A third: the App Store has had another app named MathTrail since 15 October 2026 (В24). *Answered in 14.4.*
 
 ## 10. 64 languages
 
@@ -1822,7 +1840,7 @@ They are made as the card's dictionaries were made in T66b.3–T66b.5, in the se
 - **The pseudo-language** `en-XA`, at least as long as the longest translation of each key, letters counted as a reader sees them (SPEC 8.6).
 - **The layout** of every screen of the app, in every language and the pseudo-language, at 320, 360 and 640 px, in Chromium and WebKit, as `just web-layout` measures the card. A script new to the project is looked at once by eye.
 
-**What a paid product changes.** In the free MathTrail a wrong word is a bug like any other, mended by editing one file (SPEC 8.7). In the app a family pays for the lessons, and a store's reviews are public. A wrong word in a language nobody has read stays until someone who reads it complains. Having a speaker read the card's and the app's words before a language is sold costs money, which section 8 counts. Whether to wait for that reading is a question for section 14 (10.6).
+**What a paid product changes.** In the free MathTrail a wrong word is a bug like any other, mended by editing one file (SPEC 8.7). In the app a family pays for the lessons, and a store's reviews are public. A wrong word in a language nobody has read stays until someone who reads it complains. Having a speaker read the card's and the app's words before a language is sold costs money, which section 8 counts. The author chose on 2026-11-12 not to wait: every language is sold, and each gets a reader once its own subscriptions have paid for one (14.1).
 
 ### 10.3 The listing in the stores
 
@@ -1882,9 +1900,9 @@ Sources: [app information](https://developer.apple.com/help/app-store-connect/re
 ### 10.6 Notes for the later parts
 
 - **For section 8.** Readers who speak the languages, the glossaries the listing needs, and the screenshots in 43 and 53 languages. *Answered in 8.10: a reader costs $90–420 a language; the glossaries and the screenshots are made as the site's are, at no cost.*
-- **For section 12.** The 17 wordings without the chat, in 64 dictionaries. The card's lookup goes into the package with the dictionaries.
-- **For section 13.** Every script seen on a real iPhone and Android phone before a release. The listing's languages.
-- **For section 14.** Is a language sold before someone who speaks it has read the card's and the app's words? The author left it to section 14 on 2026-11-11, once section 8 has priced the reading (В27 in the service's plan).
+- **For section 12.** The 17 wordings without the chat, in 64 dictionaries. The card's lookup goes into the package with the dictionaries. *Answered in 12.2, changes 6 and 7.*
+- **For section 13.** Every script seen on a real iPhone and Android phone before a release. The listing's languages. *Answered in 13.2, 13.3 and 13.5.*
+- **For section 14.** Is a language sold before someone who speaks it has read the card's and the app's words? The author left it to section 14 on 2026-11-11, once section 8 has priced the reading (В27 in the service's plan). *Answered in 14.1.*
 
 ## 11. Technologies
 
@@ -2135,8 +2153,398 @@ flowchart LR
 
 - **For section 3.** With RevenueCat, the server keeps the subscription's state from RevenueCat's webhooks rather than from each store's notifications (3.5).
 - **For section 8.** RevenueCat's 1 % past $2,500 a month. $0 for iOS builds while the repository is public, and about $16 a day for a rented Mac when one is needed. *Answered in 8.6 and 8.10.*
-- **For section 12.** The card's package (4.6), and a stable `outputSchema` for every tool the app reads, `get_package` and `prepare_task` included (5.10).
+- **For section 12.** The card's package (4.6), and a stable `outputSchema` for every tool the app reads, `get_package` and `prepare_task` included (5.10). *Answered in 12.2, changes 3, 5 and 6.*
 - **For section 13.** The first task of the new repository proves the riskiest part on the author's devices: the native plugin's calls to MathTrail with no `Origin`, streamed, through the TypeScript SDK's `fetch`, and its sign-in with an `https` callback. Other rules that carry over from MathTrail's:
   - "devcontainer only", with the iOS build in CI as its one exception;
   - exact versions, which cover Capacitor's plugins and the iOS and Android dependencies;
   - GitHub Actions pinned by commit.
+  - *Answered in 13.8 and 13.9.*
+
+## 12. Changes to MathTrail
+
+MathTrail's code was read on 2026-11-12, as it stands in `main` at commit `b36caa2`, and is cited by file. This section gathers what the app needs of the service from sections 1–11, with the size of each change and its order. It sets no task. The author sets the tasks in MathTrail's plan after reading this specification.
+
+### 12.1 What decides the order
+
+- **The release that first needs it.** The web version comes first, then Google Play, then the App Store (13.1). A change is ordered by the first release that needs it.
+- **What the app does without it.** Most changes have a stopgap the app can live with for a while, so they can slip past their release if they must. The ones without a stopgap cannot.
+- **The size** is counted in parts of MathTrail's plan. A part is what one review reads, about 30–60 minutes (rule 12 of its [RUN.md](https://github.com/MathTrail/mathtrail-standalone/blob/main/RUN.md)). It is an estimate.
+- **What it changes.** A change that alters one of MathTrail's decisions names that decision. It goes to the author as a question of MathTrail's product requirements, with an О- number (14.3).
+
+### 12.2 Before the web version
+
+**1. A label of its own.**
+- *Why.* The app's children are counted in every public number, as the chats' children are. In the split by host they show as a row of their own, under a neutral word such as `app`, never the app's name (14.1). The same label lets the company see the app's share of Cloud Run (8.4).
+- *What changes.*
+  - MathTrail labels a client by words in its `clientInfo.name` ([`labels.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/labels.go)). The app's name, once it is chosen (1.4), joins those words, and leads to the neutral label.
+  - The label is held by the report's shape of `host` ([`events.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/report/events.go)) and carried by `task_accepted` into the counts kept for years (R184, R192). SPEC 12.2 and 12.4 name it.
+  - The public view `learners_by_host` shows the row once ten children stand behind it in a month ([`infra/analytics/`](https://github.com/MathTrail/mathtrail-standalone/tree/main/infra/analytics)). The word names no product, so R198 holds.
+- *A stronger way.* A name is the client's own to choose, so any client can call itself the app, as any client can call itself Claude today. The client's document cannot be claimed that way. The token carries the digest of its `client_id` ([`grants.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/grants.go)), and MathTrail could compare it with the digest of the app's document, set in its config. That brings the token's client to the place where the name is read today. Labels by name are enough while every other label is by name.
+- *Without it.* The app is `other`, counted among the children with every client nobody knows, and its share of Cloud Run cannot be told apart.
+- *Size.* One part.
+
+**2. An identifier of the account for each client apart.**
+- *Why.* The server counts each family's ten free tasks, and needs an identifier that a new installation or a new sign-in does not reset (3.5).
+- *What changes.*
+  - `get_profile` returns an identifier made from the parent's user identifier and the client's document, like OpenID Connect's pairwise subject: two clients receive different identifiers, and neither leads back to the parent.
+  - It is derived in `seal`, as the user identifier is (R108).
+  - Today no tool returns an identifier of the account (3.1). Handing one out is a question of the product requirements (14.3), and the privacy policy says so (change 8).
+- *Without it.* The digest of the profile's link in Drive, `location.link`. It survives a new installation and a new sign-in, but not a new profile (3.5). The contract of change 5 would then have to keep that field stable.
+- *Size.* One part.
+
+**3. The package as data.**
+- *Why.* The server writes every task, and reads its package from `get_package` and `prepare_task` (3.4, 6.1).
+- *What changes.*
+  - Both tools answer in words alone, and the package is the JSON after the line `Package:` ([`getpackage.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/getpackage.go), [`preparetask.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/preparetask.go)).
+  - R100 keeps the package "in the words of the result alone, never in the payload a card is drawn from". A payload that carried it would also reach ChatGPT's model a second time, beside the words.
+  - So the data comes only when a call asks for it: an argument of the two tools, which the chats' guide never names. The package then comes in `structuredContent`, under an `outputSchema` in `tools/list`.
+  - The task's JSON schema, the written contract of R37, comes with it, so that the server can check a task's shape before it spends an attempt.
+- *Without it.* The server reads the JSON out of the words, as the measurement did (6.3).
+- *Size.* One part.
+
+**4. A code on every failure.**
+- *Why.* The app shows the screens of 2.5 and 2.10 in the adult's language. It also has to tell a failure worth repeating from one that will fail again (5.9).
+- *What changes.*
+  - A failure is one English sentence of MathTrail's own, with `isError` and no code ([`failure.go`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/mcp/failure.go); R83).
+  - It gains a code of a closed list beside the sentence, for example in the result's `_meta`. The cases are a timeout, a lost conflict, the solver's slots full, too many calls, a full Drive, Drive not answering, a damaged profile, a profile in the bin and a profile written by a newer version.
+  - The sentence stays what a chat's model reads.
+- *Without it.* The app matches the English sentences, which MathTrail may reword at any release.
+- *Size.* One part.
+
+**5. A contract on the fields the app reads.**
+- *Why.* The phone and the server read the fields of 5.10. MathTrail changes its tools at every release, while the app follows with releases of its own, through two stores, and old versions of it keep running for months (3.2).
+- *What changes.*
+  - A test of each tool's payload: the fields of 5.10, their types, and the closed lists of `screen`, `status` and `code`.
+  - A version of the contract, served with the tools.
+  - A period of notice before a field the app reads goes away, long enough for a release of the app through both stores.
+  - On its side, the app's repository checks MathTrail's live `tools/list` against what it reads (5.10).
+  - MathTrail then answers to a client outside it. That is a question of the product requirements (14.3).
+- *Without it.* The app learns of a change when a lesson breaks.
+- *Size.* One or two parts.
+
+**6. The card as a package.**
+- *Why.* The app mounts MathTrail's card itself (4.5).
+- *What changes.*
+  - MathTrail publishes from `web/` an npm package with a version. It holds the card's screens, the pictures, the 64 dictionaries with their lookup, and `tokens.css`, without the bridge to a chat host. Its licence is MIT, as the rest of `web/` is.
+  - It is published from CI, by GitHub Actions pinned by commit, from the same code the widget is built from. MathTrail's own checks therefore run on the card the package carries.
+  - The `Service`, the `Host`, the words and each screen's properties become an interface with a version, and every change of it gets a note.
+  - The package says which of its dictionaries a speaker of the language has read (14.1). A reading the app pays for lands in MathTrail's dictionaries, so the free card gains it too.
+  - MathTrail's card then becomes an interface others rely on. That is a question of the product requirements (14.3).
+- *Without it.* The app copies the card's code out of `web/`, which the MIT licence allows, and keeps the copy in step by hand. That is path A's cost in a smaller form (4.2).
+- *Size.* Two parts: the package cut out of the widget, and its publication.
+
+**7. The card's choices for a host with no chat.**
+- *Why.* The app has no chat to carry what the card leaves to one (4.4).
+- *What changes.* Each choice is drawn only when the host asks for it, so the card in Claude and ChatGPT stays as it is.
+  - "Another task" tells the `Host`, and the app calls `next_task`.
+  - "I don't know" on the task's card records the answer `?`. R208 keeps that button off the card because the adult says it in the chat. A host with no chat asks for it.
+  - "Report this task", which both stores ask of content written by AI (9.3, 9.4), hands the report to the `Host`.
+  - A line that AI wrote the task and a program checked it, and a machine-readable mark in the task's payload, which Article 50 of the EU AI Act asks for (9.5). The web version sells in the EU from its first day.
+  - Wordings for a host with no chat, for the 17 texts that send the adult to the chat, in all 64 dictionaries (10.1).
+  - This widens R208 for one kind of host. That is a question of the product requirements (14.3).
+- *Without it.* The app's `Host` takes the card's message "Another task" as a request, and the card shows texts that send the adult to a chat that is not there. No "I don't know", and no report, which the stores refuse.
+- *Size.* Two parts: the choices, and the 17 wordings in 64 dictionaries.
+
+**8. MathTrail's privacy policy and terms.**
+- *Why.* They speak of a chat throughout (9.7), and the app is about to connect to MathTrail in production.
+- *What changes.* In all ten languages of the site, the English text first:
+  - other apps can reach MathTrail as the chats do, each under its own terms and policy, and MathTrail treats such an app as it treats a chat. Neither text names an app (R198);
+  - "what reaches the chat's model" becomes what reaches the client and the model it uses;
+  - the call log, where the answer can be read, is a chat's alone;
+  - the identifier of change 2, once it exists;
+  - "It is free, and it stays free" stays MathTrail's.
+- *Without it.* The texts describe a service reached by chats alone. This change has no stopgap: it comes before the app's first family.
+- *Size.* One part.
+
+### 12.3 Before the stores
+
+**9. A tool that deletes the profile's file.**
+- *Why.* Both stores ask an app that makes an account to delete it in the app, with its data. Pointing to the file in Drive does not meet that (9.3, 9.4). The app cannot delete the file itself, because the Drive grant is MathTrail's.
+- *What changes.*
+  - A tool that deletes the profile's file and the files set aside beside it, and then ends the grant at Google (R114). The adult is told first that the chats use the same file.
+  - Whether the chats get the tool too, or the app alone, is a question of the product requirements (14.3). A new tool waits for a review of its own in ChatGPT's directory ([docs/catalogs.md](https://github.com/MathTrail/mathtrail-standalone/blob/main/docs/catalogs.md) §12).
+- *Without it.* On the web, the app opens the file in Drive and says how to delete it (2.9). The stores do not take that.
+- *Size.* One or two parts.
+
+**10. The reviewers' sign-in, in a store's words.** MathTrail's consent page offers its reviewers a password under "Reviewing MathTrail for a directory?" ([`consent.html`](https://github.com/MathTrail/mathtrail-standalone/blob/main/internal/transport/oauth/pages/consent.html), R222). A store's reviewer can follow it (9.3), but the words should name a store's review as well. It fits inside another part.
+
+### 12.4 Later, by the numbers
+
+11. **A repeated hand-in answered with its first verdict.** Today a repeat after a refusal spends another attempt, so the loop asks `read_task` first (3.4). Worth making once the server's log shows answers lost.
+12. **A packed call unpacked by MathTrail.** The server unpacks a call that a model packed into the string of `task` (6.2). MathTrail could do the same in its structure check, for every client of the API. Declaring `task` and `self_check` as objects is not the way: R304 keeps them open to every kind of JSON, because a narrower type "would bring back what R137 rejected". Worth making once a second client of the API meets it.
+13. **Why the arguments of a call were refused**, kept in the log (6.7).
+14. **R219's pace raised** at the first refusal on the server's addresses (5.8). Today it holds about 200 families of the browser in a lesson at once.
+15. **The budget's alert raised** once the app's traffic passes MathTrail's free tier (8.4, 14.3).
+
+### 12.5 What stays as it is
+
+- The origins MathTrail accepts, with no CORS (5.6).
+- The limits, and the day's ceiling the chat and the app share (5.8).
+- The sign-in and the Client ID Metadata Document (5.2, 5.3).
+- The free side's silence about the app (R198), and the promise.
+
+### 12.6 The order and the size
+
+| # | Change | Needed by | Size, in parts | Stopgap | Question (14.3) |
+|---|---|---|---|---|---|
+| 1 | A label of its own | The web version | 1 | `other` | О-80, settled |
+| 2 | An identifier for each client | The web version | 1 | The digest of the profile's link | О-81 |
+| 3 | The package as data | The web version | 1 | The JSON read out of the words | — |
+| 4 | A code on every failure | The web version | 1 | The English sentences matched | — |
+| 5 | A contract on the fields | The web version | 1–2 | None that holds | О-82 |
+| 6 | The card as a package | The web version | 2 | A copy of `web/`, kept by hand | О-83 |
+| 7 | The card's choices for a host with no chat | The web version | 2 | None that holds | О-84 |
+| 8 | The privacy policy and the terms | The web version | 1 | None | — |
+| 9 | A tool that deletes the profile's file | The stores | 1–2 | Drive, on the web alone | О-85 |
+| 10 | The reviewers' words | The stores | — | The directories' words | — |
+| 11–15 | Later, by the numbers | — | 1 each | — | О-86 for 15 |
+
+That is 10–11 parts before the web version, and 1–2 more before the stores.
+
+```mermaid
+flowchart LR
+    C1["1. A label of its own"] --> Web
+    C2["2. An identifier for each client"] --> C8["8. The policy and the terms"]
+    C3["3. The package as data"] --> C5["5. A contract on the fields"]
+    C4["4. A code on every failure"] --> C5
+    C6["6. The card as a package"] --> C7["7. The choices for a host with no chat"]
+    C5 --> Web["The web version"]
+    C7 --> Web
+    C8 --> Web
+    C9["9. A tool that deletes the file"] --> Stores["Google Play, then the App Store"]
+    C10["10. The reviewers' words"] --> Stores
+    Web --> Stores
+```
+
+Changes 1–4 and 6 have no order among themselves. The contract holds the fields of changes 3 and 4, so it comes after them. The policy names the identifier, so it comes after change 2, and it gains the deletion of change 9 before the stores.
+
+## 13. The first release and after
+
+The author chose on 2026-11-12: the web version first, then Google Play, then the App Store (14.1). Each release below says what it carries and what it waits for. The checks a release passes are in 13.5, and the first tasks of the new repository in 13.8.
+
+```mermaid
+flowchart LR
+    Repo["The repository<br/>and the spike (13.8)"] --> Web["1. The web version<br/>browser and PWA, Paddle"]
+    MT["MathTrail's changes 1–8<br/>(section 12)"] --> Web
+    Web --> Play["2. Google Play<br/>Capacitor, Play Billing"]
+    MT9["MathTrail's changes 9–10"] --> Play
+    Play --> AppStore["3. The App Store<br/>StoreKit, the review notes"]
+```
+
+### 13.1 The first release: the web version
+
+**Where it runs.** In a browser on a computer, and in the browser of a phone or a tablet. A manifest and a service worker let a family put it on the home screen as a PWA (11.2). No store reviews it.
+
+**What it carries.**
+- Both modes: the adult's own key, and the author's key with ten free tasks a day and the subscription beyond them (2.7, 3.5).
+- The subscription on the web, through Paddle and RevenueCat (8.7, 11.4), at the prices of 8.12.
+- MathTrail's card from its package (4.5), with the choices for a host with no chat (section 12, change 7).
+- The app's own screens of section 2, in all 64 languages. The list of languages marks which ones a speaker has read (14.1).
+- Haiku 5.5 at medium effort for every task (6.6).
+- The app's server in Go on Cloud Run, on a billing account of its own (8.3). It writes every task (3.4) and is the page's back end (5.4).
+- The screen that names Anthropic and asks the adult's consent before the first task (9.3, 9.4), and "Report this task".
+- The check of the country. The app is offered where Anthropic's API is (9.6), and not in Brazil until a representative is named there (9.5).
+
+**Why first.**
+- It reaches families soonest, on their phones too, and no store's review holds it.
+- It proves the loop, the quota, the payment and the costs of section 8 on real families before a store sees the app.
+- It needs no native code.
+- The price is that families find it through the app's own site, not through a store's search.
+
+### 13.2 Then Google Play
+
+- Capacitor's Android shell around the same web app, with the app's own native plugin for the sign-in and MathTrail's calls (11.2).
+- Play Billing, through RevenueCat (11.4). Until Google answers whether the app may honour a subscription bought on the web, the Android app honours what was bought on Google Play alone (8.7).
+- Play Age Signals (9.5) and the data safety section (9.4).
+- Deleting the account in the app and on a page of the app's site (9.4), with MathTrail's tool that deletes the profile's file (section 12, change 9).
+- The audience declared as adults, and the listing in the 53 languages Google Play takes (10.3).
+- The company's account. Google writes its closed test of 12 testers for 14 days for new personal accounts, and does not name an organization's (9.2). So the release plans no such test, and runs one if Google asks for it.
+
+### 13.3 Then the App Store
+
+- The iOS shell, built on GitHub's macOS runners (11.5), with the same plugin in Swift. It needs iOS 17.4 or later (5.3).
+- StoreKit, through RevenueCat. The company joins the Small Business Program before the first sale (8.6).
+- Declared Age Range (9.5). The app stays outside the Kids Category (9.3).
+- **The review notes** say:
+  - under Apple's 5.1.1(v), why the server holds a family's access token for one job, and never its refresh token (3.2);
+  - under Apple's 4.8, why Google is the only sign-in (9.3);
+  - under Apple's 4.2, which native parts carry the app beyond a website: the sign-in, the calls, the Keychain, the purchase and the age signal (11.2);
+  - under Apple's 3.1.1, that the adult's key is the adult's own account at Anthropic, which pays ALT EdTech nothing (9.3);
+  - the password MathTrail gives its reviewers (R222), which a store's reviewer signs in with.
+- If App Review refuses the mode on the adult's key, the first iOS release ships without it (9.3).
+- The listing in the 43 languages the App Store takes (10.3).
+
+### 13.4 What waits past these releases
+
+- Voice, and the conversation it comes with (section 7).
+- A trial, Family Sharing and a price for a sibling (8.9).
+- App Attest, until its package leaves beta (3.2).
+- Sonnet 5.5 for the first task of a lesson (6.6).
+- The Kids Category (9.3).
+- MathTrail's consent page in the adult's language (10.5).
+
+### 13.5 Acceptance
+
+A release is accepted when each line holds that applies to it.
+
+| What holds | How it is checked |
+|---|---|
+| A lesson of ten tasks runs from the sign-in to how the last answer went, in both modes | By hand, on the author's computer, iPhone and Android phone, on each release's platform |
+| No answer reaches the device before the child answers | A test of the server's job and of the page's back end, as `TestTheAnswerStaysSealed` holds MathTrail's card |
+| The ten free tasks survive a new installation and a new sign-in, and the day ends at the family's midnight | Tests of the server's count, with the clock and the offset moved |
+| MathTrail's ceiling shows the night card, and three failed requests end the day's free tasks | Tests against a local MathTrail, `just play-server` |
+| The free workspace's limit is $50 a month | By hand, in the Claude Console |
+| A subscription bought on one device opens the others | By hand, with the stores' and Paddle's test purchases |
+| Every screen fits at 320, 360 and 640 px, in the 64 languages and the pseudo-language, in Chromium and WebKit | The app's own layout check, as `just web-layout` measures MathTrail's card (4.6, 10.2) |
+| Every script reads on a real iPhone and a real Android phone, Armenian, Georgian and Amharic first | By eye, before each store's release (10.4) |
+| A report of a task reaches the server, and is answered within the time the app's terms promise | By hand |
+| The consent to send data to Anthropic comes before the first task, in both modes | A test, and by hand |
+| Deleting the data deletes the profile's file and the server's own records | A test against a fake Drive, and by hand; from the Google Play release on |
+| The server refuses a country Anthropic does not serve | A test with a GeoIP database written for it, as MathTrail's `geoiptest` writes one |
+| No log carries personal data, a task's text or an answer | Tests of the server's lines, as MathTrail's are tested |
+| MathTrail's report shows the app's lessons under a label of their own | `just report` on the service's log |
+| A task costs close to the measurement's $0.0056 (8.1) | The first 500 tasks of production, from each call's `usage` |
+
+### 13.6 Risks
+
+| Risk | What the app does |
+|---|---|
+| Apple refuses the app under one of its guidelines (9.3): 4.2, a website in a wrapper; 3.1.1, the adult's key; 4.8, Google as the only sign-in; 5.1.1(v), the server's hold on a token | The review notes of 13.3. The iOS release without the adult's key. React Native with Expo as the fallback technology (11.7) |
+| Google judges the audience mixed, and the Families rules bind | The listing speaks to the adult (9.4). Anthropic allows products for minors under its guidelines (9.6) |
+| The parent's verifiable consent under COPPA costs more than the app earns | A lawyer chooses the method before the first release (13.7). Without one, the first release waits for it, or leaves the US out |
+| Anthropic's tier caps a month's spend, and stops every family at the cap (8.5) | The server watches the month's spend, and the company asks for the next tier before it is needed |
+| The free quota does not pay for itself (8.11) | The free workspace's limit holds what it may cost. The options of 8.11 |
+| A change in MathTrail breaks the app | The contract of section 12, change 5. The app's CI reads MathTrail's live `tools/list` |
+| The day's ceiling, shared with the chat, surprises a family | The subscription's screen and the settings say so (2.7, 5.9) |
+| Drive is slow or down | MathTrail's own retries, and the screens of 2.10 |
+| Capacitor 9 comes out while the app is built (11.2) | The app starts on the version that is out of beta when its repository starts |
+| The name meets a trademark | The register search before the domain is bought (9.8) |
+| One author for two products | The web version alone first, and MathTrail's changes ordered by need (section 12) |
+| The first task of a lesson keeps the child waiting | A median of 33 seconds (6.6). Every later task is written ahead |
+
+### 13.7 Before the first release, beyond the code
+
+- The name, searched in the registers (9.8), and then its domain (1.4).
+- The company's D-U-N-S number and a work email on its domain (9.2). The stores need them. The web version needs neither, so they are asked for early, while it is built.
+- Paddle's account and its review of the product, and RevenueCat's account (8.7).
+- Two workspaces at Anthropic, the free one under $50 a month (8.5, 8.12).
+- The server's billing account, with a spend cap well above the month expected (8.3).
+- The app's privacy policy and terms on its own domain (9.7), with the written retention policy COPPA asks for (9.5).
+- A data protection impact assessment (9.5).
+- The method of the parent's verifiable consent, chosen with a lawyer (9.5).
+- Representatives in the EU and the UK, if the lawyer finds them needed. Brazil stays out until one is named there (9.5).
+- A statement of COPPA compliance on the app's site, and Anthropic's child-safety system prompt in every request (9.6).
+- Where the reports of a task go, who answers them, and how soon (9.3).
+- MathTrail's changes 1–8 (section 12).
+
+### 13.8 The first tasks of the new repository
+
+The [app's plan](https://github.com/MathTrail/mathtrail-standalone/blob/main/RUN.APP.md) sets these out as tasks П03–П17, after the name, the company's accounts and the law of П00–П02.
+
+1. **The repository**, in a GitHub organization of the app's own name (14.1). It starts with a copy of this file, its own CLAUDE.md (13.9), the devcontainer, the justfile, CI with lint and tests, pinned versions, and the list of third-party licences.
+2. **The spike, on the author's devices.** It proves the riskiest part first: the native plugin's calls to MathTrail with no `Origin`, streamed to the web layer through the TypeScript SDK's `fetch`, and its sign-in with an `https` callback on iOS and on Android (11.8).
+   - It comes first although iOS ships last, because it decides the technology. If it fails, React Native with Expo is the second choice (11.7), and the web app would be written for that.
+   - It needs the app's domain for the client's document and for the associations of 5.3, so the name comes before it.
+3. **The server's loop** of 3.4, carried over from the measurement's script (6.3), against a local MathTrail. It unpacks a packed call (6.2), with a fuzz test of everything it reads from the model.
+4. **The quota and the family:** the identifier of 3.5, the database, the two workspaces and the check of the country.
+5. **The web version:** the sign-in through the server (5.4), MathTrail's card from its package, the app's own screens, the 64 languages and the layout check.
+6. **The payment:** RevenueCat and Paddle (8.7).
+7. **The first release**, the web version (13.1).
+
+### 13.9 What carries over from MathTrail's CLAUDE.md
+
+The new repository starts with these rules of MathTrail's [CLAUDE.md](https://github.com/MathTrail/mathtrail-standalone/blob/main/CLAUDE.md). Each says what changes in it.
+
+- **The role and the way of working.**
+  - The executor designs before typing.
+  - Tasks are run one at a time, from a plan. The task and the sections it cites are read first, and a gap is asked about, never filled silently.
+  - `/code-review high` runs before a change is called done, and a report closes the task. The executor does not commit.
+  - A live run or a step in the cloud waits for a warning that names its cost.
+  - No alternative the log rejected is proposed again without new evidence.
+  - SDK, protocol and API code is written from the docs of the pinned version.
+- **Devcontainer only**, with one exception: the iOS build, which runs on a macOS runner in CI (11.5), and the checks on the author's devices.
+- **Exact versions**, Capacitor's plugins, Gradle's dependencies and Swift's packages included. GitHub's hosted macOS image changes under its label. So the workflow pins the label and the version of Xcode, and that is named as an exception.
+- **English everywhere**: code, comments, documents. The plan and the reports are in the author's language, as in MathTrail.
+- **The child's data.**
+  - The child is known by a pseudonym alone, and the pseudonym never goes into a task.
+  - No log carries personal data, a task's text or an answer.
+  - The answer stays hidden until the child answers: in the job's stream to the phone and in the page's back end too.
+- **Secrets** live in environment variables, a local `.env` or Secret Manager alone. They now include the author's Anthropic key, App Store Connect's key, the key that signs the Android build, and RevenueCat's and Paddle's keys.
+- **Licences.**
+  - MIT for the code.
+  - Dependencies under licences compatible with MIT alone, as `anthropic-sdk-go`'s Apache License 2.0 is (6.7), and the list of third-party licences kept current.
+  - The app's name is not licensed to forks, as MathTrail's is not.
+- **The architecture and the standards of the Go code**, for the server, nearly as they stand:
+  - the layout of `domain/`, `infra/` and `transport/`, and the rule that dependencies point inward;
+  - interfaces in the package that provides them, simplicity before purity, the naming, the hand-written container;
+  - configuration through Viper, zap with Cloud Run's keys, the errors, the context and the doc comments;
+  - the tests: a fuzz test for everything read from the model, property tests, no network in unit tests, mockery where a call is what is checked.
+- **The tooling.**
+  - `gofmt -s` and golangci-lint for the server; Biome, TypeScript, Vitest and Vite for the web app;
+  - a pre-commit hook; govulncheck, npm audit and gitleaks in CI;
+  - the justfile, with the same recipe names: `ci-lint`, `ci-test`, `ci-web`;
+  - a multi-stage Dockerfile, its runtime image distroless and non-root, built with `CGO_ENABLED=0`.
+- **What does not carry over.**
+  - "No database": the server keeps its counts and the subscriptions in Firestore (3.5).
+  - "The service makes no LLM API calls": the app's server is what calls the model.
+  - MathTrail's own subjects: the MCP server, the golden vectors, the research and the site.
+
+## 14. Open questions
+
+### 14.1 Decided in this part
+
+Chosen by the author on 2026-11-12:
+- **The app's children in MathTrail's public numbers** (question 3 of the task).
+  - They are counted in every public number, as the chats' children are: the page "Research", the grant applications and the paper.
+  - In the split by host they show as a row of their own, under a neutral word, never the app's name. The row shows once ten children stand behind it in a month, as every group does.
+  - This needs MathTrail's label (section 12, change 1). Without it the app's children are counted all the same, under `other`.
+- **Languages no speaker has read** (В27 in the service's plan).
+  - The subscription is sold in all 64 languages.
+  - The list of languages marks which ones a speaker has read.
+  - A language gets a reader once its own subscriptions have brought in the reading's price, $110–170 (8.10). Until then its words are mended as families report them.
+- **What comes out first:** the web version, then Google Play, then the App Store (13.1).
+- **The new repository** lives in a GitHub organization of the app's own name, once the name is chosen.
+
+### 14.2 About the app
+
+These stay in this specification, for the new repository.
+
+| Question | Section | Who answers it, and when |
+|---|---|---|
+| The name. MathPeak is the candidate left | 1.4, 9.8 | The author, after the register search |
+| How the parent's verifiable consent under COPPA is taken, and whether the mode on the adult's key needs it as the paid one does | 9.5 | A lawyer, before the first release |
+| Whether the GDPR's exemption for "a purely personal or household activity" covers the adult on their own key | 9.5 | A lawyer |
+| Whether the app needs representatives in the EU and the UK. Brazil stays out until one is named there | 9.5 | A lawyer, before the first release |
+| Whether the Android app may honour a subscription bought on the web | 8.7, 9.4 | Google's developer support, before the Google Play release |
+| Whether App Review takes the mode on the adult's key | 9.3 | The first review |
+| How narrowly the "obvious" exception of Article 50 is read for a card that shows a task | 9.5 | A lawyer, with the Commission's guidelines |
+| Whether Google judges the audience mixed | 9.4 | The first review |
+| What the app does on a child's own device, when the age signal says its user is a child | 9.5 | The author, with a lawyer, before the stores |
+| How soon a report of a task is answered | 9.3 | The author, in the app's terms |
+| A price for a sibling | 8.9 | The author, once second subscriptions are seen |
+| Sonnet 5.5 for the first task of a lesson | 6.6 | Production's numbers of the first task's wait |
+| Whether the free quota pays for itself on real families | 8.11 | The first months' numbers, then the options of 8.11 |
+| How good a task is beyond MathTrail's checks | 6.6 | The author, reading the tasks |
+| App Attest, once its package leaves beta | 3.2 | Anthropic's docs |
+| Capacitor 9 | 11.2 | Its release |
+
+### 14.3 Questions that change MathTrail's decisions
+
+These go to MathTrail's product requirements as well, under the О- numbers below. The product requirements are kept outside git, so the rows live in the author's copy of them.
+
+| О- | Question | Section 12 | Recommendation |
+|---|---|---|---|
+| О-80 | Whether a client that is not a chat gets a label of its own in the log and the counts, and a row of its own in the public numbers | Change 1 | Settled by the author on 2026-11-12: yes, under a neutral word |
+| О-81 | Whether MathTrail gives each client an identifier of the account of its own | Change 2 | Yes, pairwise, derived in `seal`. Until then the app counts by the digest of the profile's link |
+| О-82 | Whether MathTrail promises a client outside it a contract on its tools' fields, with a version and a period of notice | Change 5 | Yes, for the fields of 5.10 alone |
+| О-83 | Whether MathTrail publishes its card as an npm package, with an interface others rely on | Change 6 | Yes |
+| О-84 | Whether the card draws, for a host with no chat, what it leaves to the chat: "Another task" as the host's action, "I don't know" (R208), "Report this task", and the line and the mark that AI wrote the task | Change 7 | Yes, each only when the host asks for it |
+| О-85 | Whether MathTrail gains a tool that deletes the profile's file, and whether the chats get it too | Change 9 | Yes. The chats too, once their directories' reviews of the tools are behind MathTrail: a family in a chat has the same right to delete its data |
+| О-86 | Whether $0 a month for MathTrail still holds once the app's traffic passes Cloud Run's free tier, and what the budget's alert is raised to | Change 15 | The company pays past the free tier (8.4). The goal stays $0 for the chats' own traffic, and the alert is raised to the month expected |
+
+### 14.4 What touches the free MathTrail too
+
+- **The name MathTrail.** MathTalk PBC uses it for a maths trail for children, and another developer's app in the App Store's education category has carried it since 2026-10-15 (1.4, 9.8). Whether the free MathTrail needs to do anything waits for the register search (В24 in the service's plan).
+- **Representatives** in the EU and the UK under Article 27 of the GDPR, and in Brazil under the ECA Digital, may be needed by the free MathTrail as well as by the app (9.5; В26 in the service's plan). For the app, the answer is part of 13.7.
+- **A reading of a dictionary** that the app pays for improves the free card too (section 12, change 6).
+- **The mark of AI.** The line and the machine-readable mark of change 7 are drawn for a host with no chat. Whether the card in the chats should carry them too, where the chat's own model writes the task, is a question for the same lawyer (9.5).
