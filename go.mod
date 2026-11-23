@@ -9,7 +9,7 @@ require (
 	github.com/leanovate/gopter v0.2.11
 	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/modelcontextprotocol/go-sdk v1.8.0
-	github.com/oschwald/maxminddb-golang/v2 v2.9.0
+	github.com/oschwald/maxminddb-golang/v2 v2.9.1
 	github.com/spf13/viper v1.21.0
 	go.opentelemetry.io/contrib/detectors/gcp v1.47.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.72.0
@@ -25,7 +25,7 @@ require (
 	go.uber.org/zap v1.28.0
 	go.yaml.in/yaml/v3 v3.0.6
 	golang.org/x/crypto v0.59.0
-	golang.org/x/net v0.62.0
+	golang.org/x/net v0.63.0
 	golang.org/x/oauth2 v0.38.0
 	golang.org/x/sync v0.25.0
 	golang.org/x/text v0.44.0
